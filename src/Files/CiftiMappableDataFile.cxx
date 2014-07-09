@@ -3559,25 +3559,136 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     }
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+    
+    CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
+                                                                   ciftiXML,
+                                                                   numCiftiDims);
+    
+//    for (int32_t alongType = 0; alongType < 3; alongType++) {
+//        AString alongName;
+//        CiftiMappingType::MappingType mapType = CiftiMappingType::BRAIN_MODELS;
+//        
+//        switch (alongType) {
+//            case CiftiXML::ALONG_ROW:
+//                if (numCiftiDims > 0) {
+//                    alongName = "ALONG_ROW";
+//                    mapType = ciftiXML.getMappingType(CiftiXML::ALONG_ROW);
+//                }
+//                break;
+//            case CiftiXML::ALONG_COLUMN:
+//                if (numCiftiDims > 1) {
+//                    alongName = "ALONG_COLUMN";
+//                    mapType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+//                }
+//                break;
+//            case CiftiXML::ALONG_STACK:
+//                if (numCiftiDims > 2) {
+//                    alongName = "ALONG_STACK";
+//                    mapType = ciftiXML.getMappingType(CiftiXML::ALONG_STACK);
+//                }
+//                break;
+//        }
+//        
+//        AString mapInfoString;
+//        if ( ! alongName.isEmpty()) {
+//            AString mapTypeName;
+//            switch (mapType) {
+//                case CiftiMappingType::BRAIN_MODELS:
+//                    mapTypeName = "BRAIN_MODELS";
+//                    break;
+//                case CiftiMappingType::LABELS:
+//                    mapTypeName = "LABELS";
+//                    break;
+//                case CiftiMappingType::PARCELS:
+//                    mapTypeName = "PARCELS";
+//                    break;
+//                case CiftiMappingType::SCALARS:
+//                    mapTypeName = "SCALARS";
+//                    break;
+//                case CiftiMappingType::SERIES:
+//                    mapTypeName = "SERIES";
+//                    break;
+//            }
+//            dataFileInformation.addNameAndValue((alongName
+//                                                 + " map type"),
+//                                                mapTypeName);
+//            
+//            switch (mapType) {
+//                case CiftiMappingType::BRAIN_MODELS:
+//                {
+//                    const CiftiBrainModelsMap& bmm = ciftiXML.getBrainModelsMap(alongType);
+//                    
+//                    const std::vector<StructureEnum::Enum> surfaceStructures = bmm.getSurfaceStructureList();
+//                    for (std::vector<StructureEnum::Enum>::const_iterator surfaceIter = surfaceStructures.begin();
+//                         surfaceIter != surfaceStructures.end();
+//                         surfaceIter++) {
+//                        const StructureEnum::Enum structure = *surfaceIter;
+//                        dataFileInformation.addNameAndValue(("    "
+//                                                             + StructureEnum::toGuiName(structure)),
+//                                                            (AString::number(bmm.getSurfaceNumberOfNodes(structure))
+//                                                             + " nodes"));
+//                    }
+//                    
+//                    const std::vector<StructureEnum::Enum> volumeStructures = bmm.getVolumeStructureList();
+//                    for (std::vector<StructureEnum::Enum>::const_iterator volumeIter = volumeStructures.begin();
+//                         volumeIter != volumeStructures.end();
+//                         volumeIter++) {
+//                        const StructureEnum::Enum structure = *volumeIter;
+//                        dataFileInformation.addNameAndValue(("    "
+//                                                             + StructureEnum::toGuiName(structure)),
+//                                                            (AString::number(bmm.getVolumeStructureMap(structure).size())
+//                                                             + " voxels"));
+//                    }
+//                    
+//                }
+//                    break;
+//                case CiftiMappingType::LABELS:
+//                    break;
+//                case CiftiMappingType::PARCELS:
+//                    break;
+//                case CiftiMappingType::SCALARS:
+//                    break;
+//                case CiftiMappingType::SERIES:
+//                    break;
+//            }
+//        }
+//    }
+}
+
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ * @param ciftiXML
+ *    The CIFTI XML.
+ * @param numberOfCiftiDimensions
+ *    Number of Dimensions of the CIFTI File.
+ */
+void
+CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentInformation& dataFileInformation,
+                                                               const CiftiXML& ciftiXML,
+                                                               const int32_t numberOfCiftiDimensions)
+{
     for (int32_t alongType = 0; alongType < 3; alongType++) {
         AString alongName;
         CiftiMappingType::MappingType mapType = CiftiMappingType::BRAIN_MODELS;
         
         switch (alongType) {
             case CiftiXML::ALONG_ROW:
-                if (numCiftiDims > 0) {
+                if (numberOfCiftiDimensions > 0) {
                     alongName = "ALONG_ROW";
                     mapType = ciftiXML.getMappingType(CiftiXML::ALONG_ROW);
                 }
                 break;
             case CiftiXML::ALONG_COLUMN:
-                if (numCiftiDims > 1) {
+                if (numberOfCiftiDimensions > 1) {
                     alongName = "ALONG_COLUMN";
                     mapType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
                 }
                 break;
             case CiftiXML::ALONG_STACK:
-                if (numCiftiDims > 2) {
+                if (numberOfCiftiDimensions > 2) {
                     alongName = "ALONG_STACK";
                     mapType = ciftiXML.getMappingType(CiftiXML::ALONG_STACK);
                 }
@@ -3647,8 +3758,10 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                     break;
             }
         }
-    }
+    }    
 }
+
+
 
 /**
  * Help load charting data for the surface with the given structure and node average.

@@ -32,6 +32,7 @@
 #include "CaretLogger.h"
 #include "CaretSparseFile.h"
 #include "CiftiFiberOrientationFile.h"
+#include "CiftiMappableDataFile.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
@@ -1670,40 +1671,48 @@ CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInforma
         //ciftiXML.getVoxelInfoInDataFileContentInformation(CiftiXML::ALONG_COLUMN,
         //                                                  dataFileInformation);
         
-        VolumeSpace volumeSpace = colMap.getVolumeSpace();//TSC: copied/reimplemented from CiftiXMLOld - I don't think it belongs in CiftiXML or CiftiBrainModelsMap
-        const int64_t* dims = volumeSpace.getDims();
-        dataFileInformation.addNameAndValue("Dimensions", AString::fromNumbers(dims, 3, ","));
-        VolumeSpace::OrientTypes orientation[3];
-        float spacing[3];
-        float origin[3];
-        volumeSpace.getOrientAndSpacingForPlumb(orientation, spacing, origin);
-        dataFileInformation.addNameAndValue("Spacing", AString::fromNumbers(spacing, 3, ","));
-        dataFileInformation.addNameAndValue("Origin", AString::fromNumbers(origin, 3, ","));
-        
-        const std::vector<std::vector<float> >& sform = volumeSpace.getSform();
-        for (uint32_t i = 0; i < sform.size(); i++) {
-            dataFileInformation.addNameAndValue(("sform row "
-                                                + AString::number(i)),
-                                                AString::fromNumbers(sform[i], ","));
-        }
-        std::vector<StructureEnum::Enum> volStructs = colMap.getVolumeStructureList();
-        for (int i = 0; i < (int)volStructs.size(); ++i)
-        {
-            std::vector<CiftiBrainModelsMap::VolumeMap> voxels = colMap.getVolumeStructureMap(volStructs[i]);
-            for (int j = 0; j < (int)voxels.size(); ++j)
+        if (colMap.hasVolumeData()) {
+            VolumeSpace volumeSpace = colMap.getVolumeSpace();//TSC: copied/reimplemented from CiftiXMLOld - I don't think it belongs in CiftiXML or CiftiBrainModelsMap
+            const int64_t* dims = volumeSpace.getDims();
+            dataFileInformation.addNameAndValue("Dimensions", AString::fromNumbers(dims, 3, ","));
+            VolumeSpace::OrientTypes orientation[3];
+            float spacing[3];
+            float origin[3];
+            volumeSpace.getOrientAndSpacingForPlumb(orientation, spacing, origin);
+            dataFileInformation.addNameAndValue("Spacing", AString::fromNumbers(spacing, 3, ","));
+            dataFileInformation.addNameAndValue("Origin", AString::fromNumbers(origin, 3, ","));
+            
+            const std::vector<std::vector<float> >& sform = volumeSpace.getSform();
+            for (uint32_t i = 0; i < sform.size(); i++) {
+                dataFileInformation.addNameAndValue(("sform row "
+                                                     + AString::number(i)),
+                                                    AString::fromNumbers(sform[i], ","));
+            }
+            std::vector<StructureEnum::Enum> volStructs = colMap.getVolumeStructureList();
+            for (int i = 0; i < (int)volStructs.size(); ++i)
             {
-                float xyz[3];
-                volumeSpace.indexToSpace(voxels[i].m_ijk, xyz);
-                const AString msg = ("ijk=("
-                                     + AString::fromNumbers(voxels[j].m_ijk, 3, ", ")
-                                     + "), xyz=("
-                                     + AString::fromNumbers(xyz, 3, ", ")
-                                     + "), row="
-                                     + AString::number(voxels[j].m_ciftiIndex)
-                                     + "  ");//TSC: huh?
-                dataFileInformation.addNameAndValue(StructureEnum::toGuiName(volStructs[i]), msg);//TSC: huh?
+                std::vector<CiftiBrainModelsMap::VolumeMap> voxels = colMap.getVolumeStructureMap(volStructs[i]);
+                for (int j = 0; j < (int)voxels.size(); ++j)
+                {
+                    float xyz[3];
+                    volumeSpace.indexToSpace(voxels[i].m_ijk, xyz);
+                    const AString msg = ("ijk=("
+                                         + AString::fromNumbers(voxels[j].m_ijk, 3, ", ")
+                                         + "), xyz=("
+                                         + AString::fromNumbers(xyz, 3, ", ")
+                                         + "), row="
+                                         + AString::number(voxels[j].m_ciftiIndex)
+                                         + "  ");//TSC: huh?
+                    dataFileInformation.addNameAndValue(StructureEnum::toGuiName(volStructs[i]), msg);//TSC: huh?
+                }
             }
         }
+
+        CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
+                                                                       ciftiXML,
+                                                                       2);
     }
+    
+
 }
 

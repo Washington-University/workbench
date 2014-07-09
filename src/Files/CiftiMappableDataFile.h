@@ -35,6 +35,7 @@ namespace caret {
     class ChartData;
     class ChartDataCartesian;
     class CiftiFile;
+    class CiftiXML;
     class DescriptiveStatistics;
     class FastStatistics;
     class GroupAndNameHierarchyModel;
@@ -121,6 +122,10 @@ namespace caret {
                                                                      AString& errorMessageOut);
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
+        static void addCiftiXmlToDataFileContentInformation(DataFileContentInformation& dataFileInformation,
+                                                             const CiftiXML& ciftiXML,
+                                                            const int32_t numberOfCiftiDimensions);
         
         virtual void clear();
         
