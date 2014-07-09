@@ -26,6 +26,7 @@
 #undef __OVERLAY_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
@@ -426,7 +427,7 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         }
         
         if (mappable == false) {
-            CaretAssertMessage(0, "Map file is neither surface nor volume mappable: " + mapFile->getFileName());
+            CaretLogSevere("Map file is neither surface nor volume mappable: " + mapFile->getFileName());
         }
         
         if (useIt) {
