@@ -800,7 +800,7 @@ CiftiMappableDataFile::isSurfaceMappable() const
 bool
 CiftiMappableDataFile::isVolumeMappable() const
 {
-    return m_containsSurfaceData;
+    return m_containsVolumeData;
 }
 
 /**
@@ -3559,11 +3559,11 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     }
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
-    for (int32_t i = 0; i < 3; i++) {
+    for (int32_t alongType = 0; alongType < 3; alongType++) {
         AString alongName;
         CiftiMappingType::MappingType mapType = CiftiMappingType::BRAIN_MODELS;
         
-        switch (i) {
+        switch (alongType) {
             case CiftiXML::ALONG_ROW:
                 if (numCiftiDims > 0) {
                     alongName = "ALONG_ROW";
@@ -3584,6 +3584,7 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                 break;
         }
         
+        AString mapInfoString;
         if ( ! alongName.isEmpty()) {
             AString mapTypeName;
             switch (mapType) {
@@ -3606,6 +3607,45 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
             dataFileInformation.addNameAndValue((alongName
                                                  + " map type"),
                                                 mapTypeName);
+            
+            switch (mapType) {
+                case CiftiMappingType::BRAIN_MODELS:
+                {
+                    const CiftiBrainModelsMap& bmm = ciftiXML.getBrainModelsMap(alongType);
+                    
+                    const std::vector<StructureEnum::Enum> surfaceStructures = bmm.getSurfaceStructureList();
+                    for (std::vector<StructureEnum::Enum>::const_iterator surfaceIter = surfaceStructures.begin();
+                         surfaceIter != surfaceStructures.end();
+                         surfaceIter++) {
+                        const StructureEnum::Enum structure = *surfaceIter;
+                        dataFileInformation.addNameAndValue(("    "
+                                                             + StructureEnum::toGuiName(structure)),
+                                                            (AString::number(bmm.getSurfaceNumberOfNodes(structure))
+                                                             + " nodes"));
+                    }
+                    
+                    const std::vector<StructureEnum::Enum> volumeStructures = bmm.getVolumeStructureList();
+                    for (std::vector<StructureEnum::Enum>::const_iterator volumeIter = volumeStructures.begin();
+                         volumeIter != volumeStructures.end();
+                         volumeIter++) {
+                        const StructureEnum::Enum structure = *volumeIter;
+                        dataFileInformation.addNameAndValue(("    "
+                                                             + StructureEnum::toGuiName(structure)),
+                                                            (AString::number(bmm.getVolumeStructureMap(structure).size())
+                                                             + " voxels"));
+                    }
+                    
+                }
+                    break;
+                case CiftiMappingType::LABELS:
+                    break;
+                case CiftiMappingType::PARCELS:
+                    break;
+                case CiftiMappingType::SCALARS:
+                    break;
+                case CiftiMappingType::SERIES:
+                    break;
+            }
         }
     }
 }
