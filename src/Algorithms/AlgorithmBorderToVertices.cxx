@@ -59,11 +59,8 @@ OperationParameters* AlgorithmBorderToVertices::getParameters()
     borderOpt->addStringParameter(1, "name", "the name of the border");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  ") +
-        "DO NOT add the info about what the command line format is, and do not give the command switch, " +
-        "short description, or the short descriptions of parameters.  " +
-        "Do not indent, manually break long lines, or format the text in any way " +
-        "other than to separate paragraphs within the help text prose, usually with two newlines."
+        AString("Outputs a metric with 1s on vertices that follow a border, and 0s elsewhere.  ") +
+        "By default, a separate metric column is created for each border."
     );
     return ret;
 }
