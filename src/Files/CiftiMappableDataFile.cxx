@@ -1536,7 +1536,7 @@ CiftiMappableDataFile::getParcelNodesElementForSelectedParcel(std::set<int64_t> 
     if (m_ciftiFile->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::PARCELS) return false;
     const std::vector<CiftiParcelsMap::Parcel>& parcels = m_ciftiFile->getCiftiXML().getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
     
-    if(m_ciftiFile->checkColumnIndex(selectionIndex))
+    if(selectionIndex >= 0 && selectionIndex < (int64_t)parcels.size())
     {
         const CiftiParcelsMap::Parcel& parcelOut = parcels[selectionIndex];
         std::map<StructureEnum::Enum, std::set<int64_t> >::const_iterator findStruct = parcelOut.m_surfaceNodes.find(structure);
@@ -1578,19 +1578,36 @@ CiftiMappableDataFile::getDimensions(int64_t& dimOut1,
     dimTimeOut = 0;
     numComponentsOut = 0;
     
-    VolumeSpace::OrientTypes orient[3];
-    int64_t dimensions[3];
-    float origin[3];
-    float spacing[3];
-    if (m_ciftiFile->getVolumeAttributesForPlumb(orient,
-                                             dimensions,
-                                             origin,
-                                             spacing)) {
-        dimOut1    = dimensions[0];
-        dimOut2    = dimensions[1];
-        dimOut3    = dimensions[2];
-        dimTimeOut = 1;
-        numComponentsOut = 1;
+    switch (m_ciftiFile->getCiftiXML().getMappingType(m_dataMappingDirectionForCiftiXML))
+    {
+        case CiftiMappingType::BRAIN_MODELS:
+        {
+            const CiftiBrainModelsMap& myDenseMap = m_ciftiFile->getCiftiXML().getBrainModelsMap(m_dataMappingDirectionForCiftiXML);
+            if (!myDenseMap.hasVolumeData()) return;
+            const VolumeSpace& mySpace = myDenseMap.getVolumeSpace();
+            const int64_t* dims = mySpace.getDims();
+            dimOut1 = dims[0];
+            dimOut2 = dims[1];
+            dimOut3 = dims[2];
+            dimTimeOut = 1;//???
+            numComponentsOut = 1;
+            break;
+        }
+        case CiftiMappingType::PARCELS:
+        {
+            const CiftiParcelsMap& myParcelMap = m_ciftiFile->getCiftiXML().getParcelsMap(m_dataMappingDirectionForCiftiXML);
+            if (!myParcelMap.hasVolumeData()) return;
+            const VolumeSpace& mySpace = myParcelMap.getVolumeSpace();
+            const int64_t* dims = mySpace.getDims();
+            dimOut1 = dims[0];
+            dimOut2 = dims[1];
+            dimOut3 = dims[2];
+            dimTimeOut = 1;//???
+            numComponentsOut = 1;
+            break;
+        }
+        default://nothing else has volume dimensions
+            break;
     }
 }
 
@@ -3687,7 +3704,7 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                         const CiftiParcelsMap::Parcel parcel = *parcelIter;
                         dataFileInformation.addNameAndValue(("    "
                                                              + parcel.m_name),
-                                                            " ");
+                                                            AString(" "));
                     }
                 }
                     break;
