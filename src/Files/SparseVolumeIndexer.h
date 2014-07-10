@@ -23,27 +23,17 @@
 
 #include "CaretCompact3DLookup.h"
 #include "CaretObject.h"
-#include "CiftiXML.h"
+#include "CiftiBrainModelsMap.h"
+#include "VolumeSpace.h"
 
 namespace caret {
-    class CiftiInterface;
-    class VolumeSpace;
     
     class SparseVolumeIndexer : public CaretObject {
         
     public:
-        /**
-         * Location of voxel data.
-         */
-        enum ColumnOrRow {
-            /** Use voxel data for columns */
-            COLUMN,
-            /** Use voxel data for rows */
-            ROW
-        };
+        SparseVolumeIndexer();
         
-        SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
-                            const std::vector<CiftiBrainModelsMap::VolumeMap>& ciftiVoxelMapping);
+        SparseVolumeIndexer(const CiftiBrainModelsMap& ciftiBrainModelsMap);
         
         virtual ~SparseVolumeIndexer();
         
@@ -86,20 +76,9 @@ namespace caret {
 
         bool m_dataValid;
         
-        int64_t m_dimI;
-        
-        int64_t m_dimJ;
-        
-        int64_t m_dimK;
-        
         CaretCompact3DLookup<int64_t> m_voxelIndexLookup;
         
-        const CiftiInterface* m_ciftiInterface;
-        
-        VolumeSpace* m_volumeSpace;
-        
-//        std::vector<int32_t> m_voxelOffsets;
-        
+        VolumeSpace m_volumeSpace;
     };
     
 #ifdef __SPARSE_VOLUME_INDEXER_DECLARE__

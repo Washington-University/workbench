@@ -579,18 +579,6 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
     CaretAssert(m_ciftiFile);
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
-    std::vector<CiftiBrainModelsMap::VolumeMap> voxelMapping;
-    switch (m_dataMappingAccessMethod) {
-        case DATA_ACCESS_METHOD_INVALID:
-            break;
-        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
-            m_ciftiFile->getVolumeMapForColumns(voxelMapping);
-            break;
-        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
-            m_ciftiFile->getVolumeMapForRows(voxelMapping);
-            break;
-    }
-    
     switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
         case CiftiMappingType::BRAIN_MODELS:
         {
@@ -658,8 +646,26 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
             break;
     }
     
-    m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(m_ciftiFile,
-                                                           voxelMapping));
+    switch (m_dataMappingAccessMethod) {
+        case DATA_ACCESS_METHOD_INVALID:
+            break;
+        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
+            if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS) {
+                m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN)));
+            }
+            break;
+        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::BRAIN_MODELS) {
+                m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW)));
+            }
+            break;
+    }
+    /*
+     * May not have mappings to voxels
+     */
+    if (m_voxelIndicesToOffset == NULL) {
+        m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer());
+    }
     
     int32_t numberOfMaps = 0;
     switch (m_fileMapDataType) {
