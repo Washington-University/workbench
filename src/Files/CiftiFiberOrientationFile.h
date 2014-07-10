@@ -78,6 +78,8 @@ namespace caret {
         
         bool supportsWriting() const;
         
+        void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         // ADD_NEW_METHODS_HERE
         
     private:

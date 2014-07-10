@@ -1709,8 +1709,7 @@ CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInforma
         }
 
         CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
-                                                                       ciftiXML,
-                                                                       2);
+                                                                       ciftiXML);
     }
     
 

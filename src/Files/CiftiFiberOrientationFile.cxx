@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CiftiFile.h"
+#include "CiftiMappableDataFile.h"
 #include "CaretLogger.h"
 #include "Fiber.h"
 #include "FiberOrientation.h"
@@ -494,6 +495,24 @@ CiftiFiberOrientationFile::readFile(const AString& filename) throw (DataFileExce
         throw dfe;
     }
 }
+
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+CiftiFiberOrientationFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    if (m_ciftiXML != NULL) {
+        CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
+                                                                       *m_ciftiXML);
+    }
+}
+
 
 /**
  * Write the data file.

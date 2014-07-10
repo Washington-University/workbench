@@ -124,8 +124,7 @@ namespace caret {
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         static void addCiftiXmlToDataFileContentInformation(DataFileContentInformation& dataFileInformation,
-                                                             const CiftiXML& ciftiXML,
-                                                            const int32_t numberOfCiftiDimensions);
+                                                            const CiftiXML& ciftiXML);
         
         virtual void clear();
         
