@@ -299,7 +299,7 @@ IdentifyBrainordinateDialog::okButtonClicked()
                 errorMessage = ("Vertex Index "
                                 + AString::number(s_lastSelectedVertexIndex)
                                 + " is out of range.  Maximum vertex index is "
-                                + bs->getNumberOfNodes());
+                                + AString::number(bs->getNumberOfNodes()));
             }
         }
         else {
