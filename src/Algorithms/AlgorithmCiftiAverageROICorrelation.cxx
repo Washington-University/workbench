@@ -626,8 +626,7 @@ void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiFile* myCifti,
 void AlgorithmCiftiAverageROICorrelation::addSurface(const CiftiFile* myCifti, StructureEnum::Enum myStruct, vector<double>& accum, const MetricFile* myRoi, const int& myMap, const float* myAreas)
 {
     if (myRoi == NULL) return;
-    vector<CiftiBrainModelsMap::SurfaceMap> surfaceMap;
-    myCifti->getSurfaceMapForColumns(surfaceMap, myStruct);
+    vector<CiftiBrainModelsMap::SurfaceMap> surfaceMap = myCifti->getCiftiXML().getBrainModelsMap(CiftiXML::ALONG_COLUMN).getSurfaceMap(myStruct);
     int mapSize = (int)surfaceMap.size();
     int rowSize = myCifti->getNumberOfColumns();
     vector<float> rowscratch(rowSize);
@@ -665,8 +664,7 @@ void AlgorithmCiftiAverageROICorrelation::addSurface(const CiftiFile* myCifti, S
 void AlgorithmCiftiAverageROICorrelation::addVolume(const CiftiFile* myCifti, vector<double>& accum, const VolumeFile* myRoi, const int& myMap)
 {
     if (myRoi == NULL) return;
-    vector<CiftiBrainModelsMap::VolumeMap> volMap;
-    myCifti->getVolumeMapForColumns(volMap);
+    vector<CiftiBrainModelsMap::VolumeMap> volMap = myCifti->getCiftiXML().getBrainModelsMap(CiftiXML::ALONG_COLUMN).getFullVolumeMap();
     int mapSize = (int)volMap.size();
     int rowSize = myCifti->getNumberOfColumns();
     vector<float> rowscratch(rowSize);

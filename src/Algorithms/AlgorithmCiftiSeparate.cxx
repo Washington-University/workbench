@@ -183,16 +183,17 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                                                const StructureEnum::Enum& myStruct, MetricFile* metricOut, MetricFile* roiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (ciftiIn->getCiftiXML().getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
-    if (myDir >= ciftiIn->getCiftiXML().getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
-    if (ciftiIn->getCiftiXML().getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
-    if (ciftiIn->getCiftiXML().getMappingType(1 - myDir) == CiftiMappingType::LABELS) CaretLogWarning("creating a metric file from cifti label data");
-    const CiftiBrainModelsMap& myBrainModelsMap = ciftiIn->getCiftiXML().getBrainModelsMap(myDir);
+    const CiftiXML& myXML = ciftiIn->getCiftiXML();
+    if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
+    if (myDir >= myXML.getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
+    if (myXML.getMappingType(1 - myDir) == CiftiMappingType::LABELS) CaretLogWarning("creating a metric file from cifti label data");
+    const CiftiBrainModelsMap& myBrainModelsMap = myXML.getBrainModelsMap(myDir);
     vector<CiftiBrainModelsMap::SurfaceMap> myMap = myBrainModelsMap.getSurfaceMap(myStruct);
     int rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
     {
-        int64_t numNodes = ciftiIn->getColumnSurfaceNumberOfNodes(myStruct);
+        int64_t numNodes = myBrainModelsMap.getSurfaceNumberOfNodes(myStruct);
         metricOut->setNumberOfNodesAndColumns(numNodes, rowSize);
         metricOut->setStructure(myStruct);
         if (roiOut != NULL)
@@ -227,7 +228,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
             }
         }
     } else {
-        int64_t numNodes = ciftiIn->getRowSurfaceNumberOfNodes(myStruct);
+        int64_t numNodes = myBrainModelsMap.getSurfaceNumberOfNodes(myStruct);
         metricOut->setNumberOfNodesAndColumns(numNodes, colSize);
         metricOut->setStructure(myStruct);
         if (roiOut != NULL)
@@ -262,17 +263,18 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                                                const StructureEnum::Enum& myStruct, LabelFile* labelOut, MetricFile* roiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (ciftiIn->getCiftiXML().getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
-    if (myDir >= ciftiIn->getCiftiXML().getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
-    if (ciftiIn->getCiftiXML().getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
-    if (ciftiIn->getCiftiXML().getMappingType(1 - myDir) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
-    const CiftiBrainModelsMap& myBrainModelsMap = ciftiIn->getCiftiXML().getBrainModelsMap(myDir);
-    const CiftiLabelsMap& myLabelsMap = ciftiIn->getCiftiXML().getLabelsMap(1 - myDir);
+    const CiftiXML& myXML = ciftiIn->getCiftiXML();
+    if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
+    if (myDir >= myXML.getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
+    if (myXML.getMappingType(1 - myDir) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+    const CiftiBrainModelsMap& myBrainModelsMap = myXML.getBrainModelsMap(myDir);
+    const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(1 - myDir);
     vector<CiftiBrainModelsMap::SurfaceMap> myMap = myBrainModelsMap.getSurfaceMap(myStruct);
     int64_t rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
-    if (myDir == CiftiXMLOld::ALONG_COLUMN)
+    if (myDir == CiftiXML::ALONG_COLUMN)
     {
-        int64_t numNodes = ciftiIn->getColumnSurfaceNumberOfNodes(myStruct);
+        int64_t numNodes = myBrainModelsMap.getSurfaceNumberOfNodes(myStruct);
         labelOut->setNumberOfNodesAndColumns(numNodes, rowSize);
         labelOut->setStructure(myStruct);
         if (roiOut != NULL)
@@ -323,7 +325,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
             }
         }
     } else {
-        int64_t numNodes = ciftiIn->getRowSurfaceNumberOfNodes(myStruct);
+        int64_t numNodes = myBrainModelsMap.getSurfaceNumberOfNodes(myStruct);
         labelOut->setNumberOfNodesAndColumns(numNodes, colSize);
         labelOut->setStructure(myStruct);
         if (roiOut != NULL)

@@ -186,7 +186,7 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
+        if (mySurf->getNumberOfNodes() != myXML.getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
         {
             throw AlgorithmException(surfType + " surface has the wrong number of vertices");
         }

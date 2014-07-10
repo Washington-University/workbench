@@ -209,17 +209,9 @@ AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (myDir == CiftiXMLOld::ALONG_COLUMN)
+        if (mySurf->getNumberOfNodes() != myBrainMap.getSurfaceNumberOfNodes(surfaceList[whichStruct]))
         {
-            if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
-            {
-                throw AlgorithmException(surfType + " surface has the wrong number of vertices");
-            }
-        } else {
-            if (mySurf->getNumberOfNodes() != myCifti->getRowSurfaceNumberOfNodes(surfaceList[whichStruct]))
-            {
-                throw AlgorithmException(surfType + " surface has the wrong number of vertices");
-            }
+            throw AlgorithmException(surfType + " surface has the wrong number of vertices");
         }
         if (myAreas != NULL && myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
         {

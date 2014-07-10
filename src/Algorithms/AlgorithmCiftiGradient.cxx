@@ -181,12 +181,12 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
         }
         if (myDir == CiftiXMLOld::ALONG_COLUMN)
         {
-            if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
+            if (mySurf->getNumberOfNodes() != myXML.getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
                 throw AlgorithmException(surfType + " surface has the wrong number of vertices");
             }
         } else {
-            if (mySurf->getNumberOfNodes() != myCifti->getRowSurfaceNumberOfNodes(surfaceList[whichStruct]))
+            if (mySurf->getNumberOfNodes() != myXML.getRowSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
                 throw AlgorithmException(surfType + " surface has the wrong number of vertices");
             }

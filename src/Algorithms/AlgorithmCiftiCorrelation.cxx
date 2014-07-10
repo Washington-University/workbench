@@ -291,9 +291,9 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             {
                 throw AlgorithmException("surface roi has the wrong number of vertices for structure " + StructureEnum::toName(surfList[i]));
             }
-            vector<CiftiBrainModelsMap::SurfaceMap> myMap;
-            myCifti->getSurfaceMapForColumns(myMap, surfList[i]);
-            int numNodes = myCifti->getColumnSurfaceNumberOfNodes(surfList[i]);
+            const CiftiBrainModelsMap& myDenseMap = myCifti->getCiftiXML().getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+            vector<CiftiBrainModelsMap::SurfaceMap> myMap = myDenseMap.getSurfaceMap(surfList[i]);
+            int numNodes = myDenseMap.getSurfaceNumberOfNodes(surfList[i]);
             int mapsize = (int)myMap.size();
             vector<int64_t> tempNodeList;
             for (int j = 0; j < mapsize; ++j)

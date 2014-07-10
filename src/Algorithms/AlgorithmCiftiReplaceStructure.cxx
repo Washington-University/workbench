@@ -152,16 +152,16 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                                                                const StructureEnum::Enum& myStruct, const MetricFile* metricIn) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (ciftiInOut->getCiftiXML().getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
+    const CiftiXML& myXML = ciftiInOut->getCiftiXML();
+    if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified dimension must contain brain models");
+    const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(myDir);
     vector<CiftiBrainModelsMap::SurfaceMap> myMap;
     int rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
     {
-        if (!ciftiInOut->getSurfaceMapForColumns(myMap, myStruct))
-        {
-            throw AlgorithmException("structure not found in specified dimension");
-        }
-        int64_t numNodes = ciftiInOut->getColumnSurfaceNumberOfNodes(myStruct);
+        myMap = myDenseMap.getSurfaceMap(myStruct);
+        int64_t numNodes = myDenseMap.getSurfaceNumberOfNodes(myStruct);
         if (metricIn->getNumberOfNodes() != numNodes)
         {
             throw AlgorithmException("input metric has the wrong number of vertices");
@@ -182,11 +182,8 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         }
     } else {
         if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("unsupported cifti direction");
-        if (!ciftiInOut->getSurfaceMapForRows(myMap, myStruct))
-        {
-            throw AlgorithmException("structure not found in specified dimension");
-        }
-        int64_t numNodes = ciftiInOut->getRowSurfaceNumberOfNodes(myStruct);
+        myMap = myDenseMap.getSurfaceMap(myStruct);
+        int64_t numNodes = myDenseMap.getSurfaceNumberOfNodes(myStruct);
         if (metricIn->getNumberOfNodes() != numNodes)
         {
             throw AlgorithmException("input metric has the wrong number of vertices");
@@ -213,19 +210,19 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                                                                const StructureEnum::Enum& myStruct, const LabelFile* labelIn) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (ciftiInOut->getCiftiXML().getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
+    const CiftiXML& myXML = ciftiInOut->getCiftiXML();
+    if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified dimension must contain brain models");
+    const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(myDir);
     ciftiInOut->convertToInMemory();//so that writing it can change the header
     vector<CiftiBrainModelsMap::SurfaceMap> myMap;
     int64_t rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
     {
-        if (ciftiInOut->getCiftiXML().getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
-        const CiftiLabelsMap& myLabelsMap = ciftiInOut->getCiftiXML().getLabelsMap(CiftiXML::ALONG_ROW);
-        if (!ciftiInOut->getSurfaceMapForColumns(myMap, myStruct))
-        {
-            throw AlgorithmException("structure not found in specified dimension");
-        }
-        int64_t numNodes = ciftiInOut->getColumnSurfaceNumberOfNodes(myStruct);
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+        const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
+        myMap = myDenseMap.getSurfaceMap(myStruct);
+        int64_t numNodes = myDenseMap.getSurfaceNumberOfNodes(myStruct);
         if (labelIn->getNumberOfNodes() != numNodes)
         {
             throw AlgorithmException("input label file has the wrong number of vertices");
@@ -295,13 +292,13 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         }
     } else {
         if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("unsupported cifti direction");
-        if (ciftiInOut->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
-        const CiftiLabelsMap& myLabelsMap = ciftiInOut->getCiftiXML().getLabelsMap(CiftiXML::ALONG_COLUMN);
-        if (!ciftiInOut->getSurfaceMapForRows(myMap, myStruct))
+        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+        const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
+        myMap = myDenseMap.getSurfaceMap(myStruct);
         {
             throw AlgorithmException("structure not found in specified dimension");
         }
-        int64_t numNodes = ciftiInOut->getRowSurfaceNumberOfNodes(myStruct);
+        int64_t numNodes = myDenseMap.getSurfaceNumberOfNodes(myStruct);
         if (labelIn->getNumberOfNodes() != numNodes)
         {
             throw AlgorithmException("input label file has the wrong number of vertices");

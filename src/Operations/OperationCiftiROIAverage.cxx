@@ -158,13 +158,13 @@ void OperationCiftiROIAverage::processSurfaceComponent(const CiftiFile* myCifti,
 {
     int numCols = myCifti->getNumberOfColumns();
     int numNodes = myRoi->getNumberOfNodes();
-    if (myCifti->getColumnSurfaceNumberOfNodes(myStruct) != numNodes)
+    const CiftiBrainModelsMap& myDenseMap = myCifti->getCiftiXML().getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (myDenseMap.getSurfaceNumberOfNodes(myStruct) != numNodes)
     {
         throw OperationException("roi number of vertices doesn't match for structure " + StructureEnum::toName(myStruct));
     }
     vector<float> scratch(numCols);
-    vector<CiftiBrainModelsMap::SurfaceMap> myMap;
-    myCifti->getSurfaceMapForColumns(myMap, myStruct);
+    vector<CiftiBrainModelsMap::SurfaceMap> myMap = myDenseMap.getSurfaceMap(myStruct);
     int mapSize = myMap.size();
     for (int i = 0; i < mapSize; ++i)
     {

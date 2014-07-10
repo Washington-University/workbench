@@ -199,7 +199,7 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
+        if (mySurf->getNumberOfNodes() != myCifti->getCiftiXML().getBrainModelsMap(CiftiXML::ALONG_COLUMN).getSurfaceNumberOfNodes(surfaceList[whichStruct]))
         {
             throw AlgorithmException(surfType + " surface has the wrong number of vertices");
         }
@@ -1035,6 +1035,7 @@ float AlgorithmCiftiCorrelationGradient::correlate(const float* row1, const floa
 
 void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool& undoFisherInput, const bool& applyFisher)
 {
+    if (input->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("input cifti file must have brain models mapping along column");
     m_undoFisherInput = undoFisherInput;
     m_applyFisher = applyFisher;
     m_inputCifti = input;

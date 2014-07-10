@@ -111,11 +111,12 @@ CiftiBrainordinateLabelFile::getVoxelIndicesWithLabelKey(const int32_t mapIndex,
                                                          std::vector<VoxelIJK>& voxelIndicesOut) const
 {
     voxelIndicesOut.clear();
+    const CiftiXML& myXML = m_ciftiFile->getCiftiXML();
     
-    std::vector<CiftiBrainModelsMap::VolumeMap> volumeMaps;
-    if ( ! m_ciftiFile->getVolumeMapForColumns(volumeMaps)) {
+    if ( ! myXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) {
         return;
     }
+    std::vector<CiftiBrainModelsMap::VolumeMap> volumeMaps = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getFullVolumeMap();
     
     
     std::vector<float> mapData;

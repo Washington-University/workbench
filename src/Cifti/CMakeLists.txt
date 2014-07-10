@@ -24,7 +24,6 @@ CiftiXMLOld.h
 CiftiXMLElements.h
 CiftiXMLReader.h
 CiftiXMLWriter.h
-CiftiXnat.h
 
 CiftiFile.h
 CiftiXML.h
@@ -41,7 +40,6 @@ CiftiXMLOld.cxx
 CiftiXMLElements.cxx
 CiftiXMLReader.cxx
 CiftiXMLWriter.cxx
-CiftiXnat.cxx
 
 CiftiFile.cxx
 CiftiXML.cxx
