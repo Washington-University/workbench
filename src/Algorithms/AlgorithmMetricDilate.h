@@ -38,14 +38,14 @@ namespace caret {
         void precomputeNearest(std::vector<std::pair<int, int> >& myNearest, const SurfaceFile* mySurf, const MetricFile* badNodeRoi, const MetricFile* dataRoi, const float& distance);
         void processColumn(float* colScratch, const int& numNodes, const float* myInputData, std::vector<std::pair<int, int> > myNearest);
         void processColumn(float* colScratch, const int& numNodes, const float* myInputData, std::vector<std::pair<int, StencilElem> > myStencils);
-        void processColumn(float* colScratch, const float* myInputData, const SurfaceFile* mySurf, const float* myAreas, const MetricFile* dataRoi,
-                           const float& distance, const bool& nearest, const float& exponent);
+        void processColumn(float* colScratch, const float* myInputData, const SurfaceFile* mySurf, const float* myAreas, const MetricFile* badNodeRoi, const MetricFile* dataRoi,
+                           const float& distance, const bool& nearest, const bool& linear, const float& exponent);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const float& distance,
-                              MetricFile* myMetricOut, const MetricFile* badNodeRoi = NULL, const MetricFile* dataRoi = NULL, const int& columnNum = -1, const bool& nearest = false, const float& exponent = 2.0f);
+                              MetricFile* myMetricOut, const MetricFile* badNodeRoi = NULL, const MetricFile* dataRoi = NULL, const int& columnNum = -1, const bool& nearest = false, const bool& linear = false, const float& exponent = 2.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
