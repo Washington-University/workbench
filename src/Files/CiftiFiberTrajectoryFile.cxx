@@ -1672,7 +1672,7 @@ CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInforma
         //                                                  dataFileInformation);
         
         if (colMap.hasVolumeData()) {
-            VolumeSpace volumeSpace = colMap.getVolumeSpace();//TSC: copied/reimplemented from CiftiXMLOld - I don't think it belongs in CiftiXML or CiftiBrainModelsMap
+            VolumeSpace volumeSpace = colMap.getVolumeSpace();//TSC: copied/reimplemented from CiftiXML Old - I don't think it belongs in CiftiXML or CiftiBrainModelsMap
             const int64_t* dims = volumeSpace.getDims();
             dataFileInformation.addNameAndValue("Dimensions", AString::fromNumbers(dims, 3, ","));
             VolumeSpace::OrientTypes orientation[3];

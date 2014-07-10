@@ -28,7 +28,6 @@
 namespace caret {
 
     class CiftiXML;
-    class CiftiXMLOld;
     class FiberOrientation;
     
     class CiftiFiberOrientationFile : public CaretDataFile {
