@@ -28,6 +28,7 @@
 #include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
+#include "Vector3D.h"
 
 #include <set>
 #include <utility>
@@ -42,7 +43,7 @@ AString AlgorithmBorderToVertices::getCommandSwitch()
 
 AString AlgorithmBorderToVertices::getShortDescription()
 {
-    return "DRAW BORDER AS VERTICES IN METRIC FILE";
+    return "DRAW BORDERS AS VERTICES IN A METRIC FILE";
 }
 
 OperationParameters* AlgorithmBorderToVertices::getParameters()
@@ -121,8 +122,20 @@ AlgorithmBorderToVertices::AlgorithmBorderToVertices(ProgressObject* myProgObj, 
                 const SurfaceProjectionBarycentric* thisBary = thisBorderPart->getPoint(0)->getBarycentricProjection();
                 CaretAssert(thisBary->isValid());
                 const float* thisWeights = thisBary->getTriangleAreas();
+                const int32_t* thisNodes = thisBary->getTriangleNodes();
                 int useNode = 0;
-                for (int n = 1; n < 3; ++n) if (thisWeights[n] > thisWeights[useNode]) useNode = n;//get closest node to point
+                Vector3D curPos;//initializes to 0
+                float weightSum = 0.0f;
+                for (int n = 0; n < 3; ++n)
+                {
+                    if (thisWeights[n] > 0.0f)
+                    {
+                        curPos += thisWeights[n] * Vector3D(mySurf->getCoordinate(thisNodes[n]));
+                        weightSum += thisWeights[n];
+                    }
+                    if (thisWeights[n] > thisWeights[useNode]) useNode = n;//get closest node to point
+                }
+                curPos /= weightSum;
                 int curNode = thisBary->getTriangleNodes()[useNode];
                 colScratch[curNode] = 1.0f;//if there is only one border point, make sure it leaves a mark
                 for (int k = 1; k < numBorderPoints; ++k)
@@ -130,18 +143,31 @@ AlgorithmBorderToVertices::AlgorithmBorderToVertices(ProgressObject* myProgObj, 
                     thisBary = thisBorderPart->getPoint(k)->getBarycentricProjection();
                     CaretAssert(thisBary->isValid());
                     thisWeights = thisBary->getTriangleAreas();
+                    thisNodes = thisBary->getTriangleNodes();
                     useNode = 0;
-                    for (int n = 1; n < 3; ++n) if (thisWeights[n] > thisWeights[useNode]) useNode = n;
+                    weightSum = 0.0f;
+                    Vector3D nextPos;//initializes to 0
+                    for (int n = 0; n < 3; ++n)
+                    {
+                        if (thisWeights[n] > 0.0f)
+                        {
+                            nextPos += thisWeights[n] * Vector3D(mySurf->getCoordinate(thisNodes[n]));
+                            weightSum += thisWeights[n];
+                        }
+                        if (thisWeights[n] > thisWeights[useNode]) useNode = n;//get closest node to point
+                    }
+                    nextPos /= weightSum;
                     int nextNode = thisBary->getTriangleNodes()[useNode];
                     vector<int32_t> pathNodes;
                     vector<float> pathDists;//not used, but mandatory output
-                    myGeoHelp->getPathToNode(curNode, nextNode, pathNodes, pathDists);
+                    myGeoHelp->getPathAlongLineSegment(curNode, nextNode, curPos, nextPos, pathNodes, pathDists);
                     int pathLength = (int)pathNodes.size();
                     for (int m = 0; m < pathLength; ++m)
                     {
                         colScratch[pathNodes[m]] = 1.0f;
                     }
                     curNode = nextNode;
+                    curPos = nextPos;
                 }
             }
         }
@@ -179,8 +205,20 @@ AlgorithmBorderToVertices::AlgorithmBorderToVertices(ProgressObject* myProgObj, 
         const SurfaceProjectionBarycentric* thisBary = thisBorderPart->getPoint(0)->getBarycentricProjection();
         CaretAssert(thisBary->isValid());
         const float* thisWeights = thisBary->getTriangleAreas();
+        const int32_t* thisNodes = thisBary->getTriangleNodes();
         int useNode = 0;
-        for (int n = 1; n < 3; ++n) if (thisWeights[n] > thisWeights[useNode]) useNode = n;//get closest node to point
+        Vector3D curPos;//initializes to 0
+        float weightSum = 0.0f;
+        for (int n = 0; n < 3; ++n)
+        {
+            if (thisWeights[n] > 0.0f)
+            {
+                curPos += thisWeights[n] * Vector3D(mySurf->getCoordinate(thisNodes[n]));
+                weightSum += thisWeights[n];
+            }
+            if (thisWeights[n] > thisWeights[useNode]) useNode = n;//get closest node to point
+        }
+        curPos /= weightSum;
         int curNode = thisBary->getTriangleNodes()[useNode];
         colScratch[curNode] = 1.0f;//if there is only one border point, make sure it leaves a mark
         for (int k = 1; k < numBorderPoints; ++k)
@@ -188,18 +226,31 @@ AlgorithmBorderToVertices::AlgorithmBorderToVertices(ProgressObject* myProgObj, 
             thisBary = thisBorderPart->getPoint(k)->getBarycentricProjection();
             CaretAssert(thisBary->isValid());
             thisWeights = thisBary->getTriangleAreas();
+            thisNodes = thisBary->getTriangleNodes();
             useNode = 0;
-            for (int n = 1; n < 3; ++n) if (thisWeights[n] > thisWeights[useNode]) useNode = n;
+            weightSum = 0.0f;
+            Vector3D nextPos;//initializes to 0
+            for (int n = 0; n < 3; ++n)
+            {
+                if (thisWeights[n] > 0.0f)
+                {
+                    nextPos += thisWeights[n] * Vector3D(mySurf->getCoordinate(thisNodes[n]));
+                    weightSum += thisWeights[n];
+                }
+                if (thisWeights[n] > thisWeights[useNode]) useNode = n;//get closest node to point
+            }
+            nextPos /= weightSum;
             int nextNode = thisBary->getTriangleNodes()[useNode];
             vector<int32_t> pathNodes;
             vector<float> pathDists;//not used, but mandatory output
-            myGeoHelp->getPathToNode(curNode, nextNode, pathNodes, pathDists);
+            myGeoHelp->getPathAlongLineSegment(curNode, nextNode, curPos, nextPos, pathNodes, pathDists);
             int pathLength = (int)pathNodes.size();
             for (int m = 0; m < pathLength; ++m)
             {
                 colScratch[pathNodes[m]] = 1.0f;
             }
             curNode = nextNode;
+            curPos = nextPos;
         }
     }
     myMetricOut->setValuesForColumn(0, colScratch.data());

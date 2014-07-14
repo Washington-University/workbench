@@ -35,6 +35,9 @@ namespace caret {
         Vector3D normal(float* origLength = NULL) const;
         float length() const;
         float lengthsquared() const;
+        //geometry functions
+        float distToLine(const Vector3D& p1, const Vector3D& p2, Vector3D* closePointOut = NULL) const;
+        float distToLineSegment(const Vector3D& p1, const Vector3D& p2, Vector3D* closePointOut = NULL) const;
         //constructors
         Vector3D();
         Vector3D(const float& x, const float& y, const float& z);

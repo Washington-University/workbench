@@ -30,6 +30,7 @@
 #include "CaretMutex.h"
 #include "CaretPointer.h"
 #include "CaretHeap.h"
+#include "Vector3D.h"
 
 namespace caret {
 
@@ -37,8 +38,6 @@ namespace caret {
 
     //NOTE: this class does NOT stay associated with the coord passed into it, it takes a snapshot of the surface in the constructor
     //This is because it is designed to be fast on repeated calls on a single surface
-    //For only a few calls, the constructor may take longer than simply using a well restricted BranModelSurfaceGeodesic
-    //This is because it copies neighbors and precomputes all 1 hop and 2 hop shared edge distances in the constructor
 
     class GeodesicHelperBase
     {//This does the neighbor computation, create a GeodesicHelper to contain the temporary arrays and actually do stuff
@@ -48,7 +47,9 @@ namespace caret {
         float** distances, **distances2;//use primitives for speed, and they don't need to change size
         int32_t** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
         int32_t* numNeighbors, *numNeighbors2;
+        std::vector<Vector3D> nodeCoords;//for line-following and A*
         int32_t numNodes;
+        float m_avgNodeSpacing;//to use for balancing line following penalty
         static void crossProd(const float in1[3], const float in2[3], float out[3]);//DO NOT PASS AN INPUT AS OUT
         static float dotProd(const float in1[3], const float in2[3]);
         static float normalize(float in[3]);
@@ -78,10 +79,16 @@ namespace caret {
     class GeodesicHelper
     {
         CaretMinHeap<int32_t, float> m_active;//save and reuse the allocated space
-        float* output, **distances, **distances2;//use primitives for speed, and they don't need to change size
-        int32_t** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
-        int32_t* numNeighbors, *numNeighbors2, *marked, *changed, *parent;
-        CaretArray<int64_t> m_heapIdent;
+        const float* const * distances, *const *distances2;
+        const int32_t* const * nodeNeighbors, *const *nodeNeighbors2;
+        const int32_t* numNeighbors, *numNeighbors2;
+        const Vector3D* nodeCoords;
+        float* output;
+        int32_t* parent;
+        std::vector<float> outputStore;
+        std::vector<float> heurVal;
+        std::vector<int32_t> marked, changed, parentStore;
+        std::vector<int64_t> m_heapIdent;
         int32_t numNodes;
         GeodesicHelper();//Don't allow construction without arguments
         GeodesicHelper& operator=(const GeodesicHelper& right);//can't assign
@@ -91,18 +98,13 @@ namespace caret {
         void alltoall(float** out, int32_t** parents, bool smooth);//must be fully allocated
         void dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth);//partial surface
         int32_t closest(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smooth);//just closest node
-        CaretPointer<GeodesicHelperBase> m_myBase;//mostly just for automatic memory management
+        void aStar(const int32_t root, const int32_t endpoint, bool smooth);//faster method for path
+        float linePenalty(const Vector3D& pos, const Vector3D& linep1, const Vector3D& linep2, const bool& segment);
+        void aStarLine(const int32_t root, const int32_t endpoint, const Vector3D& linep1, const Vector3D& linep2, const bool& segment);//to single endpoint, following line
+        CaretPointer<const GeodesicHelperBase> m_myBase;//mostly just for automatic memory management
         CaretMutex inUse;//could add a function and a locker pointer to be able to lock to thread once, then call repeatedly without locking, if mutex overhead is actually a factor
     public:
-        GeodesicHelper(const CaretPointer<GeodesicHelperBase>& baseIn);
-        ~GeodesicHelper() {
-            if (marked) {
-                delete[] output;
-                delete[] marked;
-                delete[] changed;
-                delete[] parent;
-            }
-        }
+        GeodesicHelper(const CaretPointer<const GeodesicHelperBase>& baseIn);
         /// Get distances from root node, up to a geodesic distance cutoff (stops computing when no more nodes are within that distance)
         void getNodesToGeoDist(const int32_t node, const float maxdist, std::vector<int32_t>& neighborsOut, std::vector<float>& distsOut, const bool smoothflag = true);
 
@@ -129,6 +131,12 @@ namespace caret {
         
         ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
         void getPathToNode(const int32_t root, const int32_t endpoint, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag = false);
+        
+        ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
+        void getPathAlongLine(const int32_t root, const int32_t endpoint, const Vector3D& linep1, const Vector3D& linep2, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut);
+        
+        ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
+        void getPathAlongLineSegment(const int32_t root, const int32_t endpoint, const Vector3D& linep1, const Vector3D& linep2, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut);
         
         ///get just the closest node in the region and max distance given, returns -1 if no such node found - roi value of 0 means not in region, anything else is in region
         int32_t getClosestNodeInRoi(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smoothflag = true);

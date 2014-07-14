@@ -58,6 +58,39 @@ Vector3D Vector3D::normal(float* origLength) const
     return ret;
 }
 
+float Vector3D::distToLine(const Vector3D& p1, const Vector3D& p2, Vector3D* closePointOut) const
+{
+    Vector3D diff = p2 - p1;
+    float origLength;
+    Vector3D diffHat = diff.normal(&origLength);
+    if (origLength == 0.0f)//line is degenerate, return distance to point - we could return zero, but this seems like it would be better behaved
+    {
+        if (closePointOut != NULL) *closePointOut = p1;
+        return (*this - p1).length();
+    }
+    float distAlong = diffHat.dot(*this - p1);
+    Vector3D closePoint = p1 + diffHat * distAlong;
+    if (closePointOut != NULL) *closePointOut = closePoint;
+    return (*this - closePoint).length();
+}
+
+float Vector3D::distToLineSegment(const Vector3D& p1, const Vector3D& p2, Vector3D* closePointOut) const
+{
+    float origLength;
+    Vector3D diffHat = (p2 - p1).normal(&origLength);
+    if (origLength == 0.0f)//line segment is degenerate, return distance to point
+    {
+        if (closePointOut != NULL) *closePointOut = p1;
+        return (*this - p1).length();
+    }
+    float distAlong = diffHat.dot(*this - p1);
+    if (distAlong < 0.0f) distAlong = 0.0f;
+    if (distAlong > origLength) distAlong = origLength;
+    Vector3D closePoint = p1 + diffHat * distAlong;
+    if (closePointOut != NULL) *closePointOut = closePoint;
+    return (*this - closePoint).length();
+}
+
 Vector3D::Vector3D()
 {
     m_vec[0] = 0.0f;
