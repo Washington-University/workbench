@@ -94,7 +94,9 @@ Algorithms
 OperationsBase
 Qwt
 OSMesaDummy
+FtglFont
 Brain
+FtglFont
 GlfFont
 Files
 Charting
@@ -107,6 +109,7 @@ Scenes
 Xml
 Common
 Quazip
+/usr/X11/lib/libfreetype.dylib
 ${QT_LIBRARIES}
 ${ZLIB_LIBRARIES}
 #${LIBS}

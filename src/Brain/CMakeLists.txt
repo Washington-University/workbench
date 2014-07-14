@@ -106,6 +106,7 @@ FiberOrientationSamplesLoader.h
 FiberOrientationSamplesVector.h
 FiberOrientationSymbolTypeEnum.h
 FociDrawingTypeEnum.h
+FtglFontTextRenderer.h
 GlfFontTextRenderer.h
 IdentificationManager.h
 IdentificationStringBuilder.h
@@ -219,6 +220,7 @@ FeatureColoringTypeEnum.cxx
 FiberOrientationSamplesLoader.cxx
 FiberOrientationSymbolTypeEnum.cxx
 FociDrawingTypeEnum.cxx
+FtglFontTextRenderer.cxx
 GlfFontTextRenderer.cxx
 IdentificationManager.cxx
 IdentificationStringBuilder.cxx
@@ -285,6 +287,10 @@ INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/GlfFont
+${CMAKE_SOURCE_DIR}/FtglFont
+${CMAKE_SOURCE_DIR}/FtglFont/FTGL
+/Developer/SDKs/MacOSX10.6.sdk/usr/X11/include
+/Developer/SDKs/MacOSX10.6.sdk/usr/X11/include/freetype2
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files

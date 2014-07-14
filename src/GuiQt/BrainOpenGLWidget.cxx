@@ -51,6 +51,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FtglFontTextRenderer.h"
 #include "GlfFontTextRenderer.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
@@ -93,7 +94,13 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 //        delete this->textRenderer;
 //        this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
 //    }
-    this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
+   
+    
+    //this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
+    
+    this->textRenderer = new FtglFontTextRenderer();
+  
+    
     
     this->windowIndex = windowIndex;
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
