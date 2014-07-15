@@ -21,12 +21,14 @@
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmException.h"
 
+#include "CaretAssert.h"
 #include "CaretOMP.h"
 #include "GeodesicHelper.h"
 #include "MetricFile.h"
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
+#include "Vector3D.h"
 
 #include <algorithm>
 #include <cmath>
@@ -341,38 +343,66 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
                         {
                             myGeoHelp->getNodesToGeoDist(i, distance, nodeList, distList);
                             int numInRange = (int)nodeList.size();
-                            float bestGradient = -1.0f;
-                            int bestj = -1, bestk = -1;
-                            for (int j = 0; j < numInRange; ++j)
+                            Vector3D center = mySurf->getCoordinate(i);
+                            vector<float> blockDists;
+                            vector<int32_t> blockPath;
+                            vector<int32_t> usableNodes;
+                            vector<float> usableDists;
+                            for (int j = 0; j < numInRange; ++j)//prescan what is usable, and also exclude things that are through a valid node
                             {
-                                int node1 = nodeList[j];
                                 if (badRoiData != NULL)
                                 {
-                                    badNode = (badRoiData[node1] > 0.0f);
+                                    badNode = (badRoiData[nodeList[j]] > 0.0f);
                                 } else {
-                                    badNode = (myInputData[node1] == 0.0f);
+                                    badNode = (myInputData[nodeList[j]] == 0.0f);
                                 }
-                                if ((dataRoiVals == NULL || dataRoiVals[node1] > 0.0f) && !badNode)
+                                if ((dataRoiVals == NULL || dataRoiVals[nodeList[j]] > 0.0f) && !badNode)
                                 {
-                                    for (int k = j + 1; k < numInRange; ++k)
+                                    myGeoHelp->getPathAlongLineSegment(i, nodeList[j], center, mySurf->getCoordinate(nodeList[j]), blockPath, blockDists);
+                                    CaretAssert(blockPath.size() > 0 && blockPath[0] == i);//we already know that i is "bad", skip it
+                                    bool usable = true;
+                                    for (int k = 1; k < (int)blockPath.size() - 1; ++k)//and don't test the endpoint
                                     {
-                                        int node2 = nodeList[k];
-                                        if (badRoiData != NULL)
+                                        if (dataRoiVals == NULL || dataRoiVals[blockPath[k]] > 0.0f)
                                         {
-                                            badNode = (badRoiData[node2] > 0.0f);
-                                        } else {
-                                            badNode = (myInputData[node2] == 0.0f);
-                                        }
-                                        if ((dataRoiVals == NULL || dataRoiVals[node2] > 0.0f) && !badNode)
-                                        {
-                                            float grad = abs(myInputData[node1] - myInputData[node2]) / (distList[j] + distList[k]);
-                                            if (grad > bestGradient)
+                                            if (badRoiData != NULL)
                                             {
-                                                bestGradient = grad;
-                                                bestj = j;
-                                                bestk = k;
+                                                if (!(badRoiData[blockPath[k]] > 0.0f))//"not greater than" to trap NaNs
+                                                {
+                                                    usable = false;
+                                                    break;
+                                                }
+                                            } else {
+                                                if (myInputData[blockPath[k]] != 0.0f)
+                                                {
+                                                    usable = false;
+                                                    break;
+                                                }
                                             }
                                         }
+                                    }
+                                    if (usable)
+                                    {
+                                        usableNodes.push_back(nodeList[j]);
+                                        usableDists.push_back(distList[j]);
+                                    }
+                                }
+                            }
+                            int numUsable = (int)usableNodes.size();
+                            float bestGradient = -1.0f;
+                            int bestj = -1, bestk = -1;
+                            for (int j = 0; j < numUsable; ++j)
+                            {
+                                int node1 = usableNodes[j];
+                                for (int k = j + 1; k < numUsable; ++k)
+                                {
+                                    int node2 = usableNodes[k];
+                                    float grad = abs(myInputData[node1] - myInputData[node2]) / (usableDists[j] + usableDists[k]);
+                                    if (grad > bestGradient)
+                                    {
+                                        bestGradient = grad;
+                                        bestj = j;
+                                        bestk = k;
                                     }
                                 }
                             }
@@ -380,8 +410,8 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
                             {
                                 colScratch[i] = myInputData[closestNode];
                             } else {
-                                int node1 = nodeList[bestj], node2 = nodeList[bestk];
-                                colScratch[i] = myInputData[node1] + (myInputData[node2] - myInputData[node1]) * distList[bestj] / (distList[bestj] + distList[bestk]);
+                                int node1 = usableNodes[bestj], node2 = usableNodes[bestk];
+                                colScratch[i] = myInputData[node1] + (myInputData[node2] - myInputData[node1]) * usableDists[bestj] / (usableDists[bestj] + usableDists[bestk]);
                             }
                         } else {
                             myGeoHelp->getNodesToGeoDist(i, closestDist * cutoffRatio, nodeList, distList);
