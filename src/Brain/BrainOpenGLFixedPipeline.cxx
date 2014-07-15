@@ -5410,7 +5410,42 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
         BrainOpenGLPrimitiveDrawing::drawQuads(coords,
                                                normals,
                                                rgba);
-        
+////        drawTextWindowCoords(windowX,
+////                             windowY,
+////                             text,
+////                             alignmentX,
+////                             alignmentY,
+////                             textStyle,
+////                             fontHeight);
+//        
+//        const int textX = (vpLeftX + vpRightX) / 2.0;
+//        const int textY = (vpBottomY + vpTopY) / 2.0;
+//        drawTextWindowCoords(textX,  //windowX,
+//                             textY,  //windowY,
+//                             text,
+//                             alignmentX,
+//                             alignmentY,
+//                             textStyle,
+//                             fontHeight);
+//        const int textAX = (vpRightX - vpLeftX)   / 2.0;
+//        const int textAY = (vpTopY   - vpBottomY) / 2.0;
+//        drawTextWindowCoords(textAX,  //windowX,
+//                             textAY,  //windowY,
+//                             "A",
+//                             alignmentX,
+//                             alignmentY,
+//                             textStyle,
+//                             fontHeight);
+//        
+//        const int textBX = (vpRightX - vpLeftX)   / 2.0;
+//        const int textBY = (vpTopY   - vpBottomY) / 2.0;
+//        drawTextWindowCoords(textAX,  //windowX,
+//                             textAY,  //windowY,
+//                             "B",
+//                             alignmentX,
+//                             alignmentY,
+//                             textStyle,
+//                             fontHeight);
         glPopMatrix();
         
         glMatrixMode(GL_PROJECTION);
@@ -5421,6 +5456,7 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
                    savedViewport[1],
                    savedViewport[2],
                    savedViewport[3]);
+        
         drawTextWindowCoords(windowX,
                              windowY,
                              text,

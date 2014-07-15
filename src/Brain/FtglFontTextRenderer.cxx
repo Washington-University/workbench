@@ -213,6 +213,8 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
      */
     glDisable(GL_DEPTH_TEST);
     
+    
+    
     /*
      * Set the orthographic projection so that its origin is in the bottom
      * left corner.  It needs to be there since we are drawing in window
@@ -223,12 +225,18 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
      */
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+//    glOrtho(0,
+//               (viewport[0] + viewport[2]),
+//               0,
+//               (viewport[1] + viewport[3]),
+//               -1,
+//               1);
     glOrtho(0,
-               (viewport[0] + viewport[2]),
-               0,
-               (viewport[1] + viewport[3]),
-               0,
-               1);
+            (viewport[2]),
+            0,
+            (viewport[3]),
+            -1,
+            1);
     
     /*
      * Viewing projection is just the identity matrix since
@@ -237,8 +245,68 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    glRasterPos2i(windowX,
-                  windowY);
+    GLfloat savedRGBA[4];
+    glGetFloatv(GL_CURRENT_COLOR, savedRGBA);
+    glColor3f(0.0, 0.0, 0.0);
+    glLineWidth(1.0);
+    glPushMatrix();
+    glTranslatef(windowX, windowY, 0.0);
+    glBegin(GL_LINES);
+    glVertex2i(-20, 0);
+    glVertex2i( 20, 0);
+    glVertex2i(0, -20);
+    glVertex2i(0,  20);
+    glEnd();
+    glPopMatrix();
+    glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
+    
+    
+    
+    const FTBBox bbox = m_arialPixmapFont->BBox(text.toAscii().constData());
+    const FTPoint lower = bbox.Lower();
+    const FTPoint upper = bbox.Upper();
+    std::cout << qPrintable(text) << std::endl;
+    std::cout << "   LOWER: (" << lower.X() << ", " << lower.Y() << ", " << lower.Z() << ")" << std::endl;
+    std::cout << "   UPPER: (" << upper.X() << ", " << upper.Y() << ", " << upper.Z() << ")" << std::endl;
+    
+    float textOffsetX = 0;
+    switch (alignmentX) {
+        case BrainOpenGLTextRenderInterface::X_CENTER:
+            std::cout << "   X-CENTER ";
+            textOffsetX = -((upper.X() - lower.X()) / 2.0);
+            break;
+        case BrainOpenGLTextRenderInterface::X_LEFT:
+            std::cout << "   X-LEFT ";
+            textOffsetX = -lower.X();
+            break;
+        case BrainOpenGLTextRenderInterface::X_RIGHT:
+            std::cout << "   X-RIGHT ";
+            textOffsetX = -upper.X();
+            break;
+    }
+    std::cout << "Offset=" << textOffsetX << "   ";
+    
+    float textOffsetY = 0;
+    switch (alignmentY) {
+        case BrainOpenGLTextRenderInterface::Y_BOTTOM:
+            std::cout << "Y-BOTTOM ";
+            textOffsetY = -lower.Y();
+            break;
+        case BrainOpenGLTextRenderInterface::Y_CENTER:
+            textOffsetY = -((upper.Y() - lower.Y()) / 2.0);
+            std::cout << "Y-CENTER ";
+            break;
+        case BrainOpenGLTextRenderInterface::Y_TOP:
+            textOffsetY = -upper.Y();
+            std::cout << "Y-TOP ";
+            break;
+    }
+    std::cout << "Offset=" << textOffsetY << std::endl;
+    
+    float textX = windowX + textOffsetX;
+    float textY = windowY + textOffsetY;
+    glRasterPos2f(textX,
+                  textY);
 
     m_arialPixmapFont->Render(text.toAscii().constData());
     
@@ -320,11 +388,16 @@ FtglFontTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
                                            const int fontHeight,
                                            const AString& /*fontName*/)
 {
-    const float width = fontHeight * 0.80;
-    const float numberOfCharacters = text.length();
+    const FTBBox bbox = m_arialPixmapFont->BBox(text.toAscii().constData());
+    const FTPoint lower = bbox.Lower();
+    const FTPoint upper = bbox.Upper();
     
-    widthOut  = width * numberOfCharacters;
-    heightOut = fontHeight * numberOfCharacters;
+    widthOut = upper.X() - lower.X();
+    heightOut = upper.Y() - lower.Y();
+//    const float numberOfCharacters = text.length();
+//    
+//    widthOut  = width * numberOfCharacters;
+//    heightOut = fontHeight * numberOfCharacters;
 }
 
 
@@ -351,9 +424,9 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                                      const double modelY,
                                                      const double modelZ,
                                                      const QString& text,
-                                                     const TextStyle /*textStyle*/,
+                                                     const TextStyle textStyle,
                                                      const int fontHeight,
-                                                     const AString& /*fontName*/)
+                                                     const AString& fontName)
 {
     if (! m_arialPixmapFontValid) {
         return;
@@ -377,55 +450,91 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
         
         saveStateOfOpenGL();
         
-        /*
-         * Set the orthographic projection so that its origin is in the bottom
-         * left corner.  It needs to be there since we are drawing in window
-         * coordinates.  We do not know the true size of the window but that
-         * is okay since we can set the orthographic view so that the bottom
-         * left corner is the origin and the top right corner is the top
-         * right corner of the user's viewport.
-         */
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0,
-                (viewport[0] + viewport[2]),
-                0,
-                (viewport[1] + viewport[3]),
-                0,
-                1);
-        
-        /*
-         * Viewing projection is just the identity matrix since
-         * we are drawing in window coordinates.
-         */
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        
-        /*
-         * Set the viewport so that its origin is in the bottom left corner
-         * at the top right corner is the top right corner of the user's
-         * viewport.
-         */
-        glViewport(0,
-                   0,
-                   (viewport[0] + viewport[2]),
-                   (viewport[1] + viewport[3]));
-        
-        glRasterPos3d(windowX, windowY, windowZ);
-        m_arialPixmapFont->Render(text.toAscii().constData());
-//        glTranslatef(windowX, windowY, -windowZ);
-//        
-//        const float scaleXY = fontHeight / 2.0 * 1.2;
-//        glScalef(scaleXY, scaleXY, 1.0);
-//        const char* str = text.toLatin1().constData();
-//        glfDrawSolidString((char*)str);
-        
-        
+        drawTextAtWindowCoords(viewport,
+                               windowX,
+                               windowY,
+                               text,
+                               X_CENTER,
+                               Y_CENTER,
+                               textStyle,
+                               fontHeight,
+                               fontName);
         restoreStateOfOpenGL();
     }
     else {
         CaretLogSevere("gluProject() failed for drawing text at model coordinates.");
     }
+//    if (! m_arialPixmapFontValid) {
+//        return;
+//    }
+//    
+//    GLdouble modelMatrix[16];
+//    GLdouble projectionMatrix[16];
+//    GLint viewport[4];
+//    
+//    glGetDoublev(GL_MODELVIEW_MATRIX,
+//                 modelMatrix);
+//    glGetDoublev(GL_PROJECTION_MATRIX,
+//                 projectionMatrix);
+//    glGetIntegerv(GL_VIEWPORT,
+//                  viewport);
+//    
+//    GLdouble windowX, windowY, windowZ;
+//    if (gluProject(modelX, modelY, modelZ,
+//                   modelMatrix, projectionMatrix, viewport,
+//                   &windowX, &windowY, &windowZ) == GL_TRUE) {
+//        
+//        saveStateOfOpenGL();
+//        
+//        /*
+//         * Set the orthographic projection so that its origin is in the bottom
+//         * left corner.  It needs to be there since we are drawing in window
+//         * coordinates.  We do not know the true size of the window but that
+//         * is okay since we can set the orthographic view so that the bottom
+//         * left corner is the origin and the top right corner is the top
+//         * right corner of the user's viewport.
+//         */
+//        glMatrixMode(GL_PROJECTION);
+//        glLoadIdentity();
+//        glOrtho(0,
+//                (viewport[0] + viewport[2]),
+//                0,
+//                (viewport[1] + viewport[3]),
+//                0,
+//                1);
+//        
+//        /*
+//         * Viewing projection is just the identity matrix since
+//         * we are drawing in window coordinates.
+//         */
+//        glMatrixMode(GL_MODELVIEW);
+//        glLoadIdentity();
+//        
+//        /*
+//         * Set the viewport so that its origin is in the bottom left corner
+//         * at the top right corner is the top right corner of the user's
+//         * viewport.
+//         */
+//        glViewport(0,
+//                   0,
+//                   (viewport[0] + viewport[2]),
+//                   (viewport[1] + viewport[3]));
+//        
+//        glRasterPos3d(windowX, windowY, windowZ);
+//        m_arialPixmapFont->Render(text.toAscii().constData());
+////        glTranslatef(windowX, windowY, -windowZ);
+////        
+////        const float scaleXY = fontHeight / 2.0 * 1.2;
+////        glScalef(scaleXY, scaleXY, 1.0);
+////        const char* str = text.toLatin1().constData();
+////        glfDrawSolidString((char*)str);
+//        
+//        
+//        restoreStateOfOpenGL();
+//    }
+//    else {
+//        CaretLogSevere("gluProject() failed for drawing text at model coordinates.");
+//    }
 }
 
 /**
