@@ -99,8 +99,24 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     //this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
     
     this->textRenderer = new FtglFontTextRenderer();
+    if ( ! this->textRenderer->isValid()) {
+        CaretLogWarning("Failed to create FTGL text renderer.");
+        delete this->textRenderer;
+        this->textRenderer = NULL;
+    }
   
-    
+    if (this->textRenderer == NULL){
+        this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
+        if ( ! this->textRenderer->isValid()) {
+            delete this->textRenderer;
+            this->textRenderer = NULL;
+            CaretLogWarning("Failed to create QT GL text renderer.");
+        }
+    }
+
+    if (this->textRenderer == NULL) {
+        CaretLogSevere("Unable to create a text renderer for OpenGL.");
+    }
     
     this->windowIndex = windowIndex;
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,

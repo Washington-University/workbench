@@ -66,11 +66,14 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
+
+#ifdef HAVE_FREETYPE
 #include <FtglConfig.h>
 #include <FTGL/ftgl.h>
+using namespace FTGL;
+#endif // HAVE_FREETYPE
 
 using namespace caret;
-using namespace FTGL;
 
 
     
@@ -89,9 +92,12 @@ using namespace FTGL;
 FtglFontTextRenderer::FtglFontTextRenderer()
 : BrainOpenGLTextRenderInterface()
 {
+    m_arialPixmapFontValid = false;
+    
+
+#ifdef HAVE_FREETYPE
     //const AString fontFileName("/Library/Fonts/Arial.ttf");
     const AString fontFileName("/usr/X11R6/share/fonts/TTF/VeraSe.ttf");
-    m_arialPixmapFontValid = false;
     m_arialPixmapFont = new FTPixmapFont(fontFileName.toAscii().constData());
     if (m_arialPixmapFont->Error()) {
         CaretLogSevere("Unable to load font file " + fontFileName);
@@ -101,17 +107,7 @@ FtglFontTextRenderer::FtglFontTextRenderer()
     m_arialPixmapFont->FaceSize(14);
     
     m_arialPixmapFontValid = true;
-//    glfInit();
-//    
-//    const AString arialFontFileName(":/GlfFonts/FontAreal1.glf");
-//    m_arialFont = glfLoadFont((char*)arialFontFileName.toLatin1().constData()); // BEST MATCH
-//    
-//    if (m_arialFont == GLF_ERROR) {
-//        CaretLogSevere("Unable to load font file " + arialFontFileName);
-//        return;
-//    }
-//    
-//    m_fontFileValid = true;
+#endif // HAVE_FREETYPE
 }
 
 /**
@@ -119,10 +115,12 @@ FtglFontTextRenderer::FtglFontTextRenderer()
  */
 FtglFontTextRenderer::~FtglFontTextRenderer()
 {
+#ifdef HAVE_FREETYPE
     if (m_arialPixmapFont == NULL) {
         delete m_arialPixmapFont;
         m_arialPixmapFont = NULL;
     }
+#endif // HAVE_FREETYPE
 }
 
 void
@@ -162,8 +160,7 @@ FtglFontTextRenderer::drawString(char* str)
 bool
 FtglFontTextRenderer::isValid() const
 {
-    return false;
-//    return m_fontFileValid;
+    return m_arialPixmapFontValid;
 }
 
 
@@ -199,9 +196,12 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
                                                       const int fontHeightIn,
                                                       const AString& /*fontName*/)
 {
+#ifdef HAVE_FREETYPE    
     if (! m_arialPixmapFontValid) {
+        CaretLogSevere("Trying to use FTGL Font rendering but font is not valid.");
         return;
     }
+    
     if (text.isEmpty()) {
         return;
     }
@@ -310,57 +310,10 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
 
     m_arialPixmapFont->Render(text.toAscii().constData());
     
-//    const float fontHeight = ((fontHeightIn > 0) ? fontHeightIn : 14);
-//    const float aspect = 0.8;
-//    const float fontSizeY = fontHeight;
-//    const float fontSizeX = fontHeight * aspect;
-//   
-//    char* str = (char*)text.toLatin1().constData();
-//    glfSetCurrentFont(m_arialFont);
-//    float xmin,ymin,xmax,ymax;
-//    glfGetStringBounds(str, &xmin,&ymin,&xmax,&ymax);
-//    
-//    const float scaleX = fontSizeX / 2.0 * 1.2;
-//    const float scaleY = fontSizeY / 2.0 * 1.2;
-//    const float width = (xmax - xmin) * (scaleX / 1.2);
-//    const float height = (ymax - ymin) * (scaleY);
-//    
-//    /* 
-//     * By default, it appears that the center of the character is drawn
-//     * at the coordinate.
-//     */
-//    int x = windowX + viewport[0];
-//    switch (alignmentX) {
-//        case X_LEFT:
-//            x += (width / 2.0);
-//            break;
-//        case X_CENTER:
-//            break;
-//        case X_RIGHT:
-//            x -= (width / 2.0);
-//            break;
-//    }
-//
-//    /*
-//     * Y-Coordinate of text
-//     */
-//    int y = windowY + viewport[1];
-//    switch (alignmentY) {
-//        case Y_BOTTOM:
-//            y += (height / 2.0);
-//            break;
-//        case Y_CENTER:
-//            break;
-//        case Y_TOP:
-//            y -= (height / 2.0);
-//            break;
-//    }
-//    
-//    glTranslatef(x, y, 0.0);
-//    glScalef(scaleX, scaleY, 1.0);
-//    glfDrawSolidString((char*)str);
-    
     restoreStateOfOpenGL();
+#else // HAVE_FREETYPE
+    CaretLogSevere("Trying to use FTGL Font rendering but it cannot be used due to FreeType not found.");
+#endif // HAVE_FREETYPE
 }
 
 /**
@@ -388,16 +341,16 @@ FtglFontTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
                                            const int fontHeight,
                                            const AString& /*fontName*/)
 {
+    widthOut  = 0;
+    heightOut = 0;
+#ifdef HAVE_FREETYPE
     const FTBBox bbox = m_arialPixmapFont->BBox(text.toAscii().constData());
     const FTPoint lower = bbox.Lower();
     const FTPoint upper = bbox.Upper();
     
     widthOut = upper.X() - lower.X();
     heightOut = upper.Y() - lower.Y();
-//    const float numberOfCharacters = text.length();
-//    
-//    widthOut  = width * numberOfCharacters;
-//    heightOut = fontHeight * numberOfCharacters;
+#endif // HAVE_FREETYPE
 }
 
 
@@ -448,7 +401,7 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                    modelMatrix, projectionMatrix, viewport,
                    &windowX, &windowY, &windowZ) == GL_TRUE) {
         
-        saveStateOfOpenGL();
+        //saveStateOfOpenGL();
         
         drawTextAtWindowCoords(viewport,
                                windowX,
@@ -459,82 +412,11 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                textStyle,
                                fontHeight,
                                fontName);
-        restoreStateOfOpenGL();
+        //restoreStateOfOpenGL();
     }
     else {
         CaretLogSevere("gluProject() failed for drawing text at model coordinates.");
     }
-//    if (! m_arialPixmapFontValid) {
-//        return;
-//    }
-//    
-//    GLdouble modelMatrix[16];
-//    GLdouble projectionMatrix[16];
-//    GLint viewport[4];
-//    
-//    glGetDoublev(GL_MODELVIEW_MATRIX,
-//                 modelMatrix);
-//    glGetDoublev(GL_PROJECTION_MATRIX,
-//                 projectionMatrix);
-//    glGetIntegerv(GL_VIEWPORT,
-//                  viewport);
-//    
-//    GLdouble windowX, windowY, windowZ;
-//    if (gluProject(modelX, modelY, modelZ,
-//                   modelMatrix, projectionMatrix, viewport,
-//                   &windowX, &windowY, &windowZ) == GL_TRUE) {
-//        
-//        saveStateOfOpenGL();
-//        
-//        /*
-//         * Set the orthographic projection so that its origin is in the bottom
-//         * left corner.  It needs to be there since we are drawing in window
-//         * coordinates.  We do not know the true size of the window but that
-//         * is okay since we can set the orthographic view so that the bottom
-//         * left corner is the origin and the top right corner is the top
-//         * right corner of the user's viewport.
-//         */
-//        glMatrixMode(GL_PROJECTION);
-//        glLoadIdentity();
-//        glOrtho(0,
-//                (viewport[0] + viewport[2]),
-//                0,
-//                (viewport[1] + viewport[3]),
-//                0,
-//                1);
-//        
-//        /*
-//         * Viewing projection is just the identity matrix since
-//         * we are drawing in window coordinates.
-//         */
-//        glMatrixMode(GL_MODELVIEW);
-//        glLoadIdentity();
-//        
-//        /*
-//         * Set the viewport so that its origin is in the bottom left corner
-//         * at the top right corner is the top right corner of the user's
-//         * viewport.
-//         */
-//        glViewport(0,
-//                   0,
-//                   (viewport[0] + viewport[2]),
-//                   (viewport[1] + viewport[3]));
-//        
-//        glRasterPos3d(windowX, windowY, windowZ);
-//        m_arialPixmapFont->Render(text.toAscii().constData());
-////        glTranslatef(windowX, windowY, -windowZ);
-////        
-////        const float scaleXY = fontHeight / 2.0 * 1.2;
-////        glScalef(scaleXY, scaleXY, 1.0);
-////        const char* str = text.toLatin1().constData();
-////        glfDrawSolidString((char*)str);
-//        
-//        
-//        restoreStateOfOpenGL();
-//    }
-//    else {
-//        CaretLogSevere("gluProject() failed for drawing text at model coordinates.");
-//    }
 }
 
 /**

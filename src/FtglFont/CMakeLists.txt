@@ -138,8 +138,8 @@ FTVectoriser.cpp
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Common
-/Developer/SDKs/MacOSX10.6.sdk/usr/X11/include
-/Developer/SDKs/MacOSX10.6.sdk/usr/X11/include/freetype2
+${FREETYPE_INCLUDE_DIR_ft2build}
+${FREETYPE_INCLUDE_DIR_freetype2}
 ${CMAKE_SOURCE_DIR}/FtglFont
 ${CMAKE_SOURCE_DIR}/FtglFont/FTFont
 ${CMAKE_SOURCE_DIR}/FtglFont/FTGL

@@ -58,6 +58,7 @@ Operations
 Algorithms
 OperationsBase
 Brain
+${FTGL_FONT_MODULE_FOR_LINKING}
 GlfFont
 Files
 Palette
@@ -70,6 +71,7 @@ Scenes
 Xml
 Common
 Quazip
+${FREETYPE_LIBRARIES}
 ${QT_LIBRARIES}
 ${OSMESA_OFFSCREEN_LIBRARY}
 ${OSMESA_GL_LIBRARY}

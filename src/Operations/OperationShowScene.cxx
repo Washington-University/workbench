@@ -38,7 +38,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "FileInformation.h"
-#include "GlfFontTextRenderer.h"
+#include "FtglFontTextRenderer.h"
 #include "ImageFile.h"
 #include "OperationShowScene.h"
 #include "OperationException.h"
@@ -245,7 +245,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     }
     Brain* brain = SessionManager::get()->getBrain(0);
     
-    BrainOpenGLTextRenderInterface* textRenderer = new GlfFontTextRenderer();
+    BrainOpenGLTextRenderInterface* textRenderer = new FtglFontTextRenderer();
     if (! textRenderer->isValid()) {
         delete textRenderer;
         textRenderer = NULL;
