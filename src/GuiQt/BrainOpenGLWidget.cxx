@@ -52,7 +52,6 @@
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FtglFontTextRenderer.h"
-#include "GlfFontTextRenderer.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -66,8 +65,6 @@
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
 #include "UserInputModeView.h"
-
-#include "GlfFontTextRenderer.h"
 
 
 using namespace caret;
@@ -85,19 +82,9 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->openGL = NULL;
     this->borderBeingDrawn = new Border();
 
-//    this->textRenderer = new GlfFontTextRenderer();
-//    if (this->textRenderer->isValid()) {
-//        CaretLogConfig("GLF font system is being used for OpenGL fonts.");
-//    }
-//    else {
-//        CaretLogConfig("GLF font system failed, switch to Qt's font system.");
-//        delete this->textRenderer;
-//        this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
-//    }
-   
-    
-    //this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
-    
+    /*
+     * Create a FTGL font renderer
+     */
     this->textRenderer = new FtglFontTextRenderer();
     if ( ! this->textRenderer->isValid()) {
         CaretLogWarning("Failed to create FTGL text renderer.");
@@ -105,6 +92,9 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
         this->textRenderer = NULL;
     }
   
+    /*
+     * If creating previous renderer failed, use QT for text.
+     */
     if (this->textRenderer == NULL){
         this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
         if ( ! this->textRenderer->isValid()) {

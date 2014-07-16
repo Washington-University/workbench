@@ -95,7 +95,6 @@ OperationsBase
 Qwt
 OSMesaDummy
 Brain
-GlfFont
 ${FTGL_FONT_MODULE_FOR_LINKING}
 Files
 Charting

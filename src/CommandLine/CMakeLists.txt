@@ -59,7 +59,6 @@ Algorithms
 OperationsBase
 Brain
 ${FTGL_FONT_MODULE_FOR_LINKING}
-GlfFont
 Files
 Palette
 Gifti
@@ -92,7 +91,6 @@ ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Charting
-${CMAKE_SOURCE_DIR}/GlfFont
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti

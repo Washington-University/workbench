@@ -107,7 +107,6 @@ FiberOrientationSamplesVector.h
 FiberOrientationSymbolTypeEnum.h
 FociDrawingTypeEnum.h
 FtglFontTextRenderer.h
-GlfFontTextRenderer.h
 IdentificationManager.h
 IdentificationStringBuilder.h
 IdentificationTextGenerator.h
@@ -221,7 +220,6 @@ FiberOrientationSamplesLoader.cxx
 FiberOrientationSymbolTypeEnum.cxx
 FociDrawingTypeEnum.cxx
 FtglFontTextRenderer.cxx
-GlfFontTextRenderer.cxx
 IdentificationManager.cxx
 IdentificationStringBuilder.cxx
 IdentificationTextGenerator.cxx
@@ -286,7 +284,6 @@ WholeBrainVoxelDrawingMode.cxx
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Charting
-${CMAKE_SOURCE_DIR}/GlfFont
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files
