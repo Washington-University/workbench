@@ -66,7 +66,7 @@ class FTLibrary
          *
          * @return A handle to a FreeType library instance.
          */
-        const FT_Library* const GetLibrary() const { return library; }
+        const FT_Library* /*const*/ GetLibrary() const { return library; }
 
         /**
          * Queries the library for errors.

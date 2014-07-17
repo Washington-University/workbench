@@ -107,7 +107,7 @@ FTBitmapGlyphImpl::~FTBitmapGlyphImpl()
 }
 
 
-const FTPoint& FTBitmapGlyphImpl::RenderImpl(const FTPoint& pen, int renderMode)
+const FTPoint& FTBitmapGlyphImpl::RenderImpl(const FTPoint& pen, int /*renderMode*/)
 {
     if(data)
     {

@@ -202,7 +202,7 @@ void FTExtrudeGlyphImpl::RenderBack()
         glBegin(polygonType);
             for(unsigned int i = 0; i < subMesh->PointCount(); ++i)
             {
-                FTPoint pt = subMesh->Point(i);
+                //FTPoint pt = subMesh->Point(i);
 
                 glTexCoord2f(subMesh->Point(i).Xf() / hscale,
                              subMesh->Point(i).Yf() / vscale);

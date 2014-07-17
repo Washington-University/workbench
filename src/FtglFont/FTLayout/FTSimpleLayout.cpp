@@ -190,7 +190,7 @@ void FTSimpleLayoutImpl::Render(const wchar_t* string, const int len,
 
 
 template <typename T>
-inline void FTSimpleLayoutImpl::WrapTextI(const T *buf, const int len,
+inline void FTSimpleLayoutImpl::WrapTextI(const T *buf, const int /*len*/,
                                           FTPoint position, int renderMode,
                                           FTBBox *bounds)
 {
@@ -401,7 +401,7 @@ void FTSimpleLayoutImpl::OutputWrapped(const wchar_t *buf, const int len,
 
 template <typename T>
 inline void FTSimpleLayoutImpl::RenderSpaceI(const T *string, const int len,
-                                             FTPoint position, int renderMode,
+                                             FTPoint /*position*/, int renderMode,
                                              const float extraSpace)
 {
     float space = 0.0;

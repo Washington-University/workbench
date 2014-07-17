@@ -78,7 +78,7 @@ FT_Error FTGlyph::Error() const
 //
 
 
-FTGlyphImpl::FTGlyphImpl(FT_GlyphSlot glyph, bool useList) : err(0)
+FTGlyphImpl::FTGlyphImpl(FT_GlyphSlot glyph, bool /*useList*/) : err(0)
 {
     if(glyph)
     {

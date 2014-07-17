@@ -96,7 +96,7 @@ class FTCharToGlyphIndexMap
             }
         }
 
-        const GlyphIndex find(CharacterCode c)
+        /*const */GlyphIndex find(CharacterCode c)
         {
             if(!this->Indices)
             {

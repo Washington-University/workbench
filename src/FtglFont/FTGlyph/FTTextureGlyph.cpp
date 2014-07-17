@@ -121,7 +121,7 @@ FTTextureGlyphImpl::~FTTextureGlyphImpl()
 
 
 const FTPoint& FTTextureGlyphImpl::RenderImpl(const FTPoint& pen,
-                                              int renderMode)
+                                              int /*renderMode*/)
 {
     float dx, dy;
 

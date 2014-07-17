@@ -76,7 +76,7 @@ void FTGlyphContainer::Add(FTGlyph* tempGlyph, const unsigned int charCode)
 }
 
 
-const FTGlyph* const FTGlyphContainer::Glyph(const unsigned int charCode) const
+const FTGlyph* /*const*/ FTGlyphContainer::Glyph(const unsigned int charCode) const
 {
     unsigned int index = charMap->GlyphListIndex(charCode);
     return glyphs[index];

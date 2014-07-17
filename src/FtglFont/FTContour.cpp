@@ -166,7 +166,7 @@ void FTContour::SetParity(int parity)
 FTContour::FTContour(FT_Vector* contour, char* tags, unsigned int n)
 {
     FTPoint prev, cur(contour[(n - 1) % n]), next(contour[0]);
-    FTPoint a, b = next - cur;
+    FTPoint a;//, b = next - cur;
     double olddir, dir = atan2((next - cur).Y(), (next - cur).X());
     double angle = 0.0;
 

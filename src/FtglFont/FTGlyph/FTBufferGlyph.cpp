@@ -88,7 +88,7 @@ FTBufferGlyphImpl::~FTBufferGlyphImpl()
 }
 
 
-const FTPoint& FTBufferGlyphImpl::RenderImpl(const FTPoint& pen, int renderMode)
+const FTPoint& FTBufferGlyphImpl::RenderImpl(const FTPoint& pen, int /*renderMode*/)
 {
     if(has_bitmap)
     {

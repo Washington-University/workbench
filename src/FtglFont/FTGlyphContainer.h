@@ -92,7 +92,7 @@ class FTGlyphContainer
          * @return              An FTGlyph or <code>null</code> is it hasn't been
          * loaded.
          */
-        const FTGlyph* const Glyph(const unsigned int characterCode) const;
+        const FTGlyph* /*const*/ Glyph(const unsigned int characterCode) const;
 
         /**
          * Get the bounding box for a character.
