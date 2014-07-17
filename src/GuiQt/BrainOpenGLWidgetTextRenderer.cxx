@@ -49,28 +49,8 @@ BrainOpenGLWidgetTextRenderer::BrainOpenGLWidgetTextRenderer(QGLWidget* glWidget
 {
     m_glWidget = glWidget;
     
-    /*
-     * Find default font to use when the desired font name is emtpy
-     */
-    std::vector<QString> fontNames;
-    fontNames.push_back("Helvetica");
-    fontNames.push_back("Arial");
-    fontNames.push_back("Times");
-    
-    for (std::vector<QString>::iterator iter = fontNames.begin();
-         iter != fontNames.end();
-         iter++) {
-        QString name = *iter;
-        
-        QFont font(name);
-        if (font.exactMatch()) {
-            m_emptyNameFont = name;
-            break;
-        }
-    }
-    
-    CaretLogFine("Default font is: "
-                   + m_emptyNameFont);
+    m_normalFont.initialize("Arial", NORMAL);
+    m_boldFont.initialize("Arial", BOLD);
 }
 
 /**
@@ -78,12 +58,6 @@ BrainOpenGLWidgetTextRenderer::BrainOpenGLWidgetTextRenderer(QGLWidget* glWidget
  */
 BrainOpenGLWidgetTextRenderer::~BrainOpenGLWidgetTextRenderer()
 {
-    for (std::vector<FontData*>::iterator fontIter = m_fonts.begin();
-         fontIter != m_fonts.end();
-         fontIter++) {
-        delete *fontIter;
-    }
-    m_fonts.clear();
 }
 
 /**
@@ -124,28 +98,23 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
                                                       const TextAlignmentX alignmentX,
                                                       const TextAlignmentY alignmentY,
                                                       const TextStyle textStyle,
-                                                      const int fontHeight,
-                                                      const AString& fontName)
+                                                      const int fontHeight)
 {
     int32_t width, height;
     getTextBoundsInPixels(width,
                           height,
                           text,
                           textStyle,
-                          fontHeight,
-                          fontName);
+                          fontHeight);
     
     /*
      * Find font
      */
-    QFont* font = findFont(fontName,
-                           fontHeight,
-                           textStyle);
-//    CaretAssert(font);
-//    
-//    QFontMetrics fontMetrics(*font);
-//    width = fontMetrics.width(text);
-//    height = fontMetrics.height();
+    QFont* font = findFont(textStyle,
+                           fontHeight);
+    if (font == NULL) {
+        return;
+    }
     
     /*
      * X-Coordinate of text
@@ -208,16 +177,16 @@ BrainOpenGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
                                                      const double modelZ,
                                                      const QString& text,
                                                      const TextStyle textStyle,
-                                                     const int fontHeight,
-                                                     const AString& fontName)
+                                                     const int fontHeight)
 {
     /*
      * Find font
      */
-    QFont* font = findFont(fontName,
-                           fontHeight,
-                           textStyle);
-    CaretAssert(font);
+    QFont* font = findFont(textStyle,
+                           fontHeight);
+    if (font == NULL) {
+        return;
+    }
     
     m_glWidget->renderText(modelX,
                                modelY, 
@@ -248,13 +217,13 @@ BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
                                                      int32_t& heightOut,
                                                      const QString& text,
                                                      const TextStyle textStyle,
-                                                     const int fontHeight,
-                                                     const AString& fontName)
+                                                     const int fontHeight)
 {
-    QFont* font = findFont(fontName,
-                           fontHeight,
-                           textStyle);
-    CaretAssert(font);
+    QFont* font = findFont(textStyle,
+                           fontHeight);
+    if (font == NULL) {
+        return;
+    }
     
     QFontMetricsF fontMetrics(*font);
     QRectF boundsRect = fontMetrics.boundingRect(text);
@@ -271,69 +240,66 @@ BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
  * @return a font
  */
 QFont*
-BrainOpenGLWidgetTextRenderer::findFont(const QString& fontNameIn,
-                                        const int fontHeight,
-                                        const TextStyle textStyle)
+BrainOpenGLWidgetTextRenderer::findFont(const TextStyle textStyle,
+                                        const int fontHeight)
 
 {
-    QString fontName = fontNameIn;
-    if (fontName.isEmpty()) {
-        fontName = m_emptyNameFont;
-    }
-    
-    for (std::vector<FontData*>::iterator fontIter = m_fonts.begin();
-         fontIter != m_fonts.end();
-         fontIter++) {
-        FontData* fd = *fontIter;
-        if ((fd->m_fontName == fontName)
-            && (fd->m_fontHeight == fontHeight)
-            && (fd->m_textStyle == textStyle)) {
-            return fd->m_font;
-        }
-    }
-    
-    /*
-     * Set font.
-     */
-    QFont* font = new QFont(fontName, fontHeight);
+    QFont* font = NULL;
     
     switch (textStyle) {
         case BrainOpenGLTextRenderInterface::BOLD:
-            font->setBold(true);
+            if (m_boldFont.m_fontValid) {
+                font = m_boldFont.m_font;
+            }
             break;
-        case BrainOpenGLTextRenderInterface::ITALIC:
-            font->setItalic(true);
+        case BrainOpenGLTextRenderInterface::NORMAL:
+            if (m_normalFont.m_fontValid) {
+                font = m_normalFont.m_font;
+            }
+            break;
+    }
+    font->setPointSize(fontHeight);
+    
+    return font;
+}
+
+/**
+ * Constructor.
+ */
+BrainOpenGLWidgetTextRenderer::FontData::FontData() {
+    m_font = NULL;
+    m_fontValid = false;
+}
+
+/**
+ * Destructor.
+ */
+BrainOpenGLWidgetTextRenderer::FontData::~FontData() {
+    delete m_font;
+    m_font = NULL;
+}
+
+/**
+ * @param fontName
+ *    Name of font.
+ * @param textStyle
+ *    Style of font.
+ */
+void
+BrainOpenGLWidgetTextRenderer::FontData::initialize(const AString& fontName,
+                                                    const TextStyle textStyle)
+{
+    m_font = new QFont(fontName);
+    
+    switch (textStyle) {
+        case BrainOpenGLTextRenderInterface::BOLD:
+            m_font->setBold(true);
             break;
         case BrainOpenGLTextRenderInterface::NORMAL:
             break;
     }
     
-    FontData* fd = new FontData(font,
-                                fontName,
-                                fontHeight,
-                                textStyle);
-    m_fonts.push_back(fd);
-
-    CaretLogFine("Created font: "
-                   + fontName
-                   + " size="
-                   + QString::number(fontHeight));
-    
-    return fd->m_font;
-}
-
-BrainOpenGLWidgetTextRenderer::FontData::FontData(QFont* font,
-                                                  const QString fontName,
-                                                  const int fontHeight,
-                                                  const TextStyle textStyle) {
-    m_font = font;
-    m_fontName = fontName;
-    m_fontHeight = fontHeight;
-    m_textStyle = textStyle;
-}
-
-BrainOpenGLWidgetTextRenderer::FontData::~FontData() {
-    delete m_font;
+    m_fontValid = true;
 }
 
 

@@ -1,6 +1,8 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 <file>Cursor/pen_eraser.png</file>
+<file>FtglFonts/VeraSe.ttf</file>
+<file>FtglFonts/VeraBd.ttf</file>
 <file>LayersPanel/colorbar.png</file>
 <file>LayersPanel/construction.png</file>
 <file>LayersPanel/wrench.png</file>

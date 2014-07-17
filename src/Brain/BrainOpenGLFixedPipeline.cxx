@@ -5488,7 +5488,9 @@ BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
         this->textRenderer->drawTextAtModelCoords(modelX,
                                                   modelY,
                                                   modelZ,
-                                                  text.trimmed());
+                                                  text.trimmed(),
+                                                  BrainOpenGLTextRenderInterface::NORMAL,
+                                                  14);
     }
 }
 

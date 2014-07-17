@@ -43,40 +43,54 @@ namespace caret {
                                     const QString& text,
                                     const TextAlignmentX alignmentX,
                                     const TextAlignmentY alignmentY,
-                                    const TextStyle textStyle = NORMAL,
-                                    const int fontHeight = 14,
-                                    const AString& fontName = "");
+                                    const TextStyle textStyle,
+                                    const int fontHeight);
         
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,
                                    const double modelZ,
                                    const QString& text,
-                                   const TextStyle textStyle = NORMAL,
-                                   const int fontHeight = 14,
-                                   const AString& fontName = "");
+                                   const TextStyle textStyle,
+                                   const int fontHeight);
         
         void getTextBoundsInPixels(int32_t& widthOut,
                                    int32_t& heightOut,
                                    const QString& text,
-                                   const TextStyle textStyl = NORMAL,
-                                   const int fontHeight = 14,
-                                   const AString& fontName = "");
+                                   const TextStyle textStyle,
+                                   const int fontHeight);
         
     private:
-        void drawString(char *str);
-        
         FtglFontTextRenderer(const FtglFontTextRenderer&);
 
         FtglFontTextRenderer& operator=(const FtglFontTextRenderer&);
         
     private:
+        
+        FTPixmapFont* getFont(const TextStyle textStyle,
+                              const int fontHeight);
+        
+        class FontData {
+        public:
+            FontData();
+            
+            ~FontData();
+            
+            void initialize(const AString& fontFileName);
+            
+            QByteArray m_fontData;
+            
+            FTPixmapFont* m_pixmapFont;
+            
+            bool m_valid;
+        };
+        
         void saveStateOfOpenGL();
         
         void restoreStateOfOpenGL();
 
-        FTPixmapFont* m_arialPixmapFont;
+        FontData m_normalFont;
         
-        bool m_arialPixmapFontValid;
+        FontData m_boldFont;
     };
     
 #ifdef __FTGL_FONT_TEXT_RENDERER_DECLARE__

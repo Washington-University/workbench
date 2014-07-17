@@ -63,6 +63,8 @@
 #include "FtglFontTextRenderer.h"
 #undef __FTGL_FONT_TEXT_RENDERER_DECLARE__
 
+#include <QFile>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
@@ -92,21 +94,9 @@ using namespace caret;
 FtglFontTextRenderer::FtglFontTextRenderer()
 : BrainOpenGLTextRenderInterface()
 {
-    m_arialPixmapFontValid = false;
-    
-
 #ifdef HAVE_FREETYPE
-    //const AString fontFileName("/Library/Fonts/Arial.ttf");
-    const AString fontFileName("/usr/X11R6/share/fonts/TTF/VeraSe.ttf");
-    m_arialPixmapFont = new FTPixmapFont(fontFileName.toAscii().constData());
-    if (m_arialPixmapFont->Error()) {
-        CaretLogSevere("Unable to load font file " + fontFileName);
-        return;
-    }
-    
-    m_arialPixmapFont->FaceSize(14);
-    
-    m_arialPixmapFontValid = true;
+    m_boldFont.initialize(":/FtglFonts/VeraBd.ttf");
+    m_normalFont.initialize(":/FtglFonts/VeraSe.ttf");
 #endif // HAVE_FREETYPE
 }
 
@@ -116,42 +106,7 @@ FtglFontTextRenderer::FtglFontTextRenderer()
 FtglFontTextRenderer::~FtglFontTextRenderer()
 {
 #ifdef HAVE_FREETYPE
-    if (m_arialPixmapFont == NULL) {
-        delete m_arialPixmapFont;
-        m_arialPixmapFont = NULL;
-    }
 #endif // HAVE_FREETYPE
-}
-
-void
-FtglFontTextRenderer::drawString(char* str)
-{
-//    glMatrixMode(GL_PROJECTION);
-//    glPushMatrix();
-//    glLoadIdentity();
-//    glOrtho(-100.0, 100.0, -100.0, 100.0, -1.0, 1.0);
-//    
-//    glMatrixMode(GL_MODELVIEW);
-//    
-//    glfSetCurrentFont(m_arialFont);
-//    float xmin,ymin,xmax,ymax;
-//    glfGetStringBounds(str, &xmin,&ymin,&xmax,&ymax);
-//    
-//    glColor3f(1.0, 0.0, 0.0);
-//    
-//    glColor3f(1.0, 1.0, 1.0);
-//    
-//    glPushMatrix();
-//    glLoadIdentity();
-//    glTranslatef(-(xmin+xmax) / 2.0, 0.0, 0.0);
-//    glScalef(10.0, 10.0, 1.0);
-//    glfDrawSolidString((char*)str);
-//    glPopMatrix();
-//    
-//    glMatrixMode(GL_PROJECTION);
-//    glPopMatrix();
-//    glMatrixMode(GL_MODELVIEW);
-    
 }
 
 /**
@@ -160,9 +115,62 @@ FtglFontTextRenderer::drawString(char* str)
 bool
 FtglFontTextRenderer::isValid() const
 {
-    return m_arialPixmapFontValid;
+    return m_normalFont.m_valid;
 }
 
+/*
+ * Get the font with the given style and height.
+ * Returned font not guaranteed to be desired size.
+ *
+ * @param textStyle
+ *    Style of the text.
+ * @param fontHeight
+ *    Height of the font.
+ * @return
+ *    The font.  May be NULL due to 
+ */
+FTPixmapFont*
+FtglFontTextRenderer::getFont(const TextStyle textStyle,
+                              const int fontHeight)
+{
+#ifdef HAVE_FREETYPE
+    FTPixmapFont* pixmapFont = NULL;
+    switch (textStyle) {
+        case BrainOpenGLTextRenderInterface::BOLD:
+            if (m_boldFont.m_valid) {
+                pixmapFont = m_boldFont.m_pixmapFont;
+            }
+            break;
+        case BrainOpenGLTextRenderInterface::NORMAL:
+            if (m_normalFont.m_valid) {
+                pixmapFont = m_normalFont.m_pixmapFont;
+            }
+            break;
+    }
+    
+    if (pixmapFont != NULL) {
+        if ( ! pixmapFont->FaceSize(fontHeight)) {
+            QString msg("Failed to set requested font height="
+                        + AString::number(fontHeight)
+                        + ".");
+            if (pixmapFont->FaceSize(14)) {
+                msg += "  Defaulting to font height=14";
+            }
+            else {
+                msg += "  Defaulting to font height=14 also failed.";
+            }
+            CaretLogWarning(msg);
+        }
+        
+        return pixmapFont;
+    }
+
+    CaretLogSevere("Trying to use FTGL Font rendering but font is not valid.");
+    return NULL;
+#else  // HAVE_FREETYPE
+    return NULL;
+#endif // HAVE_FREETYPE
+}
 
 /**
  * Draw text at the given window coordinates.
@@ -182,8 +190,6 @@ FtglFontTextRenderer::isValid() const
  *   Style of the text.
  * @param fontHeight
  *   Height of the text.
- * @param fontName
- *   Name of the font.
  */
 void 
 FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
@@ -192,17 +198,16 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
                                                       const QString& text,
                                                       const TextAlignmentX alignmentX,
                                                       const TextAlignmentY alignmentY,
-                                                      const TextStyle /*textStyle*/,
-                                                      const int fontHeightIn,
-                                                      const AString& /*fontName*/)
+                                                      const TextStyle textStyle,
+                                                      const int fontHeight)
 {
-#ifdef HAVE_FREETYPE    
-    if (! m_arialPixmapFontValid) {
-        CaretLogSevere("Trying to use FTGL Font rendering but font is not valid.");
+    if (text.isEmpty()) {
         return;
     }
     
-    if (text.isEmpty()) {
+#ifdef HAVE_FREETYPE
+    FTPixmapFont* pixmapFont = getFont(textStyle, fontHeight);
+    if (! pixmapFont) {
         return;
     }
     
@@ -225,12 +230,6 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
      */
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-//    glOrtho(0,
-//               (viewport[0] + viewport[2]),
-//               0,
-//               (viewport[1] + viewport[3]),
-//               -1,
-//               1);
     glOrtho(0,
             (viewport[2]),
             0,
@@ -245,70 +244,60 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    GLfloat savedRGBA[4];
-    glGetFloatv(GL_CURRENT_COLOR, savedRGBA);
-    glColor3f(0.0, 0.0, 0.0);
-    glLineWidth(1.0);
-    glPushMatrix();
-    glTranslatef(windowX, windowY, 0.0);
-    glBegin(GL_LINES);
-    glVertex2i(-20, 0);
-    glVertex2i( 20, 0);
-    glVertex2i(0, -20);
-    glVertex2i(0,  20);
-    glEnd();
-    glPopMatrix();
-    glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
+    const bool drawCrosshairsAtFontStartingCoordinate = false;
+    if (drawCrosshairsAtFontStartingCoordinate) {
+        GLfloat savedRGBA[4];
+        glGetFloatv(GL_CURRENT_COLOR, savedRGBA);
+        glColor3f(0.0, 0.0, 0.0);
+        glLineWidth(1.0);
+        glPushMatrix();
+        glTranslatef(windowX, windowY, 0.0);
+        glBegin(GL_LINES);
+        glVertex2i(-20, 0);
+        glVertex2i( 20, 0);
+        glVertex2i(0, -20);
+        glVertex2i(0,  20);
+        glEnd();
+        glPopMatrix();
+        glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
+    }
     
-    
-    
-    const FTBBox bbox = m_arialPixmapFont->BBox(text.toAscii().constData());
+    const FTBBox bbox = pixmapFont->BBox(text.toAscii().constData());
     const FTPoint lower = bbox.Lower();
     const FTPoint upper = bbox.Upper();
-    std::cout << qPrintable(text) << std::endl;
-    std::cout << "   LOWER: (" << lower.X() << ", " << lower.Y() << ", " << lower.Z() << ")" << std::endl;
-    std::cout << "   UPPER: (" << upper.X() << ", " << upper.Y() << ", " << upper.Z() << ")" << std::endl;
     
     float textOffsetX = 0;
     switch (alignmentX) {
         case BrainOpenGLTextRenderInterface::X_CENTER:
-            std::cout << "   X-CENTER ";
             textOffsetX = -((upper.X() - lower.X()) / 2.0);
             break;
         case BrainOpenGLTextRenderInterface::X_LEFT:
-            std::cout << "   X-LEFT ";
             textOffsetX = -lower.X();
             break;
         case BrainOpenGLTextRenderInterface::X_RIGHT:
-            std::cout << "   X-RIGHT ";
             textOffsetX = -upper.X();
             break;
     }
-    std::cout << "Offset=" << textOffsetX << "   ";
     
     float textOffsetY = 0;
     switch (alignmentY) {
         case BrainOpenGLTextRenderInterface::Y_BOTTOM:
-            std::cout << "Y-BOTTOM ";
             textOffsetY = -lower.Y();
             break;
         case BrainOpenGLTextRenderInterface::Y_CENTER:
             textOffsetY = -((upper.Y() - lower.Y()) / 2.0);
-            std::cout << "Y-CENTER ";
             break;
         case BrainOpenGLTextRenderInterface::Y_TOP:
             textOffsetY = -upper.Y();
-            std::cout << "Y-TOP ";
             break;
     }
-    std::cout << "Offset=" << textOffsetY << std::endl;
     
     float textX = windowX + textOffsetX;
     float textY = windowY + textOffsetY;
     glRasterPos2f(textX,
                   textY);
 
-    m_arialPixmapFont->Render(text.toAscii().constData());
+    pixmapFont->Render(text.toAscii().constData());
     
     restoreStateOfOpenGL();
 #else // HAVE_FREETYPE
@@ -320,31 +309,33 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
  * Get the bounds of the text (in pixels) using the given text
  * attributes.
  *
+ * @param widthOut
+ *   Output containing width of text characters.
+ * @param heightOut
+ *   Output containing height of text characters.
  * @param text
  *   Text that is to be drawn.
  * @param textStyle
  *   Style of the text.
  * @param fontHeight
  *   Height of the text.
- * @param fontName
- *   Name of the font.
- * @param widthOut
- *   Output containing width of text characters.
- * @param heightOut
- *   Output containing height of text characters.
  */
 void
 FtglFontTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
-                                           int32_t& heightOut,
+                                            int32_t& heightOut,
                                            const QString& text,
-                                           const TextStyle /*textStyle*/,
-                                           const int fontHeight,
-                                           const AString& /*fontName*/)
+                                           const TextStyle textStyle,
+                                           const int fontHeight)
 {
     widthOut  = 0;
     heightOut = 0;
 #ifdef HAVE_FREETYPE
-    const FTBBox bbox = m_arialPixmapFont->BBox(text.toAscii().constData());
+    FTPixmapFont* pixmapFont = getFont(textStyle, fontHeight);
+    if (! pixmapFont) {
+        return;
+    }
+
+    const FTBBox bbox = pixmapFont->BBox(text.toAscii().constData());
     const FTPoint lower = bbox.Lower();
     const FTPoint upper = bbox.Upper();
     
@@ -369,8 +360,6 @@ FtglFontTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
  *   Style of the text.
  * @param fontHeight
  *   Height of the text.
- * @param fontName
- *   Name of the font.
  */
 void 
 FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
@@ -378,13 +367,8 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                                      const double modelZ,
                                                      const QString& text,
                                                      const TextStyle textStyle,
-                                                     const int fontHeight,
-                                                     const AString& fontName)
+                                                     const int fontHeight)
 {
-    if (! m_arialPixmapFontValid) {
-        return;
-    }
-    
     GLdouble modelMatrix[16];
     GLdouble projectionMatrix[16];
     GLint viewport[4];
@@ -401,8 +385,6 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                    modelMatrix, projectionMatrix, viewport,
                    &windowX, &windowY, &windowZ) == GL_TRUE) {
         
-        //saveStateOfOpenGL();
-        
         drawTextAtWindowCoords(viewport,
                                windowX,
                                windowY,
@@ -410,9 +392,7 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                X_CENTER,
                                Y_CENTER,
                                textStyle,
-                               fontHeight,
-                               fontName);
-        //restoreStateOfOpenGL();
+                               fontHeight);
     }
     else {
         CaretLogSevere("gluProject() failed for drawing text at model coordinates.");
@@ -460,4 +440,72 @@ FtglFontTextRenderer::restoreStateOfOpenGL()
     glPopMatrix();
     glPopAttrib();
     glPopClientAttrib();
+}
+
+/**
+ * Constructs invalid font data.
+ */
+FtglFontTextRenderer::FontData::FontData()
+{
+    m_valid = false;
+    m_pixmapFont = NULL;
+}
+
+/**
+ * Destructs font data.
+ */
+FtglFontTextRenderer::FontData::~FontData()
+{
+    if (m_pixmapFont != NULL) {
+        delete m_pixmapFont;
+        m_pixmapFont = NULL;
+    }
+}
+
+/**
+ * Initialize font data.    
+ *
+ * @param fontFileName
+ *    Name of font file.
+ */
+void
+FtglFontTextRenderer::FontData::initialize(const AString& fontFileName)
+{
+#ifdef HAVE_FREETYPE
+    QFile file(fontFileName);
+    if (file.open(QFile::ReadOnly)) {
+        m_fontData = file.readAll();
+        const size_t numBytes = m_fontData.size();
+        if (numBytes > 0) {
+            const unsigned char* data = (const unsigned char*)m_fontData.data();
+            m_pixmapFont = new FTPixmapFont(data,
+                                                 numBytes);
+            if (m_pixmapFont->Error()) {
+                delete m_pixmapFont;
+                m_pixmapFont = NULL;
+                CaretLogSevere("Unable to load font file " + file.fileName());
+                return;
+            }
+        }
+        else {
+            CaretLogSevere("Error reading data from "
+                           + file.fileName()
+                           + " error: "
+                           + file.errorString());
+            return;
+        }
+    }
+    else {
+        CaretLogSevere("Unable to open "
+                       + file.fileName()
+                       + " error: "
+                       + file.errorString());
+        return;
+    }
+    
+    m_valid = true;
+#else // HAVE_FREETYPE
+    CaretLogWarning("Trying to initialize FTGL fonts but program was compiled without FreeType.\n"
+                    "Text labels may be missing in graphics windows.");
+#endif // HAVE_FREETYPE
 }

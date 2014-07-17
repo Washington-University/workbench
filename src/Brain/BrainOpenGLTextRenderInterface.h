@@ -40,8 +40,9 @@ namespace caret {
          * Style of the text
          */
         enum TextStyle {
+            /** Bold text */
             BOLD,
-            ITALIC,
+            /** Normal text */
             NORMAL
         };
         
@@ -94,8 +95,6 @@ namespace caret {
          *   Style of the text.
          * @param fontHeight
          *   Height of the text.
-         * @param fontName
-         *   Name of the font.
          */
         virtual void drawTextAtWindowCoords(const int viewport[4],
                                             const int windowX,
@@ -104,8 +103,7 @@ namespace caret {
                                             const TextAlignmentX alignmentX,
                                             const TextAlignmentY alignmentY,
                                             const TextStyle textStyle = NORMAL,
-                                            const int fontHeight = 14,
-                                            const AString& fontName = "") = 0;
+                                            const int fontHeight = 14) = 0;
         
         /**
          * Draw text at the given window coordinates.
@@ -127,8 +125,6 @@ namespace caret {
          *   Style of the text.
          * @param fontHeight
          *   Height of the text.
-         * @param fontName
-         *   Name of the font.
          */
         virtual void drawVerticalTextAtWindowCoords(const int viewport[4],
                                             const int windowX,
@@ -136,9 +132,8 @@ namespace caret {
                                             const QString& text,
                                             const TextAlignmentX alignmentX,
                                             const TextAlignmentY alignmentY,
-                                            const TextStyle textStyle = NORMAL,
-                                            const int fontHeight = 14,
-                                            const AString& fontName = "")
+                                            const TextStyle textStyle,
+                                            const int fontHeight)
         {
             const int32_t numChars = text.length();
             int y = windowY + ((numChars * fontHeight) / 2.0);
@@ -151,8 +146,7 @@ namespace caret {
                                        alignmentX,
                                        alignmentY,
                                        textStyle,
-                                       fontHeight,
-                                       fontName);
+                                       fontHeight);
                 y -= fontHeight;
             }
         }
@@ -172,16 +166,13 @@ namespace caret {
          *   Style of the text.
          * @param fontHeight
          *   Height of the text.
-         * @param fontName
-         *   Name of the font.
          */
         virtual void drawTextAtModelCoords(const double modelX,
                                            const double modelY,
                                            const double modelZ,
                                            const QString& text,
-                                           const TextStyle textStyle = NORMAL,
-                                           const int fontHeight = 14,
-                                           const AString& fontName = "") = 0;
+                                           const TextStyle textStyle,
+                                           const int fontHeight) = 0;
 
         /**
          * Get the bounds of the text (in pixels) using the given text
@@ -197,15 +188,12 @@ namespace caret {
          *   Style of the text.
          * @param fontHeight
          *   Height of the text.
-         * @param fontName
-         *   Name of the font.
          */
         virtual void getTextBoundsInPixels(int32_t& widthOut,
                                            int32_t& heightOut,
                                            const QString& text,
-                                           const TextStyle textStyl = NORMAL,
-                                           const int fontHeight = 14,
-                                           const AString& fontName = "") = 0;
+                                           const TextStyle textStyle,
+                                           const int fontHeight) = 0;
         
         /**
          * @return The font system is valid.

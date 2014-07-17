@@ -667,7 +667,9 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                                                              axisTextCenterY,
                                                              axisText,
                                                              textAlignX,
-                                                             textAlignY);
+                                                             textAlignY,
+                                                             BrainOpenGLTextRenderInterface::NORMAL,
+                                                             14);
             }
             else {
                 textRenderer->drawTextAtWindowCoords(viewport,
@@ -729,7 +731,9 @@ BrainOpenGLChartDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeig
             int32_t textHeight = 0;
             textRenderer->getTextBoundsInPixels(textWidth,
                                                 textHeight,
-                                                text);
+                                                text,
+                                                BrainOpenGLTextRenderInterface::NORMAL,
+                                                14);
             widthOut  = std::max(widthOut,  textWidth);
             heightOut = std::max(heightOut, textHeight);
         }

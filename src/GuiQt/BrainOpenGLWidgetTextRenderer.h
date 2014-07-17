@@ -45,24 +45,21 @@ namespace caret {
                                     const QString& text,
                                     const TextAlignmentX alignmentX,
                                     const TextAlignmentY alignmentY,
-                                    const TextStyle textStyle = NORMAL,
-                                    const int fontHeight = 14,
-                                    const AString& fontName = "");
+                                    const TextStyle textStyle,
+                                    const int fontHeight);
         
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,
                                    const double modelZ,
                                    const QString& text,
-                                   const TextStyle textStyle = NORMAL,
-                                   const int fontHeight = 14,
-                                   const AString& fontName = "");
+                                   const TextStyle textStyle,
+                                   const int fontHeight);
         
         void getTextBoundsInPixels(int32_t& widthOut,
                                    int32_t& heightOut,
                                    const QString& text,
-                                   const TextStyle textStyl = NORMAL,
-                                   const int fontHeight = 14,
-                                   const AString& fontName = "");
+                                   const TextStyle textStyle,
+                                   const int fontHeight);
     private:
         BrainOpenGLWidgetTextRenderer(const BrainOpenGLWidgetTextRenderer&);
 
@@ -71,28 +68,25 @@ namespace caret {
     private:
         class FontData {
         public:
-            FontData(QFont* font,
-                     const QString fontName,
-                     const int fontHeight,
-                     const TextStyle textStyle);
+            FontData();
 
             ~FontData();
             
+            void initialize(const AString& fontName,
+                            const TextStyle textStyle);
+            
             QFont* m_font;
-            QString m_fontName;
-            int m_fontHeight;
-            TextStyle m_textStyle;
+            bool m_fontValid;
         };
         
-        std::vector<FontData*> m_fonts;
+        FontData m_normalFont;
         
-        QFont* findFont(const QString& fontName,
-                        const int fontHeight,
-                        const TextStyle textStyle);
+        FontData m_boldFont;
+        
+        QFont* findFont(const TextStyle textStyle,
+                        const int fontHeight);
         
         QGLWidget* m_glWidget;
-        
-        QString m_emptyNameFont;
     };
     
 #ifdef __BRAIN_OPEN_G_L_WIDGET_TEXT_RENDERER_DECLARE__
