@@ -72,6 +72,7 @@ AlgorithmMetricRegression.h
 AlgorithmMetricRemoveIslands.h
 AlgorithmMetricResample.h
 AlgorithmMetricROIsFromExtrema.h
+AlgorithmMetricROIsToBorder.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
@@ -169,6 +170,7 @@ AlgorithmMetricRegression.cxx
 AlgorithmMetricRemoveIslands.cxx
 AlgorithmMetricResample.cxx
 AlgorithmMetricROIsFromExtrema.cxx
+AlgorithmMetricROIsToBorder.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx

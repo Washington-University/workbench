@@ -44,7 +44,6 @@ namespace caret {
         std::vector<CaretPointer<Border> > tracePrivate(std::vector<int>& marked, const float& placement);
     public:
         BorderTracingHelper(const SurfaceFile* surfIn);
-        //NOTE: this clears the BorderFile before starting, it uses it as a container
         template<typename T, typename Test>
         std::vector<CaretPointer<Border> > traceData(T* data, const Test& myTester, const float& placement = 0.33f);
         
@@ -66,7 +65,7 @@ namespace caret {
             LessThan();
         public:
             LessThan(const T& value, const bool& inclusive) : m_threshold(value), m_inclusive(inclusive) { }
-            bool operator() (const int32_t& toTest) const
+            bool operator() (const T& toTest) const
             {
                 if (m_inclusive)
                 {
@@ -85,7 +84,7 @@ namespace caret {
             GreaterThan();
         public:
             GreaterThan(const T& value, const bool& inclusive) : m_threshold(value), m_inclusive(inclusive) { }
-            bool operator() (const int32_t& toTest) const
+            bool operator() (const T& toTest) const
             {
                 if (m_inclusive)
                 {

@@ -77,6 +77,7 @@
 #include "AlgorithmMetricRemoveIslands.h"
 #include "AlgorithmMetricResample.h"
 #include "AlgorithmMetricROIsFromExtrema.h"
+#include "AlgorithmMetricROIsToBorder.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmNodesInsideBorder.h" //-border-to-rois
 #include "AlgorithmSignedDistanceToSurface.h"
@@ -292,6 +293,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricRemoveIslands()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricROIsFromExtrema()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricROIsToBorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmNodesInsideBorder()));//-border-to-rois
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
