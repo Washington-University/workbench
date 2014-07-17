@@ -200,6 +200,11 @@ namespace caret {
          */
         virtual bool isValid() const = 0;
 
+        /**
+         * @return Name of the text renderer.
+         */
+        virtual AString getName() const = 0;
+        
     private:
         BrainOpenGLTextRenderInterface(const BrainOpenGLTextRenderInterface&);
 

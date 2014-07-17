@@ -509,3 +509,13 @@ FtglFontTextRenderer::FontData::initialize(const AString& fontFileName)
                     "Text labels may be missing in graphics windows.");
 #endif // HAVE_FREETYPE
 }
+
+/**
+ * @return Name of the text renderer.
+ */
+AString
+FtglFontTextRenderer::getName() const
+{
+    return "FTGL Font";
+}
+

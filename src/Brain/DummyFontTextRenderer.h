@@ -59,6 +59,7 @@ namespace caret {
                                    const TextStyle textStyle,
                                    const int fontHeight);
         
+        virtual AString getName() const;
 
         // ADD_NEW_METHODS_HERE
 

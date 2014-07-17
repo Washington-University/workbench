@@ -146,3 +146,13 @@ DummyFontTextRenderer::drawTextAtModelCoords(const double /*modelX*/,
                                             const int /*fontHeight*/)
 {
 }
+
+/**
+ * @return Name of the text renderer.
+ */
+AString
+DummyFontTextRenderer::getName() const
+{
+    return "Dummy (No OpenGL font system)";
+}
+

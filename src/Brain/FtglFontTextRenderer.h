@@ -59,6 +59,8 @@ namespace caret {
                                    const TextStyle textStyle,
                                    const int fontHeight);
         
+        virtual AString getName() const;
+        
     private:
         FtglFontTextRenderer(const FtglFontTextRenderer&);
 

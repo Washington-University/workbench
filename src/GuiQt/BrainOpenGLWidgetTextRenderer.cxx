@@ -302,4 +302,14 @@ BrainOpenGLWidgetTextRenderer::FontData::initialize(const AString& fontName,
     m_fontValid = true;
 }
 
+/**
+ * @return Name of the text renderer.
+ */
+AString
+BrainOpenGLWidgetTextRenderer::getName() const
+{
+    return "QT's QGLWidget";
+}
+
+
 

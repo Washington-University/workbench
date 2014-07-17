@@ -60,6 +60,9 @@ namespace caret {
                                    const QString& text,
                                    const TextStyle textStyle,
                                    const int fontHeight);
+
+        virtual AString getName() const;
+        
     private:
         BrainOpenGLWidgetTextRenderer(const BrainOpenGLWidgetTextRenderer&);
 

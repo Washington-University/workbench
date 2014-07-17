@@ -28,6 +28,7 @@
 #include "BrainOpenGL.h"
 #undef __BRAIN_OPENGL_DEFINE_H
 
+#include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
@@ -309,6 +310,9 @@ BrainOpenGL::initializeOpenGL()
                         + "\nOpenGL Renderer: " + AString(renderStr));
     
     lineInfo += "\n";
+    lineInfo += ("\nFont Renderer: " + this->textRenderer->getName());
+    lineInfo += "\n";
+    
 #ifdef GL_VERSION_2_0
     if (testForVersionOfOpenGLSupported("2.0")) {
         GLfloat values[2];
