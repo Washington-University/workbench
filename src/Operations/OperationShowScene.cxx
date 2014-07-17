@@ -38,6 +38,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "FileInformation.h"
+#include "DummyFontTextRenderer.h"
 #include "FtglFontTextRenderer.h"
 #include "ImageFile.h"
 #include "OperationShowScene.h"
@@ -245,12 +246,24 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     }
     Brain* brain = SessionManager::get()->getBrain(0);
     
-    BrainOpenGLTextRenderInterface* textRenderer = new FtglFontTextRenderer();
-    if (! textRenderer->isValid()) {
-        delete textRenderer;
-        textRenderer = NULL;
-        CaretLogConfig("GLF font system failed.");
+    /*
+     * Renders text
+     */
+    BrainOpenGLTextRenderInterface* textRenderer = NULL;
+    if (textRenderer == NULL) {
+        textRenderer = new FtglFontTextRenderer();
+        if (! textRenderer->isValid()) {
+            delete textRenderer;
+            textRenderer = NULL;
+            CaretLogWarning("Unable to create FTGL Font Renderer.\n"
+                            "No text will be available in graphics window.");
+        }
     }
+    
+    if (textRenderer == NULL) {
+        textRenderer = new DummyFontTextRenderer();
+    }
+    
     /*
      * Performs OpenGL Rendering
      * Allocated dynamically so that it can be destroyed prior to OSMesa being

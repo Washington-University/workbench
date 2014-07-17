@@ -43,6 +43,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CursorManager.h"
+#include "DummyFontTextRenderer.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
 #include "EventBrowserWindowContentGet.h"
@@ -109,6 +110,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 
     if (this->textRenderer == NULL) {
         CaretLogSevere("Unable to create a text renderer for OpenGL.");
+        this->textRenderer = new DummyFontTextRenderer();
     }
     
     this->windowIndex = windowIndex;
