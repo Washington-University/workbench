@@ -506,15 +506,8 @@ void CommandParser::provenanceBeforeOperation(const vector<OutputAssoc>& outAsso
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
         AbstractParameter* myParam = outAssociation[i].m_param;
-        GiftiMetaData* md = NULL;//do the common case with the same single piece of code
         switch (myParam->getType())
         {
-            case OperationParametersEnum::BORDER:
-            {
-                BorderFile* myFile = ((BorderParameter*)myParam)->m_parameter;
-                md = myFile->getFileMetaData();
-                break;
-            }
             case OperationParametersEnum::CIFTI:
             {
                 CiftiFile* myFile = ((CiftiParameter*)myParam)->m_parameter;
@@ -538,42 +531,8 @@ void CommandParser::provenanceBeforeOperation(const vector<OutputAssoc>& outAsso
                 myFile->setCiftiXML(myXML, false);//tells it to use this new metadata, rather than copying metadata from the old XML (which is default so that provenance metadata persists through naive usage)
                 break;
             }
-            case OperationParametersEnum::FOCI:
-            {
-                FociFile* myFile = ((FociParameter*)myParam)->m_parameter;
-                md = myFile->getFileMetaData();
-                break;
-            }
-            case OperationParametersEnum::LABEL:
-            {
-                LabelFile* myFile = ((LabelParameter*)myParam)->m_parameter;
-                md = myFile->getFileMetaData();
-                break;
-            }
-            case OperationParametersEnum::METRIC:
-            {
-                MetricFile* myFile = ((MetricParameter*)myParam)->m_parameter;
-                md = myFile->getFileMetaData();
-                break;
-            }
-            case OperationParametersEnum::SURFACE:
-            {
-                SurfaceFile* myFile = ((SurfaceParameter*)myParam)->m_parameter;
-                md = myFile->getFileMetaData();
-                break;
-            }
-            case OperationParametersEnum::VOLUME:
-            {
-                VolumeFile* myFile = ((VolumeParameter*)myParam)->m_parameter;
-                md = myFile->getFileMetaData();
-                break;
-            }
             default:
                 break;
-        }
-        if (md != NULL)
-        {
-            md->set(PROVENANCE_NAME, m_provenance);
         }
     }
 }
@@ -635,6 +594,7 @@ void CommandParser::provenanceAfterOperation(const vector<OutputAssoc>& outAssoc
         }
         if (md != NULL)
         {
+            md->set(PROVENANCE_NAME, m_provenance);
             md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
             md->set(CWD_PROVENANCE_NAME, m_workingDir);
             if (m_parentProvenance != "")
