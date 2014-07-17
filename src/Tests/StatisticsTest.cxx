@@ -19,7 +19,6 @@
 /*LICENSE_END*/
 #include "StatisticsTest.h"
 #include <cstdlib>
-#include <ctime>
 #include <cmath>
 
 #include "FastStatistics.h"
@@ -34,7 +33,6 @@ StatisticsTest::StatisticsTest(const AString& identifier) : TestInterface(identi
 
 void StatisticsTest::execute()
 {
-    srand(time(NULL));
     const int NUM_ELEMENTS = 1 << 20;
     vector<float> myData(NUM_ELEMENTS);//dynamically allocate to not take lots of stack space
     for (int i = 0; i < NUM_ELEMENTS; ++i)

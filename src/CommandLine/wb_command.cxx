@@ -19,6 +19,9 @@
 /*LICENSE_END*/
 
 #include <QApplication>
+
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 
 #include "AString.h"
@@ -82,6 +85,7 @@ static int runCommand(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
+    srand(time(NULL));
     int result = 0;
     {
         /*

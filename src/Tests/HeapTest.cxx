@@ -20,7 +20,6 @@
 #include "HeapTest.h"
 #include "CaretHeap.h"
 #include <cstdlib>
-#include <ctime>
 
 using namespace caret;
 using namespace std;
@@ -31,7 +30,6 @@ HeapTest::HeapTest(const AString& identifier) : TestInterface(identifier)
 
 void HeapTest::execute()
 {
-    srand(time(NULL));
     CaretMinHeap<int, int> myHeap;
     const int NUM_ELEMS = 500;
     const int NUM_REMOVE = 30;

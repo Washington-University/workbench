@@ -28,6 +28,7 @@
 #include <QThread>
 
 #include <cstdlib>
+#include <ctime>
 #include <iostream>
 
 #include "ApplicationInformation.h"
@@ -241,6 +242,7 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
 int 
 main(int argc, char* argv[])
 {
+    srand(time(NULL));
     //MS Windows code to allocate a new console, will have a preference to set this up
     //RedirectIOToConsole();
     int result;

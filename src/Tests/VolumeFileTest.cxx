@@ -22,7 +22,6 @@
 #include "FloatMatrix.h"
 #include "VolumeFile.h"
 
-#include <ctime>
 #include <cstdlib>
 
 using namespace caret;
@@ -38,7 +37,6 @@ void VolumeFileTest::execute()
     vector<int64_t> myDims;
     const int64_t xdim = 19, ydim = 17, zdim = 13, tdim = 11, numComponents = 3;//simulate rgb
     float testvals[xdim][ydim][zdim][tdim][numComponents];
-    srand(time(NULL));//for generating our test values
     myDims.push_back(xdim);//i
     myDims.push_back(ydim);//j
     myDims.push_back(zdim);//k

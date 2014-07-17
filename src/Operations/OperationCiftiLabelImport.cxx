@@ -30,7 +30,6 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
-#include <ctime>
 #include <fstream>
 #include <map>
 #include <set>
@@ -85,7 +84,6 @@ OperationParameters* OperationCiftiLabelImport::getParameters()
 void OperationCiftiLabelImport::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    srand(time(NULL));
     CiftiFile* ciftiIn = myParams->getCifti(1);
     AString listfileName = myParams->getString(2);
     CiftiFile* ciftiOut = myParams->getOutputCifti(3);

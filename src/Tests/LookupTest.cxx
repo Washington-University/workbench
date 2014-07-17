@@ -23,7 +23,6 @@
 #include "CaretCompact3DLookup.h"
 
 #include <cstdlib>
-#include <ctime>
 
 using namespace caret;
 using namespace std;
@@ -34,7 +33,6 @@ LookupTest::LookupTest(const AString& identifier) : TestInterface(identifier)
 
 void LookupTest::execute()
 {
-    srand(time(NULL));
     const int LOOKUP_SIZE = 500;
     const int LOOKUP_START = -200;
     const int NUM_INSERT = 400;

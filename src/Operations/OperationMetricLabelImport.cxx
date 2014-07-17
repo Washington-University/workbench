@@ -30,7 +30,6 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <ctime>
 #include <cctype>
 #include <fstream>
 #include <string>

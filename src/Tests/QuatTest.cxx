@@ -21,7 +21,6 @@
 #include "MathFunctions.h"
 #include "Vector3D.h"
 #include <cstdlib>
-#include <ctime>
 #include <cmath>
 
 using namespace caret;
@@ -73,7 +72,6 @@ AString QuatTest::showQuat(const float a[4])
 
 void QuatTest::execute()
 {
-    srand(time(NULL));
     const int ITERS = 1000;
     for (int i = 0; i < ITERS; ++i)
     {

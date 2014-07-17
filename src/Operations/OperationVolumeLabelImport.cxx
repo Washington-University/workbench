@@ -28,7 +28,6 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <ctime>
 #include <cctype>
 #include <fstream>
 #include <map>
@@ -86,7 +85,6 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
 void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     AString temp;
-    srand(time(NULL));
     LevelProgress myProgress(myProgObj);
     VolumeFile* myVol = myParams->getVolume(1);
     AString listfileName = myParams->getString(2);

@@ -18,11 +18,14 @@
  */
 /*LICENSE_END*/
 
-//test driver for trying CTest
+//program for running tests
 
 #include <QApplication>
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <vector>
+
 #include "TestInterface.h"
 #include "SessionManager.h"
 #include "CaretHttpManager.h"
@@ -58,6 +61,7 @@ void freeTestList(vector<TestInterface*>& mylist)
 
 int main(int argc, char** argv)
 {
+    srand(time(NULL));
     {
         QCoreApplication myApp(argc, argv);
         caret_global_commandLine = argv[0];

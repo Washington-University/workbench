@@ -22,7 +22,6 @@
 #include "TopologyHelper.h"
 #include "TopologyHelperOld.h"
 
-#include <ctime>
 #include <cstdlib>
 
 using namespace caret;
@@ -41,8 +40,6 @@ void TopologyHelperTest::execute()
     int numNodes = mySurf.getNumberOfNodes();
     CaretArray<int> myMarkedNew(numNodes, -1), myMarkedOld(numNodes, -1);
     const int TEST_SAMPLES = 5000, TEST_DEPTH = 5;
-    int myseed = time(NULL);
-    srand(myseed);
     for (int i = 0; i < TEST_SAMPLES; ++i)
     {
         int selectedNode = rand() % numNodes;
