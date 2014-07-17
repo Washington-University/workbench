@@ -174,6 +174,7 @@
 #include "OperationSurfaceInformation.h"
 #include "OperationSurfaceVertexAreas.h"
 #include "OperationVolumeCapturePlane.h"
+#include "OperationVolumeCopyExtensions.h"
 #include "OperationVolumeCreate.h"
 #include "OperationVolumeLabelExportTable.h"
 #include "OperationVolumeLabelImport.h"
@@ -392,6 +393,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceVertexAreas()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCapturePlane()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCopyExtensions()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCreate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelExportTable()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelImport()));

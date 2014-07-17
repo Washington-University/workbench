@@ -73,6 +73,7 @@ OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
 OperationSurfaceVertexAreas.h
 OperationVolumeCapturePlane.h
+OperationVolumeCopyExtensions.h
 OperationVolumeCreate.h
 OperationVolumeLabelExportTable.h
 OperationVolumeLabelImport.h
@@ -140,6 +141,7 @@ OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx
 OperationSurfaceVertexAreas.cxx
 OperationVolumeCapturePlane.cxx
+OperationVolumeCopyExtensions.cxx
 OperationVolumeCreate.cxx
 OperationVolumeLabelExportTable.cxx
 OperationVolumeLabelImport.cxx
