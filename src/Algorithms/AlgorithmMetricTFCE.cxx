@@ -265,10 +265,11 @@ namespace _algorithm_metric_tfce
             clusterList.push_back(Cluster());
             return (int)(clusterList.size() - 1);
         } else {
-            set<int>::iterator ret = deadClusters.begin();
-            deadClusters.erase(ret);
-            clusterList[*ret] = Cluster();//reinitialize
-            return *ret;
+            set<int>::iterator iter = deadClusters.begin();
+            int ret = *iter;
+            deadClusters.erase(iter);
+            clusterList[ret] = Cluster();//reinitialize
+            return ret;
         }
     }
 }
