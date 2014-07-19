@@ -95,6 +95,7 @@ void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, Progr
     if (presmooth->m_present)
     {
         myPresmooth = (float)presmooth->getDouble(1);
+        if (myPresmooth <= 0.0f) throw AlgorithmException("presmooth kernel size must be positive");
     }
     MetricFile* myRoi = NULL;
     bool matchRoiColumns = false;

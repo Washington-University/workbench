@@ -79,6 +79,7 @@
 #include "AlgorithmMetricROIsFromExtrema.h"
 #include "AlgorithmMetricROIsToBorder.h"
 #include "AlgorithmMetricSmoothing.h"
+#include "AlgorithmMetricTFCE.h"
 #include "AlgorithmNodesInsideBorder.h" //-border-to-rois
 #include "AlgorithmSignedDistanceToSurface.h"
 #include "AlgorithmSurfaceAffineRegression.h"
@@ -296,6 +297,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricROIsFromExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricROIsToBorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricTFCE()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmNodesInsideBorder()));//-border-to-rois
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceAffineRegression()));
