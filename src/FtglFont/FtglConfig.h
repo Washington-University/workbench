@@ -44,6 +44,8 @@
 
 /* Define to 1 if you have the `strndup' function. */
 #define HAVE_STRNDUP 1
+/* not on mac (hippocampus) */
+#undef HAVE_STRNDUP
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
