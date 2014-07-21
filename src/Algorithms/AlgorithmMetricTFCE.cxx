@@ -133,7 +133,6 @@ AlgorithmMetricTFCE::AlgorithmMetricTFCE(ProgressObject* myProgObj, const Surfac
     if (mySurf->getNumberOfNodes() != myMetric->getNumberOfNodes()) throw AlgorithmException("metric and surface have different number of vertices");
     if (myRoi != NULL && mySurf->getNumberOfNodes() != myRoi->getNumberOfNodes()) throw AlgorithmException("roi metric and surface have different number of vertices");
     if (corrAreaMetric != NULL && mySurf->getNumberOfNodes() != corrAreaMetric->getNumberOfNodes()) throw AlgorithmException("corrected area metric and surface have different number of vertices");
-    vector<float> outcol(mySurf->getNumberOfNodes(), 0.0f);
     if (columnNum == -1)
     {
         const MetricFile* toUse = myMetric;
@@ -156,12 +155,16 @@ AlgorithmMetricTFCE::AlgorithmMetricTFCE(ProgressObject* myProgObj, const Surfac
             areaData = corrAreaMetric->getValuePointerForColumn(0);
         }
         if (myRoi != NULL) roiData = myRoi->getValuePointerForColumn(0);
-#pragma omp CARET_PARFOR
-        for (int col = 0; col < numCols; ++col)
+#pragma omp CARET_PAR
         {
-            processColumn(mySurf, toUse->getValuePointerForColumn(col), outcol.data(), roiData, param_e, param_h, areaData);
-            myMetricOut->setValuesForColumn(col, outcol.data());
-            myMetricOut->setMapName(col, myMetric->getMapName(col));
+            vector<float> outcol(mySurf->getNumberOfNodes(), 0.0f);
+#pragma omp CARET_FOR
+            for (int col = 0; col < numCols; ++col)
+            {
+                processColumn(mySurf, toUse->getValuePointerForColumn(col), outcol.data(), roiData, param_e, param_h, areaData);
+                myMetricOut->setValuesForColumn(col, outcol.data());
+                myMetricOut->setMapName(col, myMetric->getMapName(col));
+            }
         }
     } else {
         const MetricFile* toUse = myMetric;
@@ -185,6 +188,7 @@ AlgorithmMetricTFCE::AlgorithmMetricTFCE(ProgressObject* myProgObj, const Surfac
             areaData = corrAreaMetric->getValuePointerForColumn(0);
         }
         if (myRoi != NULL) roiData = myRoi->getValuePointerForColumn(0);
+        vector<float> outcol(mySurf->getNumberOfNodes(), 0.0f);
         processColumn(mySurf, toUse->getValuePointerForColumn(useCol), outcol.data(), roiData, param_e, param_h, areaData);
         myMetricOut->setValuesForColumn(0, outcol.data());
         myMetricOut->setMapName(0, myMetric->getMapName(columnNum));
