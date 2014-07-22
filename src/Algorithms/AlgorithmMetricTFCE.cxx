@@ -133,6 +133,17 @@ AlgorithmMetricTFCE::AlgorithmMetricTFCE(ProgressObject* myProgObj, const Surfac
     if (mySurf->getNumberOfNodes() != myMetric->getNumberOfNodes()) throw AlgorithmException("metric and surface have different number of vertices");
     if (myRoi != NULL && mySurf->getNumberOfNodes() != myRoi->getNumberOfNodes()) throw AlgorithmException("roi metric and surface have different number of vertices");
     if (corrAreaMetric != NULL && mySurf->getNumberOfNodes() != corrAreaMetric->getNumberOfNodes()) throw AlgorithmException("corrected area metric and surface have different number of vertices");
+    if (columnNum < -1 || columnNum >= myMetric->getNumberOfColumns()) throw AlgorithmException("invalid column specified");
+    const float* roiData = NULL, *areaData = NULL;
+    vector<float> surfAreaData;
+    if (corrAreaMetric == NULL)
+    {
+        mySurf->computeNodeAreas(surfAreaData);
+        areaData = surfAreaData.data();
+    } else {
+        areaData = corrAreaMetric->getValuePointerForColumn(0);
+    }
+    if (myRoi != NULL) roiData = myRoi->getValuePointerForColumn(0);
     if (columnNum == -1)
     {
         const MetricFile* toUse = myMetric;
@@ -145,16 +156,6 @@ AlgorithmMetricTFCE::AlgorithmMetricTFCE(ProgressObject* myProgObj, const Surfac
         int numCols = myMetric->getNumberOfColumns();
         myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), numCols);
         myMetricOut->setStructure(mySurf->getStructure());
-        const float* roiData = NULL, *areaData = NULL;
-        vector<float> surfAreaData;
-        if (corrAreaMetric == NULL)
-        {
-            mySurf->computeNodeAreas(surfAreaData);
-            areaData = surfAreaData.data();
-        } else {
-            areaData = corrAreaMetric->getValuePointerForColumn(0);
-        }
-        if (myRoi != NULL) roiData = myRoi->getValuePointerForColumn(0);
 #pragma omp CARET_PAR
         {
             vector<float> outcol(mySurf->getNumberOfNodes(), 0.0f);
@@ -178,16 +179,6 @@ AlgorithmMetricTFCE::AlgorithmMetricTFCE(ProgressObject* myProgObj, const Surfac
         }
         myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
         myMetricOut->setStructure(mySurf->getStructure());
-        const float* roiData = NULL, *areaData = NULL;
-        vector<float> surfAreaData;
-        if (corrAreaMetric == NULL)
-        {
-            mySurf->computeNodeAreas(surfAreaData);
-            areaData = surfAreaData.data();
-        } else {
-            areaData = corrAreaMetric->getValuePointerForColumn(0);
-        }
-        if (myRoi != NULL) roiData = myRoi->getValuePointerForColumn(0);
         vector<float> outcol(mySurf->getNumberOfNodes(), 0.0f);
         processColumn(mySurf, toUse->getValuePointerForColumn(useCol), outcol.data(), roiData, param_e, param_h, areaData);
         myMetricOut->setValuesForColumn(0, outcol.data());
