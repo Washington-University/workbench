@@ -65,6 +65,7 @@
 <file>./HelpFiles/Menus/File_Menu/Save-Manage_Files/Save-Manage_Files.html</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window-BodyText-HTMLedit.html</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window-BodyText.html</file>
+<file>./HelpFiles/Scenes_Window/ModScenes_Window-BodyText.html</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window.html</file>
 <file alias="Scenes_Window.png">./HelpFiles/Scenes_Window/Scenes_Window.png</file>
 <file alias="Save-Manage_Files_dialog.png">./HelpFiles/Menus/File_Menu/Save-Manage_Files/Save-Manage_Files_dialog.png</file>

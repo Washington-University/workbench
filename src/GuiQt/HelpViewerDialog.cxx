@@ -661,10 +661,23 @@ HelpViewerDialog::displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpI
             break;
         case HelpTreeWidgetItem::TREE_ITEM_HELP_TEXT:
             m_helpBrowser->clear();
-            std::cout << "LOADING: " << qPrintable(helpItem->text(0))
-            << ":  " << qPrintable(helpItem->m_helpText)
-            << std::endl << std::endl;
-            m_helpBrowser->setText(helpItem->m_helpText);
+//            std::cout << "LOADING: " << qPrintable(helpItem->text(0))
+//            << ":  " << qPrintable(helpItem->m_helpText)
+//            << std::endl << std::endl;
+            if (helpItem->m_helpText.contains("<html>",
+                                              Qt::CaseInsensitive)) {
+                QTextDocument td;
+                td.setHtml(helpItem->m_helpText);
+                const QString html = td.toHtml();
+                std::cout << "Old/New length:" << helpItem->m_helpText.size() << " " << html.size() << std::endl;
+                m_helpBrowser->setHtml(html);
+                std::cout << "Cleaned HTML" << qPrintable(helpItem->text(0))
+                            << ":  "  << std::endl << qPrintable(html)
+                            << std::endl << std::endl;
+            }
+            else {
+                m_helpBrowser->setText(helpItem->m_helpText);
+            }
             if (addToHistoryFlag) {
                 addToHelpTopicHistory(helpItem);
             }
