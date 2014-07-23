@@ -117,6 +117,7 @@
 #include "AlgorithmVolumeRemoveIslands.h"
 #include "AlgorithmVolumeROIsFromExtrema.h"
 #include "AlgorithmVolumeSmoothing.h"
+#include "AlgorithmVolumeTFCE.h"
 #include "AlgorithmVolumeToSurfaceMapping.h"
 #include "AlgorithmVolumeWarpfieldResample.h"
 
@@ -336,6 +337,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeRemoveIslands()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeROIsFromExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeSmoothing()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeTFCE()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
     

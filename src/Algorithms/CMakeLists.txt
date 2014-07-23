@@ -112,6 +112,7 @@ AlgorithmVolumeReduce.h
 AlgorithmVolumeRemoveIslands.h
 AlgorithmVolumeROIsFromExtrema.h
 AlgorithmVolumeSmoothing.h
+AlgorithmVolumeTFCE.h
 AlgorithmVolumeToSurfaceMapping.h
 AlgorithmVolumeWarpfieldResample.h
 OverlapLogicEnum.h
@@ -211,6 +212,7 @@ AlgorithmVolumeReduce.cxx
 AlgorithmVolumeRemoveIslands.cxx
 AlgorithmVolumeROIsFromExtrema.cxx
 AlgorithmVolumeSmoothing.cxx
+AlgorithmVolumeTFCE.cxx
 AlgorithmVolumeToSurfaceMapping.cxx
 AlgorithmVolumeWarpfieldResample.cxx
 OverlapLogicEnum.cxx
