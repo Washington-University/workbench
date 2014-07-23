@@ -312,7 +312,8 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
     
     if (resourceHelpDirectory.exists()) {
         QStringList htmlFileFilter;
-        htmlFileFilter << "*.htm" << "*.html";
+        htmlFileFilter << "*";
+        //htmlFileFilter << "*.htm" << "*.html";
         QDirIterator dirIter(":/HelpFiles",
                              htmlFileFilter,
                              QDir::NoFilter,
@@ -324,67 +325,70 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
             const QString name       = fileInfo.baseName();
             const QString filePath   = fileInfo.filePath();
  
-//            std::cout << qPrintable("name / filePath: "
-//                                    + name
-//                                    + " / "
-//                                    + filePath) << std::endl;
+            std::cout << qPrintable("name / filePath: "
+                                    + name
+                                    + " / "
+                                    + filePath) << std::endl;
             
             
-            if (name.contains("Menu",
-                              Qt::CaseInsensitive)) {
-                QTreeWidgetItem* item = createHelpTreeWidgetItemForHelpPage(NULL,
-                                                                            name,
-                                                                            filePath);
-                if (name.contains("wb_view")) {
-                    menuWbViewItem = item;
+            if (filePath.endsWith(".htm")
+                || filePath.endsWith(".html")) {
+                if (name.contains("Menu",
+                                  Qt::CaseInsensitive)) {
+                    QTreeWidgetItem* item = createHelpTreeWidgetItemForHelpPage(NULL,
+                                                                                name,
+                                                                                filePath);
+                    if (name.contains("wb_view")) {
+                        menuWbViewItem = item;
+                    }
+                    else if (name.startsWith("File",
+                                             Qt::CaseInsensitive)) {
+                        menuFileItem = item;
+                    }
+                    else if (name.startsWith("View",
+                                             Qt::CaseInsensitive)) {
+                        menuViewItem = item;
+                    }
+                    else if (name.startsWith("Data",
+                                             Qt::CaseInsensitive)) {
+                        menuDataItem = item;
+                    }
+                    else if (name.startsWith("Surface",
+                                             Qt::CaseInsensitive)) {
+                        menuSurfaceItem = item;
+                    }
+                    else if (name.startsWith("Connect",
+                                             Qt::CaseInsensitive)) {
+                        menuConnectItem = item;
+                    }
+                    else if (name.startsWith("Develop",
+                                             Qt::CaseInsensitive)) {
+                        menuDevelopItem = item;
+                    }
+                    else if (name.startsWith("Window",
+                                             Qt::CaseInsensitive)) {
+                        menuWindowItem = item;
+                    }
+                    else if (name.startsWith("Help",
+                                             Qt::CaseInsensitive)) {
+                        menuHelpItem = item;
+                    }
+                    else {
+                        CaretLogSevere("Unrecognized menu name, has a new menu been added? \""
+                                       + name);
+                        unknownMenuItems.push_back(item);
+                    }
                 }
-                else if (name.startsWith("File",
-                                         Qt::CaseInsensitive)) {
-                    menuFileItem = item;
-                }
-                else if (name.startsWith("View",
-                                         Qt::CaseInsensitive)) {
-                    menuViewItem = item;
-                }
-                else if (name.startsWith("Data",
-                                         Qt::CaseInsensitive)) {
-                    menuDataItem = item;
-                }
-                else if (name.startsWith("Surface",
-                                         Qt::CaseInsensitive)) {
-                    menuSurfaceItem = item;
-                }
-                else if (name.startsWith("Connect",
-                                         Qt::CaseInsensitive)) {
-                    menuConnectItem = item;
-                }
-                else if (name.startsWith("Develop",
-                                         Qt::CaseInsensitive)) {
-                    menuDevelopItem = item;
-                }
-                else if (name.startsWith("Window",
-                                         Qt::CaseInsensitive)) {
-                    menuWindowItem = item;
-                }
-                else if (name.startsWith("Help",
-                                         Qt::CaseInsensitive)) {
-                    menuHelpItem = item;
+                else if (filePath.contains("Glossary")) {
+                    createHelpTreeWidgetItemForHelpPage(glossaryItem,
+                                                        name,
+                                                        filePath);
                 }
                 else {
-                    CaretLogSevere("Unrecognized menu name, has a new menu been added? \""
-                                   + name);
-                    unknownMenuItems.push_back(item);
+                    createHelpTreeWidgetItemForHelpPage(otherItem,
+                                                        name,
+                                                        filePath);
                 }
-            }
-            else if (filePath.contains("Glossary")) {
-                createHelpTreeWidgetItemForHelpPage(glossaryItem,
-                                                    name,
-                                                    filePath);
-            }
-            else {
-                createHelpTreeWidgetItemForHelpPage(otherItem,
-                                                    name,
-                                                    filePath);
             }
         }
         
@@ -657,6 +661,9 @@ HelpViewerDialog::displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpI
             break;
         case HelpTreeWidgetItem::TREE_ITEM_HELP_TEXT:
             m_helpBrowser->clear();
+            std::cout << "LOADING: " << qPrintable(helpItem->text(0))
+            << ":  " << qPrintable(helpItem->m_helpText)
+            << std::endl << std::endl;
             m_helpBrowser->setText(helpItem->m_helpText);
             if (addToHistoryFlag) {
                 addToHelpTopicHistory(helpItem);
