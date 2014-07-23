@@ -257,9 +257,9 @@ void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const 
     CaretSimpleMaxHeap<VoxelIJK, float> voxelHeap;
     for (int64_t i = 0; i < dims[0]; ++i)
     {
-        for (int64_t j = 0; j < dims[0]; ++j)
+        for (int64_t j = 0; j < dims[1]; ++j)
         {
-            for (int64_t k = 0; k < dims[0]; ++k)
+            for (int64_t k = 0; k < dims[2]; ++k)
             {
                 int64_t index = inVol->getIndex(i, j, k);
                 if ((roiData == NULL || roiData[index] > 0.0f))
@@ -281,12 +281,12 @@ void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const 
         }
     }
     const int STENCIL_SIZE = 18;
-    int stencil[STENCIL_SIZE] = { 0, 0, -1,
-                                  0, -1, 0,
-                                  -1, 0, 0,
-                                  1, 0, 0,
-                                  0, 1, 0,
-                                  0, 0, 1 };
+    int64_t stencil[STENCIL_SIZE] = { 0, 0, -1,
+                                      0, -1, 0,
+                                      -1, 0, 0,
+                                      1, 0, 0,
+                                      0, 1, 0,
+                                      0, 0, 1 };
     int64_t mergeCount = 0;
     while (!voxelHeap.isEmpty())
     {
@@ -331,21 +331,31 @@ void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const 
             default://merge all touching clusters
             {
                 ++mergeCount;
-                int64_t mergedIndex = *(touchingClusters.begin());//use the smallest index cluster to dump everything into
-                Cluster& mergedCluster = clusterList[mergedIndex];
+                int64_t mergedIndex = -1, biggestSize;//find the biggest cluster (in number of members) and use as merged cluster, for optimization purposes
                 for (set<int64_t>::iterator iter = touchingClusters.begin(); iter != touchingClusters.end(); ++iter)
                 {
-                    Cluster& thisCluster = clusterList[*iter];
-                    thisCluster.update(value, param_e, param_h);//recalculate to align cluster bottoms
-                    int64_t numMembers = (int64_t)thisCluster.members.size();
-                    for (int64_t j = 0; j < numMembers; ++j)//first, add the accum value to every member so that we have the current integrated values correct
+                    if (mergedIndex == -1 || (int64_t)clusterList[*iter].members.size() > biggestSize)
                     {
-                        int64_t memberIndex = inVol->getIndex(thisCluster.members[j].m_ijk);
-                        accumData[memberIndex] += thisCluster.accumVal;
-                        membership[memberIndex] = mergedIndex;//and update membership
+                        mergedIndex = *iter;
+                        biggestSize = (int64_t)clusterList[*iter].members.size();
                     }
-                    if (*iter != mergedIndex)//if we aren't the merged cluster
+                }
+                Cluster& mergedCluster = clusterList[mergedIndex];
+                mergedCluster.update(value, param_e, param_h);//recalculate to align cluster bottoms
+                for (set<int64_t>::iterator iter = touchingClusters.begin(); iter != touchingClusters.end(); ++iter)
+                {
+                    if (*iter != mergedIndex)//if we are the largest cluster, don't modify the per-voxel accum for members, so merges between small and large clusters are cheap
                     {
+                        Cluster& thisCluster = clusterList[*iter];
+                        thisCluster.update(value, param_e, param_h);
+                        int64_t numMembers = (int64_t)thisCluster.members.size();
+                        double correctionVal = thisCluster.accumVal - mergedCluster.accumVal;//fix the accum values in the side cluster so we can add the merged cluster's accum to everything at the end
+                        for (int64_t j = 0; j < numMembers; ++j)//first, add the accum value to every member so that we have the current integrated values correct
+                        {
+                            int64_t memberIndex = inVol->getIndex(thisCluster.members[j].m_ijk);
+                            accumData[memberIndex] += correctionVal;//apply the correction
+                            membership[memberIndex] = mergedIndex;//and update membership
+                        }
                         mergedCluster.members.insert(mergedCluster.members.end(), thisCluster.members.begin(), thisCluster.members.end());//copy all members
                         mergedCluster.totalVolume += thisCluster.totalVolume;
                         deadClusters.insert(*iter);//kill it
@@ -353,9 +363,9 @@ void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const 
                     }
                 }
                 mergedCluster.addMember(voxel, value, voxelVolume, param_e, param_h);//will not trigger recomputation, we already recomputed at this value
+                accumData[voxelIndex] -= mergedCluster.accumVal;//the voxel they merge on must not get the peak value of the cluster, obviously, so again, record its difference from peak
                 membership[voxelIndex] = mergedIndex;//NOTE: don't do anything to accumData at node, it should stay zero until another merge or end of data
-                mergedCluster.accumVal = 0.0;//reset accum because it is accounted for in the accum array now
-                break;
+                break;//NOTE: do not reset the accum value of the merged cluster, we specifically avoided modifying the per-voxel accum for its members, so the cluster accum is still in play
             }
         }
     }
