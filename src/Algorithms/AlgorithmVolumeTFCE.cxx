@@ -287,15 +287,10 @@ void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const 
                                       1, 0, 0,
                                       0, 1, 0,
                                       0, 0, 1 };
-    int64_t mergeCount = 0;
     while (!voxelHeap.isEmpty())
     {
         float value;
         VoxelIJK voxel = voxelHeap.pop(&value);
-        if (voxelHeap.size() % 100000 == 0)
-        {
-            cout << voxelHeap.size() << " voxels remaining, " << mergeCount << " merges" << endl;
-        }
         int64_t voxelIndex = inVol->getIndex(voxel.m_ijk);
         set<int64_t> touchingClusters;
         for (int i = 0; i < STENCIL_SIZE; i += 3)
@@ -330,7 +325,6 @@ void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const 
             }
             default://merge all touching clusters
             {
-                ++mergeCount;
                 int64_t mergedIndex = -1, biggestSize;//find the biggest cluster (in number of members) and use as merged cluster, for optimization purposes
                 for (set<int64_t>::iterator iter = touchingClusters.begin(); iter != touchingClusters.end(); ++iter)
                 {
