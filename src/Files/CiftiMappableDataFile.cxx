@@ -3664,8 +3664,8 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                         const StructureEnum::Enum structure = *surfaceIter;
                         dataFileInformation.addNameAndValue(("    "
                                                              + StructureEnum::toGuiName(structure)),
-                                                            (AString::number(bmm.getSurfaceNumberOfNodes(structure))
-                                                             + " nodes"));
+                                                            (AString::number(bmm.getSurfaceMap(structure).size()) + " out of " + AString::number(bmm.getSurfaceNumberOfNodes(structure))
+                                                             + " vertices"));
                     }
                     
                     const std::vector<StructureEnum::Enum> volumeStructures = bmm.getVolumeStructureList();
