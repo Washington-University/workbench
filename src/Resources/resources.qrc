@@ -87,6 +87,10 @@
 <file alias="Rename_tab.png">./HelpFiles/Menus/Window_Menu/Rename_tab.png</file>
 <file>./HelpFiles/Menus/Window_Menu/Window_Menu.html</file>
 <file alias="Window_Menu.png">./HelpFiles/Menus/Window_Menu/Window_Menu.png</file>
+<file>./HelpFiles/Open_Spec_File_Dialog/Open_Spec_File_Dialog.html</file>
+<file>./HelpFiles/Open_Spec_File_Dialog/Open_Spec_File_Dialog_OLD.html</file>
+<file alias="Open_Spec.png">./HelpFiles/Open_Spec_File_Dialog/Open_Spec.png</file>
+<file alias="gear-button.png">./HelpFiles/Open_Spec_File_Dialog/gear-button.png</file>
 </qresource>
 </RCC>
 
