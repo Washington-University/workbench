@@ -344,7 +344,7 @@ void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const 
                         thisCluster.update(value, param_e, param_h);
                         int64_t numMembers = (int64_t)thisCluster.members.size();
                         double correctionVal = thisCluster.accumVal - mergedCluster.accumVal;//fix the accum values in the side cluster so we can add the merged cluster's accum to everything at the end
-                        for (int64_t j = 0; j < numMembers; ++j)//first, add the accum value to every member so that we have the current integrated values correct
+                        for (int64_t j = 0; j < numMembers; ++j)//add the correction value to every member so that we have the current integrated values correct
                         {
                             int64_t memberIndex = inVol->getIndex(thisCluster.members[j].m_ijk);
                             accumData[memberIndex] += correctionVal;//apply the correction
