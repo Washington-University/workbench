@@ -132,10 +132,10 @@ AlgorithmVolumeTFCE::AlgorithmVolumeTFCE(ProgressObject* myProgObj, const Volume
             AlgorithmVolumeSmoothing(NULL, myVol, presmooth, &smoothed, myRoi);
             toUse = &smoothed;
         }
-//#pragma omp CARET_PAR
+#pragma omp CARET_PAR
         {
             vector<float> outframe(dims[0] * dims[1] * dims[2]);
-//#pragma omp CARET_FOR
+#pragma omp CARET_FOR
             for (int64_t b = 0; b < dims[3]; ++b)
             {
                 for (int64_t c = 0; c < dims[4]; ++c)
