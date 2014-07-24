@@ -27,8 +27,6 @@
 
 namespace caret {
     
-    class CiftiFile;
-    
     class AlgorithmCiftiCorrelation : public AbstractAlgorithm
     {
         AlgorithmCiftiCorrelation();
@@ -71,11 +69,14 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut, const std::vector<float>* weights = NULL,
-                                                     const bool& fisherZ = false, const float& memLimitGB = -1.0f);
+                                  const bool& fisherZ = false, const float& memLimitGB = -1.0f);
         AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
-                                                     const MetricFile* leftRoi, const MetricFile* rightRoi = NULL, const MetricFile* cerebRoi = NULL,
-                                                     const VolumeFile* volRoi = NULL, const std::vector<float>* weights = NULL, const bool& fisherZ = false,
-                                                     const float& memLimitGB = -1.0f);
+                                  const MetricFile* leftRoi, const MetricFile* rightRoi = NULL, const MetricFile* cerebRoi = NULL,
+                                  const VolumeFile* volRoi = NULL, const std::vector<float>* weights = NULL, const bool& fisherZ = false,
+                                  const float& memLimitGB = -1.0f);
+        AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
+                                  const CiftiFile* ciftiRoi,
+                                  const std::vector<float>* weights = NULL, const bool& fisherZ = false, const float& memLimitGB = -1.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

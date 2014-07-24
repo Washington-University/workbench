@@ -20,6 +20,8 @@
 
 #include "AlgorithmCiftiCorrelation.h"
 #include "AlgorithmException.h"
+
+#include "AlgorithmCiftiSeparate.h"
 #include "CiftiFile.h"
 #include "MetricFile.h"
 #include "VolumeFile.h"
@@ -56,11 +58,13 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     OptionalParameter* leftRoiOpt = roiOverrideOpt->createOptionalParameter(1, "-left-roi", "use an roi for left hempsphere");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
     OptionalParameter* rightRoiOpt = roiOverrideOpt->createOptionalParameter(2, "-right-roi", "use an roi for right hempsphere");
-    rightRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
+    rightRoiOpt->addMetricParameter(1, "roi-metric", "the right roi as a metric file");
     OptionalParameter* cerebRoiOpt = roiOverrideOpt->createOptionalParameter(3, "-cerebellum-roi", "use an roi for cerebellum");
-    cerebRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
+    cerebRoiOpt->addMetricParameter(1, "roi-metric", "the cerebellum roi as a metric file");
     OptionalParameter* volRoiOpt = roiOverrideOpt->createOptionalParameter(4, "-vol-roi", "use an roi for volume");
-    volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
+    volRoiOpt->addVolumeParameter(1, "roi-vol", "the volume roi file");
+    OptionalParameter* ciftiRoiOpt = roiOverrideOpt->createOptionalParameter(5, "-cifti-roi", "use a cifti file for combined rois");
+    ciftiRoiOpt->addCiftiParameter(1, "roi-cifti", "the cifti roi file");
     
     OptionalParameter* weightsOpt = ret->createOptionalParameter(4, "-weights", "specify column weights");
     weightsOpt->addStringParameter(1, "weight-file", "text file containing one weight per column");
@@ -71,7 +75,8 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
     ret->setHelpText(
-        AString("For each row (or each row inside an roi if -roi-override is specified), correlate to all other rows.\n\n") +
+        AString("For each row (or each row inside an roi if -roi-override is specified), correlate to all other rows.  ") +
+        "The -cifti-roi suboption to -roi-override may not be specified with any other -*-roi suboption, but you may specify the other -*-roi suboptions together.\n\n" +
         "When using the -fisher-z option, the output is NOT a Z-score, it is artanh(r), to do further math on this output, consider using -cifti-math.\n\n" +
         "Restricting the memory usage will make it calculate the output in chunks, and if the input file size is more than 70% of the memory limit, " +
         "it will also read through the input file as rows are required, resulting in several passes through the input file (once per chunk).  " +
@@ -88,27 +93,41 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
     bool roiOverrideMode = roiOverrideOpt->m_present;
     MetricFile* leftRoi = NULL, *rightRoi = NULL, *cerebRoi = NULL;
     VolumeFile* volRoi = NULL;
+    CiftiFile* ciftiRoi = NULL;
+    bool ciftiRoiMode = true;
     if (roiOverrideMode)
     {
         OptionalParameter* leftRoiOpt = roiOverrideOpt->getOptionalParameter(1);
         if (leftRoiOpt->m_present)
         {
             leftRoi = leftRoiOpt->getMetric(1);
+            ciftiRoiMode = false;
         }
         OptionalParameter* rightRoiOpt = roiOverrideOpt->getOptionalParameter(2);
         if (rightRoiOpt->m_present)
         {
             rightRoi = rightRoiOpt->getMetric(1);
+            ciftiRoiMode = false;
         }
         OptionalParameter* cerebRoiOpt = roiOverrideOpt->getOptionalParameter(3);
         if (cerebRoiOpt->m_present)
         {
             cerebRoi = cerebRoiOpt->getMetric(1);
+            ciftiRoiMode = false;
         }
         OptionalParameter* volRoiOpt = roiOverrideOpt->getOptionalParameter(4);
         if (volRoiOpt->m_present)
         {
             volRoi = volRoiOpt->getVolume(1);
+            ciftiRoiMode = false;
+        }
+        OptionalParameter* ciftiRoiOpt = roiOverrideOpt->getOptionalParameter(5);
+        if (ciftiRoiOpt->m_present)
+        {
+            if (!ciftiRoiMode) throw AlgorithmException("-cifti-roi cannot be specified with any other -*-roi option");
+            ciftiRoi = ciftiRoiOpt->getCifti(1);
+        } else {
+            if (ciftiRoiMode) throw AlgorithmException("-roi-override requires a -*-roi suboption");
         }
     }
     OptionalParameter* weightsOpt = myParams->getOptionalParameter(4);
@@ -150,7 +169,12 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
     }
     if (roiOverrideMode)
     {
-        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB);
+        if (ciftiRoiMode)
+        {
+            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, ciftiRoi, weights, fisherZ, memLimitGB);
+        } else {
+            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB);
+        }
     } else {
         AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, weights, fisherZ, memLimitGB);
     }
@@ -432,6 +456,48 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
     {
         clearCache();//don't currently need to do this, its just for completeness
     }
+}
+
+AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut, const CiftiFile* ciftiRoi,
+                                                     const vector<float>* weights, const bool& fisherZ, const float& memLimitGB): AbstractAlgorithm(NULL)//HACK: get around the sentinel by passing a null, because this implementation calls another
+{
+    const CiftiXML& roiXML = ciftiRoi->getCiftiXML();//roi is not optional in this variant
+    if (roiXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("cifti roi does not have brain models mapping along column");
+    const CiftiBrainModelsMap myDenseMap = roiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    MetricFile leftRoi, rightRoi, cerebRoi;
+    MetricFile* leftRoiPtr = NULL, *rightRoiPtr = NULL, *cerebRoiPtr = NULL;
+    VolumeFile volRoi;
+    VolumeFile* volRoiPtr = NULL;
+    vector<StructureEnum::Enum> surfStructs = myDenseMap.getSurfaceStructureList();
+    for (int i = 0; i < (int)surfStructs.size(); ++i)
+    {
+        MetricFile* thisRoi = NULL;
+        switch (surfStructs[i])
+        {
+            case StructureEnum::CORTEX_LEFT:
+                thisRoi = &leftRoi;
+                leftRoiPtr = thisRoi;
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                thisRoi = &rightRoi;
+                rightRoiPtr = thisRoi;
+                break;
+            case StructureEnum::CEREBELLUM:
+                thisRoi = &cerebRoi;
+                cerebRoiPtr = thisRoi;
+                break;
+            default:
+                throw AlgorithmException("structure not supported for surface type: " + StructureEnum::toName(surfStructs[i]));
+        }
+        AlgorithmCiftiSeparate(NULL, ciftiRoi, CiftiXML::ALONG_COLUMN, surfStructs[i], thisRoi);
+    }
+    if (myDenseMap.hasVolumeData())
+    {
+        int64_t offsetOut[3];
+        AlgorithmCiftiSeparate(NULL, ciftiRoi, CiftiXML::ALONG_COLUMN, &volRoi, offsetOut, NULL, false);//don't crop, because it needs to match the original volume space in the input
+        volRoiPtr = &volRoi;
+    }
+    AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoiPtr, rightRoiPtr, cerebRoiPtr, volRoiPtr, weights, fisherZ, memLimitGB);//HACK: pass through our progress object
 }
 
 float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2, const bool& fisherZ)
