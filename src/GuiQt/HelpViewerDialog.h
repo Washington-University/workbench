@@ -58,7 +58,8 @@ namespace caret {
     private slots:
         void helpPageAnchorClicked(const QUrl&);
         
-        void topicIndexTreeItemSelected(QTreeWidgetItem* item, int column);
+        void topicIndexTreeItemChanged(QTreeWidgetItem* currentItem,
+                                       QTreeWidgetItem* previousItem);
         
         void helpPageBackButtonClicked();
         

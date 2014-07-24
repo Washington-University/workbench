@@ -94,9 +94,11 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     m_topicIndexTreeWidget->setColumnCount(1);
     m_topicIndexTreeWidget->setColumnHidden(0, false);
     m_topicIndexTreeWidget->headerItem()->setHidden(true);
-    QObject::connect(m_topicIndexTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-                     this, SLOT(topicIndexTreeItemSelected(QTreeWidgetItem*,int)));
-    
+    QObject::connect(m_topicIndexTreeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem*,
+                                                                QTreeWidgetItem*)),
+                     this, SLOT(topicIndexTreeItemChanged(QTreeWidgetItem*,
+                                                           QTreeWidgetItem*)));
+
     /*
      * Search line edit and list widget
      */
@@ -325,10 +327,10 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
             const QString name       = fileInfo.baseName();
             const QString filePath   = fileInfo.filePath();
  
-            std::cout << qPrintable("name / filePath: "
-                                    + name
-                                    + " / "
-                                    + filePath) << std::endl;
+//            std::cout << qPrintable("name / filePath: "
+//                                    + name
+//                                    + " / "
+//                                    + filePath) << std::endl;
             
             
             if (filePath.endsWith(".htm")
@@ -545,29 +547,31 @@ HelpViewerDialog::createHelpTreeWidgetItemForHelpPage(QTreeWidgetItem* parent,
 }
 
 /**
- * called when an index tree item is clicked.
+ * Called when selected index tree item changes.
  *
- * @param item
- *     Tree widget item that was clicked.
- * @param column
- *     Column of item.
+ * @param currentItem
+ *    The selected item
+ * @param previousItem
+ *    The previously selected item
  */
 void
-HelpViewerDialog::topicIndexTreeItemSelected(QTreeWidgetItem* item, int /*column*/)
+HelpViewerDialog::topicIndexTreeItemChanged(QTreeWidgetItem* currentItem,
+                                            QTreeWidgetItem* /*previousItem*/)
 {
-    if (item != NULL) {
+    if (currentItem != NULL) {
         /*
          * Note not all items are castable to HelpTreeWidgetItem.
          * Items not castable are category items that have an arrow to
          * expand/collapse its children.
          */
-        HelpTreeWidgetItem* helpItem = dynamic_cast<HelpTreeWidgetItem*>(item);
+        HelpTreeWidgetItem* helpItem = dynamic_cast<HelpTreeWidgetItem*>(currentItem);
         if (helpItem != NULL) {
             displayHelpTextForHelpTreeWidgetItem(helpItem,
                                                  true);
         }
     }
 }
+
 
 /**
  * Called when help text back button is clicked.
@@ -666,14 +670,15 @@ HelpViewerDialog::displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpI
 //            << std::endl << std::endl;
             if (helpItem->m_helpText.contains("<html>",
                                               Qt::CaseInsensitive)) {
-                QTextDocument td;
-                td.setHtml(helpItem->m_helpText);
-                const QString html = td.toHtml();
-                std::cout << "Old/New length:" << helpItem->m_helpText.size() << " " << html.size() << std::endl;
-                m_helpBrowser->setHtml(html);
-                std::cout << "Cleaned HTML" << qPrintable(helpItem->text(0))
-                            << ":  "  << std::endl << qPrintable(html)
-                            << std::endl << std::endl;
+                m_helpBrowser->setHtml(helpItem->m_helpText);
+//                QTextDocument td;
+//                td.setHtml(helpItem->m_helpText);
+//                const QString html = td.toHtml();
+//                std::cout << "Old/New length:" << helpItem->m_helpText.size() << " " << html.size() << std::endl;
+//                m_helpBrowser->setHtml(html);
+//                std::cout << "Cleaned HTML" << qPrintable(helpItem->text(0))
+//                            << ":  "  << std::endl << qPrintable(html)
+//                            << std::endl << std::endl;
             }
             else {
                 m_helpBrowser->setText(helpItem->m_helpText);
