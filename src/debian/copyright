@@ -19,10 +19,13 @@ Copyright: 1997 Josef Wilgen
            2002 Uwe Rathmann
 License: Qwt-1.0
 
-Files: src/GlfFont/glf.* src/Resources/*.glf
-Copyright: 2000 Romka Graphics
-           2014 Washington University School of Medicine
-License: GPL-2+
+Files: src/FtglFont/*
+Copyright: 2001-2004 Henry Maddocks <ftgl@opengl.geek.nz>
+           2008 Daniel Remenak <dtremenak@users.sourceforge.net>
+           2008 Éric Beets <ericbeets@free.fr>
+           2008 Sam Hocevar <sam@zoy.org>
+           2008 Sean Morrison <learner@brlcad.org>
+License: Expat
 
 Files: src/Common/Base64.* src/Common/DataCompressZLib.* src/Common/MathFunctions.* src/Nifti/Matrix4x4.cxx
 Copyright: 1993-2008 Ken Martin, Will Schroeder, Bill Lorensen
@@ -175,3 +178,23 @@ License: PNPOLY-BSD-3-Clause
  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+License: Expat
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
+ .
+ The above copyright notice and this permission notice shall be
+ included in all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
