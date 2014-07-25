@@ -440,30 +440,30 @@ void NiftiHeader::setDataScaling(const double& mult, const double& offset)
 
 void NiftiHeader::read(CaretBinaryFile& inFile)
 {
-    char buffer[sizeof(nifti_2_header)];
-    inFile.read(buffer, sizeof(nifti_1_header));
-    int version = NIFTI2_VERSION((*((nifti_1_header*)buffer)));
+    nifti_1_header buffer1;
+    nifti_2_header buffer2;
+    inFile.read(&buffer1, sizeof(nifti_1_header));
+    int version = NIFTI2_VERSION(buffer1);
     bool swapped = false;
     try
     {
         if (version == 2)
         {
-            inFile.read(buffer + sizeof(nifti_1_header), sizeof(nifti_2_header) - sizeof(nifti_1_header));
-            nifti_2_header& inputHeader = *((nifti_2_header*)buffer);
-            if (NIFTI2_NEEDS_SWAP(inputHeader))
+            memcpy(&buffer2, &buffer1, sizeof(nifti_1_header));
+            inFile.read(((char*)&buffer2) + sizeof(nifti_1_header), sizeof(nifti_2_header) - sizeof(nifti_1_header));
+            if (NIFTI2_NEEDS_SWAP(buffer2))
             {
                 swapped = true;
-                swapHeaderBytes(inputHeader);
+                swapHeaderBytes(buffer2);
             }
-            setupFrom(inputHeader);
+            setupFrom(buffer2);
         } else if (version == 1) {
-            nifti_1_header& inputHeader = *((nifti_1_header*)buffer);
-            if (NIFTI2_NEEDS_SWAP(inputHeader))//yes, this works on nifti-1 also
+            if (NIFTI2_NEEDS_SWAP(buffer1))//yes, this works on nifti-1 also
             {
                 swapped = true;
-                swapHeaderBytes(inputHeader);
+                swapHeaderBytes(buffer1);
             }
-            setupFrom(inputHeader);
+            setupFrom(buffer1);
         } else {
             throw DataFileException(inFile.getFilename() + " is not a valid NIfTI file");
         }
