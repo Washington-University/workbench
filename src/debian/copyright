@@ -6,6 +6,10 @@ Files: *
 Copyright: 2014 Washington University School of Medicine
 License: GPL-2+
 
+Files: src/Files/SurfaceResamplingHelper.cxx
+Copyright: 2014  Washington University School of Medicine
+License: Expat
+
 Files: src/Quazip/*
 Copyright: 2005-2012 Sergey A. Tachenov
            1998-2010 Gilles Vollant
