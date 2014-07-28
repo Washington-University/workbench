@@ -708,6 +708,43 @@ HelpViewerDialog::displayHttpInUsersWebBrowser(const AString& urlText)
     }
 }
 
+/**
+ * Display the help page.
+ *
+ * @param pageName
+ *    Name of page that may contain a path.
+ * @param matchBasename
+ *    Match by name of file ignoring any path.
+ */
+bool
+HelpViewerDialog::displayHelpPage(const AString& pageName,
+                                  const bool matchBasename)
+{
+    AString htmlPageName = pageName;
+    if (matchBasename) {
+        const int32_t slashPos = htmlPageName.lastIndexOf("/");
+        if (slashPos >= 0) {
+            htmlPageName = htmlPageName.mid(slashPos + 1);
+        }
+    }
+    
+    for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
+         iter != m_allHelpWidgetItems.end();
+         iter++) {
+        HelpTreeWidgetItem* item = *iter;
+        CaretAssert(item);
+        if (item->m_helpPageURL.endsWith(htmlPageName)) {
+            displayHelpTextForHelpTreeWidgetItem(item,
+                                                 true);
+//            std::cout <<  "loaded " << qPrintable(htmlPageName)
+//            << " with matchBasename "
+//            << (matchBasename ? "true" : "false") << std::endl;
+            return true;
+        }
+    }
+    
+    return false;
+}
 
 /**
  * Gets called when an HTML link is clicked in the text of a help page.
@@ -732,32 +769,50 @@ HelpViewerDialog::helpPageAnchorClicked(const QUrl& url)
                                    + "\" appears to be invalid.");
         }
         else {
-            AString htmlPageName = path;
-            const int32_t slashPos = htmlPageName.lastIndexOf("/");
-            if (slashPos >= 0) {
-                htmlPageName = htmlPageName.mid(slashPos + 1);
+            /*
+             * Try loading page with path and name
+             */
+            bool successFlag = displayHelpPage(path,
+                                               false);
+            if ( ! successFlag) {
+                /*
+                 * Try loading with just page name
+                 */
+                successFlag = displayHelpPage(path,
+                                              true);
             }
-            bool foundMatchingPage = false;
-            
-            for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
-                 iter != m_allHelpWidgetItems.end();
-                 iter++) {
-                HelpTreeWidgetItem* item = *iter;
-                CaretAssert(item);
-                if (item->m_helpPageURL.endsWith(htmlPageName)) {
-                    displayHelpTextForHelpTreeWidgetItem(item,
-                                                         true);
-                    foundMatchingPage = true;
-                    break;
-                }
-            }
-            
-            if ( ! foundMatchingPage) {
+            if ( ! successFlag) {
                 WuQMessageBox::errorOk(this,
                                        ("Unable to find matching help page for \""
                                         + url.toString()
                                         + "\""));
             }
+//            AString htmlPageName = path;
+//            const int32_t slashPos = htmlPageName.lastIndexOf("/");
+//            if (slashPos >= 0) {
+//                htmlPageName = htmlPageName.mid(slashPos + 1);
+//            }
+//            bool foundMatchingPage = false;
+//            
+//            for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
+//                 iter != m_allHelpWidgetItems.end();
+//                 iter++) {
+//                HelpTreeWidgetItem* item = *iter;
+//                CaretAssert(item);
+//                if (item->m_helpPageURL.endsWith(htmlPageName)) {
+//                    displayHelpTextForHelpTreeWidgetItem(item,
+//                                                         true);
+//                    foundMatchingPage = true;
+//                    break;
+//                }
+//            }
+//            
+//            if ( ! foundMatchingPage) {
+//                WuQMessageBox::errorOk(this,
+//                                       ("Unable to find matching help page for \""
+//                                        + url.toString()
+//                                        + "\""));
+//            }
         }
     }
 }

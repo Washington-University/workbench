@@ -114,6 +114,9 @@ namespace caret {
                                  QTreeWidgetItem* item,
                                  const AString& itemName);
                                
+        bool displayHelpPage(const AString& pageName,
+                             const bool matchBasename);
+        
         /// the help browser
         QTextBrowser* m_helpBrowser;
         
