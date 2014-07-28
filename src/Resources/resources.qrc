@@ -1,96 +1,101 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-<file>Cursor/pen_eraser.png</file>
-<file>FtglFonts/VeraSe.ttf</file>
-<file>FtglFonts/VeraBd.ttf</file>
-<file>LayersPanel/colorbar.png</file>
-<file>LayersPanel/construction.png</file>
-<file>LayersPanel/wrench.png</file>
-<file>SpecFileDialog/delete_icon.png</file>
-<file>SpecFileDialog/load_icon.png</file>
-<file>SpecFileDialog/options_icon.png</file>
-<file>SpecFileDialog/reload_icon.png</file>
-<file>Splash/hcp.png</file>
-<file>Splash/startup_image.png</file>
-<file>Splash/twitter.png</file>
-<file>ToolBar/clapboard.png</file>
-<file>ToolBar/features_toolbox.png</file>
-<file>ToolBar/info.png</file>
-<file>ToolBar/overlay_toolbox.png</file>
-<file>ToolBar/toolbar.png</file>
-<file>ToolBar/view-anterior.png</file>
-<file>ToolBar/view-dorsal.png</file>
-<file>ToolBar/view-left-lateral.png</file>
-<file>ToolBar/view-left-medial.png</file>
-<file>ToolBar/view-left.png</file>
-<file>ToolBar/view-plane-axial.png</file>
-<file>ToolBar/view-plane-coronal.png</file>
-<file>ToolBar/view-plane-parasagittal.png</file>
-<file>ToolBar/view-posterior.png</file>
-<file>ToolBar/view-right-lateral.png</file>
-<file>ToolBar/view-right-medial.png</file>
-<file>ToolBar/view-right.png</file>
-<file>ToolBar/view-ventral.png</file>
+<file>./create_resources_qrc_file.sh</file>
+<file>./Cursor/pen_eraser.png</file>
+<file>./FtglFonts/VeraBd.ttf</file>
+<file>./FtglFonts/VeraSe.ttf</file>
 <file>./HelpFiles/Glossary/CIFTI_file/CIFTI_file.html</file>
 <file>./HelpFiles/Glossary/ConnectomeDB/ConnectomeDB.html</file>
-<file alias="ConnectomeDB_login.png">./HelpFiles/Glossary/ConnectomeDB/ConnectomeDB_login.png</file>
+<file>./HelpFiles/Glossary/ConnectomeDB/ConnectomeDB_login.png</file>
 <file>./HelpFiles/Glossary/GIFTI_file/GIFTI_file.html</file>
 <file>./HelpFiles/Glossary/NIFTI_file/NIFTI_file.html</file>
 <file>./HelpFiles/Glossary/Scene/Scene.html</file>
 <file>./HelpFiles/Glossary/Scene/Scene2.html</file>
-<file alias="Spec_File.png">./HelpFiles/Glossary/Specification_File/Spec_File.png</file>
+<file>./HelpFiles/Glossary/Specification_File/Spec_File.png</file>
 <file>./HelpFiles/Glossary/Specification_File/Specification_File.html</file>
 <file>./HelpFiles/Glossary/Specification_File/Specification_File2.html</file>
 <file>./HelpFiles/Menus/Connect_Menu/Connect_Menu.htm</file>
-<file alias="Connect_Menu_files/image001.jpg">./HelpFiles/Menus/Connect_Menu/Connect_Menu_files/image001.jpg</file>
+<file>./HelpFiles/Menus/Connect_Menu/Connect_Menu_files/image001.jpg</file>
 <file>./HelpFiles/Menus/Data_Menu/Data_Menu.html</file>
 <file>./HelpFiles/Menus/Data_Menu/Data_Menu_filt.htm</file>
-<file alias="Project_Foci_Dialog.png">./HelpFiles/Menus/Data_Menu/Project_Foci_Dialog.png</file>
+<file>./HelpFiles/Menus/Data_Menu/Project_Foci_Dialog.png</file>
 <file>./HelpFiles/Menus/Develop_Menu/Develop_Menu.html</file>
 <file>./HelpFiles/Menus/File_Menu/Animation_Control/Animation_Control.html</file>
-<file alias="Animation_Control_dialog.png">./HelpFiles/Menus/File_Menu/Animation_Control/Animation_Control_dialog.png</file>
+<file>./HelpFiles/Menus/File_Menu/Animation_Control/Animation_Control_Cleaned.html</file>
+<file>./HelpFiles/Menus/File_Menu/Animation_Control/Animation_Control_dialog.png</file>
 <file>./HelpFiles/Menus/File_Menu/Capture_Image/Capture_Image.html</file>
-<file alias="Capture_Image_dialog.png">./HelpFiles/Menus/File_Menu/Capture_Image/Capture_Image_dialog.png</file>
+<file>./HelpFiles/Menus/File_Menu/Capture_Image/Capture_Image_dialog.png</file>
 <file>./HelpFiles/Menus/File_Menu/File_Menu.html</file>
-<file alias="File_Menu.jpg">HelpFiles/Menus/File_Menu/File_Menu.jpg</file>
+<file>./HelpFiles/Menus/File_Menu/File_Menu.jpg</file>
 <file>./HelpFiles/Menus/File_Menu/Preferences/Preferences.html</file>
-<file alias="Preferences_Colors.png">HelpFiles/Menus/File_Menu/Preferences/Preferences_Colors.png</file>
-<file alias="Preferences_Misc.png">HelpFiles/Menus/File_Menu/Preferences/Preferences_Misc.png</file>
-<file alias="Preferences_OpenGL.png">HelpFiles/Menus/File_Menu/Preferences/Preferences_OpenGL.png</file>
-<file alias="Preferences_Volume.png">HelpFiles/Menus/File_Menu/Preferences/Preferences_Volume.png</file>
-<file alias="Gear_symbol.png">./HelpFiles/Menus/File_Menu/Save-Manage_Files/Gear_symbol.png</file>
-<file alias="Reload_symbol.png">./HelpFiles/Menus/File_Menu/Save-Manage_Files/Reload_symbol.png</file>
-<file alias="Remove_symbol.png">./HelpFiles/Menus/File_Menu/Save-Manage_Files/Remove_symbol.png</file>
-<file alias="Save-Manage_File_dialog.png">./HelpFiles/Menus/File_Menu/Save-Manage_Files/Save-Manage_File_dialog.png</file>
+<file>./HelpFiles/Menus/File_Menu/Preferences/Preferences_Colors.png</file>
+<file>./HelpFiles/Menus/File_Menu/Preferences/Preferences_Misc.png</file>
+<file>./HelpFiles/Menus/File_Menu/Preferences/Preferences_OpenGL.png</file>
+<file>./HelpFiles/Menus/File_Menu/Preferences/Preferences_Volume.png</file>
+<file>./HelpFiles/Menus/File_Menu/Save-Manage_Files/Gear_symbol.png</file>
+<file>./HelpFiles/Menus/File_Menu/Save-Manage_Files/Reload_symbol.png</file>
+<file>./HelpFiles/Menus/File_Menu/Save-Manage_Files/Remove_symbol.png</file>
+<file>./HelpFiles/Menus/File_Menu/Save-Manage_Files/Save-Manage_File_dialog.png</file>
 <file>./HelpFiles/Menus/File_Menu/Save-Manage_Files/Save-Manage_Files.html</file>
-<file>./HelpFiles/Scenes_Window/Scenes_Window-BodyText-HTMLedit.html</file>
-<file>./HelpFiles/Scenes_Window/Scenes_Window-BodyText.html</file>
-<file>./HelpFiles/Scenes_Window/ModScenes_Window-BodyText.html</file>
-<file>./HelpFiles/Scenes_Window/Scenes_Window.html</file>
-<file alias="Scenes_Window.png">./HelpFiles/Scenes_Window/Scenes_Window.png</file>
-<file alias="Save-Manage_Files_dialog.png">./HelpFiles/Menus/File_Menu/Save-Manage_Files/Save-Manage_Files_dialog.png</file>
-<file alias="Upload_symbol.png">./HelpFiles/Menus/File_Menu/Save-Manage_Files/Upload_symbol.png</file>
-<file alias="Bug_Report_box.png">./HelpFiles/Menus/Help_Menu/Bug_Report_box.png</file>
+<file>./HelpFiles/Menus/File_Menu/Save-Manage_Files/Save-Manage_Files_dialog.png</file>
+<file>./HelpFiles/Menus/File_Menu/Save-Manage_Files/Upload_symbol.png</file>
+<file>./HelpFiles/Menus/Help_Menu/Bug_Report_box.png</file>
 <file>./HelpFiles/Menus/Help_Menu/Help_Menu.html</file>
-<file alias="Help_Menu.png">./HelpFiles/Menus/Help_Menu/Help_Menu.png</file>
-<file alias="Help_Search.png">./HelpFiles/Menus/Help_Menu/Help_Search.png</file>
-<file alias="Workbench_Help.png">./HelpFiles/Menus/Help_Menu/Workbench_Help.png</file>
+<file>./HelpFiles/Menus/Help_Menu/Help_Menu.png</file>
+<file>./HelpFiles/Menus/Help_Menu/Help_Search.png</file>
+<file>./HelpFiles/Menus/Help_Menu/Workbench_Help.png</file>
 <file>./HelpFiles/Menus/Surface_Menu/Surface_Menu.html</file>
-<file alias="Surface_Properties.png">./HelpFiles/Menus/Surface_Menu/Surface_Properties.png</file>
-<file alias="Volume_Interaction_Surfaces.png">./HelpFiles/Menus/Surface_Menu/Volume_Interaction_Surfaces.png</file>
+<file>./HelpFiles/Menus/Surface_Menu/Surface_Properties.png</file>
+<file>./HelpFiles/Menus/Surface_Menu/Volume_Interaction_Surfaces.png</file>
 <file>./HelpFiles/Menus/View_Menu/Tile_Tabs_Configuration/Tile_Tabs_Configuration.htm</file>
-<file alias="Tile_Tabs_Configuration.png">./HelpFiles/Menus/View_Menu/Tile_Tabs_Configuration/Tile_Tabs_Configuration.png</file>
+<file>./HelpFiles/Menus/View_Menu/Tile_Tabs_Configuration/Tile_Tabs_Configuration.png</file>
+<file>./HelpFiles/Menus/View_Menu/Tile_Tabs_Configuration/Tile_Tabs_Configuration_files/image001.jpg</file>
 <file>./HelpFiles/Menus/View_Menu/View_Menu.htm</file>
 <file>./HelpFiles/Menus/View_Menu/View_Menu.png</file>
 <file>./HelpFiles/Menus/wb_view_Menu/wb_view_Menu.html</file>
-<file alias="wb_view_Menu.png">./HelpFiles/Menus/wb_view_Menu/wb_view_Menu.png</file>
-<file alias="Rename_tab.png">./HelpFiles/Menus/Window_Menu/Rename_tab.png</file>
+<file>./HelpFiles/Menus/wb_view_Menu/wb_view_Menu.png</file>
+<file>./HelpFiles/Menus/Window_Menu/Rename_tab.png</file>
 <file>./HelpFiles/Menus/Window_Menu/Window_Menu.html</file>
-<file alias="Window_Menu.png">./HelpFiles/Menus/Window_Menu/Window_Menu.png</file>
+<file>./HelpFiles/Menus/Window_Menu/Window_Menu.png</file>
+<file>./HelpFiles/Open_Spec_File_Dialog/gear-button.png</file>
+<file>./HelpFiles/Open_Spec_File_Dialog/Open_Spec.png</file>
 <file>./HelpFiles/Open_Spec_File_Dialog/Open_Spec_File_Dialog.html</file>
 <file>./HelpFiles/Open_Spec_File_Dialog/Open_Spec_File_Dialog_OLD.html</file>
-<file alias="Open_Spec.png">./HelpFiles/Open_Spec_File_Dialog/Open_Spec.png</file>
-<file alias="gear-button.png">./HelpFiles/Open_Spec_File_Dialog/gear-button.png</file>
+<file>./HelpFiles/Open_Spec_File_Dialog/Thumbs.db</file>
+<file>./HelpFiles/Scenes_Window/ModScenes_Window-BodyText.html</file>
+<file>./HelpFiles/Scenes_Window/Scenes_Window-BodyText-HTMLedit.html</file>
+<file>./HelpFiles/Scenes_Window/Scenes_Window-BodyText.html</file>
+<file>./HelpFiles/Scenes_Window/Scenes_Window.html</file>
+<file>./HelpFiles/Scenes_Window/Scenes_Window.png</file>
+<file>./LayersPanel/colorbar.png</file>
+<file>./LayersPanel/construction.png</file>
+<file>./LayersPanel/wrench.png</file>
+<file>./old_resources.qrc</file>
+<file>./resources.qrc</file>
+<file>./SpecFileDialog/delete_icon.png</file>
+<file>./SpecFileDialog/load_icon.png</file>
+<file>./SpecFileDialog/options_icon.png</file>
+<file>./SpecFileDialog/reload_icon.png</file>
+<file>./Splash/hcp.png</file>
+<file>./Splash/startup_image.png</file>
+<file>./Splash/twitter.png</file>
+<file>./ToolBar/clapboard.png</file>
+<file>./ToolBar/features_toolbox.png</file>
+<file>./ToolBar/info.png</file>
+<file>./ToolBar/overlay_toolbox.png</file>
+<file>./ToolBar/toolbar.png</file>
+<file>./ToolBar/view-anterior.png</file>
+<file>./ToolBar/view-dorsal.png</file>
+<file>./ToolBar/view-left-lateral.png</file>
+<file>./ToolBar/view-left-medial.png</file>
+<file>./ToolBar/view-left.png</file>
+<file>./ToolBar/view-plane-axial.png</file>
+<file>./ToolBar/view-plane-coronal.png</file>
+<file>./ToolBar/view-plane-parasagittal.png</file>
+<file>./ToolBar/view-posterior.png</file>
+<file>./ToolBar/view-right-lateral.png</file>
+<file>./ToolBar/view-right-medial.png</file>
+<file>./ToolBar/view-right.png</file>
+<file>./ToolBar/view-ventral.png</file>
 </qresource>
 </RCC>
-

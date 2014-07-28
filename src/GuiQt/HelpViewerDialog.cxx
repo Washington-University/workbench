@@ -23,6 +23,7 @@
 #include "HelpViewerDialog.h"
 #undef __HELP_VIEWER_DIALOG_DECLARE__
 
+#include <QAction>
 #include <QDesktopServices>
 #include <QDir>
 #include <QDirIterator>
@@ -46,7 +47,7 @@
 #include "CommandOperation.h"
 #include "CommandOperationManager.h"
 #include "WuQMessageBox.h"
-#include "XmlUtilities.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -72,20 +73,9 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
                     parent,
                     f)
 {
-    m_helpTopicHistoryIndex = -1;
+    m_helpBrowser = NULL;
     m_topicSearchLineEditFirstMouseClick = true;
     setApplyButtonText("");
-
-    /*
-     * create the help browser
-     */
-    m_helpBrowser = new HelpTextBrowser(); //QTextBrowser;
-    m_helpBrowser->setMinimumWidth(400);
-    m_helpBrowser->setMinimumHeight(200);
-    m_helpBrowser->setOpenExternalLinks(false);
-    m_helpBrowser->setOpenLinks(false);
-    QObject::connect(m_helpBrowser, SIGNAL(anchorClicked(const QUrl&)),
-                     this, SLOT(helpPageAnchorClicked(const QUrl&)));
     
     /*
      * Create the tree widget for the help topics
@@ -111,7 +101,6 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
                                             + searchText);
     m_topicSearchLineEdit = new QLineEdit;
     m_topicSearchLineEdit->setToolTip(topicSearchToolTipText.convertToHtmlPage());
-    //m_topicSearchLineEdit->setText("Enter topic search text here");
     QObject::connect(m_topicSearchLineEdit, SIGNAL(returnPressed()),
                      this, SLOT(topicSearchLineEditStartSearch()));
     QObject::connect(m_topicSearchLineEdit, SIGNAL(textEdited(const QString&)),
@@ -125,8 +114,6 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     QToolButton* backwardButton = new QToolButton;
     backwardButton->setArrowType(Qt::LeftArrow);
     backwardButton->setToolTip("Show the previous page");
-    connect(backwardButton, SIGNAL(clicked()),
-            this, SLOT(helpPageBackButtonClicked()));
     
     /*
      * Create the forward toolbar button
@@ -134,8 +121,6 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     QToolButton* forwardButton = new QToolButton;
     forwardButton->setArrowType(Qt::RightArrow);
     forwardButton->setToolTip("Show the next page");
-    connect(forwardButton, SIGNAL(clicked()),
-            this, SLOT(helpPageForwardButtonClicked()));
     
     /*
      * Create the print toolbar button
@@ -155,19 +140,16 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     m_helpTextFindLineEdit->setToolTip(helpTextSearchToolTipText.convertToHtmlPage());
     QObject::connect(m_helpTextFindLineEdit, SIGNAL(returnPressed()),
                      this, SLOT(helpTextSearchLineEditStartSearch()));
-    //QObject::connect(m_helpTextFindLineEdit, SIGNAL(textEdited(const QString&)),
-    //                 this, SLOT(helpTextSearchLineEditStartSearch()));
 
     /*
      * Find previous button
      */
-    
     m_helpTextFindPreviousToolButton = new QToolButton;
     m_helpTextFindPreviousToolButton->setToolTip("Find previous location of text");
     m_helpTextFindPreviousToolButton->setArrowType(Qt::UpArrow);
     QObject::connect(m_helpTextFindPreviousToolButton, SIGNAL(clicked()),
                      this, SLOT(helpTextFindPreviousButtonClicked()));
-    
+
     /*
      * Find next button
      */
@@ -176,6 +158,19 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     m_helpTextFindNextToolButton->setArrowType(Qt::DownArrow);
     QObject::connect(m_helpTextFindNextToolButton, SIGNAL(clicked()),
                      this, SLOT(helpTextFindNextButtonClicked()));
+    
+    /*
+     * create the help browser
+     */
+    m_helpBrowser = new HelpTextBrowser(this);
+    m_helpBrowser->setMinimumWidth(400);
+    m_helpBrowser->setMinimumHeight(200);
+    m_helpBrowser->setOpenExternalLinks(false);
+    m_helpBrowser->setOpenLinks(true);
+    QObject::connect(forwardButton, SIGNAL(clicked()),
+                     m_helpBrowser, SLOT(forward()));
+    QObject::connect(backwardButton, SIGNAL(clicked()),
+                     m_helpBrowser, SLOT(backward()));
     
     /*
      * Layout for toolbuttons
@@ -220,7 +215,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     
     setCentralWidget(m_splitter,
                      WuQDialog::SCROLL_AREA_NEVER);
-    
+
     loadHelpTopicsIntoIndexTree();
 }
 
@@ -327,12 +322,6 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
             const QString name       = fileInfo.baseName();
             const QString filePath   = fileInfo.filePath();
  
-//            std::cout << qPrintable("name / filePath: "
-//                                    + name
-//                                    + " / "
-//                                    + filePath) << std::endl;
-            
-            
             if (filePath.endsWith(".htm")
                 || filePath.endsWith(".html")) {
                 if (name.contains("Menu",
@@ -566,255 +555,22 @@ HelpViewerDialog::topicIndexTreeItemChanged(QTreeWidgetItem* currentItem,
          */
         HelpTreeWidgetItem* helpItem = dynamic_cast<HelpTreeWidgetItem*>(currentItem);
         if (helpItem != NULL) {
-            displayHelpTextForHelpTreeWidgetItem(helpItem,
-                                                 true);
+            displayHelpTextForHelpTreeWidgetItem(helpItem);
         }
     }
 }
-
-
-/**
- * Called when help text back button is clicked.
- */
-void
-HelpViewerDialog::helpPageBackButtonClicked()
-{
-    if (m_helpTopicHistoryIndex > 0) {
-        m_helpTopicHistoryIndex--;
-        if (m_helpTopicHistoryIndex < static_cast<int32_t>(m_helpTopicHistoryItems.size())) {
-            displayHelpTextForHelpTreeWidgetItem(m_helpTopicHistoryItems[m_helpTopicHistoryIndex],
-                                                 false);
-            printHistory();
-        }
-    }
-}
-
-/**
- * Called when help text forward button is clicked.
- */
-void
-HelpViewerDialog::helpPageForwardButtonClicked()
-{
-    if (m_helpTopicHistoryIndex >= 0) {
-        if (m_helpTopicHistoryIndex < (static_cast<int32_t>(m_helpTopicHistoryItems.size() - 1))) {
-            m_helpTopicHistoryIndex++;
-            displayHelpTextForHelpTreeWidgetItem(m_helpTopicHistoryItems[m_helpTopicHistoryIndex],
-                                                 false);
-            printHistory();
-        }
-    }
-}
-
-
-/**
- * Add to help topic history
- *
- * @param item
- *     new item for history
- */
-void
-HelpViewerDialog::addToHelpTopicHistory(HelpTreeWidgetItem* item)
-{
-    if (m_helpTopicHistoryIndex >= 0) {
-        if (m_helpTopicHistoryIndex < static_cast<int32_t>(m_helpTopicHistoryItems.size() - 1)) {
-            m_helpTopicHistoryItems.erase(m_helpTopicHistoryItems.begin() + m_helpTopicHistoryIndex + 1,
-                                         m_helpTopicHistoryItems.end());
-        }
-    }
-    
-    m_helpTopicHistoryItems.push_back(item);
-    m_helpTopicHistoryIndex = m_helpTopicHistoryItems.size() - 1;
-    
-    printHistory();
-}
-
-void
-HelpViewerDialog::printHistory()
-{
-    const bool showHistory = false;
-    if (showHistory) {
-        const int32_t numHistory = static_cast<int32_t>(m_helpTopicHistoryItems.size());
-        for (int32_t i = 0; i < numHistory; i++) {
-            std::cout << i << ": " << qPrintable(m_helpTopicHistoryItems[i]->text(0)) << std::endl;
-        }
-        std::cout << "History Index: " << m_helpTopicHistoryIndex << std::endl;
-        std::cout << std::endl;
-    }
-}
-
 
 /**
  * Display the help information for the given help item.
  *
  * @param helpItem
  *    Item for which help text is loaded.
- * @param addToHistoryFlag
- *    Add item to the history.
  */
 void
-HelpViewerDialog::displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpItem,
-                                                       const bool addToHistoryFlag)
+HelpViewerDialog::displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpItem)
 {
     CaretAssert(helpItem);
-    switch (helpItem->m_treeItemType) {
-        case HelpTreeWidgetItem::TREE_ITEM_NONE:
-            break;
-        case HelpTreeWidgetItem::TREE_ITEM_HELP_PAGE_URL:
-            displayHttpInUsersWebBrowser(helpItem->m_helpPageURL);
-            addToHelpTopicHistory(helpItem);
-            break;
-        case HelpTreeWidgetItem::TREE_ITEM_HELP_TEXT:
-            m_helpBrowser->clear();
-//            std::cout << "LOADING: " << qPrintable(helpItem->text(0))
-//            << ":  " << qPrintable(helpItem->m_helpText)
-//            << std::endl << std::endl;
-            if (helpItem->m_helpText.contains("<html>",
-                                              Qt::CaseInsensitive)) {
-                m_helpBrowser->setHtml(helpItem->m_helpText);
-//                QTextDocument td;
-//                td.setHtml(helpItem->m_helpText);
-//                const QString html = td.toHtml();
-//                std::cout << "Old/New length:" << helpItem->m_helpText.size() << " " << html.size() << std::endl;
-//                m_helpBrowser->setHtml(html);
-//                std::cout << "Cleaned HTML" << qPrintable(helpItem->text(0))
-//                            << ":  "  << std::endl << qPrintable(html)
-//                            << std::endl << std::endl;
-            }
-            else {
-                m_helpBrowser->setText(helpItem->m_helpText);
-            }
-            if (addToHistoryFlag) {
-                addToHelpTopicHistory(helpItem);
-            }
-            break;
-    }
-}
-
-/**
- * For an external (http) link, load it into the user's web browser.
- *
- * @param urlText
- *     Text of the URL.
- */
-void
-HelpViewerDialog::displayHttpInUsersWebBrowser(const AString& urlText)
-{
-    if (WuQMessageBox::warningOkCancel(this, "The link clicked will be displayed in your web browser.")) {
-        if (! QDesktopServices::openUrl(urlText)) {
-            WuQMessageBox::errorOk(this,
-                                   ("Failed to load "
-                                    + urlText));
-        }
-    }
-}
-
-/**
- * Display the help page.
- *
- * @param pageName
- *    Name of page that may contain a path.
- * @param matchBasename
- *    Match by name of file ignoring any path.
- */
-bool
-HelpViewerDialog::displayHelpPage(const AString& pageName,
-                                  const bool matchBasename)
-{
-    AString htmlPageName = pageName;
-    if (matchBasename) {
-        const int32_t slashPos = htmlPageName.lastIndexOf("/");
-        if (slashPos >= 0) {
-            htmlPageName = htmlPageName.mid(slashPos + 1);
-        }
-    }
-    
-    for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
-         iter != m_allHelpWidgetItems.end();
-         iter++) {
-        HelpTreeWidgetItem* item = *iter;
-        CaretAssert(item);
-        if (item->m_helpPageURL.endsWith(htmlPageName)) {
-            displayHelpTextForHelpTreeWidgetItem(item,
-                                                 true);
-//            std::cout <<  "loaded " << qPrintable(htmlPageName)
-//            << " with matchBasename "
-//            << (matchBasename ? "true" : "false") << std::endl;
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-/**
- * Gets called when an HTML link is clicked in the text of a help page.
- *
- * @param url
- *    URL of link that was clicked.
- */
-void
-HelpViewerDialog::helpPageAnchorClicked(const QUrl& url)
-{
-    const AString urlText = url.toString();
-    if (urlText.startsWith("http")) {
-        displayHttpInUsersWebBrowser(urlText);
-    }
-    else {
-        const AString path = url.path();
-        if (path.isEmpty()) {
-            CaretLogSevere("No path from URL: "
-                           + url.toString());
-            WuQMessageBox::errorOk(this, "Error: clicked link \""
-                                   + url.toString()
-                                   + "\" appears to be invalid.");
-        }
-        else {
-            /*
-             * Try loading page with path and name
-             */
-            bool successFlag = displayHelpPage(path,
-                                               false);
-            if ( ! successFlag) {
-                /*
-                 * Try loading with just page name
-                 */
-                successFlag = displayHelpPage(path,
-                                              true);
-            }
-            if ( ! successFlag) {
-                WuQMessageBox::errorOk(this,
-                                       ("Unable to find matching help page for \""
-                                        + url.toString()
-                                        + "\""));
-            }
-//            AString htmlPageName = path;
-//            const int32_t slashPos = htmlPageName.lastIndexOf("/");
-//            if (slashPos >= 0) {
-//                htmlPageName = htmlPageName.mid(slashPos + 1);
-//            }
-//            bool foundMatchingPage = false;
-//            
-//            for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
-//                 iter != m_allHelpWidgetItems.end();
-//                 iter++) {
-//                HelpTreeWidgetItem* item = *iter;
-//                CaretAssert(item);
-//                if (item->m_helpPageURL.endsWith(htmlPageName)) {
-//                    displayHelpTextForHelpTreeWidgetItem(item,
-//                                                         true);
-//                    foundMatchingPage = true;
-//                    break;
-//                }
-//            }
-//            
-//            if ( ! foundMatchingPage) {
-//                WuQMessageBox::errorOk(this,
-//                                       ("Unable to find matching help page for \""
-//                                        + url.toString()
-//                                        + "\""));
-//            }
-        }
-    }
+    m_helpBrowser->setSource(helpItem->m_helpPageURL);
 }
 
 /**
@@ -950,12 +706,22 @@ HelpViewerDialog::topicSearchLineEditCursorPositionChanged(int,int)
 
 // ========================================================================= //
 
-HelpTextBrowser::HelpTextBrowser(QWidget* parent)
-: QTextBrowser(parent)
+/**
+ * Create a help viewer widget.
+ *
+ * @param parentHelpViewerDialog
+ *    The parent help viewer dialog.
+ */
+HelpTextBrowser::HelpTextBrowser(HelpViewerDialog* parentHelpViewerDialog)
+: QTextBrowser(parentHelpViewerDialog),
+m_parentHelpViewerDialog(parentHelpViewerDialog)
 {
-    
+    CaretAssert(parentHelpViewerDialog);
 }
 
+/**
+ * Destructor.
+ */
 HelpTextBrowser::~HelpTextBrowser()
 {
     
@@ -967,43 +733,86 @@ HelpTextBrowser::~HelpTextBrowser()
  *
  * @param type
  *    Type of resource.
- * @param name
+ * @param url
  *    URL of resource.
+ * @return
+ *    QVariant containing content for display in the help viewer.
  */
 QVariant
-HelpTextBrowser::loadResource(int type, const QUrl& name)
+HelpTextBrowser::loadResource(int type, const QUrl& url)
 {
-    QUrl url = name;
+    const QString urlText = url.toString();
     
-    QVariant result = QTextBrowser::loadResource(type, url);
-    if ( ! result.isValid()) {
-        url = QUrl::fromLocalFile(":/" + name.toString());
-        result = QTextBrowser::loadResource(type, url);
-
-        if ( ! result.isValid()) {
-            QString typeName("Unknown");
-            if ( ! result.isValid()) {
-                switch (type) {
-                    case QTextDocument::HtmlResource:
-                        typeName = "Html Resource";
-                        break;
-                    case QTextDocument::ImageResource:
-                        typeName = "Image Resource";
-                        break;
-                    case QTextDocument::StyleSheetResource:
-                        typeName = "Style Sheet Resource";
-                        break;
-                }
+//    std::cout << "   Current Source: " << qPrintable(source().toString()) << std::endl;
+//    std::cout << "Loading resource: " << qPrintable(url.toString()) << std::endl;
+    
+    QVariant result;
+    
+        for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_parentHelpViewerDialog->m_allHelpWidgetItems.begin();
+             iter != m_parentHelpViewerDialog->m_allHelpWidgetItems.end();
+             iter++) {
+            HelpTreeWidgetItem* treeItem = *iter;
+            if (treeItem->m_helpPageURL == urlText) {
+//                std::cout << "Found tree item " << qPrintable(treeItem->m_helpPageURL) << std::endl;
+                result = treeItem->m_helpText;
+                break;
             }
-            
-            CaretLogSevere("Failed to load type: "
-                           + typeName
-                           + " file: "
-                           + url.toString());
+        }
+        
+        if ( ! result.isValid()) {
+            result = QTextBrowser::loadResource(type, url);
+            if (result.isValid()) {
+                std::cout << "  WAS LOADED BY QTextBrowser::loadResource()" << std::endl;
+            }
+            else {
+                QString typeName("Unknown");
+                if ( ! result.isValid()) {
+                    switch (type) {
+                        case QTextDocument::HtmlResource:
+                            typeName = "Html Resource";
+                            break;
+                        case QTextDocument::ImageResource:
+                            typeName = "Image Resource";
+                            break;
+                        case QTextDocument::StyleSheetResource:
+                            typeName = "Style Sheet Resource";
+                            break;
+                    }
+                }
+                CaretLogSevere("Failed to load type: "
+                               + typeName
+                               + " file: "
+                               + url.toString());
+            }
+        }
+        
+    
+        return result;
+}
+
+/**
+ * Set the source of the help browser.
+ *
+ * @param url
+ *     URL directing to content.
+ */
+void
+HelpTextBrowser::setSource(const QUrl& url)
+{
+    const AString urlText = url.toString();
+    if (urlText.startsWith("http")) {
+        if (WuQMessageBox::warningOkCancel(this,
+                                           "The link clicked will be displayed in your web browser.")) {
+            if ( ! QDesktopServices::openUrl(urlText)) {
+                WuQMessageBox::errorOk(this,
+                                       ("Failed to load "
+                                        + urlText));
+            }
         }
     }
-    
-    return result;
+    else {
+        QTextBrowser::setSource(url);
+    }
 }
 
 
@@ -1025,7 +834,8 @@ HelpTreeWidgetItem::newInstanceForCommandOperation(QTreeWidgetItem* parent,
     const AString itemText = commandOperation->getCommandLineSwitch();
     const AString helpInfoCopy = commandOperation->getHelpInformation("wb_command");
     const AString helpText = helpInfoCopy.convertToHtmlPage();
-    const AString helpPageURL("");
+    const AString helpPageURL("command:/"
+                              + commandOperation->getOperationShortDescription().replace(' ', '_'));
     
     HelpTreeWidgetItem* instance = new HelpTreeWidgetItem(parent,
                                                           TREE_ITEM_HELP_TEXT,
@@ -1081,13 +891,13 @@ HelpTreeWidgetItem::newInstanceForHtmlHelpPage(QTreeWidgetItem* parent,
         instance = new HelpTreeWidgetItem(parent,
                                           TREE_ITEM_HELP_TEXT,
                                           itemText,
-                                          helpPageURL,
+                                          "qrc" + helpPageURL,
                                           helpText);
     }
     else {
         instance = new HelpTreeWidgetItem(TREE_ITEM_HELP_TEXT,
                                           itemText,
-                                          helpPageURL,
+                                          "qrc" + helpPageURL,
                                           helpText);
     }
     
