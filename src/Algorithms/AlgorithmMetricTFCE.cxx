@@ -79,7 +79,7 @@ OperationParameters* AlgorithmMetricTFCE::getParameters()
         "at each vertex p, where h ranges from 0 to the maximum value in the data, and e(h, p) is the extent of the cluster containing vertex p at threshold h.  " +
         "Negative values are similarly enhanced by negating the data, running the same process, and negating the result.\n\n" +
         "This method is explained in: Smith SM, Nichols TE., \"Threshold-free cluster enhancement: addressing problems of smoothing, threshold dependence and localisation in cluster inference.\" Neuroimage. 2009 Jan 1;44(1):83-98. PMID: 18501637"
-    );//TODO: citation, URL, or something
+    );
     return ret;
 }
 
