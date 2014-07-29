@@ -762,7 +762,7 @@ HelpTextBrowser::loadResource(int type, const QUrl& url)
         if ( ! result.isValid()) {
             result = QTextBrowser::loadResource(type, url);
             if (result.isValid()) {
-                std::cout << "  WAS LOADED BY QTextBrowser::loadResource()" << std::endl;
+//                std::cout << "  WAS LOADED BY QTextBrowser::loadResource()" << std::endl;
             }
             else {
                 QString typeName("Unknown");
@@ -887,16 +887,19 @@ HelpTreeWidgetItem::newInstanceForHtmlHelpPage(QTreeWidgetItem* parent,
     }
     
     HelpTreeWidgetItem* instance = NULL;
+    
+    AString text = itemText;
+    text = text.replace('_', ' ');
     if (parent != NULL) {
         instance = new HelpTreeWidgetItem(parent,
                                           TREE_ITEM_HELP_TEXT,
-                                          itemText,
+                                          text,
                                           "qrc" + helpPageURL,
                                           helpText);
     }
     else {
         instance = new HelpTreeWidgetItem(TREE_ITEM_HELP_TEXT,
-                                          itemText,
+                                          text,
                                           "qrc" + helpPageURL,
                                           helpText);
     }
