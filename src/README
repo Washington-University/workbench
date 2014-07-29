@@ -51,11 +51,14 @@ Qwt 6.0.1, http://qwt.sourceforge.net/
 licensed under Qwt license v1.0 (LGPLv2.1, with exceptions), see src/Qwt/COPYING
 some unneeded files removed
 
-GlfFont/glf.*, src/Resources/*.glf:
-GLF Library
-Copyright (C) 2000, Romka Graphics
-originally licensed with custom permissive license, see src/GlfFont/glf.h
-modified to read from QT resources
+FtglFont/*:
+FTGL library
+Copyright (C) 2001-2004 Henry Maddocks <ftgl@opengl.geek.nz>
+Copyright (C) 2008 Daniel Remenak <dtremenak@users.sourceforge.net>
+Copyright (C) 2008 Éric Beets <ericbeets@free.fr>
+Copyright (C) 2008 Sam Hocevar <sam@zoy.org>
+Copyright (C) 2008 Sean Morrison <learner@brlcad.org>
+licensed under Expat, see FtglFont/COPYING
 
 Common/Base64.*, Common/DataCompressZLib.*, Common/MathFunctions.*, Nifti/Matrix4x4.cxx:
 use code from VTK, http://www.kitware.com/opensource/vtk.html or http://www.vtk.org/
