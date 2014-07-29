@@ -325,6 +325,11 @@ IF (EXISTS $ENV{OSMESA_DIR})
 ENDIF (EXISTS $ENV{OSMESA_DIR})
 
 #=============================================================================
+MESSAGE("")
+MESSAGE("Compiler: ${CMAKE_CXX_COMPILER}")
+MESSAGE("Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
+MESSAGE("")
+#=============================================================================
 
 
 #
