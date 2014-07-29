@@ -3686,6 +3686,9 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                 {
                     const CiftiParcelsMap& cpm = ciftiXML.getParcelsMap(alongType);
                     
+                    dataFileInformation.addNameAndValue("    Has Volume Data",
+                                                        cpm.hasVolumeData());
+                    
                     const std::vector<StructureEnum::Enum> surfaceStructures = cpm.getParcelSurfaceStructures();
                     for (std::vector<StructureEnum::Enum>::const_iterator surfaceIter = surfaceStructures.begin();
                          surfaceIter != surfaceStructures.end();
@@ -3702,9 +3705,14 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                          parcelIter != parcels.end();
                          parcelIter++) {
                         const CiftiParcelsMap::Parcel parcel = *parcelIter;
+                        const AString parcelContent = ("Node-Count="
+                                                       + AString::number(parcel.m_surfaceNodes.size())
+                                                       + "  Voxel-Count="
+                                                       + AString::number(parcel.m_voxelIndices.size()));
+                                                       
                         dataFileInformation.addNameAndValue(("    "
                                                              + parcel.m_name),
-                                                            AString(" "));
+                                                            parcelContent);
                     }
                 }
                     break;
