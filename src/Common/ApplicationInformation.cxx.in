@@ -25,6 +25,8 @@
 #include "ApplicationInformation.h"
 #undef __APPLICATION_INFORMATION_DECLARE__
 
+#include "FileInformation.h"
+
 using namespace caret;
 
 
@@ -126,6 +128,14 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
     informationValues.push_back(commit);
     
     informationValues.push_back(commitDate);
+
+#if defined COMPILER_NAME
+    FileInformation fileInfo(COMPILER_NAME);
+    informationValues.push_back(QString("Compiler: ") + fileInfo.getFileNameFollowedByPathNameForGUI());
+#endif 
+#if defined COMPILER_VERSION
+    informationValues.push_back(QString("Compiler Version: ") + QString(COMPILER_VERSION));
+#endif 
 
     informationValues.push_back(this->compiledWithDebugOn);
 
