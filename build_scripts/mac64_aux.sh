@@ -60,8 +60,10 @@ git pull -u
 #
 #CC_COMPILER=/usr/local/clang-llvm/clang+llvm-3.2-x86_64-apple-darwin11/bin/clang
 #CXX_COMPILER=/usr/local/clang-llvm/clang+llvm-3.2-x86_64-apple-darwin11/bin/clang++
-CC_COMPILER=/usr/bin/gcc
-CXX_COMPILER=/usr/bin/g++
+#CC_COMPILER=/usr/bin/gcc
+#CXX_COMPILER=/usr/bin/g++
+CC_COMPILER=/usr/local/gcc-4.9.0/bin/gcc
+CXX_COMPILER=/usr/local/gcc-4.9.0/bin/g++
 
 echo "BUILDING SOURCE"
 mkdir -p ${BUILD_DIR}
