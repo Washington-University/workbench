@@ -64,6 +64,8 @@ namespace caret {
         
         int64_t size() const;
         
+        AString getFileNameFollowedByPathNameForGUI() const;
+        
         AString getFileName() const;
         
         AString getPathName() const;

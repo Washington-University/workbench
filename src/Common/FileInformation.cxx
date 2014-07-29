@@ -344,6 +344,25 @@ FileInformation::size() const
 }
 
 /**
+ * @return name of file followed by path in parenthesis.
+ *
+ * For example:  /usr/local/file.txt
+ *     returns:  file.txt (/usr/local)
+ */
+AString
+FileInformation::getFileNameFollowedByPathNameForGUI() const
+{
+    AString name = getFileName();
+    const AString pn = getPathName();
+    if ( ! pn.isEmpty()) {
+        name += (" (" + pn + ")");
+    }
+    
+    return name;
+}
+
+
+/**
  * @return Name of the file excluding any path.
  *
  * A remote file always anything after the last slash (/).  If there is
