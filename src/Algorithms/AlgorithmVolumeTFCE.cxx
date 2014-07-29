@@ -60,7 +60,7 @@ OperationParameters* AlgorithmVolumeTFCE::getParameters()
     roiOpt->addVolumeParameter(1, "roi-volume", "the area to run TFCE on, as a volume");
 
     OptionalParameter* paramsOpt = ret->createOptionalParameter(5, "-parameters", "set parameters for TFCE integral");
-    paramsOpt->addDoubleParameter(1, "E", "exponent for cluster area (default 0.5)");
+    paramsOpt->addDoubleParameter(1, "E", "exponent for cluster volume (default 0.5)");
     paramsOpt->addDoubleParameter(2, "H", "exponent for threshold value (default 2.0)");
     
     OptionalParameter* subvolSelect = ret->createOptionalParameter(6, "-subvolume", "select a single subvolume");
@@ -68,10 +68,11 @@ OperationParameters* AlgorithmVolumeTFCE::getParameters()
     
     ret->setHelpText(
         AString("Threshold-free cluster enhancement is a method to increase the relative value of regions that would form clusters in a standard thresholding test.  ") +
-        "This is accomplished by evaluating the integral:\n\n" +
-        "integral(e(h, p)^E * h^H) * dh\n\n" +
+        "This is accomplished by evaluating the integral of:\n\n" +
+        "e(h, p)^E * h^H * dh\n\n" +
         "at each vertex p, where h ranges from 0 to the maximum value in the data, and e(h, p) is the extent of the cluster containing vertex p at threshold h.  " +
-        "Negative values are similarly enhanced by negating the data, running the same process, and negating the result."
+        "Negative values are similarly enhanced by negating the data, running the same process, and negating the result.\n\n" +
+        "This method is explained in: Smith SM, Nichols TE., \"Threshold-free cluster enhancement: addressing problems of smoothing, threshold dependence and localisation in cluster inference.\" Neuroimage. 2009 Jan 1;44(1):83-98. PMID: 18501637"
     );//TODO: citation, URL, or something
     return ret;
 }
@@ -358,7 +359,7 @@ void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const 
                 }
                 mergedCluster.addMember(voxel, value, voxelVolume, param_e, param_h);//will not trigger recomputation, we already recomputed at this value
                 accumData[voxelIndex] -= mergedCluster.accumVal;//the voxel they merge on must not get the peak value of the cluster, obviously, so again, record its difference from peak
-                membership[voxelIndex] = mergedIndex;//NOTE: don't do anything to accumData at node, it should stay zero until another merge or end of data
+                membership[voxelIndex] = mergedIndex;
                 break;//NOTE: do not reset the accum value of the merged cluster, we specifically avoided modifying the per-voxel accum for its members, so the cluster accum is still in play
             }
         }
