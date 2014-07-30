@@ -653,10 +653,24 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
             if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS) {
                 m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN)));
             }
+            else if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::PARCELS) {
+                m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN)));
+            }
+            else {
+                CaretAssertMessage(0, "Invalid mapping type for mapping data to brainordinates");
+                CaretLogSevere("Invalid mapping type for mapping data to brainordinates");
+            }
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
             if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::BRAIN_MODELS) {
                 m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW)));
+            }
+            else if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::PARCELS) {
+                m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getParcelsMap(CiftiXML::ALONG_ROW)));
+            }
+            else {
+                CaretAssertMessage(0, "Invalid mapping type for mapping data to brainordinates");
+                CaretLogSevere("Invalid mapping type for mapping data to brainordinates");
             }
             break;
     }

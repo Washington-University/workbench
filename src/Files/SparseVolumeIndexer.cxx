@@ -136,6 +136,95 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiBrainModelsMap& ciftiBrainMo
 }
 
 /**
+ * Constructs instance with the given CIFTI Parcel Map.
+ *
+ * @param parcel
+ *    The CIFTI parcel map.
+ */
+SparseVolumeIndexer::SparseVolumeIndexer(const CiftiParcelsMap& ciftiParcelsMap)
+: CaretObject()
+{
+    m_dataValid = false;
+    
+    if ( ! ciftiParcelsMap.hasVolumeData()) {
+        return;
+    }
+    m_volumeSpace = ciftiParcelsMap.getVolumeSpace();
+    
+    /*
+     * Make sure orthogonal
+     */
+    if ( ! m_volumeSpace.isPlumb()) {
+        CaretLogWarning("CIFTI Volume is not Plumb!");
+        return;
+    }
+    
+    
+    const std::vector<CiftiParcelsMap::Parcel> allParcels = ciftiParcelsMap.getParcels();
+    
+    for (std::vector<CiftiParcelsMap::Parcel>::const_iterator parcelIter = allParcels.begin();
+         parcelIter != allParcels.end();
+         parcelIter++) {
+        const CiftiParcelsMap::Parcel& parcel = *parcelIter;
+        
+//        const int32_t numberOfCiftiVolumeVoxels = static_cast<int32_t>(parcel.m_voxelIndices.size());
+//        if (numberOfCiftiVolumeVoxels <= 0) {
+//            return;
+//        }
+//        
+//        const int64_t* dimIJK = m_volumeSpace.getDims();
+//        const int64_t numberOfVoxels = (dimIJK[0] * dimIJK[1] * dimIJK[2]);
+//        if (numberOfVoxels <= 0) {
+//            return;
+//        }
+        
+        for (std::set<VoxelIJK>::const_iterator iter = parcel.m_voxelIndices.begin();
+             iter != parcel.m_voxelIndices.end();
+             iter++) {
+            const VoxelIJK& vm = *iter;
+            
+            m_voxelIndexLookup.at(vm.m_ijk) = ciftiParcelsMap.getIndexForVoxel(vm.m_ijk);
+        }
+    }
+    
+    
+//    bool validateFlag = true;
+//    if (validateFlag) {
+//        AString validateString;
+//        for (std::set<VoxelIJK>::const_iterator iter = ciftiParcel.m_voxelIndices.begin();
+//             iter != ciftiParcel.m_voxelIndices.end();
+//             iter++) {
+//            const VoxelIJK& vm = *iter;
+//            const int64_t* foundOffset = m_voxelIndexLookup.find(vm.m_ijk);
+//            const int64_t voxelOffset = ciftiParcelsMap.getIndexForVoxel(vm.m_ijk);
+//            if (foundOffset != NULL) {
+//                if (*foundOffset != voxelOffset) {
+//                    validateString.appendWithNewLine("IJK ("
+//                                                     + AString::fromNumbers(vm.m_ijk, 3, ",")
+//                                                     + " should have lookup value "
+//                                                     + AString::number(voxelOffset)
+//                                                     + " but has value "
+//                                                     + AString::number(*foundOffset));
+//                }
+//            }
+//            else {
+//                validateString.appendWithNewLine("IJK ("
+//                                                 + AString::fromNumbers(vm.m_ijk, 3, ",")
+//                                                 + " should have lookup value "
+//                                                 + AString::number(voxelOffset)
+//                                                 + " but was not found.");
+//            }
+//        }
+//        if (validateString.isEmpty() == false) {
+//            CaretLogSevere("Sparse Indexer Errors:\n"
+//                           + validateString);
+//        }
+//    }
+    
+    m_dataValid = true;
+}
+
+/**
  * Destructor.
  */
 SparseVolumeIndexer::~SparseVolumeIndexer()
@@ -234,9 +323,8 @@ SparseVolumeIndexer::getOffsetForCoordinate(const float x,
 {
     if (m_dataValid) {
         int64_t i, j, k;
-        if (coordinateToIndices(x, y, z, i, j, k)) {
-            return getOffsetForIndices(i, j, k);
-        }
+        m_volumeSpace.enclosingVoxel(x, y, z, i, j, k);
+        return getOffsetForIndices(i, j, k);
     }
     
     return -1;

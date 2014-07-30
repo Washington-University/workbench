@@ -24,6 +24,7 @@
 #include "CaretCompact3DLookup.h"
 #include "CaretObject.h"
 #include "CiftiBrainModelsMap.h"
+#include "CiftiParcelsMap.h"
 #include "VolumeSpace.h"
 
 namespace caret {
@@ -34,6 +35,8 @@ namespace caret {
         SparseVolumeIndexer();
         
         SparseVolumeIndexer(const CiftiBrainModelsMap& ciftiBrainModelsMap);
+        
+        SparseVolumeIndexer(const CiftiParcelsMap& ciftiParcelsMap);
         
         virtual ~SparseVolumeIndexer();
         
