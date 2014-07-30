@@ -22,7 +22,9 @@
 
 #include "CiftiFile.h"
 #include "OperationException.h"
+#include "Palette.h"
 #include "PaletteColorMapping.h"
+#include "PaletteFile.h"
 
 #include <vector>
 
@@ -94,6 +96,13 @@ OperationParameters* OperationCiftiPalette::getParameters()
     for (int i = 0; i < (int)myEnums.size(); ++i)
     {
         myText += PaletteScaleModeEnum::toName(myEnums[i]) + "\n";
+    }
+    myText += "\nThe <name> argument to -palette-name must be one of the following:\n\n";
+    PaletteFile myPF;
+    int32_t numPalettes = myPF.getNumberOfPalettes();
+    for (int i = 0; i < numPalettes; ++i)
+    {
+        myText += myPF.getPalette(i)->getName() + "\n";
     }
     myText += "\nThe <type> argument to -thresholding must be one of the following:\n\n";
     vector<PaletteThresholdTypeEnum::Enum> myEnums2;
