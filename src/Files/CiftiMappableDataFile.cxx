@@ -3714,19 +3714,37 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                                                              + " nodes"));
                     }
                     
+
                     const std::vector<CiftiParcelsMap::Parcel>& parcels = cpm.getParcels();
                     for (std::vector<CiftiParcelsMap::Parcel>::const_iterator parcelIter = parcels.begin();
                          parcelIter != parcels.end();
                          parcelIter++) {
                         const CiftiParcelsMap::Parcel parcel = *parcelIter;
-                        const AString parcelContent = ("Node-Count="
-                                                       + AString::number(parcel.m_surfaceNodes.size())
-                                                       + "  Voxel-Count="
-                                                       + AString::number(parcel.m_voxelIndices.size()));
-                                                       
                         dataFileInformation.addNameAndValue(("    "
                                                              + parcel.m_name),
-                                                            parcelContent);
+                                                            ("Voxel-Count="
+                                                             + AString::number(parcel.m_voxelIndices.size())));
+                        
+                        
+                        for (std::map<StructureEnum::Enum, std::set<int64_t> >::const_iterator surfIter = parcel.m_surfaceNodes.begin();
+                             surfIter != parcel.m_surfaceNodes.end();
+                             surfIter++) {
+                            const StructureEnum::Enum structure  = surfIter->first;
+                            const std::set<int64_t>& nodeIndices = surfIter->second;
+                            dataFileInformation.addNameAndValue("    ",
+                                                                (StructureEnum::toGuiName(structure)
+                                                                 + " Node-Count="
+                                                                 + AString::number(nodeIndices.size())));
+                            
+                        }
+//                        const AString parcelContent = ("Node-Count="
+//                                                       + AString::number(parcel.m_surfaceNodes.size())
+//                                                       + "  Voxel-Count="
+//                                                       + AString::number(parcel.m_voxelIndices.size()));
+                        
+//                        dataFileInformation.addNameAndValue(("    "
+//                                                             + parcel.m_name),
+//                                                            parcelContent);
                     }
                 }
                     break;
