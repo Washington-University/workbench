@@ -560,7 +560,24 @@ AString::indexOfAnyChar(const AString& str,
 }
 
 /**
- * Return a 'C' char array containing the value 
+ * @return The index position of the first character that is NOT 
+ * the character 'ch'.  Returns -1 if all characters in the 
+ * string are 'ch'.
+ */
+int32_t
+AString::indexNotOf(const QChar& ch) const
+{
+    const int32_t len = length();
+    for (int32_t i = 0; i < len; i++) {
+        if (at(i) != ch) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/**
+ * Return a 'C' char array containing the value
  * of the string.  This method is necessary since
  * on an instance of Ubuntu Linux, an invalid ASCII
  * character is found on the end of data returned 

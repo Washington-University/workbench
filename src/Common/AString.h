@@ -94,6 +94,8 @@ namespace caret {
         int32_t indexOfAnyChar(const AString& str,
                                const int from) const;
         
+        int32_t indexNotOf(const QChar& ch) const;
+        
         void appendWithNewLine(const AString& str);
         
         static void toNumbers(const AString& s,
