@@ -613,7 +613,7 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
             break;
     }
 
-    switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
+    switch (ciftiXML.getMappingType(m_dataReadingDirectionForCiftiXML)) {
         case CiftiMappingType::BRAIN_MODELS:
             break;
         case CiftiMappingType::LABELS:
@@ -624,7 +624,7 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
             break;
         case CiftiMappingType::SERIES:
         {
-            const CiftiSeriesMap& map = ciftiXML.getSeriesMap(m_dataMappingDirectionForCiftiXML);
+            const CiftiSeriesMap& map = ciftiXML.getSeriesMap(m_dataReadingDirectionForCiftiXML);
             CiftiSeriesMap::Unit units = map.getUnit();
             switch (units) {
                 case CiftiSeriesMap::HERTZ:
