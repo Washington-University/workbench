@@ -67,7 +67,12 @@ void
 DataFileContentInformation::addNameAndValue(const AString& name,
                                      const AString& value)
 {
-    m_namesAndValues.push_back(std::make_pair((name + ":"),
+    QChar colonChar = ' ';
+    if (name.indexNotOf(' ') >= 0) {
+        colonChar = ':';
+    }
+    
+    m_namesAndValues.push_back(std::make_pair((name + colonChar),
                                               value));
 }
 
@@ -83,8 +88,10 @@ void
 DataFileContentInformation::addNameAndValue(const AString& name,
                                             const int32_t value)
 {
-    m_namesAndValues.push_back(std::make_pair((name + ":"),
-                                              AString::number(value)));
+    addNameAndValue(name,
+                    AString::number(value));
+//    m_namesAndValues.push_back(std::make_pair((name + ":"),
+//                                              AString::number(value)));
 }
 
 /**
@@ -99,8 +106,10 @@ void
 DataFileContentInformation::addNameAndValue(const AString& name,
                                             const int64_t value)
 {
-    m_namesAndValues.push_back(std::make_pair((name + ":"),
-                                              AString::number(value)));
+    addNameAndValue(name,
+                    AString::number(value));
+//    m_namesAndValues.push_back(std::make_pair((name + ":"),
+//                                              AString::number(value)));
 }
 
 /**
@@ -116,8 +125,10 @@ DataFileContentInformation::addNameAndValue(const AString& name,
                                             const double value,
                                             const int32_t precision)
 {
-    m_namesAndValues.push_back(std::make_pair((name + ":"),
-                                              AString::number(value, 'f', precision)));
+    addNameAndValue(name,
+                    AString::number(value, 'f', precision));
+//    m_namesAndValues.push_back(std::make_pair((name + ":"),
+//                                              AString::number(value, 'f', precision)));
 }
 
 /**
@@ -132,8 +143,10 @@ void
 DataFileContentInformation::addNameAndValue(const AString& name,
                                             const bool value)
 {
-    m_namesAndValues.push_back(std::make_pair((name + ":"),
-                                              AString::fromBool(value)));
+    addNameAndValue(name,
+                    AString::fromBool(value));
+//    m_namesAndValues.push_back(std::make_pair((name + ":"),
+//                                              AString::fromBool(value)));
 }
 
 /**
