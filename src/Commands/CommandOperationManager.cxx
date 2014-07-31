@@ -414,7 +414,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandClassCreateAlgorithm());
     this->commandOperations.push_back(new CommandClassCreateEnum());
     this->commandOperations.push_back(new CommandClassCreateOperation());
-    this->commandOperations.push_back(new CommandDevCreateResourceFile());
 #ifdef WORKBENCH_HAVE_C11X
     this->commandOperations.push_back(new CommandC11xTesting());
 #endif // WORKBENCH_HAVE_C11X
