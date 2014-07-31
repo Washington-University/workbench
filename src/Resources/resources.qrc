@@ -74,13 +74,27 @@
 <file>./HelpFiles/Open_Spec_File_Dialog/Open_Spec.png</file>
 <file>./HelpFiles/Open_Spec_File_Dialog/Open_Spec_File_Dialog.html</file>
 <file>./HelpFiles/Open_Spec_File_Dialog/Open_Spec_File_Dialog_OLD.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Add_Layer.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Colorbar.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Layers.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Overlay_Toolbox_horiz.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Add_Layer.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Colorbar.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Layers.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Overlay_and_Map_Settings.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Overlay_Toolbox_horiz.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Settings_icon.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Settings_icon.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Overlay_Toolbox.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Overlay_Toolbox_horiz.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Overlay_Toolbox_vert.png</file>
 <file>./HelpFiles/Scenes_Window/Create_New_Scene_File/Create New Scene.png</file>
 <file>./HelpFiles/Scenes_Window/Create_New_Scene_File/Create_New_Scene_File.html</file>
 <file>./HelpFiles/Scenes_Window/Create_New_Scene_File/Scenes button.png</file>
-<file>./HelpFiles/Scenes_Window/Scenes_Window-BodyText-HTMLedit.html</file>
-<file>./HelpFiles/Scenes_Window/Scenes_Window-BodyText.html</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window.html</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window.png</file>
+<file>./HelpFiles/Splash_Screen/Splash_Screen.html</file>
+<file>./HelpFiles/Splash_Screen/Splash_screen.png</file>
 <file>./HelpFiles/Toolbar/All_View/All_Toolbar.png</file>
 <file>./HelpFiles/Toolbar/All_View/All_View.html</file>
 <file>./HelpFiles/Toolbar/Chart_View/Chart_View.html</file>
@@ -174,5 +188,6 @@
 <file>./ToolBar/view-right-medial.png</file>
 <file>./ToolBar/view-right.png</file>
 <file>./ToolBar/view-ventral.png</file>
+<file>./update_help_files.sh</file>
 </qresource>
 </RCC>
