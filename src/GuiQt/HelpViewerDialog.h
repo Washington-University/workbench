@@ -26,6 +26,7 @@
 
 #include "WuQDialogNonModal.h"
 
+class QFileInfo;
 class QLineEdit;
 class QSplitter;
 class QToolButton;
@@ -101,6 +102,9 @@ namespace caret {
                                  QTreeWidgetItem* item,
                                  const AString& itemName);
                                
+        void loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
+                                                const QFileInfo& dirInfo);
+        
         /// the help browser
         QTextBrowser* m_helpBrowser;
         
