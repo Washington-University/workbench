@@ -222,7 +222,6 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
                                   m_mapIndex);
     }
     
-    bool isFileValid = false;
     bool isLabelsValid = false;
     bool isMetadataValid = false;
     GiftiMetaData* metadata = NULL;
@@ -237,8 +236,6 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
     if (m_caretMappableDataFile != NULL) {
         if ((m_mapIndex >= 0)
             && (m_mapIndex < m_caretMappableDataFile->getNumberOfMaps())) {
-            isFileValid = true;
-            
             /*
              * Get name of file and map
              */

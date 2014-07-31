@@ -198,7 +198,6 @@
 #include "CommandClassCreateAlgorithm.h"
 #include "CommandClassCreateEnum.h"
 #include "CommandClassCreateOperation.h"
-#include "CommandDevCreateResourceFile.h"
 #include "CommandC11xTesting.h"
 #include "CommandGiftiConvert.h"
 #include "CommandUnitTest.h"

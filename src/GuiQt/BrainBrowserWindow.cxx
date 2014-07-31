@@ -1910,7 +1910,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     float specFileTimeStart = 0.0;
     float specFileTimeEnd   = 0.0;
     bool sceneFileWasLoaded = false;
-    bool specFileWasLoaded  = false;
     
     /*
      * Load spec file (before data files)
@@ -1957,7 +1956,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                     errorMessages += readSpecFileEvent.getErrorMessage();
                 }
                 specFileTimeEnd = timer.getElapsedTimeSeconds();
-                specFileWasLoaded = true;
                 createDefaultTabsFlag = true;
             }
                 break;
@@ -1971,7 +1969,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
 //                                                                    &specFile,
 //                                                                    this)) {
                     m_toolbar->addDefaultTabsAfterLoadingSpecFile();
-                    specFileWasLoaded = true;
                     createDefaultTabsFlag = true;
                 }
             }

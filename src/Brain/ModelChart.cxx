@@ -406,7 +406,6 @@ ModelChart::receiveEvent(Event* event)
             /*
              * Iterate over the data in the cartesian chart
              */
-            bool foundNodeFlag = false;
             for (std::vector<ChartDataCartesian*>::iterator cdIter = cartesianChartData.begin();
                  cdIter != cartesianChartData.end();
                  cdIter++) {
@@ -416,7 +415,6 @@ ModelChart::receiveEvent(Event* event)
                     /*
                      * Found node index so add its color to the event
                      */
-                    foundNodeFlag = true;
                     const CaretColorEnum::Enum color = cdc->getColor();
                     const float* rgb = CaretColorEnum::toRGB(color);
                     nodeChartID->addNode(nodeIndex,

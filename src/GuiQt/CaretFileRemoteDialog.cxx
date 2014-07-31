@@ -224,22 +224,17 @@ CaretFileRemoteDialog::selectCustomRadioButton()
 void
 CaretFileRemoteDialog::locationSourceRadioButtonClicked(QAbstractButton* button)
 {
-    bool customEnabled   = false;
-    bool standardEnabled = false;
     bool okButtonEnabled = true;
     
     if (button == m_locationCustomRadioButton) {
-        customEnabled = true;
+        /* nothing */
     }
     else if (button == m_locationStandardRadioButton) {
-        standardEnabled = true;
+        /* nothing */
     }
     else {
         okButtonEnabled = false;
     }
-    
-//    m_customWidgetGroup->setEnabled(customEnabled);
-//    m_standardWidgetGroup->setEnabled(standardEnabled);
     
     getDialogButtonBox()->button(QDialogButtonBox::Ok)->setEnabled(okButtonEnabled);
 }

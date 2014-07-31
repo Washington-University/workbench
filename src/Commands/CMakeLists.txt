@@ -23,7 +23,6 @@ CommandClassCreateAlgorithm.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
 CommandClassCreateOperation.h
-CommandDevCreateResourceFile.h
 CommandC11xTesting.h
 CommandException.h
 CommandGiftiConvert.h
@@ -38,7 +37,6 @@ CommandClassCreateAlgorithm.cxx
 CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
 CommandClassCreateOperation.cxx
-CommandDevCreateResourceFile.cxx
 CommandC11xTesting.cxx
 CommandException.cxx
 CommandGiftiConvert.cxx
