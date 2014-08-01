@@ -48,8 +48,6 @@ namespace caret {
     private slots:
         void yokeToGroupComboBoxIndexChanged();
         
-        void volumeIdentificationToggled(bool);
-        
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
@@ -60,8 +58,6 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         BrainBrowserWindowToolBar* m_parentToolBar;
-        
-        QAction* m_idSlicesAction;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -24,7 +24,7 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
-
+class QAction;
 class QCheckBox;
 class QDoubleSpinBox;
 class QSpinBox;
@@ -59,6 +59,7 @@ namespace caret {
         void volumeIndicesYcoordSpinBoxValueChanged(double d);
         void volumeIndicesZcoordSpinBoxValueChanged(double d);
         void volumeSliceProjectionTypeEnumComboBoxItemActivated();
+        void volumeIdentificationToggled(bool value);
         
     private:
         BrainBrowserWindowToolBarSliceSelection(const BrainBrowserWindowToolBarSliceSelection&);
@@ -73,6 +74,7 @@ namespace caret {
         
         WuQWidgetObjectGroup* m_volumeIndicesWidgetGroup;
         
+        QAction*   m_volumeIdentificationUpdatesSlicesAction;
         QCheckBox* m_volumeIndicesParasagittalCheckBox;
         QCheckBox* m_volumeIndicesCoronalCheckBox;
         QCheckBox* m_volumeIndicesAxialCheckBox;

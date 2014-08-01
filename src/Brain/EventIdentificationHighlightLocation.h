@@ -30,18 +30,23 @@ namespace caret {
     class EventIdentificationHighlightLocation : public Event {
         
     public:
-        EventIdentificationHighlightLocation(const float xyz[3]);
+        EventIdentificationHighlightLocation(const int32_t tabIndex,
+                                             const float xyz[3]);
         
         virtual ~EventIdentificationHighlightLocation();
         
         const float* getXYZ() const;
+        
+        int32_t getTabIndex() const;
         
     private:
         EventIdentificationHighlightLocation(const EventIdentificationHighlightLocation&);
         
         EventIdentificationHighlightLocation& operator=(const EventIdentificationHighlightLocation&);
         
-        float xyz[3];
+        const int32_t m_tabIndex;
+        
+        float m_xyz[3];
     };
 
 } // namespace

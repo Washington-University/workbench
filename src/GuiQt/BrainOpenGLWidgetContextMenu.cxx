@@ -1739,7 +1739,8 @@ void
 BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
 {    
 //    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
-    GuiManager::get()->processIdentification(this->selectionManager,
+    GuiManager::get()->processIdentification(this->browserTabContent->getTabNumber(),
+                                             this->selectionManager,
                                              this->parentOpenGLWidget);    
 
 /*

@@ -188,6 +188,6 @@
 <file>./ToolBar/view-right-medial.png</file>
 <file>./ToolBar/view-right.png</file>
 <file>./ToolBar/view-ventral.png</file>
-<file>./update_help_files.sh</file>
+<file>./ToolBar/volume-crosshair-pointer.png</file>
 </qresource>
 </RCC>

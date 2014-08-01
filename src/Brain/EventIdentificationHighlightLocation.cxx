@@ -18,21 +18,36 @@
  */
 /*LICENSE_END*/
 
+#include "BrainConstants.h"
+#include "CaretAssert.h"
 #include "EventIdentificationHighlightLocation.h"
 
 using namespace caret;
 
 /**
  * Constructor for identification event of location.
+ *
+ * @parma tabIndex
+ *    Index of tab in which identification took place.  This value may
+ *    be negative indicating that the identification request is not
+ *    from a browser tab.  One source for this is the Select Brainordinate
+ *    option on the Information Window.
  * @param xyz
  *    Stereotaxic location of selected item.
  */
-EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(const float xyz[3])
-: Event(EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION)
+EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(const int32_t tabIndex,
+                                                                           const float xyz[3])
+: Event(EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION),
+m_tabIndex(tabIndex)
 {
-    this->xyz[0] = xyz[0];
-    this->xyz[1] = xyz[1];
-    this->xyz[2] = xyz[2];
+    /* 
+     * NOTE: a negative value is allowed.
+     */
+    CaretAssert(tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    
+    m_xyz[0] = xyz[0];
+    m_xyz[1] = xyz[1];
+    m_xyz[2] = xyz[2];
 }
 
 /**
@@ -49,5 +64,18 @@ EventIdentificationHighlightLocation::~EventIdentificationHighlightLocation()
 const float* 
 EventIdentificationHighlightLocation::getXYZ() const
 {
-    return this->xyz;
+    return m_xyz;
 }
+
+/**
+ * @return Index of tab in which identification operation was performed.
+ * This value may be negative indicating that the identification request is not
+ * from a browser tab.  One source for this is the Select Brainordinate
+ * option on the Information Window.
+ */
+int32_t
+EventIdentificationHighlightLocation::getTabIndex() const
+{
+    return m_tabIndex;
+}
+

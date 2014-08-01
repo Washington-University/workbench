@@ -150,7 +150,8 @@ namespace caret {
         
         AString getNameOfDataFileToOpenAfterStartup() const;
 
-        void processIdentification(SelectionManager* selectionManager,
+        void processIdentification(const int32_t tabIndex,
+                                   SelectionManager* selectionManager,
                                    QWidget* parentWidget);
         
     public slots:

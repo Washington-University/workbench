@@ -1009,80 +1009,63 @@ BrowserTabContent::receiveEvent(Event* event)
             return;
         }
 
-        if (isIdentificationUpdatesVolumeSlices()) {
-            const float* highlighXYZ = idLocationEvent->getXYZ();
-            for (int32_t windowTabNumber = 0;
-                 windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS;
-                 windowTabNumber++) {
-                
-                float volumeSliceXYZ[3] = {
-                    highlighXYZ[0],
-                    highlighXYZ[1],
-                    highlighXYZ[2]
-                };
-                
-                /*
-                 * If othogonal/montage viewing, do not alter the slice
-                 * coordinate in the axis being viewed
-                 */
-                if (getDisplayedVolumeModel() != NULL) {
-                    bool keepSliceCoordinateForSelectedAxis = false;
-                    switch (m_volumeSliceSettings->getSliceProjectionType()) {
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                            break;
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                            keepSliceCoordinateForSelectedAxis = true;
-                            break;
-                    }
-                    switch (m_volumeSliceSettings->getSliceDrawingType()) {
-                        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
-                            keepSliceCoordinateForSelectedAxis = true;
-                            break;
-                        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
-                            break;
-                    }
-
-                    if (keepSliceCoordinateForSelectedAxis) {
-                        switch (getSliceViewPlane()) {
-                            case VolumeSliceViewPlaneEnum::ALL:
-                                volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
-                                volumeSliceXYZ[1] = getSliceCoordinateCoronal();
-                                volumeSliceXYZ[2] = getSliceCoordinateAxial();
+        if (idLocationEvent->getTabIndex() == getTabNumber()) {
+            if (isIdentificationUpdatesVolumeSlices()) {
+                const float* highlighXYZ = idLocationEvent->getXYZ();
+                for (int32_t windowTabNumber = 0;
+                     windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS;
+                     windowTabNumber++) {
+                    
+                    float volumeSliceXYZ[3] = {
+                        highlighXYZ[0],
+                        highlighXYZ[1],
+                        highlighXYZ[2]
+                    };
+                    
+                    /*
+                     * If othogonal/montage viewing, do not alter the slice
+                     * coordinate in the axis being viewed
+                     */
+                    if (getDisplayedVolumeModel() != NULL) {
+                        bool keepSliceCoordinateForSelectedAxis = false;
+                        switch (m_volumeSliceSettings->getSliceProjectionType()) {
+                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                                 break;
-                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
-                                break;
-                            case VolumeSliceViewPlaneEnum::CORONAL:
-                                volumeSliceXYZ[1] = getSliceCoordinateCoronal();
-                                break;
-                            case VolumeSliceViewPlaneEnum::AXIAL:
-                                volumeSliceXYZ[2] = getSliceCoordinateAxial();
+                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                                keepSliceCoordinateForSelectedAxis = true;
                                 break;
                         }
+                        switch (m_volumeSliceSettings->getSliceDrawingType()) {
+                            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+                                keepSliceCoordinateForSelectedAxis = true;
+                                break;
+                            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+                                break;
+                        }
+                        
+                        if (keepSliceCoordinateForSelectedAxis) {
+                            switch (getSliceViewPlane()) {
+                                case VolumeSliceViewPlaneEnum::ALL:
+                                    volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
+                                    volumeSliceXYZ[1] = getSliceCoordinateCoronal();
+                                    volumeSliceXYZ[2] = getSliceCoordinateAxial();
+                                    break;
+                                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                    volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
+                                    break;
+                                case VolumeSliceViewPlaneEnum::CORONAL:
+                                    volumeSliceXYZ[1] = getSliceCoordinateCoronal();
+                                    break;
+                                case VolumeSliceViewPlaneEnum::AXIAL:
+                                    volumeSliceXYZ[2] = getSliceCoordinateAxial();
+                                    break;
+                            }
+                        }
                     }
-//                    switch (m_volumeSliceSettings->getSliceViewMode()) {
-//                        case VolumeSliceViewModeEnum::MONTAGE:
-//                        case VolumeSliceViewModeEnum::OBLIQUE:
-//                            switch (getSliceViewPlane()) {
-//                                case VolumeSliceViewPlaneEnum::ALL:
-//                                    break;
-//                                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                                    volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
-//                                    break;
-//                                case VolumeSliceViewPlaneEnum::CORONAL:
-//                                    volumeSliceXYZ[1] = getSliceCoordinateCoronal();
-//                                    break;
-//                                case VolumeSliceViewPlaneEnum::AXIAL:
-//                                    volumeSliceXYZ[2] = getSliceCoordinateAxial();
-//                                    break;
-//                            }
-//                            break;
-//                        case VolumeSliceViewModeEnum::ORTHOGONAL:
-//                            break;
-//                    }
+                    
+                    selectSlicesAtCoordinate(volumeSliceXYZ);
+                    //m_volumeSliceSettings->selectSlicesAtCoordinate(volumeSliceXYZ);
                 }
-                
-                m_volumeSliceSettings->selectSlicesAtCoordinate(volumeSliceXYZ);
             }
         }
         
@@ -3445,6 +3428,9 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
         BrowserTabContent* btc = *iter;
         if (btc != this) {
             if (btc->getYokingGroup() == m_yokingGroup) {
+                /*
+                 * If anything is added, also need to update updateYokedBrowserTabs()
+                 */
                 *m_viewingTransformation = *btc->m_viewingTransformation;
                 *m_flatSurfaceViewingTransformation = *btc->m_flatSurfaceViewingTransformation;
                 *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
@@ -3487,6 +3473,9 @@ BrowserTabContent::updateYokedBrowserTabs()
          iter++) {
         BrowserTabContent* btc = *iter;
         if (btc != this) {
+            /*
+             * If anything is added, also need to update setYokingGroup()
+             */
             if (btc->getYokingGroup() == m_yokingGroup) {
                 *btc->m_viewingTransformation = *m_viewingTransformation;
                 *btc->m_flatSurfaceViewingTransformation = *m_flatSurfaceViewingTransformation;

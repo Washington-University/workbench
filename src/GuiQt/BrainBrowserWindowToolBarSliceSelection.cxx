@@ -143,6 +143,29 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_volumeIndicesZcoordSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeIndicesZcoordSpinBoxValueChanged(double)));
     
+    const AString idToolTipText = ("When selected: If there is an identification operation "
+                                   "in ths tab or any other tab with the same yoking status "
+                                   "(not Off), the volume slices will move to the location "
+                                   "of the identified brainordinate.");
+    m_volumeIdentificationUpdatesSlicesAction = WuQtUtilities::createAction("",
+                                                                            WuQtUtilities::createWordWrappedToolTipText(idToolTipText),
+                                                                            this,
+                                                                            this,
+                                                                            SLOT(volumeIdentificationToggled(bool)));
+    m_volumeIdentificationUpdatesSlicesAction->setCheckable(true);
+    QIcon volumeCrossHairIcon;
+    const bool volumeCrossHairIconValid =
+    WuQtUtilities::loadIcon(":/ToolBar/volume-crosshair-pointer.png",
+                            volumeCrossHairIcon);
+    if (volumeCrossHairIconValid) {
+        m_volumeIdentificationUpdatesSlicesAction->setIcon(volumeCrossHairIcon);
+    }
+    else {
+        m_volumeIdentificationUpdatesSlicesAction->setText("ID");
+    }
+    QToolButton* volumeIDToolButton = new QToolButton;
+    volumeIDToolButton->setDefaultAction(m_volumeIdentificationUpdatesSlicesAction);
+    
     m_volumeSliceProjectionTypeEnumComboBox = new EnumComboBoxTemplate(this);
     m_volumeSliceProjectionTypeEnumComboBox->setup<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>();
     m_volumeSliceProjectionTypeEnumComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
@@ -168,7 +191,8 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_volumeIndicesYcoordSpinBox, 1, 3);
     gridLayout->addWidget(m_volumeIndicesZcoordSpinBox, 2, 3);
 
-    gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 1, 1, 4, Qt::AlignHCenter);
+    gridLayout->addWidget(volumeIDToolButton, 3, 0, 1, 2, Qt::AlignLeft);
+    gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 2, 1, 3, Qt::AlignRight);
 
     gridLayout->addWidget(volumeIndicesOriginToolButton, 0, 4, 3, 1);
     
@@ -183,6 +207,7 @@ m_parentToolBar(parentToolBar)
     m_volumeIndicesWidgetGroup->add(m_volumeIndicesXcoordSpinBox);
     m_volumeIndicesWidgetGroup->add(m_volumeIndicesYcoordSpinBox);
     m_volumeIndicesWidgetGroup->add(m_volumeIndicesZcoordSpinBox);
+    m_volumeIndicesWidgetGroup->add(m_volumeIdentificationUpdatesSlicesAction);
 }
 
 /**
@@ -233,6 +258,8 @@ BrainBrowserWindowToolBarSliceSelection::updateContent(BrowserTabContent* browse
     }
     
     m_volumeSliceProjectionTypeEnumComboBox->setSelectedItem<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>(browserTabContent->getSliceProjectionType());
+    
+    m_volumeIdentificationUpdatesSlicesAction->setChecked(browserTabContent->isIdentificationUpdatesVolumeSlices());
     
     this->updateSliceIndicesAndCoordinatesRanges();
     
@@ -551,6 +578,22 @@ BrainBrowserWindowToolBarSliceSelection::volumeSliceProjectionTypeEnumComboBoxIt
     btc->setSliceProjectionType(sliceProjectionType);
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
+}
+
+/**
+ * Called when volume identification action toggled.
+ *
+ * @param value
+ *     New value.
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::volumeIdentificationToggled(bool value)
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    browserTabContent->setIdentificationUpdatesVolumeSlices(value);
 }
 
 

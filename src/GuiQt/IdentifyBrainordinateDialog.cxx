@@ -287,7 +287,8 @@ IdentifyBrainordinateDialog::okButtonClicked()
                     const float* fxyz = surface->getCoordinate(s_lastSelectedVertexIndex);
                     const double xyz[3] = { fxyz[0], fxyz[1], fxyz[2] };
                     nodeID->setModelXYZ(xyz);
-                    GuiManager::get()->processIdentification(selectionManager,
+                    GuiManager::get()->processIdentification(-1,
+                                                             selectionManager,
                                                              this);
                 }
                 else {

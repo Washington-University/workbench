@@ -1944,14 +1944,20 @@ GuiManager::getNameOfDataFileToOpenAfterStartup() const
 /**
  * Process identification after item(s) selected using a selection manager.
  *
+ * @parma tabIndex
+ *    Index of tab in which identification took place.  This value may
+ *    be negative indicating that the identification request is not
+ *    from a browser tab.  One source for this is the Select Brainordinate
+ *    option on the Information Window.
  * @param selectionManager
  *    The selection manager.
  * @param parentWidget
  *    Widget on which any error message windows are displayed.
  */
 void
-GuiManager::processIdentification(SelectionManager* selectionManager,
-                           QWidget* parentWidget)
+GuiManager::processIdentification(const int32_t tabIndex,
+                                  SelectionManager* selectionManager,
+                                  QWidget* parentWidget)
 {
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -2169,7 +2175,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
              */
             if (nodeIdentificationCreatedFromVoxelIdentificationFlag == false) {
                 if (issuedIdentificationLocationEvent == false) {
-                    EventIdentificationHighlightLocation idLocation(xyz);
+                    EventIdentificationHighlightLocation idLocation(tabIndex,
+                                                                    xyz);
                     EventManager::get()->sendEvent(idLocation.getPointer());
                     issuedIdentificationLocationEvent = true;
                 }
@@ -2185,7 +2192,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 volumeFile->indexToSpace(voxelIJK, xyz);
                 
                 if (issuedIdentificationLocationEvent == false) {
-                    EventIdentificationHighlightLocation idLocation(xyz);
+                    EventIdentificationHighlightLocation idLocation(tabIndex,
+                                                                    xyz);
                     EventManager::get()->sendEvent(idLocation.getPointer());
                     issuedIdentificationLocationEvent = true;
                 }
