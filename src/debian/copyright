@@ -7,7 +7,7 @@ Copyright: 2014 Washington University School of Medicine
 License: GPL-2+
 
 Files: src/Files/SurfaceResamplingHelper.cxx
-Copyright: 2014  Washington University School of Medicine
+Copyright: 2014 Washington University School of Medicine
 License: Expat
 
 Files: src/Quazip/*
@@ -29,6 +29,7 @@ Copyright: 2001-2004 Henry Maddocks <ftgl@opengl.geek.nz>
            2008 Éric Beets <ericbeets@free.fr>
            2008 Sam Hocevar <sam@zoy.org>
            2008 Sean Morrison <learner@brlcad.org>
+           2014 Washington University School of Medicine
 License: Expat
 
 Files: src/Common/Base64.* src/Common/DataCompressZLib.* src/Common/MathFunctions.* src/Nifti/Matrix4x4.cxx

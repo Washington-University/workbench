@@ -2,6 +2,7 @@
  * FTGL - OpenGL font library
  *
  * Copyright (c) 2008 Sam Hocevar <sam@zoy.org>
+ * Copyright (c) 2014 Washington University School of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
