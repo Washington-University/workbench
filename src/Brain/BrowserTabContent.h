@@ -445,6 +445,11 @@ namespace caret {
          */
         bool m_identificationUpdatesVolumeSlices;
         
+        /*
+         * True if constructing an instance
+         */
+        bool isExecutingConstructor;
+        
         /** Contains all active browser tab content instances */
         static std::set<BrowserTabContent*> s_allBrowserTabContent;
         

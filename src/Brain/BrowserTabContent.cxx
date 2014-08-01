@@ -35,6 +35,7 @@
 #include "CaretLogger.h"
 #include "ChartData.h"
 #include "ChartMatrixDisplayProperties.h"
+#include "CaretPreferences.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
 #include "ClippingPlaneGroup.h"
@@ -64,6 +65,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "SessionManager.h"
 #include "Surface.h"
 #include "SurfaceMontageConfigurationCerebellar.h"
 #include "SurfaceMontageConfigurationCerebral.h"
@@ -89,7 +91,11 @@ using namespace caret;
 BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 : CaretObject()
 {
+    isExecutingConstructor = true;
+    
     s_allBrowserTabContent.insert(this);
+    
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     
     m_tabNumber = tabNumber;
     m_surfaceModelSelector = new ModelSurfaceSelector();
@@ -102,7 +108,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_userName = "";
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
     m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
-    m_identificationUpdatesVolumeSlices = false;
+    m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
 
     m_cerebellumViewingTransformation  = new ViewingTransformationsCerebellum();
     m_flatSurfaceViewingTransformation = new ViewingTransformations();
@@ -170,6 +176,15 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS);
+    
+    isExecutingConstructor = false;
+    
+    /*
+     * Need to be done from here
+     */
+    if (prefs->isYokingDefaultedOn()) {
+        setYokingGroup(YokingGroupEnum::YOKING_GROUP_A);
+    }
 }
 
 /**
@@ -3461,6 +3476,10 @@ BrowserTabContent::isYoked() const
 void
 BrowserTabContent::updateYokedBrowserTabs()
 {
+    if (isExecutingConstructor) {
+        return;
+    }
+    
     if (m_yokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
         return;
     }

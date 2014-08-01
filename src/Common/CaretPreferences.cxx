@@ -1208,29 +1208,6 @@ CaretPreferences::setVolumeMontageCoordinatePrecision(const int32_t volumeMontag
 }
 
 /**
- * @return The toolbox type.
- */
-int32_t 
-CaretPreferences::getToolBoxType() const
-{
-    return this->toolBoxType;
-}
-
-/**
- * Set the toolbox type.
- * @param toolBoxType
- *    New toolbox type.
- */
-void 
-CaretPreferences::setToolBoxType(const int32_t toolBoxType)
-{
-    this->toolBoxType = toolBoxType;
-    this->setInteger(CaretPreferences::NAME_TOOLBOX_TYPE, 
-                     this->toolBoxType);
-    this->qSettings->sync();
-}
-
-/**
  * @return Is the splash screen enabled?
  */
 bool 
@@ -1273,6 +1250,50 @@ CaretPreferences::setDevelopMenuEnabled(const bool enabled)
     this->developMenuEnabled = enabled;
     this->setBoolean(CaretPreferences::NAME_DEVELOP_MENU,
                      this->developMenuEnabled);
+    this->qSettings->sync();
+}
+
+/**
+ * @param Is yoking defaulted on ?
+ */
+bool CaretPreferences::isYokingDefaultedOn() const
+{
+    return this->yokingDefaultedOn;
+}
+
+/**
+ * Set yoking defaulted on
+ *
+ * @param status
+ *    New status for yoking on.
+ */
+void CaretPreferences::setYokingDefaultedOn(const bool status)
+{
+    this->yokingDefaultedOn = status;
+    this->setBoolean(CaretPreferences::NAME_YOKING_DEFAULT_ON,
+                     this->yokingDefaultedOn);
+    this->qSettings->sync();
+}
+
+/**
+ * @param Is volume identification defaulted on ?
+ */
+bool CaretPreferences::isVolumeIdentificationDefaultedOn() const
+{
+    return this->volumeIdentificationDefaultedOn;
+}
+
+/**
+ * Set volume identification defaulted on
+ *
+ * @param status
+ *    New status for yoking on.
+ */
+void CaretPreferences::setVolumeIdentificationDefaultedOn(const bool status)
+{
+    this->volumeIdentificationDefaultedOn = status;
+    this->setBoolean(CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON,
+                     this->volumeIdentificationDefaultedOn);
     this->qSettings->sync();
 }
 
@@ -1454,14 +1475,18 @@ CaretPreferences::readPreferences()
     
     this->animationStartTime = 0.0;//this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
 
-    this->toolBoxType = this->getInteger(CaretPreferences::NAME_TOOLBOX_TYPE,
-                                         0);
     
     this->splashScreenEnabled = this->getBoolean(CaretPreferences::NAME_SPLASH_SCREEN,
                                                  true);
     
     this->developMenuEnabled = this->getBoolean(CaretPreferences::NAME_DEVELOP_MENU,
                                                 false);
+
+    this->yokingDefaultedOn = this->getBoolean(CaretPreferences::NAME_YOKING_DEFAULT_ON,
+                                               true);
+    
+    this->volumeIdentificationDefaultedOn = this->getBoolean(CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON,
+                                                             true);
     
     this->remoteFileUserName = this->getString(NAME_REMOTE_FILE_USER_NAME);
     this->remoteFilePassword = this->getString(NAME_REMOTE_FILE_PASSWORD);

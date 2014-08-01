@@ -345,6 +345,16 @@ PreferencesDialog::createMiscellaneousWidget()
     m_allWidgets->add(m_miscSplashScreenShowAtStartupComboBox);
     
     /*
+     * Yoking
+     */
+    m_yokingDefaultComboBox = new WuQTrueFalseComboBox("On",
+                                                       "Off",
+                                                       this);
+    QObject::connect(m_yokingDefaultComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(yokingComboBoxToggled(bool)));
+    m_allWidgets->add(m_yokingDefaultComboBox);
+    
+    /*
      * Developer Menu
      */
     m_miscDevelopMenuEnabledComboBox = new WuQTrueFalseComboBox("On",
@@ -357,6 +367,9 @@ PreferencesDialog::createMiscellaneousWidget()
     QGridLayout* gridLayout = new QGridLayout();
     addWidgetToLayout(gridLayout,
                       "Logging Level: ", m_miscLoggingLevelComboBox);
+    addWidgetToLayout(gridLayout,
+                      "New Tabs Yoked to Group A: ",
+                      m_yokingDefaultComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Show Develop Menu in Menu Bar: ",
                       m_miscDevelopMenuEnabledComboBox->getWidget());
@@ -389,6 +402,8 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
     m_miscDevelopMenuEnabledComboBox->setStatus(prefs->isDevelopMenuEnabled());
     
     m_miscSplashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
+    
+    m_yokingDefaultComboBox->setStatus(prefs->isYokingDefaultedOn());
 }
 
 /**
@@ -482,6 +497,14 @@ PreferencesDialog::createVolumeWidget()
     m_allWidgets->add(m_volumeAxesLabelsComboBox);
     
     /*
+     * Identification On/Off
+     */
+    m_volumeIdentificationComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_volumeIdentificationComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeIdentificationComboBoxToggled(bool)));
+    m_allWidgets->add(m_volumeIdentificationComboBox);
+
+    /*
      * Montage Coordinates On/Off
      */
     m_volumeAxesMontageCoordinatesComboBox = new WuQTrueFalseComboBox("On", "Off", this);
@@ -524,6 +547,9 @@ PreferencesDialog::createVolumeWidget()
                       "Volume Axes Labels: ",
                       m_volumeAxesLabelsComboBox->getWidget());
     addWidgetToLayout(gridLayout,
+                      "Volume Identification For New Tabs: ",
+                      m_volumeIdentificationComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
                       "Volume Montage Slice Coord: ",
                       m_volumeAxesMontageCoordinatesComboBox->getWidget());
     addWidgetToLayout(gridLayout,
@@ -552,6 +578,7 @@ PreferencesDialog::updateVolumeWidget(CaretPreferences* prefs)
     m_volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
     m_volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
     m_volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
+    m_volumeIdentificationComboBox->setStatus(prefs->isVolumeIdentificationDefaultedOn());
     m_volumeMontageGapSpinBox->setValue(prefs->getVolumeMontageGap());
     m_volumeMontageCoordinatePrecisionSpinBox->setValue(prefs->getVolumeMontageCoordinatePrecision());
 }
@@ -842,6 +869,26 @@ PreferencesDialog::volumeMontageCoordinatePrecisionChanged(int value)
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeMontageCoordinatePrecision(value);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called when volume identification value is changed.
+ */
+void
+PreferencesDialog::volumeIdentificationComboBoxToggled(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeIdentificationDefaultedOn(value);
+}
+
+/**
+ * Called when yoking default value is changed.
+ */
+void
+PreferencesDialog::yokingComboBoxToggled(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setYokingDefaultedOn(value);
 }
 
 /**

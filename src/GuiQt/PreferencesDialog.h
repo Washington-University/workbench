@@ -68,6 +68,9 @@ namespace caret {
         void volumeAxesMontageCoordinatesComboBoxToggled(bool value);
         void volumeMontageGapValueChanged(int value);
         void volumeMontageCoordinatePrecisionChanged(int value);
+        void volumeIdentificationComboBoxToggled(bool value);
+        
+        void yokingComboBoxToggled(bool value);
         
         
     private:
@@ -135,6 +138,9 @@ namespace caret {
         WuQTrueFalseComboBox* m_volumeAxesMontageCoordinatesComboBox;
         QSpinBox* m_volumeMontageGapSpinBox;
         QSpinBox* m_volumeMontageCoordinatePrecisionSpinBox;
+        WuQTrueFalseComboBox* m_volumeIdentificationComboBox;
+        
+        WuQTrueFalseComboBox* m_yokingDefaultComboBox;
         
         
         WuQWidgetObjectGroup* m_allWidgets;
