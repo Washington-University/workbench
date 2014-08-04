@@ -58,7 +58,7 @@ namespace caret {
         void miscDevelopMenuEnabledComboBoxChanged(bool value);
         void miscLoggingLevelComboBoxChanged(int);
         void miscSplashScreenShowAtStartupComboBoxChanged(bool value);
-        
+        void miscSpecFileDialogViewFilesTypeEnumComboBoxItemActivated();
         
         void openGLDrawingMethodEnumComboBoxItemActivated();
         void openGLImageCaptureMethodEnumComboBoxItemActivated();
@@ -128,6 +128,8 @@ namespace caret {
         WuQTrueFalseComboBox* m_miscDevelopMenuEnabledComboBox;
         QComboBox* m_miscLoggingLevelComboBox;
         WuQTrueFalseComboBox* m_miscSplashScreenShowAtStartupComboBox;
+        EnumComboBoxTemplate* m_miscSpecFileDialogViewFilesTypeEnumComboBox;
+        
 
         
         EnumComboBoxTemplate* m_openGLDrawingMethodEnumComboBox;
@@ -141,7 +143,6 @@ namespace caret {
         WuQTrueFalseComboBox* m_volumeIdentificationComboBox;
         
         WuQTrueFalseComboBox* m_yokingDefaultComboBox;
-        
         
         WuQWidgetObjectGroup* m_allWidgets;
     };

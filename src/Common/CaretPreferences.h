@@ -27,6 +27,7 @@
 #include "LogLevelEnum.h"
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
+#include "SpecFileDialogViewFilesTypeEnum.h"
 
 class QSettings;
 class QStringList;
@@ -188,6 +189,10 @@ namespace caret {
         
         void setVolumeIdentificationDefaultedOn(const bool status);
         
+        SpecFileDialogViewFilesTypeEnum::Enum getManageFilesViewFileType() const;
+        
+        void setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEnum::Enum manageFilesViewFileType);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -292,6 +297,8 @@ namespace caret {
         AString remoteFilePassword;
         bool remoteFileLoginSaved;
         
+        SpecFileDialogViewFilesTypeEnum::Enum manageFilesViewFileType;
+        
         static const AString NAME_ANIMATION_START_TIME;
         static const AString NAME_VOLUME_AXES_CROSSHAIRS;
         static const AString NAME_VOLUME_AXES_LABELS;
@@ -312,6 +319,7 @@ namespace caret {
         static const AString NAME_DEVELOP_MENU;
         static const AString NAME_IMAGE_CAPTURE_METHOD;
         static const AString NAME_LOGGING_LEVEL;
+        static const AString NAME_MANAGE_FILES_VIEW_FILE_TYPE;
         static const AString NAME_OPENGL_DRAWING_METHOD;
         static const AString NAME_PREVIOUS_SPEC_FILES;
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
@@ -347,6 +355,7 @@ namespace caret {
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
     const AString CaretPreferences::NAME_IMAGE_CAPTURE_METHOD = "imageCaptureMethod";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
+    const AString CaretPreferences::NAME_MANAGE_FILES_VIEW_FILE_TYPE     = "manageFilesViewFileType";
     const AString CaretPreferences::NAME_OPENGL_DRAWING_METHOD     = "openGLDrawingMethod";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";

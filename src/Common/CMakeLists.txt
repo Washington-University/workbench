@@ -98,6 +98,7 @@ ProgressObject.h
 ProgressReportingInterface.h
 ReductionEnum.h
 ReductionOperation.h
+SpecFileDialogViewFilesTypeEnum.h
 SpeciesEnum.h
 StereotaxicSpaceEnum.h
 StringTableModel.h
@@ -168,6 +169,7 @@ ProgramParametersException.cxx
 ProgressObject.cxx
 ReductionEnum.cxx
 ReductionOperation.cxx
+SpecFileDialogViewFilesTypeEnum.cxx
 SpeciesEnum.cxx
 StereotaxicSpaceEnum.cxx
 StringTableModel.cxx

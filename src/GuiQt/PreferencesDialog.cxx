@@ -364,9 +364,22 @@ PreferencesDialog::createMiscellaneousWidget()
                      this, SLOT(miscDevelopMenuEnabledComboBoxChanged(bool)));
     m_allWidgets->add(m_miscDevelopMenuEnabledComboBox);
     
+    /*
+     * Manage Files View Files Type
+     */
+    m_miscSpecFileDialogViewFilesTypeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_miscSpecFileDialogViewFilesTypeEnumComboBox->setup<SpecFileDialogViewFilesTypeEnum,SpecFileDialogViewFilesTypeEnum::Enum>();
+    QObject::connect(m_miscSpecFileDialogViewFilesTypeEnumComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(miscSpecFileDialogViewFilesTypeEnumComboBoxItemActivated()));
+    m_allWidgets->add(m_miscSpecFileDialogViewFilesTypeEnumComboBox->getWidget());
+    
     QGridLayout* gridLayout = new QGridLayout();
     addWidgetToLayout(gridLayout,
-                      "Logging Level: ", m_miscLoggingLevelComboBox);
+                      "Logging Level: ",
+                      m_miscLoggingLevelComboBox);
+    addWidgetToLayout(gridLayout,
+                      "Save/Manage View Files: ",
+                      m_miscSpecFileDialogViewFilesTypeEnumComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "New Tabs Yoked to Group A: ",
                       m_yokingDefaultComboBox->getWidget());
@@ -404,6 +417,9 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
     m_miscSplashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
     
     m_yokingDefaultComboBox->setStatus(prefs->isYokingDefaultedOn());
+    
+    m_miscSpecFileDialogViewFilesTypeEnumComboBox->setSelectedItem<SpecFileDialogViewFilesTypeEnum,SpecFileDialogViewFilesTypeEnum::Enum>(prefs->getManageFilesViewFileType());
+
 }
 
 /**
@@ -918,6 +934,17 @@ PreferencesDialog::miscDevelopMenuEnabledComboBoxChanged(bool value)
                          + " in newly opened windows.");
     WuQMessageBox::informationOk(m_miscDevelopMenuEnabledComboBox->getWidget(),
                                  msg);
+}
+
+/**
+ * Gets called when view files type is changed.
+ */
+void
+PreferencesDialog::miscSpecFileDialogViewFilesTypeEnumComboBoxItemActivated()
+{
+    const SpecFileDialogViewFilesTypeEnum::Enum viewFilesType = m_miscSpecFileDialogViewFilesTypeEnumComboBox->getSelectedItem<SpecFileDialogViewFilesTypeEnum,SpecFileDialogViewFilesTypeEnum::Enum>();
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setManageFilesViewFileType(viewFilesType);
 }
 
 

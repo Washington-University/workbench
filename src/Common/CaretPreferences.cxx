@@ -1003,6 +1003,29 @@ CaretPreferences::setOpenGLDrawingMethod(const OpenGLDrawingMethodEnum::Enum ope
 }
 
 /**
+ * @return The view file type for manage files dialog.
+ */
+SpecFileDialogViewFilesTypeEnum::Enum
+CaretPreferences::getManageFilesViewFileType() const
+{
+    return this->manageFilesViewFileType;
+}
+
+/**
+ * Set the view file type for manage files dialog.
+ *
+ * @param manageFilesViewFileType
+ *     New view file type.
+ */
+void
+CaretPreferences::setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEnum::Enum manageFilesViewFileType)
+{
+    this->manageFilesViewFileType = manageFilesViewFileType;
+    this->setString(NAME_MANAGE_FILES_VIEW_FILE_TYPE,
+                    SpecFileDialogViewFilesTypeEnum::toName(this->manageFilesViewFileType));
+}
+
+/**
  * @return The image capture method.
  */
 ImageCaptureMethodEnum::Enum
@@ -1458,6 +1481,15 @@ CaretPreferences::readPreferences()
                                                                   &validDrawingMethod);
     if ( ! validDrawingMethod) {
         this->openGLDrawingMethod = OpenGLDrawingMethodEnum::DRAW_WITH_VERTEX_BUFFERS_OFF;
+    }
+    
+    AString viewFileTypesName = this->qSettings->value(NAME_MANAGE_FILES_VIEW_FILE_TYPE,
+                                                       SpecFileDialogViewFilesTypeEnum::toName(SpecFileDialogViewFilesTypeEnum::VIEW_FILES_ALL)).toString();
+    bool viewFilesTypeValid = false;
+    this->manageFilesViewFileType = SpecFileDialogViewFilesTypeEnum::fromName(viewFileTypesName,
+                                                                              &viewFilesTypeValid);
+    if ( ! viewFilesTypeValid) {
+        this->manageFilesViewFileType = SpecFileDialogViewFilesTypeEnum::VIEW_FILES_ALL;
     }
     
     this->displayVolumeAxesLabels = this->getBoolean(CaretPreferences::NAME_VOLUME_AXES_LABELS,

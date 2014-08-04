@@ -136,7 +136,18 @@ SpecFileManagementDialog::runManageFilesDialog(Brain* brain,
                                     title,
                                     parent);
     
-    dialog.setFilterSelections(s_manageFilesDisplay,
+    /*
+     * Override view files type the first time the dialog is displayed
+     * using the value from the user's preferences
+     */
+    static bool firstTime = true;
+    if (firstTime) {
+        const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        s_manageFilesViewFilesType = prefs->getManageFilesViewFileType();
+        firstTime = false;
+    }
+    
+    dialog.setFilterSelections(s_manageFilesViewFilesType,
                                s_manageFilesFilteredDataFileType,
                                s_manageFilesFilteredStructureType);
     
@@ -147,7 +158,7 @@ SpecFileManagementDialog::runManageFilesDialog(Brain* brain,
 
     dialog.exec();
     
-    dialog.getFilterSelections(s_manageFilesDisplay,
+    dialog.getFilterSelections(s_manageFilesViewFilesType,
                                s_manageFilesFilteredDataFileType,
                                s_manageFilesFilteredStructureType);
     
@@ -1024,10 +1035,10 @@ SpecFileManagementDialog::updateSpecFileRowInTable()
             /*
              * Get filtering selections
              */
-            ManageFilesDisplay manageFilesDisplay;
+            SpecFileDialogViewFilesTypeEnum::Enum viewFilesType;
             DataFileTypeEnum::Enum filteredDataFileType;
             StructureEnum::Enum filteredStructureType;
-            getFilterSelections(manageFilesDisplay,
+            getFilterSelections(viewFilesType,
                                 filteredDataFileType,
                                 filteredStructureType);
             
@@ -1038,24 +1049,25 @@ SpecFileManagementDialog::updateSpecFileRowInTable()
                 hideSpecFileRow = true;
             }
             
-            switch (manageFilesDisplay) {
-                case MANAGE_FILES_ALL:
+            switch (viewFilesType) {
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_ALL:
                     break;
-                case MANAGE_FILES_LOADED:
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_LOADED:
                     break;
-                case MANAGE_FILES_LOADED_MODIFIED:
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_LOADED_MODIFIED:
                     if (! m_specFile->isModified()) {
                         hideSpecFileRow = true;
                     }
                     break;
-                case MANAGE_FILES_LOADED_NOT_MODIFIED:
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_LOADED_NOT_MODIFIED:
                     if (m_specFile->isModified()) {
                         hideSpecFileRow = true;
                     }
                     break;
-                case MANAGE_FILES_NOT_LOADED:
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_NOT_LOADED:
                     hideSpecFileRow = true;
                     break;
+                    
             }
             
             if (filteredDataFileType != DataFileTypeEnum::UNKNOWN) {
@@ -1093,26 +1105,27 @@ SpecFileManagementDialog::horizontalHeaderSelectedForSorting(int logicalIndex)
 /**
  * Get the file filtering selections
  *
- * @param manageFilesDisplayOut
- *    Manage files loaded/not loaded
+ * @param viewFilesTypeOut
+ *    view files types
  * @param filteredDataFileTypeOut
  *    Data file type
  * @param filteredStructureTypeOut
  *    Structure
  */
 void
-SpecFileManagementDialog::getFilterSelections(ManageFilesDisplay& manageFilesDisplayOut,
+SpecFileManagementDialog::getFilterSelections(SpecFileDialogViewFilesTypeEnum::Enum& viewFilesTypeOut,
                                               DataFileTypeEnum::Enum& filteredDataFileTypeOut,
                                               StructureEnum::Enum& filteredStructureTypeOut) const
 {
     /*
      * All/Loaded/Not-Loaded
      */
-    manageFilesDisplayOut = MANAGE_FILES_ALL;
+    viewFilesTypeOut = SpecFileDialogViewFilesTypeEnum::VIEW_FILES_ALL;
     if (m_manageFilesLoadedNotLoadedActionGroup != NULL) {
         const QAction* manageFileAction = m_manageFilesLoadedNotLoadedActionGroup->checkedAction();
         if (manageFileAction != NULL) {
-            manageFilesDisplayOut = static_cast<ManageFilesDisplay>(manageFileAction->data().toInt());
+            viewFilesTypeOut = SpecFileDialogViewFilesTypeEnum::fromIntegerCode(manageFileAction->data().toInt(),
+                                                                                NULL);
         }
     }
     
@@ -1142,23 +1155,24 @@ SpecFileManagementDialog::getFilterSelections(ManageFilesDisplay& manageFilesDis
 /**
  * Set the file filtering selections
  *
- * @param manageFilesDisplay
- *    Manage files loaded/not loaded
+ * @param viewFilesType
+ *    View files type
  * @param filteredDataFileType
  *    Data file type
  * @param filteredStructureType
  *    Structure
  */
 void
-SpecFileManagementDialog::setFilterSelections(const ManageFilesDisplay& manageFilesDisplay,
-                                              const DataFileTypeEnum::Enum& filteredDataFileType,
-                                              const StructureEnum::Enum& filteredStructureType)
+SpecFileManagementDialog::setFilterSelections(const SpecFileDialogViewFilesTypeEnum::Enum viewFilesType,
+                                              const DataFileTypeEnum::Enum filteredDataFileType,
+                                              const StructureEnum::Enum filteredStructureType)
 {
+    const int32_t viewFilesTypeInt = SpecFileDialogViewFilesTypeEnum::toIntegerCode(viewFilesType);
     QList<QAction*> manageActions = m_manageFilesLoadedNotLoadedActionGroup->actions();
     QListIterator<QAction*> manageIterator(manageActions);
     while (manageIterator.hasNext()) {
         QAction* action = manageIterator.next();
-        if (action->data().toInt() == (int)manageFilesDisplay) {
+        if (action->data().toInt() == viewFilesTypeInt) {
             action->setChecked(true);
             break;
         }
@@ -1258,10 +1272,10 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
      */
     sortFileContent();
     
-    ManageFilesDisplay manageFilesDisplay;
+    SpecFileDialogViewFilesTypeEnum::Enum filteredViewFilesType;
     DataFileTypeEnum::Enum filteredDataFileType;
     StructureEnum::Enum filteredStructureType;
-    getFilterSelections(manageFilesDisplay,
+    getFilterSelections(filteredViewFilesType,
                         filteredDataFileType,
                         filteredStructureType);
     
@@ -1484,15 +1498,15 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                     break;
             }
         }
-        switch (manageFilesDisplay) {
-            case MANAGE_FILES_ALL:
+        switch (filteredViewFilesType) {
+            case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_ALL:
                 break;
-            case MANAGE_FILES_LOADED:
+            case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_LOADED:
                 if (caretDataFile == NULL) {
                     isFileHidden = true;
                 }
                 break;
-            case MANAGE_FILES_LOADED_MODIFIED:
+            case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_LOADED_MODIFIED:
                 if (caretDataFile != NULL) {
                     if ( ! caretDataFile->isModified()) {
                         isFileHidden = true;
@@ -1502,7 +1516,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                     isFileHidden = true;
                 }
                 break;
-            case MANAGE_FILES_LOADED_NOT_MODIFIED:
+            case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_LOADED_NOT_MODIFIED:
                 if (caretDataFile != NULL) {
                     if (caretDataFile->isModified()) {
                         isFileHidden = true;
@@ -1512,7 +1526,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                     isFileHidden = true;
                 }
                 break;
-            case MANAGE_FILES_NOT_LOADED:
+            case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_NOT_LOADED:
                 if (caretDataFile != NULL) {
                     isFileHidden = true;
                 }

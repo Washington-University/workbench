@@ -27,6 +27,7 @@
 
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
+#include "SpecFileDialogViewFilesTypeEnum.h"
 #include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
@@ -205,13 +206,13 @@ namespace caret {
                                 const int columnIndex,
                                 QTableWidgetItem* item);
         
-        void getFilterSelections(ManageFilesDisplay& manageFilesDisplayOut,
+        void getFilterSelections(SpecFileDialogViewFilesTypeEnum::Enum& viewFilesTypeOut,
                                  DataFileTypeEnum::Enum& filteredDataFileTypeOut,
                                  StructureEnum::Enum& filteredStructureTypeOut) const;
         
-        void setFilterSelections(const ManageFilesDisplay& manageFilesDisplayOut,
-                                 const DataFileTypeEnum::Enum& filteredDataFileTypeOut,
-                                 const StructureEnum::Enum& filteredStructureTypeOut);
+        void setFilterSelections(const SpecFileDialogViewFilesTypeEnum::Enum viewFilesType,
+                                 const DataFileTypeEnum::Enum filteredDataFileType,
+                                 const StructureEnum::Enum filteredStructureType);
         
         void clearSpecFileManagementDialogRowContent();
         
@@ -264,7 +265,7 @@ namespace caret {
         std::set<const CaretDataFile*> m_displayedDataFiles;
         
         static QByteArray s_manageFilesGeometry;
-        static ManageFilesDisplay s_manageFilesDisplay;
+        static SpecFileDialogViewFilesTypeEnum::Enum s_manageFilesViewFilesType;
         static DataFileTypeEnum::Enum s_manageFilesFilteredDataFileType;
         static StructureEnum::Enum s_manageFilesFilteredStructureType;
         
@@ -289,7 +290,7 @@ namespace caret {
     
 #ifdef __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
     QByteArray SpecFileManagementDialog::s_manageFilesGeometry;
-    SpecFileManagementDialog::ManageFilesDisplay SpecFileManagementDialog::s_manageFilesDisplay = SpecFileManagementDialog::MANAGE_FILES_ALL;
+    SpecFileDialogViewFilesTypeEnum::Enum SpecFileManagementDialog::s_manageFilesViewFilesType = SpecFileDialogViewFilesTypeEnum::VIEW_FILES_ALL;
     DataFileTypeEnum::Enum SpecFileManagementDialog::s_manageFilesFilteredDataFileType = DataFileTypeEnum::UNKNOWN;
     StructureEnum::Enum SpecFileManagementDialog::s_manageFilesFilteredStructureType = StructureEnum::ALL;
     
