@@ -77,13 +77,10 @@
 <file>./HelpFiles/Overlay_Toolbox/Layers/Add_Layer.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Layers/Colorbar.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Layers/Layers.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Overlay_and_Map_Settings/Overlay_and_Map_Settings.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Overlay_and_Map_Settings/Palette_Settings.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Layers/Overlay_and_Map_Settings/Settings_icon.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Layers/Overlay_Toolbox_horiz.png</file>
-<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Add_Layer.png</file>
-<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Colorbar.png</file>
-<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Layers.html</file>
-<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Overlay_and_Map_Settings.html</file>
-<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Overlay_Toolbox_horiz.png</file>
-<file>./HelpFiles/Overlay_Toolbox/Layers/Settings/Overlay_and_Map_Settings/Settings_icon.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Layers/Settings_icon.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Overlay_Toolbox.html</file>
 <file>./HelpFiles/Overlay_Toolbox/Overlay_Toolbox_horiz.png</file>
@@ -189,5 +186,6 @@
 <file>./ToolBar/view-right.png</file>
 <file>./ToolBar/view-ventral.png</file>
 <file>./ToolBar/volume-crosshair-pointer.png</file>
+<file>./update_help_files.sh</file>
 </qresource>
 </RCC>
