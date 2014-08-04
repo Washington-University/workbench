@@ -91,6 +91,8 @@ namespace caret {
         
         AString convertToHtmlPage() const;
         
+        AString convertToHtmlPageWithFontHeight(const int fontHeight) const;
+        
         int32_t indexOfAnyChar(const AString& str,
                                const int from) const;
         

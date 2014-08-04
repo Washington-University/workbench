@@ -478,14 +478,29 @@ AString::convertURLsToHyperlinks() const
 }
 
 /**
- * Convert the text string to an HTML page by:
- *    Enclosing between "<html><head></head><body>" and 
- *    "</body></html>"
+ * Convert the text string to an HTML page by enclosing text between:
+ *    "<html><head></head><body>" and "</body></html>"
  *
  *    Replace some characters with their HTML escaped characters 
  */
 AString
 AString::convertToHtmlPage() const
+{
+    return convertToHtmlPageWithFontHeight(-1);
+}
+
+/**
+ * Convert the text string to an HTML page using the given font height
+ * by enclosing text between:
+ *    "<html><head></head><body>" and "</body></html>"
+ *
+ *    Replace some characters with their HTML escaped characters
+ *
+ * @param fontHeight
+ *    Height of the font (if negative no font height is applied).
+ */
+AString
+AString::convertToHtmlPageWithFontHeight(const int fontHeight) const
 {
     /*
      * If already HTML (assumes "html" is the first six characters),
@@ -497,6 +512,13 @@ AString::convertToHtmlPage() const
     }
     
     AString htmlString("<html><head></head><body>");
+    
+    if (fontHeight > 0) {
+//        htmlString.append("<font size="
+//                          + AString::number(fontHeight)
+//                          + ">");
+        htmlString.append("<p style=\"font-size:" + AString::number(fontHeight) + "px\">");
+    }
     
     const int64_t length = this->count();
     for (int64_t i = 0; i < length; i++) {
@@ -530,10 +552,16 @@ AString::convertToHtmlPage() const
         
     }
     
+    if (fontHeight > 0) {
+//        htmlString.append("</font>");
+        htmlString.append("</p>");
+    }
+    
     htmlString.append("</body></html>");
     
-    return htmlString;
+    return htmlString;    
 }
+
 
 /**
  * Returns the index position of any character in
