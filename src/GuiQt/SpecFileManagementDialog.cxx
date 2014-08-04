@@ -135,11 +135,21 @@ SpecFileManagementDialog::runManageFilesDialog(Brain* brain,
                                     brain->getSpecFile(),
                                     title,
                                     parent);
+    
+    dialog.setFilterSelections(s_manageFilesDisplay,
+                               s_manageFilesFilteredDataFileType,
+                               s_manageFilesFilteredStructureType);
+    
     if ( ! s_manageFilesGeometry.isEmpty()) {
         dialog.restoreGeometry(s_manageFilesGeometry);
     }
-    
+    dialog.loadSpecFileContentIntoDialog();
+
     dialog.exec();
+    
+    dialog.getFilterSelections(s_manageFilesDisplay,
+                               s_manageFilesFilteredDataFileType,
+                               s_manageFilesFilteredStructureType);
     
     s_manageFilesGeometry = dialog.saveGeometry();
 }
@@ -1128,6 +1138,55 @@ SpecFileManagementDialog::getFilterSelections(ManageFilesDisplay& manageFilesDis
                                                                NULL);
     }
 }
+
+/**
+ * Set the file filtering selections
+ *
+ * @param manageFilesDisplay
+ *    Manage files loaded/not loaded
+ * @param filteredDataFileType
+ *    Data file type
+ * @param filteredStructureType
+ *    Structure
+ */
+void
+SpecFileManagementDialog::setFilterSelections(const ManageFilesDisplay& manageFilesDisplay,
+                                              const DataFileTypeEnum::Enum& filteredDataFileType,
+                                              const StructureEnum::Enum& filteredStructureType)
+{
+    QList<QAction*> manageActions = m_manageFilesLoadedNotLoadedActionGroup->actions();
+    QListIterator<QAction*> manageIterator(manageActions);
+    while (manageIterator.hasNext()) {
+        QAction* action = manageIterator.next();
+        if (action->data().toInt() == (int)manageFilesDisplay) {
+            action->setChecked(true);
+            break;
+        }
+    }
+    
+    const int32_t dataFileTypeInt = DataFileTypeEnum::toIntegerCode(filteredDataFileType);
+    QList<QAction*> fileTypeActions = m_fileTypesActionGroup->actions();
+    QListIterator<QAction*> fileTypeIterator(fileTypeActions);
+    while (fileTypeIterator.hasNext()) {
+        QAction* action = fileTypeIterator.next();
+        if (action->data() == dataFileTypeInt) {
+            action->setChecked(true);
+            break;
+        }
+    }
+    
+    const int32_t structureTypeInt = StructureEnum::toIntegerCode(filteredStructureType);
+    QList<QAction*> structureTypeActions = m_structureActionGroup->actions();
+    QListIterator<QAction*> structureTypeIterator(structureTypeActions);
+    while (structureTypeIterator.hasNext()) {
+        QAction* action = structureTypeIterator.next();
+        if (action->data() == structureTypeInt) {
+            action->setChecked(true);
+            break;
+        }
+    }
+}
+
 
 ///**
 // * Less than method for sorting using the sorting key.

@@ -209,6 +209,10 @@ namespace caret {
                                  DataFileTypeEnum::Enum& filteredDataFileTypeOut,
                                  StructureEnum::Enum& filteredStructureTypeOut) const;
         
+        void setFilterSelections(const ManageFilesDisplay& manageFilesDisplayOut,
+                                 const DataFileTypeEnum::Enum& filteredDataFileTypeOut,
+                                 const StructureEnum::Enum& filteredStructureTypeOut);
+        
         void clearSpecFileManagementDialogRowContent();
         
         void enableLoadOrSaveButton();
@@ -260,6 +264,9 @@ namespace caret {
         std::set<const CaretDataFile*> m_displayedDataFiles;
         
         static QByteArray s_manageFilesGeometry;
+        static ManageFilesDisplay s_manageFilesDisplay;
+        static DataFileTypeEnum::Enum s_manageFilesFilteredDataFileType;
+        static StructureEnum::Enum s_manageFilesFilteredStructureType;
         
         static const int SHOW_FILES_ALL;
         static const int SHOW_FILES_NONE;
@@ -282,6 +289,9 @@ namespace caret {
     
 #ifdef __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
     QByteArray SpecFileManagementDialog::s_manageFilesGeometry;
+    SpecFileManagementDialog::ManageFilesDisplay SpecFileManagementDialog::s_manageFilesDisplay = SpecFileManagementDialog::MANAGE_FILES_ALL;
+    DataFileTypeEnum::Enum SpecFileManagementDialog::s_manageFilesFilteredDataFileType = DataFileTypeEnum::UNKNOWN;
+    StructureEnum::Enum SpecFileManagementDialog::s_manageFilesFilteredStructureType = StructureEnum::ALL;
     
     const int SpecFileManagementDialog::SHOW_FILES_ALL = -1;
     const int SpecFileManagementDialog::SHOW_FILES_NONE = -2;
