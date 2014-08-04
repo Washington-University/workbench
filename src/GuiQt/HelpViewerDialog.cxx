@@ -109,6 +109,29 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
                      this, SLOT(topicSearchLineEditCursorPositionChanged(int,int)));
     
     /*
+     * Collapse All button
+     */
+    QAction* collapseAllAction = WuQtUtilities::createAction("Collapse All",
+                                                           "",
+                                                           this,
+                                                           this,
+                                                           SLOT(topicCollapseAllTriggered()));
+    QToolButton* collapseAllToolButton = new QToolButton;
+    collapseAllToolButton->setDefaultAction(collapseAllAction);
+    
+    /*
+     * Expand All button
+     */
+    QAction* expandAllAction = WuQtUtilities::createAction("Expand All",
+                                                           "",
+                                                           this,
+                                                           this,
+                                                           SLOT(topicExpandAllTriggered()));
+    QToolButton* expandAllToolButton = new QToolButton;
+    expandAllToolButton->setDefaultAction(expandAllAction);
+    
+    
+    /*
      * create the back toolbar button
      */
     QToolButton* backwardButton = new QToolButton;
@@ -132,34 +155,6 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     printButton->hide();
     
     /*
-     * Line edit for searching help text
-     */
-    const AString helpTextSearchToolTipText = ("Enter text to search displayed help page.\n"
-                                               "Press RETURN key to start the search.");
-    m_helpTextFindLineEdit = new QLineEdit;
-    m_helpTextFindLineEdit->setToolTip(helpTextSearchToolTipText.convertToHtmlPage());
-    QObject::connect(m_helpTextFindLineEdit, SIGNAL(returnPressed()),
-                     this, SLOT(helpTextSearchLineEditStartSearch()));
-
-    /*
-     * Find previous button
-     */
-    m_helpTextFindPreviousToolButton = new QToolButton;
-    m_helpTextFindPreviousToolButton->setToolTip("Find previous location of text");
-    m_helpTextFindPreviousToolButton->setArrowType(Qt::UpArrow);
-    QObject::connect(m_helpTextFindPreviousToolButton, SIGNAL(clicked()),
-                     this, SLOT(helpTextFindPreviousButtonClicked()));
-
-    /*
-     * Find next button
-     */
-    m_helpTextFindNextToolButton = new QToolButton;
-    m_helpTextFindNextToolButton->setToolTip("Find next location of text");
-    m_helpTextFindNextToolButton->setArrowType(Qt::DownArrow);
-    QObject::connect(m_helpTextFindNextToolButton, SIGNAL(clicked()),
-                     this, SLOT(helpTextFindNextButtonClicked()));
-    
-    /*
      * create the help browser
      */
     m_helpBrowser = new HelpTextBrowser(this);
@@ -181,10 +176,6 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     toolButtonLayout->addWidget(forwardButton);
     toolButtonLayout->addWidget(printButton);
     toolButtonLayout->addStretch();
-    toolButtonLayout->addWidget(new QLabel("Find:"));
-    toolButtonLayout->addWidget(m_helpTextFindLineEdit);
-    toolButtonLayout->addWidget(m_helpTextFindPreviousToolButton);
-    toolButtonLayout->addWidget(m_helpTextFindNextToolButton);
     
     /*
      * Layout for help browser and buttons
@@ -195,11 +186,22 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     helpBrowserLayout->addWidget(m_helpBrowser);
     
     /*
+     * Layout for collapse/expand all buttons
+     */
+    QHBoxLayout* collapseExpandLayout = new QHBoxLayout;
+    collapseExpandLayout->addStretch();
+    collapseExpandLayout->addWidget(collapseAllToolButton);
+    collapseExpandLayout->addStretch();
+    collapseExpandLayout->addWidget(expandAllToolButton);
+    collapseExpandLayout->addStretch();
+    
+    /*
      * Layout for search line edit and topics
      */
     QWidget* topicWidgets = new QWidget();
     QVBoxLayout* topicLayout = new QVBoxLayout(topicWidgets);
     topicLayout->addWidget(m_topicSearchLineEdit);
+    topicLayout->addLayout(collapseExpandLayout);
     topicLayout->addWidget(m_topicIndexTreeWidget);
 
     /*
@@ -487,8 +489,10 @@ HelpViewerDialog::showHelpPageWithName(const AString& helpPageName)
  *    Parent tree widget item
  * @param dirInfo
  *    The directory examined for HTML pages and subdirectories
+ * @return
+ *    Tree widget item that was created.
  */
-void
+QTreeWidgetItem*
 HelpViewerDialog::loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
                                                      const QFileInfo& dirInfo)
 {
@@ -558,6 +562,7 @@ HelpViewerDialog::loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
                                            subDirInfo);
     }
     
+    return treeItem;
 }
 
 /**
@@ -571,9 +576,11 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
     
     QTreeWidgetItem* workbenchItem = new QTreeWidgetItem(m_topicIndexTreeWidget,
                                                          TREE_ITEM_NONE);
-    workbenchItem->setText(0, "Workbench");
+    workbenchItem->setText(0, "wb_view");
     
     QDir resourceHelpDirectory(":/HelpFiles");
+    
+    QTreeWidgetItem* glossaryItem = NULL;
     
     // CAN BE SET TO FIND FILES WITHOUT FULL PATH
     //m_helpBrowser->setSearchPaths(QStringList(":/HelpFiles/Menus/File_Menu"));
@@ -583,12 +590,23 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
     QListIterator<QFileInfo> subDirIter(subDirList);
     while (subDirIter.hasNext()) {
         const QFileInfo subDirInfo = subDirIter.next();
-        loadWorkbenchHelpInfoFromDirectory(workbenchItem,
-                                           subDirInfo);
+        
+        QTreeWidgetItem* item = loadWorkbenchHelpInfoFromDirectory(workbenchItem,
+                                                                   subDirInfo);
+        
+        /*
+         * Is this the GLOSSARY?
+         * If so, move it so that it is a top level item.
+         */
+        if (subDirInfo.baseName().toLower() == "glossary") {
+            if (glossaryItem != NULL) {
+                CaretAssertMessage(0, "There should be only one glossary subdirectory !!!!");
+            }
+            glossaryItem = item;
+            workbenchItem->removeChild(glossaryItem);
+            m_topicIndexTreeWidget->addTopLevelItem(glossaryItem);
+        }
     }
-    
-    m_topicIndexTreeWidget->expandAll();
-    
     
 //    if (resourceHelpDirectory.exists()) {
 //        QStringList htmlFileFilter;
@@ -637,6 +655,7 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
     CommandOperationManager* commandOperationManager = CommandOperationManager::getCommandOperationManager();
     std::vector<CommandOperation*> commandOperations = commandOperationManager->getCommandOperations();
     
+    QTreeWidgetItem* wbCommandItem = NULL;
     if ( ! commandOperations.empty()) {
         /*
          * Use map to sort commands by short description
@@ -650,7 +669,7 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
                                                   op));
         }
         
-        QTreeWidgetItem* wbCommandItem = new QTreeWidgetItem(m_topicIndexTreeWidget,
+        wbCommandItem = new QTreeWidgetItem(m_topicIndexTreeWidget,
                                                              TREE_ITEM_NONE);
         wbCommandItem->setText(0, "wb_command");
         
@@ -667,10 +686,22 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
             item->setFont(0, commandFont);
             m_allHelpWidgetItems.push_back(item);
         }
-        
-        m_topicIndexTreeWidget->setItemExpanded(wbCommandItem,
-                                                true);
     }
+
+    /*
+     * Using setExpanded on a QTreeWidgetItem only expands its immediate children.
+     * So, expand everything and then collapse Glossary and wb_command items so
+     * that only wb_view items are expanded.
+     */
+    m_topicIndexTreeWidget->expandAll();
+    if (glossaryItem != NULL) {
+        glossaryItem->setExpanded(false);
+    }
+    if (wbCommandItem != NULL) {
+        wbCommandItem->setExpanded(false);
+    }
+    
+    m_topicIndexTreeWidget->sortItems(0, Qt::AscendingOrder);
     
     m_topicIndexTreeWidget->blockSignals(false);
 }
@@ -755,6 +786,10 @@ HelpViewerDialog::topicIndexTreeItemChanged(QTreeWidgetItem* currentItem,
             m_topicIndexTreeWidget->scrollToItem(helpItem,
                                                  QTreeWidget::EnsureVisible);
         }
+        else {
+            const AString html = AString(currentItem->text(0)).convertToHtmlPage();
+            m_helpBrowser->setHtml(html);
+        }
     }
 }
 
@@ -817,66 +852,6 @@ HelpViewerDialog::topicSearchLineEditStartSearch()
 }
 
 /**
- * Called to search the text of the displayed help page.
- */
-void
-HelpViewerDialog::helpTextSearchLineEditStartSearch()
-{
-    findInHelpText(FIND_FORWARDS);
-}
-
-/**
- * called to find in browser window.
- */
-void
-HelpViewerDialog::helpTextFindPreviousButtonClicked()
-{
-    findInHelpText(FIND_BACKWARDS);
-}
-
-/**
- * called to find next in browser window.
- */
-void
-HelpViewerDialog::helpTextFindNextButtonClicked()
-{
-    findInHelpText(FIND_FORWARDS);
-}
-
-/**
- * Execute a find operation in the help text.
- *
- * @param findDirection
- *     Direction for the find operation.
- */
-void
-HelpViewerDialog::findInHelpText(const FindDirection findDirection)
-{
-    const QString searchText = m_helpTextFindLineEdit->text().trimmed();
-    const bool haveSearchTextFlag = ( ! searchText.isEmpty());
-    
-    if (haveSearchTextFlag) {
-        switch (findDirection) {
-            case FIND_BACKWARDS:
-                if (! m_helpBrowser->find(searchText,
-                                          QTextDocument::FindBackward)) {
-                    m_helpBrowser->moveCursor(QTextCursor::End);
-                    m_helpBrowser->find(searchText,
-                                        QTextDocument::FindBackward);
-                }
-                break;
-            case FIND_FORWARDS:
-                if (! m_helpBrowser->find(searchText)) {
-                    m_helpBrowser->moveCursor(QTextCursor::Start);
-                    m_helpBrowser->find(searchText);
-                }
-                break;
-        }
-    }
-}
-
-
-/**
  * called to print currently displayed page.
  */
 void
@@ -901,6 +876,25 @@ HelpViewerDialog::topicSearchLineEditCursorPositionChanged(int,int)
         topicSearchLineEditStartSearch();
     }
 }
+
+/**
+ * Expand all help topics
+ */
+void
+HelpViewerDialog::topicExpandAllTriggered()
+{
+    m_topicIndexTreeWidget->expandAll();
+}
+
+/**
+ * Collapse all help topics
+ */
+void
+HelpViewerDialog::topicCollapseAllTriggered()
+{
+    m_topicIndexTreeWidget->collapseAll();
+}
+
 
 // ========================================================================= //
 
@@ -1031,7 +1025,7 @@ HelpTreeWidgetItem::newInstanceForCommandOperation(QTreeWidgetItem* parent,
 {
     const AString itemText = commandOperation->getCommandLineSwitch();
     const AString helpInfoCopy = commandOperation->getHelpInformation("wb_command");
-    const AString helpText = helpInfoCopy.convertToHtmlPage();
+    const AString helpText = helpInfoCopy.convertToHtmlPageWithFontHeight(10);
     const AString helpPageURL("command:/"
                               + commandOperation->getOperationShortDescription().replace(' ', '_'));
     

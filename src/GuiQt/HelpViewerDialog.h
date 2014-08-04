@@ -62,26 +62,19 @@ namespace caret {
         
         void helpPagePrintButtonClicked();
         
-        void helpTextFindPreviousButtonClicked();
-        
-        void helpTextFindNextButtonClicked();
-        
-        void helpTextSearchLineEditStartSearch();
-        
         void topicSearchLineEditStartSearch();
         
         void topicSearchLineEditCursorPositionChanged(int,int);
+        
+        void topicExpandAllTriggered();
+        
+        void topicCollapseAllTriggered();
         
     private:
         enum TreeItemType {
             TREE_ITEM_NONE,
             TREE_ITEM_HELP_PAGE,
             TREE_ITEM_WB_COMMAND
-        };
-        
-        enum FindDirection {
-            FIND_BACKWARDS,
-            FIND_FORWARDS
         };
         
         HelpViewerDialog(const HelpViewerDialog&);
@@ -96,13 +89,11 @@ namespace caret {
         
         void displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpItem);
         
-        void findInHelpText(const FindDirection findDirection);
-        
         void addItemToParentMenu(QTreeWidgetItem* parentMenu,
                                  QTreeWidgetItem* item,
                                  const AString& itemName);
                                
-        void loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
+        QTreeWidgetItem* loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
                                                 const QFileInfo& dirInfo);
         
         /// the help browser
@@ -119,15 +110,6 @@ namespace caret {
         
         /// tracks first mouse click in search topic line edit
         bool m_topicSearchLineEditFirstMouseClick;
-        
-        /// line edit for searching help text
-        QLineEdit* m_helpTextFindLineEdit;
-        
-        /// find previous toolbutton
-        QToolButton* m_helpTextFindPreviousToolButton;
-        
-        /// find next toolbutton
-        QToolButton* m_helpTextFindNextToolButton;
         
         /// All help pages
         std::vector<HelpTreeWidgetItem*> m_allHelpWidgetItems;
