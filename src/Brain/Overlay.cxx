@@ -754,14 +754,16 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                     if (fileName == selectedMapFileNameWithPath) {
                         testIt = true;
                     }
-                };
+                }
+                    break;
                     
                 case 1: {
                     const AString fileName = mapFile->getFileNameNoPath();
                     if (fileName == selectedMapFileName) {
                         testIt = true;
                     }
-                };
+                }
+                    break;
             }
             
             
