@@ -135,7 +135,7 @@ RegionOfInterestCreateFromBorderDialog::createDialog(const std::vector<Border*>&
                                             this->surfaces, 
                                             this->mapFileTypeSelectors);
     
-    this->inverseCheckBox = new QCheckBox("Invert Selected Nodes");
+    this->inverseCheckBox = new QCheckBox("Invert Selected Vertices");
     
     QWidget* widget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
