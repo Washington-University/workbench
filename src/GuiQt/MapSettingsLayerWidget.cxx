@@ -26,13 +26,17 @@
 #include <QGroupBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QPushButton>
 #include <QVBoxLayout>
 
+#include "CaretMappableDataFile.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "Overlay.h"
+#include "VolumeMappableInterface.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -56,11 +60,22 @@ MapSettingsLayerWidget::MapSettingsLayerWidget(QWidget* parent)
     QObject::connect(m_wholeBrainVoxelDrawingModeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(applySelections()));
     
+    const AString warningText("Drawing voxels in Whole Brain view with 3D cubes can be very slow "
+                              "and should only be used with a volume that displays a limited number "
+                              "of voxels.  One example is a label volume that identifies subcortical "
+                              "structures.  Another example is a functional volume that is thresholded "
+                              "so that a small number of voxels are displayed.  3D cubes should never "
+                              "be used with anatomical volumes.");
+//    QLabel* voxelWarningLabel = new QLabel(WuQtUtilities::createWordWrappedToolTipText(warningText));
+    QLabel* voxelWarningLabel = new QLabel(warningText);
+    voxelWarningLabel->setWordWrap(true);
+    
     QGroupBox* wholeBraingroupBox = new QGroupBox("Whole Brain");
     wholeBraingroupBox->setFlat(true);
     QGridLayout* wholeBrainGridLayout = new QGridLayout(wholeBraingroupBox);
     wholeBrainGridLayout->addWidget(wholeBrainVoxelDrawingModeLabel, 0, 0);
     wholeBrainGridLayout->addWidget(m_wholeBrainVoxelDrawingModeComboBox->getWidget(), 0, 1);
+    wholeBrainGridLayout->addWidget(voxelWarningLabel, 1, 0, 1, 2);
     wholeBraingroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     QVBoxLayout* layout = new QVBoxLayout(this);

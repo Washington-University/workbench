@@ -24,6 +24,8 @@
 
 #include <QWidget>
 
+class QPushButton;
+
 namespace caret {
 
     class EnumComboBoxTemplate;
