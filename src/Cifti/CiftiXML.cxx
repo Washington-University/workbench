@@ -220,6 +220,14 @@ void CiftiXML::setNumberOfDimensions(const int& num)
     m_indexMaps.resize(num);
 }
 
+void CiftiXML::clear()
+{
+    setNumberOfDimensions(0);
+    m_filePalette.grabNew(NULL);
+    m_fileMetaData.clear(false);
+    m_parsedVersion = CiftiVersion();
+}
+
 void CiftiXML::readXML(const QString& text)
 {
     QXmlStreamReader xml(text);
@@ -282,6 +290,7 @@ int32_t CiftiXML::getIntentInfo(const CiftiVersion& writingVersion, char intentN
 
 void CiftiXML::readXML(QXmlStreamReader& xml)
 {
+    clear();
     try
     {
         bool haveCifti = false;

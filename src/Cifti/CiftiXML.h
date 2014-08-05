@@ -74,6 +74,7 @@ namespace caret
         
         void setNumberOfDimensions(const int& num);
         void setMap(const int& direction, const CiftiMappingType& mapIn);
+        void clear();
         
         void readXML(QXmlStreamReader& xml);
         void readXML(const QString& text);
