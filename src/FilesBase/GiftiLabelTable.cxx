@@ -1468,6 +1468,10 @@ void GiftiLabelTable::readFromQXmlStreamReader(QXmlStreamReader& xml)
                 temp = "???";//pretend they are actually our internal unlabeled name
             }
         } else if (temp == "???") {
+            if (haveUnassigned)
+            {
+                CaretLogWarning("found multiple label elements that should be interpreted as unlabeled");
+            }
             haveUnassigned = true;
         }
         setLabel(key, temp, rgba[0], rgba[1], rgba[2], rgba[3]);

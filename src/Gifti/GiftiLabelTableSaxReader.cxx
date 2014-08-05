@@ -169,6 +169,10 @@ GiftiLabelTableSaxReader::endElement(const AString& /* namspaceURI */,
                CaretLogWarning("found multiple label elements that should be interpreted as unlabeled");
             }
          } else if (elementText == "???") {
+            if (m_haveUnlabeled)
+            {
+               CaretLogWarning("found multiple label elements that should be interpreted as unlabeled");
+            }
             m_haveUnlabeled = true;//that identifier always means unlabeled to us, don't let it slip by without setting m_haveUnlabeled
          }
          this->labelTable->setLabel(this->labelIndex,
