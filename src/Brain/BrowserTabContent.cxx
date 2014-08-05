@@ -222,7 +222,7 @@ BrowserTabContent::~BrowserTabContent()
  * @param tabToClone
  *    Tab whose contents is cloned.
  */
-void 
+void
 BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
 {
     CaretAssert(tabToClone);
@@ -258,6 +258,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     *m_obliqueVolumeRotationMatrix = *tabToClone->m_obliqueVolumeRotationMatrix;
     
+    m_identificationUpdatesVolumeSlices = tabToClone->m_identificationUpdatesVolumeSlices;
+
     Model* model = getModelForDisplay();
     
     if (model != NULL) {
@@ -293,31 +295,6 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     }
     
     m_volumeSurfaceOutlineSetModel->copyVolumeSurfaceOutlineSetModel(tabToClone->getVolumeSurfaceOutlineSet());
-    
-    /*
-     * Should the preferences override the yoking and volume ID selections?
-     */
-    const bool overrideYokeAndVolumeIDFlag = false;
-    if (overrideYokeAndVolumeIDFlag) {
-        /*
-         * After cloning the other tab's content, override with preferences for 
-         * yoking and volume identification changing selected volume slices.
-         */
-        const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        YokingGroupEnum::Enum yokeGroup = YokingGroupEnum::YOKING_GROUP_OFF;
-        if (prefs->isYokingDefaultedOn()) {
-            yokeGroup = YokingGroupEnum::YokingGroupEnum::YOKING_GROUP_A;
-        }
-        setYokingGroup(yokeGroup);
-        if (yokeGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
-            /*
-             * Only set ID moves volume slices if NOT yoked.
-             * If there was yoking it would change the ID moves volume slices
-             * for other yoked tabs.
-             */
-            m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
-        }
-    }
 }
 
 /**

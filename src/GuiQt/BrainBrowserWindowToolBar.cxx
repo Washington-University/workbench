@@ -349,7 +349,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->addWidget(w);
     
     if (initialBrowserTabContent != NULL) {
-        this->addNewTab(initialBrowserTabContent);
+        this->addNewTabWithContent(initialBrowserTabContent);
     }
     else {
         AString errorMessage;
@@ -464,7 +464,7 @@ BrainBrowserWindowToolBar::createNewTab(AString& errorMessage)
     Brain* brain = GuiManager::get()->getBrain();
     tabContent->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain, 
                                                                                 false);
-    this->addNewTab(tabContent);
+    this->addNewTabWithContent(tabContent);
     
     return tabContent;
 }
@@ -514,11 +514,41 @@ BrainBrowserWindowToolBar::addNewTabCloneContent(BrowserTabContent* browserTabCo
  *    Content for new tab.
  */
 void 
-BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
+BrainBrowserWindowToolBar::addNewTabWithContent(BrowserTabContent* tabContent)
 {
     addOrInsertNewTab(tabContent,
                       -1);
 }
+
+/**
+ * Adds a new tab.
+ */
+void
+BrainBrowserWindowToolBar::addNewTab()
+{
+    /*
+     * Wait cursor
+     */
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    AString errorMessage;
+    BrowserTabContent* tabContent = this->createNewTab(errorMessage);
+    if (tabContent == NULL) {
+        cursor.restoreCursor();
+        QMessageBox::critical(this,
+                              "",
+                              errorMessage);
+        return;
+    }
+
+    this->updateToolBar();
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+}
+
 
 /**
  * Insert the tab content at the given index.

@@ -84,9 +84,11 @@ namespace caret {
         
         ~BrainBrowserWindowToolBar();
         
+        void addNewTab();
+        
         void addNewTabCloneContent(BrowserTabContent* browserTabContentToBeCloned);
         
-        void addNewTab(BrowserTabContent* browserTabContent);
+        void addNewTabWithContent(BrowserTabContent* browserTabContent);
         
         void addDefaultTabsAfterLoadingSpecFile();
         
