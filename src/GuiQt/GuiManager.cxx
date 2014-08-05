@@ -1412,9 +1412,12 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
         std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
         if (bbws.empty() == false) {
             BrainBrowserWindow* parentWindow = bbws[0];
+#ifdef CARET_OS_LINUX
+            m_informationDisplayDialog = new InformationDisplayDialog(NULL);
+#else // CARET_OS_LINUX
             m_informationDisplayDialog = new InformationDisplayDialog(parentWindow);
             this->addNonModalDialog(m_informationDisplayDialog);
-            
+#endif // CARET_OS_LINUX
             m_informationDisplayDialog->resize(600, 200);
             m_informationDisplayDialog->setSaveWindowPositionForNextTime(true);
             WuQtUtilities::moveWindowToSideOfParent(parentWindow,
