@@ -207,7 +207,8 @@ BorderSelectionViewController::createAttributesWidget()
                                               10000000.0);
     m_unstretchedLinesLengthSpinBox->setSingleStep(1.0);
     m_unstretchedLinesLengthSpinBox->setDecimals(1);
-    m_unstretchedLinesLengthSpinBox->setToolTip("Adjust the size of borders drawn as points");
+    m_unstretchedLinesLengthSpinBox->setToolTip(WuQtUtilities::createWordWrappedToolTipText("Ratio = (length of border on flat surface divided by length of border of 3d (volume interaction) surface.  "
+                                                "When ratio is greater than the unstretched lines value, the border segment is NOT drawn."));
     m_unstretchedLinesLengthSpinBox->setSuffix("mm");
     QObject::connect(m_unstretchedLinesLengthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
