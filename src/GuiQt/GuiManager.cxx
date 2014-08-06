@@ -210,11 +210,13 @@ GuiManager::~GuiManager()
     
     FociPropertiesEditorDialog::deleteStaticMembers();
     
-//    if (this->brainOpenGL != NULL) {
-//        delete this->brainOpenGL;
-//        this->brainOpenGL = NULL;
-//    }
-    
+    for (std::set<QWidget*>::iterator iter = m_parentlessNonModalDialogs.begin();
+         iter != m_parentlessNonModalDialogs.end();
+         iter++) {
+        QWidget* w = *iter;
+        delete w;
+    }
+    m_parentlessNonModalDialogs.clear();
 }
 
 /**
@@ -763,13 +765,15 @@ GuiManager::processBringAllWindowsToFront()
             w->raise();
         }
     }
-//    for (int32_t i = 0; i < static_cast<int32_t>(nonModalDialogs.size()); i++) {
-//        if (nonModalDialogs[i] != NULL) {
-//            if (nonModalDialogs[i]->isVisible()) {
-//                nonModalDialogs[i]->raise();
-//            }
-//        }
-//    }
+    
+    for (std::set<QWidget*>::iterator iter = m_parentlessNonModalDialogs.begin();
+         iter != m_parentlessNonModalDialogs.end();
+         iter++) {
+        QWidget* w = *iter;
+        if (w->isVisible()) {
+            w->raise();
+        }
+    }
 }
 
 /**
@@ -1107,8 +1111,6 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
     }
     
     if (firstBrainBrowserWindow != NULL) {
-        //const int32_t numNonModalDialogs = static_cast<int32_t>(this->nonModalDialogs.size());
-        //for (int32_t i = 0; i < numNonModalDialogs; i++) {
         for (std::set<QWidget*>::iterator iter = this->nonModalDialogs.begin();
                  iter != this->nonModalDialogs.end();
                  iter++) {
@@ -1412,12 +1414,13 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
         std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
         if (bbws.empty() == false) {
             BrainBrowserWindow* parentWindow = bbws[0];
-#ifdef CARET_OS_LINUX
-            m_informationDisplayDialog = new InformationDisplayDialog(NULL);
-#else // CARET_OS_LINUX
+#ifdef CARET_OS_MACOSX
             m_informationDisplayDialog = new InformationDisplayDialog(parentWindow);
             this->addNonModalDialog(m_informationDisplayDialog);
-#endif // CARET_OS_LINUX
+#else // CARET_OS_MACOSX
+            m_informationDisplayDialog = new InformationDisplayDialog(NULL);
+            addParentLessNonModalDialog(m_informationDisplayDialog);
+#endif // CARET_OS_MACOSX
             m_informationDisplayDialog->resize(600, 200);
             m_informationDisplayDialog->setSaveWindowPositionForNextTime(true);
             WuQtUtilities::moveWindowToSideOfParent(parentWindow,
@@ -1436,7 +1439,10 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
 }
 
 /**
- * Add a non-modal dialog.
+ * Add a non-modal dialog so that it may be reparented.
+ *
+ * @param dialog
+ *    The dialog.
  */
 void
 GuiManager::addNonModalDialog(QWidget* dialog)
@@ -1446,20 +1452,19 @@ GuiManager::addNonModalDialog(QWidget* dialog)
 }
 
 /**
- * Removes the dialog from the non-modal dialogs BUT DOES NOT delete
- * the dialog.
+ * Add a parent-less dialog so that it may be deleted when 
+ * the application is exited.
+ *
+ * @param dialog
+ *    The dialog.
  */
 void
-GuiManager::removeNonModalDialog(QWidget* dialog)
+GuiManager::addParentLessNonModalDialog(QWidget* dialog)
 {
     CaretAssert(dialog);
-    std::set<QWidget*>::iterator iter = std::find(nonModalDialogs.begin(),
-                                                  nonModalDialogs.end(),
-                                                  dialog);
-    if (iter != nonModalDialogs.end()) {
-        nonModalDialogs.erase(iter);
-    }
+    m_parentlessNonModalDialogs.insert(dialog);
 }
+
 
 /**
  * Show the clipping planes dialog.
