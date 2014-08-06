@@ -214,7 +214,7 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromFileNames(const std::ve
         bool addedComponentsFlag = false;
         for (int32_t iComp = numMatchingLeadingComponents; iComp < numComps; iComp++) {
             if (iComp == numMatchingLeadingComponents) {
-                name.append("(../");
+                name.append("(..../");
             }
             CaretAssertVectorIndex(fileComps, iComp);
             name.append(fileComps[iComp] + "/");

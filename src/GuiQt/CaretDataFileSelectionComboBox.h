@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <vector>
 
 #include "WuQWidget.h"
 

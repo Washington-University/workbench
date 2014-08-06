@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretDataFileSelectionModel.h"
+#include "FilePathNamePrefixCompactor.h"
 
 using namespace caret;
 
@@ -111,13 +112,18 @@ CaretDataFileSelectionComboBox::updateComboBox(CaretDataFileSelectionModel* sele
         
         std::vector<CaretDataFile*> caretDataFiles = m_selectionModel->getAvailableFiles();
         
-        for (std::vector<CaretDataFile*>::iterator iter = caretDataFiles.begin();
-             iter != caretDataFiles.end();
-             iter++) {
-            CaretDataFile* cdf = *iter;
+        std::vector<AString> displayNames;
+        FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(caretDataFiles,
+                                                                                displayNames);
+        CaretAssert(caretDataFiles.size() == displayNames.size());
+        const int32_t numFiles = static_cast<int32_t>(caretDataFiles.size());
+        for (int32_t iFile = 0; iFile < numFiles; iFile++) {
+            CaretAssertVectorIndex(caretDataFiles, iFile);
+            CaretDataFile* cdf = caretDataFiles[iFile];
             CaretAssert(cdf);
             
-            m_comboBox->addItem(cdf->getFileNameNoPath(),
+            CaretAssertVectorIndex(displayNames, iFile);
+            m_comboBox->addItem(displayNames[iFile],
                                 qVariantFromValue((void*)cdf));
             
             if (cdf == selectedFile) {
