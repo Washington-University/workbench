@@ -28,7 +28,6 @@
 #include "LabelDrawingTypeEnum.h"
 
 namespace caret {
-    class DescriptiveStatistics;
     class FastStatistics;
     class GiftiLabelTable;
     class Palette;
@@ -37,15 +36,6 @@ namespace caret {
     class NodeAndVoxelColoring {
         
     public:
-        static void colorScalarsWithPalette(const DescriptiveStatistics* statistics,
-                                            const PaletteColorMapping* paletteColorMapping,
-                                            const Palette* palette,
-                                            const float* scalars,
-                                            const float* scalarThresholds,
-                                            const int64_t numberOfScalars,
-                                            float* rgbaOut,
-                                            const bool ignoreThresholding = false);
-        
         static void colorScalarsWithPalette(const FastStatistics* statistics,
                                             const PaletteColorMapping* paletteColorMapping,
                                             const Palette* palette,

@@ -31,7 +31,6 @@
 
 namespace caret {
 
-    class DescriptiveStatistics;
     class FastStatistics;
     class XmlWriter;
     
@@ -194,11 +193,6 @@ namespace caret {
         void clearModified();
         
         bool isModified() const;
-        
-        void mapDataToPaletteNormalizedValues(const DescriptiveStatistics* statistics,
-                                              const float* dataValues,
-                                              float* normalizedValuesOut,
-                                              const int64_t numberOfData) const;
         
         void mapDataToPaletteNormalizedValues(const FastStatistics* statistics,
                                               const float* dataValues,

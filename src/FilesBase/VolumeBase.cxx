@@ -21,7 +21,6 @@
 #include "VolumeBase.h"
 #include "DataFileException.h"
 #include "FloatMatrix.h"
-#include "DescriptiveStatistics.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "GiftiXmlElements.h"

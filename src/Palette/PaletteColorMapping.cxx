@@ -22,7 +22,6 @@
 #include <sstream>
 
 #include "CaretOMP.h"
-#include "DescriptiveStatistics.h"
 #include "FastStatistics.h"
 //because the ROY_BIG_BL palette name is a constant defined in Palette.h
 #include "Palette.h"
@@ -1174,108 +1173,6 @@ bool
 PaletteColorMapping::isModified() const
 {
     return this->modifiedFlag;
-}
-
-/**
- * Map data values to palette normalized values using the 
- * settings in this palette color mapping.
- *
- * @param statistics
- *    Statistics containing min.max values.
- * @param data 
- *    The data values.
- * @param normalizedValuesOut
- *    Result of mapping data values to palette normalized 
- *    values which range [-1.0, 1.0].  This array MUST contain
- *    the same number of values as 'data'.
- * @param numberOfData  
- *    Number of values in both data and normalizedValuesOut.
- */
-void 
-PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistics* statistics,
-                                                      const float* dataValues,
-                                                      float* normalizedValuesOut,
-                                                      const int64_t numberOfData) const
-{
-    if (numberOfData <= 0) {
-        return;
-    }
-
-    /*
-     * Minimum and maximum values used when mapping scalar into color palette.
-     */
-    float mappingMostNegative  = 0.0;
-    float mappingLeastNegative = 0.0;
-    float mappingLeastPositive  = 0.0;
-    float mappingMostPositive  = 0.0;
-    switch (this->getScaleMode()) {
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-            mappingMostNegative  = statistics->getMostNegativeValue();
-            mappingLeastNegative = statistics->getLeastNegativeValue();
-            mappingLeastPositive = statistics->getLeastPositiveValue();
-            mappingMostPositive  = statistics->getMostPositiveValue();
-            break;
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
-        {
-            const float mostNegativePercentage  = this->getAutoScalePercentageNegativeMaximum();
-            const float leastNegativePercentage = this->getAutoScalePercentageNegativeMinimum();
-            const float leastPositivePercentage = this->getAutoScalePercentagePositiveMinimum();
-            const float mostPositivePercentage  = this->getAutoScalePercentagePositiveMaximum();
-            mappingMostNegative  = statistics->getNegativePercentile(mostNegativePercentage);
-            mappingLeastNegative = statistics->getNegativePercentile(leastNegativePercentage);
-            mappingLeastPositive = statistics->getPositivePercentile(leastPositivePercentage);
-            mappingMostPositive  = statistics->getPositivePercentile(mostPositivePercentage);
-        }
-            break;
-        case PaletteScaleModeEnum::MODE_USER_SCALE:
-            mappingMostNegative  = this->getUserScaleNegativeMaximum();
-            mappingLeastNegative = this->getUserScaleNegativeMinimum();
-            mappingLeastPositive = this->getUserScalePositiveMinimum();
-            mappingMostPositive  = this->getUserScalePositiveMaximum();
-            break;
-    }
-    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive) * 0.99999f;//reserve [0, 0.00001] as "zero" range
-    if (mappingPositiveDenominator == 0.0) {
-        mappingPositiveDenominator = 1.0;
-    }
-    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative) * 0.99999f;
-    if (mappingNegativeDenominator == 0.0) {
-        mappingNegativeDenominator = 1.0;
-    }
-
-    for (int64_t i = 0; i < numberOfData; i++) {
-        float scalar    = dataValues[i];
-        
-        /*
-         * Color scalar using palette
-         */
-        float normalized = 0.0f;
-        if (scalar > 0.0) {
-            if (scalar >= mappingMostPositive) {
-                normalized = 1.0;
-            }
-            else if (scalar >= mappingLeastPositive) {
-                float numerator = scalar - mappingLeastPositive;
-                normalized = numerator / mappingPositiveDenominator + 0.00001f;//don't return less than 0.00001f if input is positive
-            }
-            else {
-                normalized = 0.00001f;
-            }
-        }
-        else if (scalar < 0.0) {
-            if (scalar <= mappingMostNegative) {
-                normalized = -1.0;
-            }
-            else if (scalar <= mappingLeastNegative) {
-                float numerator = scalar - mappingLeastNegative;
-                normalized = numerator / mappingNegativeDenominator - 0.00001f;
-            }
-            else {
-                normalized = -0.00001f;
-            }
-        }
-        normalizedValuesOut[i] = normalized;
-    }
 }
 
 /**

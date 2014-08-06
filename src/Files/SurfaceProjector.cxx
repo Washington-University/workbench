@@ -27,7 +27,6 @@
 #undef __SURFACE_PROJECTOR_DEFINE__
 
 #include "CaretLogger.h"
-#include "DescriptiveStatistics.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "MathFunctions.h"

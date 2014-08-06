@@ -39,7 +39,6 @@ class QwtPlot;
 namespace caret {
     
     class CaretMappableDataFile;
-    class DescriptiveStatistics;
     class EnumComboBoxTemplate;
     class FastStatistics;
     class Histogram;

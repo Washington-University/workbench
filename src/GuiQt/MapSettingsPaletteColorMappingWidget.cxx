@@ -42,7 +42,6 @@
 
 #include "Brain.h"
 #include "CaretMappableDataFile.h"
-#include "DescriptiveStatistics.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
