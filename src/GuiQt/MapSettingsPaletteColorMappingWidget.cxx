@@ -1254,9 +1254,6 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
     
     if (this->paletteColorMapping != NULL) {
         PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-        /*const DescriptiveStatistics* statisticsForAll = this->caretMappableDataFile->getMapStatistics(this->mapFileIndex);
-        const DescriptiveStatistics* statistics = this->getDescriptiveStatisticsForHistogram(statisticsForAll);//*/
-        
         const FastStatistics* fastStatistics = caretMappableDataFile->getMapFastStatistics(mapFileIndex);
         
         /*
