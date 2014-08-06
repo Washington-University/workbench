@@ -880,7 +880,7 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
     const float* metricDisplayData = metricFile->getValuePointerForColumn(displayColumn);
     const float* metricThresholdData = metricFile->getValuePointerForColumn(thresholdColumn);
     
-    const DescriptiveStatistics* statistics = metricFile->getMapStatistics(displayColumn);
+    const FastStatistics* fastStatistics = metricFile->getMapFastStatistics(displayColumn);
     
     const Brain* brain = brainStructure->getBrain();
     const AString paletteName = paletteColorMapping->getSelectedPaletteName();
@@ -890,7 +890,7 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
         //std::vector<float> rgbaColorsVector(numberOfNodes * 4);
         //float* rgbaColors = &rgbaColorsVector[0];
         
-        NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
+        NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics, 
                                                       paletteColorMapping, 
                                                       palette, 
                                                       metricDisplayData, 
