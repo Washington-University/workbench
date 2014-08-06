@@ -284,6 +284,8 @@ CaretDataFileSelectionModel::saveToScene(const SceneAttributes* sceneAttributes,
     
     CaretDataFile* caretDataFile = getSelectedFile();
     if (caretDataFile != NULL) {
+        sceneClass->addPathName("selectedFileNameWithPath",
+                                caretDataFile->getFileName());
         sceneClass->addString("selectedFileNameNoPath",
                               caretDataFile->getFileNameNoPath());
     }
@@ -318,19 +320,38 @@ CaretDataFileSelectionModel::restoreFromScene(const SceneAttributes* sceneAttrib
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    const AString selectedFileName = sceneClass->getStringValue("selectedFileNameNoPath",
-                                                                "");
+    bool foundFileFlag = false;
     
-    if ( ! selectedFileName.isEmpty()) {
+    const AString selectedFileNameWithPath = sceneClass->getPathNameValue("selectedFileNameWithPath");
+    if ( ! selectedFileNameWithPath.isEmpty()) {
         std::vector<CaretDataFile*> caretDataFiles = getAvailableFiles();
         
         for (std::vector<CaretDataFile*>::iterator iter = caretDataFiles.begin();
              iter != caretDataFiles.end();
              iter++) {
             CaretDataFile* cdf = *iter;
-            if (cdf->getFileNameNoPath() == selectedFileName) {
+            if (cdf->getFileName() == selectedFileNameWithPath) {
                 setSelectedFile(cdf);
+                foundFileFlag = true;
                 break;
+            }
+        }
+    }
+    
+    if ( ! foundFileFlag) {
+        const AString selectedFileName = sceneClass->getStringValue("selectedFileNameNoPath",
+                                                                    "");
+        if ( ! selectedFileName.isEmpty()) {
+            std::vector<CaretDataFile*> caretDataFiles = getAvailableFiles();
+            
+            for (std::vector<CaretDataFile*>::iterator iter = caretDataFiles.begin();
+                 iter != caretDataFiles.end();
+                 iter++) {
+                CaretDataFile* cdf = *iter;
+                if (cdf->getFileNameNoPath() == selectedFileName) {
+                    setSelectedFile(cdf);
+                    break;
+                }
             }
         }
     }
