@@ -95,8 +95,6 @@ namespace caret {
         
         void setLayoutSpacingAndMargins(QLayout* layout);
         
-        const DescriptiveStatistics* getDescriptiveStatisticsForHistogram(const DescriptiveStatistics* statisticsForAll) const;
-        
         const Histogram* getHistogram(const FastStatistics* statisticsForAll) const;
         
         PaletteColorMapping* paletteColorMapping;
