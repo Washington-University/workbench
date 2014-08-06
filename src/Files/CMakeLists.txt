@@ -58,6 +58,7 @@ FiberOrientationTrajectory.h
 FiberTrajectoryColorModel.h
 FiberTrajectoryMapProperties.h
 FiberTrajectoryDisplayModeEnum.h
+FilePathNamePrefixCompactor.h
 FociFile.h
 FociFileSaxReader.h
 Focus.h
@@ -150,6 +151,7 @@ FiberOrientationTrajectory.cxx
 FiberTrajectoryColorModel.cxx
 FiberTrajectoryDisplayModeEnum.cxx
 FiberTrajectoryMapProperties.cxx
+FilePathNamePrefixCompactor.cxx
 FociFile.cxx
 FociFileSaxReader.cxx
 Focus.cxx
