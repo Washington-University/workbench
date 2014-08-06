@@ -36,7 +36,6 @@
 #include "CaretTemporaryFile.h"
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
-#include "DescriptiveStatistics.h"
 #include "EventManager.h"
 #include "EventPaletteGetByName.h"
 #include "FastStatistics.h"
@@ -1134,38 +1133,6 @@ CiftiMappableDataFile::getMapDimensions(std::vector<int64_t> &dim) const
  * @param mapIndex
  *    Index of the map.
  * @return
- *    Descriptive statistics for data (will be NULL for data
- *    not mapped using a palette).
- */
-const DescriptiveStatistics*
-CiftiMappableDataFile::getMapStatistics(const int32_t mapIndex)
-{
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
-    
-    std::vector<float> data;
-    getMapData(mapIndex,
-               data);
-    
-    DescriptiveStatistics* ds = m_mapContent[mapIndex]->m_descriptiveStatistics;
-    if (data.empty()) {
-        ds->update(NULL,
-                   0);
-    }
-    else {
-        ds->update(&data[0],
-                   data.size());
-    }
-    return ds;
-}
-
-/**
- * Get statistics describing the distribution of data
- * mapped with a color palette at the given index.
- *
- * @param mapIndex
- *    Index of the map.
- * @return
  *    Fast statistics for data (will be NULL for data
  *    not mapped using a palette).
  */
@@ -1221,60 +1188,6 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex)
                   data.size());
     }
     return h;
-}
-
-/**
- * Get statistics describing the distribution of data
- * mapped with a color palette at the given index for
- * data within the given ranges.
- *
- * @param mapIndex
- *    Index of the map.
- * @param mostPositiveValueInclusive
- *    Values more positive than this value are excluded.
- * @param leastPositiveValueInclusive
- *    Values less positive than this value are excluded.
- * @param leastNegativeValueInclusive
- *    Values less negative than this value are excluded.
- * @param mostNegativeValueInclusive
- *    Values more negative than this value are excluded.
- * @param includeZeroValues
- *    If true zero values (very near zero) are included.
- * @return
- *    Descriptive statistics for data (will be NULL for data
- *    not mapped using a palette).
- */
-const DescriptiveStatistics*
-CiftiMappableDataFile::getMapStatistics(const int32_t mapIndex,
-                                         const float mostPositiveValueInclusive,
-                                         const float leastPositiveValueInclusive,
-                                         const float leastNegativeValueInclusive,
-                                         const float mostNegativeValueInclusive,
-                                         const bool includeZeroValues)
-{
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
-    
-    std::vector<float> data;
-    getMapData(mapIndex,
-               data);
-    
-    
-    DescriptiveStatistics* ds = m_mapContent[mapIndex]->m_descriptiveStatistics;
-    if (data.empty()) {
-        ds->update(NULL,
-                   0);
-    }
-    else {
-        ds->update(&data[0],
-                   data.size(),
-                   mostPositiveValueInclusive,
-                   leastPositiveValueInclusive,
-                   leastNegativeValueInclusive,
-                   mostNegativeValueInclusive,
-                   includeZeroValues);
-    }
-    return ds;
 }
 
 /**
@@ -4104,7 +4017,6 @@ m_mapIndex(mapIndex)
     CaretAssert(ciftiFile);
     CaretAssert(mapIndex >= 0);
     
-    m_descriptiveStatistics.grabNew(NULL);
     m_fastStatistics.grabNew(NULL);
     m_histogram.grabNew(NULL);
     
@@ -4117,7 +4029,6 @@ m_mapIndex(mapIndex)
     m_dataIsMappedWithLabelTable = false;
     
     m_fastStatistics.grabNew(new FastStatistics());
-    m_descriptiveStatistics.grabNew(new DescriptiveStatistics());
     m_histogram.grabNew(new Histogram());
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();

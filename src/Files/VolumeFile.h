@@ -31,7 +31,6 @@
 #include "StructureEnum.h"
 #include "GiftiMetaData.h"
 #include "BoundingBox.h"
-#include "DescriptiveStatistics.h"
 #include "PaletteFile.h"
 #include "VolumeFileVoxelColorizer.h"
 #include "VoxelIJK.h"
@@ -60,9 +59,7 @@ namespace caret {
         
         struct BrickAttributes//for storing ONLY stuff that doesn't get saved to the caret extension
         {//TODO: prune this once statistics gets straightened out
-            CaretPointer<DescriptiveStatistics> m_statistics;
             CaretPointer<FastStatistics> m_fastStatistics;
-            CaretPointer<DescriptiveStatistics> m_statisticsLimitedValues;
             CaretPointer<Histogram> m_histogram;
             CaretPointer<Histogram> m_histogramLimitedValues;
             CaretPointer<GiftiMetaData> m_metadata;//NOTE: does not get saved currently!
@@ -206,18 +203,9 @@ namespace caret {
         
         GiftiMetaData* getMapMetaData(const int32_t mapIndex);
         
-        const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
-        
         const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
         
         const Histogram* getMapHistogram(const int32_t mapIndex);
-        
-        const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
-                                                      const float mostPositiveValueInclusive,
-                                                      const float leastPositiveValueInclusive,
-                                                      const float leastNegativeValueInclusive,
-                                                      const float mostNegativeValueInclusive,
-                                                      const bool includeZeroValues);
         
         const Histogram* getMapHistogram(const int32_t mapIndex,
                                                               const float mostPositiveValueInclusive,

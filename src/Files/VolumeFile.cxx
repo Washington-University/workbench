@@ -808,39 +808,12 @@ void VolumeFile::checkStatisticsValid()
         int32_t numMaps = getNumberOfMaps();
         for (int i = 0; i < numMaps; ++i)
         {
-            m_brickAttributes[i].m_statistics.grabNew(NULL);
-            m_brickAttributes[i].m_statisticsLimitedValues.grabNew(NULL);
             m_brickAttributes[i].m_fastStatistics.grabNew(NULL);
             m_brickAttributes[i].m_histogram.grabNew(NULL);
             m_brickAttributes[i].m_histogramLimitedValues.grabNew(NULL);
         }
         m_brickStatisticsValid = true;
     }
-}
-
-/**
- * Get statistics describing the distribution of data
- * mapped with a color palette at the given index.
- *
- * @param mapIndex
- *    Index of the map.
- * @return
- *    Descriptive statistics for data (will be NULL for data
- *    not mapped using a palette).
- */         
-const DescriptiveStatistics* 
-VolumeFile::getMapStatistics(const int32_t mapIndex)
-{
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    checkStatisticsValid();
-    
-    if (m_brickAttributes[mapIndex].m_statistics == NULL) {
-        DescriptiveStatistics* ds = new DescriptiveStatistics();
-        ds->update(getFrame(mapIndex), m_dimensions[0] * m_dimensions[1] * m_dimensions[2]);
-        m_brickAttributes[mapIndex].m_statistics.grabNew(ds);
-    }
-    
-    return m_brickAttributes[mapIndex].m_statistics;
 }
 
 const FastStatistics* VolumeFile::getMapFastStatistics(const int32_t mapIndex)
@@ -863,52 +836,6 @@ const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex)
         m_brickAttributes[mapIndex].m_histogram.grabNew(new Histogram(100, getFrame(mapIndex), m_dimensions[0] * m_dimensions[1] * m_dimensions[2]));
     }
     return m_brickAttributes[mapIndex].m_histogram;
-}
-
-/**
- * Get statistics describing the distribution of data
- * mapped with a color palette at the given index for 
- * data within the given ranges.
- *
- * @param mapIndex
- *    Index of the map.
- * @param mostPositiveValueInclusive
- *    Values more positive than this value are excluded.
- * @param leastPositiveValueInclusive
- *    Values less positive than this value are excluded.
- * @param leastNegativeValueInclusive
- *    Values less negative than this value are excluded.
- * @param mostNegativeValueInclusive
- *    Values more negative than this value are excluded.
- * @param includeZeroValues
- *    If true zero values (very near zero) are included.
- * @return
- *    Descriptive statistics for data (will be NULL for data
- *    not mapped using a palette).
- */         
-const DescriptiveStatistics* 
-VolumeFile::getMapStatistics(const int32_t mapIndex,
-                             const float mostPositiveValueInclusive,
-                             const float leastPositiveValueInclusive,
-                             const float leastNegativeValueInclusive,
-                             const float mostNegativeValueInclusive,
-                             const bool includeZeroValues)
-{
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    checkStatisticsValid();
-    
-    if (m_brickAttributes[mapIndex].m_statisticsLimitedValues == NULL) {
-        m_brickAttributes[mapIndex].m_statisticsLimitedValues.grabNew(new DescriptiveStatistics());
-    }
-    m_brickAttributes[mapIndex].m_statisticsLimitedValues->update(getFrame(mapIndex), 
-                                                                m_dimensions[0] * m_dimensions[1] * m_dimensions[2],
-                                                                mostPositiveValueInclusive,
-                                                                leastPositiveValueInclusive,
-                                                                leastNegativeValueInclusive,
-                                                                mostNegativeValueInclusive,
-                                                                includeZeroValues);
-    
-    return m_brickAttributes[mapIndex].m_statisticsLimitedValues;
 }
 
 const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex,

@@ -76,18 +76,9 @@ namespace caret {
         
         virtual bool isMappedWithPalette() const;
         
-        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
-        
         virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
         
         virtual const Histogram* getMapHistogram(const int32_t mapIndex);
-        
-        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
-                                                              const float mostPositiveValueInclusive,
-                                                              const float leastPositiveValueInclusive,
-                                                              const float leastNegativeValueInclusive,
-                                                              const float mostNegativeValueInclusive,
-                                                              const bool includeZeroValues);
         
         virtual const Histogram* getMapHistogram(const int32_t mapIndex,
                                                  const float mostPositiveValueInclusive,

@@ -36,7 +36,6 @@ namespace caret {
     class ChartDataCartesian;
     class CiftiFile;
     class CiftiXML;
-    class DescriptiveStatistics;
     class FastStatistics;
     class GroupAndNameHierarchyModel;
     class Histogram;
@@ -167,18 +166,9 @@ namespace caret {
         
         virtual bool isMappedWithPalette() const;
         
-        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
-        
         virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
         
         virtual const Histogram* getMapHistogram(const int32_t mapIndex);
-        
-        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
-                                                              const float mostPositiveValueInclusive,
-                                                              const float leastPositiveValueInclusive,
-                                                              const float leastNegativeValueInclusive,
-                                                              const float mostNegativeValueInclusive,
-                                                              const bool includeZeroValues);
         
         virtual const Histogram* getMapHistogram(const int32_t mapIndex,
                                                  const float mostPositiveValueInclusive,
@@ -445,9 +435,6 @@ namespace caret {
             
             /** RGBA coloring is valid */
             bool m_rgbaValid;
-            
-            /** descriptive statistics for map */
-            CaretPointer<DescriptiveStatistics> m_descriptiveStatistics;
             
             /** fast statistics for map */
             CaretPointer<FastStatistics> m_fastStatistics;
