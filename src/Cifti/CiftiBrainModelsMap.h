@@ -56,12 +56,20 @@ namespace caret
             ModelType m_type;
             StructureEnum::Enum m_structure;
         };
+        struct IndexInfo
+        {
+            ModelType m_type;
+            StructureEnum::Enum m_structure;
+            int64_t m_surfaceNode;//only one of these two will be valid
+            int64_t m_ijk[3];
+        };
         bool hasVolumeData() const;
         bool hasVolumeData(const StructureEnum::Enum& structure) const;
         bool hasSurfaceData(const StructureEnum::Enum& structure) const;
         int64_t getIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
         int64_t getIndexForVoxel(const int64_t* ijk, StructureEnum::Enum* structureOut = NULL) const;
         int64_t getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k, StructureEnum::Enum* structureOut = NULL) const;
+        IndexInfo getInfoForIndex(const int64_t index) const;
         std::vector<SurfaceMap> getSurfaceMap(const StructureEnum::Enum& structure) const;
         std::vector<VolumeMap> getFullVolumeMap() const;
         std::vector<VolumeMap> getVolumeStructureMap(const StructureEnum::Enum& structure) const;

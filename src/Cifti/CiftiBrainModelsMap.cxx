@@ -188,6 +188,43 @@ int64_t CiftiBrainModelsMap::getIndexForVoxel(const int64_t& i, const int64_t& j
     return iter->first;
 }
 
+CiftiBrainModelsMap::IndexInfo CiftiBrainModelsMap::getInfoForIndex(const int64_t index) const
+{
+    CaretAssert(index >= 0 && index < getLength());
+    IndexInfo ret;
+    int numModels = (int)m_modelsInfo.size();
+    int low = 0, high = numModels - 1;//bisection search
+    while (low != high)
+    {
+        int guess = (low + high) / 2;
+        if (m_modelsInfo[guess].m_modelEnd > index)//modelEnd is 1 after last valid index, equal to next start if there is a next
+        {
+            if (m_modelsInfo[guess].m_modelStart > index)
+            {
+                high = guess - 1;
+            } else {
+                high = guess;
+                low = guess;
+            }
+        } else {
+            low = guess + 1;
+        }
+    }
+    CaretAssert(index >= m_modelsInfo[low].m_modelStart && index < m_modelsInfo[low].m_modelEnd);//otherwise we have a broken invariant
+    ret.m_structure = m_modelsInfo[low].m_brainStructure;
+    ret.m_type = m_modelsInfo[low].m_type;
+    if (ret.m_type == SURFACE)
+    {
+        ret.m_surfaceNode = m_modelsInfo[low].m_nodeIndices[index - m_modelsInfo[low].m_modelStart];
+    } else {
+        int64_t baseIndex = 3 * (index - m_modelsInfo[low].m_modelStart);
+        ret.m_ijk[0] = m_modelsInfo[low].m_voxelIndicesIJK[baseIndex];
+        ret.m_ijk[1] = m_modelsInfo[low].m_voxelIndicesIJK[baseIndex + 1];
+        ret.m_ijk[2] = m_modelsInfo[low].m_voxelIndicesIJK[baseIndex + 2];
+    }
+    return ret;
+}
+
 int64_t CiftiBrainModelsMap::getLength() const
 {
     return getNextStart();
