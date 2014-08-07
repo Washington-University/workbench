@@ -1214,7 +1214,11 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex,
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
     
-    if ( ! m_mapContent[mapIndex]->isHistogramLimitedValuesValid()) {
+    if ( ! m_mapContent[mapIndex]->isHistogramLimitedValuesValid(mostPositiveValueInclusive,
+                                                                 leastPositiveValueInclusive,
+                                                                 leastNegativeValueInclusive,
+                                                                 mostNegativeValueInclusive,
+                                                                 includeZeroValues)) {
         std::vector<float> data;
         getMapData(mapIndex,
                    data);
@@ -4332,16 +4336,45 @@ CiftiMappableDataFile::MapContent::updateHistogram(const std::vector<float>& dat
 }
 
 /**
- * @return True if histogram is valid, else false.
+ * Is limited values histogram valid?  Is is valid when it exists and
+ * the limited value parameters have not changed.
+ *
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ *
+ * @return true if valid, else false.
  */
 bool
-CiftiMappableDataFile::MapContent::isHistogramLimitedValuesValid() const
+CiftiMappableDataFile::MapContent::isHistogramLimitedValuesValid(const float mostPositiveValueInclusive,
+                                                                 const float leastPositiveValueInclusive,
+                                                                 const float leastNegativeValueInclusive,
+                                                                 const float mostNegativeValueInclusive,
+                                                                 const bool includeZeroValues) const
 {
-    return (m_histogramLimitedValues != NULL);
+    if (m_histogramLimitedValues == NULL) {
+        return false;
+    }
+    else if ((mostPositiveValueInclusive != m_histogramLimitedValuesMostPositiveValueInclusive)
+             || (leastPositiveValueInclusive != m_histogramLimitedValuesLeastPositiveValueInclusive)
+             || (leastNegativeValueInclusive != m_histogramLimitedValuesLeastNegativeValueInclusive)
+             || (mostNegativeValueInclusive != m_histogramLimitedValuesMostNegativeValueInclusive)
+             || (includeZeroValues != m_histogramLimitedValuesIncludeZeroValues)) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
- * Update the Histogram for limited values but only when needed.
+ * Update the Histogram for limited values.
  *
  * @param data
  *     Data for histogram.
@@ -4370,14 +4403,20 @@ CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const std::vecto
     else {
         if (m_histogramLimitedValues == NULL) {
             m_histogramLimitedValues.grabNew(new Histogram());
-            m_histogramLimitedValues->update(&data[0],
-                                             data.size(),
-                                             mostPositiveValueInclusive,
-                                             leastPositiveValueInclusive,
-                                             leastNegativeValueInclusive,
-                                             mostNegativeValueInclusive,
-                                             includeZeroValues);
         }
+        m_histogramLimitedValues->update(&data[0],
+                                         data.size(),
+                                         mostPositiveValueInclusive,
+                                         leastPositiveValueInclusive,
+                                         leastNegativeValueInclusive,
+                                         mostNegativeValueInclusive,
+                                         includeZeroValues);
+        
+        m_histogramLimitedValuesMostPositiveValueInclusive = mostPositiveValueInclusive;
+        m_histogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
+        m_histogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
+        m_histogramLimitedValuesMostNegativeValueInclusive = mostNegativeValueInclusive;
+        m_histogramLimitedValuesIncludeZeroValues = includeZeroValues;
     }
 }
 

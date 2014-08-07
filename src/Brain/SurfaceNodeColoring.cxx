@@ -885,7 +885,8 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
     const Brain* brain = brainStructure->getBrain();
     const AString paletteName = paletteColorMapping->getSelectedPaletteName();
     const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
-    if (palette != NULL) {
+    if ((fastStatistics != NULL)
+        && (palette != NULL)) {
         
         //std::vector<float> rgbaColorsVector(numberOfNodes * 4);
         //float* rgbaColors = &rgbaColorsVector[0];

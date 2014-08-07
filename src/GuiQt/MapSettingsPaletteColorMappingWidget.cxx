@@ -208,8 +208,10 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                     case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP:
                     {
                         const FastStatistics* stats = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
-                        minValue = stats->getMin();
-                        maxValue = stats->getMax();
+                        if (stats != NULL) {
+                            minValue = stats->getMin();
+                            maxValue = stats->getMax();
+                        }
                     }
                         break;
                     case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_UNLIMITED:
@@ -1058,9 +1060,13 @@ MapSettingsPaletteColorMappingWidget::updateEditor(CaretMappableDataFile* caretM
         this->thresholdRangeModeComboBox->blockSignals(false);
         updateThresholdControlsMinimumMaximumRangeValues();
 
+        float minValue  = 0.0;
+        float maxValue  = 0.0;
         const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
-        float minValue  = statistics->getMin();
-        float maxValue  = statistics->getMax();
+        if (statistics != NULL) {
+            minValue  = 0.0;
+            maxValue  = 0.0;
+        }
         
         this->thresholdLowSlider->setValue(lowValue);
         
@@ -1178,9 +1184,10 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
      */
     this->thresholdPlot->detachItems();
     
-    if (this->paletteColorMapping != NULL) {
+    const FastStatistics* fastStatistics = caretMappableDataFile->getMapFastStatistics(mapFileIndex);
+    if ((this->paletteColorMapping != NULL)
+        && (fastStatistics != NULL)) {
         PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-        const FastStatistics* fastStatistics = caretMappableDataFile->getMapFastStatistics(mapFileIndex);
         
         /*
          * Data values table

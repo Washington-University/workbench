@@ -560,8 +560,9 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                 stringTable.setElement(tableRow, COL_INDEX, (mapIndex + 1));
                 stringTable.setElement(tableRow, COL_NAME, getMapName(mapIndex));
                 
-                if (isMappedWithPalette()) {
-                    const FastStatistics* stats = const_cast<CaretMappableDataFile*>(this)->getMapFastStatistics(mapIndex);
+                const FastStatistics* stats = const_cast<CaretMappableDataFile*>(this)->getMapFastStatistics(mapIndex);
+                if (isMappedWithPalette()
+                    && (stats != NULL)) {
                     
                     const Histogram* histogram = getMapHistogram(mapIndex);
                     int64_t posCount = 0;

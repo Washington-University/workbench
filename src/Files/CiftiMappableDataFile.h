@@ -401,7 +401,11 @@ namespace caret {
             
             void updateHistogram(const std::vector<float>& data);
             
-            bool isHistogramLimitedValuesValid() const;
+            bool isHistogramLimitedValuesValid(const float mostPositiveValueInclusive,
+                                               const float leastPositiveValueInclusive,
+                                               const float leastNegativeValueInclusive,
+                                               const float mostNegativeValueInclusive,
+                                               const bool includeZeroValues) const;
             
             void updateHistogramLimitedValues(const std::vector<float>& data,
                                               const float mostPositiveValueInclusive,
@@ -461,11 +465,18 @@ namespace caret {
         
             /** histogram for limited values from map */
             CaretPointer<Histogram> m_histogramLimitedValues;
+            
+            float m_histogramLimitedValuesMostPositiveValueInclusive;
+            float m_histogramLimitedValuesLeastPositiveValueInclusive;
+            float m_histogramLimitedValuesLeastNegativeValueInclusive;
+            float m_histogramLimitedValuesMostNegativeValueInclusive;
+            bool m_histogramLimitedValuesIncludeZeroValues;
+            
         private:
             /** Name of map */
             AString m_name;
             
-            /** 
+            /**
              * For maps that do not have metadata, a metadata instance
              * is still needed even though it essentially does nothing.
              */

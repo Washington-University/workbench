@@ -2975,7 +2975,8 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                             const FastStatistics* statistics = mapFile->getMapFastStatistics(mapIndex);
                             PaletteColorMapping* paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
                             Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
-                            if (palette != NULL) {
+                            if ((statistics != NULL)
+                                && (palette != NULL)) {
                                 bool useIt = true;
                                 
                                 if (volumeDrawInfoOut.empty() == false) {
@@ -5585,10 +5586,12 @@ BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
             const Palette* palette = paletteFile->getPaletteByName(paletteName);
             if (palette != NULL) {
                 const FastStatistics* statistics = mapFiles[i]->getMapFastStatistics(mapIndex);
-                this->drawPalette(palette,
-                                  pcm,
-                                  statistics,
-                                  i);
+                if (statistics != NULL) {
+                    this->drawPalette(palette,
+                                      pcm,
+                                      statistics,
+                                      i);
+                }
             }
             else {
                 CaretLogWarning("Palette named "
