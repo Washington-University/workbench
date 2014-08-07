@@ -1042,6 +1042,10 @@ CiftiMappableDataFile::setMapData(const int32_t mapIndex,
                                 mapIndex);
             break;
     }
+    
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    
+    m_mapContent[mapIndex]->updateForChangeInMapData();
 }
 
 /**
@@ -1142,20 +1146,14 @@ CiftiMappableDataFile::getMapFastStatistics(const int32_t mapIndex)
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
     
-    std::vector<float> data;
-    getMapData(mapIndex,
-               data);
+    if ( ! m_mapContent[mapIndex]->isFastStatisticsValid()) {
+        std::vector<float> data;
+        getMapData(mapIndex,
+                   data);
+        m_mapContent[mapIndex]->updateFastStatistics(data);
+    }
     
-    FastStatistics* fs = m_mapContent[mapIndex]->m_fastStatistics;
-    if (data.empty()) {
-        fs->update(NULL,
-                   0);
-    }
-    else {
-        fs->update(&data[0],
-                   data.size());
-    }
-    return fs;
+    return m_mapContent[mapIndex]->m_fastStatistics;
 }
 
 /**
@@ -1173,21 +1171,15 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex)
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-
-    std::vector<float> data;
-    getMapData(mapIndex,
-               data);
     
-    Histogram* h = m_mapContent[mapIndex]->m_histogram;
-    if (data.empty()) {
-        h->update(NULL,
-                  0);
+    if ( ! m_mapContent[mapIndex]->isHistogramValid()) {
+        std::vector<float> data;
+        getMapData(mapIndex,
+                   data);
+        m_mapContent[mapIndex]->updateHistogram(data);
     }
-    else {
-        h->update(&data[0],
-                  data.size());
-    }
-    return h;
+    
+    return m_mapContent[mapIndex]->m_histogram;
 }
 
 /**
@@ -1221,28 +1213,20 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex,
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-
-    std::vector<float> data;
-    getMapData(mapIndex,
-               data);
     
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
-    Histogram* h = m_mapContent[mapIndex]->m_histogram;
-    if (data.empty()) {
-        h->update(NULL,
-                  0);
+    if ( ! m_mapContent[mapIndex]->isHistogramLimitedValuesValid()) {
+        std::vector<float> data;
+        getMapData(mapIndex,
+                   data);
+        m_mapContent[mapIndex]->updateHistogramLimitedValues(data,
+                                                             mostPositiveValueInclusive,
+                                                             leastPositiveValueInclusive,
+                                                             leastNegativeValueInclusive,
+                                                             mostNegativeValueInclusive,
+                                                             includeZeroValues);
     }
-    else {
-        h->update(&data[0],
-                  data.size(),
-                  mostPositiveValueInclusive,
-                  leastPositiveValueInclusive,
-                  leastNegativeValueInclusive,
-                  mostNegativeValueInclusive,
-                  includeZeroValues);
-    }
-    return h;
+    
+    return m_mapContent[mapIndex]->m_histogramLimitedValues;
 }
 
 /**
@@ -3896,10 +3880,6 @@ CiftiMappableDataFile::setMapDataForSurface(const int32_t mapIndex,
         
         setMapData(mapIndex,
                    mapData);
-        
-        m_forceUpdateOfGroupAndNameHierarchy = true;
-        
-        m_mapContent[mapIndex]->invalidateColoring();
     }
 }
 
@@ -4019,6 +3999,7 @@ m_mapIndex(mapIndex)
     
     m_fastStatistics.grabNew(NULL);
     m_histogram.grabNew(NULL);
+    m_histogramLimitedValues.grabNew(NULL);
     
     m_metadata = NULL;
     m_paletteColorMapping = NULL;
@@ -4027,9 +4008,6 @@ m_mapIndex(mapIndex)
     m_dataCount = 0;
     m_rgbaValid = false; 
     m_dataIsMappedWithLabelTable = false;
-    
-    m_fastStatistics.grabNew(new FastStatistics());
-    m_histogram.grabNew(new Histogram());
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
@@ -4285,9 +4263,122 @@ CiftiMappableDataFile::MapContent::setName(const AString& name)
  * Invalidate the coloring (usually due to palette or data changes).
  */
 void
-CiftiMappableDataFile::MapContent::invalidateColoring()
+CiftiMappableDataFile::MapContent::updateForChangeInMapData()
 {
+    m_fastStatistics.grabNew(NULL);
+    m_histogram.grabNew(NULL);
+    m_histogramLimitedValues.grabNew(NULL);    
     m_rgbaValid = false;
+}
+
+/**
+ * @return True if fast statistics is valid, else false.
+ */
+bool
+CiftiMappableDataFile::MapContent::isFastStatisticsValid() const
+{
+    return (m_fastStatistics != NULL);
+}
+
+/**
+ * Update the Fast Statistics but only when needed.
+ *
+ * @param data
+ *     Data for fast statistics.
+ */
+void
+CiftiMappableDataFile::MapContent::updateFastStatistics(const std::vector<float>& data)
+{
+    if (data.empty()) {
+        m_fastStatistics.grabNew(NULL);
+    }
+    else {
+        if (m_fastStatistics == NULL) {
+            m_fastStatistics.grabNew(new FastStatistics());
+            m_fastStatistics->update(&data[0],
+                                     data.size());
+        }
+    }
+}
+
+/**
+ * @return True if histogram is valid, else false.
+ */
+bool
+CiftiMappableDataFile::MapContent::isHistogramValid() const
+{
+    return (m_histogram != NULL);
+}
+
+/**
+ * Update the Histogram but only when needed.
+ *
+ * @param data
+ *     Data for histogram.
+ */
+void
+CiftiMappableDataFile::MapContent::updateHistogram(const std::vector<float>& data)
+{
+    if (data.empty()) {
+        m_histogram.grabNew(NULL);
+    }
+    else {
+        if (m_histogram == NULL) {
+            m_histogram.grabNew(new Histogram());
+            m_histogram->update(&data[0],
+                                     data.size());
+        }
+    }
+}
+
+/**
+ * @return True if histogram is valid, else false.
+ */
+bool
+CiftiMappableDataFile::MapContent::isHistogramLimitedValuesValid() const
+{
+    return (m_histogramLimitedValues != NULL);
+}
+
+/**
+ * Update the Histogram for limited values but only when needed.
+ *
+ * @param data
+ *     Data for histogram.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ */
+void
+CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const std::vector<float>& data,
+                                                                const float mostPositiveValueInclusive,
+                                                                const float leastPositiveValueInclusive,
+                                                                const float leastNegativeValueInclusive,
+                                                                const float mostNegativeValueInclusive,
+                                                                const bool includeZeroValues)
+{
+    if (data.empty()) {
+        m_histogramLimitedValues.grabNew(NULL);
+    }
+    else {
+        if (m_histogramLimitedValues == NULL) {
+            m_histogramLimitedValues.grabNew(new Histogram());
+            m_histogramLimitedValues->update(&data[0],
+                                             data.size(),
+                                             mostPositiveValueInclusive,
+                                             leastPositiveValueInclusive,
+                                             leastNegativeValueInclusive,
+                                             mostNegativeValueInclusive,
+                                             includeZeroValues);
+        }
+    }
 }
 
 /**
@@ -4301,7 +4392,7 @@ CiftiMappableDataFile::MapContent::invalidateColoring()
  */
 void
 CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data,
-                                                     const PaletteFile* paletteFile)
+                                                  const PaletteFile* paletteFile)
 {
     if (data.empty()) {
         return;
@@ -4329,8 +4420,9 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
         const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
         const Palette* palette = paletteFile->getPaletteByName(paletteName);
         if (palette != NULL) {
-            m_fastStatistics->update(&data[0],
-                                     data.size());
+            if ( ! isFastStatisticsValid()) {
+                updateFastStatistics(data);
+            }
             NodeAndVoxelColoring::colorScalarsWithPalette(m_fastStatistics,
                                                           m_paletteColorMapping,
                                                           palette,
@@ -4353,11 +4445,11 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
     
     m_rgbaValid = true;
     
-    CaretLogFine("Connectivity Data Average/Min/Max: "
-                 + QString::number(m_fastStatistics->getMean())
-                 + " "
-                 + QString::number(m_fastStatistics->getMostNegativeValue())
-                 + " "
-                 + QString::number(m_fastStatistics->getMostPositiveValue()));
+//    CaretLogFine("Connectivity Data Average/Min/Max: "
+//                 + QString::number(m_fastStatistics->getMean())
+//                 + " "
+//                 + QString::number(m_fastStatistics->getMostNegativeValue())
+//                 + " "
+//                 + QString::number(m_fastStatistics->getMostPositiveValue()));
 }
 

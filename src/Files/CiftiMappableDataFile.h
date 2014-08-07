@@ -388,10 +388,27 @@ namespace caret {
             
             virtual bool isModified() const;
             
-            void invalidateColoring();
+            void updateForChangeInMapData();
             
             void updateColoring(const std::vector<float>& data,
                                 const PaletteFile* paletteFile);
+            
+            bool isFastStatisticsValid() const;
+            
+            void updateFastStatistics(const std::vector<float>& data);
+            
+            bool isHistogramValid() const;
+            
+            void updateHistogram(const std::vector<float>& data);
+            
+            bool isHistogramLimitedValuesValid() const;
+            
+            void updateHistogramLimitedValues(const std::vector<float>& data,
+                                              const float mostPositiveValueInclusive,
+                                              const float leastPositiveValueInclusive,
+                                              const float leastNegativeValueInclusive,
+                                              const float mostNegativeValueInclusive,
+                                              const bool includeZeroValues);
             
             AString getName() const;
             
@@ -439,9 +456,11 @@ namespace caret {
             /** fast statistics for map */
             CaretPointer<FastStatistics> m_fastStatistics;
             
-            /** histogram for map */
+            /** histogram for all of map map */
             CaretPointer<Histogram> m_histogram;
         
+            /** histogram for limited values from map */
+            CaretPointer<Histogram> m_histogramLimitedValues;
         private:
             /** Name of map */
             AString m_name;

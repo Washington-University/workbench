@@ -323,7 +323,7 @@ CiftiMappableConnectivityMatrixDataFile::setLoadedRowDataToAllZeros()
                   0.0);
     }
     if (m_mapContent.empty() == false) {
-        m_mapContent[0]->invalidateColoring();
+        m_mapContent[0]->updateForChangeInMapData();
     }
     m_connectivityDataLoaded->reset();
     m_rowLoadedText.clear();
@@ -371,8 +371,7 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
     
     
     CaretAssertVectorIndex(m_mapContent, 0);
-    m_mapContent[0]->invalidateColoring();
-
+    m_mapContent[0]->updateForChangeInMapData();
 }
 
 /**
@@ -463,7 +462,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     }
     
     CaretAssertVectorIndex(m_mapContent, 0);
-    m_mapContent[0]->invalidateColoring();
+    m_mapContent[0]->updateForChangeInMapData();
     
     return rowIndex;
 }
@@ -529,7 +528,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionInde
     }
     
     CaretAssertVectorIndex(m_mapContent, 0);
-    m_mapContent[0]->invalidateColoring();
+    m_mapContent[0]->updateForChangeInMapData();
     
     return true;
 }
@@ -678,7 +677,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
     }
 
     CaretAssertVectorIndex(m_mapContent, 0);
-    m_mapContent[0]->invalidateColoring();
+    m_mapContent[0]->updateForChangeInMapData();
 
     if (dataWasLoaded) {
         m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
@@ -768,7 +767,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     }
 
     CaretAssertVectorIndex(m_mapContent, mapIndex);
-    m_mapContent[mapIndex]->invalidateColoring();
+    m_mapContent[mapIndex]->updateForChangeInMapData();
     
     m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
                                                     rowIndex);
@@ -905,6 +904,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         
         return true;
     }
+    
+    CaretAssertVectorIndex(m_mapContent, 0);
+    m_mapContent[0]->updateForChangeInMapData();
     
     return false;
 }
