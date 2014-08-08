@@ -99,10 +99,13 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* vi
                                         mouseClickY,
                                         false);
     
-    const int32_t tabIndex = viewportContent->getBrowserTabContent()->getTabNumber();
-    GuiManager::get()->processIdentification(tabIndex,
-                                             selectionManager,
-                                             openGLWidget);    
+    BrowserTabContent* btc = viewportContent->getBrowserTabContent();
+    if (btc != NULL) {
+       const int32_t tabIndex = btc->getTabNumber();
+       GuiManager::get()->processIdentification(tabIndex,
+                                                selectionManager,
+                                                openGLWidget);    
+   }
 }
 
 /**
