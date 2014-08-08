@@ -450,7 +450,13 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
         CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(matrixFile,
                                                                                       errorMessage);
         if (scalarFile != NULL) {
-            EventManager::get()->sendEvent(EventDataFileAdd(scalarFile).getPointer());
+            EventDataFileAdd dataFileAdd(scalarFile);
+            EventManager::get()->sendEvent(dataFileAdd.getPointer());
+            
+            if (dataFileAdd.isError()) {
+                errorMessage = dataFileAdd.getErrorMessage();
+                errorFlag = true;
+            }
         }
         else {
             errorFlag = true;
@@ -458,8 +464,15 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
     }
     else if (trajFile != NULL) {
         CiftiFiberTrajectoryFile* newTrajFile = trajFile->newFiberTrajectoryFileFromLoadedRowData(errorMessage);
+
         if (newTrajFile != NULL) {
-            EventManager::get()->sendEvent(EventDataFileAdd(newTrajFile).getPointer());
+            EventDataFileAdd dataFileAdd(newTrajFile);
+            EventManager::get()->sendEvent(dataFileAdd.getPointer());
+            
+            if (dataFileAdd.isError()) {
+                errorMessage = dataFileAdd.getErrorMessage();
+                errorFlag = true;
+            }
         }
         else {
             errorFlag = true;

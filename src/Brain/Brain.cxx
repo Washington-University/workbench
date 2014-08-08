@@ -4610,7 +4610,12 @@ Brain::receiveEvent(Event* event)
             dynamic_cast<EventDataFileAdd*>(event);
         CaretAssert(addDataFileEvent);
         
-        addDataFile(addDataFileEvent->getCaretDataFile());
+        try {
+            addDataFile(addDataFileEvent->getCaretDataFile());
+        }
+        catch (const DataFileException& dfe) {
+            addDataFileEvent->setErrorMessage(dfe.whatString());
+        }
         addDataFileEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE) {
