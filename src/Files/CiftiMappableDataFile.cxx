@@ -79,14 +79,27 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
     m_mappingTimeStep = 0.0;
     m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
     
+    m_dataReadingAccessMethod      = DATA_ACCESS_METHOD_INVALID;
+    m_dataMappingAccessMethod      = DATA_ACCESS_METHOD_INVALID;
+    m_colorMappingMethod           = COLOR_MAPPING_METHOD_INVALID;
+    m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_INVALID;
+    m_fileMapDataType              = FILE_MAP_DATA_TYPE_INVALID;
+    m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_INVALID;
+    
+    m_fileFastStatistics.grabNew(NULL);
+    m_fileHistogram.grabNew(NULL);
+    m_fileHistorgramLimitedValues.grabNew(NULL);
+    
     /** force an update of the class and name hierarchy */
     m_forceUpdateOfGroupAndNameHierarchy = true;
     switch (dataFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            m_dataReadingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
-            m_dataMappingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
-            m_colorMappingMethod      = COLOR_MAPPING_METHOD_PALETTE_FILE_DATA;
-            m_fileMapDataType         = FILE_MAP_DATA_TYPE_MATRIX;
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_MAP_DATA;
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             m_dataReadingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
@@ -95,46 +108,60 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_fileMapDataType         = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-            m_dataReadingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
-            m_dataMappingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
-            m_colorMappingMethod      = COLOR_MAPPING_METHOD_PALETTE_FILE_DATA;
-            m_fileMapDataType         = FILE_MAP_DATA_TYPE_MATRIX;
+            m_dataReadingAccessMethod       = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_dataMappingAccessMethod       = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_colorMappingMethod            = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource     = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_histogramAndStatisticsMethod  = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
+            m_fileMapDataType               = FILE_MAP_DATA_TYPE_MATRIX;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-            m_dataReadingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
-            m_dataMappingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
-            m_colorMappingMethod      = COLOR_MAPPING_METHOD_PALETTE_MAP_DATA;
-            m_fileMapDataType         = FILE_MAP_DATA_TYPE_MULTI_MAP;
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP;
+            m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_MAP_DATA;
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            m_dataReadingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
-            m_dataMappingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
-            m_colorMappingMethod      = COLOR_MAPPING_METHOD_PALETTE_FILE_DATA;
-            m_fileMapDataType         = FILE_MAP_DATA_TYPE_MULTI_MAP;
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_MAP_DATA;
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-            m_dataReadingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
-            m_dataMappingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
-            m_colorMappingMethod      = COLOR_MAPPING_METHOD_PALETTE_FILE_DATA;
-            m_fileMapDataType         = FILE_MAP_DATA_TYPE_MATRIX;
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-            m_dataReadingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
-            m_dataMappingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
-            m_colorMappingMethod      = COLOR_MAPPING_METHOD_PALETTE_FILE_DATA;
-            m_fileMapDataType         = FILE_MAP_DATA_TYPE_MATRIX;
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-            m_dataReadingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
-            m_dataMappingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
-            m_colorMappingMethod      = COLOR_MAPPING_METHOD_PALETTE_MAP_DATA;
-            m_fileMapDataType         = FILE_MAP_DATA_TYPE_MULTI_MAP;
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP;
+            m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-            m_dataReadingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
-            m_dataMappingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
-            m_colorMappingMethod      = COLOR_MAPPING_METHOD_PALETTE_MAP_DATA;
-            m_fileMapDataType         = FILE_MAP_DATA_TYPE_MULTI_MAP;
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP;
+            m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
         case DataFileTypeEnum::BORDER:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
@@ -158,7 +185,12 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
     CaretAssert(m_dataMappingAccessMethod != DATA_ACCESS_METHOD_INVALID);
     CaretAssert(m_colorMappingMethod      != COLOR_MAPPING_METHOD_INVALID);
     CaretAssert(m_fileMapDataType         != FILE_MAP_DATA_TYPE_INVALID);
-    
+    if (m_colorMappingMethod != COLOR_MAPPING_METHOD_LABEL_TABLE) {
+        CaretAssert(m_paletteColorMappingSource    != PALETTE_COLOR_MAPPING_SOURCE_INVALID);
+        CaretAssert(m_histogramAndStatisticsMethod != HISTOGRAM_AND_STATISTICS_INVALID);
+
+    }
+
     switch (m_dataMappingAccessMethod) {
         case DATA_ACCESS_METHOD_INVALID:
             CaretAssert(0);
@@ -719,6 +751,10 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
     m_forceUpdateOfGroupAndNameHierarchy = false;
     m_classNameHierarchy->setAllSelected(true);
     
+    m_fileFastStatistics.grabNew(NULL);
+    m_fileHistogram.grabNew(NULL);
+    m_fileHistorgramLimitedValues.grabNew(NULL);
+    
     CaretLogFiner("CLASS/NAME Table for : "
                   + this->getFileNameNoPath()
                   + "\n"
@@ -961,10 +997,7 @@ CiftiMappableDataFile::isMappedWithPalette() const
             break;
         case COLOR_MAPPING_METHOD_LABEL_TABLE:
             break;
-        case COLOR_MAPPING_METHOD_PALETTE_FILE_DATA:
-            return true;
-            break;
-        case COLOR_MAPPING_METHOD_PALETTE_MAP_DATA:
+        case COLOR_MAPPING_METHOD_PALETTE:
             return true;
             break;
     }
@@ -1076,6 +1109,39 @@ CiftiMappableDataFile::invalidateColoringInAllMaps()
 }
 
 /**
+ * Get all data within the file.
+ *
+ * @param data
+ *    Filled with data and will contain (number-of-rows * number-of-columns)
+ *    of data.
+ */
+void
+CiftiMappableDataFile::getFileData(std::vector<float>& data) const
+{
+    switch (m_fileMapDataType) {
+        case FILE_MAP_DATA_TYPE_INVALID:
+            CaretAssert(0);
+            break;
+        case FILE_MAP_DATA_TYPE_MATRIX:
+            break;
+        case FILE_MAP_DATA_TYPE_MULTI_MAP:
+            break;
+    }
+    
+    CaretAssert(m_ciftiFile);
+    const int64_t numRows = m_ciftiFile->getNumberOfRows();
+    const int64_t numCols = m_ciftiFile->getNumberOfColumns();
+    const int64_t dataSize = numRows * numCols;
+
+    data.resize(dataSize);
+    
+    for (int64_t iRow = 0; iRow < numRows; iRow++) {
+        m_ciftiFile->getRow(&data[iRow * numCols],
+                            iRow);
+    }
+}
+
+/**
  * Get the RGBA mapped version of the file's data matrix.
  *
  * @param rgba
@@ -1087,44 +1153,49 @@ void
 CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba,
                                         PaletteFile *paletteFile)
 {
-    switch (m_fileMapDataType) {
-        case FILE_MAP_DATA_TYPE_INVALID:
-            CaretAssert(0);
-            break;
-        case FILE_MAP_DATA_TYPE_MATRIX:
-            break;
-        case FILE_MAP_DATA_TYPE_MULTI_MAP:
-            CaretAssert(0);
-            break;
-    }
+//    switch (m_fileMapDataType) {
+//        case FILE_MAP_DATA_TYPE_INVALID:
+//            CaretAssert(0);
+//            break;
+//        case FILE_MAP_DATA_TYPE_MATRIX:
+//            break;
+//        case FILE_MAP_DATA_TYPE_MULTI_MAP:
+//            CaretAssert(0);
+//            break;
+//    }
+//    
+//    CaretAssert(m_ciftiFile);
+//    CaretAssertVectorIndex(m_mapContent,
+//        0);
+//
+//    const int ncols = m_ciftiFile->getNumberOfColumns();
+//    const int nrows = m_ciftiFile->getNumberOfRows();
+//    std::vector<float> data;
+//    data.resize(ncols*nrows);
+//    
+//
+//    for(int i = 0;i<nrows;i++)
+//    {
+//        m_ciftiFile->getRow(&data[i*ncols],i);
+//    }
     
-    CaretAssert(m_ciftiFile);
-    CaretAssertVectorIndex(m_mapContent,
-        0);
-
-    const int ncols = m_ciftiFile->getNumberOfColumns();
-    const int nrows = m_ciftiFile->getNumberOfRows();
     std::vector<float> data;
-    data.resize(ncols*nrows);
-    
-
-    for(int i = 0;i<nrows;i++)
-    {
-        m_ciftiFile->getRow(&data[i*ncols],i);
-    }
+    getFileData(data);
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     PaletteColorMapping *paletteColorMapping = ciftiXML.getFilePalette();
-    
-    FastStatistics *fastStatistics = new FastStatistics();
     CaretAssert(paletteColorMapping);
+    
+    CaretPointer<FastStatistics> fastStatistics(new FastStatistics());
     const AString paletteName = paletteColorMapping->getSelectedPaletteName();
     const Palette* palette = paletteFile->getPaletteByName(paletteName);
-    if (palette != NULL) {
+    if (( ! data.empty())
+        && (palette != NULL)) {
+        
         fastStatistics->update(&data[0],
                                data.size());
         
-        rgba.resize(ncols*nrows*4);
+        rgba.resize(data.size() * 4);
         NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
                                                       paletteColorMapping,
                                                       palette,
@@ -1138,7 +1209,6 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba,
                   rgba.end(),
                   0.0);
     }
-    delete fastStatistics;
 }
 
 /**
@@ -1170,17 +1240,39 @@ CiftiMappableDataFile::getMapDimensions(std::vector<int64_t> &dim) const
 const FastStatistics*
 CiftiMappableDataFile::getMapFastStatistics(const int32_t mapIndex)
 {
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
+    FastStatistics* fastStatsOut = NULL;
     
-    if ( ! m_mapContent[mapIndex]->isFastStatisticsValid()) {
-        std::vector<float> data;
-        getMapData(mapIndex,
-                   data);
-        m_mapContent[mapIndex]->updateFastStatistics(data);
+    switch (m_histogramAndStatisticsMethod) {
+        case HISTOGRAM_AND_STATISTICS_INVALID:
+            break;
+        case HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA:
+            if (m_fileFastStatistics == NULL) {
+                std::vector<float> fileData;
+                getFileData(fileData);
+                if ( ! fileData.empty()) {
+                    m_fileFastStatistics.grabNew(new FastStatistics());
+                    m_fileFastStatistics->update(&fileData[0],
+                                            fileData.size());
+                }
+            }
+            
+            fastStatsOut = m_fileFastStatistics;
+            break;
+        case HISTOGRAM_AND_STATISTICS_USE_MAP_DATA:
+            CaretAssertVectorIndex(m_mapContent,
+                                   mapIndex);
+            
+            if ( ! m_mapContent[mapIndex]->isFastStatisticsValid()) {
+                std::vector<float> data;
+                getMapData(mapIndex,
+                           data);
+                m_mapContent[mapIndex]->updateFastStatistics(data);
+            }
+            
+            fastStatsOut =  m_mapContent[mapIndex]->m_fastStatistics;
     }
-    
-    return m_mapContent[mapIndex]->m_fastStatistics;
+                
+    return fastStatsOut;
 }
 
 /**
@@ -1196,17 +1288,38 @@ CiftiMappableDataFile::getMapFastStatistics(const int32_t mapIndex)
 const Histogram*
 CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex)
 {
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
+    Histogram* histogramOut = NULL;
     
-    if ( ! m_mapContent[mapIndex]->isHistogramValid()) {
-        std::vector<float> data;
-        getMapData(mapIndex,
-                   data);
-        m_mapContent[mapIndex]->updateHistogram(data);
+    switch (m_histogramAndStatisticsMethod) {
+        case HISTOGRAM_AND_STATISTICS_INVALID:
+            break;
+        case HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA:
+            if (m_fileHistogram == NULL) {
+                std::vector<float> fileData;
+                getFileData(fileData);
+                if ( ! fileData.empty()) {
+                    m_fileHistogram.grabNew(new Histogram());
+                    m_fileHistogram->update(&fileData[0],
+                                            fileData.size());
+                }
+            }
+            histogramOut = m_fileHistogram;
+            break;
+        case HISTOGRAM_AND_STATISTICS_USE_MAP_DATA:
+            CaretAssertVectorIndex(m_mapContent,
+                                   mapIndex);
+            
+            if ( ! m_mapContent[mapIndex]->isHistogramValid()) {
+                std::vector<float> data;
+                getMapData(mapIndex,
+                           data);
+                m_mapContent[mapIndex]->updateHistogram(data);
+            }
+            
+            histogramOut = m_mapContent[mapIndex]->m_histogram;
     }
     
-    return m_mapContent[mapIndex]->m_histogram;
+    return histogramOut;
 }
 
 /**
@@ -1238,26 +1351,76 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex,
                                         const float mostNegativeValueInclusive,
                                         const bool includeZeroValues)
 {
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
+    Histogram* histogramOut = NULL;
     
-    if ( ! m_mapContent[mapIndex]->isHistogramLimitedValuesValid(mostPositiveValueInclusive,
-                                                                 leastPositiveValueInclusive,
-                                                                 leastNegativeValueInclusive,
-                                                                 mostNegativeValueInclusive,
-                                                                 includeZeroValues)) {
-        std::vector<float> data;
-        getMapData(mapIndex,
-                   data);
-        m_mapContent[mapIndex]->updateHistogramLimitedValues(data,
-                                                             mostPositiveValueInclusive,
-                                                             leastPositiveValueInclusive,
-                                                             leastNegativeValueInclusive,
-                                                             mostNegativeValueInclusive,
-                                                             includeZeroValues);
+    switch (m_histogramAndStatisticsMethod) {
+        case HISTOGRAM_AND_STATISTICS_INVALID:
+            break;
+        case HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA:
+        {
+            bool updateHistogramFlag = false;
+            if (m_fileHistorgramLimitedValues != NULL) {
+                if ((mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
+                    || (leastPositiveValueInclusive != m_fileHistogramLimitedValuesLeastPositiveValueInclusive)
+                    || (leastNegativeValueInclusive != m_fileHistogramLimitedValuesLeastNegativeValueInclusive)
+                    || (mostNegativeValueInclusive != m_fileHistogramLimitedValuesMostNegativeValueInclusive)
+                    || (includeZeroValues != m_fileHistogramLimitedValuesIncludeZeroValues)) {
+                    updateHistogramFlag = true;
+                }
+            }
+            else {
+                updateHistogramFlag = true;
+            }
+            
+            if (updateHistogramFlag) {
+                std::vector<float> fileData;
+                getFileData(fileData);
+                if ( ! fileData.empty()) {
+                    if (m_fileHistorgramLimitedValues == NULL) {
+                        m_fileHistorgramLimitedValues.grabNew(new Histogram());
+                    }
+                    m_fileHistorgramLimitedValues->update(&fileData[0],
+                                                          fileData.size(),
+                                                          mostPositiveValueInclusive,
+                                                          leastPositiveValueInclusive,
+                                                          leastNegativeValueInclusive,
+                                                          mostNegativeValueInclusive,
+                                                          includeZeroValues);
+                    
+                    m_fileHistogramLimitedValuesMostPositiveValueInclusive  = mostPositiveValueInclusive;
+                    m_fileHistogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
+                    m_fileHistogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
+                    m_fileHistogramLimitedValuesMostNegativeValueInclusive  = mostNegativeValueInclusive;
+                    m_fileHistogramLimitedValuesIncludeZeroValues           = includeZeroValues;
+                }
+            }
+            
+            histogramOut = m_fileHistorgramLimitedValues;
+        }
+            break;
+        case HISTOGRAM_AND_STATISTICS_USE_MAP_DATA:
+            CaretAssertVectorIndex(m_mapContent,
+                                   mapIndex);
+            if ( ! m_mapContent[mapIndex]->isHistogramLimitedValuesValid(mostPositiveValueInclusive,
+                                                                         leastPositiveValueInclusive,
+                                                                         leastNegativeValueInclusive,
+                                                                         mostNegativeValueInclusive,
+                                                                         includeZeroValues)) {
+                std::vector<float> data;
+                getMapData(mapIndex,
+                           data);
+                m_mapContent[mapIndex]->updateHistogramLimitedValues(data,
+                                                                     mostPositiveValueInclusive,
+                                                                     leastPositiveValueInclusive,
+                                                                     leastNegativeValueInclusive,
+                                                                     mostNegativeValueInclusive,
+                                                                     includeZeroValues);
+            }
+            
+            histogramOut = m_mapContent[mapIndex]->m_histogramLimitedValues;
     }
-    
-    return m_mapContent[mapIndex]->m_histogramLimitedValues;
+
+    return histogramOut;
 }
 
 /**
@@ -1276,22 +1439,29 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex)
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
+    PaletteColorMapping* pcm = NULL;
     switch (m_colorMappingMethod) {
         case COLOR_MAPPING_METHOD_INVALID:
             break;
         case COLOR_MAPPING_METHOD_LABEL_TABLE:
             break;
-        case COLOR_MAPPING_METHOD_PALETTE_FILE_DATA:
-            return ciftiXML.getFilePalette();
-            break;
-        case COLOR_MAPPING_METHOD_PALETTE_MAP_DATA:
-            return m_mapContent[mapIndex]->m_paletteColorMapping;
+        case COLOR_MAPPING_METHOD_PALETTE:
+            switch (m_paletteColorMappingSource) {
+                case PALETTE_COLOR_MAPPING_SOURCE_INVALID:
+                    break;
+                case PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE:
+                    pcm = ciftiXML.getFilePalette();
+                    break;
+                case PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP:
+                    CaretAssertVectorIndex(m_mapContent,
+                                           mapIndex);
+                    pcm = m_mapContent[mapIndex]->m_paletteColorMapping;
+                    break;
+            }
             break;
     }
     
-    return NULL;
+    return pcm;
 }
 
 /**
@@ -1310,22 +1480,29 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex) const
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
+    PaletteColorMapping* pcm = NULL;
     switch (m_colorMappingMethod) {
         case COLOR_MAPPING_METHOD_INVALID:
             break;
         case COLOR_MAPPING_METHOD_LABEL_TABLE:
             break;
-        case COLOR_MAPPING_METHOD_PALETTE_FILE_DATA:
-            return ciftiXML.getFilePalette();
-            break;
-        case COLOR_MAPPING_METHOD_PALETTE_MAP_DATA:
-            return m_mapContent[mapIndex]->m_paletteColorMapping;
+        case COLOR_MAPPING_METHOD_PALETTE:
+            switch (m_paletteColorMappingSource) {
+                case PALETTE_COLOR_MAPPING_SOURCE_INVALID:
+                    break;
+                case PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE:
+                    pcm = ciftiXML.getFilePalette();
+                    break;
+                case PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP:
+                    CaretAssertVectorIndex(m_mapContent,
+                                           mapIndex);
+                    pcm = m_mapContent[mapIndex]->m_paletteColorMapping;
+                    break;
+            }
             break;
     }
     
-    return NULL;
+    return pcm;
 }
 
 /**
@@ -1341,9 +1518,7 @@ CiftiMappableDataFile::isMappedWithLabelTable() const
         case COLOR_MAPPING_METHOD_LABEL_TABLE:
             return true;
             break;
-        case COLOR_MAPPING_METHOD_PALETTE_FILE_DATA:
-            break;
-        case COLOR_MAPPING_METHOD_PALETTE_MAP_DATA:
+        case COLOR_MAPPING_METHOD_PALETTE:
             break;
     }
     
@@ -1370,9 +1545,7 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex)
         case COLOR_MAPPING_METHOD_LABEL_TABLE:
             return m_mapContent[mapIndex]->m_labelTable;
             break;
-        case COLOR_MAPPING_METHOD_PALETTE_FILE_DATA:
-            break;
-        case COLOR_MAPPING_METHOD_PALETTE_MAP_DATA:
+        case COLOR_MAPPING_METHOD_PALETTE:
             break;
     }
     
@@ -1399,9 +1572,7 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex) const
         case COLOR_MAPPING_METHOD_LABEL_TABLE:
             return m_mapContent[mapIndex]->m_labelTable;
             break;
-        case COLOR_MAPPING_METHOD_PALETTE_FILE_DATA:
-            break;
-        case COLOR_MAPPING_METHOD_PALETTE_MAP_DATA:
+        case COLOR_MAPPING_METHOD_PALETTE:
             break;
     }
     
