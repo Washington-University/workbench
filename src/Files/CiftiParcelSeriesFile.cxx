@@ -76,11 +76,7 @@ CiftiParcelSeriesFile::updateScalarColoringForAllMaps(const PaletteFile* /*palet
      * Coloring update is triggered by code that colors nodes/voxels
      * when drawing.
      */
-    const int64_t numMaps = static_cast<int64_t>(getNumberOfMaps());
-    for (int64_t i = 0; i < numMaps; i++) {
-        CaretAssertVectorIndex(m_mapContent, i);
-        m_mapContent[i]->m_rgbaValid = false;
-    }
+    invalidateColoringInAllMaps();
 }
 
 /**

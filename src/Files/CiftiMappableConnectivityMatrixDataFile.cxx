@@ -317,14 +317,15 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelIndexWhenLoading(con
 void
 CiftiMappableConnectivityMatrixDataFile::setLoadedRowDataToAllZeros()
 {
-    if (m_loadedRowData.empty() == false){
+    if ( ! m_loadedRowData.empty()){
         std::fill(m_loadedRowData.begin(),
                   m_loadedRowData.end(),
                   0.0);
     }
-    if (m_mapContent.empty() == false) {
-        m_mapContent[0]->updateForChangeInMapData();
-    }
+    updateForChangeInMapDataWithMapIndex(0);
+//    if (m_mapContent.empty() == false) {
+//        m_mapContent[0]->updateForChangeInMapData();
+//    }
     m_connectivityDataLoaded->reset();
     m_rowLoadedText.clear();
     m_rowLoadedTextForMapName.clear();
@@ -369,9 +370,7 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
                                 + " is invalid or contains no data.");
     }
     
-    
-    CaretAssertVectorIndex(m_mapContent, 0);
-    m_mapContent[0]->updateForChangeInMapData();
+    updateForChangeInMapDataWithMapIndex(0);
 }
 
 /**
@@ -461,8 +460,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
         throw e;
     }
     
-    CaretAssertVectorIndex(m_mapContent, 0);
-    m_mapContent[0]->updateForChangeInMapData();
+    updateForChangeInMapDataWithMapIndex(0);
     
     return rowIndex;
 }
@@ -527,8 +525,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionInde
         CaretLogFine("FAILED to read row " + AString::number(selectionIndex+1));
     }
     
-    CaretAssertVectorIndex(m_mapContent, 0);
-    m_mapContent[0]->updateForChangeInMapData();
+    updateForChangeInMapDataWithMapIndex(0);
     
     return true;
 }
@@ -676,8 +673,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
         CaretLogFine("FAILED to read rows for node average" + AString::fromNumbers(nodeIndices, ","));
     }
 
-    CaretAssertVectorIndex(m_mapContent, 0);
-    m_mapContent[0]->updateForChangeInMapData();
+    updateForChangeInMapDataWithMapIndex(0);
 
     if (dataWasLoaded) {
         m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
@@ -718,11 +714,11 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     
     setLoadedRowDataToAllZeros();
     
-    /*
-     * Get content for map.
-     */
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
+//    /*
+//     * Get content for map.
+//     */
+//    CaretAssertVectorIndex(m_mapContent,
+//                           mapIndex);
     
     /*
      * Loading of data disabled?
@@ -766,8 +762,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
         CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
     }
 
-    CaretAssertVectorIndex(m_mapContent, mapIndex);
-    m_mapContent[mapIndex]->updateForChangeInMapData();
+    updateForChangeInMapDataWithMapIndex(0);
     
     m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
                                                     rowIndex);
@@ -827,9 +822,6 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
     /*
      * Get content for map.
      */
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
-    
     const int64_t dataCount = m_ciftiFile->getNumberOfColumns();
     if (dataCount <= 0) {
         return false;
@@ -905,8 +897,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         return true;
     }
     
-    CaretAssertVectorIndex(m_mapContent, 0);
-    m_mapContent[0]->updateForChangeInMapData();
+    updateForChangeInMapDataWithMapIndex(0);
     
     return false;
 }

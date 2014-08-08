@@ -342,6 +342,9 @@ namespace caret {
         bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut,
                                                     const StructureEnum::Enum &structure,
                                                     const int64_t &selectionIndex) const;
+        
+        void invalidateColoringInAllMaps();
+        
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);
@@ -359,6 +362,8 @@ namespace caret {
         virtual void getMatrixRGBA(std::vector<float>& rgba, PaletteFile *paletteFile);
     
     protected:
+        void updateForChangeInMapDataWithMapIndex(const int32_t mapIndex);
+        
         ChartDataCartesian* helpLoadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                        const int32_t nodeIndex) throw (DataFileException);
         
@@ -372,6 +377,7 @@ namespace caret {
                                                        int32_t& numberOfColumnsOut,
                                                        std::vector<float>& rgbaOut) const;
 
+    private:
         class MapContent : public CaretObjectTracksModification {
             
         public:
@@ -485,6 +491,7 @@ namespace caret {
         
         void clearPrivate();
         
+    protected:
         void initializeAfterReading() throw (DataFileException);
         
         //static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);

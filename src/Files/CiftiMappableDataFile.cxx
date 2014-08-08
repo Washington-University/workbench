@@ -1049,6 +1049,33 @@ CiftiMappableDataFile::setMapData(const int32_t mapIndex,
 }
 
 /**
+ * Update after a change in map data.
+ *
+ * @param mapIndex
+ *    Index of map whose data has changed.
+ */
+void
+CiftiMappableDataFile::updateForChangeInMapDataWithMapIndex(const int32_t mapIndex)
+{
+    CaretAssertVectorIndex(m_mapContent, mapIndex);
+    m_mapContent[mapIndex]->updateForChangeInMapData();
+}
+
+
+/**
+ * Invalidate coloring in all maps
+ */
+void
+CiftiMappableDataFile::invalidateColoringInAllMaps()
+{
+    const int64_t numMaps = static_cast<int64_t>(getNumberOfMaps());
+    for (int64_t i = 0; i < numMaps; i++) {
+        CaretAssertVectorIndex(m_mapContent, i);
+        m_mapContent[i]->m_rgbaValid = false;
+    }
+}
+
+/**
  * Get the RGBA mapped version of the file's data matrix.
  *
  * @param rgba
