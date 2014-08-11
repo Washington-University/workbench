@@ -278,7 +278,8 @@ CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeE
                 errorMessageOut = ("Creation of "
                                    + DataFileTypeEnum::toGuiName(ciftiFileType)
                                    + " is not supported.");
-                CaretAssertMessage(0, "Need to finish once class renamed");
+                CaretAssertMessage(0, errorMessageOut);
+                return NULL;
                 break;
         }
         
@@ -336,7 +337,7 @@ CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeE
         const AString defaultFileName = ciftiMappableFile->getFileName();
         ciftiMappableFile->m_ciftiFile.grabNew(ciftiFile);
         ciftiMappableFile->setFileName(defaultFileName);
-        ciftiMappableFile->initializeAfterReading();
+        ciftiMappableFile->initializeAfterReading(defaultFileName);
         ciftiMappableFile->setModified();
         
         return ciftiMappableFile;
@@ -585,7 +586,7 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName) throw (DataFile
         }
         
         if (m_ciftiFile != NULL) {
-            initializeAfterReading();
+            initializeAfterReading(ciftiMapFileName);
         }
     }
     catch (DataFileException& e) {
@@ -602,12 +603,119 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName) throw (DataFile
 }
 
 /**
- * Initialize the CIFTI file.
+ * Validate the mapping types for each dimension.
+ *
+ * @param filename
+ *     Name of file.
  */
 void
-CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
+CiftiMappableDataFile::validateMappingTypes(const AString& filename) throw (DataFileException)
 {
     CaretAssert(m_ciftiFile);
+    
+    CiftiMappingType::MappingType expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
+    CiftiMappingType::MappingType expectedAlongRowMapType    = CiftiMappingType::BRAIN_MODELS;
+    
+    const DataFileTypeEnum::Enum dataFileType = getDataFileType();
+    switch (dataFileType) {
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
+            expectedAlongRowMapType = CiftiMappingType::BRAIN_MODELS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
+            expectedAlongRowMapType = CiftiMappingType::LABELS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
+            expectedAlongRowMapType = CiftiMappingType::PARCELS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
+            expectedAlongRowMapType = CiftiMappingType::SCALARS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
+            expectedAlongRowMapType = CiftiMappingType::SERIES;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            expectedAlongColumnMapType = CiftiMappingType::PARCELS;
+            expectedAlongRowMapType = CiftiMappingType::PARCELS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            expectedAlongColumnMapType = CiftiMappingType::PARCELS;
+            expectedAlongRowMapType = CiftiMappingType::BRAIN_MODELS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            expectedAlongColumnMapType = CiftiMappingType::PARCELS;
+            expectedAlongRowMapType = CiftiMappingType::SCALARS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            expectedAlongColumnMapType = CiftiMappingType::PARCELS;
+            expectedAlongRowMapType = CiftiMappingType::SERIES;
+            break;
+        case DataFileTypeEnum::BORDER:
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+        case DataFileTypeEnum::FOCI:
+        case DataFileTypeEnum::LABEL:
+        case DataFileTypeEnum::METRIC:
+        case DataFileTypeEnum::PALETTE:
+        case DataFileTypeEnum::RGBA:
+        case DataFileTypeEnum::SCENE:
+        case DataFileTypeEnum::SPECIFICATION:
+        case DataFileTypeEnum::SURFACE:
+        case DataFileTypeEnum::UNKNOWN:
+        case DataFileTypeEnum::VOLUME:
+            throw DataFileException(filename,
+                                    DataFileTypeEnum::toGuiName(dataFileType)
+                                   + " is not a CIFTI Mappable Data File.");
+            break;
+    }
+    
+    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+    const CiftiMappingType::MappingType alongColumnMapType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+    const CiftiMappingType::MappingType alongRowMapType    = ciftiXML.getMappingType(CiftiXML::ALONG_ROW);
+    
+    AString errorMessage;
+    if (alongColumnMapType != expectedAlongColumnMapType) {
+        errorMessage.appendWithNewLine("Along column mapping type is "
+                                       + CiftiMappableDataFile::mappingTypeToName(alongColumnMapType)
+                                       + " but should be "
+                                       + CiftiMappableDataFile::mappingTypeToName(expectedAlongColumnMapType)
+                                       + " for file type \""
+                                       + DataFileTypeEnum::toGuiName(dataFileType)
+                                       + "\"");
+    }
+    if (alongRowMapType != expectedAlongRowMapType) {
+        errorMessage.appendWithNewLine("Along row mapping type is "
+                                       + CiftiMappableDataFile::mappingTypeToName(alongRowMapType)
+                                       + " but should be "
+                                       + CiftiMappableDataFile::mappingTypeToName(expectedAlongRowMapType)
+                                       + " for file type \""
+                                       + DataFileTypeEnum::toGuiName(dataFileType)
+                                       + "\"");
+    }
+    
+    if ( ! errorMessage.isEmpty()) {
+        throw DataFileException(filename,
+                                errorMessage);
+    }
+}
+
+/**
+ * Initialize the CIFTI file.
+ *
+ * @param filename
+ *     Name of file.
+ */
+void
+CiftiMappableDataFile::initializeAfterReading(const AString& filename) throw (DataFileException)
+{
+    CaretAssert(m_ciftiFile);
+    
+    validateMappingTypes(filename);
+    
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
     switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
@@ -624,6 +732,8 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
             break;
         case CiftiMappingType::LABELS:
             CaretAssertMessage(0, "Mapping type should never be LABELS");
+            throw DataFileException(filename,
+                                    "Mapping type should never be LABELS");
             break;
         case CiftiMappingType::PARCELS:
         {
@@ -638,9 +748,13 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
             break;
         case CiftiMappingType::SCALARS:
             CaretAssertMessage(0, "Mapping type should never be SCALARS");
+            throw DataFileException(filename,
+                                    "Mapping type should never be SCALARS");
             break;
         case CiftiMappingType::SERIES:
             CaretAssertMessage(0, "Mapping type should never be SERIES");
+            throw DataFileException(filename,
+                                    "Mapping type should never be SERIES");
             break;
     }
 
@@ -679,6 +793,7 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
     
     switch (m_dataMappingAccessMethod) {
         case DATA_ACCESS_METHOD_INVALID:
+            CaretAssert(0);
             break;
         case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
             if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS) {
@@ -689,7 +804,8 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
             }
             else {
                 CaretAssertMessage(0, "Invalid mapping type for mapping data to brainordinates");
-                CaretLogSevere("Invalid mapping type for mapping data to brainordinates");
+                throw DataFileException(filename,
+                                        "Invalid mapping type for mapping data to brainordinates");
             }
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
@@ -701,7 +817,8 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
             }
             else {
                 CaretAssertMessage(0, "Invalid mapping type for mapping data to brainordinates");
-                CaretLogSevere("Invalid mapping type for mapping data to brainordinates");
+                throw DataFileException(filename,
+                                        "Invalid mapping type for mapping data to brainordinates");
             }
             break;
     }
@@ -3699,6 +3816,40 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
                                                                    ciftiXML);
 }
+
+/**
+ * Get a text name for a CIFTI mapping type.
+ *
+ * @param mappingType
+ *    The CIFTI mapping type.
+ * @return 
+ *    String containing text name.
+ */
+AString
+CiftiMappableDataFile::mappingTypeToName(const CiftiMappingType::MappingType mappingType)
+{
+    AString mapTypeName;
+    switch (mappingType) {
+        case CiftiMappingType::BRAIN_MODELS:
+            mapTypeName = "BRAIN_MODELS";
+            break;
+        case CiftiMappingType::LABELS:
+            mapTypeName = "LABELS";
+            break;
+        case CiftiMappingType::PARCELS:
+            mapTypeName = "PARCELS";
+            break;
+        case CiftiMappingType::SCALARS:
+            mapTypeName = "SCALARS";
+            break;
+        case CiftiMappingType::SERIES:
+            mapTypeName = "SERIES";
+            break;
+    }
+    
+    return mapTypeName;
+}
+
 
 /**
  * Add information about the file to the data file information.

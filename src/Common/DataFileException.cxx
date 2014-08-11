@@ -80,9 +80,9 @@ DataFileException::DataFileException(const AString& dataFileName,
     
     FileInformation fileInfo(dataFileName);
     const AString msg(fileInfo.getFileName()
-                      + "\n"
+                      + "\n("
                       + fileInfo.getPathName()
-                      + "\n "
+                      + ")\n\n"
                       + s);
     this->setExceptionDescription(msg);
 }

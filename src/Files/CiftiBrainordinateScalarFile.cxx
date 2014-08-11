@@ -149,7 +149,7 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         /*
          * Add the CiftiFile to the Scalar file
          */
-        scalarFile->initializeAfterReading();
+        scalarFile->initializeAfterReading(newFileName);
         scalarFile->setModified();
         
         return scalarFile;

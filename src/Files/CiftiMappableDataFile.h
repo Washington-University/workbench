@@ -24,6 +24,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
 #include "CaretObjectTracksModification.h"
+#include "CiftiMappingType.h"
 #include "CiftiXMLElements.h"
 #include "DisplayGroupEnum.h"
 #include "VolumeMappableInterface.h"
@@ -525,7 +526,9 @@ namespace caret {
         void clearPrivate();
         
     protected:
-        void initializeAfterReading() throw (DataFileException);
+        void initializeAfterReading(const AString& filename) throw (DataFileException);
+        
+        void validateMappingTypes(const AString& filename) throw (DataFileException);
         
         //static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
         
@@ -542,6 +545,9 @@ namespace caret {
         bool getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
                                                              const int64_t surfaceNumberOfNodes,
                                                              std::vector<int64_t>& dataIndicesForNodes) const;
+        
+        static AString mappingTypeToName(const CiftiMappingType::MappingType mappingType);
+
         /**
          * Point to the CIFTI file object.
          */
