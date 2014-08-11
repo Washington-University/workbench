@@ -115,3 +115,13 @@ CaretException::whatString() const throw()
     return this->exceptionDescription;  
 }
 
+/**
+ * Allow subclasses to override the exception description.
+ *
+ * @param  s  Description of the exception.
+ */
+void
+CaretException::setExceptionDescription(const AString& s)
+{
+    this->exceptionDescription = s;
+}

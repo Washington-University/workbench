@@ -19,6 +19,7 @@
 /*LICENSE_END*/
 
 #include "DataFileException.h"
+#include "FileInformation.h"
 
 #include <cstring>
 
@@ -50,7 +51,7 @@ DataFileException::DataFileException(
 }
 
 /**
- * Constructor.
+ * Constructor that accepts the exception messge.
  *
  * @param  s  Description of the exception.
  *
@@ -59,6 +60,31 @@ DataFileException::DataFileException(const AString& s)
 : CaretException(s)
 {
     this->initializeMembersDataFileException();
+}
+
+/**
+ * Constructor that accepts name of file and the exception message.
+ *
+ * The exception message will become name of the file, a newline,
+ * path of the file, a newline, and the description of the 
+ * exception.
+ *
+ * @param  s  Description of the exception.
+ *
+ */
+DataFileException::DataFileException(const AString& dataFileName,
+                                     const AString& s)
+: CaretException(s)
+{
+    this->initializeMembersDataFileException();
+    
+    FileInformation fileInfo(dataFileName);
+    const AString msg(fileInfo.getFileName()
+                      + "\n"
+                      + fileInfo.getPathName()
+                      + "\n "
+                      + s);
+    this->setExceptionDescription(msg);
 }
 
 /**

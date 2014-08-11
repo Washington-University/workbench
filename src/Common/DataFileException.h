@@ -41,6 +41,9 @@ public:
 
     DataFileException(const AString& s);
 
+    DataFileException(const AString& dataFileName,
+                      const AString& s);
+    
     DataFileException(const DataFileException& e);
     
     DataFileException& operator=(const DataFileException& e);

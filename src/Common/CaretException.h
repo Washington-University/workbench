@@ -30,7 +30,7 @@ namespace caret {
 /**
  * An exception thrown during Caret processing.
  */
-    class CaretException : public std::runtime_error {
+class CaretException : public std::runtime_error {
 
 public:
     CaretException();
@@ -46,6 +46,9 @@ public:
     virtual AString whatString() const throw();
 
     AString getCallStack() const;
+        
+protected:
+    void setExceptionDescription(const AString& s);
         
 private:
     /// Description of the exception
