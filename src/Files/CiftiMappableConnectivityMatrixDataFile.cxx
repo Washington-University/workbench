@@ -698,7 +698,10 @@ int64_t
 CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                                  const float xyz[3]) throw (DataFileException)
 {
-    CaretAssert(mapIndex == 0);
+    if (mapIndex != 0) {
+        CaretAssertMessage(0, "Map index must be zero.");
+        return -1;
+    }
     
     if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();

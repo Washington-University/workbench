@@ -85,7 +85,7 @@ WuQDialogNonModal::~WuQDialogNonModal()
  * can be saved.
  */
 void 
-WuQDialogNonModal::closeEvent(QCloseEvent* event)
+WuQDialogNonModal::closeEvent(QCloseEvent* /*event*/)
 {
 //    if (m_isPositionRestoredWhenReopened) {
 //        /*
