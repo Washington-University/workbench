@@ -3784,32 +3784,19 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     dataFileInformation.addNameAndValue("Volume Dim[1]", dimJ);
     dataFileInformation.addNameAndValue("Volume Dim[2]", dimK);
     
-    const std::vector<int64_t> ciftiDimensions = m_ciftiFile->getDimensions();
-//    const int32_t numCiftiDims = static_cast<int32_t>(ciftiDimensions.size());
-//    if (numCiftiDims > 0) {
-//        for (int32_t i = 0; i < numCiftiDims; i++) {
-//            dataFileInformation.addNameAndValue(("CIFTI Dim["
-//                                                 + AString::number(i)
-//                                                 + "]"),
-//                                                ciftiDimensions[i]);
-//        }
-//    }
-//    
-//    std::vector<StructureEnum::Enum> allStructures;
-//    StructureEnum::getAllEnums(allStructures);
-//    
-//    for (std::vector<StructureEnum::Enum>::iterator iter = allStructures.begin();
-//         iter != allStructures.end();
-//         iter++) {
-//        const int32_t numNodes = getMappingSurfaceNumberOfNodes(*iter);
-//        if (numNodes > 0) {
-//            dataFileInformation.addNameAndValue(("Number of Vertices ("
-//                                                 + StructureEnum::toGuiName(*iter)
-//                                                 + ")"),
-//                                                (AString::number(numNodes)
-//                                                 + "  "));
-//        }
-//    }
+    AString histoStatsType;
+    switch (m_histogramAndStatisticsMethod) {
+        case HISTOGRAM_AND_STATISTICS_INVALID:
+            histoStatsType = "None";
+            break;
+        case HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA:
+            histoStatsType = "All File Data";
+            break;
+        case HISTOGRAM_AND_STATISTICS_USE_MAP_DATA:
+            histoStatsType = "Separate For Each Map";
+    }
+    dataFileInformation.addNameAndValue("Histogram/Stats",
+                                        histoStatsType);
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
