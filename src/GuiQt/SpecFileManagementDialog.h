@@ -218,7 +218,8 @@ namespace caret {
         
         void enableLoadOrSaveButton();
         
-        void copyFilePathToClipboard(const CaretDataFile* caretDataFile);
+        void copyFilePathToClipboard(const SpecFileDataFile* specFileDataFile,
+                                     const CaretDataFile* caretDataFile);
         
         // ADD_NEW_MEMBERS_HERE
         

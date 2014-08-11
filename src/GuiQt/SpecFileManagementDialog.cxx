@@ -1992,13 +1992,20 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
     m_filesTableWidget->setRangeSelected(QTableWidgetSelectionRange(rowIndex, m_COLUMN_OPTIONS_TOOLBUTTON,
                                                                     rowIndex, m_COLUMN_OPTIONS_TOOLBUTTON), false);
     
+    const AString copyPathText("Copy Path and Filename to Clipboard");
+    
     if (rowIndex == m_specFileTableRowIndex) {
         QMenu menu;
+        QAction* copyFilePathToClipboardAction = NULL;
+        if (m_specFile != NULL) {
+            if ( ! m_specFile->getFileName().trimmed().isEmpty()) {
+                copyFilePathToClipboardAction = menu.addAction(copyPathText);
+            }
+        }
         QAction* editMetaDataAction = menu.addAction("Edit Metadata...");;
         QAction* setFileNameAction = menu.addAction("Set File Name...");
-
-        QAction* selectedAction = menu.exec(QCursor::pos());
         
+        QAction* selectedAction = menu.exec(QCursor::pos());
         if (selectedAction == NULL) {
             /*
              * If the selected action is NULL, it indicates that the user did
@@ -2017,6 +2024,10 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                                       &menu);
             mded.exec();
             loadSpecFileContentIntoDialog();
+        }
+        else if (selectedAction == copyFilePathToClipboardAction) {
+            QApplication::clipboard()->setText(m_specFile->getFileName().trimmed(),
+                                               QClipboard::Clipboard);
         }
         else if (selectedAction != NULL) {
             CaretAssertMessage(0,
@@ -2038,31 +2049,33 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         //QAction* unloadFileAction = NULL;
         QAction* unloadFileMapsAction = NULL;
         QAction* viewMetaDataAction = NULL;
-        
+                
         QMenu menu;
         switch (m_dialogMode) {
             case MODE_MANAGE_FILES:
             case MODE_SAVE_FILES_WHILE_QUITTING:
                 if (caretDataFile != NULL) {
-                    copyFilePathToClipboardAction = menu.addAction("Copy File's Path to Clipboard");
+                    copyFilePathToClipboardAction = menu.addAction(copyPathText);
                     editMetaDataAction = menu.addAction("Edit Metadata...");
                     setFileNameAction = menu.addAction("Set File Name...");
                     //                unloadFileAction = menu.addAction("Unload File");
-                    if (caretMappableDataFile != NULL) {
-                        unloadFileMapsAction = menu.addAction("Unload Map(s) from File");
-                        unloadFileMapsAction->setEnabled(false);
-                    }
+                    //if (caretMappableDataFile != NULL) {
+                    //    unloadFileMapsAction = menu.addAction("Unload Map(s) from File");
+                    //    unloadFileMapsAction->setEnabled(false);
+                    //}
                 }
                 else {
-                    viewMetaDataAction = menu.addAction("View Metadata...");
-                    viewMetaDataAction->setEnabled(false);
+                    copyFilePathToClipboardAction = menu.addAction(copyPathText);
+                    //viewMetaDataAction = menu.addAction("View Metadata...");
+                    //viewMetaDataAction->setEnabled(false);
                 }
                 break;
             case MODE_OPEN_SPEC_FILE:
-                setStructureAction = menu.addAction("Set Structure...");
-                setStructureAction->setEnabled(false);
-                viewMetaDataAction = menu.addAction("View Metadata...");
-                viewMetaDataAction->setEnabled(false);
+                copyFilePathToClipboardAction = menu.addAction(copyPathText);
+                //setStructureAction = menu.addAction("Set Structure...");
+                //setStructureAction->setEnabled(false);
+                //viewMetaDataAction = menu.addAction("View Metadata...");
+                //viewMetaDataAction->setEnabled(false);
                 break;
         }
         
@@ -2077,7 +2090,8 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
              */
         }
         else if (selectedAction == copyFilePathToClipboardAction) {
-            copyFilePathToClipboard(caretDataFile);
+            copyFilePathToClipboard(specFileDataFile,
+                                    caretDataFile);
         }
         else if (selectedAction == setFileNameAction) {
             changeFileName(&menu,
@@ -2121,16 +2135,27 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
 }
 
 /**
- * Copy the file's path to the clipboard.
+ * Copy the loaded file's path to the clipboard.
+ *
+ * @param caretDataFile
+ *    The data file.
  */
 void
-SpecFileManagementDialog::copyFilePathToClipboard(const CaretDataFile* caretDataFile)
+SpecFileManagementDialog::copyFilePathToClipboard(const SpecFileDataFile* specFileDataFile,
+                                                  const CaretDataFile* caretDataFile)
 {
-    CaretAssert(caretDataFile);
-    QApplication::clipboard()->setText(caretDataFile->getFileName().trimmed(),
-                                       QClipboard::Clipboard);
+    if (caretDataFile != NULL) {
+        QApplication::clipboard()->setText(caretDataFile->getFileName().trimmed(),
+                                           QClipboard::Clipboard);
+    }
+    else if (specFileDataFile != NULL) {
+        QApplication::clipboard()->setText(specFileDataFile->getFileName().trimmed(),
+                                           QClipboard::Clipboard);
+    }
+    else {
+        CaretAssert(0);
+    }
 }
-
 
 /**
  * Change the name of a file.
