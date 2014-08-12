@@ -279,20 +279,23 @@ WuQDialog::addImageCaptureToMenu(QMenu* menu)
 void 
 WuQDialog::contextMenuEvent(QContextMenuEvent* cme)
 {
-   //
-   // Popup menu for selection of pages
-   // 
-   QMenu menu(this);
-
-   //
-   // Add menu item for image capture
-   //
-   addImageCaptureToMenu(&menu);
-   
-   //
-   // Popup the menu
-   //
-   menu.exec(cme->globalPos());
+    const bool enableCaptureMenu = false;
+    if (enableCaptureMenu) {
+        //
+        // Popup menu for selection of pages
+        //
+        QMenu menu(this);
+        
+        //
+        // Add menu item for image capture
+        //
+        addImageCaptureToMenu(&menu);
+        
+        //
+        // Popup the menu
+        //
+        menu.exec(cme->globalPos());
+    }
 }
 
 /**
