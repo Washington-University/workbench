@@ -75,7 +75,7 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
     
     ret->setHelpText(
         AString("The input cifti file must have a brain models mapping on the chosen dimension, columns for .dtseries, and either for .dconn.  ") +
-        "Data in different structures is smoothed independently, so volume structures that touch do not smooth across this boundary.  " +
+        "Data in different structures is smoothed independently (i.e., \"parcel constrained\" smoothing), so volume structures that touch do not smooth across this boundary.  " +
         "Surface smoothing uses the GEO_GAUSS_AREA smoothing method.  " +
         "The fix zeros options will treat values of zero as lack of data, and not use that value when generating the smoothed values, but will fill zeros with extrapolated values.  " +
         "The ROI should have a brain models mapping along columns, exactly matching the mapping of the chosen direction in the input file.  " +
