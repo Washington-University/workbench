@@ -5646,7 +5646,11 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                                                  (GLint)120);
     const GLint colorbarViewportHeight = 35;    
     const GLint colorbarViewportX = modelViewport[0] + 10;
-    GLint colorbarViewportY = (modelViewport[1] + 10 + (paletteDrawingIndex * colorbarViewportHeight));
+    const GLint colorbarVerticalSpacing = 10;
+    GLint colorbarViewportY = (modelViewport[1]
+                               + colorbarVerticalSpacing
+                               + (paletteDrawingIndex * colorbarViewportHeight));
+    
     glViewport(colorbarViewportX, 
                colorbarViewportY, 
                colorbarViewportWidth, 
@@ -5704,7 +5708,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
      * Add a little to left and right so viewport is filled (excess will get clipped)
      */
     glColor3fv(m_backgroundColorFloat);
-    glRectf(orthoLeftWithExtra, orthoRightWithExtra, -orthoHeight, orthoHeight);
+    glRectf(orthoLeftWithExtra, -orthoHeight, orthoRightWithExtra, orthoHeight);
     
     /*
      * Always interpolate if the palette has only two colors
