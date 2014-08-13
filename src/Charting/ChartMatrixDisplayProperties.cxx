@@ -48,6 +48,7 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_scaleMode  = ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO;
     m_cellWidth  = 10.0;
     m_cellHeight = 10.0;
+    m_colorBarDisplayed = false;
     resetPropertiesToDefault();
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -55,6 +56,8 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_sceneAssistant->add("m_cellHeight", &m_cellHeight);
     m_sceneAssistant->add("m_viewZooming", &m_viewZooming);
     m_sceneAssistant->addArray("m_viewPanning", m_viewPanning, 2, 0.0);
+    m_sceneAssistant->add("m_colorBarDisplayed", &m_colorBarDisplayed);
+    
     m_sceneAssistant->add<ChartMatrixLoadingTypeEnum, ChartMatrixLoadingTypeEnum::Enum>("m_matrixLoadingType",
                                                                                         &m_matrixLoadingType);
     m_sceneAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
@@ -62,6 +65,7 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     
     m_sceneAssistant->add<ChartMatrixScaleModeEnum, ChartMatrixScaleModeEnum::Enum>("m_scaleMode",
                                                                                     &m_scaleMode);
+    
 }
 
 /**
@@ -131,6 +135,7 @@ ChartMatrixDisplayProperties::copyHelperChartMatrixDisplayProperties(const Chart
     m_cellWidth      = obj.m_cellWidth;
     m_cellHeight     = obj.m_cellHeight;
     m_scaleMode      = obj.m_scaleMode;
+    m_colorBarDisplayed = obj.m_colorBarDisplayed;
 }
 
 /**
@@ -371,4 +376,29 @@ ChartMatrixDisplayProperties::restoreFromScene(const SceneAttributes* sceneAttri
     //                             sceneClass);
     
 }
+
+/**
+ * Is the colorbar displayed for the given tab?
+ *
+ * @return
+ *     True if colorbar is displayed, else false.
+ */
+bool
+ChartMatrixDisplayProperties::isColorBarDisplayed() const
+{
+    return m_colorBarDisplayed;
+}
+
+/**
+ * Set the colorbar displayed for the given tab.
+ *
+ * @param displayed
+ *     True if colorbar is displayed, else false.
+ */
+void
+ChartMatrixDisplayProperties::setColorBarDisplayed(const bool displayed)
+{
+    m_colorBarDisplayed = displayed;
+}
+
 

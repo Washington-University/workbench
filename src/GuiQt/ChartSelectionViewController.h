@@ -68,6 +68,10 @@ namespace caret {
 
         void matrixYokingGroupEnumComboBoxActivated();
         
+        void matrixColorBarActionTriggered(bool status);
+        
+        void matrixSettingsActionTriggered();
+        
     private:
         ChartSelectionViewController(const ChartSelectionViewController&);
 
@@ -136,6 +140,10 @@ namespace caret {
                 
         EnumComboBoxTemplate* m_matrixYokingGroupComboBox;
 
+        QAction* m_matrixColorBarAction;
+        
+        QAction* m_matrixSettingsAction;
+        
         static const int COLUMN_CHECKBOX;
         static const int COLUMN_LINE_EDIT;
         

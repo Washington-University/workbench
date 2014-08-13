@@ -22,8 +22,8 @@
 /*LICENSE_END*/
 
 
+#include "BrainConstants.h"
 #include "CaretObject.h"
-
 #include "ChartMatrixLoadingTypeEnum.h"
 #include "ChartMatrixScaleModeEnum.h"
 #include "SceneableInterface.h"
@@ -51,6 +51,10 @@ namespace caret {
         void setYokingGroup(const YokingGroupEnum::Enum yokingType);
         
         void setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType);
+        
+        bool isColorBarDisplayed() const;
+        
+        void setColorBarDisplayed(const bool displayed);
         
         float getCellWidth() const;
         
@@ -124,6 +128,9 @@ namespace caret {
         
         /** Matrix loading type */
         ChartMatrixLoadingTypeEnum::Enum m_matrixLoadingType;
+        
+        /** Display color bar */
+        bool m_colorBarDisplayed;
         
         // ADD_NEW_MEMBERS_HERE
 

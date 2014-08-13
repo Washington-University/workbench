@@ -23,6 +23,7 @@
 #include "ChartSelectionViewController.h"
 #undef __CHART_SELECTION_VIEW_CONTROLLER_DECLARE__
 
+#include <QAction>
 #include <QButtonGroup>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -33,6 +34,7 @@
 #include <QRadioButton>
 #include <QSignalMapper>
 #include <QStackedWidget>
+#include <QToolButton>
 
 #include "Brain.h"
 #include "BrowserTabContent.h"
@@ -445,6 +447,7 @@ ChartSelectionViewController::updateBrainordinateChartWidget(Brain* brain,
 void
 ChartSelectionViewController::matrixFileSelected(CaretDataFile* /*caretDataFile*/)
 {
+    updateSelectionViewController();
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
@@ -483,6 +486,27 @@ ChartSelectionViewController::matrixYokingGroupEnumComboBoxActivated()
     }
 }
 
+/**
+ * Called when colorbar icon button is clicked.
+ */
+void
+ChartSelectionViewController::matrixColorBarActionTriggered(bool status)
+{
+    ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
+    if (displayProperties != NULL) {
+        displayProperties->setColorBarDisplayed(status);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+/**
+ * Called when settings icon button is clicked to display palette editor.
+ */
+void
+ChartSelectionViewController::matrixSettingsActionTriggered()
+{
+    
+}
 
 /**
  * @return The matrix chart widget.
@@ -490,6 +514,44 @@ ChartSelectionViewController::matrixYokingGroupEnumComboBoxActivated()
 QWidget*
 ChartSelectionViewController::createMatrixChartWidget()
 {
+    /*
+     * ColorBar Tool Button
+     */
+    QIcon colorBarIcon;
+    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
+                                                           colorBarIcon);
+    m_matrixColorBarAction = WuQtUtilities::createAction("CB",
+                                                       "Display color bar for this overlay",
+                                                       this,
+                                                       this,
+                                                       SLOT(matrixColorBarActionTriggered(bool)));
+    m_matrixColorBarAction->setCheckable(true);
+    if (colorBarIconValid) {
+        m_matrixColorBarAction->setIcon(colorBarIcon);
+    }
+    QToolButton* colorBarToolButton = new QToolButton();
+    colorBarToolButton->setDefaultAction(m_matrixColorBarAction);
+    
+    /*
+     * Settings Tool Button
+     */
+    QLabel* settingsLabel = new QLabel("Settings");
+    QIcon settingsIcon;
+    const bool settingsIconValid = WuQtUtilities::loadIcon(":/LayersPanel/wrench.png",
+                                                           settingsIcon);
+    
+    m_matrixSettingsAction = WuQtUtilities::createAction("S",
+                                                       "Edit settings for this map and overlay",
+                                                       this,
+                                                       this,
+                                                       SLOT(matrixSettingsActionTriggered()));
+    if (settingsIconValid) {
+        m_matrixSettingsAction->setIcon(settingsIcon);
+    }
+    QToolButton* settingsToolButton = new QToolButton();
+    settingsToolButton->setDefaultAction(m_matrixSettingsAction);
+    
+    
     QLabel* fileLabel = new QLabel("File ");
     m_matrixFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     QObject::connect(m_matrixFileSelectionComboBox, SIGNAL(fileSelected(CaretDataFile*)),
@@ -497,6 +559,7 @@ ChartSelectionViewController::createMatrixChartWidget()
     m_matrixFileSelectionComboBox->getWidget()->setSizePolicy(QSizePolicy::MinimumExpanding,
                                                               m_matrixFileSelectionComboBox->getWidget()->sizePolicy().verticalPolicy());
     
+    QLabel* loadByLabel = new QLabel("Load by");
     m_matrixLoadByColumnRadioButton = new QRadioButton("Column");
     m_matrixLoadByRowRadioButton    = new QRadioButton("Row");
     
@@ -506,13 +569,7 @@ ChartSelectionViewController::createMatrixChartWidget()
     matrixLoadButtonGroup->setExclusive(true);
     QObject::connect(matrixLoadButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(matrixFileLoadingButtonClicked()));
-    
-    QGroupBox* matrixLoadGroupBox = new QGroupBox("Load by");
-    QVBoxLayout* matrixLoadLayout = new QVBoxLayout(matrixLoadGroupBox);
-    matrixLoadLayout->addWidget(m_matrixLoadByColumnRadioButton);
-    matrixLoadLayout->addWidget(m_matrixLoadByRowRadioButton);
-    matrixLoadGroupBox->setSizePolicy(QSizePolicy::Fixed,
-                                      QSizePolicy::Fixed);
+
     
     QLabel* yokeLabel = new QLabel("Yoke ");
     m_matrixYokingGroupComboBox = new EnumComboBoxTemplate(this);
@@ -524,32 +581,49 @@ ChartSelectionViewController::createMatrixChartWidget()
     fileYokeLayout->setColumnStretch(0, 0);
     fileYokeLayout->setColumnStretch(1, 0);
     fileYokeLayout->setColumnStretch(2, 100);
-    fileYokeLayout->addWidget(fileLabel,
-                      0, 0);
-    fileYokeLayout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
-                      0, 1,
-                      1, 2);
+    
+    fileYokeLayout->addWidget(settingsLabel,
+                              0, 0,
+                              1, 2, Qt::AlignHCenter);
+    fileYokeLayout->addWidget(loadByLabel,
+                              0, 2);
     fileYokeLayout->addWidget(yokeLabel,
-                      1, 0);
+                              0, 3,
+                              Qt::AlignHCenter);
+    fileYokeLayout->addWidget(fileLabel,
+                              0, 4,
+                              Qt::AlignHCenter);
+    fileYokeLayout->addWidget(settingsToolButton,
+                              1, 0);
+    fileYokeLayout->addWidget(colorBarToolButton,
+                              1, 1);
+    fileYokeLayout->addWidget(m_matrixLoadByColumnRadioButton,
+                              1, 2);
+    fileYokeLayout->addWidget(m_matrixLoadByRowRadioButton,
+                              2, 2);
     fileYokeLayout->addWidget(m_matrixYokingGroupComboBox->getWidget(),
-                      1, 1);
+                              1, 3);
+    fileYokeLayout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
+                              1, 4,
+                              Qt::AlignLeft);
     
     QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    layout->addWidget(matrixLoadGroupBox, 0);
-    layout->addLayout(fileYokeLayout, 100);
-    
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(fileYokeLayout);
+    layout->addStretch();
     
     /*
-     * HIDE LOAD BY AND YOKE CONTROLS UNTIL IMPLEMENTATION OF 
-     * THEIR FUNCTIONALITY TAKES PLACE
+     * TEMP TODO
+     * FINISH IMPLEMENTATION OF LOADING AND YOKING
      */
-    matrixLoadGroupBox->setHidden(true);
-    yokeLabel->setHidden(true);
-    m_matrixYokingGroupComboBox->getWidget()->setHidden(true);
-    
-    
-    
+    const bool hideLoadAndYokeControls = true;
+    if (hideLoadAndYokeControls) {
+        loadByLabel->hide();
+        m_matrixLoadByColumnRadioButton->hide();
+        m_matrixLoadByRowRadioButton->hide();
+        yokeLabel->hide();
+        m_matrixYokingGroupComboBox->getWidget()->hide();
+    }
     
     return widget;
 }
@@ -621,6 +695,9 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
         
         const YokingGroupEnum::Enum yokingGroup = displayProperties->getYokingGroup();
         m_matrixYokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(yokingGroup);
+        m_matrixColorBarAction->blockSignals(true);
+        m_matrixColorBarAction->setChecked(displayProperties->isColorBarDisplayed());
+        m_matrixColorBarAction->blockSignals(false); 
     }
 }
 

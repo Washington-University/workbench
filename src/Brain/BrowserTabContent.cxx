@@ -1131,24 +1131,91 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
     mapFiles.clear();
     mapIndices.clear();
     
-    OverlaySet* overlaySet = getOverlaySet();
-    const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
-    for (int32_t i = (numOverlays - 1); i >= 0; i--) {
-        Overlay* overlay = overlaySet->getOverlay(i);
-        if (overlay->isEnabled()) {
-            if (overlay->isPaletteDisplayEnabled()) {
-                CaretMappableDataFile* mapFile;
-                int32_t mapFileIndex;
-                overlay->getSelectionData(mapFile, mapFileIndex);
-                if (mapFile != NULL) {
-                    if (mapFile->isMappedWithPalette()) {
-                        if ((mapFileIndex >= 0) 
-                            && (mapFileIndex < mapFile->getNumberOfMaps())) {
-                            mapFiles.push_back(mapFile);
-                            mapIndices.push_back(mapFileIndex);
+    if (getModelForDisplay() == NULL) {
+        return;
+    }
+    
+    bool useOverlayFlag = false;
+    bool useChartsFlag  = false;
+    switch (getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            useChartsFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            useOverlayFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            useOverlayFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            useOverlayFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            useOverlayFlag = true;
+            break;
+    }
+    
+    if (useOverlayFlag) {
+        OverlaySet* overlaySet = getOverlaySet();
+        const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+        for (int32_t i = (numOverlays - 1); i >= 0; i--) {
+            Overlay* overlay = overlaySet->getOverlay(i);
+            if (overlay->isEnabled()) {
+                if (overlay->isPaletteDisplayEnabled()) {
+                    CaretMappableDataFile* mapFile;
+                    int32_t mapFileIndex;
+                    overlay->getSelectionData(mapFile, mapFileIndex);
+                    if (mapFile != NULL) {
+                        if (mapFile->isMappedWithPalette()) {
+                            if ((mapFileIndex >= 0)
+                                && (mapFileIndex < mapFile->getNumberOfMaps())) {
+                                mapFiles.push_back(mapFile);
+                                mapIndices.push_back(mapFileIndex);
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    if (useChartsFlag) {
+        ModelChart* modelChart = getDisplayedChartModel();
+        if (modelChart != NULL) {
+            switch (modelChart->getSelectedChartDataType(m_tabNumber)) {
+                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                {
+                    CaretDataFileSelectionModel* fileModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
+                    if (fileModel != NULL) {
+                        CaretDataFile* caretFile = fileModel->getSelectedFile();
+                        if (caretFile != NULL) {
+                            CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(caretFile);
+                            if (mapFile != NULL) {
+                                ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(mapFile);
+                                if (matrixFile != NULL) {
+                                    ChartMatrixDisplayProperties* props = matrixFile->getChartMatrixDisplayProperties(m_tabNumber);
+                                    if (props->isColorBarDisplayed()) {
+                                        /*
+                                         * Matrix contains all file data and always
+                                         * uses a map index of zero.
+                                         */
+                                        mapFiles.push_back(mapFile);
+                                        mapIndices.push_back(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                    break;
             }
         }
     }

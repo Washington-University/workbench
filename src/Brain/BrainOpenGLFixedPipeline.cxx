@@ -557,7 +557,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             ModelWholeBrain* wholeBrainModel = dynamic_cast<ModelWholeBrain*>(model);
             if (modelChart != NULL) {
                 drawChartData(browserTabContent, modelChart, viewport);
-                modelAllowsPalettes = false;
+                modelAllowsPalettes = true;
             }
             else if (surfaceModel != NULL) {
                 m_mirroredClippingEnabled = true;
