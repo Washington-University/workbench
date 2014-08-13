@@ -22,10 +22,14 @@
 #include "SurfaceProjectedItem.h"
 #undef __SURFACE_PROJECTED_ITEM_DEFINE__
 
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "DataFileException.h"
 #include "SurfaceProjectionBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 #include "XmlWriter.h"
 
+#include <QXmlStreamReader>
 
 using namespace caret;
 
@@ -82,6 +86,29 @@ SurfaceProjectedItem::operator=(const SurfaceProjectedItem& o)
     };
     
     return *this;
+}
+
+bool SurfaceProjectedItem::operator==(const SurfaceProjectedItem& rhs) const
+{
+    if (structure != rhs.structure) return false;
+    if (stereotaxicXYZValid != rhs.stereotaxicXYZValid) return false;
+    if (volumeXYZValid != rhs.volumeXYZValid) return false;
+    if (stereotaxicXYZValid)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            if (stereotaxicXYZ[i] != rhs.stereotaxicXYZ[i]) return false;
+        }
+    }
+    if (volumeXYZValid)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            if (volumeXYZ[i] != rhs.volumeXYZ[i]) return false;
+        }
+    }
+    if (*barycentricProjection != *rhs.barycentricProjection) return false;
+    return (*vanEssenProjection == *rhs.vanEssenProjection);
 }
 
 /**
@@ -478,6 +505,62 @@ SurfaceProjectedItem::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
     this->barycentricProjection->writeAsXML(xmlWriter);
     this->vanEssenProjection->writeAsXML(xmlWriter);
     xmlWriter.writeEndElement();
+}
+
+void SurfaceProjectedItem::readBorderFileXML1(QXmlStreamReader& xml)
+{
+    reset();
+    CaretAssert(xml.isStartElement() && xml.name() == "SurfaceProjectedItem");
+    bool haveStructure = false, haveVanEssen = false, haveStereo = false, haveVolume = false;//track the barycentric projection for being specified more than once by its valid flag
+    for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
+    {
+        switch (xml.tokenType())
+        {
+            case QXmlStreamReader::StartElement:
+            {
+                QStringRef name = xml.name();
+                if (name == "Structure")
+                {
+                    if (haveStructure) throw DataFileException("multiple Structure elements in one SurfaceProjectedItem element");
+                    QString structString = xml.readElementText();//sets error on unexpected child element
+                    if (xml.hasError()) throw DataFileException("XML parsing error in Structure: " + xml.errorString());
+                    bool ok = false;
+                    structure = StructureEnum::fromName(structString, &ok);
+                    if (!ok) throw DataFileException("unrecognized string in Structure: " + structString);
+                    haveStructure = true;
+                } else if (name == "ProjectionBarycentric") {
+                    if (barycentricProjection->isValid()) throw DataFileException("multiple ProjectionBarycentric elements in one SurfaceProjectedItem element");
+                    barycentricProjection->readBorderFileXML1(xml);
+                } else if (name == "VanEssenProjection") {
+                    if (haveVanEssen) throw DataFileException("multiple VanEssenProjection elements in one SurfaceProjectedItem element");
+                    CaretLogFine("found Van Essen projection in border file, ignoring");
+                    xml.readElementText(QXmlStreamReader::SkipChildElements);//HACK: border files never use this projection type, so don't try to parse it
+                    if (xml.hasError()) throw DataFileException("XML parsing error in VanEssenProjection: " + xml.errorString());
+                    haveVanEssen = true;
+                } else if (name == "StereotaxicXYZ") {
+                    if (haveStereo) throw DataFileException("multiple StereotaxicXYZ elements in one SurfaceProjectedItem element");
+                    CaretLogFine("found stereotaxic coordinates in border file, ignoring");
+                    xml.readElementText(QXmlStreamReader::SkipChildElements);//HACK: ditto
+                    if (xml.hasError()) throw DataFileException("XML parsing error in StereotaxicXYZ: " + xml.errorString());
+                    haveStereo = true;
+                } else if (name == "VolumeXYZ") {
+                    if (haveVolume) throw DataFileException("multiple VolumeXYZ elements in one SurfaceProjectedItem element");
+                    CaretLogFine("found volume coordinates in border file, ignoring");
+                    xml.readElementText(QXmlStreamReader::SkipChildElements);//HACK: ditto
+                    if (xml.hasError()) throw DataFileException("XML parsing error in VolumeXYZ: " + xml.errorString());
+                    haveVolume = true;
+                } else {
+                    throw DataFileException("unexpected element in SurfaceProjectedItem: " + name.toString());
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    if (xml.hasError()) throw DataFileException("XML parsing error in SurfaceProjectedItem: " + xml.errorString());
+    CaretAssert(xml.isEndElement() && xml.name() == "SurfaceProjectedItem");
+    if (!haveStructure) throw DataFileException("SurfaceProjectedItem is missing Structure element");
 }
 
 /**

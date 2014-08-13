@@ -25,6 +25,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <vector>
+
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+#include <QString>
+#include <QStringList>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -37,6 +43,7 @@
 #include "XmlWriter.h"
 
 using namespace caret;
+using namespace std;
     
 /**
  * \class caret::Border 
@@ -148,6 +155,7 @@ Border::copyHelperBorder(const Border& obj)
     
     m_name = obj.m_name;
     m_className = obj.m_className;
+    m_closed = obj.m_closed;
     
     clearModified();
     setNameOrClassModified(); // new name/class so modified
@@ -161,6 +169,7 @@ void
 Border::clear()
 {
     removeAllPoints();
+    m_closed = false;
  
     m_groupNameSelectionItem = NULL;
     
@@ -189,21 +198,6 @@ Border::clear()
 /**
  * @return Structure to which this border is assigned.
  */
-StructureEnum::Enum 
-Border::getStructure()
-{
-    StructureEnum::Enum structure = StructureEnum::INVALID;
-    
-    if (m_points.empty() == false) {
-        structure = m_points[0]->getStructure();
-    }
-    
-    return structure;
-}
-
-/**
- * @return Structure to which this border is assigned.
- */
 StructureEnum::Enum
 Border::getStructure() const
 {
@@ -214,6 +208,15 @@ Border::getStructure() const
     }
     
     return structure;
+}
+
+void Border::setStructure(const StructureEnum::Enum& structure)
+{
+    int numPoints = getNumberOfPoints();
+    for (int i = 0; i < numPoints; ++i)
+    {
+        getPoint(i)->setStructure(structure);
+    }
 }
 
 /**
@@ -348,6 +351,24 @@ Border::verifyAllPointsOnSameStructure() const
         }
     }
     
+    return true;
+}
+
+bool Border::verifyForSurfaceNumberOfNodes(const int32_t& numNodes) const
+{
+    int32_t numPoints = getNumberOfPoints();
+    for (int j = 0; j < numPoints; ++j)
+    {
+        const SurfaceProjectionBarycentric* thisProj = getPoint(j)->getBarycentricProjection();//addPoint makes sure these are always valid
+        const int32_t* nodes = thisProj->getTriangleNodes();
+        for (int k = 0; k < 3; ++k)
+        {
+            if (nodes[k] >= numNodes)
+            {
+                return false;
+            }
+        }
+    }
     return true;
 }
 
@@ -522,6 +543,25 @@ Border::findPointIndexNearestXYZ(const SurfaceFile* surfaceFile,
 void 
 Border::addPoint(SurfaceProjectedItem* point)
 {
+    if (m_points.size() != 0 && m_points[0]->getStructure() != point->getStructure())
+    {
+        delete point;//keep our word and handle deleting the argument
+        throw DataFileException("attempt to add point of different structure to a border");
+    }
+    if (!point->getBarycentricProjection()->isValid())
+    {
+        delete point;
+        throw DataFileException("attempt to add point without valid barycentric projection to border");
+    }
+    const int32_t* nodes = point->getBarycentricProjection()->getTriangleNodes();
+    for (int k = 0; k < 3; ++k)
+    {
+        if (nodes[k] < 0)
+        {
+            delete point;
+            throw DataFileException("attempt to add point using negative node number");
+        }
+    }
     m_points.push_back(point);
     setModified();
 }
@@ -555,6 +595,16 @@ Border::addPoints(const Border* border,
         SurfaceProjectedItem* spi = new SurfaceProjectedItem(*border->getPoint(i));
         addPoint(spi);
     }
+}
+
+bool Border::isClosed() const
+{
+    return m_closed;
+}
+
+void Border::setClosed(const bool& closed)
+{
+    m_closed = closed;
 }
 
 /**
@@ -1476,3 +1526,144 @@ Border::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
     xmlWriter.writeEndElement();
 }
 
+void Border::writeXML3(QXmlStreamWriter& xml) const
+{
+    xml.writeStartElement("BorderPart");
+    xml.writeAttribute("Closed", (isClosed() ? "True" : "False"));
+    int numPoints = getNumberOfPoints();
+    xml.writeStartElement("Vertices");
+    for (int p = 0; p < numPoints; ++p)
+    {
+        const SurfaceProjectionBarycentric* thisBary = getPoint(p)->getBarycentricProjection();
+        const int32_t* nodes = thisBary->getTriangleNodes();
+        xml.writeCharacters(AString::number(nodes[0]) + " " + AString::number(nodes[1]) + " " + AString::number(nodes[2]) + "\n");
+    }
+    xml.writeEndElement();
+    xml.writeStartElement("Weights");
+    for (int p = 0; p < numPoints; ++p)
+    {
+        const SurfaceProjectionBarycentric* thisBary = getPoint(p)->getBarycentricProjection();
+        const float* weights = thisBary->getTriangleAreas();
+        xml.writeCharacters(AString::number(weights[0]) + " " + AString::number(weights[1]) + " " + AString::number(weights[2]) + "\n");
+    }
+    xml.writeEndElement();
+    xml.writeEndElement();//BorderPart
+}
+
+void Border::readXML1(QXmlStreamReader& xml)
+{
+    clear();
+    CaretAssert(xml.isStartElement() && xml.name() == "Border");
+    bool haveName = false, haveClass = false;
+    for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
+    {
+        if (xml.isStartElement())
+        {
+            QStringRef name = xml.name();
+            if (name == "Name")
+            {
+                if (haveName) throw DataFileException("multiple Name elements in one Border element");
+                m_name = xml.readElementText();//sets error on unexpected child element
+                if (xml.hasError()) throw DataFileException("XML parsing error in Name: " + xml.errorString());
+                haveName = true;
+            } else if (name == "ClassName") {
+                if (haveClass) throw DataFileException("multiple ClassName elements in one Border element");
+                m_className = xml.readElementText();//sets error on unexpected child element
+                if (xml.hasError()) throw DataFileException("XML parsing error in ClassName: " + xml.errorString());
+                haveClass = true;
+            } else if (name == "SurfaceProjectedItem") {
+                CaretPointer<SurfaceProjectedItem> myItem(new SurfaceProjectedItem());//again, because current interface requires ownership passing of pointer
+                myItem->readBorderFileXML1(xml);
+                addPoint(myItem.releasePointer());
+            } else {
+                throw DataFileException("unexpected element in Border: " + name.toString());
+            }
+        }
+    }
+    if (xml.hasError()) throw DataFileException("XML parsing error in Border: " + xml.errorString());
+    CaretAssert(xml.isEndElement() && xml.name() == "Border");
+    if (getNumberOfPoints() > 1 && (*getPoint(0) == *getPoint(getNumberOfPoints() - 1)))
+    {
+        m_closed = true;
+        removeLastPoint();
+    }
+}
+
+void Border::readXML3(QXmlStreamReader& xml)
+{
+    clear();
+    CaretAssert(xml.isStartElement() && xml.name() == "BorderPart");
+    QXmlStreamAttributes myAttrs = xml.attributes();
+    if (!myAttrs.hasAttribute("Closed")) throw DataFileException("BorderPart element missing required attribute Closed");
+    QStringRef closedStr = myAttrs.value("Closed");
+    if (closedStr == "True")
+    {
+        setClosed(true);
+    } else if (closedStr == "False") {
+        setClosed(false);
+    } else {
+        throw DataFileException("unrecognized value for Closed attribute in BorderPart: " + closedStr.toString());
+    }
+    vector<int32_t> vertices;
+    vector<float> weights;
+    bool haveVertices = false, haveWeights = false;
+    for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
+    {
+        if (xml.isStartElement())
+        {
+            QStringRef name = xml.name();
+            if (name == "Vertices")
+            {
+                if (haveVertices) throw DataFileException("multiple Vertices elements in one BorderPart element");
+                QString vertexText = xml.readElementText();//errors on unexpected element
+                if (xml.hasError()) throw DataFileException("XML parsing error in Vertices: " + xml.errorString());
+                QStringList vertexStrings = vertexText.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+                int numItems = (int)vertexStrings.size();
+                if (numItems % 3 != 0) throw DataFileException("number of items in Vertices element text is not a multiple of 3");
+                for (int i = 0; i < numItems; ++i)
+                {
+                    bool ok = false;
+                    int tempVal = vertexStrings[i].toInt(&ok);
+                    if (!ok) throw DataFileException("non-integer item in Vertices text: " + vertexStrings[i]);
+                    if (tempVal < 0) throw DataFileException("negative value in Vertices");
+                    vertices.push_back(tempVal);
+                }
+                haveVertices = true;
+            } else if (name == "Weights") {
+                if (haveWeights) throw DataFileException("multiple Weights elements in one BorderPart element");
+                QString vertexText = xml.readElementText();//errors on unexpected element
+                if (xml.hasError()) throw DataFileException("XML parsing error in Weights: " + xml.errorString());
+                QStringList vertexStrings = vertexText.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+                int numItems = (int)vertexStrings.size();
+                if (numItems % 3 != 0) throw DataFileException("number of items in Weights element text is not a multiple of 3");
+                for (int i = 0; i < numItems; ++i)
+                {
+                    bool ok = false;
+                    float tempVal = vertexStrings[i].toFloat(&ok);
+                    if (!ok) throw DataFileException("non-numeric item in Weights text: " + vertexStrings[i]);
+                    if (tempVal < 0.0f) throw DataFileException("negative value in Weights");
+                    weights.push_back(tempVal);
+                }
+                haveWeights = true;
+            } else {
+                throw DataFileException("unexpected element in BorderPart: " + name.toString());
+            }
+        }
+    }
+    if (xml.hasError()) throw DataFileException("XML parsing error in BorderPart: " + xml.errorString());
+    CaretAssert(xml.isEndElement() && xml.name() == "BorderPart");
+    if (!haveVertices || !haveWeights) throw DataFileException("BorderPart missing required Vertices or Weights element");
+    if (vertices.size() != weights.size()) throw DataFileException("Vertices and Weights don't contain the same number of elements");
+    int numPoints = (int)vertices.size() / 3;
+    for (int i = 0; i < numPoints; ++i)
+    {
+        int i3 = i * 3;
+        CaretPointer<SurfaceProjectedItem> myItem(new SurfaceProjectedItem());//because addPoint takes ownership of a raw pointer
+        myItem->setStructure(StructureEnum::ALL);//HACK: placeholder because structure is a file attribute in v3, not a border attribute
+        SurfaceProjectionBarycentric* myBary = myItem->getBarycentricProjection();
+        myBary->setTriangleNodes(vertices.data() + i3);
+        myBary->setTriangleAreas(weights.data() + i3);
+        myBary->setValid(true);//signed distance from surface iniializes to 0
+        addPoint(myItem.releasePointer());
+    }
+}

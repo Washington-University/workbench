@@ -24,6 +24,8 @@
 
 #include "SurfaceProjection.h"
 
+class QXmlStreamReader;
+
 namespace caret {
 
     class SurfaceProjectionBarycentric : public SurfaceProjection {
@@ -36,6 +38,10 @@ namespace caret {
         SurfaceProjectionBarycentric(const SurfaceProjectionBarycentric& obj);
 
         SurfaceProjectionBarycentric& operator=(const SurfaceProjectionBarycentric& obj);
+        
+        bool operator==(const SurfaceProjectionBarycentric& rhs);
+        
+        bool operator!=(const SurfaceProjectionBarycentric& rhs) { return !(*this == rhs); }
         
         virtual AString toString() const;
         
@@ -67,6 +73,8 @@ namespace caret {
         void setValid(const bool valid);
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        
+        void readBorderFileXML1(QXmlStreamReader& xml);
         
         static  const AString XML_TAG_PROJECTION_BARYCENTRIC;
         

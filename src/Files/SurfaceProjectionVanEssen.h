@@ -37,6 +37,10 @@ namespace caret {
 
         SurfaceProjectionVanEssen& operator=(const SurfaceProjectionVanEssen& obj);
         
+        bool operator==(const SurfaceProjectionVanEssen& rhs);
+        
+        bool operator!=(const SurfaceProjectionVanEssen& rhs) { return !(*this == rhs); }
+        
         bool unprojectToSurface(const SurfaceFile& surfaceFile,
                                 float xyzOut[3],
                                 const float offsetFromSurface,

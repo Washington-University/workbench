@@ -88,6 +88,36 @@ SurfaceProjectionVanEssen::operator=(const SurfaceProjectionVanEssen& obj)
     return *this;    
 }
 
+bool SurfaceProjectionVanEssen::operator==(const SurfaceProjectionVanEssen& rhs)
+{
+    if (projectionValid != rhs.projectionValid) return false;
+    if (projectionValid)
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    if (triAnatomical[i][j][k] != rhs.triAnatomical[i][j][k]) return false;
+                }
+                if (triVertices[i][j] != rhs.triVertices[i][j]) return false;
+                if (vertexAnatomical[i][j] != rhs.vertexAnatomical[i][j]) return false;
+            }
+            if (vertex[i] != rhs.vertex[i]) return false;
+        }
+        for (int i = 0; i < 3; ++i)
+        {
+            if (posAnatomical[i] != rhs.posAnatomical[i]) return false;
+        }
+        if (thetaR != rhs.thetaR) return false;
+        if (phiR != rhs.phiR) return false;
+        if (fracRI != rhs.fracRI) return false;
+        if (fracRJ != rhs.fracRJ) return false;
+    }
+    return true;
+}
+
 /**
  * Helps with copying an object of this type.
  * @param obj

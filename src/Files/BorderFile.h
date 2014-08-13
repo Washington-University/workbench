@@ -23,13 +23,21 @@
 
 
 #include "CaretDataFile.h"
+#include "CaretPointer.h"
 #include "DisplayGroupEnum.h"
+
+#include <map>
+#include <vector>
+
+class QXmlStreamReader;
+class QXmlStreamWriter;
 
 namespace caret {
 
     class Border;
     class BorderPointFromSearch;
     class GroupAndNameHierarchyModel;
+    class GiftiLabel;
     class GiftiLabelTable;
     class SurfaceFile;
     class SurfaceProjectedItem;
@@ -62,6 +70,10 @@ namespace caret {
         void clear();
         
         bool isEmpty() const;
+        
+        int32_t getNumberOfNodes() const;
+        
+        void setNumberOfNodes(const int32_t& numNodes);
         
         int32_t getNumberOfBorders() const;
         
@@ -102,6 +114,23 @@ namespace caret {
         
         const GiftiLabelTable* getNameColorTable() const;
         
+        int getNumberOfBorderMetadataKeys() const { return (int)m_borderMDKeys.size(); }
+        
+        int getIndexForBorderMetadataKey(const AString& key) const;
+        
+        const AString& getBorderMetadataKey(const int& index) const;
+        
+        //only adds if it doesn't already exist, and returns index
+        int addBorderMetadataKey(const AString& key);
+        
+        void removeBorderMetadataKey(const int& index);
+        
+        void clearBorderMetaData();
+        
+        AString getBorderMetadataValue(const AString& name, const AString& className, const int& index) const;
+        
+        void setBorderMetadataValue(const AString& name, const AString& className, const int& index, const AString& value);
+        
         void createNameAndClassColorTables(const GiftiLabelTable* oldColorTable);
         
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
@@ -141,6 +170,28 @@ namespace caret {
         
         void initializeBorderFile();
         
+        bool canWriteAsVersion(const int& version) const;
+        
+        void writeVersion3(QXmlStreamWriter& output) const;
+        
+        void writeColorHelper(QXmlStreamWriter& output, const GiftiLabel* colorLabel) const;
+        
+        void readXML(QXmlStreamReader& xml);
+        
+        void parseBorderFile1(QXmlStreamReader& xml);//there is no version 2, because the SAX parser pretended to support version 2 when it didn't exist
+        
+        void parseBorderFile3(QXmlStreamReader& xml);//so, to make the new format give reasonable error messages in old releases, make the new format version 3
+        
+        void parseBorderMDNames3(QXmlStreamReader& xml);
+        
+        AString parseClass3(QXmlStreamReader& xml);
+        
+        AString parseBorder3(QXmlStreamReader& xml, const AString& className);
+        
+        static void colorAttribHelper3(QXmlStreamReader& xml, float rgbOut[3]);
+        
+        static std::vector<AString> parseBorderMDValues3(QXmlStreamReader& xml);
+        
         GiftiMetaData* m_metadata;
         
         std::vector<Border*> m_borders;
@@ -156,6 +207,14 @@ namespace caret {
         
         /** force an update of the class and name hierarchy */
         bool m_forceUpdateOfGroupAndNameHierarchy;
+        
+        StructureEnum::Enum m_structure;
+        
+        int32_t m_numNodes;
+        
+        std::vector<AString> m_borderMDKeys;
+        
+        std::map<std::pair<AString, AString>, std::vector<AString> > m_borderMDValues;//because each "Border" is really just a part of a border
         
         /** Version of this BorderFile */
         static const int32_t s_borderFileVersion;

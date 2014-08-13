@@ -169,6 +169,35 @@ AlgorithmBorderToVertices::AlgorithmBorderToVertices(ProgressObject* myProgObj, 
                     curNode = nextNode;
                     curPos = nextPos;
                 }
+                if (thisBorderPart->isClosed())
+                {
+                    thisBary = thisBorderPart->getPoint(0)->getBarycentricProjection();
+                    CaretAssert(thisBary->isValid());
+                    thisWeights = thisBary->getTriangleAreas();
+                    thisNodes = thisBary->getTriangleNodes();
+                    useNode = 0;
+                    weightSum = 0.0f;
+                    Vector3D nextPos;//initializes to 0
+                    for (int n = 0; n < 3; ++n)
+                    {
+                        if (thisWeights[n] > 0.0f)
+                        {
+                            nextPos += thisWeights[n] * Vector3D(mySurf->getCoordinate(thisNodes[n]));
+                            weightSum += thisWeights[n];
+                        }
+                        if (thisWeights[n] > thisWeights[useNode]) useNode = n;//get closest node to point
+                    }
+                    nextPos /= weightSum;
+                    int nextNode = thisBary->getTriangleNodes()[useNode];
+                    vector<int32_t> pathNodes;
+                    vector<float> pathDists;//not used, but mandatory output
+                    myGeoHelp->getPathAlongLineSegment(curNode, nextNode, curPos, nextPos, pathNodes, pathDists);
+                    int pathLength = (int)pathNodes.size();
+                    for (int m = 0; m < pathLength; ++m)
+                    {
+                        colScratch[pathNodes[m]] = 1.0f;
+                    }
+                }
             }
         }
         myMetricOut->setValuesForColumn(curBorder, colScratch.data());

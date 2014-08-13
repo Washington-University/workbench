@@ -24,13 +24,16 @@
 #undef __SURFACE_PROJECTION_BARYCENTRIC_DECLARE__
 
 #include "CaretAssert.h"
+#include "DataFileException.h"
 #include "MathFunctions.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
 #include "XmlWriter.h"
 
-using namespace caret;
+#include <QXmlStreamReader>
+#include <QStringList>
 
+using namespace caret;
 
     
 /**
@@ -82,6 +85,22 @@ SurfaceProjectionBarycentric::operator=(const SurfaceProjectionBarycentric& obj)
         this->copyHelperSurfaceProjectionBarycentric(obj);
     }
     return *this;    
+}
+
+bool SurfaceProjectionBarycentric::operator==(const SurfaceProjectionBarycentric& rhs)
+{
+    if (projectionValid != rhs.projectionValid) return false;
+    if (projectionValid)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            if (triangleAreas[i] != rhs.triangleAreas[i]) return false;
+            if (triangleNodes[i] != rhs.triangleNodes[i]) return false;
+        }
+        if (m_degenerate != rhs.m_degenerate) return false;
+        return (signedDistanceAboveSurface == rhs.signedDistanceAboveSurface);
+    }
+    return true;
 }
 
 /**
@@ -404,3 +423,67 @@ SurfaceProjectionBarycentric::writeAsXML(XmlWriter& xmlWriter) throw (XmlExcepti
     }
 }
 
+void SurfaceProjectionBarycentric::readBorderFileXML1(QXmlStreamReader& xml)
+{
+    reset();
+    CaretAssert(xml.isStartElement() && xml.name() == "ProjectionBarycentric");
+    bool haveAreas = false, haveNodes = false, haveDist = false;
+    for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
+    {
+        switch (xml.tokenType())
+        {
+            case QXmlStreamReader::StartElement:
+            {
+                QStringRef name = xml.name();
+                if (name == "TriangleAreas")
+                {
+                    if (haveAreas) throw DataFileException("multiple TriangleAreas elements in one ProjectionBarycentric element");
+                    QString text = xml.readElementText();//errors on unexpected element
+                    if (xml.hasError()) throw DataFileException("XML parsing error in TriangleAreas: " + xml.errorString());
+                    QStringList areaStrings = text.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+                    if (areaStrings.size() != 3) throw DataFileException("TriangleAreas element must contain 3 numbers separated by whitespace");
+                    bool ok = false;
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        triangleAreas[i] = areaStrings[i].toFloat(&ok);
+                        if (!ok) throw DataFileException("found non-numeric string in TriangleAreas: " + areaStrings[i]);
+                    }
+                    haveAreas = true;
+                } else if (name == "TriangleNodes") {
+                    if (haveNodes) throw DataFileException("multiple TriangleNodes elements in one ProjectionBarycentric element");
+                    QString text = xml.readElementText();//errors on unexpected element
+                    if (xml.hasError()) throw DataFileException("XML parsing error in TriangleNodes: " + xml.errorString());
+                    QStringList nodeStrings = text.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+                    if (nodeStrings.size() != 3) throw DataFileException("TriangleNodes element must contain 3 integers separated by whitespace");
+                    bool ok = false;
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        triangleNodes[i] = nodeStrings[i].toInt(&ok);
+                        if (!ok) throw DataFileException("found non-integer string in TriangleNodes: " + nodeStrings[i]);
+                    }
+                    haveNodes = true;
+                } else if (name == "SignedDistanceAboveSurface") {
+                    if (haveDist) throw DataFileException("multiple SignedDistanceAboveSurface elements in one ProjectionBarycentric element");
+                    QString text = xml.readElementText();//errors on unexpected element
+                    if (xml.hasError()) throw DataFileException("XML parsing error in SignedDistanceAboveSurface: " + xml.errorString());
+                    bool ok = false;
+                    signedDistanceAboveSurface = text.toFloat(&ok);
+                    if (!ok) throw DataFileException("found non-numeric string in SignedDistanceAboveSurface: " + text);
+                    haveDist = true;
+                } else {
+                    throw DataFileException("unexpected element in ProjectionBarycentric: " + name.toString());
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    if (xml.hasError()) throw DataFileException("XML parsing error in ProjectionBarycentric: " + xml.errorString());
+    CaretAssert(xml.isEndElement() && xml.name() == "ProjectionBarycentric");
+    if (!haveAreas || !haveNodes)//ignore missing distance? should always be zero for BorderFile anyway
+    {
+        throw DataFileException("SurfaceProjectionBarycentric element missing TriangleNodes and/or TriangleAreas");
+    }
+    projectionValid = true;
+}

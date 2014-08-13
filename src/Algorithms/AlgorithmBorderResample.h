@@ -28,6 +28,7 @@ namespace caret {
     class AlgorithmBorderResample : public AbstractAlgorithm
     {
         AlgorithmBorderResample();
+        void adjustRadius(const SurfaceFile* in, SurfaceFile& out);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();

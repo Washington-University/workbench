@@ -26,6 +26,8 @@
 #include "StructureEnum.h"
 #include "XmlException.h"
 
+class QXmlStreamReader;
+
 namespace caret {
     
     class SurfaceFile;
@@ -41,6 +43,10 @@ namespace caret {
         SurfaceProjectedItem(const SurfaceProjectedItem& o);
         
         SurfaceProjectedItem& operator=(const SurfaceProjectedItem& o);
+        
+        bool operator==(const SurfaceProjectedItem& rhs) const;
+        
+        bool operator!=(const SurfaceProjectedItem& rhs) const { return !(*this == rhs); }
         
         virtual ~SurfaceProjectedItem();
         
@@ -97,6 +103,8 @@ namespace caret {
         void reset();
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        
+        void readBorderFileXML1(QXmlStreamReader& xml);
         
         virtual void clearModified();
         

@@ -20,6 +20,9 @@
 
 #include <algorithm>
 
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+
 #include "CaretAssert.h"
 #include "GiftiMetaData.h"
 #include "GiftiMetaDataXmlElements.h"
@@ -549,6 +552,11 @@ void GiftiMetaData::writeCiftiXML2(QXmlStreamWriter& xmlWriter) const
     writeCiftiXML1(xmlWriter);
 }
 
+void GiftiMetaData::writeBorderFileXML3(QXmlStreamWriter& xmlWriter) const
+{
+    writeCiftiXML1(xmlWriter);
+}
+
 void GiftiMetaData::readCiftiXML1(QXmlStreamReader& xml)
 {
     clear(false);
@@ -571,6 +579,16 @@ void GiftiMetaData::readCiftiXML1(QXmlStreamReader& xml)
 }
 
 void GiftiMetaData::readCiftiXML2(QXmlStreamReader& xml)
+{
+    readCiftiXML1(xml);
+}
+
+void GiftiMetaData::readBorderFileXML1(QXmlStreamReader& xml)
+{
+    readCiftiXML1(xml);
+}
+
+void GiftiMetaData::readBorderFileXML3(QXmlStreamReader& xml)
 {
     readCiftiXML1(xml);
 }
@@ -621,15 +639,6 @@ void GiftiMetaData::readEntry(QXmlStreamReader& xml)
             break;
         }
     }
-}
-
-/**
- * Update the user name and date in the metadata.
- *
- */
-void
-GiftiMetaData::updateUserNameDate()
-{
 }
 
 /**

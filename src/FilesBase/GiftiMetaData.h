@@ -27,14 +27,14 @@
 #include "GiftiException.h"
 #include "TracksModificationInterface.h"
 
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
-
 #include <stdint.h>
 
 #include <map>
 #include <AString.h>
 #include <vector>
+
+class QXmlStreamReader;
+class QXmlStreamWriter;
 
 namespace caret {
 
@@ -115,12 +115,13 @@ public:
             throw (GiftiException);
 
     void writeCiftiXML1(QXmlStreamWriter& xmlWriter) const;
-    void writeCiftiXML2(QXmlStreamWriter& xmlWriter) const;//for style, and in case it changes
+    void writeCiftiXML2(QXmlStreamWriter& xmlWriter) const;//extra names for code style, and in case it changes in a future version
+    void writeBorderFileXML3(QXmlStreamWriter& xmlWriter) const;
     void readCiftiXML1(QXmlStreamReader& xml);
     void readCiftiXML2(QXmlStreamReader& xml);
+    void readBorderFileXML1(QXmlStreamReader& xml);
+    void readBorderFileXML3(QXmlStreamReader& xml);
     
-    void updateUserNameDate();
-
     void setModified();
 
     void clearModified();

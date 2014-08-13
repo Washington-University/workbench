@@ -140,8 +140,13 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
 
     if (spi->isStereotaxicXYZValid()
         || spi->getBarycentricProjection()->isValid()) {
-        spi->setStructure(projectedItem.getStructure());
-        this->borderBeingDrawnByOpenGL->addPoint(spi);
+        if (borderBeingDrawnByOpenGL->getNumberOfPoints() == 0 || borderBeingDrawnByOpenGL->getStructure() == projectedItem.getStructure())
+        {
+            spi->setStructure(projectedItem.getStructure());
+            this->borderBeingDrawnByOpenGL->addPoint(spi);
+        } else {
+            delete spi;
+        }
     }
     else {
         delete spi;

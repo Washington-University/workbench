@@ -174,7 +174,7 @@ XmlUtilities::createInvalidVersionMessage(const float supportedVersion,
     AString txt("File version is " 
                 + AString::number(invalidVersion) 
                 + " but versions newer than "
-                + supportedVersion
+                + AString::number(supportedVersion)
                 + " are not supported.  Check for update to your software.");
     return txt;
 }

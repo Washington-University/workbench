@@ -46,7 +46,7 @@ vector<CaretPointer<Border> > BorderTracingHelper::tracePrivate(vector<int>& mar
     float nodeWeights[3] = { 1.0f - placement, placement, 0.0f };
     while (true)
     {
-        bool foundStart = false;
+        bool foundStart = false, closed = true;
         int curInNode = -1, curEdge = -1, curOutNode = -1;
         for (int i = 0; i < m_numNodes; ++i)
         {
@@ -66,7 +66,11 @@ vector<CaretPointer<Border> > BorderTracingHelper::tracePrivate(vector<int>& mar
                             curInNode = i;
                             curEdge = edges[j];
                             curOutNode = testNode;
-                            if (thisEdge.numTiles == 1) break;//if we found the end of an open border, stop searching
+                            if (thisEdge.numTiles == 1)
+                            {
+                                closed = false;
+                                break;//if we found the end of an open border, stop searching
+                            }
                         }
                     }
                 }
@@ -74,6 +78,7 @@ vector<CaretPointer<Border> > BorderTracingHelper::tracePrivate(vector<int>& mar
         }
         if (!foundStart) break;
         CaretPointer<Border> newBorder(new Border());//in case something throws
+        newBorder->setClosed(closed);
         int startInNode = curInNode, startOutNode = curOutNode;
         int prevThirdNode = -1;
         do

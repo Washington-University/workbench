@@ -26,6 +26,9 @@
 #include "StructureEnum.h"
 #include "XmlException.h"
 
+class QXmlStreamReader;
+class QXmlStreamWriter;
+
 namespace caret {
 
     class GroupAndNameHierarchyItem;
@@ -60,11 +63,13 @@ namespace caret {
         
         void setClassName(const AString& name);
         
-        StructureEnum::Enum getStructure();
-        
         StructureEnum::Enum getStructure() const;
         
+        void setStructure(const StructureEnum::Enum& structure);
+        
         bool verifyAllPointsOnSameStructure() const;
+        
+        bool verifyForSurfaceNumberOfNodes(const int32_t& numNodes) const;
         
         int32_t getNumberOfPoints() const;
         
@@ -82,6 +87,10 @@ namespace caret {
         void addPoints(const Border* border,
                        const int32_t startPointIndex = -1,
                        const int32_t pointCount = -1);
+        
+        bool isClosed() const;
+        
+        void setClosed(const bool& closed);
         
         void addPointsToCloseBorderWithGeodesic(const SurfaceFile* surfaceFile);
         
@@ -107,6 +116,12 @@ namespace caret {
                                   const Border* segment) throw (BorderException);
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        
+        void writeXML3(QXmlStreamWriter& xml) const;
+        
+        void readXML1(QXmlStreamReader& xml);
+        
+        void readXML3(QXmlStreamReader& xml);
         
         void setGroupNameSelectionItem(GroupAndNameHierarchyItem* item);
         
@@ -156,6 +171,8 @@ namespace caret {
         AString m_className;
         
         std::vector<SurfaceProjectedItem*> m_points;
+        
+        bool m_closed;
         
         /** RGBA color component assigned to border's class name */
         float m_classRgbaColor[4];
