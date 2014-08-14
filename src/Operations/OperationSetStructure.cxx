@@ -20,11 +20,13 @@
 
 #include "OperationSetStructure.h"
 #include "OperationException.h"
-#include "StructureEnum.h"
+
+#include "BorderFile.h"
 #include "DataFileTypeEnum.h"
-#include "SurfaceFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "StructureEnum.h"
+#include "SurfaceFile.h"
 
 using namespace caret;
 using namespace std;
@@ -150,6 +152,14 @@ void OperationSetStructure::useParameters(OperationParameters* myParams, Progres
                 myMetric.readFile(fileName);
                 myMetric.setStructure(myStrucure);
                 myMetric.writeFile(fileName);
+            }
+            break;
+        case DataFileTypeEnum::BORDER:
+            {
+                BorderFile myBorder;
+                myBorder.readFile(fileName);
+                myBorder.setStructure(myStrucure);
+                myBorder.writeFile(fileName);
             }
             break;
         default:
