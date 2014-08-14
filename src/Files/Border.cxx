@@ -1554,7 +1554,7 @@ void Border::readXML1(QXmlStreamReader& xml)
 {
     clear();
     CaretAssert(xml.isStartElement() && xml.name() == "Border");
-    bool haveName = false, haveClass = false;
+    bool haveName = false, haveClass = false, haveColorType = false;
     for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
     {
         if (xml.isStartElement())
@@ -1571,6 +1571,11 @@ void Border::readXML1(QXmlStreamReader& xml)
                 m_className = xml.readElementText();//sets error on unexpected child element
                 if (xml.hasError()) throw DataFileException("XML parsing error in ClassName: " + xml.errorString());
                 haveClass = true;
+            } else if (name == "ColorName") {//a gui setting that caret5 wrote into the border file, so ignore it
+                if (haveColorType) throw DataFileException("multiple ColorName elements in one Border element");
+                xml.readElementText();//errors on unexpected element
+                if (xml.hasError()) throw DataFileException("XML parsing error in ColorName: " + xml.errorString());
+                haveColorType = true;
             } else if (name == "SurfaceProjectedItem") {
                 CaretPointer<SurfaceProjectedItem> myItem(new SurfaceProjectedItem());//again, because current interface requires ownership passing of pointer
                 myItem->readBorderFileXML1(xml);
