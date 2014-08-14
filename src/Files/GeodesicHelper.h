@@ -132,10 +132,10 @@ namespace caret {
         ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
         void getPathToNode(const int32_t root, const int32_t endpoint, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag = false);
         
-        ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
+        ///get the distances and nodes along the path to a node - NOTE: does not do smooth distances, so that all nodes in the path are connected in the surface
         void getPathAlongLine(const int32_t root, const int32_t endpoint, const Vector3D& linep1, const Vector3D& linep2, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut);
         
-        ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
+        ///get the distances and nodes along the path to a node - NOTE: does not do smooth distances, so that all nodes in the path are connected in the surface
         void getPathAlongLineSegment(const int32_t root, const int32_t endpoint, const Vector3D& linep1, const Vector3D& linep2, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut);
         
         ///get just the closest node in the region and max distance given, returns -1 if no such node found - roi value of 0 means not in region, anything else is in region

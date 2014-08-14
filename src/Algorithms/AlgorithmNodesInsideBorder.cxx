@@ -22,7 +22,9 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <stack>
+#include <utility>
 #include <vector>
 
 #include "AlgorithmNodesInsideBorder.h"
@@ -44,14 +46,7 @@
 #include "TopologyHelper.h"
 
 using namespace caret;
-
-/*
- * Turning on this debug flag will produce a "debug borders"
- * showing the unconnected and connected paths.  If the GUI
- * is used, these "debug borders" will be added to the
- * "brain" and are viewable.
- */
-static const bool DEBUG_FLAG = false;
+using namespace std;
 
 AString AlgorithmNodesInsideBorder::getCommandSwitch()
 {
@@ -86,49 +81,82 @@ OperationParameters* AlgorithmNodesInsideBorder::getParameters()
 
 void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
+    LevelProgress myProgress(myProgObj);
     SurfaceFile* mySurf = myParams->getSurface(1);
     BorderFile* myBorderFile = myParams->getBorder(2);
     MetricFile* myMetricOut = myParams->getOutputMetric(3);
     OptionalParameter* borderOpt = myParams->getOptionalParameter(4);
     bool inverse = myParams->getOptionalParameter(5)->m_present;
-    if (mySurf->getStructure() == StructureEnum::INVALID) throw AlgorithmException("surface file needs a valid structure to find the right borders in the file");
-    //TODO: check that border file is valid on this surface file
+    int numNodes = mySurf->getNumberOfNodes();
+    if (mySurf->getStructure() == StructureEnum::INVALID) throw AlgorithmException("surface file needs a valid structure to find the correct borders in the file");
+    if (myBorderFile->getNumberOfNodes() > 0)//-1 number of nodes is the signal that this is an old-format, potentially multistructure border file
+    {
+        if (myBorderFile->getStructure() != mySurf->getStructure()) throw AlgorithmException("border file and surface file have different structures");
+        if (myBorderFile->getNumberOfNodes() != numNodes) throw AlgorithmException("border file and surface file have different number of vertices");
+    }
     if (borderOpt->m_present)
     {
         AString findName = borderOpt->getString(1);
         int numBorders = myBorderFile->getNumberOfBorders();
-        int borderIndx = -1;
-        for (int i = 0; i < numBorders; ++i)
-        {
-            if (myBorderFile->getBorder(i)->getName() == findName && myBorderFile->getBorder(i)->getStructure() == mySurf->getStructure())
-            {
-                borderIndx = i;
-                break;
-            }
-        }
-        if (borderIndx == -1) throw AlgorithmException("border name not found for surface structure");
-        myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
-        myMetricOut->setStructure(mySurf->getStructure());
-        myMetricOut->setColumnName(0, findName);
-        AlgorithmNodesInsideBorder(myProgObj, mySurf, myBorderFile->getBorder(borderIndx), inverse, 0, 1.0f, myMetricOut);
-    } else {
-        int numBorders = myBorderFile->getNumberOfBorders();
-        std::vector<int> borderSelect;
+        vector<float> scratchCol(numNodes, (inverse ? 1.0f : 0.0f));
+        bool found = false;
         for (int i = 0; i < numBorders; ++i)
         {
             const Border* thisBorder = myBorderFile->getBorder(i);
-            if (thisBorder->getStructure() != mySurf->getStructure()) continue;
-            borderSelect.push_back(i);
+            if (thisBorder->getName() == findName && thisBorder->getStructure() == mySurf->getStructure())
+            {
+                found = true;//don't use inverse in this call, because we need to merge results, and having them inverted first would just make things more confusing
+                vector<int32_t> insideNodes = findNodesInsideBorder(mySurf, thisBorder, false);
+                for (int index = 0; index < (int)insideNodes.size(); ++index)
+                {
+                    scratchCol[insideNodes[index]] = (inverse ? 0.0f : 1.0f);
+                }
+            }
         }
-        int numSelect = (int)borderSelect.size();
-        if (numSelect < 1) throw AlgorithmException("no borders match the structure of the surface");
-        myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), numSelect);
+        if (!found) throw AlgorithmException("border name not found for surface structure");
+        myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
+        myMetricOut->setStructure(mySurf->getStructure());
+        myMetricOut->setColumnName(0, findName);
+        myMetricOut->setValuesForColumn(0, scratchCol.data());
+    } else {
+        int numBorderParts = myBorderFile->getNumberOfBorders();
+        map<pair<AString, AString>, int> borderCounter;//for grouping border parts with this structure into borders, with indexes into borderPartGroups
+        vector<vector<int> > borderPartGroups;//stores the border parts of borders, in order of first part encountered in file
+        for (int i = 0; i < numBorderParts; ++i)
+        {
+            const Border* thisBorder = myBorderFile->getBorder(i);
+            if (thisBorder->getStructure() == mySurf->getStructure())
+            {
+                map<pair<AString, AString>, int>::iterator iter = borderCounter.find(make_pair(thisBorder->getName(), thisBorder->getClassName()));
+                if (iter == borderCounter.end())
+                {
+                    borderCounter[make_pair(thisBorder->getName(), thisBorder->getClassName())] = (int)borderPartGroups.size();
+                    borderPartGroups.push_back(vector<int>(1, i));
+                } else {
+                    borderPartGroups[iter->second].push_back(i);
+                }
+            }
+        }
+        int numBorders = (int)borderPartGroups.size();
+        if (numBorders == 0) throw AlgorithmException("no borders match the structure of the surface");
+        myMetricOut->setNumberOfNodesAndColumns(numNodes, numBorders);
         myMetricOut->setStructure(mySurf->getStructure());
 #pragma omp CARET_PARFOR schedule(dynamic)
-        for (int i = 0; i < numSelect; ++i)
+        for (int i = 0; i < numBorders; ++i)//parallel mainly because the method used to be inefficient (repeatedly uses geodesic to full surface)
         {
-            myMetricOut->setColumnName(i, myBorderFile->getBorder(borderSelect[i])->getName());
-            AlgorithmNodesInsideBorder(myProgObj, mySurf, myBorderFile->getBorder(borderSelect[i]), inverse, i, 1.0f, myMetricOut);
+            myMetricOut->setColumnName(i, myBorderFile->getBorder(borderPartGroups[i][0])->getName());//should be safe to do in parallel
+            vector<float> scratchCol(numNodes, (inverse ? 1.0f : 0.0f));
+            int numParts = (int)borderPartGroups[i].size();
+            for (int j = 0; j < numParts; ++j)
+            {
+                const Border* thisBorder = myBorderFile->getBorder(borderPartGroups[i][j]);
+                vector<int32_t> insideNodes = findNodesInsideBorder(mySurf, thisBorder, false);
+                for (int index = 0; index < (int)insideNodes.size(); ++index)
+                {
+                    scratchCol[insideNodes[index]] = (inverse ? 0.0f : 1.0f);
+                }
+            }
+            myMetricOut->setValuesForColumn(i, scratchCol.data());//ditto
         }
     }
 }
@@ -195,20 +223,15 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const int32_t assignToMetricMapIndex,
                                                        const float assignMetricValue,
                                                        MetricFile* metricFileInOut)
-: AbstractAlgorithm(myProgObj),
-m_surfaceFile(surfaceFile),
-m_border(border),
-m_inverseSelectionFlag(isInverseSelection)
+: AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
     CaretAssert(metricFileInOut);
-    m_debugBorderFile = NULL;
     
     if (surfaceFile->getNumberOfNodes() != metricFileInOut->getNumberOfNodes()) throw AlgorithmException("metric file must be initialized to same number of nodes");//a method that requires this really shouldn't be public
     
-    std::vector<int32_t> nodesInsideBorder;
-    this->findNodesInsideBorder(nodesInsideBorder);
+    std::vector<int32_t> nodesInsideBorder = findNodesInsideBorder(surfaceFile, border, isInverseSelection);
     
     const int32_t numberOfNodesInsideBorder = static_cast<int32_t>(nodesInsideBorder.size());
     for (int32_t i = 0; i < numberOfNodesInsideBorder; i++) {
@@ -245,20 +268,15 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const int32_t assignToLabelMapIndex,
                                                        const int32_t assignLabelKey,
                                                        LabelFile* labelFileInOut)
-: AbstractAlgorithm(myProgObj),
-m_surfaceFile(surfaceFile),
-m_border(border),
-m_inverseSelectionFlag(isInverseSelection)
+: AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
     CaretAssert(labelFileInOut);
-    m_debugBorderFile = NULL;
     
     if (surfaceFile->getNumberOfNodes() != labelFileInOut->getNumberOfNodes()) throw AlgorithmException("metric file must be initialized to same number of nodes");//a method that requires this really shouldn't be public
     
-    std::vector<int32_t> nodesInsideBorder;
-    this->findNodesInsideBorder(nodesInsideBorder);
+    std::vector<int32_t> nodesInsideBorder = findNodesInsideBorder(surfaceFile, border, isInverseSelection);
     
     const int32_t numberOfNodesInsideBorder = static_cast<int32_t>(nodesInsideBorder.size());
     for (int32_t i = 0; i < numberOfNodesInsideBorder; i++) {
@@ -295,18 +313,13 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                            const int32_t assignToCiftiScalarMapIndex,
                            const float assignScalarValue,
                            CiftiBrainordinateScalarFile* ciftiScalarFileInOut)
-: AbstractAlgorithm(myProgObj),
-m_surfaceFile(surfaceFile),
-m_border(border),
-m_inverseSelectionFlag(isInverseSelection)
+: AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
     CaretAssert(ciftiScalarFileInOut);
-    m_debugBorderFile = NULL;
     
-    std::vector<int32_t> nodesInsideBorder;
-    this->findNodesInsideBorder(nodesInsideBorder);
+    std::vector<int32_t> nodesInsideBorder = findNodesInsideBorder(surfaceFile, border, isInverseSelection);
     
     std::vector<float> surfaceMapData(surfaceFile->getNumberOfNodes(),
                                       0.0);
@@ -348,18 +361,14 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const int32_t assignToCiftiLabelMapIndex,
                                                        const int32_t assignLabelKey,
                                                        CiftiBrainordinateLabelFile* ciftiLabelFileInOut)
-: AbstractAlgorithm(myProgObj),
-m_surfaceFile(surfaceFile),
-m_border(border),
-m_inverseSelectionFlag(isInverseSelection)
+: AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
     CaretAssert(ciftiLabelFileInOut);
-    m_debugBorderFile = NULL;
     
     std::vector<int32_t> nodesInsideBorder;
-    this->findNodesInsideBorder(nodesInsideBorder);
+    this->findNodesInsideBorder(surfaceFile, border, isInverseSelection);
     
     std::vector<float> surfaceMapData(surfaceFile->getNumberOfNodes(),
                                       0.0);
@@ -376,105 +385,36 @@ m_inverseSelectionFlag(isInverseSelection)
     
 }
 
-/**
- * Destructor.
- */
-AlgorithmNodesInsideBorder::~AlgorithmNodesInsideBorder()
+std::vector<int32_t> 
+AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* mySurf, const Border* myBorder, const bool& inverse)
 {
-    if (m_debugBorderFile != NULL) {
-        delete m_debugBorderFile;
-    }
-}
-
-
-/**
- * @return Border file containing borders used for debugging algorithm.
- *         WILL BE NULL if no debug borders were created.
- */
-const BorderFile*
-AlgorithmNodesInsideBorder::getDebugBorderFile()
-{
-    return m_debugBorderFile;
-}
-
-/**
- * Add a border to the debug border file.
- *
- * @param border
- *    Border to add to debug border file.
- */
-void
-AlgorithmNodesInsideBorder::addDebugBorder(Border* border)
-{
-    if (m_debugBorderFile == NULL) {
-        m_debugBorderFile = new BorderFile();
-        m_debugBorderFile->setFileName("DEBUG_"
-                                       + m_borderName
-                                       + "."
-                                       + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::BORDER));
-    }
-    
-    m_debugBorderFile->addBorder(border);
-}
-
-/**
- * Find nodes inside the border.
- *
- * @param nodesInsideBorderOut
- *    Vector into which nodes inside border are loaded.
- */
-void 
-AlgorithmNodesInsideBorder::findNodesInsideBorder(std::vector<int32_t>& nodesInsideBorderOut)
-{
-    m_borderName = m_border->getName();
-    nodesInsideBorderOut.clear();
+    std::vector<int32_t> nodesInsideBorderOut;
+    if (myBorder->getNumberOfPoints() == 0) return nodesInsideBorderOut;//we could throw, but whatever
     
     /*
      * Move border points to the nearest nodes.
      */
-    std::vector<int32_t> unconnectedNodesPath;
-    moveBorderPointsToNearestNodes(unconnectedNodesPath);
+    std::vector<int32_t> unconnectedNodesPath = moveBorderPointsToNearestNodes(mySurf, myBorder);
 
-    if (DEBUG_FLAG) {
-        Border* b = Border::newInstanceFromSurfaceNodes(("DEBUG_UNCONNECTED_PATH_"
-                                                         + m_borderName),
-                                                        m_surfaceFile,
-                                                        unconnectedNodesPath);
-        addDebugBorder(b);
-    }
-    
     /*
      * Convert the unconnected nodes path into a connected nodes path
      */
-    std::vector<int32_t> connectedNodesPath;
-    createConnectedNodesPath(unconnectedNodesPath,
-                             connectedNodesPath);
+    std::vector<int32_t> connectedNodesPath = createConnectedNodesPath(mySurf, myBorder, unconnectedNodesPath);
     
     int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
-    if (numberOfNodesInConnectedPath < 4) {
-        throw AlgorithmException("Connected path is too small "
-                                 "as it consists of fewer than four vertices.");
-    }
-    
-    if (DEBUG_FLAG) {
-        Border* b = Border::newInstanceFromSurfaceNodes(("DEBUG_CONNECTED_PATH_"
-                                                         + m_borderName),
-                                                        m_surfaceFile,
-                                                        connectedNodesPath);
-        addDebugBorder(b);
+    if (numberOfNodesInConnectedPath < 1) {
+        throw AlgorithmException("Connected path contains no vertices.");
     }
     
     /*
      * Find nodes that are OUTSIDE the connected path
      */
-    std::vector<int32_t> nodesOutsidePath;
-    findNodesOutsideOfConnectedPath(connectedNodesPath,
-                                    nodesOutsidePath);
+    std::vector<int32_t> nodesOutsidePath = findNodesOutsideOfConnectedPath(mySurf, connectedNodesPath);
 
     /*
      * Identify nodes INSIDE the connected path
      */
-    const int32_t numberOfSurfaceNodes = m_surfaceFile->getNumberOfNodes();
+    const int32_t numberOfSurfaceNodes = mySurf->getNumberOfNodes();
     std::vector<bool> nodeInsideRegionFlags(numberOfSurfaceNodes,
                                             true);
     
@@ -489,14 +429,14 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(std::vector<int32_t>& nodesIns
      * Handle inverse selection or possibility outside selection was
      * accidentally inside selection
      */
-    bool doInverseFlag = m_inverseSelectionFlag;
+    bool doInverseFlag = inverse;
     
     const int32_t halfNumberOfSurfaceNodes = numberOfSurfaceNodes / 2;
     if (numberOfNodesOutsidePath < halfNumberOfSurfaceNodes) {
         doInverseFlag = ( ! doInverseFlag);
     }
     
-    const CaretPointer<TopologyHelper> th = m_surfaceFile->getTopologyHelper();
+    const CaretPointer<TopologyHelper> th = mySurf->getTopologyHelper();
     /*
      * Identify nodes
      */
@@ -521,75 +461,48 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(std::vector<int32_t>& nodesIns
             nodesInsideBorderOut.push_back(i);
         }
     }
+    return nodesInsideBorderOut;
 }
 
-/**
- * Move the points in the input border to the nearest nodes.
- * The output path is "cleaned" so that it does not contain 
- * any consecutive points.
- *
- * @param nodeIndicesFollowingBorder
- *    Output containing nodes nearest border points.
- */
-void
-AlgorithmNodesInsideBorder::moveBorderPointsToNearestNodes(std::vector<int32_t>& nodeIndicesFollowingBorder)
+std::vector<int32_t>
+AlgorithmNodesInsideBorder::moveBorderPointsToNearestNodes(const SurfaceFile* mySurf, const Border* myBorder)
 {
-    nodeIndicesFollowingBorder.clear();
+    std::vector<int32_t> nodeIndicesFollowingBorder;
     
     /*
      * Move border points to the nearest nodes.
      */
-    const int32_t originalNumberOfBorderPoints = m_border->getNumberOfPoints();
+    const int32_t originalNumberOfBorderPoints = myBorder->getNumberOfPoints();
     for (int32_t i = 0; i < originalNumberOfBorderPoints; i++) {
-        const SurfaceProjectedItem* spi = m_border->getPoint(i);
+        const SurfaceProjectedItem* spi = myBorder->getPoint(i);
         float xyz[3];
-        if (spi->getProjectedPosition(*m_surfaceFile, xyz, true)) {
-            const int32_t nearestNode = m_surfaceFile->closestNode(xyz);
+        if (spi->getProjectedPosition(*mySurf, xyz, true)) {
+            const int32_t nearestNode = mySurf->closestNode(xyz);
             if (nearestNode >= 0) {
                 nodeIndicesFollowingBorder.push_back(nearestNode);
             }
         }
     }
-    cleanNodePath(nodeIndicesFollowingBorder);
     
-    /*
-     * Make sure first and last nodes are not the same
-     */
-    int32_t numberOfPointsInBorder = static_cast<int32_t>(nodeIndicesFollowingBorder.size());
-    if (nodeIndicesFollowingBorder.size() < 4) {
-        throw AlgorithmException("Border is too small.  "
-                                 "When moved to nearest vertices, border consists of four or fewer vertices.");
-    }
-    if (nodeIndicesFollowingBorder[0] == nodeIndicesFollowingBorder[numberOfPointsInBorder - 1]) {
-        nodeIndicesFollowingBorder.resize(numberOfPointsInBorder - 1);
-    }
+    CaretAssert(myBorder->getNumberOfPoints() == (int)nodeIndicesFollowingBorder.size());//required for the connecting code to use following line segment logic
+    return nodeIndicesFollowingBorder;
 }
 
 
-/**
- * Given an path consisting of unconnected nodes, create a path
- * that connectects the nodes.
- *
- * @param unconnectedNodesPath
- *    Input consisting of the unconnected nodes path.
- * @param connectedNodesPathOut
- *    Output connected nodes path.
- */
-void
-AlgorithmNodesInsideBorder::createConnectedNodesPath(const std::vector<int32_t>& unconnectedNodesPath,
-                                                     std::vector<int32_t>& connectedNodesPathOut)
+std::vector<int32_t>
+AlgorithmNodesInsideBorder::createConnectedNodesPath(const SurfaceFile* mySurf, const Border* myBorder, const std::vector<int32_t>& unconnectedNodesPath)
 {
-    connectedNodesPathOut.clear();
+    std::vector<int32_t> connectedNodesPathOut;
     
     /*
      * Geodesic helper for surface
      */
-    CaretPointer<GeodesicHelper> geodesicHelper = m_surfaceFile->getGeodesicHelper();
+    CaretPointer<GeodesicHelper> geodesicHelper = mySurf->getGeodesicHelper();
     
     /*
-     * Get the topology helper for the surface with neighbors sorted.
+     * Get the topology helper for the surface
      */
-    CaretPointer<TopologyHelper> th = m_surfaceFile->getTopologyHelper(true);
+    CaretPointer<TopologyHelper> th = mySurf->getTopologyHelper();
     
     /*
      * Find connected path along node neighbors
@@ -599,22 +512,20 @@ AlgorithmNodesInsideBorder::createConnectedNodesPath(const std::vector<int32_t>&
         const int node = unconnectedNodesPath[i];
         connectedNodesPathOut.push_back(node);
         
-        int nextNode = -1;
+        int nextIndex = -1;
         const bool lastNodeFlag = (i >= (numberOfNodesInUnconnectedPath - 1));
         if (lastNodeFlag) {
-            nextNode = unconnectedNodesPath[0];
+            nextIndex = 0;
         }
         else {
-            nextNode = unconnectedNodesPath[i + 1];
+            nextIndex = i + 1;
         }
+        int nextNode = unconnectedNodesPath[nextIndex];
         
         
-        if (node != nextNode) {
+        /*if (node != nextNode) {
             bool doGeodesicSearch = true;
             
-            /*
-             * See if next node is an immediate neighbor of the current node.
-             */
             const std::vector<int32_t> neighbors = th->getNodeNeighbors(node);
             if (std::find(neighbors.begin(),
                           neighbors.end(),
@@ -624,9 +535,6 @@ AlgorithmNodesInsideBorder::createConnectedNodesPath(const std::vector<int32_t>&
             }
             
             if (doGeodesicSearch) {
-                /*
-                 * Find the geodesic path from node to the next node
-                 */
                 std::vector<float> distances;
                 std::vector<int32_t> parentNodes;
                 geodesicHelper->getGeoFromNode(node,
@@ -661,19 +569,27 @@ AlgorithmNodesInsideBorder::createConnectedNodesPath(const std::vector<int32_t>&
                     connectedNodesPathOut.push_back(pathFromNextNodeToNode[i]);
                 }
             }
-        }
+        }//*/
+        vector<int32_t> path;
+        vector<float> dists;
+        Vector3D nodePos, nextPos;
+        myBorder->getPoint(i)->getProjectedPosition(*mySurf, nodePos, true);//really means unproject
+        myBorder->getPoint(nextIndex)->getProjectedPosition(*mySurf, nextPos, true);
+        geodesicHelper->getPathAlongLineSegment(node, nextNode, nodePos, nextPos, path, dists);
+        connectedNodesPathOut.insert(connectedNodesPathOut.end(), path.begin(), path.end());
     }
     
     /*
      * Remove duplicates.
      */
-    this->cleanNodePath(connectedNodesPathOut);
+    cleanNodePath(connectedNodesPathOut);
     
     /*
      * Valid that the path nodes are connected.
      */
-    this->validateConnectedNodesPath(connectedNodesPathOut);
+    validateConnectedNodesPath(mySurf, connectedNodesPathOut);
     
+    return connectedNodesPathOut;
 }
 
 /**
@@ -684,18 +600,16 @@ AlgorithmNodesInsideBorder::createConnectedNodesPath(const std::vector<int32_t>&
  * @param nodesOutsidePathOut
  *    Vector into which nodes OUTSIDE connected path are loaded. 
  */
-void
-AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const std::vector<int32_t>& connectedNodesPath,
-                                                             std::vector<int32_t>& nodesOutsidePathOut)
+std::vector<int32_t>
+AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const SurfaceFile* mySurf, const std::vector<int32_t>& connectedNodesPath)
 {
-    nodesOutsidePathOut.clear();
+    std::vector<int32_t> nodesOutsidePathOut;
 
     /*
      * Track nodes that are found inside and/or have been visited.
      */
-    const int32_t numberOfNodes = m_surfaceFile->getNumberOfNodes();
-    std::vector<NodeInsideBorderStatus> nodeSearchStatus(numberOfNodes,
-                                                         NODE_UNVISITED);
+    const int32_t numberOfNodes = mySurf->getNumberOfNodes();
+    std::vector<int> nodeSearchStatus(numberOfNodes, 0);
     std::vector<bool> insideBorderFlag(numberOfNodes, false);
     
     /*
@@ -704,20 +618,19 @@ AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const std::vector<in
     const int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
     for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
         CaretAssertVectorIndex(nodeSearchStatus, connectedNodesPath[i]);
-        nodeSearchStatus[connectedNodesPath[i]] = NODE_VISITED;
+        nodeSearchStatus[connectedNodesPath[i]] = 1;
     }
     
     /*
      * Get the topology helper for the surface with neighbors sorted.
      */
-    CaretPointer<TopologyHelper> th = m_surfaceFile->getTopologyHelper(true);
+    CaretPointer<TopologyHelper> th = mySurf->getTopologyHelper(true);
     
     /*
      * Find the node that is furthest from the connected path's
      * center of gravity (average coordinate)
      */
-    int32_t startNode = findNodeFurthestFromConnectedPathCenterOfGravity(connectedNodesPath,
-                                                                         nodeSearchStatus);
+    int32_t startNode = findNodeFurthestFromConnectedPathCenterOfGravity(mySurf, connectedNodesPath, nodeSearchStatus);
     
     if (startNode < 0) {
         throw AlgorithmException("Failed to find vertex that is not inside of the connected path.");
@@ -746,8 +659,8 @@ AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const std::vector<in
          * Has node been visited?
          */
         CaretAssertVectorIndex(nodeSearchStatus, nodeNumber);
-        if (nodeSearchStatus[nodeNumber] == NODE_UNVISITED) {
-            nodeSearchStatus[nodeNumber] = NODE_VISITED;
+        if (nodeSearchStatus[nodeNumber] == 0) {
+            nodeSearchStatus[nodeNumber] = 1;
             
             /*
              * Set node as inside
@@ -767,7 +680,7 @@ AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const std::vector<in
             for (int i = 0; i < numNeighbors; i++) {
                 const int neighborNode = neighbors[i];
                 CaretAssertVectorIndex(nodeSearchStatus, neighborNode);
-                if (nodeSearchStatus[neighborNode] != NODE_VISITED) {
+                if (nodeSearchStatus[neighborNode] != 1) {
                     stack.push(neighborNode);
                 }
             }
@@ -785,6 +698,7 @@ AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const std::vector<in
             insideCount++;
         }
     }
+    return nodesOutsidePathOut;
 }
 
 /**
@@ -797,8 +711,8 @@ AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const std::vector<in
  *     Search status of the nodes.
  */
 int32_t
-AlgorithmNodesInsideBorder::findNodeFurthestFromConnectedPathCenterOfGravity(const std::vector<int32_t>& connectedNodesPath,
-                                                                             std::vector<NodeInsideBorderStatus>& nodeSearchStatus)
+AlgorithmNodesInsideBorder::findNodeFurthestFromConnectedPathCenterOfGravity(const SurfaceFile* mySurf, const std::vector<int32_t>& connectedNodesPath,
+                                                                             std::vector<int>& nodeSearchStatus)
 {
     double sumX = 0.0;
     double sumY = 0.0;
@@ -808,7 +722,7 @@ AlgorithmNodesInsideBorder::findNodeFurthestFromConnectedPathCenterOfGravity(con
     const int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
     
     for (int32_t i = 1; i < (numberOfNodesInConnectedPath - 1); i++) {
-        const float* xyz = m_surfaceFile->getCoordinate(connectedNodesPath[i]);
+        const float* xyz = mySurf->getCoordinate(connectedNodesPath[i]);
         sumX += xyz[0];
         sumY += xyz[1];
         sumZ += xyz[2];
@@ -825,15 +739,15 @@ AlgorithmNodesInsideBorder::findNodeFurthestFromConnectedPathCenterOfGravity(con
         /*
          * Get the topology helper for the surface with neighbors sorted.
          */
-        CaretPointer<TopologyHelper> topologyHelper = m_surfaceFile->getTopologyHelper(true);
+        CaretPointer<TopologyHelper> topologyHelper = mySurf->getTopologyHelper(true);
         float maxDist = -1.0;
         int32_t maxDistNodeIndex = -1;
         
-        const int32_t numberOfNodes = m_surfaceFile->getNumberOfNodes();
+        const int32_t numberOfNodes = mySurf->getNumberOfNodes();
         for (int32_t i = 0; i < numberOfNodes; i++) {
-            if (nodeSearchStatus[i] == NODE_UNVISITED) {
+            if (nodeSearchStatus[i] == 0) {
                 if (topologyHelper->getNodeHasNeighbors(i)) {
-                    const float* coordXYZ = m_surfaceFile->getCoordinate(i);
+                    const float* coordXYZ = mySurf->getCoordinate(i);
                     const float distSQ = MathFunctions::distanceSquared3D(cog,
                                                                           coordXYZ);
                     if (distSQ > maxDist) {
@@ -877,12 +791,12 @@ AlgorithmNodesInsideBorder::cleanNodePath(std::vector<int32_t>& nodePath)
  *    Path that is validated.
  */
 void 
-AlgorithmNodesInsideBorder::validateConnectedNodesPath(const std::vector<int32_t>& connectedNodesPath)
+AlgorithmNodesInsideBorder::validateConnectedNodesPath(const SurfaceFile* mySurf, const std::vector<int32_t>& connectedNodesPath)
 {
     /*
      * Get the topology helper for the surface with neighbors sorted.
      */
-    CaretPointer<TopologyHelper> th = m_surfaceFile->getTopologyHelper(false);
+    CaretPointer<TopologyHelper> th = mySurf->getTopologyHelper(false);
     
     /*
      * Check the path to see that each pair of nodes are connected.

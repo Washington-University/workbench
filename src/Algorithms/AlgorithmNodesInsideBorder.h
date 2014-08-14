@@ -70,50 +70,30 @@ namespace caret {
                                    const int32_t assignLabelKey,
                                    LabelFile* labelFileInOut);
         
-        virtual ~AlgorithmNodesInsideBorder();
-        
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, 
                                   ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     
-        const BorderFile* getDebugBorderFile();
+        static const BorderFile* getDebugBorderFile() { return NULL; }
         
     private:
-        enum NodeInsideBorderStatus {
-            NODE_UNVISITED,
-            NODE_VISITED
-        };
+        static std::vector<int32_t> findNodesInsideBorder(const SurfaceFile* mySurf, const Border* myBorder, const bool& inverse);
         
-        void findNodesInsideBorder(std::vector<int32_t>& nodesInsideBorderOut);
+        static std::vector<int32_t> findNodesOutsideOfConnectedPath(const SurfaceFile* mySurf, const std::vector<int32_t>& connectedNodesPath);
         
-        void findNodesOutsideOfConnectedPath(const std::vector<int32_t>& connectedNodesPath,
-                                              std::vector<int32_t>& nodesInsidePathOut);
+        static int32_t findNodeFurthestFromConnectedPathCenterOfGravity(const SurfaceFile* mySurf, const std::vector<int32_t>& connectedNodesPath,
+                                                                        std::vector<int>& nodeSearchStatus);
         
-        int32_t findNodeFurthestFromConnectedPathCenterOfGravity(const std::vector<int32_t>& connectedNodesPath,
-                                                                 std::vector<NodeInsideBorderStatus>& nodeSearchStatus);
+        static std::vector<int32_t> createConnectedNodesPath(const SurfaceFile* mySurf, const Border* myBorder, const std::vector<int32_t>& unconnectedNodesPath);
         
-        void createConnectedNodesPath(const std::vector<int32_t>& unconnectedNodesPath,
-                                      std::vector<int32_t>& connectedNodesPathOut);
+        static void cleanNodePath(std::vector<int32_t>& nodePath);
         
-        void cleanNodePath(std::vector<int32_t>& nodePath);
+        static std::vector<int32_t> moveBorderPointsToNearestNodes(const SurfaceFile* mySurf, const Border* myBorder);
         
-        void moveBorderPointsToNearestNodes(std::vector<int32_t>& nodeIndicesFollowingBorder);
+        static void validateConnectedNodesPath(const SurfaceFile* mySurf, const std::vector<int32_t>& connectedNodesPath);
         
-        void validateConnectedNodesPath(const std::vector<int32_t>& connectedNodesPath);
-        
-        void addDebugBorder(Border* b);
-        
-        const SurfaceFile* m_surfaceFile;
-        
-        const Border* m_border;
-        
-        const bool m_inverseSelectionFlag;
-        
-        BorderFile* m_debugBorderFile;
-        
-        AString m_borderName;  
     };
     
     typedef TemplateAutoOperation<AlgorithmNodesInsideBorder> AutoAlgorithmNodesInsideBorder;
