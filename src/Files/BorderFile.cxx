@@ -1254,6 +1254,7 @@ void BorderFile::parseBorderFile1(QXmlStreamReader& xml)
                     if (haveSingleTable) throw DataFileException("file has multiple LabelTable elements");
                     singleTable.readFromQXmlStreamReader(xml);
                     if (xml.hasError()) throw DataFileException("XML parsing error in LabelTable: " + xml.errorString());
+                    createNameAndClassColorTables(&singleTable);
                     haveSingleTable = true;
                 } else if (name == "Border") {
                     CaretPointer<Border> toParse(new Border());//so throw can clean up, but we can also release the Border pointer
@@ -1273,10 +1274,6 @@ void BorderFile::parseBorderFile1(QXmlStreamReader& xml)
     if (!haveSingleTable && (!haveClassTable || !haveNameTable))
     {
         throw DataFileException("border file is missing a required color table");
-    }
-    if (haveSingleTable)
-    {
-        createNameAndClassColorTables(&singleTable);
     }
 }
 

@@ -526,7 +526,7 @@ void SurfaceProjectedItem::readBorderFileXML1(QXmlStreamReader& xml)
                     if (xml.hasError()) throw DataFileException("XML parsing error in Structure: " + xml.errorString());
                     bool ok = false;
                     structure = StructureEnum::fromName(structString, &ok);
-                    if (!ok) throw DataFileException("unrecognized string in Structure: " + structString);
+                    if (!ok) CaretLogWarning("unrecognized string in Structure: " + structString);//HACK: this is what the SAX reader did, don't look at me
                     haveStructure = true;
                 } else if (name == "ProjectionBarycentric") {
                     if (barycentricProjection->isValid()) throw DataFileException("multiple ProjectionBarycentric elements in one SurfaceProjectedItem element");
