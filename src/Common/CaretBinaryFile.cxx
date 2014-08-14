@@ -18,12 +18,8 @@
  */
 /*LICENSE_END*/
 
-#if !defined(CARET_OS_MACOSX) && !defined(_WIN32) && ZLIB_VERNUM > 0x1232
-#define ZLIB_USE_64
-#endif
-
 //try to force large file support from zlib, any other file reading calls
-#ifdef ZLIB_USE_64
+#ifndef CARET_OS_MACOSX
 #define _LARGEFILE64_SOURCE
 #define _LFS64_LARGEFILE 1
 #define _FILE_OFFSET_BITS 64
@@ -162,7 +158,7 @@ void ZFileImpl::open(const QString& filename, const CaretBinaryFile::OpenMode& o
         default:
             throw DataFileException("compressed file only supports READ and WRITE_TRUNCATE modes");
     }
-#ifdef ZLIB_USE_64
+#if !defined(CARET_OS_MACOSX) && ZLIB_VERNUM > 0x1232
     m_zfile = gzopen64(filename.toLocal8Bit().constData(), mode);
 #else
     m_zfile = gzopen(filename.toLocal8Bit().constData(), mode);
@@ -214,7 +210,7 @@ void ZFileImpl::seek(const int64_t& position)
 {
     if (m_zfile == NULL) throw DataFileException("seek called on unopened ZFileImpl");//shouldn't happen
     if (pos() == position) return;//slight hack, since gzseek is slow or nonfunctional for some cases, so don't try it unless necessary
-#ifdef ZLIB_USE_64
+#if !defined(CARET_OS_MACOSX) && ZLIB_VERNUM > 0x1232
     int64_t ret = gzseek64(m_zfile, position, SEEK_SET);
 #else
     int64_t ret = gzseek(m_zfile, position, SEEK_SET);
@@ -225,7 +221,7 @@ void ZFileImpl::seek(const int64_t& position)
 int64_t ZFileImpl::pos()
 {
     if (m_zfile == NULL) throw DataFileException("seek called on unopened ZFileImpl");//shouldn't happen
-#ifdef ZLIB_USE_64
+#if !defined(CARET_OS_MACOSX) && ZLIB_VERNUM > 0x1232
     return gztell64(m_zfile);
 #else
     return gztell(m_zfile);
