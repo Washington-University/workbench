@@ -78,7 +78,6 @@ InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
 LabelSelectionViewController.h
 MacApplication.h
-MapSettingsEditorDialog.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
@@ -87,6 +86,7 @@ MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MovieDialog.h
 OverlaySetViewController.h
+OverlaySettingsEditorDialog.h
 OverlayViewController.h
 PlotMagnifier.h
 PlotPanner.h
@@ -187,8 +187,8 @@ EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventHelpViewerDisplay.h
 EventImageCapture.h
-EventMapSettingsEditorDialogRequest.h
 EventOperatingSystemRequestOpenDataFile.h
+EventOverlaySettingsEditorDialogRequest.h
 EventUpdateInformationWindows.h
 EventUpdateYokedWindows.h
 EventUserInterfaceUpdate.h
@@ -210,7 +210,6 @@ InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
 LabelSelectionViewController.h
 MacApplication.h
-MapSettingsEditorDialog.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
@@ -220,6 +219,7 @@ MetaDataEditorWidget.h
 MouseEvent.h
 MovieDialog.h
 OverlaySetViewController.h
+OverlaySettingsEditorDialog.h
 OverlayViewController.h
 PlotMagnifier.h
 PlotPanner.h
@@ -318,8 +318,8 @@ EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventHelpViewerDisplay.cxx
 EventImageCapture.cxx
-EventMapSettingsEditorDialogRequest.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
+EventOverlaySettingsEditorDialogRequest.cxx
 EventUpdateInformationWindows.cxx
 EventUpdateYokedWindows.cxx
 EventUserInterfaceUpdate.cxx
@@ -341,7 +341,6 @@ InformationDisplayDialog.cxx
 InformationDisplayPropertiesDialog.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx
-MapSettingsEditorDialog.cxx
 MapSettingsFiberTrajectoryWidget.cxx
 MapSettingsLayerWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
@@ -352,6 +351,7 @@ MouseEvent.cxx
 MovieDialog.cxx
 OverlaySetViewController.cxx
 OverlayViewController.cxx
+OverlaySettingsEditorDialog.cxx
 PreferencesDialog.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx

@@ -18,13 +18,13 @@
  */
 /*LICENSE_END*/
 
-#include "EventMapSettingsEditorDialogRequest.h"
+#include "EventOverlaySettingsEditorDialogRequest.h"
 
 using namespace caret;
 
 /**
- * \class caret::EventMapSettingsEditorDialogRequest
- * \brief Event for creating map settings editor dialog
+ * \class caret::EventOverlaySettingsEditorDialogRequest
+ * \brief Event for creating overlay settings editor dialog
  * \ingroup GuiQt
  */
 
@@ -39,11 +39,11 @@ using namespace caret;
  * @param mapIndex
  *    Map index in mapFile.
  */
-EventMapSettingsEditorDialogRequest::EventMapSettingsEditorDialogRequest(const int32_t browserWindowIndex,
+EventOverlaySettingsEditorDialogRequest::EventOverlaySettingsEditorDialogRequest(const int32_t browserWindowIndex,
                                                                          Overlay* overlay,
                                                                CaretMappableDataFile* mapFile,
                                                                const int32_t mapIndex)
-: Event(EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW)
+: Event(EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW)
 {
     m_browserWindowIndex = browserWindowIndex;
     m_overlay = overlay;
@@ -54,7 +54,7 @@ EventMapSettingsEditorDialogRequest::EventMapSettingsEditorDialogRequest(const i
 /*
  * Destructor.
  */
-EventMapSettingsEditorDialogRequest::~EventMapSettingsEditorDialogRequest()
+EventOverlaySettingsEditorDialogRequest::~EventOverlaySettingsEditorDialogRequest()
 {
     
 }

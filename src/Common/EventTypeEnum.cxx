@@ -164,11 +164,7 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_IMAGE_CAPTURE,
                                      "EVENT_IMAGE_CAPTURE",
                                      "Capture an Image of Browser Window Graphics Region"));
-    
-    enumData.push_back(EventTypeEnum(EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
-                                     "EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW",
-                                     "Request display of map scalar data color mapping editor"));
-    
+
     enumData.push_back(EventTypeEnum(EVENT_MODEL_ADD, 
                                      "EVENT_MODEL_ADD", 
                                      "Add a model"));
@@ -196,6 +192,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_OVERLAY_GET_YOKED,
                                      "EVENT_OVERLAY_GET_YOKED",
                                      "Get overlays yoked to a specific group"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_OVERLAY_SETTINGS_EDITOR_SHOW,
+                                     "EVENT_OVERLAY_SETTINGS_EDITOR_SHOW",
+                                     "Request display of overlay settings editor"));
     
     enumData.push_back(EventTypeEnum(EVENT_OVERLAY_VALIDATE,
                                      "EVENT_OVERLAY_VALIDATE",

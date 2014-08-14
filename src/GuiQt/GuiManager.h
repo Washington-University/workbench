@@ -50,7 +50,7 @@ namespace caret {
     class ImageFile;
     class ImageCaptureDialog;
     class InformationDisplayDialog;
-    class MapSettingsEditorDialog;
+    class OverlaySettingsEditorDialog;
     class Model;
     class PreferencesDialog;
     class Scene;
@@ -210,8 +210,8 @@ namespace caret {
         /* Performs OpenGL drawing commands */
         //BrainOpenGL* brainOpenGL;
         
-        /* Editor for map settings. */
-        std::set<MapSettingsEditorDialog*> m_mappingSettingsEditors;
+        /* Editor for overlay settings. */
+        std::set<OverlaySettingsEditorDialog*> m_overlaySettingsEditors;
         
         TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
         

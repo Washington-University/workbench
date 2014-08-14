@@ -88,8 +88,6 @@ public:
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
         /** Browser window image capture */
         EVENT_IMAGE_CAPTURE,
-        /** request display of map scalar color data mapping editor */
-        EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
         /** model - ADD */
         EVENT_MODEL_ADD,
         /** model  - DELETE */
@@ -104,6 +102,8 @@ public:
         EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
         /** Get all yoked overlays */
         EVENT_OVERLAY_GET_YOKED,
+        /** request display overlay settings editor */
+        EVENT_OVERLAY_SETTINGS_EDITOR_SHOW,
         /** Validate that overlay is valid (it exists). */
         EVENT_OVERLAY_VALIDATE,
         /** Get a palette by name from a palette file */

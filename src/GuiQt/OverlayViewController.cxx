@@ -41,7 +41,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
-#include "EventMapSettingsEditorDialogRequest.h"
+#include "EventOverlaySettingsEditorDialogRequest.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "Overlay.h"
@@ -562,7 +562,7 @@ OverlayViewController::settingsActionTriggered()
     this->overlay->getSelectionData(mapFile, 
                                     mapIndex);
     if (mapFile != NULL) {
-        EventMapSettingsEditorDialogRequest pcme(this->browserWindowIndex,
+        EventOverlaySettingsEditorDialogRequest pcme(this->browserWindowIndex,
                                                  this->overlay,
                                                  mapFile,
                                                  mapIndex);

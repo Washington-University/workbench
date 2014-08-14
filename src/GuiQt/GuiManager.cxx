@@ -57,9 +57,9 @@
 #include "EventHelpViewerDisplay.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
-#include "EventMapSettingsEditorDialogRequest.h"
 #include "EventModelGetAll.h"
 #include "EventOperatingSystemRequestOpenDataFile.h"
+#include "EventOverlaySettingsEditorDialogRequest.h"
 #include "EventProgressUpdate.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
@@ -72,7 +72,7 @@
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
-#include "MapSettingsEditorDialog.h"
+#include "OverlaySettingsEditorDialog.h"
 #include "MovieDialog.h"
 #include "PreferencesDialog.h"
 #include "SceneAttributes.h"
@@ -189,7 +189,7 @@ GuiManager::GuiManager(QObject* parent)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -928,9 +928,9 @@ GuiManager::receiveEvent(Event* event)
         
         infoEvent->setEventProcessed();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW) {
-        EventMapSettingsEditorDialogRequest* mapEditEvent =
-        dynamic_cast<EventMapSettingsEditorDialogRequest*>(event);
+    else if (event->getEventType() == EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW) {
+        EventOverlaySettingsEditorDialogRequest* mapEditEvent =
+        dynamic_cast<EventOverlaySettingsEditorDialogRequest*>(event);
         CaretAssert(mapEditEvent);
         
         const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
@@ -938,41 +938,39 @@ GuiManager::receiveEvent(Event* event)
         BrainBrowserWindow* browserWindow = m_brainBrowserWindows[browserWindowIndex];
         CaretAssert(browserWindow);
         
-//        CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
-//        const int mapIndex = mapEditEvent->getMapIndex();
         Overlay* overlay = mapEditEvent->getOverlay();
         
-        MapSettingsEditorDialog* mapEditor = NULL;
-        for (std::set<MapSettingsEditorDialog*>::iterator mapEditorIter = m_mappingSettingsEditors.begin();
-             mapEditorIter != m_mappingSettingsEditors.end();
-             mapEditorIter++) {
-            MapSettingsEditorDialog* med = *mapEditorIter;
+        OverlaySettingsEditorDialog* overlayEditor = NULL;
+        for (std::set<OverlaySettingsEditorDialog*>::iterator overlayEditorIter = m_overlaySettingsEditors.begin();
+             overlayEditorIter != m_overlaySettingsEditors.end();
+             overlayEditorIter++) {
+            OverlaySettingsEditorDialog* med = *overlayEditorIter;
             if (med->isDoNotReplaceSelected() == false) {
-                mapEditor = med;
+                overlayEditor = med;
                 break;
             }
         }
         
         bool placeInDefaultLocation = false;
-        if (mapEditor == NULL) {
-            mapEditor = new MapSettingsEditorDialog(browserWindow);
-            m_mappingSettingsEditors.insert(mapEditor);
-            this->addNonModalDialog(mapEditor);
+        if (overlayEditor == NULL) {
+            overlayEditor = new OverlaySettingsEditorDialog(browserWindow);
+            m_overlaySettingsEditors.insert(overlayEditor);
+            this->addNonModalDialog(overlayEditor);
             placeInDefaultLocation = true;
         }
         else {
-            if (mapEditor->isHidden()) {
+            if (overlayEditor->isHidden()) {
                 placeInDefaultLocation = true;
             }
         }
         
-        mapEditor->updateDialogContent(overlay);
-        mapEditor->show();
-        mapEditor->raise();
-        mapEditor->activateWindow();
+        overlayEditor->updateDialogContent(overlay);
+        overlayEditor->show();
+        overlayEditor->raise();
+        overlayEditor->activateWindow();
         if (placeInDefaultLocation) {
             WuQtUtilities::moveWindowToSideOfParent(browserWindow,
-                                                    mapEditor);
+                                                    overlayEditor);
         }
         mapEditEvent->setEventProcessed();
     }

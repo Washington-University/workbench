@@ -27,9 +27,9 @@
 #include <QPushButton>
 #include <QTabWidget>
 
-#define __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
-#include "MapSettingsEditorDialog.h"
-#undef __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
+#define __OVERLAY_SETTINGS_EDITOR_DIALOG_DECLARE__
+#include "OverlaySettingsEditorDialog.h"
+#undef __OVERLAY_SETTINGS_EDITOR_DIALOG_DECLARE__
 
 #include "CaretMappableDataFile.h"
 #include "CiftiFiberTrajectoryFile.h"
@@ -51,12 +51,9 @@
 using namespace caret;
 
 /**
- * \class caret::MapSettingsScalarDataEditorDialog 
- * \brief Dialog for editing scalar data map settings
+ * \class caret::__OVERLAY_SETTINGS_EDITOR_DIALOG_DECLARE__ 
+ * \brief Dialog for editing an overlay's settings
  * \ingroup GuiQt
- *
- * Presents controls for setting palettes, and thresholding used to color
- * scalar data.
  */
 
 /**
@@ -65,7 +62,7 @@ using namespace caret;
  * @param parent
  *    Parent widget on which this dialog is displayed.
  */
-MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
+OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
 : WuQDialogNonModal("Overlay and Map Settings",
                     parent),
   EventListenerInterface()
@@ -141,7 +138,7 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
 /**
  * Destructor.
  */
-MapSettingsEditorDialog::~MapSettingsEditorDialog()
+OverlaySettingsEditorDialog::~OverlaySettingsEditorDialog()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -153,7 +150,7 @@ MapSettingsEditorDialog::~MapSettingsEditorDialog()
  *    An event for which this instance is listening.
  */
 void
-MapSettingsEditorDialog::receiveEvent(Event* event)
+OverlaySettingsEditorDialog::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE) {
         updateDialog();
@@ -165,7 +162,7 @@ MapSettingsEditorDialog::receiveEvent(Event* event)
  *
  */
 QWidget*
-MapSettingsEditorDialog::createMapFileAndNameSection()
+OverlaySettingsEditorDialog::createMapFileAndNameSection()
 {
     QLabel* mapFileNameLabel = new QLabel("Map File: ");
     m_selectedMapFileNameLabel = new QLabel("");
@@ -196,7 +193,7 @@ MapSettingsEditorDialog::createMapFileAndNameSection()
  *     The focus event.
  */
 void
-MapSettingsEditorDialog::focusInEvent(QFocusEvent* /*event*/)
+OverlaySettingsEditorDialog::focusInEvent(QFocusEvent* /*event*/)
 {
     updateDialog();
 }
@@ -208,7 +205,7 @@ MapSettingsEditorDialog::focusInEvent(QFocusEvent* /*event*/)
  *    Overlay for the dialog.
  */
 void 
-MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
+OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
 {
     const int32_t selectedTabIndex = m_tabWidget->currentIndex();
     m_overlay = overlay;
@@ -368,7 +365,7 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
  * May be called to update the dialog.
  */
 void
-MapSettingsEditorDialog::updateDialog()
+OverlaySettingsEditorDialog::updateDialog()
 {
     /*
      * Validate overlay to prevent crash
@@ -391,7 +388,7 @@ MapSettingsEditorDialog::updateDialog()
  * Called when close button pressed.
  */ 
 void
-MapSettingsEditorDialog::closeButtonPressed()
+OverlaySettingsEditorDialog::closeButtonPressed()
 {
     /*
      * Allow this dialog to be reused (checked means DO NOT reuse)
@@ -407,7 +404,7 @@ MapSettingsEditorDialog::closeButtonPressed()
  *   Layout for which margins are set.
  */
 void 
-MapSettingsEditorDialog::setLayoutSpacingAndMargins(QLayout* layout)
+OverlaySettingsEditorDialog::setLayoutSpacingAndMargins(QLayout* layout)
 {
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 5, 3);
 }
@@ -417,7 +414,7 @@ MapSettingsEditorDialog::setLayoutSpacingAndMargins(QLayout* layout)
  * dialog should not be replaced.
  */
 bool 
-MapSettingsEditorDialog::isDoNotReplaceSelected() const
+OverlaySettingsEditorDialog::isDoNotReplaceSelected() const
 {
     const bool checked = (m_doNotReplaceCheckBox->checkState() == Qt::Checked);
     return checked;
@@ -429,7 +426,7 @@ MapSettingsEditorDialog::isDoNotReplaceSelected() const
  *    New state of checkbox.
  */
 void 
-MapSettingsEditorDialog::doNotReplaceCheckBoxStateChanged(int /*state*/)
+OverlaySettingsEditorDialog::doNotReplaceCheckBoxStateChanged(int /*state*/)
 {
 //    const bool checked = (state == Qt::Checked);
 }
@@ -438,7 +435,7 @@ MapSettingsEditorDialog::doNotReplaceCheckBoxStateChanged(int /*state*/)
  * @return A widget containing the window options.
  */
 QWidget*
-MapSettingsEditorDialog::createWindowOptionsSection()
+OverlaySettingsEditorDialog::createWindowOptionsSection()
 {
     m_doNotReplaceCheckBox = new QCheckBox("Do Not Replace");
     m_doNotReplaceCheckBox->setToolTip("If checked: \n"
@@ -465,7 +462,7 @@ MapSettingsEditorDialog::createWindowOptionsSection()
  * Called when the edit label table button is clicked.
  */
 void
-MapSettingsEditorDialog::editLabelTablePushButtonClicked()
+OverlaySettingsEditorDialog::editLabelTablePushButtonClicked()
 {
     if (m_caretMappableDataFile != NULL) {
         if (m_caretMappableDataFile->isMappedWithLabelTable()) {
@@ -485,7 +482,7 @@ MapSettingsEditorDialog::editLabelTablePushButtonClicked()
  * Create and return widget for editing label tables.
  */
 QWidget*
-MapSettingsEditorDialog::createLabelsSection()
+OverlaySettingsEditorDialog::createLabelsSection()
 {
     m_editLabelTablePushButton = new QPushButton("Edit");
     QObject::connect(m_editLabelTablePushButton, SIGNAL(clicked()),

@@ -1,5 +1,5 @@
-#ifndef __MAP_SETTINGS_EDITOR_DIALOG__H_
-#define __MAP_SETTINGS_EDITOR_DIALOG__H_
+#ifndef __OVERLAY_SETTINGS_EDITOR_DIALOG__H_
+#define __OVERLAY_SETTINGS_EDITOR_DIALOG__H_
 
 /*LICENSE_START*/
 /*
@@ -40,17 +40,17 @@ namespace caret {
     class MapSettingsParcelsWidget;
     class Overlay;
     
-    class MapSettingsEditorDialog : public WuQDialogNonModal, public EventListenerInterface {
+    class OverlaySettingsEditorDialog : public WuQDialogNonModal, public EventListenerInterface {
         Q_OBJECT
         
     public:
-        MapSettingsEditorDialog(QWidget* parent);
+        OverlaySettingsEditorDialog(QWidget* parent);
         
         void updateDialogContent(Overlay* overlay);
         
         void updateDialog();
         
-        virtual ~MapSettingsEditorDialog();
+        virtual ~OverlaySettingsEditorDialog();
 
         bool isDoNotReplaceSelected() const;
         
@@ -62,9 +62,9 @@ namespace caret {
         virtual void focusInEvent(QFocusEvent* event);
         
     private:
-        MapSettingsEditorDialog(const MapSettingsEditorDialog&);
+        OverlaySettingsEditorDialog(const OverlaySettingsEditorDialog&);
 
-        MapSettingsEditorDialog& operator=(const MapSettingsEditorDialog&);
+        OverlaySettingsEditorDialog& operator=(const OverlaySettingsEditorDialog&);
         
     private slots:
         void doNotReplaceCheckBoxStateChanged(int state);
@@ -122,8 +122,8 @@ namespace caret {
         
     };
     
-#ifdef __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
-#endif // __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
+#ifdef __OVERLAY_SETTINGS_EDITOR_DIALOG_DECLARE__
+#endif // __OVERLAY_SETTINGS_EDITOR_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__MAP_SETTINGS_EDITOR_DIALOG__H_
+#endif  //__OVERLAY_SETTINGS_EDITOR_DIALOG__H_

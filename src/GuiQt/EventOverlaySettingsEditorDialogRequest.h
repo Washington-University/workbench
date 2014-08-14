@@ -30,15 +30,15 @@ namespace caret {
     class Overlay;
     
     /// Event for showing edit map scalar color mapping editor
-    class EventMapSettingsEditorDialogRequest : public Event {
+    class EventOverlaySettingsEditorDialogRequest : public Event {
         
     public:
-        EventMapSettingsEditorDialogRequest(const int32_t browserWindowIndex,
+        EventOverlaySettingsEditorDialogRequest(const int32_t browserWindowIndex,
                                             Overlay* overlay,
                                             CaretMappableDataFile* mapFile,
                                             const int32_t mapIndex);
         
-        virtual ~EventMapSettingsEditorDialogRequest();
+        virtual ~EventOverlaySettingsEditorDialogRequest();
         
         /**
          * @return Get the index of the browser window for palette being edited.
@@ -66,9 +66,9 @@ namespace caret {
         const Overlay* getOverlay() const { return m_overlay; }
         
     private:
-        EventMapSettingsEditorDialogRequest(const EventMapSettingsEditorDialogRequest&);
+        EventOverlaySettingsEditorDialogRequest(const EventOverlaySettingsEditorDialogRequest&);
         
-        EventMapSettingsEditorDialogRequest& operator=(const EventMapSettingsEditorDialogRequest&);
+        EventOverlaySettingsEditorDialogRequest& operator=(const EventOverlaySettingsEditorDialogRequest&);
         
         /** Map file containing map whose color palette is edited */
         CaretMappableDataFile* m_mapFile;
