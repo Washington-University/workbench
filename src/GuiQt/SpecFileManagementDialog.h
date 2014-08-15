@@ -245,7 +245,7 @@ namespace caret {
                 
         QSignalMapper* m_fileReloadOrOpenFileActionSignalMapper;
         
-        QSignalMapper* m_fileRemoveFileActionSignalMapper;
+        QSignalMapper* m_fileCloseFileActionSignalMapper;
         
         QSignalMapper* m_fileOptionsActionSignalMapper;
         
@@ -261,7 +261,7 @@ namespace caret {
         
         QIcon* m_iconReloadFile;
         
-        QIcon* m_iconRemoveFile;
+        QIcon* m_iconCloseFile;
         
         std::set<const CaretDataFile*> m_displayedDataFiles;
         
@@ -279,7 +279,7 @@ namespace caret {
         int m_COLUMN_DISPLAYED_LABEL;
         int m_COLUMN_IN_SPEC_FILE_CHECKBOX;
         int m_COLUMN_READ_BUTTON;
-        int m_COLUMN_REMOVE_BUTTON;
+        int m_COLUMN_CLOSE_BUTTON;
         int m_COLUMN_OPTIONS_TOOLBUTTON;
         int m_COLUMN_DATA_FILE_TYPE_LABEL;
         int m_COLUMN_STRUCTURE;

@@ -470,11 +470,11 @@ BrainBrowserWindow::createActions()
                                 SLOT(processManageSaveLoadedFiles()));
     
     m_closeSpecFileAction =
-    WuQtUtilities::createAction("Close Spec File",
-                                "Close the Spec File",
+    WuQtUtilities::createAction("Close All Files",
+                                "Close all loaded files",
                                 this,
                                 this,
-                                SLOT(processCloseSpecFile()));
+                                SLOT(processCloseAllFiles()));
     
     m_closeTabAction =
     WuQtUtilities::createAction("Close Tab",
@@ -1523,10 +1523,10 @@ BrainBrowserWindow::processInformationDialog()
  * Called when close spec file is selected.
  */
 void 
-BrainBrowserWindow::processCloseSpecFile()
+BrainBrowserWindow::processCloseAllFiles()
 {
     if(!WuQMessageBox::warningYesNo(this,
-        "<html>Are you sure you want to close the spec file?</html>")) return;
+        "<html>Are you sure you want to close all files?</html>")) return;
 
     Brain* brain = GuiManager::get()->getBrain();
     brain->resetBrain();

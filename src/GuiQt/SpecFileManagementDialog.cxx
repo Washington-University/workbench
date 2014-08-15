@@ -238,7 +238,7 @@ m_specFile(specFile)
     m_iconOpenFile   = WuQtUtilities::loadIcon(":/SpecFileDialog/load_icon.png");
     m_iconOptions    = WuQtUtilities::loadIcon(":/SpecFileDialog/options_icon.png");
     m_iconReloadFile = WuQtUtilities::loadIcon(":/SpecFileDialog/reload_icon.png");
-    m_iconRemoveFile = WuQtUtilities::loadIcon(":/SpecFileDialog/delete_icon.png");
+    m_iconCloseFile = WuQtUtilities::loadIcon(":/SpecFileDialog/delete_icon.png");
     
     /*
      * Open Spec File or Manage Files?
@@ -267,8 +267,8 @@ m_specFile(specFile)
     QObject::connect(m_fileOptionsActionSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(fileOptionsActionSelected(int)));
     
-    m_fileRemoveFileActionSignalMapper = new QSignalMapper(this);
-    QObject::connect(m_fileRemoveFileActionSignalMapper, SIGNAL(mapped(int)),
+    m_fileCloseFileActionSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_fileCloseFileActionSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(fileRemoveActionSelected(int)));
 
     int tableRowCounter = 0;
@@ -318,7 +318,7 @@ m_specFile(specFile)
     m_COLUMN_DISPLAYED_LABEL             = -1;
     m_COLUMN_IN_SPEC_FILE_CHECKBOX       = -1;
     m_COLUMN_READ_BUTTON                 = -1;
-    m_COLUMN_REMOVE_BUTTON               = -1;
+    m_COLUMN_CLOSE_BUTTON               = -1;
     m_COLUMN_OPTIONS_TOOLBUTTON          = -1;
     m_COLUMN_DATA_FILE_TYPE_LABEL        = -1;
     m_COLUMN_STRUCTURE                   = -1;
@@ -333,7 +333,7 @@ m_specFile(specFile)
         m_COLUMN_DISPLAYED_LABEL = columnCounter++;
         m_COLUMN_IN_SPEC_FILE_CHECKBOX = columnCounter++;
         m_COLUMN_READ_BUTTON = columnCounter++;
-        m_COLUMN_REMOVE_BUTTON = columnCounter++;
+        m_COLUMN_CLOSE_BUTTON = columnCounter++;
     }
     m_COLUMN_OPTIONS_TOOLBUTTON = columnCounter++;
     m_COLUMN_DATA_FILE_TYPE_LABEL = columnCounter++;
@@ -476,8 +476,8 @@ SpecFileManagementDialog::~SpecFileManagementDialog()
     if (m_iconReloadFile != NULL) {
         delete m_iconReloadFile;
     }
-    if (m_iconRemoveFile != NULL) {
-        delete m_iconRemoveFile;
+    if (m_iconCloseFile != NULL) {
+        delete m_iconCloseFile;
     }
 }
 
@@ -677,47 +677,6 @@ SpecFileManagementDialog::setTableWidgetItem(const int rowIndex,
 void
 SpecFileManagementDialog::setTableColumnLabels()
 {
-//    /*
-//     * Set names of table's columns
-//     */
-//    QStringList tableWidgetColumnLabels;
-//    tableWidgetColumnLabels.reserve(m_COLUMN_COUNT);
-//    for (int32_t i = 0; i < m_COLUMN_COUNT; i++) {
-//        tableWidgetColumnLabels.append("");
-//    }
-//    if (m_COLUMN_LOAD_CHECKBOX >= 0){
-//        tableWidgetColumnLabels.replace(m_COLUMN_LOAD_CHECKBOX, "Load");
-//    }
-//    if (m_COLUMN_SAVE_CHECKBOX >= 0){
-//        tableWidgetColumnLabels.replace(m_COLUMN_SAVE_CHECKBOX, "Save");
-//    }
-//    if (m_COLUMN_STATUS_LABEL >= 0){
-//        tableWidgetColumnLabels.replace(m_COLUMN_STATUS_LABEL, "Modified");
-//    }
-//    if (m_COLUMN_IN_SPEC_FILE_CHECKBOX >= 0){
-//        tableWidgetColumnLabels.replace(m_COLUMN_IN_SPEC_FILE_CHECKBOX, "In Spec");
-//    }
-//    if (m_COLUMN_READ_BUTTON >= 0){
-//        tableWidgetColumnLabels.replace(m_COLUMN_READ_BUTTON, "Read");
-//    }
-//    if (m_COLUMN_REMOVE_BUTTON >= 0) {
-//        tableWidgetColumnLabels.replace(m_COLUMN_REMOVE_BUTTON, "Remove");
-//    }
-//    if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0){
-//        tableWidgetColumnLabels.replace(m_COLUMN_OPTIONS_TOOLBUTTON, "More");
-//    }
-//    if (m_COLUMN_DATA_FILE_TYPE_LABEL >= 0){
-//        tableWidgetColumnLabels.replace(m_COLUMN_DATA_FILE_TYPE_LABEL, "Data Type");
-//    }
-//    if (m_COLUMN_STRUCTURE >= 0){
-//        tableWidgetColumnLabels.replace(m_COLUMN_STRUCTURE, "Structure");
-//    }
-//    if (m_COLUMN_FILE_NAME_LABEL >= 0){
-//        tableWidgetColumnLabels.replace(m_COLUMN_FILE_NAME_LABEL, "Data File Name");
-//    }
-//    
-//    m_filesTableWidget->setHorizontalHeaderLabels(tableWidgetColumnLabels);
-    
     /*
      * Set names of table's columns
      */
@@ -745,9 +704,9 @@ SpecFileManagementDialog::setTableColumnLabels()
         m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_READ_BUTTON,
                                                     createHeaderTextItem("Read"));
     }
-    if (m_COLUMN_REMOVE_BUTTON >= 0) {
-        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_REMOVE_BUTTON,
-                                                    createHeaderTextItem("Remove"));
+    if (m_COLUMN_CLOSE_BUTTON >= 0) {
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_CLOSE_BUTTON,
+                                                    createHeaderTextItem("Close"));
     }
     if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0){
         m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_OPTIONS_TOOLBUTTON,
@@ -921,15 +880,15 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
                                                   loadImageLabel);
             }
             
-            if (m_COLUMN_REMOVE_BUTTON >= 0) {
-                WuQImageLabel* removeImageLabel = new WuQImageLabel(m_iconRemoveFile,
-                                                                     "Remove");
-                QObject::connect(removeImageLabel, SIGNAL(clicked()),
-                                 m_fileRemoveFileActionSignalMapper, SLOT(map()));
-                m_fileRemoveFileActionSignalMapper->setMapping(removeImageLabel, iRow);
+            if (m_COLUMN_CLOSE_BUTTON >= 0) {
+                WuQImageLabel* closeImageLabel = new WuQImageLabel(m_iconCloseFile,
+                                                                     "Close");
+                QObject::connect(closeImageLabel, SIGNAL(clicked()),
+                                 m_fileCloseFileActionSignalMapper, SLOT(map()));
+                m_fileCloseFileActionSignalMapper->setMapping(closeImageLabel, iRow);
                 m_filesTableWidget->setCellWidget(iRow,
-                                                  m_COLUMN_REMOVE_BUTTON,
-                                                  removeImageLabel);
+                                                  m_COLUMN_CLOSE_BUTTON,
+                                                  closeImageLabel);
             }
         }
         
@@ -1818,13 +1777,13 @@ SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
     SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
     
     QWidget* removeButtonWidget = m_filesTableWidget->cellWidget(rowIndex,
-                                                               m_COLUMN_REMOVE_BUTTON);
+                                                               m_COLUMN_CLOSE_BUTTON);
     CaretAssert(removeButtonWidget);
     CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
     if (caretDataFile != NULL) {
         if (caretDataFile->isModified()) {
             const QString msg = (caretDataFile->getFileNameNoPath()
-                                 + " is modified.  Remove without saving changes?");
+                                 + " is modified.  Close without saving changes?");
             if (WuQMessageBox::warningOkCancel(removeButtonWidget, msg) == false) {
                 return;
             }

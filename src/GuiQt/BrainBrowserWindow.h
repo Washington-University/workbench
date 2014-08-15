@@ -137,7 +137,7 @@ namespace caret {
         void processCaptureImage();
         void processRecordMovie();
         void processEditPreferences();
-        void processCloseSpecFile();
+        void processCloseAllFiles();
         void processExitProgram();
         void processMoveAllTabsToOneWindow();
         void processViewFullScreenSelected();
