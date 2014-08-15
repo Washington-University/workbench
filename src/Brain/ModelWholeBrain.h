@@ -73,6 +73,8 @@ namespace caret {
         virtual void copyTabContent(const int32_t sourceTabIndex,
                                     const int32_t destinationTabIndex);
         
+        void updateModel();
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass);
@@ -83,9 +85,6 @@ namespace caret {
         ModelWholeBrain(const ModelWholeBrain&);
         
         ModelWholeBrain& operator=(const ModelWholeBrain&);
-        
-    private:
-        void updateModel();
         
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
