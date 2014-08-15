@@ -60,6 +60,7 @@
 #include "EventModelGetAll.h"
 #include "EventOperatingSystemRequestOpenDataFile.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
+#include "EventPaletteColorMappingEditorDialogRequest.h"
 #include "EventProgressUpdate.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
@@ -74,6 +75,7 @@
 #include "InformationDisplayDialog.h"
 #include "OverlaySettingsEditorDialog.h"
 #include "MovieDialog.h"
+#include "PaletteColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -127,6 +129,7 @@ GuiManager::GuiManager(QObject* parent)
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
     m_helpViewerDialog = NULL;
+    m_paletteColorMappingEditor = NULL;
     this->sceneDialog = NULL;
     m_surfacePropertiesEditorDialog = NULL;
     m_tileTabsConfigurationDialog = NULL;
@@ -191,6 +194,7 @@ GuiManager::GuiManager(QObject* parent)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
@@ -1000,6 +1004,36 @@ GuiManager::receiveEvent(Event* event)
             //CaretLogSevere("No browser window open for loading file from operating system.");
             //CaretAssert(0);
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW) {
+        EventPaletteColorMappingEditorDialogRequest* paletteEditEvent =
+        dynamic_cast<EventPaletteColorMappingEditorDialogRequest*>(event);
+        CaretAssert(paletteEditEvent);
+
+        BrainBrowserWindow* browserWindow = m_brainBrowserWindows[paletteEditEvent->getBrowserWindowIndex()];
+        CaretAssert(browserWindow);
+
+        bool placeInDefaultLocation = false;
+        if (m_paletteColorMappingEditor == NULL) {
+            m_paletteColorMappingEditor = new PaletteColorMappingEditorDialog(browserWindow);
+            addNonModalDialog(m_paletteColorMappingEditor);
+            placeInDefaultLocation = true;
+        }
+        else if (m_paletteColorMappingEditor->isHidden()) {
+            placeInDefaultLocation = true;
+        }
+        
+        m_paletteColorMappingEditor->updateDialogContent(paletteEditEvent->getCaretMappableDataFile(),
+                                                         paletteEditEvent->getMapIndex());
+        m_paletteColorMappingEditor->show();
+        m_paletteColorMappingEditor->raise();
+        m_paletteColorMappingEditor->activateWindow();
+        if (placeInDefaultLocation) {
+            WuQtUtilities::moveWindowToSideOfParent(browserWindow,
+                                                    m_paletteColorMappingEditor);
+        }
+        
+        paletteEditEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY) {
         EventHelpViewerDisplay* helpEvent = dynamic_cast<EventHelpViewerDisplay*>(event);

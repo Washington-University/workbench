@@ -52,6 +52,7 @@ namespace caret {
     class InformationDisplayDialog;
     class OverlaySettingsEditorDialog;
     class Model;
+    class PaletteColorMappingEditorDialog;
     class PreferencesDialog;
     class Scene;
     class SceneDialog;
@@ -212,6 +213,9 @@ namespace caret {
         
         /* Editor for overlay settings. */
         std::set<OverlaySettingsEditorDialog*> m_overlaySettingsEditors;
+        
+        /** Editor for palette color mapping editing */
+        PaletteColorMappingEditorDialog* m_paletteColorMappingEditor;
         
         TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
         

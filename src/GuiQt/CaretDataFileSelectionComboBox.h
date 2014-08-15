@@ -43,6 +43,8 @@ namespace caret {
         
         void updateComboBox(CaretDataFileSelectionModel* selectionModel);
         
+        CaretDataFileSelectionModel* getSelectionModel();
+        
         virtual QWidget* getWidget();
         
         // ADD_NEW_METHODS_HERE

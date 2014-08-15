@@ -140,4 +140,13 @@ CaretDataFileSelectionComboBox::updateComboBox(CaretDataFileSelectionModel* sele
     m_comboBox->blockSignals(false);
 }
 
+/**
+ * @return Selection model in this combo box.
+ */
+CaretDataFileSelectionModel*
+CaretDataFileSelectionComboBox::getSelectionModel()
+{
+    return m_selectionModel;
+}
+
 

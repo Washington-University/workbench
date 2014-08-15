@@ -88,6 +88,7 @@ MovieDialog.h
 OverlaySetViewController.h
 OverlaySettingsEditorDialog.h
 OverlayViewController.h
+PaletteColorMappingEditorDialog.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
@@ -189,6 +190,7 @@ EventHelpViewerDisplay.h
 EventImageCapture.h
 EventOperatingSystemRequestOpenDataFile.h
 EventOverlaySettingsEditorDialogRequest.h
+EventPaletteColorMappingEditorDialogRequest.h
 EventUpdateInformationWindows.h
 EventUpdateYokedWindows.h
 EventUserInterfaceUpdate.h
@@ -221,6 +223,7 @@ MovieDialog.h
 OverlaySetViewController.h
 OverlaySettingsEditorDialog.h
 OverlayViewController.h
+PaletteColorMappingEditorDialog.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
@@ -320,6 +323,7 @@ EventHelpViewerDisplay.cxx
 EventImageCapture.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
 EventOverlaySettingsEditorDialogRequest.cxx
+EventPaletteColorMappingEditorDialogRequest.cxx
 EventUpdateInformationWindows.cxx
 EventUpdateYokedWindows.cxx
 EventUserInterfaceUpdate.cxx
@@ -352,9 +356,10 @@ MovieDialog.cxx
 OverlaySetViewController.cxx
 OverlayViewController.cxx
 OverlaySettingsEditorDialog.cxx
-PreferencesDialog.cxx
+PaletteColorMappingEditorDialog.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
+PreferencesDialog.cxx
 ProgressReportingDialog.cxx
 ProgressReportingWithSlots.cxx
 RegionOfInterestCreateFromBorderDialog.cxx

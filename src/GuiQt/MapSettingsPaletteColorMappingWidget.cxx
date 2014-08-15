@@ -946,7 +946,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
  */
 void 
 MapSettingsPaletteColorMappingWidget::updateEditor(CaretMappableDataFile* caretMappableDataFile,
-                                         const int32_t mapIndexIn)
+                                                   const int32_t mapIndexIn)
 {
     this->caretMappableDataFile = caretMappableDataFile;
     this->mapFileIndex = mapIndexIn;

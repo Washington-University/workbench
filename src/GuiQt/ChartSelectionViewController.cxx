@@ -51,6 +51,7 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventPaletteColorMappingEditorDialogRequest.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ModelChart.h"
@@ -505,7 +506,20 @@ ChartSelectionViewController::matrixColorBarActionTriggered(bool status)
 void
 ChartSelectionViewController::matrixSettingsActionTriggered()
 {
-    
+    CaretDataFileSelectionModel* fileModel = m_matrixFileSelectionComboBox->getSelectionModel();
+    if (fileModel != NULL) {
+        CaretDataFile* dataFile = fileModel->getSelectedFile();
+        if (dataFile != NULL) {
+            CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(dataFile);
+            if (mapFile != NULL) {
+                const int32_t mapIndex = 0;
+                EventPaletteColorMappingEditorDialogRequest dialogEvent(m_browserWindowIndex,
+                                                                        mapFile,
+                                                                        mapIndex);
+                EventManager::get()->sendEvent(dialogEvent.getPointer());
+            }
+        }
+    }
 }
 
 /**

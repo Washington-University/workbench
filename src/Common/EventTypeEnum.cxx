@@ -165,7 +165,7 @@ EventTypeEnum::initialize()
                                      "EVENT_IMAGE_CAPTURE",
                                      "Capture an Image of Browser Window Graphics Region"));
 
-    enumData.push_back(EventTypeEnum(EVENT_MODEL_ADD, 
+    enumData.push_back(EventTypeEnum(EVENT_MODEL_ADD,
                                      "EVENT_MODEL_ADD", 
                                      "Add a model"));
     
@@ -200,6 +200,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_OVERLAY_VALIDATE,
                                      "EVENT_OVERLAY_VALIDATE",
                                      "Validate an overlay for validity (it exists)"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW,
+                                     "EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW",
+                                     "Request display of palette color mapping editor"));
     
     enumData.push_back(EventTypeEnum(EVENT_PALETTE_GET_BY_NAME,
                                      "EVENT_PALETTE_GET_BY_NAME",
