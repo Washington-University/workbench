@@ -203,5 +203,6 @@
 <file>./ToolBar/view-ventral.png</file>
 <file>./ToolBar/volume-crosshair-pointer.png</file>
 <file>./update_help_files.sh</file>
+<file>./update_resources.sh</file>
 </qresource>
 </RCC>
