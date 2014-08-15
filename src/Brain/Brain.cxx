@@ -3698,6 +3698,8 @@ Brain::updateWholeBrainModel()
                 m_wholeBrainModel->initializeOverlays();
             }
         }
+        
+        m_wholeBrainModel->updateModel();
     }
     else {
         if (m_wholeBrainModel != NULL) {
