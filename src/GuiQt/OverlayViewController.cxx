@@ -44,6 +44,7 @@
 #include "EventOverlaySettingsEditorDialogRequest.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FilePathNamePrefixCompactor.h"
 #include "Overlay.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
@@ -598,6 +599,10 @@ OverlayViewController::updateViewController(Overlay* overlay)
                                   selectedMapIndex);
     }
     
+    std::vector<AString> displayNames;
+    FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(dataFiles,
+                                                                            displayNames);
+    CaretAssert(dataFiles.size() == displayNames.size());
     /*
      * Load the file selection combo box.
      */
@@ -607,20 +612,8 @@ OverlayViewController::updateViewController(Overlay* overlay)
         CaretMappableDataFile* dataFile = dataFiles[i];
         
         AString dataTypeName = DataFileTypeEnum::toOverlayTypeName(dataFile->getDataFileType());
-//        switch (dataFile->getDataFileType()) {
-//            case DataFileTypeEnum::CONNECTIVITY_DENSE:
-//                dataTypeName = "CONNECTIVITY";
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-//                dataTypeName = "DATA_SERIES";
-//                break;
-//            default:
-//                break;
-//        }
-        AString name = dataTypeName
-        + " "
-        + dataFile->getFileNameNoPath();
-        this->fileComboBox->addItem(name,
+        CaretAssertVectorIndex(displayNames, i);
+        this->fileComboBox->addItem(displayNames[i],
                                     qVariantFromValue((void*)dataFile));
         if (dataFile == selectedFile) {
             selectedFileIndex = i;
