@@ -26,11 +26,15 @@
 
 namespace caret {
     class CaretDataFile;
+    class CaretMappableDataFile;
 
     class FilePathNamePrefixCompactor : public CaretObject {
         
     public:
 
+        static void removeMatchingPathPrefixFromCaretDataFiles(const std::vector<CaretMappableDataFile*>& caretMappableDataFiles,
+                                                               std::vector<AString>& prefixRemovedNamesOut);
+        
         static void removeMatchingPathPrefixFromCaretDataFiles(const std::vector<CaretDataFile*>& caretDataFiles,
                                                                std::vector<AString>& prefixRemovedNamesOut);
         

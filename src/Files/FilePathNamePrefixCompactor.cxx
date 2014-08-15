@@ -28,7 +28,7 @@
 #include <QStringList>
 
 #include "CaretAssert.h"
-#include "CaretDataFile.h"
+#include "CaretMappableDataFile.h"
 #include "FileInformation.h"
 
 using namespace caret;
@@ -69,6 +69,40 @@ FilePathNamePrefixCompactor::FilePathNamePrefixCompactor()
  */
 FilePathNamePrefixCompactor::~FilePathNamePrefixCompactor()
 {
+}
+
+/**
+ * Create names that show the filename followed by the path BUT remove
+ * any matching prefix from the paths for a group of CaretDataFiles.
+ *
+ * Example Input File Names:
+ *    /mnt/myelin/data/subject2/rsfmri/activity.dscalar.nii
+ *    /mnt/myelin/data/subject1/rsfmri/activity.dscalar.nii
+ * Output:
+ *    actitivity.dscalar.nii (../subject2/rsfmri)
+ *    actitivity.dscalar.nii (../subject1/rsfmri)
+ *
+ * @param caretMappableDataFiles
+ *     The caret mappable data files from which names are obtained.
+ * @param prefixRemovedNamesOut
+ *     Names of files with matching prefixes removed.  Number of elements
+ *     will match the number of elements in caretDataFiles.
+ */
+void
+FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const std::vector<CaretMappableDataFile*>& caretMappableDataFiles,
+                                                                        std::vector<AString>& prefixRemovedNamesOut)
+{
+    std::vector<AString> fileNames;
+    for (std::vector<CaretMappableDataFile*>::const_iterator iter = caretMappableDataFiles.begin();
+         iter != caretMappableDataFiles.end();
+         iter++) {
+        const CaretDataFile* cdf = *iter;
+        CaretAssert(cdf);
+        fileNames.push_back(cdf->getFileName());
+    }
+    
+    removeMatchingPathPrefixFromFileNames(fileNames,
+                                          prefixRemovedNamesOut);
 }
 
 /**
