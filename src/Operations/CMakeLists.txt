@@ -42,6 +42,7 @@ OperationConvertMatrix4ToWorkbenchSparse.h
 OperationConvertWarpfield.h
 OperationEstimateFiberBinghams.h
 OperationException.h
+OperationFileConvert.h
 OperationFileInformation.h
 OperationFociGetProjectionVertex.h
 OperationFociListCoords.h
@@ -56,7 +57,6 @@ OperationMetricMath.h
 OperationMetricMerge.h
 OperationMetricPalette.h
 OperationMetricVertexSum.h
-OperationNiftiConvert.h
 OperationNiftiInformation.h
 OperationProbtrackXDotConvert.h
 OperationSetMapName.h
@@ -110,6 +110,7 @@ OperationConvertMatrix4ToWorkbenchSparse.cxx
 OperationConvertWarpfield.cxx
 OperationException.cxx
 OperationEstimateFiberBinghams.cxx
+OperationFileConvert.cxx
 OperationFileInformation.cxx
 OperationFociGetProjectionVertex.cxx
 OperationFociListCoords.cxx
@@ -124,7 +125,6 @@ OperationMetricMath.cxx
 OperationMetricMerge.cxx
 OperationMetricPalette.cxx
 OperationMetricVertexSum.cxx
-OperationNiftiConvert.cxx
 OperationNiftiInformation.cxx
 OperationProbtrackXDotConvert.cxx
 OperationSetMapName.cxx

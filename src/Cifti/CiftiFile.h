@@ -58,8 +58,7 @@ namespace caret
         void openURL(const QString& url, const QString& user, const QString& pass);//open from XNAT
         void openURL(const QString& url);//same, without user/pass (or curently, reusing existing auth if the server matches
         void setWritingFile(const QString& fileName);//starts on-disk writing
-        void writeFile(const QString& fileName, const CiftiVersion& writingVersion);//leaves current state as-is, rewrites if already writing to that filename and version mismatch
-        void writeFile(const QString& fileName);//leaves current state as-is, does nothing if already writing to that filename
+        void writeFile(const QString& fileName, const CiftiVersion& writingVersion = CiftiVersion());//leaves current state as-is, rewrites if already writing to that filename and version mismatch
         void convertToInMemory();
         
         bool isInMemory() const;
@@ -67,8 +66,8 @@ namespace caret
         const std::vector<int64_t>& getDimensions() const { return m_dims; }
         void getColumn(float* dataOut, const int64_t& index) const;//for 2D only, will be slow if on disk!
         
-        void setCiftiXML(const CiftiXML& xml, const bool useOldMetadata = true, const CiftiVersion& writingVersion = CiftiVersion());
-        void setCiftiXML(const CiftiXMLOld &xml, const bool useOldMetadata = true, const CiftiVersion& writingVersion = CiftiVersion());//set xml from old implementation
+        void setCiftiXML(const CiftiXML& xml, const bool useOldMetadata = true);
+        void setCiftiXML(const CiftiXMLOld &xml, const bool useOldMetadata = true);//set xml from old implementation
         void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect);
         void setColumn(const float* dataIn, const int64_t& index);//for 2D only, will be slow if on disk!
         
@@ -84,7 +83,7 @@ namespace caret
         CaretPointer<ReadImplInterface> m_readingImpl;
         QString m_writingFile;
         //CiftiXML m_xml;//uncomment when we drop CiftiInterface
-        CiftiVersion m_writingVersion;
+        CiftiVersion m_onDiskVersion;
         void verifyWriteImpl();
         static void copyImplData(const ReadImplInterface* from, WriteImplInterface* to, const std::vector<int64_t>& dims);
     };

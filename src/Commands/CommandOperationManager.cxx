@@ -145,6 +145,7 @@
 #include "OperationConvertMatrix4ToWorkbenchSparse.h"
 #include "OperationConvertWarpfield.h"
 #include "OperationEstimateFiberBinghams.h"
+#include "OperationFileConvert.h"
 #include "OperationFileInformation.h"
 #include "OperationFociGetProjectionVertex.h"
 #include "OperationFociListCoords.h"
@@ -159,7 +160,6 @@
 #include "OperationMetricMerge.h"
 #include "OperationMetricPalette.h"
 #include "OperationMetricVertexSum.h"
-#include "OperationNiftiConvert.h"
 #include "OperationNiftiInformation.h"
 #include "OperationProbtrackXDotConvert.h"
 #include "OperationSetMapName.h"
@@ -364,6 +364,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertMatrix4ToWorkbenchSparse()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertWarpfield()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationEstimateFiberBinghams()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationFileConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFileInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociGetProjectionVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
@@ -378,7 +379,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
-    this->commandOperations.push_back(new CommandParser(new AutoOperationNiftiConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationNiftiInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapName()));

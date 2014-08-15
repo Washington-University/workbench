@@ -67,6 +67,8 @@ namespace caret {
         
         void writeFile(const AString& filename) throw (DataFileException);
         
+        void writeFile(const AString& filename, const int& version);
+        
         void clear();
         
         bool isEmpty() const;

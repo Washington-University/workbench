@@ -38,7 +38,7 @@ AString OperationMetricConvert::getCommandSwitch()
 
 AString OperationMetricConvert::getShortDescription()
 {
-    return "CONVERT TO OR FROM METRIC FILE";
+    return "CONVERT METRIC FILE TO FAKE NIFTI";
 }
 
 OperationParameters* OperationMetricConvert::getParameters()

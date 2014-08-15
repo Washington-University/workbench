@@ -80,16 +80,12 @@ OperationParameters* OperationCiftiConvert::getParameters()
     fnresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
     fromNifti->createOptionalParameter(5, "-reset-scalars", "reset mapping along rows to scalars");
     
-    OptionalParameter* versionConvert = ret->createOptionalParameter(5, "-version-convert", "convert to a different version of cifti");
-    versionConvert->addCiftiParameter(1, "cifti-in", "the input cifti file");
-    versionConvert->addStringParameter(2, "version", "the cifti version to convert to");
-    versionConvert->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
-    
     ret->setHelpText(
-        AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI (or require a different CIFTI version).  ") +
+        AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
+        "If you want to write an existing CIFTI file with a different CIFTI version, see -file-convert, and its -cifti-version-convert option.  " +
         "If you want part of the CIFTI file as a metric, label, or volume file, see -cifti-separate.  " +
         "If you want to create a CIFTI file from metric and/or volume files, see the -cifti-create-* commands.  " +
-        "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, -from-nifti, or -version-convert.  " +
+        "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, or -from-nifti.  " +
         "The -transpose option to -from-gifti-ext is needed if the binary file is in column-major order."
     );
     return ret;
@@ -103,12 +99,10 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
     OptionalParameter* fromGiftiExt = myParams->getOptionalParameter(2);
     OptionalParameter* toNifti = myParams->getOptionalParameter(3);
     OptionalParameter* fromNifti = myParams->getOptionalParameter(4);
-    OptionalParameter* versionConvert = myParams->getOptionalParameter(5);
     if (toGiftiExt->m_present) ++modes;
     if (fromGiftiExt->m_present) ++modes;
     if (toNifti->m_present) ++modes;
     if (fromNifti->m_present) ++modes;
-    if (versionConvert->m_present) ++modes;
     if (modes != 1)
     {
         throw OperationException("you must specify exactly one conversion mode");
@@ -325,21 +319,6 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                 rowscratch[j] = myNiftiIn->getFrame(j)[i];
             }
             myCiftiOut->setRow(rowscratch.data(), i);
-        }
-    }
-    if (versionConvert->m_present)
-    {
-        CiftiFile* ciftiIn = versionConvert->getCifti(1);
-        AString versionString = versionConvert->getString(2);
-        CiftiFile* ciftiOut = versionConvert->getOutputCifti(3);
-        CiftiVersion outVersion(versionString);//this will throw if it can't parse it
-        ciftiOut->setCiftiXML(ciftiIn->getCiftiXML(), true, outVersion);//this will throw if it can't write with the version specified
-        int64_t rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();//TODO: fix copying the matrix for 3+D cifti when we support it
-        vector<float> scratchRow(rowSize);
-        for (int64_t i = 0; i < colSize; ++i)
-        {
-            ciftiIn->getRow(scratchRow.data(), i);
-            ciftiOut->setRow(scratchRow.data(), i);
         }
     }
 }
