@@ -21,40 +21,6 @@
  */
 /*LICENSE_END*/
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-OperationFileConvert     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
-OPERATION_FILE_CONVERT    : uppercase of operation name, with underscore between words, used in #ifdef guards
-
-next, make OperationFileConvert.cxx from OperationTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationFileConvert/g' > OperationFileConvert.cxx
-cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationFileConvert/g' > Operations/OperationFileConvert.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationFileConvert/g' > src/Operations/OperationFileConvert.cxx
-
-or manually copy and replace
-
-next, implement its functions
-
-add these to Operations/CMakeLists.txt:
-
-OperationFileConvert.h
-OperationFileConvert.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "OperationFileConvert.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoOperationFileConvert()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractOperation.h"
 
 namespace caret {
