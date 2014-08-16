@@ -34,7 +34,7 @@ using namespace caret;
  */
 CommandUnitTest::CommandUnitTest()
 : CommandOperation("-unit-test",
-                   "Unit Testing")
+                   "UNIT TESTING")
 {
     
 }

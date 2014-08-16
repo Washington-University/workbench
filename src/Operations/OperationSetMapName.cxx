@@ -38,7 +38,7 @@ AString OperationSetMapName::getCommandSwitch()
 
 AString OperationSetMapName::getShortDescription()
 {
-    return "SET THE NAME OF A MAP IN A FILE";
+    return "DEPRECATED: use -set-map-names";
 }
 
 OperationParameters* OperationSetMapName::getParameters()

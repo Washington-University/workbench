@@ -34,7 +34,7 @@ using namespace caret;
  */
 CommandGiftiConvert::CommandGiftiConvert()
 : CommandOperation("-gifti-convert",
-                         "Convert a GIFTI file to a different encoding")
+                         "CONVERT A GIFTI FILE TO A DIFFERENT ENCODING")
 {
     
 }

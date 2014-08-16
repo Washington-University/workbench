@@ -35,7 +35,7 @@ AString OperationCiftiSeparateAll::getCommandSwitch()
 
 AString OperationCiftiSeparateAll::getShortDescription()
 {
-    return "SEPARATE MULTIPLE CIFTI COMPONENTS AT ONCE";
+    return "DEPRECATED: use -cifti-separate";
 }
 
 OperationParameters* OperationCiftiSeparateAll::getParameters()
