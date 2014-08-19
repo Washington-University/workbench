@@ -22,7 +22,6 @@ AffineFile.h
 Border.h
 BorderException.h
 BorderFile.h
-BorderFileSaxReader.h
 BorderPointFromSearch.h
 BorderTracingHelper.h
 CaretDataFile.h
@@ -116,7 +115,6 @@ AffineFile.cxx
 Border.cxx
 BorderException.cxx
 BorderFile.cxx
-BorderFileSaxReader.cxx
 BorderTracingHelper.cxx
 CaretDataFile.cxx
 CaretDataFileHelper.cxx

@@ -35,7 +35,6 @@
 #undef __BORDER_FILE_DECLARE__
 
 #include "Border.h"
-#include "BorderFileSaxReader.h"
 #include "BorderPointFromSearch.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -750,6 +749,7 @@ void BorderFile::setBorderMetadataValue(const AString& name, const AString& clas
     map<pair<AString, AString>, vector<AString> >::iterator iter = m_borderMDValues.find(make_pair(name, className));
     if (iter == m_borderMDValues.end())
     {
+        if (value == "") return;//don't create the metadata values array if we only store the empty string
         iter = m_borderMDValues.insert(make_pair(make_pair(name, className), vector<AString>(m_borderMDKeys.size()))).first;
     }
     CaretAssert(iter->second.size() == m_borderMDKeys.size());
