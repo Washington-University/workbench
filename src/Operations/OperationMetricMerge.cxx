@@ -47,8 +47,11 @@ OperationParameters* OperationMetricMerge::getParameters()
     
     ParameterComponent* metricOpt = ret->createRepeatableParameter(2, "-metric", "specify an input metric");
     metricOpt->addMetricParameter(1, "metric-in", "a metric file to use columns from");
-    OptionalParameter* columnOpt = metricOpt->createOptionalParameter(2, "-column", "select a single column to use");
+    ParameterComponent* columnOpt = metricOpt->createRepeatableParameter(2, "-column", "select a single column to use");
     columnOpt->addStringParameter(1, "column", "the column number or name");
+    OptionalParameter* upToOpt = columnOpt->createOptionalParameter(2, "-up-to", "use an inclusive range of columns");
+    upToOpt->addStringParameter(1, "last-subvol", "the number or name of the last column to include");
+    upToOpt->createOptionalParameter(2, "-reverse", "use the range in reverse order");
     
     ret->setHelpText(
         AString("Takes one or more metric files and constructs a new metric file by concatenating columns from them.  ") +
@@ -67,32 +70,35 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
     const vector<ParameterComponent*>& myInputs = *(myParams->getRepeatableParameterInstances(2));
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) throw OperationException("no inputs specified");
+    const MetricFile* firstMetric = myInputs[0]->getMetric(1);
     int numOutColumns = 0;
-    bool first = true;
-    int numNodes = -1;
-    StructureEnum::Enum myStruct = StructureEnum::INVALID;
+    int numNodes = firstMetric->getNumberOfNodes();
+    StructureEnum::Enum myStruct = firstMetric->getStructure();
     for (int i = 0; i < numInputs; ++i)
     {
         MetricFile* inputMetric = myInputs[i]->getMetric(1);
-        if (first)
+        if (numNodes != inputMetric->getNumberOfNodes()) throw OperationException("file '" + inputMetric->getFileName() + "' has a different number of nodes than the first");
+        if (myStruct != inputMetric->getStructure()) throw OperationException("file '" + inputMetric->getFileName() + "' has a different structure than the first");
+        const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        int numColumnOpts = (int)columnOpts.size();
+        if (numColumnOpts > 0)
         {
-            numNodes = inputMetric->getNumberOfNodes();
-            myStruct = inputMetric->getStructure();
-            if (myStruct == StructureEnum::INVALID)
+            for (int j = 0; j < numColumnOpts; ++j)
             {
-                CaretLogWarning("the first input file has no valid structure, use -set-structure to fix this");
+                int initialColumn = inputMetric->getMapIndexFromNameOrNumber(columnOpts[j]->getString(1));
+                if (initialColumn < -1) throw OperationException("column '" + columnOpts[j]->getString(1) + "' not found in file '" + inputMetric->getFileName() + "'");
+                OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
+                if (upToOpt->m_present)
+                {
+                    int finalColumn = inputMetric->getMapIndexFromNameOrNumber(upToOpt->getString(1));
+                    if (finalColumn < -1) throw OperationException("ending column '" + upToOpt->getString(1) + "' not found in file '" + inputMetric->getFileName() + "'");
+                    if (finalColumn < initialColumn) throw OperationException("ending column '" + upToOpt->getString(1) + "' occurs before starting column '"
+                                                                            + columnOpts[j]->getString(1) + "' in file '" + inputMetric->getFileName() + "'");
+                    numOutColumns += finalColumn - initialColumn + 1;//inclusive - we don't need to worry about reversing for counting, though
+                } else {
+                    numOutColumns += 1;
+                }
             }
-        } else {
-            if (numNodes != inputMetric->getNumberOfNodes()) throw OperationException("file '" + inputMetric->getFileName() + "' has a different number of nodes than the first");
-            if (myStruct != inputMetric->getStructure()) throw OperationException("file '" + inputMetric->getFileName() + "' has a different structure than the first");
-        }
-        first = false;
-        OptionalParameter* columnOpt = myInputs[i]->getOptionalParameter(2);
-        if (columnOpt->m_present)
-        {
-            int column = inputMetric->getMapIndexFromNameOrNumber(columnOpt->getString(1));
-            if (column == -1) throw OperationException("column '" + columnOpt->getString(1) + "' not found in file '" + inputMetric->getFileName() + "'");
-            numOutColumns += 1;
         } else {
             numOutColumns += inputMetric->getNumberOfColumns();
         }
@@ -103,14 +109,43 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
     for (int i = 0; i < numInputs; ++i)
     {
         MetricFile* inputMetric = myInputs[i]->getMetric(1);
-        OptionalParameter* columnOpt = myInputs[i]->getOptionalParameter(2);
-        if (columnOpt->m_present)
+        const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        int numColumnOpts = (int)columnOpts.size();
+        if (numColumnOpts > 0)
         {
-            int column = inputMetric->getMapIndexFromNameOrNumber(columnOpt->getString(1));
-            myMetricOut->setValuesForColumn(curColumn, inputMetric->getValuePointerForColumn(column));
-            myMetricOut->setColumnName(curColumn, inputMetric->getColumnName(column));
-            *(myMetricOut->getMapPaletteColorMapping(curColumn)) = *(inputMetric->getMapPaletteColorMapping(column));
-            ++curColumn;
+            for (int j = 0; j < numColumnOpts; ++j)
+            {
+                int initialColumn = inputMetric->getMapIndexFromNameOrNumber(columnOpts[j]->getString(1));
+                OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
+                if (upToOpt->m_present)
+                {
+                    int finalColumn = inputMetric->getMapIndexFromNameOrNumber(upToOpt->getString(1));
+                    bool reverse = upToOpt->getOptionalParameter(2)->m_present;
+                    if (reverse)
+                    {
+                        for (int c = finalColumn; c >= initialColumn; --c)
+                        {
+                            myMetricOut->setValuesForColumn(curColumn, inputMetric->getValuePointerForColumn(c));
+                            myMetricOut->setColumnName(curColumn, inputMetric->getColumnName(c));
+                            *(myMetricOut->getMapPaletteColorMapping(curColumn)) = *(inputMetric->getMapPaletteColorMapping(c));
+                            ++curColumn;
+                        }
+                    } else {
+                        for (int c = initialColumn; c <= finalColumn; ++c)
+                        {
+                            myMetricOut->setValuesForColumn(curColumn, inputMetric->getValuePointerForColumn(c));
+                            myMetricOut->setColumnName(curColumn, inputMetric->getColumnName(c));
+                            *(myMetricOut->getMapPaletteColorMapping(curColumn)) = *(inputMetric->getMapPaletteColorMapping(c));
+                            ++curColumn;
+                        }
+                    }
+                } else {
+                    myMetricOut->setValuesForColumn(curColumn, inputMetric->getValuePointerForColumn(initialColumn));
+                    myMetricOut->setColumnName(curColumn, inputMetric->getColumnName(initialColumn));
+                    *(myMetricOut->getMapPaletteColorMapping(curColumn)) = *(inputMetric->getMapPaletteColorMapping(initialColumn));
+                    ++curColumn;
+                }
+            }
         } else {
             int numColumns = inputMetric->getNumberOfColumns();
             for (int i = 0; i < numColumns; ++i)
@@ -122,4 +157,5 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
             }
         }
     }
+    CaretAssert(curColumn == numOutColumns);
 }

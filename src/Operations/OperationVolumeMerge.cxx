@@ -50,7 +50,7 @@ OperationParameters* OperationVolumeMerge::getParameters()
     ParameterComponent* subvolOpt = volumeOpt->createRepeatableParameter(2, "-subvolume", "select a single subvolume to use");
     subvolOpt->addStringParameter(1, "subvol", "the subvolume number or name");
     OptionalParameter* upToOpt = subvolOpt->createOptionalParameter(2, "-up-to", "use an inclusive range of subvolumes");
-    upToOpt->addStringParameter(1, "last-subvol", "the subvolume number or name of the last subvolume to include");
+    upToOpt->addStringParameter(1, "last-subvol", "the number or name of the last subvolume to include");
     upToOpt->createOptionalParameter(2, "-reverse", "use the range in reverse order");
     
     ret->setHelpText(
@@ -71,7 +71,7 @@ void OperationVolumeMerge::useParameters(OperationParameters* myParams, Progress
     int numInputs = (int)myInputs.size();
     if (numInputs < 1) throw OperationException("no files specified");
     int64_t subvolCount = 0;
-    const VolumeFile* firstVol =myInputs[0]->getVolume(1);
+    const VolumeFile* firstVol = myInputs[0]->getVolume(1);
     vector<int64_t> firstDims = firstVol->getDimensions();
     bool isLabel = (firstVol->getType() == SubvolumeAttributes::LABEL);
     for (int i = 0; i < numInputs; ++i)
