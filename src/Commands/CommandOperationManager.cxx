@@ -109,7 +109,6 @@
 #include "AlgorithmVolumeGradient.h"
 #include "AlgorithmVolumeLabelToROI.h"
 #include "AlgorithmVolumeLabelToSurfaceMapping.h"
-#include "AlgorithmVolumeMerge.h"
 #include "AlgorithmVolumeParcelResampling.h"
 #include "AlgorithmVolumeParcelResamplingGeneric.h"
 #include "AlgorithmVolumeParcelSmoothing.h"
@@ -181,6 +180,7 @@
 #include "OperationVolumeLabelExportTable.h"
 #include "OperationVolumeLabelImport.h"
 #include "OperationVolumeMath.h"
+#include "OperationVolumeMerge.h"
 #include "OperationVolumePalette.h"
 #include "OperationVolumeReorient.h"
 #include "OperationVolumeSetSpace.h"
@@ -328,7 +328,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToSurfaceMapping()));
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResamplingGeneric()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelSmoothing()));
@@ -402,6 +401,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelExportTable()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeMath()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeReorient()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeSetSpace()));

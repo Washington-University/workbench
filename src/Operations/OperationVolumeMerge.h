@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_VOLUME_MERGE_H__
-#define __ALGORITHM_VOLUME_MERGE_H__
+#ifndef __OPERATION_VOLUME_MERGE_H__
+#define __OPERATION_VOLUME_MERGE_H__
 
 /*LICENSE_START*/
 /*
@@ -21,26 +21,21 @@
  */
 /*LICENSE_END*/
 
-#include "AbstractAlgorithm.h"
+#include "AbstractOperation.h"
 
 namespace caret {
     
-    class AlgorithmVolumeMerge : public AbstractAlgorithm
+    class OperationVolumeMerge : public AbstractOperation
     {
-        AlgorithmVolumeMerge();
-    protected:
-        static float getSubAlgorithmWeight();
-        static float getAlgorithmInternalWeight();
     public:
-        AlgorithmVolumeMerge(ProgressObject* myProgObj, const std::vector<const VolumeFile*>& volumeList, const std::vector<int64_t>& indexList, VolumeFile* volumeOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmVolumeMerge> AutoAlgorithmVolumeMerge;
+    typedef TemplateAutoOperation<OperationVolumeMerge> AutoOperationVolumeMerge;
 
 }
 
-#endif //__ALGORITHM_VOLUME_MERGE_H__
+#endif //__OPERATION_VOLUME_MERGE_H__

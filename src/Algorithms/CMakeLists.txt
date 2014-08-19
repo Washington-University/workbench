@@ -104,7 +104,6 @@ AlgorithmVolumeFindClusters.h
 AlgorithmVolumeGradient.h
 AlgorithmVolumeLabelToROI.h
 AlgorithmVolumeLabelToSurfaceMapping.h
-AlgorithmVolumeMerge.h
 AlgorithmVolumeParcelResampling.h
 AlgorithmVolumeParcelResamplingGeneric.h
 AlgorithmVolumeParcelSmoothing.h
@@ -204,7 +203,6 @@ AlgorithmVolumeFindClusters.cxx
 AlgorithmVolumeGradient.cxx
 AlgorithmVolumeLabelToROI.cxx
 AlgorithmVolumeLabelToSurfaceMapping.cxx
-AlgorithmVolumeMerge.cxx
 AlgorithmVolumeParcelResampling.cxx
 AlgorithmVolumeParcelResamplingGeneric.cxx
 AlgorithmVolumeParcelSmoothing.cxx

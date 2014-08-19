@@ -129,7 +129,7 @@ CaretMappableDataFile::isMappableToSurfaceStructure(const StructureEnum::Enum st
 
 // note: method is documented in header file
 int32_t
-CaretMappableDataFile::getMapIndexFromNameOrNumber(const AString& mapName)
+CaretMappableDataFile::getMapIndexFromNameOrNumber(const AString& mapName) const
 {
     bool ok = false;
     int32_t ret = mapName.toInt(&ok) - 1;//compensate for 1-indexing that command line parsing uses
@@ -148,7 +148,7 @@ CaretMappableDataFile::getMapIndexFromNameOrNumber(const AString& mapName)
 
 // note: method is documented in header file
 int32_t
-CaretMappableDataFile::getMapIndexFromName(const AString& mapName)
+CaretMappableDataFile::getMapIndexFromName(const AString& mapName) const
 {
     int32_t numMaps = getNumberOfMaps();
     for (int32_t i = 0; i < numMaps; ++i)
