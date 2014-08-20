@@ -619,7 +619,10 @@ void CommandParser::makeOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
                 set<AString>::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
                 if (iter != m_inputCiftiNames.end())
                 {
-                    CaretLogInfo("Computing output file '" + outAssociation[i].m_fileName + "' in memory due to collision with input file");
+                    if (outAssociation[i].m_fileName.endsWith(".dconn.nii"))//suppress the message except for dconn, because other types are nearly always small
+                    {
+                        CaretLogInfo("Computing output file '" + outAssociation[i].m_fileName + "' in memory due to collision with input file");
+                    }
                     myCiftiParam->m_parameter.grabNew(new CiftiFile());
                } else {
                     myCiftiParam->m_parameter.grabNew(new CiftiFile());
