@@ -31,6 +31,7 @@ OperationCiftiExportDenseMapping.h
 OperationCiftiLabelExportTable.h
 OperationCiftiLabelImport.h
 OperationCiftiMath.h
+OperationCiftiMerge.h
 OperationCiftiPalette.h
 OperationCiftiResampleDconnMemory.h
 OperationCiftiROIAverage.h
@@ -100,6 +101,7 @@ OperationCiftiExportDenseMapping.cxx
 OperationCiftiLabelExportTable.cxx
 OperationCiftiLabelImport.cxx
 OperationCiftiMath.cxx
+OperationCiftiMerge.cxx
 OperationCiftiPalette.cxx
 OperationCiftiResampleDconnMemory.cxx
 OperationCiftiROIAverage.cxx

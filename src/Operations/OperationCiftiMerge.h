@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_CIFTI_MERGE_H__
-#define __ALGORITHM_CIFTI_MERGE_H__
+#ifndef __OPERATION_CIFTI_MERGE_H__
+#define __OPERATION_CIFTI_MERGE_H__
 
 /*LICENSE_START*/
 /*
@@ -21,27 +21,21 @@
  */
 /*LICENSE_END*/
 
-#include "AbstractAlgorithm.h"
-#include <vector>
+#include "AbstractOperation.h"
 
 namespace caret {
     
-    class AlgorithmCiftiMerge : public AbstractAlgorithm
+    class OperationCiftiMerge : public AbstractOperation
     {
-        AlgorithmCiftiMerge();
-    protected:
-        static float getSubAlgorithmWeight();
-        static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiMerge(ProgressObject* myProgObj, const std::vector<const CiftiFile*>& ciftiList, const std::vector<int64_t>& indexList, CiftiFile* ciftiOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmCiftiMerge> AutoAlgorithmCiftiMerge;
+    typedef TemplateAutoOperation<OperationCiftiMerge> AutoOperationCiftiMerge;
 
 }
 
-#endif //__ALGORITHM_CIFTI_MERGE_H__
+#endif //__OPERATION_CIFTI_MERGE_H__

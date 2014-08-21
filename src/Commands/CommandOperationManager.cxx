@@ -43,7 +43,6 @@
 #include "AlgorithmCiftiGradient.h"
 #include "AlgorithmCiftiLabelAdjacency.h"
 #include "AlgorithmCiftiLabelToROI.h"
-#include "AlgorithmCiftiMerge.h"
 #include "AlgorithmCiftiMergeDense.h"
 #include "AlgorithmCiftiPairwiseCorrelation.h"
 #include "AlgorithmCiftiParcellate.h"
@@ -134,6 +133,7 @@
 #include "OperationCiftiLabelExportTable.h"
 #include "OperationCiftiLabelImport.h"
 #include "OperationCiftiMath.h"
+#include "OperationCiftiMerge.h"
 #include "OperationCiftiPalette.h"
 #include "OperationCiftiResampleDconnMemory.h"
 #include "OperationCiftiROIAverage.h"
@@ -262,7 +262,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelAdjacency()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToROI()));
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeDense()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiPairwiseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiParcellate()));
@@ -353,6 +352,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiLabelExportTable()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiMath()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiResampleDconnMemory()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiROIAverage()));
