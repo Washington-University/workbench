@@ -55,7 +55,6 @@ AlgorithmGiftiAllLabelsToROIs.h
 AlgorithmGiftiLabelAddPrefix.h
 AlgorithmGiftiLabelToROI.h
 AlgorithmLabelDilate.h
-AlgorithmLabelMerge.h
 AlgorithmLabelModifyKeys.h
 AlgorithmLabelResample.h
 AlgorithmLabelToBorder.h
@@ -153,7 +152,6 @@ AlgorithmGiftiAllLabelsToROIs.cxx
 AlgorithmGiftiLabelAddPrefix.cxx
 AlgorithmGiftiLabelToROI.cxx
 AlgorithmLabelDilate.cxx
-AlgorithmLabelMerge.cxx
 AlgorithmLabelModifyKeys.cxx
 AlgorithmLabelResample.cxx
 AlgorithmLabelToBorder.cxx

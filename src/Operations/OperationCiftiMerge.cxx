@@ -51,7 +51,7 @@ OperationParameters* OperationCiftiMerge::getParameters()
     ParameterComponent* columnOpt = ciftiOpt->createRepeatableParameter(2, "-column", "select a single column to use");
     columnOpt->addIntegerParameter(1, "column", "the column index (starting from 1)");
     OptionalParameter* upToOpt = columnOpt->createOptionalParameter(2, "-up-to", "use an inclusive range of columns");
-    upToOpt->addIntegerParameter(1, "last-subvol", "the index of the last column to include");
+    upToOpt->addIntegerParameter(1, "last-column", "the index of the last column to include");
     upToOpt->createOptionalParameter(2, "-reverse", "use the range in reverse order");
     
     ret->setHelpText(
@@ -268,9 +268,9 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
             int numColumnOpts = (int)columnOpts.size();
             if (numColumnOpts > 0)
             {
+                ciftiIn->getRow(scratchRow.data(), row);
                 for (int j = 0; j < numColumnOpts; ++j)
                 {
-                    ciftiIn->getRow(scratchRow.data(), row);
                     int64_t initialColumn = columnOpts[j]->getInteger(1) - 1;//1-based indexing convention
                     OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
                     if (upToOpt->m_present)

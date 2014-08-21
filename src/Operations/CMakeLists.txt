@@ -49,6 +49,7 @@ OperationFociGetProjectionVertex.h
 OperationFociListCoords.h
 OperationLabelExportTable.h
 OperationLabelMask.h
+OperationLabelMerge.h
 OperationMetadataRemoveProvenance.h
 OperationMetadataStringReplace.h
 OperationMetricConvert.h
@@ -119,6 +120,7 @@ OperationFociGetProjectionVertex.cxx
 OperationFociListCoords.cxx
 OperationLabelExportTable.cxx
 OperationLabelMask.cxx
+OperationLabelMerge.cxx
 OperationMetadataRemoveProvenance.cxx
 OperationMetadataStringReplace.cxx
 OperationMetricConvert.cxx

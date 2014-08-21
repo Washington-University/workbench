@@ -60,7 +60,6 @@
 #include "AlgorithmGiftiLabelAddPrefix.h"
 #include "AlgorithmGiftiLabelToROI.h"
 #include "AlgorithmLabelDilate.h"
-#include "AlgorithmLabelMerge.h"
 #include "AlgorithmLabelModifyKeys.h"
 #include "AlgorithmLabelResample.h"
 #include "AlgorithmLabelToBorder.h"
@@ -150,6 +149,7 @@
 #include "OperationFociListCoords.h"
 #include "OperationLabelExportTable.h"
 #include "OperationLabelMask.h"
+#include "OperationLabelMerge.h"
 #include "OperationMetadataRemoveProvenance.h"
 #include "OperationMetadataStringReplace.h"
 #include "OperationMetricConvert.h"
@@ -279,7 +279,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiLabelAddPrefix()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelDilate()));
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelModifyKeys()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelToBorder()));
@@ -369,6 +368,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelExportTable()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMask()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataRemoveProvenance()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataStringReplace()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricConvert()));

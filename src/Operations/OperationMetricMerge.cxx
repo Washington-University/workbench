@@ -50,7 +50,7 @@ OperationParameters* OperationMetricMerge::getParameters()
     ParameterComponent* columnOpt = metricOpt->createRepeatableParameter(2, "-column", "select a single column to use");
     columnOpt->addStringParameter(1, "column", "the column number or name");
     OptionalParameter* upToOpt = columnOpt->createOptionalParameter(2, "-up-to", "use an inclusive range of columns");
-    upToOpt->addStringParameter(1, "last-subvol", "the number or name of the last column to include");
+    upToOpt->addStringParameter(1, "last-column", "the number or name of the last column to include");
     upToOpt->createOptionalParameter(2, "-reverse", "use the range in reverse order");
     
     ret->setHelpText(
@@ -76,7 +76,7 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
     StructureEnum::Enum myStruct = firstMetric->getStructure();
     for (int i = 0; i < numInputs; ++i)
     {
-        MetricFile* inputMetric = myInputs[i]->getMetric(1);
+        const MetricFile* inputMetric = myInputs[i]->getMetric(1);
         if (numNodes != inputMetric->getNumberOfNodes()) throw OperationException("file '" + inputMetric->getFileName() + "' has a different number of nodes than the first");
         if (myStruct != inputMetric->getStructure()) throw OperationException("file '" + inputMetric->getFileName() + "' has a different structure than the first");
         const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
@@ -108,7 +108,7 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
     int curColumn = 0;
     for (int i = 0; i < numInputs; ++i)
     {
-        MetricFile* inputMetric = myInputs[i]->getMetric(1);
+        const MetricFile* inputMetric = myInputs[i]->getMetric(1);
         const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
         int numColumnOpts = (int)columnOpts.size();
         if (numColumnOpts > 0)
@@ -148,11 +148,11 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
             }
         } else {
             int numColumns = inputMetric->getNumberOfColumns();
-            for (int i = 0; i < numColumns; ++i)
+            for (int j = 0; j < numColumns; ++j)
             {
-                myMetricOut->setValuesForColumn(curColumn, inputMetric->getValuePointerForColumn(i));
-                myMetricOut->setColumnName(curColumn, inputMetric->getColumnName(i));
-                *(myMetricOut->getMapPaletteColorMapping(curColumn)) = *(inputMetric->getMapPaletteColorMapping(i));
+                myMetricOut->setValuesForColumn(curColumn, inputMetric->getValuePointerForColumn(j));
+                myMetricOut->setColumnName(curColumn, inputMetric->getColumnName(j));
+                *(myMetricOut->getMapPaletteColorMapping(curColumn)) = *(inputMetric->getMapPaletteColorMapping(j));
                 ++curColumn;
             }
         }
