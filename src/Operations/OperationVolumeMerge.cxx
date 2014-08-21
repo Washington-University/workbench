@@ -69,7 +69,7 @@ void OperationVolumeMerge::useParameters(OperationParameters* myParams, Progress
     VolumeFile* volumeOut = myParams->getOutputVolume(1);
     const vector<ParameterComponent*>& myInputs = *(myParams->getRepeatableParameterInstances(2));
     int numInputs = (int)myInputs.size();
-    if (numInputs < 1) throw OperationException("no files specified");
+    if (numInputs < 1) throw OperationException("no inputs specified");
     int64_t subvolCount = 0;
     const VolumeFile* firstVol = myInputs[0]->getVolume(1);
     vector<int64_t> firstDims = firstVol->getDimensions();
@@ -94,12 +94,12 @@ void OperationVolumeMerge::useParameters(OperationParameters* myParams, Progress
             for (int j = 0; j < numSubvolOpts; ++j)
             {
                 int64_t initialFrame = myVol->getMapIndexFromNameOrNumber(subvolOpts[j]->getString(1));
-                if (initialFrame < -1) throw OperationException("subvolume '" + subvolOpts[j]->getString(1) + "' not found in file '" + myVol->getFileName() + "'");
+                if (initialFrame < 0) throw OperationException("subvolume '" + subvolOpts[j]->getString(1) + "' not found in file '" + myVol->getFileName() + "'");
                 OptionalParameter* upToOpt = subvolOpts[j]->getOptionalParameter(2);
                 if (upToOpt->m_present)
                 {
                     int64_t finalFrame = myVol->getMapIndexFromNameOrNumber(upToOpt->getString(1));
-                    if (finalFrame < -1) throw OperationException("ending subvolume '" + upToOpt->getString(1) + "' not found in file '" + myVol->getFileName() + "'");
+                    if (finalFrame < 0) throw OperationException("ending subvolume '" + upToOpt->getString(1) + "' not found in file '" + myVol->getFileName() + "'");
                     if (finalFrame < initialFrame) throw OperationException("ending subvolume '" + upToOpt->getString(1) + "' occurs before starting subvolume '"
                                                                             + subvolOpts[j]->getString(1) + "' in file '" + myVol->getFileName() + "'");
                     subvolCount += finalFrame - initialFrame + 1;//inclusive - we don't need to worry about reversing for counting, though

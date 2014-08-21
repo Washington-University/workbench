@@ -86,12 +86,12 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
             for (int j = 0; j < numColumnOpts; ++j)
             {
                 int initialColumn = inputMetric->getMapIndexFromNameOrNumber(columnOpts[j]->getString(1));
-                if (initialColumn < -1) throw OperationException("column '" + columnOpts[j]->getString(1) + "' not found in file '" + inputMetric->getFileName() + "'");
+                if (initialColumn < 0) throw OperationException("column '" + columnOpts[j]->getString(1) + "' not found in file '" + inputMetric->getFileName() + "'");
                 OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
                 if (upToOpt->m_present)
                 {
                     int finalColumn = inputMetric->getMapIndexFromNameOrNumber(upToOpt->getString(1));
-                    if (finalColumn < -1) throw OperationException("ending column '" + upToOpt->getString(1) + "' not found in file '" + inputMetric->getFileName() + "'");
+                    if (finalColumn < 0) throw OperationException("ending column '" + upToOpt->getString(1) + "' not found in file '" + inputMetric->getFileName() + "'");
                     if (finalColumn < initialColumn) throw OperationException("ending column '" + upToOpt->getString(1) + "' occurs before starting column '"
                                                                             + columnOpts[j]->getString(1) + "' in file '" + inputMetric->getFileName() + "'");
                     numOutColumns += finalColumn - initialColumn + 1;//inclusive - we don't need to worry about reversing for counting, though
