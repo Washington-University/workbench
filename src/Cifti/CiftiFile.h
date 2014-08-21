@@ -36,22 +36,6 @@ namespace caret
     class CiftiFile : public CiftiInterface
     {
     public:
-        class ReadImplInterface
-        {
-        public:
-            virtual void getRow(float* dataOut, const std::vector<int64_t>& indexSelect, const bool& tolerateShortRead) const = 0;
-            virtual void getColumn(float* dataOut, const int64_t& index) const = 0;
-            virtual bool isInMemory() const { return false; }
-            virtual ~ReadImplInterface();
-        };
-        //assume if you can write to it, you can also read from it
-        class WriteImplInterface : public ReadImplInterface
-        {
-        public:
-            virtual void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect) = 0;
-            virtual void setColumn(const float* dataIn, const int64_t& index) = 0;
-            virtual ~WriteImplInterface();
-        };
         CiftiFile() { }
         explicit CiftiFile(const QString &fileName);//calls openFile
         void openFile(const QString& fileName);//starts on-disk reading
@@ -60,6 +44,7 @@ namespace caret
         void setWritingFile(const QString& fileName, const CiftiVersion& writingVersion = CiftiVersion());//starts on-disk writing
         void writeFile(const QString& fileName, const CiftiVersion& writingVersion = CiftiVersion());//leaves current state as-is, rewrites if already writing to that filename and version mismatch
         void convertToInMemory();
+        QString getFileName() const { return m_fileName; }
         
         bool isInMemory() const;
         void getRow(float* dataOut, const std::vector<int64_t>& indexSelect, const bool& tolerateShortRead = false) const;//tolerateShortRead is useful for on-disk writing when it is easiest to do RMW multiple times on a new file
@@ -77,11 +62,28 @@ namespace caret
         int64_t getNumberOfColumns() const;
         
         void setRow(const float* dataIn, const int64_t& index);//backwards compatibility for old CiftiFile
+        
+        class ReadImplInterface
+        {
+        public:
+            virtual void getRow(float* dataOut, const std::vector<int64_t>& indexSelect, const bool& tolerateShortRead) const = 0;
+            virtual void getColumn(float* dataOut, const int64_t& index) const = 0;
+            virtual bool isInMemory() const { return false; }
+            virtual ~ReadImplInterface();
+        };
+        //assume if you can write to it, you can also read from it
+        class WriteImplInterface : public ReadImplInterface
+        {
+        public:
+            virtual void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect) = 0;
+            virtual void setColumn(const float* dataIn, const int64_t& index) = 0;
+            virtual ~WriteImplInterface();
+        };
     private:
         std::vector<int64_t> m_dims;
         CaretPointer<WriteImplInterface> m_writingImpl;//this will be equal to m_readingImpl when non-null
         CaretPointer<ReadImplInterface> m_readingImpl;
-        QString m_writingFile;
+        QString m_writingFile, m_fileName;
         //CiftiXML m_xml;//uncomment when we drop CiftiInterface
         CiftiVersion m_onDiskVersion;
         void verifyWriteImpl();

@@ -102,6 +102,7 @@ void CiftiFile::openFile(const QString& fileName)
     m_xml = newRead->getCiftiXML();
     m_dims = m_xml.getDimensions();
     m_onDiskVersion = m_xml.getParsedVersion();
+    m_fileName = fileName;
 }
 
 void CiftiFile::openURL(const QString& url, const QString& user, const QString& pass)
@@ -113,6 +114,7 @@ void CiftiFile::openURL(const QString& url, const QString& user, const QString& 
     m_readingImpl = newRead;
     m_xml = newRead->getCiftiXML();
     m_dims = m_xml.getDimensions();
+    m_fileName = url;
 }
 
 void CiftiFile::openURL(const QString& url)
@@ -124,6 +126,7 @@ void CiftiFile::openURL(const QString& url)
     m_readingImpl = newRead;
     m_xml = newRead->getCiftiXML();
     m_dims = m_xml.getDimensions();
+    m_fileName = url;
 }
 
 void CiftiFile::setWritingFile(const QString& fileName, const CiftiVersion& writingVersion)
@@ -131,6 +134,7 @@ void CiftiFile::setWritingFile(const QString& fileName, const CiftiVersion& writ
     m_writingFile = FileInformation(fileName).getAbsoluteFilePath();//always resolve paths as soon as they enter CiftiFile, in case some clown changes directory before writing data
     m_writingImpl.grabNew(NULL);//prevent writing to previous writing implementation, let the next set...() set up for writing
     m_onDiskVersion = writingVersion;//so that we can do on-disk writing with the old version
+    m_fileName = fileName;
 }
 
 void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVersion)
@@ -144,10 +148,10 @@ void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVe
     {//empty string test is so that we don't say collision if both are nonexistant - could happen if file is removed/unlinked while reading on some filesystems
         if (m_onDiskVersion == writingVersion) return;//don't need to copy to itself
         collision = true;//we need to copy to memory temporarily
-        CaretPointer<WriteImplInterface> tempMemory(new CiftiMemoryImpl(m_xml));//because tempRead is a ReadImpl, can't be used to copy to
+        CaretPointer<WriteImplInterface> tempMemory(new CiftiMemoryImpl(m_xml));
         copyImplData(m_readingImpl, tempMemory, m_dims);
         m_readingImpl = tempMemory;//we are about to make the old reading impl very unhappy, replace it so that if we get an error while writing, we hang onto the memory version
-        m_writingImpl.grabNew(NULL);//and make it re-magic the writing implementation again if it tries to write again
+        m_writingImpl.grabNew(NULL);//and make it re-magic the writing implementation again if data is set
     }
     CaretPointer<WriteImplInterface> tempWrite(new CiftiOnDiskImpl(myInfo.getAbsoluteFilePath(), m_xml, writingVersion));
     copyImplData(m_readingImpl, tempWrite, m_dims);
@@ -165,11 +169,8 @@ void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVe
 void CiftiFile::convertToInMemory()
 {
     if (isInMemory()) return;
-    if (m_readingImpl == NULL || m_dims.empty())//not set up yet
-    {
-        m_writingFile = "";//make sure it doesn't do on-disk when set...() is called
-        return;
-    }
+    m_writingFile = "";//make sure it doesn't do on-disk when set...() is called
+    if (m_readingImpl == NULL) return;//not set up yet
     CaretPointer<WriteImplInterface> tempWrite(new CiftiMemoryImpl(m_xml));//if we get an error while reading, free the memory immediately, and don't leave m_readingImpl and m_writingImpl pointing to different things
     copyImplData(m_readingImpl, tempWrite, m_dims);
     m_writingImpl = tempWrite;
@@ -180,7 +181,7 @@ bool CiftiFile::isInMemory() const
 {
     if (m_readingImpl == NULL)
     {
-        return (m_writingFile == "");//return what it would be if verifyImpl() was called
+        return (m_writingFile == "");//return what it would be if verifyWriteImpl() was called
     } else {
         return m_readingImpl->isInMemory();
     }
