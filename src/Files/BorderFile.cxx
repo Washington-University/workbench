@@ -1645,17 +1645,29 @@ BorderFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     
-    QStringList fociNames = getAllBorderNamesSorted();
-    const int32_t numNames = fociNames.size();
-    if (numNames > 0) {
-        AString namesListText = "BORDER NAMES";
-        for (int32_t i = 0; i < numNames; i++) {
-            namesListText.appendWithNewLine("    "
-                                            + fociNames.at(i));
-            
-        }
-        
-        dataFileInformation.addText(namesListText);
+    int nameSize = 4, classSize = 0;//reserve space for headings, but classSize is only to know how much to reserve()
+    BorderMultiPartHelper myHelp(this);
+    for (int i = 0; i < (int)myHelp.borderPieceList.size(); ++i)
+    {
+        CaretAssert(myHelp.borderPieceList[i].size() > 0);
+        const Border* thisPart = getBorder(myHelp.borderPieceList[i][0]);
+        nameSize = max(nameSize, thisPart->getName().length());
+        classSize = max(classSize, thisPart->getClassName().length());
+    }
+    nameSize += 3;//minimum number spaces between fields
+    int numberSize = max(8, AString::number(myHelp.borderPieceList.size()).length() + 3);//spacing for border index
+    AString header = AString("INDEX").leftJustified(numberSize) + AString("NAME").leftJustified(nameSize) + "CLASS";
+    dataFileInformation.addText(header);
+    for (int i = 0; i < (int)myHelp.borderPieceList.size(); ++i)
+    {
+        CaretAssert(myHelp.borderPieceList[i].size() > 0);
+        const Border* thisPart = getBorder(myHelp.borderPieceList[i][0]);
+        AString line;
+        line.reserve(numberSize + nameSize + classSize + 1);
+        line = "\n" + AString::number(i + 1).leftJustified(numberSize);
+        line += thisPart->getName().leftJustified(nameSize);
+        line += thisPart->getClassName();
+        dataFileInformation.addText(line);
     }
 }
 
@@ -1941,5 +1953,39 @@ BorderFile::exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
     
 }
 
+BorderMultiPartHelper::BorderMultiPartHelper(const BorderFile* bf)
+{
+    int numBorderParts = bf->getNumberOfBorders();
+    for (int i = 0; i < numBorderParts; ++i)
+    {
+        const Border* thisPart = bf->getBorder(i);
+        map<pair<AString, AString>, int>::const_iterator iter = stringLookup.find(make_pair(thisPart->getName(), thisPart->getClassName()));
+        if (iter == stringLookup.end())
+        {
+            stringLookup.insert(make_pair(make_pair(thisPart->getName(), thisPart->getClassName()), (int)borderPieceList.size()));
+            borderPieceList.push_back(vector<int>(1, i));
+        } else {
+            borderPieceList[iter->second].push_back(i);
+        }
+    }
+}
 
-
+int BorderMultiPartHelper::fromNumberOrName(const AString& ident) const
+{
+    bool ok = false;
+    int whichBorder = ident.toInt(&ok) - 1;//first border is "1"
+    if (ok)
+    {
+        if (whichBorder < 0 || whichBorder >= (int)borderPieceList.size()) return -1;
+        return whichBorder;
+    } else {//only search for name if the string isn't a number, to prevent surprises
+        for (std::map<std::pair<AString, AString>, int>::const_iterator iter = stringLookup.begin(); iter != stringLookup.end(); ++iter)
+        {
+            if (iter->first.first == ident)
+            {
+                return iter->second;
+            }
+        }
+        return -1;
+    }
+}   

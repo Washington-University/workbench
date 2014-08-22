@@ -222,6 +222,14 @@ namespace caret {
         static const int32_t s_borderFileVersion;
     };
     
+    struct BorderMultiPartHelper
+    {
+        std::map<std::pair<AString, AString>, int> stringLookup;
+        std::vector<std::vector<int> > borderPieceList;
+        BorderMultiPartHelper(const BorderFile* bf);
+        int fromNumberOrName(const AString& ident) const;
+    };
+
 #ifdef __BORDER_FILE_DECLARE__
     const AString BorderFile::XML_TAG_BORDER_FILE = "BorderFile";
     const AString BorderFile::XML_ATTRIBUTE_VERSION = "Version";
