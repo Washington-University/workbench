@@ -51,7 +51,7 @@ OperationParameters* OperationLabelMerge::getParameters()
     ParameterComponent* columnOpt = labelOpt->createRepeatableParameter(2, "-column", "select a single column to use");
     columnOpt->addStringParameter(1, "column", "the column number or name");
     OptionalParameter* upToOpt = columnOpt->createOptionalParameter(2, "-up-to", "use an inclusive range of columns");
-    upToOpt->addStringParameter(1, "last-subvol", "the number or name of the last column to include");
+    upToOpt->addStringParameter(1, "last-column", "the number or name of the last column to include");
     upToOpt->createOptionalParameter(2, "-reverse", "use the range in reverse order");
     
     ret->setHelpText(
