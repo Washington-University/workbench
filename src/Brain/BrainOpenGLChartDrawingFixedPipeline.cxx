@@ -334,16 +334,25 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
     
     resetIdentification();
 
-    const int32_t vpX      = viewport[0];
-    const int32_t vpY      = viewport[1];
-    const int32_t vpWidth  = viewport[2];
-    const int32_t vpHeight = viewport[3];
     
-    int32_t chartGraphicsDrawingViewport[4] = {
-        vpX,
-        vpY,
-        vpWidth,
-        vpHeight
+//    const int32_t vpX      = viewport[0];
+//    const int32_t vpY      = viewport[1];
+//    const int32_t vpWidth  = viewport[2];
+//    const int32_t vpHeight = viewport[3];
+    
+    ChartMatrixDisplayProperties* matrixProperties = chartMatrixInterface->getChartMatrixDisplayProperties(m_tabIndex);
+    const int32_t paletteHeight = (matrixProperties->isColorBarDisplayed()
+                                   ? 40
+                                   : 0);
+    
+    /*
+     * Viewport is X, Y, Width, Height
+     */
+    const int32_t chartGraphicsDrawingViewport[4] = {
+        viewport[0],
+        viewport[1] + paletteHeight,
+        viewport[2],
+        viewport[3] - paletteHeight
     };
     
     
