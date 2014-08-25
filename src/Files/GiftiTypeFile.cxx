@@ -461,22 +461,6 @@ GiftiTypeFile::getMapName(const int32_t mapIndex) const
 }
 
 /**
- * Find the index of the map that uses the given name.
- * 
- * @param mapName
- *    Name of the desired map.
- * @return
- *    Index of the map using the given name.  If there is more
- *    than one map with the given name, this method is likely
- *    to return the index of the first map with the name.
- */
-int32_t 
-GiftiTypeFile::getMapIndexFromName(const AString& mapName)
-{
-    return this->giftiFile->getDataArrayWithNameIndex(mapName);
-}
-
-/**
  * Set the name of the map at the given index.
  *
  * @param mapIndex

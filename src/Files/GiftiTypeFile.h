@@ -112,8 +112,6 @@ namespace caret {
         
         virtual AString getMapName(const int32_t mapIndex) const;
         
-        virtual int32_t getMapIndexFromName(const AString& mapName);
-        
         virtual void setMapName(const int32_t mapIndex,
                                 const AString& mapName);
         
