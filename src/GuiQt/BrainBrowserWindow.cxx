@@ -691,11 +691,17 @@ BrainBrowserWindow::createMenus()
     if (volumeMenu != NULL) {
         menubar->addMenu(volumeMenu);
     }
-    menubar->addMenu(createMenuConnect());
+    
+    QMenu* connectMenu = createMenuConnect();
+    if (connectMenu != NULL) {
+        menubar->addMenu(connectMenu);
+    }
+    
     if (prefs->isDevelopMenuEnabled()) {
         QMenu* developMenu = createMenuDevelop();
         menubar->addMenu(developMenu);
     }
+    
     menubar->addMenu(createMenuWindow());
     menubar->addMenu(createMenuHelp());
 }
@@ -1170,10 +1176,23 @@ BrainBrowserWindow::getSelectedTileTabsConfiguration()
 QMenu* 
 BrainBrowserWindow::createMenuConnect()
 {
-    QMenu* menu = new QMenu("Connect", this);
+    QMenu* menu = new QMenu("Connect");
     
-    menu->addAction(m_connectToAllenDatabaseAction);
-    menu->addAction(m_connectToConnectomeDatabaseAction);
+    if (m_connectToAllenDatabaseAction->isEnabled()) {
+        menu->addAction(m_connectToAllenDatabaseAction);
+    }
+    if (m_connectToConnectomeDatabaseAction->isEnabled()) {
+        menu->addAction(m_connectToConnectomeDatabaseAction);
+    }
+
+    /*
+     * If none of the actions are enabled, the menu will be
+     * empty so there is no need to display the menu.
+     */
+    if (menu->isEmpty()) {
+        delete menu;
+        menu =  NULL;
+    }
     
     return menu;
 }
