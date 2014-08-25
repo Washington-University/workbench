@@ -2051,8 +2051,9 @@ CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) con
     boundingBoxOut.resetForUpdate();
     
     std::vector<int64_t> volumeDimensions(5, 0);
-    CaretAssertVectorIndex(volumeDimensions, 4);
-    
+    getDimensions(volumeDimensions);
+    CaretAssertVectorIndex(volumeDimensions, 2);
+
     if (m_voxelIndicesToOffset->isValid()) {
         float xyz[3];
         indexToSpace(0,
@@ -2067,6 +2068,9 @@ CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) con
                      xyz);
         
         boundingBoxOut.update(xyz);
+    }
+    else {
+        boundingBoxOut.resetZeros();
     }
 }
 
