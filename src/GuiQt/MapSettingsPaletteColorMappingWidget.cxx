@@ -1588,14 +1588,17 @@ MapSettingsPaletteColorMappingWidget::setLayoutSpacingAndMargins(QLayout* layout
 
 /**
  * Called when the state of the apply all maps checkbox is changed.
- * @param state
- *    New state of checkbox.
+ * @param checked
+ *    New status of checkbox.
  */
 void 
-MapSettingsPaletteColorMappingWidget::applyAllMapsCheckBoxStateChanged(int /*state*/)
+MapSettingsPaletteColorMappingWidget::applyAllMapsCheckBoxStateChanged(bool checked)
 {
+    //applyAndUpdate();
     //const bool checked = (state == Qt::Checked);
-    this->applySelections();
+    if (checked) {
+        this->applySelections();
+    }
 }
 
 /**
@@ -1607,7 +1610,7 @@ MapSettingsPaletteColorMappingWidget::createDataOptionsSection()
     this->applyAllMapsCheckBox = new QCheckBox("Apply to All Maps");
     this->applyAllMapsCheckBox->setCheckState(Qt::Checked);
     QObject::connect(this->applyAllMapsCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(applyAndUpdate()));
+                     this, SLOT(applyAllMapsCheckBoxStateChanged(bool)));
     this->applyAllMapsCheckBox->setToolTip("If checked, settings are applied to all maps\n"
                                            "in the file containing the selected map");
     

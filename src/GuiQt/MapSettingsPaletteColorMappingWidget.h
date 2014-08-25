@@ -77,7 +77,7 @@ namespace caret {
         void applyAndUpdate();
         void applySelections();
         
-        void applyAllMapsCheckBoxStateChanged(int state);
+        void applyAllMapsCheckBoxStateChanged(bool);
         
         void applyToMultipleFilesPushbuttonClicked();
         
