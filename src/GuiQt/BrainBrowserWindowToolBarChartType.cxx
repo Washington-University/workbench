@@ -70,7 +70,7 @@ m_parentToolBar(parentToolBar)
     m_chartTypeButtonGroup->addButton(m_chartTimeSeriesTypeRadioButton);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
     layout->addWidget(m_chartDataSeriesTypeRadioButton);
     layout->addWidget(m_chartMatrixTypeRadioButton);
     layout->addWidget(m_chartTimeSeriesTypeRadioButton);
