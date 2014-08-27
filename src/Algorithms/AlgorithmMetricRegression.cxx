@@ -48,7 +48,7 @@ OperationParameters* AlgorithmMetricRegression::getParameters()
     OptionalParameter* roiOpt = ret->createOptionalParameter(3, "-roi", "only regress inside an roi");
     roiOpt->addMetricParameter(1, "roi-metric", "the area to use for regression, as a metric");
     
-    OptionalParameter* columnOpt = ret->createOptionalParameter(4, "-column", "select a single column to compute the gradient of");
+    OptionalParameter* columnOpt = ret->createOptionalParameter(4, "-column", "select a single column to regress from");
     columnOpt->addStringParameter(1, "column", "the column number or name");
     
     ParameterComponent* removeOpt = ret->createRepeatableParameter(5, "-remove", "specify a metric to regress out");

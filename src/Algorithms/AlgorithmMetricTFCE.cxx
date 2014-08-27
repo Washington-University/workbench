@@ -226,8 +226,8 @@ namespace _algorithm_metric_tfce
         Cluster()
         {
             first = true;
-            accumVal = 0.0f;
-            totalArea = 0.0f;
+            accumVal = 0.0;
+            totalArea = 0.0;
         }
         void addMember(const int& node, const float& val, const float& area, const float& param_e, const float& param_h)
         {
@@ -320,15 +320,16 @@ void AlgorithmMetricTFCE::tfce_pos(TopologyHelper* myHelper, const float* colDat
             }
             default://merge all touching clusters
             {
-                int mergedIndex = -1, biggestSize;//find the biggest cluster (in number of members) and use as merged cluster, for optimization purposes
+                int mergedIndex = -1, biggestSize = 0;//find the biggest cluster (in number of members) and use as merged cluster, for optimization purposes
                 for (set<int>::iterator iter = touchingClusters.begin(); iter != touchingClusters.end(); ++iter)
                 {
-                    if (mergedIndex == -1 || (int)clusterList[*iter].members.size() > biggestSize)
+                    if ((int)clusterList[*iter].members.size() > biggestSize)
                     {
                         mergedIndex = *iter;
                         biggestSize = (int)clusterList[*iter].members.size();
                     }
                 }
+                CaretAssertVectorIndex(clusterList, mergedIndex);
                 Cluster& mergedCluster = clusterList[mergedIndex];
                 mergedCluster.update(value, param_e, param_h);//recalculate to align cluster bottoms
                 for (set<int>::iterator iter = touchingClusters.begin(); iter != touchingClusters.end(); ++iter)

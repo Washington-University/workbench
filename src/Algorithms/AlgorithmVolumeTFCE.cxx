@@ -198,8 +198,8 @@ namespace _algorithm_volume_tfce
         Cluster()
         {
             first = true;
-            accumVal = 0.0f;
-            totalVolume = 0.0f;
+            accumVal = 0.0;
+            totalVolume = 0.0;
         }
         void addMember(const VoxelIJK& voxel, const float& val, const float& voxel_volume, const float& param_e, const float& param_h)
         {
@@ -326,15 +326,16 @@ void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const 
             }
             default://merge all touching clusters
             {
-                int64_t mergedIndex = -1, biggestSize;//find the biggest cluster (in number of members) and use as merged cluster, for optimization purposes
+                int64_t mergedIndex = -1, biggestSize = 0;//find the biggest cluster (in number of members) and use as merged cluster, for optimization purposes
                 for (set<int64_t>::iterator iter = touchingClusters.begin(); iter != touchingClusters.end(); ++iter)
                 {
-                    if (mergedIndex == -1 || (int64_t)clusterList[*iter].members.size() > biggestSize)
+                    if ((int64_t)clusterList[*iter].members.size() > biggestSize)
                     {
                         mergedIndex = *iter;
                         biggestSize = (int64_t)clusterList[*iter].members.size();
                     }
                 }
+                CaretAssertVectorIndex(clusterList, mergedIndex);
                 Cluster& mergedCluster = clusterList[mergedIndex];
                 mergedCluster.update(value, param_e, param_h);//recalculate to align cluster bottoms
                 for (set<int64_t>::iterator iter = touchingClusters.begin(); iter != touchingClusters.end(); ++iter)
