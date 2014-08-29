@@ -38,6 +38,7 @@ namespace caret {
     class BoundingBox;
     class CaretPointLocator;
     class DescriptiveStatistics;
+    class FastStatistics;
     class GeodesicHelper;
     class GeodesicHelperBase;
     class GiftiDataArray;
@@ -104,7 +105,9 @@ namespace caret {
                                           const int32_t n2,
                                           const int32_t oppositeTriangle) const;
         
-        void computeNormals(bool averageNormals = false);
+        void computeNormals();
+        
+        std::vector<float> computeAverageNormals();
                 
         const float* getNodeColor(const int32_t nodeIndex) const;
         
@@ -144,6 +147,8 @@ namespace caret {
         void applyMatrix(const Matrix4x4& matrix);
         
         void getNodesSpacingStatistics(DescriptiveStatistics& statsOut) const;
+        
+        void getNodesSpacingStatistics(FastStatistics& statsOut) const;
         
         void computeNodeAreas(std::vector<float>& areasOut) const;
         
@@ -250,7 +255,7 @@ namespace caret {
         /** surface normal vectors. */
         std::vector<float> normalVectors;
         
-        bool m_normalsAveraged, m_normalsComputed;
+        bool m_normalsComputed;
 
         /** The node coloring. */
         std::vector<float> nodeColoring;

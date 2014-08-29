@@ -41,6 +41,7 @@ namespace caret {
                                 const MetricFile* myRoi = NULL,
                                 const bool myAvgNormals = false,
                                 const int32_t myColumn = -1,
+                                const MetricFile* corrAreaMetric = NULL,
                                 bool matchRoiColumns = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

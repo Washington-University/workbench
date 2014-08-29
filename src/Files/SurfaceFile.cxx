@@ -30,12 +30,14 @@
 #include "CaretOMP.h"
 #include "DataFileContentInformation.h"
 #include "DescriptiveStatistics.h"
+#include "FastStatistics.h"
 #include "EventSurfaceColoringInvalidate.h"
 
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
+#include "Vector3D.h"
 
 #include "CaretPointLocator.h"
 #include "GeodesicHelper.h"
@@ -536,20 +538,19 @@ const float* SurfaceFile::getNormalData() const
 void
 SurfaceFile::invalidateNormals()
 {
-	m_normalsComputed = false;
+    m_normalsComputed = false;
 }
 /**
  * Compute surface normals.
  */
 void 
-SurfaceFile::computeNormals(const bool averageNormals)
+SurfaceFile::computeNormals()
 {
-    if (m_normalsComputed && (averageNormals == m_normalsAveraged))//don't recompute when not needed
+    if (m_normalsComputed)//don't recompute when not needed
     {
         return;
     }
     m_normalsComputed = true;
-    m_normalsAveraged = averageNormals;
     int32_t numCoords = this->getNumberOfNodes();
     if (numCoords > 0) {
         this->normalVectors.resize(numCoords * 3);
@@ -561,7 +562,7 @@ SurfaceFile::computeNormals(const bool averageNormals)
     const int32_t numTriangles = this->getNumberOfTriangles();
     if ((numCoords > 0) && (numTriangles > 0)) {
         float* normalPointer = &this->normalVectors[0];
-        std::vector<float> numContribute(numCoords, 0.0f);
+        std::vector<int> numContribute(numCoords, 0);
 
         float triangleNormal[3];
         for (int32_t i = 0; i < numTriangles; i++) {
@@ -584,74 +585,54 @@ SurfaceFile::computeNormals(const bool averageNormals)
                 normalPointer[c1 + 0] += triangleNormal[0];//+= is not guaranteed to be atomic, do not parallelize
                 normalPointer[c1 + 1] += triangleNormal[1];
                 normalPointer[c1 + 2] += triangleNormal[2];
-                numContribute[n1] += 1.0;
+                numContribute[n1] += 1;
                 normalPointer[c2 + 0] += triangleNormal[0];
                 normalPointer[c2 + 1] += triangleNormal[1];
                 normalPointer[c2 + 2] += triangleNormal[2];
-                numContribute[n2] += 1.0;
+                numContribute[n2] += 1;
                 normalPointer[c3 + 0] += triangleNormal[0];
                 normalPointer[c3 + 1] += triangleNormal[1];
                 normalPointer[c3 + 2] += triangleNormal[2];
-                numContribute[n3] += 1.0;
+                numContribute[n3] += 1;
             }
         }
         
-#pragma omp CARET_PAR
-        {
-            int32_t i = 0;
-#pragma omp CARET_FOR schedule(static,1000) private(i)
-            for (i = 0; i < numCoords; i++) {
-                const int32_t i3 = i * 3;
-                if (numContribute[i] > 0.0) {
-                    MathFunctions::normalizeVector(normalPointer + i3);
-                } else {
-                    normalPointer[i3 + 0] = 0.0f;//zero the normals for unconnected nodes
-                    normalPointer[i3 + 1] = 0.0f;
-                    normalPointer[i3 + 2] = 0.0f;
-                }
+        for (int i = 0; i < numCoords; i++) {
+            const int i3 = i * 3;
+            if (numContribute[i] > 0) {
+                MathFunctions::normalizeVector(normalPointer + i3);
+            } else {
+                normalPointer[i3 + 0] = 0.0f;//zero the normals for unconnected nodes
+                normalPointer[i3 + 1] = 0.0f;
+                normalPointer[i3 + 2] = 0.0f;
             }
-        }
-        
-        if (averageNormals)
-        {
-            float* avgTemp = new float[numCoords * 3];
-#pragma omp CARET_PAR
-            {
-                float tempVec[3];
-                CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();//TODO: make this not circular - separate base that doesn't handle helpers (and is used by helpers) from file that handles helpers and normals?
-                int32_t i = 0; 
-#pragma omp CARET_FOR schedule(static,1000) private(i)
-                for (i = 0; i < numCoords; ++i)
-                {
-                    int32_t i3 = i * 3;
-                    tempVec[0] = 0.0f;
-                    tempVec[1] = 0.0f;
-                    tempVec[2] = 0.0f;
-                    const std::vector<int32_t>& neighbors = myTopoHelp->getNodeNeighbors(i);
-                    int32_t numNeigh = (int32_t)neighbors.size();
-                    for (int32_t j = 0; j < numNeigh; ++j)
-                    {
-                        int32_t neighbase = neighbors[j] * 3;
-                        tempVec[0] += normalPointer[neighbase];
-                        tempVec[1] += normalPointer[neighbase + 1];
-                        tempVec[2] += normalPointer[neighbase + 2];
-                    }
-                    MathFunctions::normalizeVector(tempVec);
-                    avgTemp[i3] = tempVec[0];
-                    avgTemp[i3 + 1] = tempVec[1];
-                    avgTemp[i3 + 2] = tempVec[2];
-                }
-                for (int32_t i = 0; i < numCoords; ++i)
-                {
-                    int32_t i3 = i * 3;
-                    normalPointer[i3] = avgTemp[i3];
-                    normalPointer[i3 + 1] = avgTemp[i3 + 1];
-                    normalPointer[i3 + 2] = avgTemp[i3 + 2];
-                }
-            }
-            delete[] avgTemp;
         }
     }
+}
+
+std::vector<float> SurfaceFile::computeAverageNormals()
+{
+    computeNormals();
+    const float* normalPointer = getNormalData();
+    int numCoords = getNumberOfNodes();
+    std::vector<float> ret(numCoords * 3);
+    CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();//TODO: make this not circular - separate base that doesn't handle helpers (and is used by helpers) from file that handles helpers and normals?
+    for (int i = 0; i < numCoords; ++i)
+    {
+        int i3 = i * 3;
+        Vector3D accum;
+        const std::vector<int32_t>& neighbors = myTopoHelp->getNodeNeighbors(i);
+        int numNeigh = (int)neighbors.size();
+        for (int j = 0; j < numNeigh; ++j)
+        {
+            accum += normalPointer + neighbors[j] * 3;
+        }
+        Vector3D outVec = accum.normal();
+        ret[i3] = outVec[0];
+        ret[i3 + 1] = outVec[1];
+        ret[i3 + 2] = outVec[2];
+    }
+    return ret;
 }
 
 /**
@@ -1300,6 +1281,29 @@ SurfaceFile::getNodesSpacingStatistics(DescriptiveStatistics& statsOut) const
 
 }
 
+void
+SurfaceFile::getNodesSpacingStatistics(FastStatistics& statsOut) const
+{
+    const int32_t numberOfNodes = this->getNumberOfNodes();
+    std::vector<float> nodeSpacing;
+    nodeSpacing.reserve(numberOfNodes * 10);
+    CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+    int numberOfNeighbors;
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        const int* neighbors = th->getNodeNeighbors(i, numberOfNeighbors);
+        for (int32_t j = 0; j < numberOfNeighbors; j++) {
+            const int n = neighbors[j];
+            if (n > i) {
+                const float dist = MathFunctions::distance3D(this->getCoordinate(i),
+                                                             this->getCoordinate(n));
+                nodeSpacing.push_back(dist);
+            }
+        }
+    }
+    
+    statsOut.update(nodeSpacing.data(), nodeSpacing.size());
+
+}
 
 /**
  * Invalidate surface coloring.

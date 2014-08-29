@@ -31,6 +31,9 @@
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
+#include "Vector3D.h"
+
+#include <cmath>
 
 using namespace caret;
 using namespace std;
@@ -67,13 +70,18 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "select a single column to compute the gradient of");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
-    ret->createOptionalParameter(8, "-average-normals", "average the normals of each vertex with its neighbors before using them to compute the gradient");
+    OptionalParameter* corrAreaOpt = ret->createOptionalParameter(8, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+    
+    ret->createOptionalParameter(9, "-average-normals", "average the normals of each vertex with its neighbors before using them to compute the gradient");
     //that option has no parameters to take, so don't store the return value
     ret->setHelpText(
         AString("At each vertex, the immediate neighbors are unfolded onto a plane tangent to the surface at the vertex (specifically, perpendicular to the normal).  ") +
         "The gradient is computed using a regression between the unfolded positions of the vertices and their values.  " +
         "The gradient is then given by the slopes of the regression, and reconstructed as a 3D gradient vector.  " +
-        "By default, takes the gradient of all columns, with no presmoothing, across the whole surface, without averaging the normals of the surface among neighbors.  " +
+        "By default, takes the gradient of all columns, with no presmoothing, across the whole surface, without averaging the normals of the surface among neighbors.\n\n" +
+        "When using -corrected-areas, note that it is an approximate correction.  " +
+        "Doing smoothing on individual surfaces before averaging/gradient is preferred, when possible, in order to make use of the original surface structure.\n\n" +
         "Specifying an ROI will restrict the gradient to only use data from where the ROI metric is positive, and output zeros anywhere the ROI metric is not positive.\n\n" +
         "By default, the first column of the roi metric is used for all input columns.  " +
         "When -match-columns is specified to the -roi option, the input and roi metrics must have the same number of columns, " +
@@ -121,9 +129,15 @@ void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, Progr
             throw AlgorithmException("invalid column specified");
         }
     }
-    OptionalParameter* avgNormals = myParams->getOptionalParameter(8);
+    MetricFile* corrAreaMetric = NULL;
+    OptionalParameter* corrAreaOpt = myParams->getOptionalParameter(8);
+    if (corrAreaOpt->m_present)
+    {
+        corrAreaMetric = corrAreaOpt->getMetric(1);
+    }
+    OptionalParameter* avgNormals = myParams->getOptionalParameter(9);
     bool myAvgNormals = avgNormals->m_present;
-    AlgorithmMetricGradient(myProgObj, mySurf, myMetricIn, myMetricOut, myVectorsOut, myPresmooth, myRoi, myAvgNormals, myColumn, matchRoiColumns);//executes the algorithm
+    AlgorithmMetricGradient(myProgObj, mySurf, myMetricIn, myMetricOut, myVectorsOut, myPresmooth, myRoi, myAvgNormals, myColumn, corrAreaMetric, matchRoiColumns);//executes the algorithm
 }
 
 AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
@@ -135,6 +149,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                                                  const MetricFile* myRoi,
                                                  const bool myAvgNormals,
                                                  const int32_t myColumn,
+                                                 const MetricFile* corrAreaMetric,
                                                  const bool matchRoiColumns) : AbstractAlgorithm(myProgObj)
 {
     ProgressObject* smoothProgress = NULL;
@@ -152,6 +167,10 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
     {
         throw AlgorithmException("roi metric does not match surface in number of vertices");
     }
+    if (corrAreaMetric != NULL && corrAreaMetric->getNumberOfNodes() != numNodes)
+    {
+        throw AlgorithmException("corrected areas metric does not match surface in number of vertices");
+    }
     int32_t numColumns = myMetricIn->getNumberOfColumns();
     if (myColumn < -1 || myColumn >= numColumns)
     {
@@ -166,15 +185,42 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
     int32_t useColumn = myColumn;
     if (myPresmooth > 0.0f)
     {
-        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, &processTemp, myRoi, matchRoiColumns, false, myColumn, NULL, MetricSmoothingObject::GEO_GAUSS_AREA);
+        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, &processTemp, myRoi, matchRoiColumns, false, myColumn, corrAreaMetric, MetricSmoothingObject::GEO_GAUSS_AREA);
         toProcess = &processTemp;
         if (myColumn != -1)
         {
             useColumn = 0;
         }
     }
-    mySurf->computeNormals(myAvgNormals);
-    const float* myNormals = mySurf->getNormalData();
+    const float* myNormals = NULL;
+    vector<float> avgNormalStorage;
+    if (myAvgNormals)
+    {
+        avgNormalStorage = mySurf->computeAverageNormals();
+        myNormals = avgNormalStorage.data();
+    } else {
+        mySurf->computeNormals();
+        myNormals = mySurf->getNormalData();
+    }
+    vector<float> sqrtCorrAreas;//same logic as GeodesicHelper
+    vector<float> sqrtVertAreas;
+    const float* vertAreas = NULL;
+    vector<float> areaData;
+    if (corrAreaMetric != NULL)
+    {
+        sqrtCorrAreas.resize(numNodes);
+        mySurf->computeNodeAreas(sqrtVertAreas);
+        const float* corrAreaData = corrAreaMetric->getValuePointerForColumn(0);
+        for (int i = 0; i < numNodes; ++i)
+        {
+            sqrtCorrAreas[i] = sqrt(corrAreaData[i]);
+            sqrtVertAreas[i] = sqrt(sqrtVertAreas[i]);
+        }
+        vertAreas = corrAreaData;
+    } else {
+        mySurf->computeNodeAreas(areaData);
+        vertAreas = areaData.data();
+    }
     const float* myCoords = mySurf->getCoordinateData();
     bool haveWarned = false, haveFailed = false;//print warning or failure messages only once
     if (myColumn == -1)
@@ -212,7 +258,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
             }
 #pragma omp CARET_PAR
             {
-                float somevec[3], xhat[3], yhat[3];
+                Vector3D somevec, xhat, yhat;
                 float sanity = 0.0f;
                 CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//this stores and reuses helpers, so it isn't really a problem to call inside the loop
 #pragma omp CARET_FOR schedule(dynamic)
@@ -232,8 +278,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                     int32_t numNeigh;
                     int32_t i3 = i * 3;
                     const int32_t* myNeighbors = myTopoHelp->getNodeNeighbors(i, numNeigh);//one function call isn't that bad, most time spent is floating point math anyway
-                    const float* myNormal = myNormals + i3;
-                    const float* myCoord = myCoords + i3;
+                    Vector3D myNormal = Vector3D(myNormals + i3).normal();//should already be normalized, but just in case
+                    Vector3D myCoord = myCoords + i3;
                     float nodeValue = myMetricColumn[i];
                     somevec[2] = 0.0;
                     if (myNormal[0] > myNormal[1])
@@ -244,10 +290,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         somevec[0] = 1.0;
                         somevec[1] = 0.0;
                     }
-                    MathFunctions::crossProduct(myNormal, somevec, xhat);
-                    MathFunctions::normalizeVector(xhat);
-                    MathFunctions::crossProduct(myNormal, xhat, yhat);
-                    MathFunctions::normalizeVector(yhat);//xhat, yhat are orthogonal unit vectors describing the coord system with k = surface normal
+                    xhat = myNormal.cross(somevec).normal();
+                    yhat = myNormal.cross(xhat).normal();//xhat, yhat are orthogonal unit vectors describing a coord system with k = surface normal
                     int neighCount = 0;//count within-roi neighbors, not simply surface neighbors
                     if (numNeigh >= 2)
                     {
@@ -260,23 +304,33 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                             {
                                 ++neighCount;
                                 float tempf = myMetricColumn[whichNode] - nodeValue;
-                                const float* neighCoord = myCoords + whichNode3;
-                                MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
-                                float origMag = MathFunctions::vectorLength(somevec);//save the original length
-                                float xmag = MathFunctions::dotProduct(xhat, somevec);//dot product to get the direction in 2d
-                                float ymag = MathFunctions::dotProduct(yhat, somevec);
+                                Vector3D neighCoord = myCoords + whichNode3;
+                                somevec = neighCoord - myCoord;
+                                float origMag = somevec.length();//save the original length
+                                float unrollMag = origMag;
+                                float opposite = somevec.dot(myNormal);//check for division by close to zero
+                                if (abs(opposite) > 0.035f * origMag)//do not do unrolling on very small angles - this is ~2 degrees
+                                {
+                                    unrollMag = origMag * asin(opposite / origMag) * origMag / opposite;
+                                }
+                                if (corrAreaMetric != NULL)
+                                {
+                                    unrollMag *= (sqrtCorrAreas[i] + sqrtCorrAreas[whichNode]) / (sqrtVertAreas[i] + sqrtVertAreas[whichNode]);
+                                }
+                                float xmag = xhat.dot(somevec);//dot product to get the direction in 2d
+                                float ymag = yhat.dot(somevec);
                                 float mag2d = sqrt(xmag * xmag + ymag * ymag);//get the new magnitude, to divide out
-                                xmag *= origMag / mag2d;//normalize the 2d vector and multiply by original length to unfold
-                                ymag *= origMag / mag2d;
-                                myRegress[0][0] += xmag * xmag;//gather A'A and A'b sums for regression
-                                myRegress[0][1] += xmag * ymag;
-                                myRegress[0][2] += xmag;
-                                myRegress[1][1] += ymag * ymag;
-                                myRegress[1][2] += ymag;
-                                myRegress[2][2] += 1.0f;
-                                myRegress[0][3] += xmag * tempf;
-                                myRegress[1][3] += ymag * tempf;
-                                myRegress[2][3] += tempf;
+                                xmag *= unrollMag / mag2d;//normalize the 2d vector and multiply by unrolled length
+                                ymag *= unrollMag / mag2d;
+                                myRegress[0][0] += xmag * xmag * vertAreas[whichNode];//gather A'A and A'b sums for regression, weighted by vertex area
+                                myRegress[0][1] += xmag * ymag * vertAreas[whichNode];
+                                myRegress[0][2] += xmag * vertAreas[whichNode];
+                                myRegress[1][1] += ymag * ymag * vertAreas[whichNode];
+                                myRegress[1][2] += ymag * vertAreas[whichNode];
+                                myRegress[2][2] += vertAreas[whichNode];
+                                myRegress[0][3] += xmag * tempf * vertAreas[whichNode];
+                                myRegress[1][3] += ymag * tempf * vertAreas[whichNode];
+                                myRegress[2][3] += tempf * vertAreas[whichNode];
                             }
                         }
                         if (neighCount >= 2)
@@ -284,11 +338,9 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                             myRegress[1][0] = myRegress[0][1];//complete the symmetric elements
                             myRegress[2][0] = myRegress[0][2];
                             myRegress[2][1] = myRegress[1][2];
-                            myRegress[2][2] += 1.0f;//include center (metric and coord differences will be zero, so this is all that is needed)
+                            myRegress[2][2] += vertAreas[i];//include center (metric and coord differences will be zero, so this is all that is needed)
                             FloatMatrix myRref = myRegress.reducedRowEchelon();
-                            somevec[0] = xhat[0] * myRref[0][3] + yhat[0] * myRref[1][3];
-                            somevec[1] = xhat[1] * myRref[0][3] + yhat[1] * myRref[1][3];
-                            somevec[2] = xhat[2] * myRref[0][3] + yhat[2] * myRref[1][3];//somevec is now our surface gradient
+                            somevec = xhat * myRref[0][3] + yhat * myRref[1][3];//somevec is now our surface gradient
                             sanity = somevec[0] + somevec[1] + somevec[2];
                         }
                     }
@@ -299,7 +351,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                             haveWarned = true;
                             CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method for at least vertex " + AString::number(i));
                         }
-                        float xgrad = 0.0f, ygrad = 0.0f;
+                        float xgrad = 0.0f, ygrad = 0.0f, totalWeight = 0.0f;
                         for (int32_t j = 0; j < numNeigh; ++j)
                         {
                             int32_t whichNode = myNeighbors[j];
@@ -307,22 +359,31 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                             if (myRoiColumn == NULL || myRoiColumn[whichNode] > 0.0f)
                             {
                                 float tempf = myMetricColumn[whichNode] - nodeValue;
-                                const float* neighCoord = myCoords + whichNode3;
-                                MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
-                                float origMag = MathFunctions::vectorLength(somevec);//save the original length
-                                float xmag = MathFunctions::dotProduct(xhat, somevec);//dot product to get the direction in 2d
-                                float ymag = MathFunctions::dotProduct(yhat, somevec);
+                                Vector3D neighCoord = myCoords + whichNode3;
+                                somevec = neighCoord - myCoord;
+                                float origMag = somevec.length();//save the original length
+                                float unrollMag = origMag;
+                                float opposite = somevec.dot(myNormal);//check for division by close to zero
+                                if (abs(opposite) > 0.035f * origMag)//do not do unrolling on very small angles - this is ~2 degrees
+                                {
+                                    unrollMag = origMag * asin(opposite / origMag) * origMag / opposite;
+                                }
+                                if (corrAreaMetric != NULL)
+                                {
+                                    unrollMag *= (sqrtCorrAreas[i] + sqrtCorrAreas[whichNode]) / (sqrtVertAreas[i] + sqrtVertAreas[whichNode]);
+                                }
+                                float xmag = xhat.dot(somevec);//dot product to get the direction in 2d
+                                float ymag = yhat.dot(somevec);
                                 float mag2d = sqrt(xmag * xmag + ymag * ymag);//get the new magnitude, to divide out
-                                tempf /= origMag * mag2d;//difference divided by distance gives point estimate of gradient magnitude, also divide by magnitude of 2d vector to normalize it at the same time
-                                xgrad += xmag * tempf;//point estimate of gradient magnitude times normalized projected direction gives 2d estimate of gradient
-                                ygrad += ymag * tempf;//average point estimates for each neighbor to estimate local gradient
+                                tempf /= unrollMag * mag2d;//difference divided by distance gives point estimate of gradient magnitude, also divide by magnitude of 2d vector to normalize the next step at the same time
+                                xgrad += xmag * tempf * vertAreas[whichNode];//point estimate of gradient magnitude times normalized projected direction gives 2d estimate of gradient
+                                ygrad += ymag * tempf * vertAreas[whichNode];//average point estimates for each neighbor to estimate local gradient
+                                totalWeight += vertAreas[whichNode];
                             }
                         }
-                        xgrad /= neighCount;//average
-                        ygrad /= neighCount;
-                        somevec[0] = xhat[0] * xgrad + yhat[0] * ygrad;//unproject back into 3d
-                        somevec[1] = xhat[1] * xgrad + yhat[1] * ygrad;
-                        somevec[2] = xhat[2] * xgrad + yhat[2] * ygrad;
+                        xgrad /= totalWeight;//weighted average
+                        ygrad /= totalWeight;
+                        somevec = xhat * xgrad + yhat * ygrad;//unproject back into 3d
                         sanity = somevec[0] + somevec[1] + somevec[2];
                     }
                     if (neighCount <= 0 || sanity != sanity)
@@ -389,7 +450,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
         *(myMetricOut->getPaletteColorMapping(0)) = *(toProcess->getPaletteColorMapping(useColumn));//copy the palette settings
 #pragma omp CARET_PAR
         {
-            float somevec[3], xhat[3], yhat[3];
+            Vector3D somevec, xhat, yhat;
             float sanity = 0.0f;
             CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
 #pragma omp CARET_FOR schedule(dynamic)
@@ -409,8 +470,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                 int32_t numNeigh;
                 int32_t i3 = i * 3;
                 const int32_t* myNeighbors = myTopoHelp->getNodeNeighbors(i, numNeigh);
-                const float* myNormal = myNormals + i3;
-                const float* myCoord = myCoords + i3;
+                Vector3D myNormal = Vector3D(myNormals + i3).normal();//should already be normalized, but just in case
+                Vector3D myCoord = myCoords + i3;
                 float nodeValue = myMetricColumn[i];
                 somevec[2] = 0.0;
                 if (myNormal[0] > myNormal[1])
@@ -421,10 +482,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                     somevec[0] = 1.0;
                     somevec[1] = 0.0;
                 }
-                MathFunctions::crossProduct(myNormal, somevec, xhat);
-                MathFunctions::normalizeVector(xhat);
-                MathFunctions::crossProduct(myNormal, xhat, yhat);
-                MathFunctions::normalizeVector(yhat);//xhat, yhat are orthogonal unit vectors describing the coord system with k = surface normal
+                xhat = myNormal.cross(somevec).normal();
+                yhat = myNormal.cross(xhat).normal();//xhat, yhat are orthogonal unit vectors describing a coord system with k = surface normal
                 int neighCount = 0;//count within-roi neighbors, not simply surface neighbors
                 if (numNeigh >= 2)
                 {
@@ -437,23 +496,33 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         {
                             ++neighCount;
                             float tempf = myMetricColumn[whichNode] - nodeValue;
-                            const float* neighCoord = myCoords + whichNode3;
-                            MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
-                            float origMag = MathFunctions::vectorLength(somevec);//save the original length
-                            float xmag = MathFunctions::dotProduct(xhat, somevec);//dot product to get the direction in 2d
-                            float ymag = MathFunctions::dotProduct(yhat, somevec);
+                            Vector3D neighCoord = myCoords + whichNode3;
+                            somevec = neighCoord - myCoord;
+                            float origMag = somevec.length();//save the original length
+                            float unrollMag = origMag;
+                            float opposite = somevec.dot(myNormal);//check for division by close to zero
+                            if (abs(opposite) > 0.035f * origMag)//do not do unrolling on very small angles - this is ~2 degrees
+                            {
+                                unrollMag = origMag * asin(opposite / origMag) * origMag / opposite;
+                            }
+                            if (corrAreaMetric != NULL)
+                            {
+                                unrollMag *= (sqrtCorrAreas[i] + sqrtCorrAreas[whichNode]) / (sqrtVertAreas[i] + sqrtVertAreas[whichNode]);
+                            }
+                            float xmag = xhat.dot(somevec);//dot product to get the direction in 2d
+                            float ymag = yhat.dot(somevec);
                             float mag2d = sqrt(xmag * xmag + ymag * ymag);//get the new magnitude, to divide out
-                            xmag *= origMag / mag2d;//normalize the 2d vector and multiply by original length to unfold
-                            ymag *= origMag / mag2d;
-                            myRegress[0][0] += xmag * xmag;//gather A'A and A'b sums for regression
-                            myRegress[0][1] += xmag * ymag;
-                            myRegress[0][2] += xmag;
-                            myRegress[1][1] += ymag * ymag;
-                            myRegress[1][2] += ymag;
-                            myRegress[2][2] += 1.0f;
-                            myRegress[0][3] += xmag * tempf;
-                            myRegress[1][3] += ymag * tempf;
-                            myRegress[2][3] += tempf;
+                            xmag *= unrollMag / mag2d;//normalize the 2d vector and multiply by unrolled length
+                            ymag *= unrollMag / mag2d;
+                            myRegress[0][0] += xmag * xmag * vertAreas[whichNode];//gather A'A and A'b sums for regression, weighted by vertex area
+                            myRegress[0][1] += xmag * ymag * vertAreas[whichNode];
+                            myRegress[0][2] += xmag * vertAreas[whichNode];
+                            myRegress[1][1] += ymag * ymag * vertAreas[whichNode];
+                            myRegress[1][2] += ymag * vertAreas[whichNode];
+                            myRegress[2][2] += vertAreas[whichNode];
+                            myRegress[0][3] += xmag * tempf * vertAreas[whichNode];
+                            myRegress[1][3] += ymag * tempf * vertAreas[whichNode];
+                            myRegress[2][3] += tempf * vertAreas[whichNode];
                         }
                     }
                     if (neighCount >= 2)
@@ -461,11 +530,9 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         myRegress[1][0] = myRegress[0][1];//complete the symmetric elements
                         myRegress[2][0] = myRegress[0][2];
                         myRegress[2][1] = myRegress[1][2];
-                        myRegress[2][2] += 1.0f;//include center (metric and coord differences will be zero, so this is all that is needed)
+                        myRegress[2][2] += vertAreas[i];//include center (metric and coord differences will be zero, so this is all that is needed)
                         FloatMatrix myRref = myRegress.reducedRowEchelon();
-                        somevec[0] = xhat[0] * myRref[0][3] + yhat[0] * myRref[1][3];
-                        somevec[1] = xhat[1] * myRref[0][3] + yhat[1] * myRref[1][3];
-                        somevec[2] = xhat[2] * myRref[0][3] + yhat[2] * myRref[1][3];//somevec is now our surface gradient
+                        somevec = xhat * myRref[0][3] + yhat * myRref[1][3];//somevec is now our surface gradient
                         sanity = somevec[0] + somevec[1] + somevec[2];
                     }
                 }
@@ -476,7 +543,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         haveWarned = true;
                         CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method for at least vertex " + AString::number(i));
                     }
-                    float xgrad = 0.0f, ygrad = 0.0f;
+                    float xgrad = 0.0f, ygrad = 0.0f, totalWeight = 0.0f;
                     for (int32_t j = 0; j < numNeigh; ++j)
                     {
                         int32_t whichNode = myNeighbors[j];
@@ -484,22 +551,31 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         if (myRoiColumn == NULL || myRoiColumn[whichNode] > 0.0f)
                         {
                             float tempf = myMetricColumn[whichNode] - nodeValue;
-                            const float* neighCoord = myCoords + whichNode3;
-                            MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
-                            float origMag = MathFunctions::vectorLength(somevec);//save the original length
-                            float xmag = MathFunctions::dotProduct(xhat, somevec);//dot product to get the direction in 2d
-                            float ymag = MathFunctions::dotProduct(yhat, somevec);
+                            Vector3D neighCoord = myCoords + whichNode3;
+                            somevec = neighCoord - myCoord;
+                            float origMag = somevec.length();//save the original length
+                            float unrollMag = origMag;
+                            float opposite = somevec.dot(myNormal);//check for division by close to zero
+                            if (abs(opposite) > 0.035f * origMag)//do not do unrolling on very small angles - this is ~2 degrees
+                            {
+                                unrollMag = origMag * asin(opposite / origMag) * origMag / opposite;
+                            }
+                            if (corrAreaMetric != NULL)
+                            {
+                                unrollMag *= (sqrtCorrAreas[i] + sqrtCorrAreas[whichNode]) / (sqrtVertAreas[i] + sqrtVertAreas[whichNode]);
+                            }
+                            float xmag = xhat.dot(somevec);//dot product to get the direction in 2d
+                            float ymag = yhat.dot(somevec);
                             float mag2d = sqrt(xmag * xmag + ymag * ymag);//get the new magnitude, to divide out
-                            tempf /= origMag * mag2d;//difference divided by distance gives point estimate of gradient magnitude, also divide by magnitude of 2d vector to normalize it at the same time
-                            xgrad += xmag * tempf;//point estimate of gradient magnitude times normalized projected direction gives 2d estimate of gradient
-                            ygrad += ymag * tempf;//average point estimates for each neighbor to estimate local gradient
+                            tempf /= unrollMag * mag2d;//difference divided by distance gives point estimate of gradient magnitude, also divide by magnitude of 2d vector to normalize the next step at the same time
+                            xgrad += xmag * tempf * vertAreas[whichNode];//point estimate of gradient magnitude times normalized projected direction gives 2d estimate of gradient
+                            ygrad += ymag * tempf * vertAreas[whichNode];//average point estimates for each neighbor to estimate local gradient
+                            totalWeight += vertAreas[whichNode];
                         }
                     }
-                    xgrad /= neighCount;//average
-                    ygrad /= neighCount;
-                    somevec[0] = xhat[0] * xgrad + yhat[0] * ygrad;//unproject back into 3d
-                    somevec[1] = xhat[1] * xgrad + yhat[1] * ygrad;
-                    somevec[2] = xhat[2] * xgrad + yhat[2] * ygrad;
+                    xgrad /= totalWeight;//weighted average
+                    ygrad /= totalWeight;
+                    somevec = xhat * xgrad + yhat * ygrad;//unproject back into 3d
                     sanity = somevec[0] + somevec[1] + somevec[2];
                 }
                 if (neighCount <= 0 || sanity != sanity)

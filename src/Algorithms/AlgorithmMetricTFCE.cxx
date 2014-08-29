@@ -78,7 +78,9 @@ OperationParameters* AlgorithmMetricTFCE::getParameters()
         "e(h, p)^E * h^H * dh\n\n" +
         "at each vertex p, where h ranges from 0 to the maximum value in the data, and e(h, p) is the extent of the cluster containing vertex p at threshold h.  " +
         "Negative values are similarly enhanced by negating the data, running the same process, and negating the result.\n\n" +
-        "This method is explained in: Smith SM, Nichols TE., \"Threshold-free cluster enhancement: addressing problems of smoothing, threshold dependence and localisation in cluster inference.\" Neuroimage. 2009 Jan 1;44(1):83-98. PMID: 18501637"
+        "When using -presmooth with -corrected-areas, note that it is an approximate correction within the smoothing algorithm (the TFCE correction is exact).  " +
+        "Doing smoothing on individual surfaces before averaging/TFCE is preferred, when possible, in order to better tie the smoothing kernel size to the original feature size.\n\n" +
+        "The TFCE method is explained in: Smith SM, Nichols TE., \"Threshold-free cluster enhancement: addressing problems of smoothing, threshold dependence and localisation in cluster inference.\" Neuroimage. 2009 Jan 1;44(1):83-98. PMID: 18501637"
     );
     return ret;
 }

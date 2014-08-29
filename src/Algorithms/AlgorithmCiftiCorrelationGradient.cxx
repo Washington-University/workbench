@@ -55,12 +55,18 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     
     OptionalParameter* leftSurfOpt = ret->createOptionalParameter(3, "-left-surface", "specify the left surface to use");
     leftSurfOpt->addSurfaceParameter(1, "surface", "the left surface file");
+    OptionalParameter* leftCorrAreasOpt = leftSurfOpt->createOptionalParameter(2, "-left-corrected-areas", "vertex areas to use instead of computing them from the left surface");
+    leftCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* rightSurfOpt = ret->createOptionalParameter(4, "-right-surface", "specify the right surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
+    OptionalParameter* rightCorrAreasOpt = rightSurfOpt->createOptionalParameter(2, "-right-corrected-areas", "vertex areas to use instead of computing them from the right surface");
+    rightCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(5, "-cerebellum-surface", "specify the cerebellum surface to use");
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
+    OptionalParameter* cerebCorrAreasOpt = cerebSurfaceOpt->createOptionalParameter(2, "-cerebellum-corrected-areas", "vertex areas to use instead of computing them from the cerebellum surface");
+    cerebCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(6, "-surface-presmooth", "smooth on the surface before computing the gradient");
     presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
@@ -96,20 +102,36 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
     CiftiFile* myCifti = myParams->getCifti(1);
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
+    MetricFile* myLeftAreas = NULL, *myRightAreas = NULL, *myCerebAreas = NULL;
     OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(3);
     if (leftSurfOpt->m_present)
     {
         myLeftSurf = leftSurfOpt->getSurface(1);
+        OptionalParameter* leftCorrAreasOpt = leftSurfOpt->getOptionalParameter(2);
+        if (leftCorrAreasOpt->m_present)
+        {
+            myLeftAreas = leftCorrAreasOpt->getMetric(1);
+        }
     }
     OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(4);
     if (rightSurfOpt->m_present)
     {
         myRightSurf = rightSurfOpt->getSurface(1);
+        OptionalParameter* rightCorrAreasOpt = rightSurfOpt->getOptionalParameter(2);
+        if (rightCorrAreasOpt->m_present)
+        {
+            myRightAreas = rightCorrAreasOpt->getMetric(1);
+        }
     }
     OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(5);
     if (cerebSurfOpt->m_present)
     {
         myCerebSurf = cerebSurfOpt->getSurface(1);
+        OptionalParameter* cerebCorrAreasOpt = cerebSurfOpt->getOptionalParameter(2);
+        if (cerebCorrAreasOpt->m_present)
+        {
+            myCerebAreas = cerebCorrAreasOpt->getMetric(1);
+        }
     }
     float surfKern = -1.0f;
     OptionalParameter* presmoothSurfOpt = myParams->getOptionalParameter(6);
@@ -156,11 +178,13 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
         }
     }
     //bool localMethod = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, surfKern, volKern, undoFisherInput, applyFisher, surfaceExclude, volumeExclude, memLimitGB);
+    AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myLeftAreas, myRightAreas, myCerebAreas,
+                                      surfKern, volKern, undoFisherInput, applyFisher, surfaceExclude, volumeExclude, memLimitGB);
 }
 
 AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                                                      SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf, SurfaceFile* myCerebSurf,
+                                                                     const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
                                                                      const float& surfKern, const float& volKern, const bool& undoFisherInput, const bool& applyFisher,
                                                                      const float& surfaceExclude, const float& volumeExclude, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
@@ -176,19 +200,23 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
         SurfaceFile* mySurf = NULL;
+        const MetricFile* myAreas = NULL;
         AString surfType;
         switch (surfaceList[whichStruct])
         {
             case StructureEnum::CORTEX_LEFT:
                 mySurf = myLeftSurf;
+                myAreas = myLeftAreas;
                 surfType = "left";
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 mySurf = myRightSurf;
+                myAreas = myRightAreas;
                 surfType = "right";
                 break;
             case StructureEnum::CEREBELLUM:
                 mySurf = myCerebSurf;
+                myAreas = myCerebAreas;
                 surfType = "cerebellum";
                 break;
             default:
@@ -203,29 +231,37 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
         {
             throw AlgorithmException(surfType + " surface has the wrong number of vertices");
         }
+        if (myAreas != NULL && myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
+        {
+            throw AlgorithmException(surfType + " corrected vertex areas metric has the wrong number of vertices");
+        }
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
         SurfaceFile* mySurf = NULL;
+        const MetricFile* myAreas = NULL;
         switch (surfaceList[whichStruct])
         {
             case StructureEnum::CORTEX_LEFT:
                 mySurf = myLeftSurf;
+                myAreas = myLeftAreas;
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 mySurf = myRightSurf;
+                myAreas = myRightAreas;
                 break;
             case StructureEnum::CEREBELLUM:
                 mySurf = myCerebSurf;
+                myAreas = myCerebAreas;
                 break;
             default:
                 break;
         }
         if (surfaceExclude > 0.0f)
         {
-            processSurfaceComponent(surfaceList[whichStruct], surfKern, surfaceExclude, memLimitGB, mySurf);
+            processSurfaceComponent(surfaceList[whichStruct], surfKern, surfaceExclude, memLimitGB, mySurf, myAreas);
         } else {
-            processSurfaceComponent(surfaceList[whichStruct], surfKern, memLimitGB, mySurf);
+            processSurfaceComponent(surfaceList[whichStruct], surfKern, memLimitGB, mySurf, myAreas);
         }
     }
     for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
@@ -240,7 +276,7 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
     myCiftiOut->setColumn(m_outColumn.data(), 0);
 }
 
-void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf)
+void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf, const MetricFile* myAreas)
 {
     const CiftiXMLOld& myXML = m_inputCifti->getCiftiXMLOld();
     vector<CiftiSurfaceMap> myMap;
@@ -264,6 +300,11 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     } else {
         CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time, reading rows as needed during processing");
     }
+    const float* areaData = NULL;
+    if (myAreas != NULL)
+    {
+        areaData = myAreas->getValuePointerForColumn(0);
+    }
     MetricFile myRoi;
     myRoi.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
     myRoi.initializeColumn(0);
@@ -283,7 +324,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     CaretPointer<MetricSmoothingObject> mySmooth;
     if (surfKern > 0.0f)
     {
-        mySmooth.grabNew(new MetricSmoothingObject(mySurf, surfKern, &myRoi));//computes the smoothing weights only once per surface
+        mySmooth.grabNew(new MetricSmoothingObject(mySurf, surfKern, &myRoi, MetricSmoothingObject::GEO_GAUSS_AREA, areaData));//computes the smoothing weights only once per surface
     }
     for (int startpos = 0; startpos < mapSize; startpos += numCacheRows)
     {
@@ -341,10 +382,10 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
             if (surfKern > 0.0f)
             {
                 mySmooth->smoothColumn(&computeMetric, j, &outputMetric);
-                AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &outputMetric2, NULL, -1.0f, &myRoi);
+                AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &outputMetric2, NULL, -1.0f, &myRoi, false, -1, myAreas);
                 myCol = outputMetric2.getValuePointerForColumn(0);
             } else {
-                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &myRoi, false, j);
+                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &myRoi, false, j, myAreas);
                 myCol = outputMetric.getValuePointerForColumn(0);
             }
             for (int i = 0; i < mapSize; ++i)
@@ -363,7 +404,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     }
 }
 
-void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& surfExclude, const float& memLimitGB, SurfaceFile* mySurf)
+void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& surfExclude, const float& memLimitGB, SurfaceFile* mySurf, const MetricFile* myAreas)
 {
     const CiftiXMLOld& myXML = m_inputCifti->getCiftiXMLOld();
     vector<CiftiSurfaceMap> myMap;
@@ -388,6 +429,12 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     } else {
         CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time, reading rows as needed during processing");
     }
+    const float* areaData = NULL;
+    if (myAreas != NULL)
+    {
+        areaData = myAreas->getValuePointerForColumn(0);
+    }
+    CaretPointer<GeodesicHelperBase> myGeoBase(new GeodesicHelperBase(mySurf, areaData));//can't really have SurfaceFile cache ones with corrected areas
     MetricFile myRoi;
     myRoi.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
     myRoi.initializeColumn(0);
@@ -410,7 +457,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     CaretPointer<MetricSmoothingObject> mySmooth;
     if (surfKern > 0.0f)
     {
-        mySmooth.grabNew(new MetricSmoothingObject(mySurf, surfKern, &myRoi));//computes the smoothing weights only once per surface
+        mySmooth.grabNew(new MetricSmoothingObject(mySurf, surfKern, &myRoi, MetricSmoothingObject::GEO_GAUSS_AREA, areaData));//computes the smoothing weights only once per surface
     }
     for (int startpos = 0; startpos < mapSize; startpos += numCacheRows)
     {
@@ -429,7 +476,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
 #pragma omp CARET_PAR
         {
             vector<float> distances;
-            CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+            CaretPointer<GeodesicHelper> myGeoHelp(new GeodesicHelper(myGeoBase));
 #pragma omp CARET_FOR
             for (int i = startpos; i < endpos; ++i)
             {
@@ -500,10 +547,10 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
             if (surfKern > 0.0f)
             {
                 mySmooth->smoothColumn(&computeMetric, j, &outputMetric, &excludeRoi);
-                AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &outputMetric2, NULL, -1.0f, &excludeRoi);
+                AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &outputMetric2, NULL, -1.0f, &excludeRoi, false, -1, myAreas);
                 myCol = outputMetric2.getValuePointerForColumn(0);
             } else {
-                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &excludeRoi, false, j);
+                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &excludeRoi, false, j, myAreas);
                 myCol = outputMetric.getValuePointerForColumn(0);
             }
             for (int i = 0; i < mapSize; ++i)
