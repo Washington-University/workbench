@@ -65,7 +65,7 @@ void OperationFociListCoords::useParameters(OperationParameters* myParams, Progr
         outputNames = true;
         nameFileName = namesOpt->getString(1);
     }
-    fstream coordFile(coordFileName.toLocal8Bit().constData(), fstream::in);
+    ofstream coordFile(coordFileName.toLocal8Bit().constData());
     if (!coordFile.good())
     {
         throw OperationException("failed to open coordinate output file for writing");
