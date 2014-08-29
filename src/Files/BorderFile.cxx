@@ -269,6 +269,81 @@ void BorderFile::setNumberOfNodes(const int32_t& numNodes)
 }
 
 /**
+ * If the number of nodes is not valid, it may indicate an old border file
+ * that allows borders from multiple structures.  So, examine all of the
+ * borders and if ALL of the borders resized on the same structure, set the
+ * number of nodes.
+ *
+ * @param structureToNodeCount
+ *    A map containing the number of nodes for each valid structure.
+ * @throw DataFileException
+ *    If a border is not valid for its corresponding structure
+ *    (meaning, a node index used by a border is greater than the 
+ *    number of nodes in the corresponding structure).
+ */
+void
+BorderFile::updateNumberOfNodesIfSingleStructure(const std::map<StructureEnum::Enum, int32_t>& structureToNodeCount)
+{
+    const bool modStatus = isModified();
+    
+    if (getNumberOfNodes() > 0) {
+        return;
+    }
+    
+    const int32_t numBorders = getNumberOfBorders();
+
+    /*
+     * Verify that all borders in this file are for the same structure
+     */
+    bool allStructuresMatchFlag = true;
+    StructureEnum::Enum firstBorderStructure = StructureEnum::INVALID;
+    for (int32_t i = 0; i < numBorders; i++) {
+        const StructureEnum::Enum structure = m_borders[i]->getStructure();
+        
+        if (i == 0) {
+            firstBorderStructure = structure;
+        }
+        else {
+            if (structure != firstBorderStructure) {
+                allStructuresMatchFlag = false;
+                break;
+            }
+        }
+    }
+    
+    /*
+     * If all of the borders in this file are for the same structure,
+     * see if the number of nodes is available for the structure, and if so,
+     * set the number of borders for the file.
+     */
+    if (allStructuresMatchFlag) {
+        if ((firstBorderStructure != StructureEnum::INVALID)
+            && (firstBorderStructure != StructureEnum::ALL)) {
+            const std::map<StructureEnum::Enum, int32_t>::const_iterator iter = structureToNodeCount.find(firstBorderStructure);
+            if (iter != structureToNodeCount.end()) {
+                const int32_t numNodes = iter->second;
+                setNumberOfNodes(numNodes);
+                setStructure(firstBorderStructure);
+                CaretLogInfo("Updated border file: "
+                             + getFileNameNoPath()
+                             + " structure="
+                             + StructureEnum::toGuiName(firstBorderStructure)
+                             + " number-of-nodes="
+                             + AString::number(numNodes));
+            }
+        }
+    }
+    
+    /*
+     * Do not allow modified status to change.
+     */
+    if (! modStatus) {
+        clearModified();
+    }
+}
+
+
+/**
  * @return the number of borders.
  */
 int32_t 

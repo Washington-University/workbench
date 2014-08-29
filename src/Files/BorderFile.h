@@ -77,6 +77,8 @@ namespace caret {
         
         void setNumberOfNodes(const int32_t& numNodes);
         
+        void updateNumberOfNodesIfSingleStructure(const std::map<StructureEnum::Enum, int32_t>& structureToNodeCount);
+        
         int32_t getNumberOfBorders() const;
         
         Border* getBorder(const int32_t indx);

@@ -1315,7 +1315,21 @@ Brain::addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
     
     if (readFlag) {
         try {
+            /*
+             * Create a map of structure to number of nodes
+             */
+            std::map<StructureEnum::Enum, int32_t> structureToNodeCountMap;
+            for (std::vector<BrainStructure*>::iterator bsIter = m_brainStructures.begin();
+                 bsIter != m_brainStructures.end();
+                 bsIter++) {
+                const BrainStructure* bs = *bsIter;
+                CaretAssert(bs);
+                structureToNodeCountMap.insert(std::make_pair(bs->getStructure(),
+                                                              bs->getNumberOfNodes()));
+            }
+            
             bf->readFile(filename);
+            bf->updateNumberOfNodesIfSingleStructure(structureToNodeCountMap);
         }
         catch (DataFileException& dfe) {
             if (caretDataFile != NULL) {
