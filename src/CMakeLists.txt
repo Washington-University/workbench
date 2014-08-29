@@ -116,14 +116,16 @@ ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
 #
 # Clang compiler on Mac
 #
+UNSET(CLANG_FLAG)
 IF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang\\+\\+.*")
+    SET(CLANG_FLAG TRUE)
+ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang\\+\\+.*")
+IF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang2\\+\\+.*")
+    SET(CLANG_FLAG TRUE)
+ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang2\\+\\+.*")
+IF (CLANG_FLAG)
+    MESSAGE("USING CLANG COMPILER ${CMAKE_CXX_COMPILER}")
     ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter")
-    #
-    # The clang compiler does not support OpenMP so it produces many warnings
-    # with "Unknown pragma ignored".  So, tell clang to ignore unknown pragmas
-    # so the message is not printed.
-    #
-    ADD_DEFINITIONS("-Wno-unknown-pragmas")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS}")
     ##SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS} -W -Wall -Werror=return-type -Werror=switch -Wunused-parameter")
     ##SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS} -W -Wall -Werror=return-type -Werror=switch -Wunused-parameter" CACHE STRING "C++ compiler options" FORCE)
@@ -131,7 +133,7 @@ IF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang\\+\\+.*")
     IF (WORKBENCH_C11X)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -std=c++11 -stdlib=libc++")
     ENDIF (WORKBENCH_C11X)
-ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang\\+\\+.*")
+ENDIF (CLANG_FLAG)
 
 
 #
@@ -194,16 +196,46 @@ ENDIF(QT4_FOUND)
 # QT include files
 #
 INCLUDE(${QT_USE_FILE})
+
 #
-#  Expect OpenMP on Apple and UNIX
+# The Find OpenMP package may not work on all systems and the user may
+# furnish the paths to the OpenMP files by using environment variables.
 #
-FIND_PACKAGE(OpenMP)
+# The environment variables are:
+#    OPENMP_COMPILE_OPTION=-fopenmp
+#    OPENMP_HEADER_DIR=/usr/local/clang-openmp-opt/llvm/build/Release/include
+#    OPENMP_LIB_DIR=/usr/local/clang-openmp-opt/llvm/build/Release/lib
+#
+UNSET(OPENMP_FOUND)
+IF (EXISTS $ENV{OPENMP_HEADER_DIR})
+    MESSAGE("OpenMP Header File:  $ENV{OPENMP_HEADER_DIR}")
+    IF (EXISTS $ENV{OPENMP_LIB_DIR})
+        MESSAGE("OpenMP Library File: $ENV{OPENMP_LIB_DIR}")
+        SET (STUFF $ENV{OPENMP_COMPILE_OPTION})
+        IF (DEFINED STUFF)
+            MESSAGE("OpenMP Compiler Option: $ENV{OPENMP_COMPILE_OPTION}")
+            SET(OpenMP_CXX_FLAGS "-I$ENV{OPENMP_HEADER_DIR} $ENV{OPENMP_COMPILE_OPTION}")
+            SET(OpenMP_C_FLAGS "-I$ENV{OPENMP_HEADER_DIR} $ENV{OPENMP_COMPILE_OPTION}")
+            SET(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -L$ENV{OPENMP_LIB_DIR})
+            SET(OPENMP_FOUND TRUE)
+        ENDIF (DEFINED STUFF)
+    ENDIF (EXISTS $ENV{OPENMP_LIB_DIR})
+ENDIF (EXISTS $ENV{OPENMP_HEADER_DIR})
+    
+#
+# IF OpenMP not found through environment variables,
+# Use CMAKE's Find OpenMP module
+#
+IF (NOT OPENMP_FOUND)
+    FIND_PACKAGE(OpenMP)
+ENDIF (NOT OPENMP_FOUND)
+
+#
+# If OpenMP is found, may need to set compiler and linker flags
+#
 IF (OPENMP_FOUND)
-    #SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}" CACHE STRING "c++ compiler specific options")
     # add definitions will add the flag to the linker and resource compilers, which don't understand the openmp option
     SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
-    #ADD_DEFINITIONS(${OpenMP_CXX_FLAGS})
-    #SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
 
     #
     # Try to link static with Intel Compiler
@@ -216,8 +248,16 @@ IF (OPENMP_FOUND)
     ENDIF()
 ELSE (OPENMP_FOUND)
     MESSAGE(WARNING "OpenMP was not found")
-ENDIF(OPENMP_FOUND)
 
+    IF (CLANG_FLAG)
+        #
+        # The clang compiler does not support OpenMP so it produces many warnings
+        # with "Unknown pragma ignored".  So, tell clang to ignore unknown pragmas
+        # so the message is not printed.
+        #
+        ADD_DEFINITIONS("-Wno-unknown-pragmas")
+    ENDIF (CLANG_FLAG)
+ENDIF(OPENMP_FOUND)
 
 MESSAGE("\nC++ flags ${CMAKE_CXX_FLAGS}\n")
 
