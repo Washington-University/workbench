@@ -127,6 +127,15 @@ CaretDataFile::copyDataCaretDataFile(const CaretDataFile& cdf)
 }
 
 /**
+ * @return Is this file mapped to a valid single structure ?
+ */
+bool
+CaretDataFile::isSingleStructure() const
+{
+    return StructureEnum::isSingleStructure(getStructure());
+}
+
+/**
  * Add information about the file to the data file information.
  *
  * @param dataFileInformation

@@ -122,7 +122,7 @@ DataFileTypeEnum::initialize()
                                         "BORDER", 
                                         "Border",
                                         "BORDER",
-                                        false,
+                                        true,
                                         true,
                                         "border"));
     

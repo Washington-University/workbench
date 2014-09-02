@@ -1044,112 +1044,121 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
 void 
 BorderFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    checkFileWritability(filename);
+    writeFile(filename, 3);
     
-    setFileName(filename);
-    
-    try {
-        if (canWriteAsVersion(3))
-        {
-            QFile myFile(filename);
-            if (!myFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) throw DataFileException("could not open " + filename + " for writing");
-            QXmlStreamWriter myXML(&myFile);
-            myXML.setAutoFormatting(true);
-            writeVersion3(myXML);
-            clearModified();//TSC: huh?  borrowed from below, but...
-            return;
-        }
-        //
-        // Format the version string so that it ends with at most one zero
-        //
-        const AString versionString = AString::number(1.0);
-        
-        //
-        // Open the file
-        //
-        FileAdapter file;
-        AString errorMessage;
-        QTextStream* textStream = file.openQTextStreamForWritingFile(getFileName(),
-                                                                     errorMessage);
-        if (textStream == NULL) {
-            throw DataFileException(errorMessage);
-        }
-
-        //
-        // Create the xml writer
-        //
-        XmlWriter xmlWriter(*textStream);
-        
-        //
-        // Write header info
-        //
-        xmlWriter.writeStartDocument("1.0");
-        
-        //
-        // Write GIFTI root element
-        //
-        XmlAttributes attributes;
-        
-        //attributes.addAttribute("xmlns:xsi",
-        //                        "http://www.w3.org/2001/XMLSchema-instance");
-        //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
-        //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
-        attributes.addAttribute(BorderFile::XML_ATTRIBUTE_VERSION,
-                                versionString);
-        xmlWriter.writeStartElement(BorderFile::XML_TAG_BORDER_FILE,
-                                    attributes);
-        
-        //
-        // Write Metadata
-        //
-        if (m_metadata != NULL) {
-            m_metadata->writeAsXML(xmlWriter);
-        }
-            
-        //
-        // Write the class color table
-        //
-        xmlWriter.writeStartElement(XML_TAG_CLASS_COLOR_TABLE);
-        m_classColorTable->writeAsXML(xmlWriter);
-        xmlWriter.writeEndElement();
-        
-        //
-        // Write the name color table
-        //
-        xmlWriter.writeStartElement(XML_TAG_NAME_COLOR_TABLE);
-        m_nameColorTable->writeAsXML(xmlWriter);
-        xmlWriter.writeEndElement();
-        
-        
-        //
-        // Write borders
-        //
-        const int32_t numBorders = getNumberOfBorders();
-        for (int32_t i = 0; i < numBorders; i++) {
-            m_borders[i]->writeAsXML(xmlWriter);
-        }
-        
-        xmlWriter.writeEndElement();
-        xmlWriter.writeEndDocument();
-        
-        file.close();
-        
-        clearModified();
-    } catch (DataFileException& e) {
-        throw e;
-    } catch (const GiftiException& e) {
-        throw DataFileException(e);
-    } catch (const XmlException& e) {
-        throw DataFileException(e);
-    } catch (exception& e) {
-        throw DataFileException(e.what());
-    } catch (...) {
-        throw DataFileException("caught unknown exception type in BorderFile::writeFile");
-    }
+//    checkFileWritability(filename);
+//    
+//    setFileName(filename);
+//    
+//    try {
+//        if (canWriteAsVersion(3))
+//        {
+//            QFile myFile(filename);
+//            if (!myFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) throw DataFileException("could not open " + filename + " for writing");
+//            QXmlStreamWriter myXML(&myFile);
+//            myXML.setAutoFormatting(true);
+//            writeVersion3(myXML);
+//            clearModified();//TSC: huh?  borrowed from below, but...
+//            return;
+//        }
+//        //
+//        // Format the version string so that it ends with at most one zero
+//        //
+//        const AString versionString = AString::number(1.0);
+//        
+//        //
+//        // Open the file
+//        //
+//        FileAdapter file;
+//        AString errorMessage;
+//        QTextStream* textStream = file.openQTextStreamForWritingFile(getFileName(),
+//                                                                     errorMessage);
+//        if (textStream == NULL) {
+//            throw DataFileException(errorMessage);
+//        }
+//
+//        //
+//        // Create the xml writer
+//        //
+//        XmlWriter xmlWriter(*textStream);
+//        
+//        //
+//        // Write header info
+//        //
+//        xmlWriter.writeStartDocument("1.0");
+//        
+//        //
+//        // Write GIFTI root element
+//        //
+//        XmlAttributes attributes;
+//        
+//        //attributes.addAttribute("xmlns:xsi",
+//        //                        "http://www.w3.org/2001/XMLSchema-instance");
+//        //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
+//        //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
+//        attributes.addAttribute(BorderFile::XML_ATTRIBUTE_VERSION,
+//                                versionString);
+//        xmlWriter.writeStartElement(BorderFile::XML_TAG_BORDER_FILE,
+//                                    attributes);
+//        
+//        //
+//        // Write Metadata
+//        //
+//        if (m_metadata != NULL) {
+//            m_metadata->writeAsXML(xmlWriter);
+//        }
+//            
+//        //
+//        // Write the class color table
+//        //
+//        xmlWriter.writeStartElement(XML_TAG_CLASS_COLOR_TABLE);
+//        m_classColorTable->writeAsXML(xmlWriter);
+//        xmlWriter.writeEndElement();
+//        
+//        //
+//        // Write the name color table
+//        //
+//        xmlWriter.writeStartElement(XML_TAG_NAME_COLOR_TABLE);
+//        m_nameColorTable->writeAsXML(xmlWriter);
+//        xmlWriter.writeEndElement();
+//        
+//        
+//        //
+//        // Write borders
+//        //
+//        const int32_t numBorders = getNumberOfBorders();
+//        for (int32_t i = 0; i < numBorders; i++) {
+//            m_borders[i]->writeAsXML(xmlWriter);
+//        }
+//        
+//        xmlWriter.writeEndElement();
+//        xmlWriter.writeEndDocument();
+//        
+//        file.close();
+//        
+//        clearModified();
+//    } catch (DataFileException& e) {
+//        throw e;
+//    } catch (const GiftiException& e) {
+//        throw DataFileException(e);
+//    } catch (const XmlException& e) {
+//        throw DataFileException(e);
+//    } catch (exception& e) {
+//        throw DataFileException(e.what());
+//    } catch (...) {
+//        throw DataFileException("caught unknown exception type in BorderFile::writeFile");
+//    }
 }
 
 void BorderFile::writeFile(const AString& filename, const int& version)
 {
+    if ( ! isSingleStructure()) {
+        throw DataFileException(filename,
+                                "This border file is an obsolete format that contains borders for multiple structures and "
+                                "must be split into one border file for each structure.  In wb_view, this operation is "
+                                "performed using a selection on the Data Menu.");
+    }
+    
     if (!canWriteAsVersion(version)) throw DataFileException("cannot write border file as version '" + AString::number(version) + "'");
     checkFileWritability(filename);
     

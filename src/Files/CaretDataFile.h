@@ -38,6 +38,8 @@ namespace caret {
         
         virtual ~CaretDataFile();
         
+        virtual bool isSingleStructure() const;
+        
         /**
          * @return The structure for this file.
          */

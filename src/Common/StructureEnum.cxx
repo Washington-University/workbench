@@ -516,6 +516,107 @@ StructureEnum::isLeft(const Enum enumValue)
 }
 
 /**
+ * Is this a 'single' structure?  The structure must be a valid type.
+ *
+ * @param enumValue
+ *   The enumerated type.
+ * @return
+ *   true if the enumerated value represents a 'single' structure, else false.
+ */
+bool
+StructureEnum::isSingleStructure(const Enum enumValue)
+{
+    bool singleStructureFlag = true;
+    
+    switch (enumValue) {
+        case ACCUMBENS_LEFT:
+            break;
+        case ACCUMBENS_RIGHT:
+            break;
+        case ALL:
+            singleStructureFlag = false;
+            break;
+        case ALL_GREY_MATTER:
+            singleStructureFlag = false;
+            break;
+        case ALL_WHITE_MATTER:
+            singleStructureFlag = false;
+            break;
+        case AMYGDALA_LEFT:
+            break;
+        case AMYGDALA_RIGHT:
+            break;
+        case BRAIN_STEM:
+            break;
+        case CAUDATE_LEFT:
+            break;
+        case CAUDATE_RIGHT:
+            break;
+        case CEREBELLAR_WHITE_MATTER_LEFT:
+            break;
+        case CEREBELLAR_WHITE_MATTER_RIGHT:
+            break;
+        case CEREBELLUM:
+            break;
+        case CEREBELLUM_LEFT:
+            break;
+        case CEREBELLUM_RIGHT:
+            break;
+        case CEREBRAL_WHITE_MATTER_LEFT:
+            break;
+        case CEREBRAL_WHITE_MATTER_RIGHT:
+            break;
+        case CORTEX:
+            break;
+        case CORTEX_LEFT:
+            break;
+        case CORTEX_RIGHT:
+            break;
+        case DIENCEPHALON_VENTRAL_LEFT:
+            break;
+        case DIENCEPHALON_VENTRAL_RIGHT:
+            break;
+        case HIPPOCAMPUS_LEFT:
+            break;
+        case HIPPOCAMPUS_RIGHT:
+            break;
+        case INVALID:
+            singleStructureFlag = false;
+            break;
+        case PALLIDUM_LEFT:
+            break;
+        case PALLIDUM_RIGHT:
+            break;
+        case OTHER:
+            singleStructureFlag = false;
+            break;
+        case OTHER_GREY_MATTER:
+            singleStructureFlag = false;
+            break;
+        case OTHER_WHITE_MATTER:
+            singleStructureFlag = false;
+            break;
+        case PUTAMEN_LEFT:
+            break;
+        case PUTAMEN_RIGHT:
+            break;
+//        case SUBCORTICAL_WHITE_MATTER_LEFT:
+//            contralateralStructure = SUBCORTICAL_WHITE_MATTER_RIGHT;
+//            break;
+//        case SUBCORTICAL_WHITE_MATTER_RIGHT:
+//            contralateralStructure = SUBCORTICAL_WHITE_MATTER_LEFT;
+//            break;
+        case THALAMUS_LEFT:
+            break;
+        case THALAMUS_RIGHT:
+            break;
+    }
+    
+    return singleStructureFlag;
+}
+
+
+/**
  * Are the two structure's cortices and contralateral (is one CortexLeft
  * and one CortexRight)?
  *

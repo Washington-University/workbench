@@ -139,6 +139,8 @@ public:
     
     static bool isLeft(const Enum enumValue);
     
+    static bool isSingleStructure(const Enum enumValue);
+    
     static bool isCortexContralateral(const Enum enumValueA,
                                       const Enum enumValueB);
     
