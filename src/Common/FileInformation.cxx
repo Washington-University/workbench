@@ -387,6 +387,27 @@ FileInformation::getFileName() const
 }
 
 /**
+ * @return Name of the file excluding any path and WITHOUT any extension.
+ *
+ * A remote file always anything after the last slash (/).  If there is
+ * no slash, an emtpy string is returned.
+ */
+AString
+FileInformation::getFileNameNoExtension() const
+{
+    AString name = getFileName();
+    const AString ext = getFileExtension();
+    if ( ! ext.isEmpty()) {
+        const int32_t extStartIndex = name.indexOf(ext);
+        if (extStartIndex > 0) {
+            name = name.left(extStartIndex - 1);
+        }
+    }
+    
+    return name;
+}
+
+/**
  * @return The file's path excluding the file's name.
  *
  * A remote file always everything before the last slash (/).  If there is
@@ -467,6 +488,44 @@ FileInformation::getFileExtension() const
     }
     
     return m_fileInfo.suffix();
+}
+
+/**
+ * Get the components for a filename.
+ *
+ * NOTE: If this is NOT a file (isFile() returns false) all outputs
+ * will be empty.
+ *
+ * Example: /Volumes/myelin1/caret7_gui_design/data/HCP_demo/areas.border
+ * Returns
+ *   absolutePathOut => /Volumes/myelin1/caret7_gui_design/data/HCP_demo
+ *   fileNameWithoutExtensionOut => areas.
+ *   extensionWithoutDotOut => border
+ *
+ * @param absolutePathOut
+ *    Absolute path of file file.  Could be empty if this instance
+ *    was created using a filename without a path.
+ * @param fileNameWithoutExtensionOut
+ *    Name of the file without path and without extention.
+ * @param extensionWithoutDotOut
+ *    Extension without the dot.  Could be empty if filename does 
+ *    not have an extension.
+ */
+void
+FileInformation::getFileComponents(AString& absolutePathOut,
+                                   AString& fileNameWithoutExtensionOut,
+                                   AString& extensionWithoutDotOut) const
+{
+    if (isFile()) {
+        absolutePathOut             = getAbsolutePath();
+        fileNameWithoutExtensionOut = getFileNameNoExtension();
+        extensionWithoutDotOut      = getFileExtension();
+    }
+    else {
+        absolutePathOut = "";
+        fileNameWithoutExtensionOut = "";
+        extensionWithoutDotOut = "";
+    }
 }
 
 /**

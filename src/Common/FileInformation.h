@@ -68,6 +68,8 @@ namespace caret {
         
         AString getFileName() const;
         
+        AString getFileNameNoExtension() const;
+        
         AString getPathName() const;
         
         AString getAbsoluteFilePath() const;
@@ -79,6 +81,10 @@ namespace caret {
         AString getFileExtension() const;
         
         AString getAbsolutePath() const;
+        
+        void getFileComponents(AString& absolutePathOut,
+                               AString& fileNameWithoutExtensionOut,
+                               AString& extensionWithoutDotOut) const;
         
         bool remove();
         
