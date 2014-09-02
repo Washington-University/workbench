@@ -23,6 +23,7 @@
 #include "CaretDataFileSelectionModel.h"
 #undef __CARET_DATA_FILE_SELECTION_MODEL_DECLARE__
 
+#include "BorderFile.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
@@ -107,6 +108,19 @@ CaretDataFileSelectionModel::newInstanceForChartableMatrixInterface(Brain* brain
 {
     CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
                                                                          FILE_MODE_CHARTABLE_MATRIX_INTERFACE);
+    
+    return model;
+}
+
+/**
+ * Create a new instance of a Caret Data File Selection Model that
+ * selectes multi-structure border files.
+ */
+CaretDataFileSelectionModel*
+CaretDataFileSelectionModel::newInstanceForMultiStructureBorderFiles(Brain* brain)
+{
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
+                                                                         FILE_MODE_MULTI_STRUCTURE_BORDER_FILES);
     
     return model;
 }
@@ -202,8 +216,8 @@ CaretDataFileSelectionModel::getAvailableFiles() const
         {
             m_brain->getAllDataFilesWithDataFileType(m_dataFileType,
                                                      caretDataFiles);
-            break;
         }
+            break;
         case FILE_MODE_CHARTABLE_MATRIX_INTERFACE:
         {
             std::vector<ChartableMatrixInterface*> chartFiles;
@@ -215,6 +229,17 @@ CaretDataFileSelectionModel::getAvailableFiles() const
                 ChartableMatrixInterface* chartFile = *iter;
                 CaretMappableDataFile* mapFile = chartFile->getMatrixChartCaretMappableDataFile();
                 caretDataFiles.push_back(mapFile);
+            }
+        }
+            break;
+        case FILE_MODE_MULTI_STRUCTURE_BORDER_FILES:
+        {
+            const int numBorderFiles = m_brain->getNumberOfBorderFiles();
+            for (int32_t i = 0; i < numBorderFiles; i++) {
+                BorderFile* borderFile = m_brain->getBorderFile(i);
+                if ( ! borderFile->isSingleStructure()) {
+                    caretDataFiles.push_back(borderFile);
+                }
             }
         }
             break;

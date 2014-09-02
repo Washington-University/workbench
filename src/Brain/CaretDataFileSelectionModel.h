@@ -40,6 +40,8 @@ namespace caret {
         
         static CaretDataFileSelectionModel* newInstanceForChartableMatrixInterface(Brain* brain);
         
+        static CaretDataFileSelectionModel* newInstanceForMultiStructureBorderFiles(Brain* brain);
+        
         virtual ~CaretDataFileSelectionModel();
         
         CaretDataFileSelectionModel(const CaretDataFileSelectionModel& obj);
@@ -97,7 +99,8 @@ namespace caret {
     private:
         enum FileMode {
             FILE_MODE_CHARTABLE_MATRIX_INTERFACE,
-            FILE_MODE_DATA_FILE_TYPE_ENUM
+            FILE_MODE_DATA_FILE_TYPE_ENUM,
+            FILE_MODE_MULTI_STRUCTURE_BORDER_FILES
         };
         
         CaretDataFileSelectionModel(Brain* brain,
