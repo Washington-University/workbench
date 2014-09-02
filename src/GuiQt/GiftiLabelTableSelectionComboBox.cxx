@@ -416,8 +416,8 @@ GiftiLabelTableSelectionComboBox::setSelectedLabelName(const QString& labelName)
         setSelectedLabel(label);
     }
     else {
-        CaretLogSevere("No label with name found: " +
-                       labelName);
+//        CaretLogSevere("No label with name found: " +
+//                       labelName);
     }
 }
 

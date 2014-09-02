@@ -46,6 +46,7 @@
 #include "GiftiLabelTableEditor.h"
 #include "GiftiLabelTableSelectionComboBox.h"
 #include "GuiManager.h"
+#include "SurfaceFile.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -317,11 +318,13 @@ BorderPropertiesEditorDialog::getSelectedBorderFile()
 }
 
 /**
- * Load the border files into the border file combo box.
+ * Load the SINGLE STRUCTURE border files into the border file combo box.
  */
 void 
 BorderPropertiesEditorDialog::loadBorderFileComboBox()
 {
+    CaretAssert(m_border);
+    const StructureEnum::Enum borderStructure = m_border->getStructure();
     Brain* brain = GuiManager::get()->getBrain();
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
     m_borderFileSelectionComboBox->clear();
@@ -329,19 +332,26 @@ BorderPropertiesEditorDialog::loadBorderFileComboBox()
     int defaultFileComboIndex = 0;
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
-        const AString name = borderFile->getFileNameNoPath();
-        m_borderFileSelectionComboBox->addItem(name,
-                                                   qVariantFromValue((void*)borderFile));
-        if (s_previousBorderFile == borderFile) {
-            defaultFileComboIndex = m_borderFileSelectionComboBox->count() - 1;
+        if (borderFile->isSingleStructure()) {
+            if (borderFile->getStructure() == borderStructure) {
+                const AString name = borderFile->getFileNameNoPath();
+                m_borderFileSelectionComboBox->addItem(name,
+                                                       qVariantFromValue((void*)borderFile));
+                if (s_previousBorderFile == borderFile) {
+                    defaultFileComboIndex = m_borderFileSelectionComboBox->count() - 1;
+                }
+            }
         }
     }
-    m_borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
-
-    const BorderFile* borderFile = getSelectedBorderFile();
-    if (borderFile != NULL) {
-        m_nameCompleterStringList = borderFile->getAllBorderNamesSorted();
-        m_nameCompleterStringListModel->setStringList(m_nameCompleterStringList);
+    
+    if (m_borderFileSelectionComboBox->count() > 0) {
+        m_borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
+        
+        const BorderFile* borderFile = getSelectedBorderFile();
+        if (borderFile != NULL) {
+            m_nameCompleterStringList = borderFile->getAllBorderNamesSorted();
+            m_nameCompleterStringListModel->setStringList(m_nameCompleterStringList);
+        }
     }
 }
 
@@ -351,30 +361,43 @@ BorderPropertiesEditorDialog::loadBorderFileComboBox()
 void 
 BorderPropertiesEditorDialog::newBorderFileButtonClicked()
 {
-    /*
-     * Let user choose a different path/name
-     */
-    BorderFile* newBorderFile = new BorderFile();
-    AString newBorderFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::BORDER,
-                                                                      this,
-                                                                      "Choose Border File Name",
-                                                                      newBorderFile->getFileName());
-    /*
-     * If user cancels, delete the new border file and return
-     */
-    if (newBorderFileName.isEmpty()) {
-        delete newBorderFile;
-        return;
-    }
+    CaretAssert(m_border);
+    const StructureEnum::Enum borderStructure = m_border->getStructure();
     
-    /*
-     * Set name of new scene file
-     */
-    newBorderFile->setFileName(newBorderFileName);
-    EventManager::get()->sendEvent(EventDataFileAdd(newBorderFile).getPointer());
-    s_previousBorderFile = newBorderFile;
-    loadBorderFileComboBox();
-    borderFileSelected();
+    if (StructureEnum::isSingleStructure(borderStructure)) {
+        CaretAssert(m_finishBorderSurfaceFile);
+        
+        /*
+         * Let user choose a different path/name
+         */
+        BorderFile* newBorderFile = new BorderFile();
+        AString newBorderFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::BORDER,
+                                                                           this,
+                                                                           "Choose Border File Name",
+                                                                           newBorderFile->getFileName());
+        /*
+         * If user cancels, delete the new border file and return
+         */
+        if (newBorderFileName.isEmpty()) {
+            delete newBorderFile;
+            return;
+        }
+        
+        /*
+         * Set name of new border file along with structure and number of nodes
+         */
+        newBorderFile->setFileName(newBorderFileName);
+        newBorderFile->setStructure(borderStructure);
+        newBorderFile->setNumberOfNodes(m_finishBorderSurfaceFile->getNumberOfNodes());
+        EventManager::get()->sendEvent(EventDataFileAdd(newBorderFile).getPointer());
+        s_previousBorderFile = newBorderFile;
+        loadBorderFileComboBox();
+        borderFileSelected();
+    }
+    else {
+        WuQMessageBox::errorOk(this, ("Border must be for a single structure but it is for "
+                                      + StructureEnum::toGuiName(borderStructure)));
+    }
 }
 
 
