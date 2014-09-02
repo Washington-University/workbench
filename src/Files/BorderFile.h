@@ -150,6 +150,8 @@ namespace caret {
         void exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
                                   const AString& outputCaret5FilesPrefix) throw (DataFileException);
         
+        AString getObsoleteMultiStructureFormatMessage();
+        
         /** XML Tag for BorderFile element */
         static const AString XML_TAG_BORDER_FILE;
         

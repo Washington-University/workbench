@@ -1150,13 +1150,24 @@ BorderFile::writeFile(const AString& filename) throw (DataFileException)
 //    }
 }
 
+/**
+ * @return Error message for attempting an operation on an obsolete, multi-structure border file.
+ */
+AString
+BorderFile::getObsoleteMultiStructureFormatMessage()
+{
+    return ("This border file ("
+            + getFileNameNoPath()
+            + ") is an obsolete format that contains borders for multiple structures and "
+            "must be split into one border file for each structure.  In wb_view, this operation is "
+            "performed using a selection on the Data Menu.");
+}
+
 void BorderFile::writeFile(const AString& filename, const int& version)
 {
     if ( ! isSingleStructure()) {
         throw DataFileException(filename,
-                                "This border file is an obsolete format that contains borders for multiple structures and "
-                                "must be split into one border file for each structure.  In wb_view, this operation is "
-                                "performed using a selection on the Data Menu.");
+                                getObsoleteMultiStructureFormatMessage());
     }
     
     if (!canWriteAsVersion(version)) throw DataFileException("cannot write border file as version '" + AString::number(version) + "'");

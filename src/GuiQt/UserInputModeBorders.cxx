@@ -368,31 +368,25 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
             EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
             break;
         case MODE_EDIT:
-            switch (this->editOperation) {
-                case EDIT_OPERATION_DELETE:
-                {
-                        SelectionManager* idManager =
-                        openGLWidget->performIdentification(mouseX,
-                                                            mouseY,
-                                                            true);
-                        SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
-                        if (idBorder->isValid()) {
-                            BorderFile* borderFile = idBorder->getBorderFile();
+        {
+            SelectionManager* idManager =
+            openGLWidget->performIdentification(mouseX,
+                                                mouseY,
+                                                true);
+            SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+            if (idBorder->isValid()) {
+                BorderFile* borderFile = idBorder->getBorderFile();
+                if (borderFile->isSingleStructure()) {
+                    switch (this->editOperation) {
+                        case EDIT_OPERATION_DELETE:
+                        {
                             Border* border = idBorder->getBorder();
                             borderFile->removeBorder(border);
                             this->updateAfterBordersChanged();
                         }
-                    }
-                    break;
-                case EDIT_OPERATION_PROPERTIES:
-                {
-                        SelectionManager* idManager =
-                        openGLWidget->performIdentification(mouseX,
-                                                            mouseY,
-                                                            true);
-                        SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
-                        if (idBorder->isValid()) {
-                            BorderFile* borderFile = idBorder->getBorderFile();
+                            break;
+                        case EDIT_OPERATION_PROPERTIES:
+                        {
                             Border* border = idBorder->getBorder();
                             std::auto_ptr<BorderPropertiesEditorDialog> editBorderDialog(
                                                                                          BorderPropertiesEditorDialog::newInstanceEditBorder(borderFile,
@@ -402,9 +396,15 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
                                 this->updateAfterBordersChanged();
                             }
                         }
+                            break;
                     }
-                    break;
+                }
+                else {
+                    WuQMessageBox::errorOk(this->borderToolsWidget,
+                                           borderFile->getObsoleteMultiStructureFormatMessage());
+                }
             }
+        }
             break;
         case MODE_ROI:
         {
