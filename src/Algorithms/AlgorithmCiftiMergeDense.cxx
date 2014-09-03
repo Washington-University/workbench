@@ -103,7 +103,6 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
     {
         CaretAssert(ciftiList[i] != NULL);
         const CiftiXMLOld& otherXML = ciftiList[i]->getCiftiXMLOld();
-        //if (!baseXML.mappingMatches(otherDir, otherXML, otherDir))
         if (!ciftiList[0]->getCiftiXML().getMap(otherDir)->approximateMatch(*(ciftiList[i]->getCiftiXML().getMap(otherDir))))
         {
             throw AlgorithmException("mappings along other dimension do not match");

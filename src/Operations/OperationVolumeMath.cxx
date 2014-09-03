@@ -181,7 +181,7 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     int64_t frameSize = outDims[0] * outDims[1] * outDims[2];
     vector<float> values(numVars), outFrame(frameSize);
     vector<const float*> inputFrames(numVars);
-    myVolOut->reinitialize(outDims, first->getSform(), 1, first->getType());
+    myVolOut->reinitialize(outDims, first->getSform());//DO NOT take volume type from first volume, because we don't check for or copy label tables, nor do we want to
     for (int s = 0; s < numSubvols; ++s)
     {
         for (int v = 0; v < numVars; ++v)
