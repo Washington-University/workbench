@@ -1156,7 +1156,6 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
     m_forceUpdateOfGroupAndNameHierarchy = false;
     m_classNameHierarchy->setAllSelected(true);
     
-    CaretLogSevere("NAME TABLE: \n" + m_nameColorTable->toFormattedString("   "));
     CaretLogFiner("CLASS/NAME Table for : "
                   + getFileNameNoPath()
                   + "\n"
@@ -1871,6 +1870,17 @@ void
 BorderFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    const std::vector<StructureEnum::Enum> allStructures = getAllBorderStructures();
+    if (allStructures.size() >= 2) {
+        AString structuresText;
+        for (std::vector<StructureEnum::Enum>::const_iterator iter = allStructures.begin();
+             iter != allStructures.end();
+             iter++) {
+            structuresText += (StructureEnum::toGuiName(*iter) + " ");
+        }
+        dataFileInformation.addNameAndValue("Border Structures", structuresText);
+    }
     
     int nameSize = 4, classSize = 0;//reserve space for headings, but classSize is only to know how much to reserve()
     BorderMultiPartHelper myHelp(this);
