@@ -743,20 +743,24 @@ BorderFile::addBorder(Border* border)
         }
     }
     m_borders.push_back(border);
-    const AString name = border->getName();
-    if (name.isEmpty() == false) {
-        const int32_t nameColorKey = m_nameColorTable->getLabelKeyFromName(name);
-        if (nameColorKey < 0) {
-            m_nameColorTable->addLabel(name, 0.0f, 0.0f, 0.0f, 1.0f);
-        }
-    }
-    const AString className = border->getClassName();
-    if (className.isEmpty() == false) {
-        const int32_t classColorKey = m_classColorTable->getLabelKeyFromName(className);
-        if (classColorKey < 0) {
-            m_classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 1.0f);
-        }
-    }
+
+// DO NOT WANT to add entries to name and class tables when the names are
+// not an exact match as partial matches are acceptable.
+//    const AString name = border->getName();
+//    if (name.isEmpty() == false) {
+//        const int32_t nameColorKey = m_nameColorTable->getLabelKeyFromName(name);
+//        if (nameColorKey < 0) {
+//            m_nameColorTable->addLabel(name, 0.0f, 0.0f, 0.0f, 1.0f);
+//        }
+//    }
+//    const AString className = border->getClassName();
+//    if (className.isEmpty() == false) {
+//        const int32_t classColorKey = m_classColorTable->getLabelKeyFromName(className);
+//        if (classColorKey < 0) {
+//            m_classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 1.0f);
+//        }
+//    }
+    
     m_forceUpdateOfGroupAndNameHierarchy = true;
     setModified();
 }
