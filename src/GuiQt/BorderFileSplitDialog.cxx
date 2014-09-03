@@ -39,6 +39,7 @@
 #include "CaretFileDialog.h"
 #include "EventDataFileAdd.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
@@ -73,12 +74,11 @@ BorderFileSplitDialog::BorderFileSplitDialog(QWidget* parent)
                      this, SLOT(fileNameToolButtonClicked(int)));
     
     Brain* brain = GuiManager::get()->getBrain();
-    CaretDataFileSelectionModel* fileModel =
-    CaretDataFileSelectionModel::newInstanceForMultiStructureBorderFiles(brain);
+    m_fileSelectionModel.grabNew(CaretDataFileSelectionModel::newInstanceForMultiStructureBorderFiles(brain));
     
     QLabel* fileSelectionLabel = new QLabel("Multi Structure Border File: ");
     m_fileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
-    m_fileSelectionComboBox->updateComboBox(fileModel);
+    m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel);
     QObject::connect(m_fileSelectionComboBox, SIGNAL(fileSelected(CaretDataFile*)),
                      this, SLOT(borderMultiStructureFileSelected(CaretDataFile*)));
     
@@ -109,7 +109,7 @@ BorderFileSplitDialog::BorderFileSplitDialog(QWidget* parent)
     
     m_dialogIsBeingCreatedFlag = false;
     
-    CaretDataFile* firstFile = fileModel->getSelectedFile();
+    CaretDataFile* firstFile = m_fileSelectionModel->getSelectedFile();
     if (firstFile != NULL) {
         borderMultiStructureFileSelected(firstFile);
     }
@@ -145,11 +145,6 @@ BorderFileSplitDialog::borderMultiStructureFileSelected(CaretDataFile* caretData
         fileInfo.getFileComponents(pathName,
                                    fileNameNoExt,
                                    fileExtension);
-        
-        std::cout << "File Components: " << std::endl;
-        std::cout << "    Path Name: " << qPrintable(pathName) << std::endl;
-        std::cout << "    File Name: " << qPrintable(fileNameNoExt) << std::endl;
-        std::cout << "    Extension: " << qPrintable(fileExtension) << std::endl;
     }
     
     const int32_t numStructures = static_cast<int32_t>(structures.size());
@@ -284,6 +279,9 @@ BorderFileSplitDialog::okButtonClicked()
              iter++) {
             EventManager::get()->sendEvent(EventDataFileAdd(*iter).getPointer());
         }
+        
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        
         WuQMessageBox::informationOk(this, ("New border file(s) were created but not saved.  "
                                             "Use File Menu->Save/Manage Files to save these new files."));
     }

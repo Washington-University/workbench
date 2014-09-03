@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 
+#include "CaretPointer.h"
 #include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
@@ -34,6 +35,7 @@ namespace caret {
 
     class CaretDataFile;
     class CaretDataFileSelectionComboBox;
+    class CaretDataFileSelectionModel;
     
     class BorderFileSplitDialog : public WuQDialogModal {
         
@@ -61,6 +63,9 @@ namespace caret {
         BorderFileSplitDialog& operator=(const BorderFileSplitDialog&);
         
         QGridLayout* m_gridLayout;
+        
+        /* Use CaretPointer so that the file selection model gets destroyed */
+        CaretPointer<CaretDataFileSelectionModel> m_fileSelectionModel;
         
         CaretDataFileSelectionComboBox* m_fileSelectionComboBox;
         
