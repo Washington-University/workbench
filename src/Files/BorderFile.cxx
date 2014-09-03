@@ -1467,7 +1467,8 @@ void BorderFile::writeVersion3(QXmlStreamWriter& output) const
         AString thisClass = classBorder->getClassName();//hierarchical representation in file
         output.writeStartElement("Class");
         output.writeAttribute("Name", thisClass);
-        writeColorHelper(output, getClassColorTable()->getLabel(thisClass));
+        writeColorHelper(output, getClassColorTable()->getLabelBestMatching(thisClass));
+        //writeColorHelper(output, getClassColorTable()->getLabel(thisClass));
         for (int j = i; j < numBorders; ++j)
         {
             if (used[j]) continue;
@@ -1477,7 +1478,8 @@ void BorderFile::writeVersion3(QXmlStreamWriter& output) const
                 AString thisName = nameBorder->getName();//multipart borders
                 output.writeStartElement("Border");
                 output.writeAttribute("Name", thisName);
-                writeColorHelper(output, getNameColorTable()->getLabel(thisName));
+                writeColorHelper(output, getNameColorTable()->getLabelBestMatching(thisName));
+                //writeColorHelper(output, getNameColorTable()->getLabel(thisName));
                 map<pair<AString, AString>, vector<AString> >::const_iterator iter = m_borderMDValues.find(make_pair(thisName, thisClass));
                 if (iter != m_borderMDValues.end())
                 {
