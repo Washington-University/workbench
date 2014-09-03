@@ -104,6 +104,7 @@ BorderFileSplitDialog::BorderFileSplitDialog(QWidget* parent)
     layout->addLayout(multiLayout);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(m_gridLayout);
+    layout->addStretch();
     setCentralWidget(widget,
                      WuQDialog::SCROLL_AREA_AS_NEEDED);
     
