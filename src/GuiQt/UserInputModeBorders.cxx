@@ -145,6 +145,20 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
             spi->setStructure(projectedItem.getStructure());
             this->borderBeingDrawnByOpenGL->addPoint(spi);
         } else {
+            const AString prevName(StructureEnum::toGuiName(borderBeingDrawnByOpenGL->getStructure()));
+            const AString newName(StructureEnum::toGuiName(projectedItem.getStructure()));
+            WuQMessageBox::errorOk(borderToolsWidget,
+                                   ("The last point added is on "
+                                    + newName
+                                    + " but all previous point(s) are on "
+                                    + prevName
+                                    + ".  Either resume drawing on "
+                                    + prevName
+                                    + " or press the Reset button to remove all previous point(s) "
+                                    "from "
+                                    + prevName
+                                    + " and draw on "
+                                    + newName));
             delete spi;
         }
     }
