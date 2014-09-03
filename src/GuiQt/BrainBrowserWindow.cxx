@@ -37,6 +37,8 @@
 
 #include "AboutWorkbenchDialog.h"
 #include "ApplicationInformation.h"
+#include "BorderFile.h"
+#include "BorderFileSplitDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
@@ -521,12 +523,19 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processExitProgram()));
     
-    m_fociProjectAction =
+    m_dataFociProjectAction =
     WuQtUtilities::createAction("Project Foci...",
                                 "Project Foci to Surfaces",
                                 this,
                                 this,
                                 SLOT(processProjectFoci()));
+    
+    m_dataBorderFilesSplitAction =
+    WuQtUtilities::createAction("Split Multi-Structure Border File(s)...",
+                                "Split Multi-Structure Border File(s",
+                                this,
+                                this,
+                                SLOT(processSplitBorderFiles()));
     
     m_viewFullScreenAction = WuQtUtilities::createAction("Full Screen",
                                                          "View using all of screen",
@@ -1208,7 +1217,8 @@ BrainBrowserWindow::createMenuData()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processDataMenuAboutToShow()));
     
-    menu->addAction(m_fociProjectAction);
+    menu->addAction(m_dataFociProjectAction);
+    menu->addAction(m_dataBorderFilesSplitAction);
     
     return menu;
 }
@@ -1219,8 +1229,19 @@ BrainBrowserWindow::createMenuData()
 void
 BrainBrowserWindow::processDataMenuAboutToShow()
 {
+    Brain* brain = GuiManager::get()->getBrain();
     bool haveFociFiles = (GuiManager::get()->getBrain()->getNumberOfFociFiles() > 0);
-    m_fociProjectAction->setEnabled(haveFociFiles);
+    m_dataFociProjectAction->setEnabled(haveFociFiles);
+    
+    bool haveMultiStructureBorderFiles = false;
+    const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
+    for (int32_t i = 0; i < numBorderFiles; i++) {
+        if ( ! brain->getBorderFile(i)->isSingleStructure()) {
+            haveMultiStructureBorderFiles = true;
+            break;
+        }
+    }
+    m_dataBorderFilesSplitAction->setEnabled(haveMultiStructureBorderFiles);
 }
 
 /**
@@ -1500,6 +1521,16 @@ BrainBrowserWindow::processProjectFoci()
 {    
     FociProjectionDialog fpd(this);
     fpd.exec();
+}
+
+/**
+ * Split multi-structure border files.
+ */
+void
+BrainBrowserWindow::processSplitBorderFiles()
+{
+    BorderFileSplitDialog dialog(this);
+    dialog.exec();
 }
 
 /**

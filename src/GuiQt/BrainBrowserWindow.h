@@ -188,6 +188,7 @@ namespace caret {
         void processDevelopExportVtkFile();
         
         void processProjectFoci();
+        void processSplitBorderFiles();
         
         void processShowHelpViewer();
         
@@ -329,7 +330,8 @@ namespace caret {
         
         QAction* m_featuresToolBoxAction;
         
-        QAction* m_fociProjectAction;
+        QAction* m_dataFociProjectAction;
+        QAction* m_dataBorderFilesSplitAction;
         
         QMenu* m_moveSelectedTabToWindowMenu;
         

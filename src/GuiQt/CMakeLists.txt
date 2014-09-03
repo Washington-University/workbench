@@ -27,6 +27,7 @@ INCLUDE(${QT_USE_FILE})
 #
 SET(MOC_INPUT_HEADER_FILES
 AboutWorkbenchDialog.h
+BorderFileSplitDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
@@ -140,6 +141,7 @@ WuQWidgetObjectGroup.h
 #
 SET(SOURCE_FILES
 AboutWorkbenchDialog.h
+BorderFileSplitDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
@@ -274,6 +276,7 @@ WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
 AboutWorkbenchDialog.cxx
+BorderFileSplitDialog.cxx
 BorderPropertiesEditorDialog.cxx
 BorderSelectionViewController.cxx
 BrainBrowserWindow.cxx

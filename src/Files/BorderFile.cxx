@@ -181,6 +181,137 @@ BorderFile::getStructure() const
 }
 
 /**
+ * @return Structures of all borders.  In most cases, this method
+ * is equivalent to getStructure().  However, there are some older,
+ * obsolete border files that contain borders for multiple structures
+ * in which case this returns the structures for those borders such as
+ * CORTEX_LEFT and CORTEX_RIGHT.
+ */
+std::vector<StructureEnum::Enum>
+BorderFile::getAllBorderStructures() const
+{
+    std::set<StructureEnum::Enum> uniqueStructures;
+    
+    const int32_t numBorders = getNumberOfBorders();
+    for (int32_t i = 0; i < numBorders; i++) {
+        uniqueStructures.insert(getBorder(i)->getStructure());
+    }
+    
+    std::vector<StructureEnum::Enum> structures(uniqueStructures.begin(),
+                                                uniqueStructures.end());
+    return structures;
+}
+
+/**
+ * Create new border files each of which contains a border for a single structure.
+ * If there is not a border file name for for a structure, no file will be
+ * produced for that file and it is not considered an error.
+ *
+ * @param singleStructureFileNames
+ *     Each 'pair' is the filename for a structure.
+ * @param structureNumberOfNodes
+ *     Each pair is the number of nodes for a structure.
+ * @param singleStructureBorderFilesOut
+ *     On output contains border files for each of the structures.
+ * @param errorMessageOut
+ *     If unsuccessful will contain description of error(s).
+ * @return
+ *     True if successful and all files were created, else false.
+ */
+bool
+BorderFile::splitIntoSingleStructureFiles(const std::map<StructureEnum::Enum, AString>& singleStructureFileNames,
+                                          const std::map<StructureEnum::Enum, int32_t>& structureNumberOfNodes,
+                                          std::vector<BorderFile*>& singleStructureBorderFilesOut,
+                                          AString& errorMessageOut) const
+{
+    singleStructureBorderFilesOut.clear();
+    errorMessageOut.clear();
+    
+    /*
+     * Create single structure border files.
+     */
+    std::map<StructureEnum::Enum, BorderFile*> structureBorderFiles;
+    for (std::map<StructureEnum::Enum, AString>::const_iterator nameIter = singleStructureFileNames.begin();
+         nameIter != singleStructureFileNames.end();
+         nameIter++) {
+        const StructureEnum::Enum structure = nameIter->first;
+        if (StructureEnum::isSingleStructure(structure)) {
+            /*
+             * Create the border file and set the structure
+             */
+            BorderFile* borderFile = new BorderFile();
+            borderFile->setFileName(nameIter->second);
+            borderFile->setStructure(structure);
+            
+            /*
+             * Set number of nodes for border file (if available)
+             */
+            const std::map<StructureEnum::Enum, int32_t>::const_iterator structNumNodesIter =
+                structureNumberOfNodes.find(structure);
+            if (structNumNodesIter != structureNumberOfNodes.end()) {
+                const int32_t numNodes = structNumNodesIter->second;
+                borderFile->setNumberOfNodes(numNodes);
+            }
+            
+            /*
+             * Add to border file for each structure.
+             */
+            structureBorderFiles.insert(std::make_pair(structure,
+                                                       borderFile));
+        }
+        else {
+            errorMessageOut.appendWithNewLine("Structure "
+                                              + StructureEnum::toGuiName(structure)
+                                              + " is not a 'single' type structure.");
+        }
+    }
+    
+    /*
+     * Copy borders to the appropriate single-structure files.
+     */
+    const int32_t numBorders = getNumberOfBorders();
+    for (int32_t i = 0; i < numBorders; i++) {
+        const Border* border = getBorder(i);
+        CaretAssert(border);
+        const StructureEnum::Enum structure = border->getStructure();
+        
+        std::map<StructureEnum::Enum, BorderFile*>::iterator fileIter = structureBorderFiles.find(structure);
+        if (fileIter != structureBorderFiles.end()) {
+            Border* borderCopy = new Border(*border);
+            fileIter->second->addBorder(borderCopy);
+            
+            const GiftiLabel* nameLabel = m_nameColorTable->getLabelBestMatching(border->getName());
+            fileIter->second->getNameColorTable()->addLabel(nameLabel);
+            const GiftiLabel* classLabel = m_classColorTable->getLabelBestMatching(border->getClassName());
+            fileIter->second->getClassColorTable()->addLabel(classLabel);
+        }
+    }
+    
+    if (errorMessageOut.isEmpty()) {
+        /*
+         * Success: return the single structure border files that were created.
+         */
+        for (std::map<StructureEnum::Enum, BorderFile*>::iterator fileIter = structureBorderFiles.begin();
+             fileIter != structureBorderFiles.end();
+             fileIter++) {
+            singleStructureBorderFilesOut.push_back(fileIter->second);
+        }
+        return true;
+    }
+
+    /*
+     * Had an error so delete any single structure border files that were created.
+     */
+    for (std::map<StructureEnum::Enum, BorderFile*>::iterator fileIter = structureBorderFiles.begin();
+         fileIter != structureBorderFiles.end();
+         fileIter++) {
+        delete fileIter->second;
+    }
+    
+    return false;
+}
+
+/**
  * Set the structure for this file.
  * @param structure
  *   New structure for this file.
@@ -1025,6 +1156,7 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
     m_forceUpdateOfGroupAndNameHierarchy = false;
     m_classNameHierarchy->setAllSelected(true);
     
+    CaretLogSevere("NAME TABLE: \n" + m_nameColorTable->toFormattedString("   "));
     CaretLogFiner("CLASS/NAME Table for : "
                   + getFileNameNoPath()
                   + "\n"

@@ -59,6 +59,13 @@ namespace caret {
         
         void setStructure(const StructureEnum::Enum structure);
         
+        std::vector<StructureEnum::Enum> getAllBorderStructures() const;
+        
+        bool splitIntoSingleStructureFiles(const std::map<StructureEnum::Enum, AString>& singleStructureFileNames,
+                                           const std::map<StructureEnum::Enum, int32_t>& structureNumberOfNodes,
+                                           std::vector<BorderFile*>& singleStructureBorderFilesOut,
+                                           AString& errorMessageOut) const;
+
         GiftiMetaData* getFileMetaData();
         
         const GiftiMetaData* getFileMetaData() const;
