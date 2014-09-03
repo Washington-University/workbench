@@ -210,7 +210,9 @@ BorderFile::getAllBorderStructures() const
  * @param singleStructureFileNames
  *     Each 'pair' is the filename for a structure.
  * @param structureNumberOfNodes
- *     Each pair is the number of nodes for a structure.
+ *     Each pair is the number of nodes for a structure.  This parameter is 
+ *     optional and when available, is used to validate the barycentric
+ *     node indices in a border.
  * @param singleStructureBorderFilesOut
  *     On output contains border files for each of the structures.
  * @param errorMessageOut
@@ -274,16 +276,64 @@ BorderFile::splitIntoSingleStructureFiles(const std::map<StructureEnum::Enum, AS
         const Border* border = getBorder(i);
         CaretAssert(border);
         const StructureEnum::Enum structure = border->getStructure();
-        
+
+        /*
+         * Find output file with same structure as this border
+         */
         std::map<StructureEnum::Enum, BorderFile*>::iterator fileIter = structureBorderFiles.find(structure);
         if (fileIter != structureBorderFiles.end()) {
-            Border* borderCopy = new Border(*border);
-            fileIter->second->addBorder(borderCopy);
-            
-            const GiftiLabel* nameLabel = m_nameColorTable->getLabelBestMatching(border->getName());
-            fileIter->second->getNameColorTable()->addLabel(nameLabel);
-            const GiftiLabel* classLabel = m_classColorTable->getLabelBestMatching(border->getClassName());
-            fileIter->second->getClassColorTable()->addLabel(classLabel);
+            if (border->verifyAllPointsOnSameStructure()) {
+                /*
+                 * Surface number of nodes may be available
+                 */
+                int32_t surfaceNumberOfNodes = 0;
+                const std::map<StructureEnum::Enum, int32_t>::const_iterator structNumNodesIter =
+                structureNumberOfNodes.find(structure);
+                if (structNumNodesIter != structureNumberOfNodes.end()) {
+                    surfaceNumberOfNodes = structNumNodesIter->second;
+                }
+                
+                /*
+                 * If possible verify border node indices valid for structure
+                 */
+                bool copyBorderFlag = false;
+                if (surfaceNumberOfNodes > 0) {
+                    if (border->verifyForSurfaceNumberOfNodes(surfaceNumberOfNodes)) {
+                        copyBorderFlag = true;
+                    }
+                    else {
+                        errorMessageOut.appendWithNewLine("Border index="
+                                                          + AString::number(i)
+                                                          + " name="
+                                                          + border->getName()
+                                                          + " contains an incompatible number of nodes for structure "
+                                                          + StructureEnum::toGuiName(structure));
+                    }
+                }
+                else {
+                    /*
+                     * Unable to verify number of nodes so assume okay
+                     */
+                    copyBorderFlag = true;
+                }
+                
+                if (copyBorderFlag) {
+                    Border* borderCopy = new Border(*border);
+                    fileIter->second->addBorder(borderCopy);
+                    
+                    const GiftiLabel* nameLabel = m_nameColorTable->getLabelBestMatching(border->getName());
+                    fileIter->second->getNameColorTable()->addLabel(nameLabel);
+                    const GiftiLabel* classLabel = m_classColorTable->getLabelBestMatching(border->getClassName());
+                    fileIter->second->getClassColorTable()->addLabel(classLabel);
+                }
+            }
+            else {
+                errorMessageOut.appendWithNewLine("Border index="
+                                                  + AString::number(i)
+                                                  + " name="
+                                                  + border->getName()
+                                                  + " is an invalid border that contains points on multiple structures");
+            }
         }
     }
     
