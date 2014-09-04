@@ -1042,7 +1042,7 @@ HelpTreeWidgetItem::newInstanceForCommandOperation(QTreeWidgetItem* parent,
 {
     const AString itemText = commandOperation->getCommandLineSwitch();
     const AString helpInfoCopy = commandOperation->getHelpInformation("wb_command");
-    const AString helpText = helpInfoCopy.convertToHtmlPageWithFontHeight(10);
+    const AString helpText = helpInfoCopy.convertToHtmlPageWithFontHeight(-1); //10);
     const AString helpPageURL("command:/"
                               + commandOperation->getOperationShortDescription().replace(' ', '_'));
     
