@@ -55,8 +55,7 @@ OperationParameters* OperationBorderMerge::getParameters()
     upToOpt->createOptionalParameter(2, "-reverse", "use the range in reverse order");
     
     ret->setHelpText(
-        AString("Takes one or more border files and makes a new border file from the borders in them.  ") +
-        "Beware, the borders are NOT checked for same structure or number of vertices in the surface they apply to.\n\n" +
+        AString("Takes one or more border files and makes a new border file from the borders in them.\n\n") +
         "Example: wb_command -border-merge out.border -border first.border -select 1 -border second.border\n\n" +
         "This example would take the first border from first.border, followed by all borders from second.border, " +
         "and write these to out.border."
@@ -74,6 +73,20 @@ void OperationBorderMerge::useParameters(OperationParameters* myParams, Progress
     for (int i = 0; i < numInputs; ++i)
     {
         BorderFile* input = borderInst[i]->getBorder(1);
+        if (i != 0)//structure automatically gets set on empty file by added borders
+        {
+            if (outFile->getStructure() != input->getStructure()) throw OperationException("input files have different structures");
+        }
+        if (input->getNumberOfNodes() != -1)
+        {
+            int outNodes = outFile->getNumberOfNodes();
+            if (outNodes != -1)
+            {
+                if (outNodes != input->getNumberOfNodes()) throw OperationException("input files have different number of surface vertices");
+            } else {
+                outFile->setNumberOfNodes(input->getNumberOfNodes());
+            }
+        }
         int numBorderParts = input->getNumberOfBorders();
         const vector<ParameterComponent*>& selectOpts = *(borderInst[i]->getRepeatableParameterInstances(2));
         int numSelectOpts = (int)selectOpts.size();
