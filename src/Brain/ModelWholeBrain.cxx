@@ -20,6 +20,10 @@
 
 #include <algorithm>
 
+#define __MODEL_WHOLE_BRAIN_DEFINE__
+#include "ModelWholeBrain.h"
+#undef __MODEL_WHOLE_BRAIN_DEFINE__
+
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -27,9 +31,9 @@
 #include "EventManager.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventModelGetAll.h"
+#include "EventSurfacesGet.h"
 #include "IdentificationManager.h"
 #include "ModelSurface.h"
-#include "ModelWholeBrain.h"
 #include "OverlaySet.h"
 #include "OverlaySetArray.h"
 #include "SceneClass.h"
@@ -48,6 +52,10 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
 : Model(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
                          brain)
 {
+    if (s_anatomicalSurfaceTypes.empty()) {
+        SurfaceTypeEnum::getAllAnatomicallyShapedEnums(s_anatomicalSurfaceTypes);
+    }
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
         m_cerebellumEnabled[i] = true;
@@ -124,78 +132,140 @@ ModelWholeBrain::getSelectedSurfaceType(const int32_t windowTabNumber)
 /**
  * Update this model.
  */
-void 
+void
 ModelWholeBrain::updateModel()
 {
     /*
-     * Get all model to find loaded surface types.
+     * Get all of the surfaces
      */
-    EventModelGetAll eventGetModels;
-    EventManager::get()->sendEvent(eventGetModels.getPointer());
-    const std::vector<Model*> allModels =
-        eventGetModels.getModels();
-
-    /*
-     * Get ALL possible surface types.
-     */
-    std::vector<SurfaceTypeEnum::Enum> allSurfaceTypes;
-    SurfaceTypeEnum::getAllEnums(allSurfaceTypes);
-    const int32_t numEnumTypes = static_cast<int32_t>(allSurfaceTypes.size());
-    std::vector<bool> surfaceTypeValid(numEnumTypes, false);
+    EventSurfacesGet surfaceEvent;
+    EventManager::get()->sendEvent(surfaceEvent.getPointer());
+    std::vector<Surface*> allSurfaces = surfaceEvent.getSurfaces();
     
     /*
-     * Find surface types that are actually used.
-     */
-    for (std::vector<Model*>::const_iterator iter = allModels.begin();
-         iter != allModels.end();
-         iter++) {
-        ModelSurface* surfaceModel =
-            dynamic_cast<ModelSurface*>(*iter);
-        if (surfaceModel != NULL) {
-            SurfaceTypeEnum::Enum surfaceType = surfaceModel->getSurface()->getSurfaceType();
-            
-            for (int i = 0; i < numEnumTypes; i++) {
-                if (allSurfaceTypes[i] == surfaceType) {
-                    surfaceTypeValid[i] = true;
-                    break;
-                }
-            }
-        }
-    }
-    
-    /*
-     * Set the available surface types.
+     * Update the available surface types
      */
     m_availableSurfaceTypes.clear();
-    for (int i = 0; i < numEnumTypes; i++) {
-        if (surfaceTypeValid[i]) {
-            m_availableSurfaceTypes.push_back(allSurfaceTypes[i]);
+    for (std::vector<Surface*>::iterator surfIter = allSurfaces.begin();
+         surfIter != allSurfaces.end();
+         surfIter++) {
+        m_availableSurfaceTypes.insert((*surfIter)->getSurfaceType());
+    }
+    
+    /*
+     * Set the default surface type from the available anatomical types
+     */
+    std::vector<SurfaceTypeEnum::Enum>::iterator defaultSurfaceTypeIter =
+    std::find_first_of(s_anatomicalSurfaceTypes.begin(), s_anatomicalSurfaceTypes.end(),
+                       m_availableSurfaceTypes.begin(), m_availableSurfaceTypes.end());
+    const SurfaceTypeEnum::Enum defaultSurfaceType = ((defaultSurfaceTypeIter != s_anatomicalSurfaceTypes.end())
+                                                      ? *defaultSurfaceTypeIter
+                                                      : SurfaceTypeEnum::ANATOMICAL);
+    
+    /*
+     * If the selected surface type in a tab is no longer valid, update 
+     * selected surface type.
+     */
+    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+        if (std::find(m_availableSurfaceTypes.begin(),
+                      m_availableSurfaceTypes.end(),
+                      m_selectedSurfaceType[iTab]) == m_availableSurfaceTypes.end()) {
+            m_selectedSurfaceType[iTab] = defaultSurfaceType;
         }
     }
     
-    
-    
     /*
-     * Update the selected surface and volume types.
+     * Deselect any surfaces that are no longer valid.  They will get updated
+     * the next time getSelected
      */
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        if (std::find(m_availableSurfaceTypes.begin(),
-                      m_availableSurfaceTypes.end(),
-                      m_selectedSurfaceType[i]) == m_availableSurfaceTypes.end()) {
-            if (m_availableSurfaceTypes.empty() == false) {
-                m_selectedSurfaceType[i] = m_availableSurfaceTypes[0];
+    for (int32_t tabIndex = 0; tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; tabIndex++) {
+        for (std::map<std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum>, Surface*>::iterator mapIter = m_selectedSurface[tabIndex].begin();
+             mapIter != m_selectedSurface[tabIndex].end();
+             mapIter++) {
+            if (std::find(allSurfaces.begin(),
+                          allSurfaces.end(),
+                          mapIter->second) == allSurfaces.end()) {
+                mapIter->second = NULL;
             }
-            else {
-                m_selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
-            }
-        }
-        
-        VolumeMappableInterface* vf = getUnderlayVolumeFile(i);
-        if (vf != NULL) {
-//            m_volumeSlicesSelected[i].updateForVolumeFile(vf);
         }
     }
 }
+
+///**
+// * Update this model.
+// */
+//void 
+//ModelWholeBrain::updateModel()
+//{
+//    /*
+//     * Get all model to find loaded surface types.
+//     */
+//    EventModelGetAll eventGetModels;
+//    EventManager::get()->sendEvent(eventGetModels.getPointer());
+//    const std::vector<Model*> allModels =
+//        eventGetModels.getModels();
+//
+//    /*
+//     * Get ALL possible surface types.
+//     */
+//    std::vector<SurfaceTypeEnum::Enum> allSurfaceTypes;
+//    SurfaceTypeEnum::getAllEnums(allSurfaceTypes);
+//    const int32_t numEnumTypes = static_cast<int32_t>(allSurfaceTypes.size());
+//    std::vector<bool> surfaceTypeValid(numEnumTypes, false);
+//    
+//    /*
+//     * Find surface types that are actually used.
+//     */
+//    for (std::vector<Model*>::const_iterator iter = allModels.begin();
+//         iter != allModels.end();
+//         iter++) {
+//        ModelSurface* surfaceModel =
+//            dynamic_cast<ModelSurface*>(*iter);
+//        if (surfaceModel != NULL) {
+//            SurfaceTypeEnum::Enum surfaceType = surfaceModel->getSurface()->getSurfaceType();
+//            
+//            for (int i = 0; i < numEnumTypes; i++) {
+//                if (allSurfaceTypes[i] == surfaceType) {
+//                    surfaceTypeValid[i] = true;
+//                    break;
+//                }
+//            }
+//        }
+//    }
+//    
+//    /*
+//     * Set the available surface types.
+//     */
+//    m_availableSurfaceTypes.clear();
+//    for (int i = 0; i < numEnumTypes; i++) {
+//        if (surfaceTypeValid[i]) {
+//            m_availableSurfaceTypes.push_back(allSurfaceTypes[i]);
+//        }
+//    }
+//    
+//    
+//    
+//    /*
+//     * Update the selected surface and volume types.
+//     */
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        if (std::find(m_availableSurfaceTypes.begin(),
+//                      m_availableSurfaceTypes.end(),
+//                      m_selectedSurfaceType[i]) == m_availableSurfaceTypes.end()) {
+//            if (m_availableSurfaceTypes.empty() == false) {
+//                m_selectedSurfaceType[i] = m_availableSurfaceTypes[0];
+//            }
+//            else {
+//                m_selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
+//            }
+//        }
+//        
+//        VolumeMappableInterface* vf = getUnderlayVolumeFile(i);
+//        if (vf != NULL) {
+////            m_volumeSlicesSelected[i].updateForVolumeFile(vf);
+//        }
+//    }
+//}
 
 /**
  * Set the selected surface type.
@@ -474,29 +544,38 @@ ModelWholeBrain::saveModelSpecificInformationToScene(const SceneAttributes* scen
     std::vector<SceneClass*> classesForSelectedSurfaceArray;
     for (int32_t i = 0; i < numTabs; i++) {
         const int32_t tabIndex = tabIndices[i];
+        const SurfaceTypeEnum::Enum selectedSurfaceType = getSelectedSurfaceType(tabIndex);
+        
+        /*
+         * Updates selected surfaces
+         */
+        getSelectedSurfaces(tabIndex);
          
         for (std::map<std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum>, Surface*>::iterator mapIter = m_selectedSurface[tabIndex].begin();
              mapIter != m_selectedSurface[tabIndex].end();
              mapIter++) {
             std::pair<StructureEnum::Enum, SurfaceTypeEnum::Enum> structureSurfaceType = mapIter->first;
-            Surface* surface = mapIter->second;
-            if (surface != NULL) {
-                const StructureEnum::Enum structure = structureSurfaceType.first;
-                const SurfaceTypeEnum::Enum surfaceType = structureSurfaceType.second;
-                
-                const AString name = ("m_selectedSurface[" + AString::number(tabIndex) + "]");
-                SceneClass* surfaceClass = new SceneClass(name,
-                                                          "SurfaceSelectionMap",
-                                                          1);
-                surfaceClass->addInteger("tabIndex", tabIndex);
-                surfaceClass->addEnumeratedType<StructureEnum,StructureEnum::Enum>("structure", 
-                                                                                   structure);
-                surfaceClass->addEnumeratedType<SurfaceTypeEnum,SurfaceTypeEnum::Enum>("surfaceType", 
-                                                                                   surfaceType);
-                surfaceClass->addString("surfaceName",
-                                        surface->getFileNameNoPath());
-                
-                classesForSelectedSurfaceArray.push_back(surfaceClass);
+            const SurfaceTypeEnum::Enum surfaceType = structureSurfaceType.second;
+            
+            if (surfaceType == selectedSurfaceType) {
+                Surface* surface = mapIter->second;
+                if (surface != NULL) {
+                    const StructureEnum::Enum structure = structureSurfaceType.first;
+                    
+                    const AString name = ("m_selectedSurface[" + AString::number(tabIndex) + "]");
+                    SceneClass* surfaceClass = new SceneClass(name,
+                                                              "SurfaceSelectionMap",
+                                                              1);
+                    surfaceClass->addInteger("tabIndex", tabIndex);
+                    surfaceClass->addEnumeratedType<StructureEnum,StructureEnum::Enum>("structure",
+                                                                                       structure);
+                    surfaceClass->addEnumeratedType<SurfaceTypeEnum,SurfaceTypeEnum::Enum>("surfaceType",
+                                                                                           surfaceType);
+                    surfaceClass->addString("surfaceName",
+                                            surface->getFileNameNoPath());
+                    
+                    classesForSelectedSurfaceArray.push_back(surfaceClass);
+                }
             }
         }
     }

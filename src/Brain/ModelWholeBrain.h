@@ -1,5 +1,5 @@
-#ifndef __MODEL_DISPLAY_CONTROLLER_WHOLE_BRAIN_H__
-#define __MODEL_DISPLAY_CONTROLLER_WHOLE_BRAIN_H__
+#ifndef __MODEL_WHOLE_BRAIN_H__
+#define __MODEL_WHOLE_BRAIN_H__
 
 /*LICENSE_START*/
 /*
@@ -21,16 +21,19 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #include "BrainConstants.h"
 #include "EventListenerInterface.h"
 #include "Model.h"
+#include "StructureEnum.h"
 #include "SurfaceTypeEnum.h"
-
 
 namespace caret {
 
     class Brain;
     class OverlaySetArray;
+    class Surface;
     class SceneClassAssistant;
     class VolumeMappableInterface;
     
@@ -99,7 +102,7 @@ namespace caret {
         std::map<std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum>, Surface*> m_selectedSurface[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Available surface types */
-        std::vector<SurfaceTypeEnum::Enum> m_availableSurfaceTypes;
+        std::set<SurfaceTypeEnum::Enum> m_availableSurfaceTypes;
         
         bool m_leftEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
@@ -111,6 +114,9 @@ namespace caret {
         
         float m_cerebellumSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
+        /** Surface types that have an anatomical appearance. */
+        static std::vector<SurfaceTypeEnum::Enum> s_anatomicalSurfaceTypes;
+        
 //        mutable VolumeSliceCoordinateSelection m_volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         VolumeMappableInterface* m_lastVolumeFile;
@@ -119,8 +125,14 @@ namespace caret {
         OverlaySetArray* m_overlaySetArray;
         
         SceneClassAssistant* m_sceneAssistant;
+        
     };
 
+#ifdef __MODEL_WHOLE_BRAIN_DEFINE__
+    std::vector<SurfaceTypeEnum::Enum> ModelWholeBrain::s_anatomicalSurfaceTypes;
+#endif // __MODEL_WHOLE_BRAIN_DEFINE__
+    
 } // namespace
 
-#endif // __MODEL_DISPLAY_CONTROLLER_WHOLE_BRAIN_H__
+
+#endif // __MODEL_WHOLE_BRAIN_H__
