@@ -154,6 +154,14 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     printButton->setText("Print");
     printButton->hide();
     
+    /**
+     *  Copy button
+     */
+    QToolButton* copyButton = new QToolButton;
+    copyButton->setText("Copy");
+    copyButton->setToolTip("Copies selected help text to clipboard.");
+    copyButton->setEnabled(false);
+    
     /*
      * create the help browser
      */
@@ -168,14 +176,23 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
                      m_helpBrowser, SLOT(backward()));
     
     /*
+     * Hook up copy button to help browser
+     */
+    QObject::connect(m_helpBrowser, SIGNAL(copyAvailable(bool)),
+                     copyButton, SLOT(setEnabled(bool)));
+    QObject::connect(copyButton, SIGNAL(clicked()),
+                     m_helpBrowser, SLOT(copy()));
+    
+    /*
      * Layout for toolbuttons
      */
     QHBoxLayout* toolButtonLayout = new QHBoxLayout;
     toolButtonLayout->addWidget(new QLabel("Navigate:"));
     toolButtonLayout->addWidget(backwardButton);
     toolButtonLayout->addWidget(forwardButton);
-    toolButtonLayout->addWidget(printButton);
     toolButtonLayout->addStretch();
+    toolButtonLayout->addWidget(copyButton);
+    toolButtonLayout->addWidget(printButton);
     
     /*
      * Layout for help browser and buttons
