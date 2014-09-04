@@ -375,6 +375,24 @@ SurfaceTypeEnum::getAllEnumsExceptFlat(std::vector<Enum>& enumsOut)
 }
 
 /**
+ * Get the enumerated type values that are three-dimensional in shape
+ * but still have an anatomical-shaped appearance.
+ *
+ * @param anatomicalEnumsOut
+ *     A vector that is OUTPUT containing the anatomically shaped enums.
+ */
+void
+SurfaceTypeEnum::getAllAnatomicallyShapedEnums(std::vector<Enum>& anatomicalEnumsOut)
+{
+    anatomicalEnumsOut.clear();
+    
+    anatomicalEnumsOut.push_back(ANATOMICAL);
+    anatomicalEnumsOut.push_back(INFLATED);
+    anatomicalEnumsOut.push_back(VERY_INFLATED);
+    anatomicalEnumsOut.push_back(RECONSTRUCTION);
+}
+
+/**
  * Constructor.
  *
  * @param e

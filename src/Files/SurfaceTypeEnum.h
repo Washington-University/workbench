@@ -83,6 +83,8 @@ public:
     
     static void getAllEnumsExceptFlat(std::vector<Enum>& enumsOut);
     
+    static void getAllAnatomicallyShapedEnums(std::vector<Enum>& threeDimEnums);
+    
 private:
     SurfaceTypeEnum(const Enum e, 
                     const AString& name,
