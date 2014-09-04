@@ -511,7 +511,9 @@ AString::convertToHtmlPageWithFontHeight(const int fontHeight) const
         return *this;
     }
     
-    AString htmlString("<html><head></head><body>");
+    AString htmlString("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\r\n<html>"
+                       "<head><meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\r\n"
+                       "<title></title></head><body>");
     
     if (fontHeight > 0) {
 //        htmlString.append("<font size="
