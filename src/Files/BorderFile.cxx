@@ -436,14 +436,14 @@ void BorderFile::setNumberOfNodes(const int32_t& numNodes)
 {
     if (numNodes < 1)
     {
-        throw DataFileException("attempt to set non-positive number of nodes on border file");
+        throw DataFileException("attempt to set non-positive number of vertices on border file");
     }
     int numBorders = (int)m_borders.size();
     for (int i = 0; i < numBorders; ++i)
     {
         if (!m_borders[i]->verifyForSurfaceNumberOfNodes(numNodes))
         {
-            throw DataFileException("attempt to set number of nodes less than the nodes used in border file");
+            throw DataFileException("cannot set border file number of vertices less than the vertices used by its borders");
         }
     }
     m_numNodes = numNodes;//even if we are currently multi-structure, remember the number of nodes that was set
@@ -1229,130 +1229,38 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
 void 
 BorderFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    writeFile(filename, 3);
-    
-//    checkFileWritability(filename);
-//    
-//    setFileName(filename);
-//    
-//    try {
-//        if (canWriteAsVersion(3))
-//        {
-//            QFile myFile(filename);
-//            if (!myFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) throw DataFileException("could not open " + filename + " for writing");
-//            QXmlStreamWriter myXML(&myFile);
-//            myXML.setAutoFormatting(true);
-//            writeVersion3(myXML);
-//            clearModified();//TSC: huh?  borrowed from below, but...
-//            return;
-//        }
-//        //
-//        // Format the version string so that it ends with at most one zero
-//        //
-//        const AString versionString = AString::number(1.0);
-//        
-//        //
-//        // Open the file
-//        //
-//        FileAdapter file;
-//        AString errorMessage;
-//        QTextStream* textStream = file.openQTextStreamForWritingFile(getFileName(),
-//                                                                     errorMessage);
-//        if (textStream == NULL) {
-//            throw DataFileException(errorMessage);
-//        }
-//
-//        //
-//        // Create the xml writer
-//        //
-//        XmlWriter xmlWriter(*textStream);
-//        
-//        //
-//        // Write header info
-//        //
-//        xmlWriter.writeStartDocument("1.0");
-//        
-//        //
-//        // Write GIFTI root element
-//        //
-//        XmlAttributes attributes;
-//        
-//        //attributes.addAttribute("xmlns:xsi",
-//        //                        "http://www.w3.org/2001/XMLSchema-instance");
-//        //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
-//        //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
-//        attributes.addAttribute(BorderFile::XML_ATTRIBUTE_VERSION,
-//                                versionString);
-//        xmlWriter.writeStartElement(BorderFile::XML_TAG_BORDER_FILE,
-//                                    attributes);
-//        
-//        //
-//        // Write Metadata
-//        //
-//        if (m_metadata != NULL) {
-//            m_metadata->writeAsXML(xmlWriter);
-//        }
-//            
-//        //
-//        // Write the class color table
-//        //
-//        xmlWriter.writeStartElement(XML_TAG_CLASS_COLOR_TABLE);
-//        m_classColorTable->writeAsXML(xmlWriter);
-//        xmlWriter.writeEndElement();
-//        
-//        //
-//        // Write the name color table
-//        //
-//        xmlWriter.writeStartElement(XML_TAG_NAME_COLOR_TABLE);
-//        m_nameColorTable->writeAsXML(xmlWriter);
-//        xmlWriter.writeEndElement();
-//        
-//        
-//        //
-//        // Write borders
-//        //
-//        const int32_t numBorders = getNumberOfBorders();
-//        for (int32_t i = 0; i < numBorders; i++) {
-//            m_borders[i]->writeAsXML(xmlWriter);
-//        }
-//        
-//        xmlWriter.writeEndElement();
-//        xmlWriter.writeEndDocument();
-//        
-//        file.close();
-//        
-//        clearModified();
-//    } catch (DataFileException& e) {
-//        throw e;
-//    } catch (const GiftiException& e) {
-//        throw DataFileException(e);
-//    } catch (const XmlException& e) {
-//        throw DataFileException(e);
-//    } catch (exception& e) {
-//        throw DataFileException(e.what());
-//    } catch (...) {
-//        throw DataFileException("caught unknown exception type in BorderFile::writeFile");
-//    }
+    if (canWriteAsVersion(3))
+    {
+        writeFile(filename, 3);
+    } else {
+        CaretLogWarning("border file missing information required for writing as version 3, falling back to older format");
+        writeFile(filename, 1);
+    }
 }
 
 /**
- * @return Error message for attempting an operation on an obsolete, multi-structure border file.
+ * @return Error message for attempting a gui operation on an obsolete, multi-structure border file.
  */
 AString
 BorderFile::getObsoleteMultiStructureFormatMessage()
 {
     return ("This border file ("
             + getFileNameNoPath()
-            + ") is an obsolete format that contains borders for multiple structures and "
-            "must be split into one border file for each structure.  In wb_view, this operation is "
-            "performed using a selection on the Data Menu.");
+            + ") contains borders for multiple structures and must be split into single-structure border files.  "
+            "This can be done in the gui, using a selection in the Data menu, "
+            "or on the command line using -file-convert with the -border-version-convert option.");
 }
 
 void BorderFile::writeFile(const AString& filename, const int& version)
 {
     if ( ! isSingleStructure()) {
         throw DataFileException(filename,
-                                getObsoleteMultiStructureFormatMessage());
+                                "Writing multi-structure border files is no longer supported ("
+                                + getFileNameNoPath()
+                                + ").  "
+                                "Any existing multi-structure border files should be split into single-structure border files.  "
+                                "This can be done on the command line using -file-convert with the -border-version-convert option, "
+                                "or in the gui, using a selection in the Data menu.");
     }
     
     if (!canWriteAsVersion(version)) throw DataFileException("cannot write border file as version '" + AString::number(version) + "'");
@@ -1456,11 +1364,13 @@ void BorderFile::writeFile(const AString& filename, const int& version)
         }
                 
         clearModified();
-    } catch (DataFileException& e) {//even though this function doesn't have a throw specifier, don't throw anything strange
+    } catch (DataFileException& e) {//even though this function doesn't have a throw specifier, don't throw anything strange, since the other writeFile calls it
         throw e;
     } catch (const GiftiException& e) {
         throw DataFileException(e);
     } catch (const XmlException& e) {
+        throw DataFileException(e);
+    } catch (const CaretException& e) {
         throw DataFileException(e);
     } catch (exception& e) {
         throw DataFileException(e.what());
@@ -1476,7 +1386,7 @@ bool BorderFile::canWriteAsVersion(const int& version) const
         case 1:
             return true;
         case 3:
-            if (m_structure == StructureEnum::ALL) return false;
+            if (!StructureEnum::isSingleStructure(m_structure)) return false;
             if (m_numNodes == -1) return false;
             return true;
         default:
