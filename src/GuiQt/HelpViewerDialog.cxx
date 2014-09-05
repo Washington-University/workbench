@@ -1009,9 +1009,19 @@ void
 HelpTextBrowser::setSource(const QUrl& url)
 {
     const AString urlText = url.toString();
-    if (urlText.startsWith("http")) {
+    if (urlText.startsWith("http:")) {
         if (WuQMessageBox::warningOkCancel(this,
                                            "The link clicked will be displayed in your web browser.")) {
+            if ( ! QDesktopServices::openUrl(urlText)) {
+                WuQMessageBox::errorOk(this,
+                                       ("Failed to load "
+                                        + urlText));
+            }
+        }
+    }
+    else if (urlText.startsWith("mailto")) {
+        if (WuQMessageBox::warningOkCancel(this,
+                                           "This link will open your mail client.")) {
             if ( ! QDesktopServices::openUrl(urlText)) {
                 WuQMessageBox::errorOk(this,
                                        ("Failed to load "
