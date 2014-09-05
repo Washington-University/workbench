@@ -23,7 +23,9 @@
 
 #include "BorderFile.h"
 #include "Border.h"
+#include "CaretLogger.h"
 #include "CiftiFile.h"
+#include "FileInformation.h"
 #include "MultiDimIterator.h"
 #include "NiftiIO.h"
 #include "SurfaceFile.h"
@@ -72,22 +74,46 @@ namespace _operation_file_convert//hide helpers in a file-specific namespace
 {
 //hidden templated function to do generic nifti reading and writing
     template<typename T>
-    void niftiConvertHelper(NiftiIO& inputIO, NiftiIO& outputIO, const int64_t& maxMem)
+    void niftiConvertHelper(NiftiIO& inputIO, const AString& outFileName, const int64_t& maxMem, const int& outVer, const bool& collision)
     {
-        const vector<int64_t>& dims = inputIO.getDimensions();
-        int64_t totalBytes = (int)sizeof(T) * inputIO.getNumComponents(), totalElems = inputIO.getNumComponents();
-        int fullDims = 0;
-        for (; fullDims < (int)dims.size() && totalBytes * dims[fullDims] < maxMem; ++fullDims)
+        const vector<int64_t> dims = inputIO.getDimensions();//DO NOT make this a reference
+        if (collision)
         {
-            totalBytes *= dims[fullDims];
-            totalElems *= dims[fullDims];
-        }
-        vector<int64_t> remainDims(dims.begin() + fullDims, dims.end());
-        vector<T> scratchmem(totalElems);//this is the main purpose of the template...
-        for (MultiDimIterator<int64_t> myiter(remainDims); !myiter.atEnd(); ++myiter)
-        {
-            inputIO.readData(scratchmem.data(), fullDims, *myiter);//...which results in these templating over the desired type
-            outputIO.writeData(scratchmem.data(), fullDims, *myiter);
+            int64_t totalBytes = (int)sizeof(T) * inputIO.getNumComponents(), totalElems = inputIO.getNumComponents();//compute memory usage to check whether to warn
+            for (int fullDims = 0; fullDims < (int)dims.size(); ++fullDims)
+            {
+                totalBytes *= dims[fullDims];
+                totalElems *= dims[fullDims];
+            }
+            if (totalBytes > maxMem)
+            {
+                CaretLogInfo("collision between input and output filenames, reading input file into memory");
+            } else {
+                CaretLogFine("collision between input and output filenames, reading input file into memory");
+            }
+            vector<T> scratchmem(totalElems);
+            inputIO.readData(scratchmem.data(), dims.size(), vector<int64_t>());
+            inputIO.close();//don't have it try to close after being overwritten
+            NiftiIO outputIO;//now we can open the output file
+            outputIO.writeNew(outFileName, inputIO.getHeader(), outVer);//NOTE: this keeps data scaling fields, data type, extensions, header fields we ignore, etc
+            outputIO.writeData(scratchmem.data(), dims.size(), vector<int64_t>());
+        } else {
+            NiftiIO outputIO;
+            outputIO.writeNew(outFileName, inputIO.getHeader(), outVer);//NOTE: this keeps data scaling fields, data type, extensions, header fields we ignore, etc
+            int64_t totalBytes = (int)sizeof(T) * inputIO.getNumComponents(), totalElems = inputIO.getNumComponents();
+            int fullDims = 0;
+            for (; fullDims < (int)dims.size() && totalBytes * dims[fullDims] < maxMem; ++fullDims)
+            {
+                totalBytes *= dims[fullDims];
+                totalElems *= dims[fullDims];
+            }
+            vector<int64_t> remainDims(dims.begin() + fullDims, dims.end());
+            vector<T> scratchmem(totalElems);//this is the main purpose of the template...
+            for (MultiDimIterator<int64_t> myiter(remainDims); !myiter.atEnd(); ++myiter)
+            {
+                inputIO.readData(scratchmem.data(), fullDims, *myiter);//...which results in these templating over the desired type
+                outputIO.writeData(scratchmem.data(), fullDims, *myiter);
+            }
         }
     }
 }
@@ -143,53 +169,58 @@ void OperationFileConvert::useParameters(OperationParameters* myParams, Progress
         int outVer = (int)niftiConv->getInteger(2);
         AString outFileName = niftiConv->getString(3);
         const int64_t maxMem = 1<<29;//half gigabyte - will usually be much less, could be an option
-        NiftiIO inputIO, outputIO;
+        NiftiIO inputIO;
         inputIO.openRead(inFileName);
         const NiftiHeader& inHeader = inputIO.getHeader();
-        outputIO.writeNew(outFileName, inHeader, outVer);//NOTE: this keeps data scaling fields, data type, extensions, header fields we ignore, etc
+        FileInformation outInfo(outFileName), inInfo(inFileName);
+        bool collision = false;
+        if (outInfo.getCanonicalFilePath() != "" && outInfo.getCanonicalFilePath() == inInfo.getCanonicalFilePath())
+        {//collision! can't do on-disk reading during writing
+            collision = true;
+        }
         double mult, offset;//if the offset is large compared to the scale, it is nontrivial to deduce a suitable type to preserve sufficient precision to round back to the unscaled input values
         if (inHeader.getDataScaling(mult, offset))//we can't use the on-disk type because we don't provide access to the unscaled (wrong) values
         {//alternatively, we could give read/write access to the unscaled values, but that is distasteful
-            niftiConvertHelper<long double>(inputIO, outputIO, maxMem);//so, always use long double to reduce rounding problems, even if it is often massive overkill
+            niftiConvertHelper<long double>(inputIO, outFileName, maxMem, outVer, collision);//so, always use long double to reduce rounding problems, even if it is often massive overkill
         } else {
             switch (inHeader.getDataType())
             {
                 case NIFTI_TYPE_UINT8:
                 case NIFTI_TYPE_RGB24:
-                    niftiConvertHelper<uint8_t>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<uint8_t>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_INT8:
-                    niftiConvertHelper<int8_t>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<int8_t>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_UINT16:
-                    niftiConvertHelper<uint16_t>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<uint16_t>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_INT16:
-                    niftiConvertHelper<int16_t>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<int16_t>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_UINT32:
-                    niftiConvertHelper<uint32_t>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<uint32_t>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_INT32:
-                    niftiConvertHelper<int32_t>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<int32_t>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_UINT64:
-                    niftiConvertHelper<uint64_t>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<uint64_t>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_INT64:
-                    niftiConvertHelper<int64_t>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<int64_t>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_FLOAT32:
                 case NIFTI_TYPE_COMPLEX64:
-                    niftiConvertHelper<float>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<float>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_FLOAT64:
                 case NIFTI_TYPE_COMPLEX128:
-                    niftiConvertHelper<double>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<double>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 case NIFTI_TYPE_FLOAT128:
                 case NIFTI_TYPE_COMPLEX256:
-                    niftiConvertHelper<long double>(inputIO, outputIO, maxMem);
+                    niftiConvertHelper<long double>(inputIO, outFileName, maxMem, outVer, collision);
                     break;
                 default:
                     throw OperationException("unsupported nifti datatype");

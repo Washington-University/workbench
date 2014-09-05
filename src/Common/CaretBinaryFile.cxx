@@ -26,6 +26,7 @@
 #endif
 
 #include "CaretBinaryFile.h"
+#include "CaretLogger.h"
 #include "DataFileException.h"
 
 #include <QFile>
@@ -249,7 +250,16 @@ void ZFileImpl::write(const void* dataIn, const int64_t& count)
 
 ZFileImpl::~ZFileImpl()
 {
-    close();
+    try//throwing throught a default destructor (in CaretPointer) makes gcc abort on some versions, so just issue a warning and continue
+    {
+        close();
+    } catch (CaretException& e) {//handles DataFileException, should be the only culprit
+        CaretLogWarning(e.whatString());
+    } catch (exception& e) {
+        CaretLogWarning(e.what());
+    } catch (...) {
+        CaretLogWarning("caught unknown exception type while closing a compressed file");
+    }
 }
 #endif //ZLIB_VERSION
 
