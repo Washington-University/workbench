@@ -486,21 +486,62 @@ AString::convertURLsToHyperlinks() const
 AString
 AString::convertToHtmlPage() const
 {
-    return convertToHtmlPageWithFontHeight(-1);
+    return convertToHtmlPageWithCssFontHeight(-1);
+}
+
+/**
+ * Convert the text string to an HTML page using the given font size
+ * by enclosing text between:
+ *    "<html><head></head><body><font size="X">" and "</font></body></html>"
+ *
+ * Note: This uses the font tag's size attribute which is not supported
+ * by HTML5.
+ *
+ * Also replaces some characters with their HTML escaped characters
+ *
+ * @param fontSize
+ *    Size of the font.
+ */
+AString
+AString::convertToHtmlPageWithFontSize(const int fontSize) const
+{
+    /*
+     * If already HTML (assumes "html" is the first six characters),
+     * no need to convert.
+     */
+    if (this->startsWith("<html>",
+                         Qt::CaseInsensitive)) {
+        return *this;
+    }
+    
+    AString htmlString("<html><head></head><body>");
+    
+    htmlString.append("<font size=\"" + AString::number(fontSize) + "\">");
+    
+    htmlString.append(this->replaceHtmlSpecialCharactersWithEscapeCharacters());
+    
+    htmlString.append("</font>");
+    
+    htmlString.append("</body></html>");
+    
+    return htmlString;    
 }
 
 /**
  * Convert the text string to an HTML page using the given font height
  * by enclosing text between:
- *    "<html><head></head><body>" and "</body></html>"
+ *    "<html><head></head><body><p style="font-size:Xpx>" and "</p></body></html>"
  *
- *    Replace some characters with their HTML escaped characters
+ * Note: HTML produced by this method and displayed in a QTextBrowser had
+ * some problems with cutting and pasting on some Macs not working.
+ *
+ * Also replaces some characters with their HTML escaped characters
  *
  * @param fontHeight
  *    Height of the font (if negative no font height is applied).
  */
 AString
-AString::convertToHtmlPageWithFontHeight(const int fontHeight) const
+AString::convertToHtmlPageWithCssFontHeight(const int fontHeight) const
 {
     /*
      * If already HTML (assumes "html" is the first six characters),
@@ -514,11 +555,28 @@ AString::convertToHtmlPageWithFontHeight(const int fontHeight) const
     AString htmlString("<html><head></head><body>");
     
     if (fontHeight > 0) {
-//        htmlString.append("<font size="
-//                          + AString::number(fontHeight)
-//                          + ">");
         htmlString.append("<p style=\"font-size:" + AString::number(fontHeight) + "px\">");
     }
+    
+    htmlString.append(this->replaceHtmlSpecialCharactersWithEscapeCharacters());
+    
+    if (fontHeight > 0) {
+        htmlString.append("</p>");
+    }
+    
+    htmlString.append("</body></html>");
+    
+    return htmlString;    
+}
+
+/**
+ * @return A copy of this string with any HTML special characters replaced
+ * by their escape sequences.
+ */
+AString
+AString::replaceHtmlSpecialCharactersWithEscapeCharacters() const
+{
+    AString htmlString;
     
     const int64_t length = this->count();
     for (int64_t i = 0; i < length; i++) {
@@ -549,19 +607,10 @@ AString::convertToHtmlPageWithFontHeight(const int fontHeight) const
                 htmlString.append(ch);
                 break;
         }
-        
     }
     
-    if (fontHeight > 0) {
-//        htmlString.append("</font>");
-        htmlString.append("</p>");
-    }
-    
-    htmlString.append("</body></html>");
-    
-    return htmlString;    
+    return htmlString;
 }
-
 
 /**
  * Returns the index position of any character in

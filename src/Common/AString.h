@@ -91,7 +91,9 @@ namespace caret {
         
         AString convertToHtmlPage() const;
         
-        AString convertToHtmlPageWithFontHeight(const int fontHeight) const;
+        AString convertToHtmlPageWithFontSize(const int fontSize) const;
+        
+        AString convertToHtmlPageWithCssFontHeight(const int fontHeight) const;
         
         int32_t indexOfAnyChar(const AString& str,
                                const int from) const;
@@ -119,6 +121,9 @@ namespace caret {
         static AString fromNumbers(const int64_t* array,const int64_t numberOfElements, const AString& separator);
         static AString fromNumbers(const double* array, const int64_t numberOfElements, const AString& separator);
         static AString fromBool(const bool b);
+        
+    private:
+        AString replaceHtmlSpecialCharactersWithEscapeCharacters() const;
     };
 }
 
