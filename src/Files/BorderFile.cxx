@@ -467,8 +467,6 @@ void BorderFile::setNumberOfNodes(const int32_t& numNodes)
 void
 BorderFile::updateNumberOfNodesIfSingleStructure(const std::map<StructureEnum::Enum, int32_t>& structureToNodeCount)
 {
-    const bool modStatus = isModified();
-    
     if (getNumberOfNodes() > 0) {
         return;
     }
@@ -515,13 +513,6 @@ BorderFile::updateNumberOfNodesIfSingleStructure(const std::map<StructureEnum::E
                              + AString::number(numNodes));
             }
         }
-    }
-    
-    /*
-     * Do not allow modified status to change.
-     */
-    if (! modStatus) {
-        clearModified();
     }
 }
 
