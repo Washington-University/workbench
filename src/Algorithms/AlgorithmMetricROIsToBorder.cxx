@@ -101,7 +101,7 @@ AlgorithmMetricROIsToBorder::AlgorithmMetricROIsToBorder(ProgressObject* myProgO
     if (placement < 0.0f || placement > 1.0f || placement != placement) throw AlgorithmException("placement must be between 0 and 1");
     if (columnNum < -1 || columnNum > myMetric->getNumberOfColumns()) throw AlgorithmException("invalid column specified");
     myBorderOut->setStructure(mySurf->getStructure());
-    //myBorderOut->setSurfaceNumberOfNodes(mySurf->getNumberOfNodes());//TODO
+    myBorderOut->setNumberOfNodes(mySurf->getNumberOfNodes());
     BorderTracingHelper myHelper(mySurf);
     GiftiLabelTable myNameTable;
     if (columnNum == -1)
