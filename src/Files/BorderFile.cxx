@@ -384,6 +384,7 @@ BorderFile::setStructure(const StructureEnum::Enum structure)
         }
     }
     m_structure = structure;
+    setModified();
 }
 
 /**
@@ -447,6 +448,7 @@ void BorderFile::setNumberOfNodes(const int32_t& numNodes)
         }
     }
     m_numNodes = numNodes;//even if we are currently multi-structure, remember the number of nodes that was set
+    setModified();
 }
 
 /**
