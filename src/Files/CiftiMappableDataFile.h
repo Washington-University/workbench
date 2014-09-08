@@ -378,7 +378,7 @@ namespace caret {
         void invalidateColoringInAllMaps();
         
         void getBrainordinateFromRowIndex(const int64_t rowIndex,
-                                          StructureEnum::StructureEnum::Enum& surfaceStructureOut,
+                                          StructureEnum::Enum& surfaceStructureOut,
                                           int32_t& surfaceNodeIndexOut,
                                           int32_t& surfaceNumberOfNodesOut,
                                           bool& surfaceNodeValidOut,
