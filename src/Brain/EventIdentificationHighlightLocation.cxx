@@ -30,15 +30,17 @@ using namespace caret;
  * @parma tabIndex
  *    Index of tab in which identification took place.  This value may
  *    be negative indicating that the identification request is not
- *    from a browser tab.  One source for this is the Select Brainordinate
+ *    for a specific browser tab.  One source for this is the Select Brainordinate
  *    option on the Information Window.
  * @param xyz
  *    Stereotaxic location of selected item.
  */
 EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(const int32_t tabIndex,
-                                                                           const float xyz[3])
+                                                                           const float xyz[3],
+                                                                           const LOAD_FIBER_ORIENTATION_SAMPLES_MODE loadFiberOrientationSamplesMode)
 : Event(EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION),
-m_tabIndex(tabIndex)
+m_tabIndex(tabIndex),
+m_loadFiberOrientationSamplesMode(loadFiberOrientationSamplesMode)
 {
     /* 
      * NOTE: a negative value is allowed.
@@ -68,14 +70,35 @@ EventIdentificationHighlightLocation::getXYZ() const
 }
 
 /**
- * @return Index of tab in which identification operation was performed.
- * This value may be negative indicating that the identification request is not
- * from a browser tab.  One source for this is the Select Brainordinate
- * option on the Information Window.
+ * Is the tab with the given index selected for identification operations?
+ *
+ * @param tabIndex
+ *     Index of tab.
+ * @return True if tab is selected, else false.
  */
-int32_t
-EventIdentificationHighlightLocation::getTabIndex() const
+bool
+EventIdentificationHighlightLocation::isTabSelected(const int32_t tabIndex) const
 {
-    return m_tabIndex;
+    /*
+     * All tabs?
+     */
+    if (m_tabIndex < 0) {
+        return true;
+    }
+    else if (m_tabIndex == tabIndex) {
+        return true;
+    }
+    
+    return false;
 }
+
+/**
+ * @return The mode for loading of fiber orientation samples.
+ */
+EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE
+EventIdentificationHighlightLocation::getLoadFiberOrientationSamplesMode() const
+{
+    return m_loadFiberOrientationSamplesMode;
+}
+
 

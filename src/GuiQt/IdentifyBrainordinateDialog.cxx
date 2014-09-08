@@ -42,6 +42,7 @@ using namespace caret;
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventIdentificationHighlightLocation.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -411,6 +412,11 @@ IdentifyBrainordinateDialog::okButtonClicked()
                                                                  + AString::fromNumbers(voxelXYZ, 3, ",")
                                                                  + ") row index="
                                                                  + AString::number(s_lastSelectedCiftiRowIndex));
+                            
+                            EventIdentificationHighlightLocation idLocation(-1, // ALL tabs,
+                                                                            voxelXYZ,
+                                                                            EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
+                            EventManager::get()->sendEvent(idLocation.getPointer());
                         }
                     }
                     catch (const DataFileException& dfe) {

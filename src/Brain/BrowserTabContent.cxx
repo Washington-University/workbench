@@ -1026,7 +1026,7 @@ BrowserTabContent::receiveEvent(Event* event)
             return;
         }
 
-        if (idLocationEvent->getTabIndex() == getTabNumber()) {
+        if (idLocationEvent->isTabSelected(getTabNumber())) {
             if (isIdentificationUpdatesVolumeSlices()) {
                 const float* highlighXYZ = idLocationEvent->getXYZ();
                 for (int32_t windowTabNumber = 0;

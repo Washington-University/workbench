@@ -30,14 +30,22 @@ namespace caret {
     class EventIdentificationHighlightLocation : public Event {
         
     public:
+        enum LOAD_FIBER_ORIENTATION_SAMPLES_MODE {
+            LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES,
+            LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO
+        };
+        
         EventIdentificationHighlightLocation(const int32_t tabIndex,
-                                             const float xyz[3]);
+                                             const float xyz[3],
+                                             const LOAD_FIBER_ORIENTATION_SAMPLES_MODE loadFiberOrientationSamplesMode);
         
         virtual ~EventIdentificationHighlightLocation();
         
         const float* getXYZ() const;
         
-        int32_t getTabIndex() const;
+        bool isTabSelected(const int32_t tabIndex) const;
+        
+        LOAD_FIBER_ORIENTATION_SAMPLES_MODE getLoadFiberOrientationSamplesMode() const;
         
     private:
         EventIdentificationHighlightLocation(const EventIdentificationHighlightLocation&);
@@ -47,6 +55,9 @@ namespace caret {
         const int32_t m_tabIndex;
         
         float m_xyz[3];
+
+        const LOAD_FIBER_ORIENTATION_SAMPLES_MODE m_loadFiberOrientationSamplesMode;
+        
     };
 
 } // namespace

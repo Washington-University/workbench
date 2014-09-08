@@ -2216,7 +2216,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
             if (nodeIdentificationCreatedFromVoxelIdentificationFlag == false) {
                 if (issuedIdentificationLocationEvent == false) {
                     EventIdentificationHighlightLocation idLocation(tabIndex,
-                                                                    xyz);
+                                                                    xyz,
+                                                                    EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
                     EventManager::get()->sendEvent(idLocation.getPointer());
                     issuedIdentificationLocationEvent = true;
                 }
@@ -2233,7 +2234,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 
                 if (issuedIdentificationLocationEvent == false) {
                     EventIdentificationHighlightLocation idLocation(tabIndex,
-                                                                    xyz);
+                                                                    xyz,
+                                                                    EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
                     EventManager::get()->sendEvent(idLocation.getPointer());
                     issuedIdentificationLocationEvent = true;
                 }
