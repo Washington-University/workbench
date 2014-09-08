@@ -3102,15 +3102,15 @@ CiftiMappableDataFile::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
             CaretAssert(0);
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            seriesDataOut.resize(m_ciftiFile->getNumberOfRows());
+            valid = m_ciftiFile->getColumnFromVoxelCoordinate(&seriesDataOut[0],
+                                                              xyz);
+            break;
+        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
             seriesDataOut.resize(m_ciftiFile->getNumberOfColumns());
             valid = m_ciftiFile->getRowFromVoxelCoordinate(&seriesDataOut[0],
                                                            xyz);
             break;
-        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
-            break;
-            seriesDataOut.resize(m_ciftiFile->getNumberOfRows());
-            valid = m_ciftiFile->getColumnFromVoxelCoordinate(&seriesDataOut[0],
-                                                              xyz);
     }
     
     return valid;
