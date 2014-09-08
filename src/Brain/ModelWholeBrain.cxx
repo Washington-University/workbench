@@ -29,7 +29,6 @@
 #include "BrowserTabContent.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
-#include "EventIdentificationHighlightLocation.h"
 #include "EventModelGetAll.h"
 #include "EventSurfacesGet.h"
 #include "IdentificationManager.h"
