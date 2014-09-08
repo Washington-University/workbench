@@ -38,14 +38,20 @@ using namespace caret;
 #include "CaretLogger.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CaretMappableDataFile.h"
+#include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiFiberTrajectoryManager.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "IdentifiedItemNode.h"
+#include "IdentificationManager.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
+#include "SessionManager.h"
 #include "StructureEnumComboBox.h"
 #include "Surface.h"
 #include "WuQFactory.h"
@@ -321,6 +327,10 @@ IdentifyBrainordinateDialog::okButtonClicked()
             CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(s_lastSelectedCaretMappableDataFile);
             CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(s_lastSelectedCaretMappableDataFile);
             
+            CiftiMappableDataFile* ciftiMapFile = dynamic_cast<CiftiMappableDataFile*>(s_lastSelectedCaretMappableDataFile);
+            
+            AString informationMessage;
+            
             if (matrixFile != NULL) {
                 try {
                     matrixFile->loadDataForRowIndex(s_lastSelectedCiftiRowIndex);
@@ -350,6 +360,72 @@ IdentifyBrainordinateDialog::okButtonClicked()
                                    "Neither matrix nor trajectory file.  Has new file type been added?");
             }
             
+            if (errorMessage.isEmpty()) {
+                if (ciftiMapFile != NULL) {
+                    try {
+                        StructureEnum::Enum surfaceStructure;
+                        int32_t surfaceNodeIndex;
+                        int32_t surfaceNumberOfNodes;
+                        bool surfaceNodeValid;
+                        int64_t voxelIJK[3];
+                        float voxelXYZ[3];
+                        bool voxelValid;
+                        ciftiMapFile->getBrainordinateFromRowIndex(s_lastSelectedCiftiRowIndex,
+                                                                   surfaceStructure,
+                                                                   surfaceNodeIndex,
+                                                                   surfaceNumberOfNodes,
+                                                                   surfaceNodeValid,
+                                                                   voxelIJK,
+                                                                   voxelXYZ,
+                                                                   voxelValid);
+                        
+                        if (surfaceNodeValid) {
+                            IdentifiedItemNode* identifiedNode = new IdentifiedItemNode("",
+                                                                                        surfaceStructure,
+                                                                                        surfaceNumberOfNodes,
+                                                                                        surfaceNodeIndex);
+                            IdentificationManager* idManager = brain->getIdentificationManager();
+                            idManager->addIdentifiedItem(identifiedNode);
+                            
+                            informationMessage.appendWithNewLine(ciftiMapFile->getFileNameNoPath()
+                                                                 + " node index="
+                                                                 + AString::number(surfaceNodeIndex)
+                                                                 + " row index="
+                                                                 + AString::number(s_lastSelectedCiftiRowIndex)
+                                                                 + " structure="
+                                                                 + StructureEnum::toGuiName(surfaceStructure));
+                        }
+                        else if (voxelValid) {
+//                            SelectionItemVoxel* voxelID = selectionManager->getVoxelIdentification();
+//                            voxelID->setBrain(brain);
+//                            const double xyz[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
+//                            voxelID->setModelXYZ(xyz);
+//                            voxelID->setVoxelIdentification(brain, ciftiMapFile, voxelIJK, 0.0);
+//                            GuiManager::get()->processIdentification(-1,
+//                                                                     selectionManager,
+//                                                                     this);
+                            informationMessage.appendWithNewLine(ciftiMapFile->getFileNameNoPath()
+                                                                 + " voxel IJK=("
+                                                                 + AString::fromNumbers(voxelIJK, 3, ",")
+                                                                 + ") XYZ=("
+                                                                 + AString::fromNumbers(voxelXYZ, 3, ",")
+                                                                 + ") row index="
+                                                                 + AString::number(s_lastSelectedCiftiRowIndex));
+                        }
+                    }
+                    catch (const DataFileException& dfe) {
+                        errorMessage = dfe.whatString();
+                    }
+                }
+            }
+            
+            if ( ! informationMessage.isEmpty()) {
+                IdentifiedItem* textItem = new IdentifiedItem();
+                textItem->appendText(informationMessage);
+                IdentificationManager* idManager = brain->getIdentificationManager();
+                idManager->addIdentifiedItem(textItem);
+                EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
+            }
         }
     }
     else {

@@ -377,6 +377,15 @@ namespace caret {
         
         void invalidateColoringInAllMaps();
         
+        void getBrainordinateFromRowIndex(const int64_t rowIndex,
+                                          StructureEnum::StructureEnum::Enum& surfaceStructureOut,
+                                          int32_t& surfaceNodeIndexOut,
+                                          int32_t& surfaceNumberOfNodesOut,
+                                          bool& surfaceNodeValidOut,
+                                          int64_t voxelIJKOut[3],
+                                          float voxelXYZOut[3],
+                                          bool& voxelValidOut) const throw (DataFileException);
+        
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);
