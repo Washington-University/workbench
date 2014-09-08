@@ -604,7 +604,10 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                 
                 for (int32_t i = 0; i < numBorders; i++) {
                     BorderPointFromSearch& bpfs = allNearbyBorders[i];
-                    QCheckBox* cb = ded.addCheckBox(bpfs.border()->getName());
+                    QCheckBox* cb = ded.addCheckBox(bpfs.border()->getName()
+                                                    + "  ("
+                                                    + AString::number(bpfs.distance(), 'f', 6)
+                                                    + " mm)");
                     cb->setChecked(true);
                     borderCheckBoxes.push_back(cb);
                 }
