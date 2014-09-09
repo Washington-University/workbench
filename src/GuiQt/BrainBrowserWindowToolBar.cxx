@@ -216,6 +216,10 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QToolButton* informationDialogToolButton = new QToolButton();
     informationDialogToolButton->setDefaultAction(GuiManager::get()->getInformationDisplayDialogEnabledAction());
     
+    QToolButton* helpDialogToolButton = new QToolButton();
+    helpDialogToolButton->setDefaultAction(GuiManager::get()->getHelpViewerDialogDisplayAction());
+    helpDialogToolButton->setFixedSize(informationDialogToolButton->sizeHint()); // same size buttons
+    
     QToolButton* sceneDialogToolButton = new QToolButton();
     sceneDialogToolButton->setDefaultAction(GuiManager::get()->getSceneDialogDisplayAction());
     
@@ -262,6 +266,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QHBoxLayout* tabBarLayout = new QHBoxLayout(this->tabBarWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(tabBarLayout, 2, 1);
     tabBarLayout->addWidget(this->tabBar, 100);
+    tabBarLayout->addWidget(helpDialogToolButton);
     tabBarLayout->addWidget(informationDialogToolButton);
     tabBarLayout->addWidget(sceneDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);

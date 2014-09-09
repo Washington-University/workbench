@@ -190,8 +190,6 @@ namespace caret {
         void processProjectFoci();
         void processSplitBorderFiles();
         
-        void processShowHelpViewer();
-        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -321,7 +319,6 @@ namespace caret {
         QAction* m_helpHcpWebsiteAction;
         QAction* m_helpHcpFeatureRequestAction;
         QAction* m_helpWorkbenchBugReportAction;
-        QAction* m_helpViewerAction;
         
         QAction* m_developerGraphicsTimingAction;
         QAction* m_developerExportVtkFileAction;

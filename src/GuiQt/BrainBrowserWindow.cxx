@@ -56,7 +56,6 @@
 #include "ElapsedTimer.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventDataFileRead.h"
-#include "EventHelpViewerDisplay.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -638,13 +637,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processReportWorkbenchBug()));
-    
-    m_helpViewerAction =
-    WuQtUtilities::createAction("Workbench Help...",
-                                "Show the Help Viewer",
-                                this,
-                                this,
-                                SLOT(processShowHelpViewer()));
     
     m_connectToAllenDatabaseAction =
     WuQtUtilities::createAction("Allen Brain Institute Database...",
@@ -1405,7 +1397,7 @@ BrainBrowserWindow::createMenuHelp()
 {
     QMenu* menu = new QMenu("Help", this);
     
-    menu->addAction(m_helpViewerAction);
+    menu->addAction(GuiManager::get()->getHelpViewerDialogDisplayAction());
     menu->addSeparator();
     menu->addAction(m_helpHcpWebsiteAction);
     menu->addAction(m_helpWorkbenchBugReportAction);
@@ -2716,16 +2708,6 @@ QMenu*
 BrainBrowserWindow::createPopupMenu()
 {
     return NULL;
-}
-
-/**
- * Show the help viewer
- */
-void
-BrainBrowserWindow::processShowHelpViewer()
-{
-    EventHelpViewerDisplay helpEvent(this);
-    EventManager::get()->sendEvent(helpEvent.getPointer());
 }
 
 /**

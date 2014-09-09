@@ -190,6 +190,30 @@ GuiManager::GuiManager(QObject* parent)
     m_sceneDialogDisplayAction->setChecked(false);
     m_sceneDialogDisplayAction->blockSignals(false);
     
+    /*
+     * Help dialog action
+     */
+    m_helpViewerDialogDisplayAction = WuQtUtilities::createAction("Help...",
+                                                                  "Show/Hide the Help Window",
+                                                                  this,
+                                                                  this,
+                                                                  SLOT(showHelpDialogActionToggled(bool)));
+    QIcon helpIcon;
+    const bool helpIconValid = WuQtUtilities::loadIcon(":/ToolBar/help.png",
+                                                       helpIcon);
+    if (helpIconValid) {
+        m_helpViewerDialogDisplayAction->setIcon(helpIcon);
+        m_helpViewerDialogDisplayAction->setIconVisibleInMenu(false);
+    }
+    else {
+        m_helpViewerDialogDisplayAction->setIconText("?");
+    }
+    m_helpViewerDialogDisplayAction->blockSignals(true);
+    m_helpViewerDialogDisplayAction->setCheckable(true);
+    m_helpViewerDialogDisplayAction->setChecked(false);
+    m_helpViewerDialogDisplayAction->blockSignals(false);
+    
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW);
@@ -1039,8 +1063,9 @@ GuiManager::receiveEvent(Event* event)
         EventHelpViewerDisplay* helpEvent = dynamic_cast<EventHelpViewerDisplay*>(event);
         CaretAssert(helpEvent);
         
-        processShowHelpViewerDialog(helpEvent->getBrainBrowserWindow(),
-                                    helpEvent->getHelpPageName());
+        showHideHelpDialog(true,
+                           helpEvent->getBrainBrowserWindow());
+        m_helpViewerDialog->showHelpPageWithName(helpEvent->getHelpPageName());
     }
 }
 
@@ -1361,38 +1386,133 @@ GuiManager::processShowBugReportDialog(BrainBrowserWindow* browserWindow,
 }
 
 /**
- * Show the Help Viewer Dialog.
+ * @return Action for display of help viewer.
+ */
+QAction*
+GuiManager::getHelpViewerDialogDisplayAction()
+{
+    return m_helpViewerDialogDisplayAction;
+}
+
+/**
+ * Show or hide the help dialog.
  *
- * @param browserWindow
- *    Parent of dialog if it needs to be created.
- * @param helpPageName
- *    Name of help page for display.
+ * @param status
+ *     True means show, false means hide.
+ * @param parentBrainBrowserWindow
+ *     If this is not NULL, and the help dialog needs to be created,
+ *     use this window as the parent and place the dialog next to this
+ *     window.
  */
 void
-GuiManager::processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
-                                        const AString& helpPageName)
+GuiManager::showHideHelpDialog(const bool status,
+                        BrainBrowserWindow* parentBrainBrowserWindow)
 {
-    CaretAssert(browserWindow);
+    bool dialogWasCreated = false;
     
-    if (m_helpViewerDialog == NULL) {
-        BrainBrowserWindow* bbw = browserWindow;
-        if (bbw == NULL) {
-            bbw = getActiveBrowserWindow();
+    QWidget* moveWindowParent = parentBrainBrowserWindow;
+    
+    if (status) {
+        if (m_helpViewerDialog == NULL) {
+            BrainBrowserWindow* helpDialogParent = parentBrainBrowserWindow;
+            if (helpDialogParent == NULL) {
+                helpDialogParent = getActiveBrowserWindow();
+            }
+            
+            m_helpViewerDialog = new HelpViewerDialog(helpDialogParent);
+            this->addNonModalDialog(m_helpViewerDialog);
+            QObject::connect(m_helpViewerDialog, SIGNAL(dialogWasClosed()),
+                             this, SLOT(helpDialogWasClosed()));
+            
+            dialogWasCreated = true;
+            
+            /*
+             * If there was no parent dialog for placement of the help
+             * dialog and there is only one browser window, use the browser
+             * for placement of the help dialog.
+             */
+            if (moveWindowParent == NULL) {
+                if (getAllOpenBrainBrowserWindows().size() == 1) {
+                    moveWindowParent = helpDialogParent;
+                }
+            }
         }
-        m_helpViewerDialog = new HelpViewerDialog(bbw);
-        this->addNonModalDialog(m_helpViewerDialog);
+        
+        m_helpViewerDialog->show();
+        m_helpViewerDialog->activateWindow();
+    }
+    else {
+        m_helpViewerDialog->close();
     }
     
-    m_helpViewerDialog->updateDialog();
-
-    if ( ! helpPageName.isEmpty()) {
-        m_helpViewerDialog->showHelpPageWithName(helpPageName);
+    if (dialogWasCreated) {
+        if (moveWindowParent != NULL) {
+            WuQtUtilities::moveWindowToSideOfParent(moveWindowParent,
+                                                    m_helpViewerDialog);
+        }
     }
     
-    m_helpViewerDialog->setVisible(true);
-    m_helpViewerDialog->show();
-    m_helpViewerDialog->activateWindow();
+    m_helpViewerDialogDisplayAction->blockSignals(true);
+    m_helpViewerDialogDisplayAction->setChecked(status);
+    m_helpViewerDialogDisplayAction->blockSignals(false);    
 }
+
+/**
+ * Gets called by the help dialog when the help dialog is closed.
+ * Ensures that the help dialog display action status remains
+ * synchronized with the displayed status of the help dialog.
+ */
+
+void
+GuiManager::helpDialogWasClosed()
+{
+    m_helpViewerDialogDisplayAction->blockSignals(true);
+    m_helpViewerDialogDisplayAction->setChecked(false);
+    m_helpViewerDialogDisplayAction->blockSignals(false);
+}
+
+/**
+ * Called when show help action is triggered
+ */
+void
+GuiManager::showHelpDialogActionToggled(bool status)
+{
+    showHideHelpDialog(status, NULL);
+}
+
+///**
+// * Show the Help Viewer Dialog.
+// *
+// * @param browserWindow
+// *    Parent of dialog if it needs to be created.
+// * @param helpPageName
+// *    Name of help page for display.
+// */
+//void
+//GuiManager::processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
+//                                        const AString& helpPageName)
+//{
+//    CaretAssert(browserWindow);
+//    
+//    if (m_helpViewerDialog == NULL) {
+//        BrainBrowserWindow* bbw = browserWindow;
+//        if (bbw == NULL) {
+//            bbw = getActiveBrowserWindow();
+//        }
+//        m_helpViewerDialog = new HelpViewerDialog(bbw);
+//        this->addNonModalDialog(m_helpViewerDialog);
+//    }
+//    
+//    m_helpViewerDialog->updateDialog();
+//
+//    if ( ! helpPageName.isEmpty()) {
+//        m_helpViewerDialog->showHelpPageWithName(helpPageName);
+//    }
+//    
+//    m_helpViewerDialog->setVisible(true);
+//    m_helpViewerDialog->show();
+//    m_helpViewerDialog->activateWindow();
+//}
 
 /**
  * @return The action that indicates the enabled status

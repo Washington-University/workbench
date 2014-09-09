@@ -115,6 +115,8 @@ namespace caret {
         
         QAction* getSceneDialogDisplayAction();
         
+        QAction* getHelpViewerDialogDisplayAction();
+        
         void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
         
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
@@ -164,7 +166,9 @@ namespace caret {
         
         void sceneDialogDisplayActionToggled(bool);
         
+        void showHelpDialogActionToggled(bool);
     private slots:
+        void helpDialogWasClosed();
         void sceneDialogWasClosed();
         
     private:
@@ -185,8 +189,11 @@ namespace caret {
         void showHideSceneDialog(const bool status,
                                  BrainBrowserWindow* parentBrainBrowserWindow);
         
-        void processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
-                                         const AString& helpPageName);
+        void showHideHelpDialog(const bool status,
+                                BrainBrowserWindow* parentBrainBrowserWindow);
+        
+//        void processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
+//                                         const AString& helpPageName);
         
         void addNonModalDialog(QWidget* dialog);
         
@@ -244,6 +251,8 @@ namespace caret {
         QAction* m_informationDisplayDialogEnabledAction;
         
         BugReportDialog* m_bugReportDialog;
+        
+        QAction* m_helpViewerDialogDisplayAction;
         
         HelpViewerDialog* m_helpViewerDialog;
         
