@@ -193,7 +193,7 @@ GuiManager::GuiManager(QObject* parent)
     /*
      * Help dialog action
      */
-    m_helpViewerDialogDisplayAction = WuQtUtilities::createAction("Help...",
+    m_helpViewerDialogDisplayAction = WuQtUtilities::createAction("Workbench Help...",
                                                                   "Show/Hide the Help Window",
                                                                   QKeySequence::HelpContents,
                                                                   this,
