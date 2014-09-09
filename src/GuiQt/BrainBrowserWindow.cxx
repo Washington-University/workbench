@@ -1397,13 +1397,41 @@ BrainBrowserWindow::createMenuHelp()
 {
     QMenu* menu = new QMenu("Help", this);
     
-    menu->addAction(GuiManager::get()->getHelpViewerDialogDisplayAction());
+    /*
+     * Cannot use the Help action since it sets the "checkable" attribute
+     * and this will add checkbox and checkmark to the menu.  In addition,
+     * using the help action would also hide the help viewer if it is
+     * dispalyed and we don't want that.
+     */
+    QAction* helpAction = GuiManager::get()->getHelpViewerDialogDisplayAction();
+    menu->addAction(helpAction->text(),
+                    this, SLOT(processShowHelpInformation()));
     menu->addSeparator();
     menu->addAction(m_helpHcpWebsiteAction);
     menu->addAction(m_helpWorkbenchBugReportAction);
     menu->addAction(m_helpHcpFeatureRequestAction);
     
     return menu;
+}
+
+/**
+ * Called to show/hide help content.
+ */
+void
+BrainBrowserWindow::processShowHelpInformation()
+{
+    /*
+     * Always display the help viewer when selected from the menu.
+     * Even if the help viewer is active it may be under other windows
+     * so triggering it will cause it to display.
+     */
+    QAction* helpAction = GuiManager::get()->getHelpViewerDialogDisplayAction();
+    if (helpAction->isChecked()) {
+        helpAction->blockSignals(true);
+        helpAction->setChecked(false);
+        helpAction->blockSignals(false);
+    }
+    helpAction->trigger();
 }
 
 /**

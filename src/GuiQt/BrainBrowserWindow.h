@@ -143,6 +143,7 @@ namespace caret {
         void processViewFullScreenSelected();
         void processViewTileTabs();
         void processViewTileTabsConfigurationDialog();
+        void processShowHelpInformation();
         
         void processMoveOverlayToolBoxToLeft();
         void processMoveOverlayToolBoxToBottom();
