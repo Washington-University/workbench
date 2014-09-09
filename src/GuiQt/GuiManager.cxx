@@ -195,6 +195,7 @@ GuiManager::GuiManager(QObject* parent)
      */
     m_helpViewerDialogDisplayAction = WuQtUtilities::createAction("Help...",
                                                                   "Show/Hide the Help Window",
+                                                                  QKeySequence::HelpContents,
                                                                   this,
                                                                   this,
                                                                   SLOT(showHelpDialogActionToggled(bool)));
