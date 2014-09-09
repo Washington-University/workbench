@@ -735,16 +735,17 @@ BorderFile::findAllBordersWithPointsNearBothSegmentEndPoints(const DisplayGroupE
                                                                            distance2);
             if ((nearestIndex1 >= 0)
                 && (nearestIndex2 >= 0)) {
-                    BorderPointFromSearch bpo;
-                    bpo.setData(const_cast<BorderFile*>(this),
-                                border,
-                                borderIndex,
-                                nearestIndex1,
-                                distance1);
-                    borderPointsOut.push_back(bpo);
+                const float averageDistance = (distance1 + distance2) / 2.0;
+                BorderPointFromSearch bpo;
+                bpo.setData(const_cast<BorderFile*>(this),
+                            border,
+                            borderIndex,
+                            nearestIndex1,
+                            averageDistance);
+                borderPointsOut.push_back(bpo);
             }
         }
-    }    
+    }
 }
 
 

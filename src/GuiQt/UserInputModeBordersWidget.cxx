@@ -597,6 +597,17 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                         ? " these borders (ordered by distance): "
                         : " this border: ");
                 
+                
+                const QString toolTipText = ("ERASE AND REPLACE - Distance is the average of:\n"
+                                             " * Distance from first segment point to nearest point in border.\n"
+                                             " * Distance from last segment point to nearest point in border.\n"
+                                             "\n"
+                                             "EXTEND - Distance is the minimum of:\n"
+                                             " * Distance from first segment point to first point in border.\n"
+                                             " * Distance from first segment point to last point in border.");
+                //const QString wrappedToolTipText = WuQtUtilities::createWordWrappedToolTipText(toolTipText);
+                
+                
                 std::vector<QCheckBox*> borderCheckBoxes;
                 WuQDataEntryDialog ded("Edit Borders",
                                        this);
@@ -609,6 +620,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                                     + AString::number(bpfs.distance(), 'f', 6)
                                                     + " mm)");
                     cb->setChecked(true);
+                    cb->setToolTip(toolTipText);
                     borderCheckBoxes.push_back(cb);
                 }
                 
