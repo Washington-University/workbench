@@ -66,9 +66,8 @@ BorderEditingSelectionDialog::BorderEditingSelectionDialog(const AString& modeDe
                                  " * Distance from first segment point to nearest point in border.\n"
                                  " * Distance from last segment point to nearest point in border.\n"
                                  "\n"
-                                 "EXTEND - Distance is the minimum of:\n"
-                                 " * Distance from first segment point to first point in border.\n"
-                                 " * Distance from first segment point to last point in border.");
+                                 "EXTEND - Distance is from first segment point to any point\n"
+                                 "in border.\n");
     
     QLabel* modeLabel = new QLabel(modeText);
     
