@@ -65,7 +65,7 @@ use code from VTK, http://www.kitware.com/opensource/vtk.html or http://www.vtk.
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 originally licensed under BSD 3-clause, see http://www.kitware.com/Copyright.htm or http://www.vtk.org/VTK/project/license.html
 
-GuiQt/WuQDialog.cxx, Brain/GlfFontTextRenderer.cxx:
+GuiQt/WuQDialog.cxx, Brain/FtglFontTextRenderer.cxx:
 copied some code from from QT4, https://qt-project.org/
 Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 originally licensed LGPLv2.1 (or GPLv3)
