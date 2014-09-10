@@ -1697,6 +1697,28 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex) const
 }
 
 /**
+ * Update coloring for all maps.
+ *
+ * Note: Overridden since Data-Series files have one palette that is
+ * applied to ALL maps.  For data-series, just invalidate the coloring
+ * for all maps (data points).
+ *
+ * @param paletteFile
+ *    Palette file containing palettes.
+ */
+void
+CiftiMappableDataFile::updateScalarColoringForAllMaps(const PaletteFile* /*paletteFile*/)
+{
+    /*
+     * Just need to invalidate coloring.
+     * Updating coloring for all maps would take time.
+     * Coloring update is triggered by code that colors nodes/voxels
+     * when drawing.
+     */
+    invalidateColoringInAllMaps();
+}
+
+/**
  * Update scalar coloring for a map.
  *
  * Note that some CIFTI files can be slow to color due to the need to

@@ -36,8 +36,6 @@ namespace caret {
         
         virtual ~CiftiParcelSeriesFile();
         
-        virtual void updateScalarColoringForAllMaps(const PaletteFile* paletteFile);
-        
         virtual bool isBrainordinateChartingEnabled(const int32_t tabIndex) const;
         
         virtual void setBrainordinateChartingEnabled(const int32_t tabIndex,

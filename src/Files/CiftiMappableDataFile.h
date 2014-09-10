@@ -219,6 +219,8 @@ namespace caret {
         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
         
+        virtual void updateScalarColoringForAllMaps(const PaletteFile* paletteFile);
+        
         virtual void updateScalarColoringForMap(const int32_t mapIndex,
                                                 const PaletteFile* paletteFile);
         
