@@ -1123,7 +1123,7 @@ PaletteFile::addDefaultPalettes()
      *
      * lut->m_lutName = std::string("Red");
      */
-    if (this->getPaletteByName("fsl_red") == false) {
+    if (this->getPaletteByName("fsl_red") == NULL) {
         Palette fslRed;
         fslRed.setName("fsl_red");
         
@@ -1142,7 +1142,7 @@ PaletteFile::addDefaultPalettes()
         addPalette(fslRed);
     }
     
-    if (this->getPaletteByName("fsl_green") == false) {
+    if (this->getPaletteByName("fsl_green") == NULL) {
         Palette fslYellow;
         fslYellow.setName("fsl_green");
         
@@ -1161,7 +1161,7 @@ PaletteFile::addDefaultPalettes()
         addPalette(fslYellow);
     }
     
-    if (this->getPaletteByName("fsl_blue") == false) {
+    if (this->getPaletteByName("fsl_blue") == NULL) {
         Palette fslYellow;
         fslYellow.setName("fsl_blue");
         
@@ -1180,7 +1180,7 @@ PaletteFile::addDefaultPalettes()
         addPalette(fslYellow);
     }
     
-    if (this->getPaletteByName("fsl_yellow") == false) {
+    if (this->getPaletteByName("fsl_yellow") == NULL) {
         Palette fslYellow;
         fslYellow.setName("fsl_yellow");
         
