@@ -39,6 +39,7 @@
 #include "AlgorithmException.h"
 #include "AlgorithmNodesInsideBorder.h"
 #include "Border.h"
+#include "BorderEditingSelectionDialog.h"
 #include "BorderFile.h"
 #include "BorderPointFromSearch.h"
 #include "BorderPropertiesEditorDialog.h"
@@ -578,60 +579,40 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                           allNearbyBorders.end());
                 const int32_t numBorders = static_cast<int32_t>(allNearbyBorders.size());
                 
-                AString msg;
+                AString modeMessage;
                 switch (this->inputModeBorders->getDrawOperation()) {
                     case UserInputModeBorders::DRAW_OPERATION_CREATE:
                         CaretAssert(0);
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_ERASE:
-                        msg = "Erase segement in";
+                        modeMessage = "Erase segement in";
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_EXTEND:
-                        msg = "Extend";
+                        modeMessage = "Extend";
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_REPLACE:
-                        msg = "Replace segment in";
+                        modeMessage = "Replace segment in";
                         break;
                 }
-                msg += ((numBorders > 1)
-                        ? " these borders (ordered by distance): "
-                        : " this border: ");
                 
-                
-                const QString toolTipText = ("ERASE AND REPLACE - Distance is the average of:\n"
-                                             " * Distance from first segment point to nearest point in border.\n"
-                                             " * Distance from last segment point to nearest point in border.\n"
-                                             "\n"
-                                             "EXTEND - Distance is the minimum of:\n"
-                                             " * Distance from first segment point to first point in border.\n"
-                                             " * Distance from first segment point to last point in border.");
-                //const QString wrappedToolTipText = WuQtUtilities::createWordWrappedToolTipText(toolTipText);
-                
-                
-                std::vector<QCheckBox*> borderCheckBoxes;
-                WuQDataEntryDialog ded("Edit Borders",
-                                       this);
-                ded.setTextAtTop(msg, false);
-                
+                std::vector<AString> borderNames;
                 for (int32_t i = 0; i < numBorders; i++) {
                     BorderPointFromSearch& bpfs = allNearbyBorders[i];
-                    QCheckBox* cb = ded.addCheckBox(bpfs.border()->getName()
-                                                    + "  ("
-                                                    + AString::number(bpfs.distance(), 'f', 6)
-                                                    + " mm)");
-                    cb->setChecked(true);
-                    cb->setToolTip(toolTipText);
-                    borderCheckBoxes.push_back(cb);
+                    borderNames.push_back(bpfs.border()->getName()
+                                          + "  ("
+                                          + AString::number(bpfs.distance(), 'f', 6)
+                                          + " mm)");
                 }
-                
-                if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                BorderEditingSelectionDialog selDialog(modeMessage,
+                                                       borderNames,
+                                                       this);
+                if (selDialog.exec() == BorderEditingSelectionDialog::Accepted) {
                     AString errorMessage;
                     
                     std::vector<BorderFileAndBorderMemento> undoBorders;
                     
                     for (int32_t i = 0; i < numBorders; i++) {
-                        CaretAssertVectorIndex(borderCheckBoxes, i);
-                        if (borderCheckBoxes[i]->isChecked()) {
+                        if (selDialog.isBorderNameSelected(i)) {
                             BorderPointFromSearch& bpfs = allNearbyBorders[i];
                             BorderFile* borderFile = bpfs.borderFile();
                             Border* border = bpfs.border();
@@ -677,60 +658,21 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                     setLastEditedBorder(undoBorders);
                     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
                     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                
+                
+                    if ( ! errorMessage.isEmpty()) {
+                        WuQMessageBox::errorOk(this,
+                                               errorMessage);
+                    }
+                    else {
+                        this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
+                    }
+                    
+                    setLastEditedBorder(undoBorders);
+                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                 }
             }
-            
-//            BorderPointFromSearch nearestBorderPoint;
-//            brain->findBorderNearestBorder(displayGroup,
-//                                               browserTabIndex,
-//                                               surface,
-//                                               this->inputModeBorders->borderBeingDrawnByOpenGL,
-//                                               Brain::NEAREST_BORDER_TEST_MODE_CLOSEST_END_POINT,
-//                                               nearestTolerance,
-//                                           nearestBorderPoint);
-//            if (nearestBorderPoint.isValid()) {
-//                BorderFile* borderFile = nearestBorderPoint.borderFile();
-//                Border* border = nearestBorderPoint.border();
-//                CaretAssert(borderFile);
-//                CaretAssert(border);
-//                
-//                try {
-//                    switch (this->inputModeBorders->getDrawOperation()) {
-//                        case UserInputModeBorders::DRAW_OPERATION_CREATE:
-//                            CaretAssert(0);
-//                            break;
-//                        case UserInputModeBorders::DRAW_OPERATION_ERASE:
-//                            border->reviseEraseFromEnd(surface,
-//                                                       this->inputModeBorders->borderBeingDrawnByOpenGL);
-//                            break;
-//                        case UserInputModeBorders::DRAW_OPERATION_EXTEND:
-//                            border->reviseExtendFromEnd(surface,
-//                                                        this->inputModeBorders->borderBeingDrawnByOpenGL);
-//                            break;
-//                        case UserInputModeBorders::DRAW_OPERATION_REPLACE:
-//                            border->reviseReplaceSegment(surface, 
-//                                                         this->inputModeBorders->borderBeingDrawnByOpenGL);
-//                            break;
-//                    }
-//
-//                    setLastEditedBorder(borderFile,
-//                                        border);
-//                    
-//                    successFlag = true;
-//                }
-//                catch (BorderException& e) {
-//                    WuQMessageBox::errorOk(this,
-//                                           e.whatString());
-//                }
-//            }
-//            
-//            if (successFlag) {
-//                this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
-//            }
-//            
-//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-            
         }
             break;
     }
