@@ -99,6 +99,13 @@ namespace caret {
                                                const float maximumDistance,
                                                std::vector<BorderPointFromSearch>& borderPointsOut) const;
         
+        void findAllBordersWithAnyPointNearSegmentFirstPoint(const DisplayGroupEnum::Enum displayGroup,
+                                                             const int32_t browserTabIndex,
+                                                             const SurfaceFile* surfaceFile,
+                                                             const Border* borderSegment,
+                                                             const float maximumDistance,
+                                                             std::vector<BorderPointFromSearch>& borderPointsOut) const;
+        
         
         void findAllBordersWithPointsNearBothSegmentEndPoints(const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t browserTabIndex,

@@ -106,6 +106,10 @@ namespace caret {
         
         void reverse();
         
+        void reviseExtendFromPointIndex(SurfaceFile* surfaceFile,
+                                        const int32_t pointIndex,
+                                        const Border* segment) throw (BorderException);
+        
         void reviseExtendFromEnd(SurfaceFile* surfaceFile,
                                  const Border* segment) throw (BorderException);
         

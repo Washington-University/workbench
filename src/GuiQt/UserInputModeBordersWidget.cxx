@@ -267,11 +267,15 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     QToolButton* eraseToolButton = new QToolButton();
     eraseToolButton->setDefaultAction(eraseAction);
     
-    const AString extendToolTipText = ("To extend a border, move the mouse to the end of the border and "
+    const AString extendToolTipText = ("To extend a border, move the mouse ANY point in the border and "
                                        "either click the mouse to discretely add points or hold down the Alt/Option "
                                        "key and move the mouse with the left mouse button down to continuously add points. "
                                        "Press the Finish button or hold down the Shift key and click the "
                                        "mouse add the extension to the border."
+                                       "\n\n"
+                                       "If the segment starts at a point within the border (not an end point), points will be removed "
+                                       "from that point to the nearest end point in the border and then the extension "
+                                       "will be added."
                                        + m_transformToolTipText);
     QAction* extendAction = WuQtUtilities::createAction("Extend", 
                                                         WuQtUtilities::createWordWrappedToolTipText(extendToolTipText),
@@ -287,6 +291,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                         "and move the mouse with the left mouse button down to continuously add points. "
                                         "Press the Finish button or hold down the Shift key and click the "
                                         "mouse to conclude replacing the section in the border."
+                                        "\n\n"
+                                        "Both the first point and the last point in the segment must "
+                                        "overlap points in the border."
                                         + m_transformToolTipText);
     QAction* replaceAction = WuQtUtilities::createAction("Replace",
                                                          WuQtUtilities::createWordWrappedToolTipText(replaceToolTipText),
@@ -548,12 +555,18 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                                                                      bordersFoundFromFile);
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_EXTEND:
-                        borderFile->findAllBordersWithEndPointNearSegmentFirstPoint(displayGroup,
-                                                                                  browserTabIndex,
-                                                                                  surface,
-                                                                                  this->inputModeBorders->borderBeingDrawnByOpenGL,
-                                                                                  nearestTolerance,
-                                                                                  bordersFoundFromFile);
+                        borderFile->findAllBordersWithAnyPointNearSegmentFirstPoint(displayGroup,
+                                                                                    browserTabIndex,
+                                                                                    surface,
+                                                                                    this->inputModeBorders->borderBeingDrawnByOpenGL,
+                                                                                    nearestTolerance,
+                                                                                    bordersFoundFromFile);
+//                        borderFile->findAllBordersWithEndPointNearSegmentFirstPoint(displayGroup,
+//                                                                                  browserTabIndex,
+//                                                                                  surface,
+//                                                                                  this->inputModeBorders->borderBeingDrawnByOpenGL,
+//                                                                                  nearestTolerance,
+//                                                                                  bordersFoundFromFile);
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_REPLACE:
                         borderFile->findAllBordersWithPointsNearBothSegmentEndPoints(displayGroup,
@@ -616,6 +629,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                             BorderPointFromSearch& bpfs = allNearbyBorders[i];
                             BorderFile* borderFile = bpfs.borderFile();
                             Border* border = bpfs.border();
+                            int32_t borderPointIndex = bpfs.borderPointIndex();
                             CaretAssert(borderFile);
                             CaretAssert(border);
                             
@@ -629,8 +643,11 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                                                    this->inputModeBorders->borderBeingDrawnByOpenGL);
                                         break;
                                     case UserInputModeBorders::DRAW_OPERATION_EXTEND:
-                                        border->reviseExtendFromEnd(surface,
-                                                                    this->inputModeBorders->borderBeingDrawnByOpenGL);
+                                        border->reviseExtendFromPointIndex(surface,
+                                                                           borderPointIndex,
+                                                                           this->inputModeBorders->borderBeingDrawnByOpenGL);
+                                        //border->reviseExtendFromEnd(surface,
+                                        //                            this->inputModeBorders->borderBeingDrawnByOpenGL);
                                         break;
                                     case UserInputModeBorders::DRAW_OPERATION_REPLACE:
                                         border->reviseReplaceSegment(surface,

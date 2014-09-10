@@ -746,6 +746,97 @@ Border::reverse()
 }
 
 /**
+ * Revise a border by extending from a of point border.
+ *
+ * @param surfaceFile
+ *    Surface on which border extension is performed.
+ * @param pointIndex
+ *    Point nearest the first point in the segment.
+ * @param segment
+ *    A border segment containing the extension.
+ * @throws BorderException
+ *    If there is an error revising the border.
+ */
+void
+Border::reviseExtendFromPointIndex(SurfaceFile* surfaceFile,
+                                   const int32_t pointIndex,
+                                   const Border* segment) throw (BorderException)
+{
+    const int32_t numPoints = getNumberOfPoints();
+    if (numPoints <= 2) {
+        throw BorderException("Border being update contains less than two points");
+    }
+    
+    const int numberOfSegmentPoints = segment->getNumberOfPoints();
+    if (numberOfSegmentPoints <= 0) {
+        throw BorderException("Border segment for extending contains no points");
+    }
+
+    if ((pointIndex < 0)
+        || (pointIndex >= numPoints)) {
+        throw BorderException("Point index for extending border is invalid.");
+    }
+    
+    /*
+     * Copy the border just in case something goes wrong
+     */
+    
+    /*
+     * Lengths from point index to start and end points
+     */
+    const float distToStart = getSegmentLength(surfaceFile, 0, pointIndex);
+    const float distToEnd   = getSegmentLength(surfaceFile, pointIndex, numPoints - 1);
+    
+    /*
+     * Create a temporary border
+     */
+    Border tempBorder;
+    
+    /*
+     * Add on to start or ending end of border
+     */
+    if (distToStart < distToEnd) {
+        /*
+         * Reverse the new segment and it becomes the first part of the border
+         */
+        Border segmentCopy = *segment;
+        segmentCopy.reverse();
+        tempBorder.addPoints(&segmentCopy);
+        
+        /*
+         * Add points from this border starting AFTER pointIndex
+         * to the last point)
+         */
+        const int32_t startPointIndex = pointIndex + 1;
+        if (startPointIndex < numPoints) {
+            tempBorder.addPoints(this,
+                                 startPointIndex);
+        }
+    }
+    else {
+        /*
+         * Add points from this border from the first point to
+         * the point BEFORE pointIndex
+         */
+        const int32_t pointCount = pointIndex;
+        if (pointCount > 0) {
+            tempBorder.addPoints(this,
+                                 0,
+                                 pointCount);
+        }
+        
+        /*
+         * Add the new segment
+         */
+        tempBorder.addPoints(segment);
+    }
+    
+    saveBorderForUndoEditing();
+    
+    replacePoints(&tempBorder);
+}
+
+/**
  * Revise a border by extending from the end of a border.
  *
  * @param surfaceFile
@@ -755,7 +846,7 @@ Border::reverse()
  * @throws BorderException
  *    If there is an error revising the border.
  */
-void 
+void
 Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
                             const Border* segment) throw (BorderException)
 {
@@ -766,7 +857,7 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
     
     const int numberOfSegmentPoints = segment->getNumberOfPoints();
     if (numberOfSegmentPoints <= 0) {
-        throw BorderException("Border segment for erasing contains no points");
+        throw BorderException("Border segment for extending contains no points");
     }
     
     /*
@@ -776,7 +867,7 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
     if (segment->getPoint(0)->getProjectedPosition(*surfaceFile, 
                                                    segmentStartXYZ, 
                                                    true) == false) {
-        throw BorderException("First point in erase segment has invalid coordinate.  Redraw.");
+        throw BorderException("First point in extending segment has invalid coordinate.  Redraw.");
     }
     
     /*
