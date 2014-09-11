@@ -199,6 +199,11 @@ namespace caret {
                                               float* normalizedValuesOut,
                                               const int64_t numberOfData) const;
         
+        void getPaletteColorBarScaleText(const FastStatistics* statistics,
+                                         AString& minimumValueTextOut,
+                                         AString& zeroValueTextOut,
+                                         AString& maximumValueTextOut) const;
+        
     private:
         PaletteScaleModeEnum::Enum scaleMode;
         

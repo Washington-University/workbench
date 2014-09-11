@@ -23,6 +23,7 @@
 
 #include "CaretOMP.h"
 #include "FastStatistics.h"
+#include "MathFunctions.h"
 //because the ROY_BIG_BL palette name is a constant defined in Palette.h
 #include "Palette.h"
 #include "PaletteColorMapping.h"
@@ -1273,3 +1274,204 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
         normalizedValuesOut[i] = normalized;
     }
 }
+
+static AString
+formatValue(const double value)
+{
+    const double absValue = ((value < 0.0) ? -value : value);
+//    const float  logValue = std::log10(absValue);
+    
+    char format    = 'f';
+    int  precision = 0;
+    
+    AString textValue = "";
+    if (MathFunctions::isZero(value)) {
+        textValue = "0";
+    }
+    else if (absValue > 99999) {
+        format    = 'e';
+        precision = 0;
+    }
+    else if (absValue > 100) {
+        format    = 'f';
+        precision = 0;
+    }
+    else if (absValue > 10){
+        format = 'f';
+        precision = 2;
+    }
+    else if (absValue > 1) {
+        format = 'f';
+        precision = 2;
+    }
+    else if (absValue <= 0.009999) {
+        format    = 'e';
+        precision = 2;
+    }
+    else {
+        format = 'f';
+        precision = 4;
+    }
+//    
+//    AString textValue = "";
+//    
+//    if (value < 0) {
+//        if (logValue < -2) {
+//            format    = 'e';
+//            precision = 4;
+//        }
+//        else if (value < -1.0) {
+//            precision = 4;
+//        }
+//        else {
+//            precision = 2;
+//        }
+//    }
+//    else if (value > 0) {
+//        if (logValue > 5) {
+//            format = 'e';
+//        }
+//        if (logValue < 1) {
+//            if (value < 1.0) {
+//                precision = 4;
+//            }
+//            else {
+//                precision = 2;
+//            }
+//        }
+//        else if (logValue < 2) {
+//            precision = 1;
+//        }
+//    }
+//    else {
+//        textValue = "0";
+//    }
+//
+    if (textValue.isEmpty()) {
+        const int FIELD_WIDTH = 0;
+        
+        
+        AString numberValue = QString("%1").arg(absValue,
+                                      FIELD_WIDTH,
+                                      format,
+                                      precision);
+        int plusMinuxIndex = numberValue.indexOf('-');
+        if (plusMinuxIndex < 0) {
+            plusMinuxIndex = numberValue.indexOf('+');
+        }
+        if (plusMinuxIndex > 1) {
+            AString exponentText = numberValue.mid(plusMinuxIndex + 1);
+            const int firstNonZeroIndex = exponentText.indexNotOf('0');
+            if (firstNonZeroIndex >= 0) {
+                std::cout << "Before trimming leading zero " << qPrintable(numberValue);
+                numberValue = (numberValue.left(plusMinuxIndex + 1)
+                               + exponentText.mid(firstNonZeroIndex));
+                std::cout << " after " << qPrintable(numberValue) << std::endl;
+            }
+        }
+        
+        if (value < 0.0) {
+            textValue = "-";
+        }
+        textValue += numberValue;
+    }
+    
+    
+    return textValue;
+}
+
+/**
+ * Get the text characters for drawing the scale above the palette 
+ * color bar.
+ *
+ * @param minimumValueTextOut
+ *     Text for the minimum value.
+ * @param zeroValueTextOut
+ *     Text for the zero value(s)
+ * @param maximumValueTextOut
+ *     Text for the maximum value.
+ *
+ */
+void
+PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistics,
+                                                 AString& minimumValueTextOut,
+                                                 AString& zeroValueTextOut,
+                                                 AString& maximumValueTextOut) const
+{
+    minimumValueTextOut = "";
+    zeroValueTextOut    = "";
+    maximumValueTextOut = "";
+    
+    float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
+    switch (getScaleMode()) {
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+        {
+            float dummy;
+            statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
+        }
+            break;
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+        {
+            const float negMaxPct = getAutoScalePercentageNegativeMaximum();
+            const float negMinPct = getAutoScalePercentageNegativeMinimum();
+            const float posMinPct = getAutoScalePercentagePositiveMinimum();
+            const float posMaxPct = getAutoScalePercentagePositiveMaximum();
+            
+            minMax[0] = statistics->getApproxNegativePercentile(negMaxPct);
+            minMax[1] = statistics->getApproxNegativePercentile(negMinPct);
+            minMax[2] = statistics->getApproxPositivePercentile(posMinPct);
+            minMax[3] = statistics->getApproxPositivePercentile(posMaxPct);
+        }
+            break;
+        case PaletteScaleModeEnum::MODE_USER_SCALE:
+            minMax[0] = getUserScaleNegativeMaximum();
+            minMax[1] = getUserScaleNegativeMinimum();
+            minMax[2] = getUserScalePositiveMinimum();
+            minMax[3] = getUserScalePositiveMaximum();
+            break;
+    }
+    
+    /*
+     * Types of values for display
+     */
+    const bool isPositiveDisplayed = isDisplayPositiveDataFlag();
+    const bool isNegativeDisplayed = isDisplayNegativeDataFlag();
+    
+    minimumValueTextOut = formatValue(minMax[0]);
+    AString textCenterNeg = formatValue(minMax[1]);
+    if (textCenterNeg == "-0.0") {
+        textCenterNeg = "0.0";
+    }
+    AString textCenterPos = formatValue(minMax[2]);
+    AString textCenter = textCenterPos;
+    if (isNegativeDisplayed && isPositiveDisplayed) {
+        if (textCenterNeg != textCenterPos) {
+            zeroValueTextOut = textCenterNeg + "/" + textCenterPos;
+        }
+        else {
+            zeroValueTextOut = textCenterPos;
+        }
+    }
+    else if (isNegativeDisplayed) {
+        zeroValueTextOut = textCenterNeg;
+    }
+    else if (isPositiveDisplayed) {
+        zeroValueTextOut = textCenterPos;
+    }
+    maximumValueTextOut = formatValue(minMax[3]);
+    
+    std::cout << minMax[0] << ", " << minMax[1] << ", " << minMax[2] << ", " << minMax[3] << std::endl;
+    std::cout << "    Formatted: "
+    << qPrintable(minimumValueTextOut
+                  + ", "
+                  + zeroValueTextOut
+                  + ", "
+                  + maximumValueTextOut) << std::endl;
+    std::cout << "    G format: "
+    << qPrintable(AString::number(minMax[0], 'g'))  << ", "
+    << qPrintable(AString::number(minMax[1], 'g')) << ", "
+    << qPrintable(AString::number(minMax[2], 'g')) << ", "
+    << qPrintable(AString::number(minMax[3], 'g')) << std::endl;
+}
+
+

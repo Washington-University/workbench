@@ -5885,54 +5885,65 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         glEnd();
     }
     
-    float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
-    switch (paletteColorMapping->getScaleMode()) {
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-        {
-            float dummy;
-            statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
+    AString textLeft;
+    AString textCenter;
+    AString textRight;
+    const bool useNewFormattingFlag = false;
+    if (useNewFormattingFlag) {
+        paletteColorMapping->getPaletteColorBarScaleText(statistics,
+                                                         textLeft,
+                                                         textCenter,
+                                                         textRight);
+    }
+    else {
+        float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
+        switch (paletteColorMapping->getScaleMode()) {
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+            {
+                float dummy;
+                statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
+            }
+                break;
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+            {
+                const float negMaxPct = paletteColorMapping->getAutoScalePercentageNegativeMaximum();
+                const float negMinPct = paletteColorMapping->getAutoScalePercentageNegativeMinimum();
+                const float posMinPct = paletteColorMapping->getAutoScalePercentagePositiveMinimum();
+                const float posMaxPct = paletteColorMapping->getAutoScalePercentagePositiveMaximum();
+                
+                minMax[0] = statistics->getApproxNegativePercentile(negMaxPct);
+                minMax[1] = statistics->getApproxNegativePercentile(negMinPct);
+                minMax[2] = statistics->getApproxPositivePercentile(posMinPct);
+                minMax[3] = statistics->getApproxPositivePercentile(posMaxPct);
+            }
+                break;
+            case PaletteScaleModeEnum::MODE_USER_SCALE:
+                minMax[0] = paletteColorMapping->getUserScaleNegativeMaximum();
+                minMax[1] = paletteColorMapping->getUserScaleNegativeMinimum();
+                minMax[2] = paletteColorMapping->getUserScalePositiveMinimum();
+                minMax[3] = paletteColorMapping->getUserScalePositiveMaximum();
+                break;
         }
-            break;
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
-        {
-            const float negMaxPct = paletteColorMapping->getAutoScalePercentageNegativeMaximum();
-            const float negMinPct = paletteColorMapping->getAutoScalePercentageNegativeMinimum();
-            const float posMinPct = paletteColorMapping->getAutoScalePercentagePositiveMinimum();
-            const float posMaxPct = paletteColorMapping->getAutoScalePercentagePositiveMaximum();
-            
-            minMax[0] = statistics->getApproxNegativePercentile(negMaxPct);
-            minMax[1] = statistics->getApproxNegativePercentile(negMinPct);
-            minMax[2] = statistics->getApproxPositivePercentile(posMinPct);
-            minMax[3] = statistics->getApproxPositivePercentile(posMaxPct);
+        textLeft = AString::number(minMax[0], 'f', 1);
+        AString textCenterNeg = AString::number(minMax[1], 'f', 1);
+        if (textCenterNeg == "-0.0") {
+            textCenterNeg = "0.0";
         }
-            break;
-        case PaletteScaleModeEnum::MODE_USER_SCALE:
-            minMax[0] = paletteColorMapping->getUserScaleNegativeMaximum();
-            minMax[1] = paletteColorMapping->getUserScaleNegativeMinimum();
-            minMax[2] = paletteColorMapping->getUserScalePositiveMinimum();
-            minMax[3] = paletteColorMapping->getUserScalePositiveMaximum();
-            break;
-    }
-    
-    AString textLeft = AString::number(minMax[0], 'f', 1);
-    AString textCenterNeg = AString::number(minMax[1], 'f', 1);
-    if (textCenterNeg == "-0.0") {
-        textCenterNeg = "0.0";
-    }
-    AString textCenterPos = AString::number(minMax[2], 'f', 1);
-    AString textCenter = textCenterPos;
-    if (isNegativeDisplayed && isPositiveDisplayed) {
-        if (textCenterNeg != textCenterPos) {
-            textCenter = textCenterNeg + "/" + textCenterPos;
-        }
-    }
-    else if (isNegativeDisplayed) {
-        textCenter = textCenterNeg;
-    }
-    else if (isPositiveDisplayed) {
+        AString textCenterPos = AString::number(minMax[2], 'f', 1);
         textCenter = textCenterPos;
+        if (isNegativeDisplayed && isPositiveDisplayed) {
+            if (textCenterNeg != textCenterPos) {
+                textCenter = textCenterNeg + "/" + textCenterPos;
+            }
+        }
+        else if (isNegativeDisplayed) {
+            textCenter = textCenterNeg;
+        }
+        else if (isPositiveDisplayed) {
+            textCenter = textCenterPos;
+        }
+        textRight = AString::number(minMax[3], 'f', 1);
     }
-    AString textRight = AString::number(minMax[3], 'f', 1);
     
     /*
      * Reset to the models viewport for drawing text.
