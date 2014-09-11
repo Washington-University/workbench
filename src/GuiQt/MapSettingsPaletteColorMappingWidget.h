@@ -53,7 +53,7 @@ namespace caret {
         MapSettingsPaletteColorMappingWidget(QWidget* parent = 0);
         
         void updateEditor(CaretMappableDataFile* caretMappableDataFile,
-                                 const int32_t mapIndex);
+                          const int32_t mapIndex);
                     
         virtual ~MapSettingsPaletteColorMappingWidget();
 
@@ -82,6 +82,10 @@ namespace caret {
         void applyToMultipleFilesPushbuttonClicked();
         
     private:
+        void updateEditorInternal(CaretMappableDataFile* caretMappableDataFile,
+                                 const int32_t mapIndex);
+        
+
         QWidget* createPaletteSection();
         QWidget* createThresholdSection();
         QWidget* createHistogramSection();
@@ -153,6 +157,7 @@ namespace caret {
         bool isHistogramColored;
         
         CaretMappableDataFile* caretMappableDataFile;
+        CaretMappableDataFile* m_previousCaretMappableDataFile;
         
         int32_t mapFileIndex;
         

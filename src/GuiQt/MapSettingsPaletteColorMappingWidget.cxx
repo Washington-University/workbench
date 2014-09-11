@@ -91,6 +91,8 @@ using namespace caret;
 MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidget* parent)
 : QWidget(parent)
 {
+    m_previousCaretMappableDataFile = NULL;
+    
     /*
      * No context menu, it screws things up
      */
@@ -162,7 +164,7 @@ MapSettingsPaletteColorMappingWidget::~MapSettingsPaletteColorMappingWidget()
 void 
 MapSettingsPaletteColorMappingWidget::updateWidget()
 {
-    this->updateEditor(this->caretMappableDataFile, 
+    this->updateEditorInternal(this->caretMappableDataFile, 
                        this->mapFileIndex);
 }
 
@@ -175,7 +177,7 @@ MapSettingsPaletteColorMappingWidget::thresholdTypeChanged(int indx)
     PaletteThresholdTypeEnum::Enum paletteThresholdType = static_cast<PaletteThresholdTypeEnum::Enum>(this->thresholdTypeComboBox->itemData(indx).toInt());
     this->paletteColorMapping->setThresholdType(paletteThresholdType);
     
-    this->updateEditor(this->caretMappableDataFile, 
+    this->updateEditorInternal(this->caretMappableDataFile,
                        this->mapFileIndex);
     
     this->applySelections();
@@ -245,9 +247,8 @@ MapSettingsPaletteColorMappingWidget::applyAndUpdate()
 {
     this->applySelections();
     
-    this->updateEditor(this->caretMappableDataFile, 
-                       this->mapFileIndex);
-    
+    this->updateEditorInternal(this->caretMappableDataFile,
+                              this->mapFileIndex);
 }
 
 /**
@@ -934,7 +935,6 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     return paletteGroupBox;
 }
 
-
 /**
  * Update contents for editing a map settings for data in a caret
  * mappable data file.
@@ -944,8 +944,36 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
  * @param mapIndex
  *    Index of map for palette that is edited.
  */
-void 
+void
 MapSettingsPaletteColorMappingWidget::updateEditor(CaretMappableDataFile* caretMappableDataFile,
+                                                   const int32_t mapIndex)
+{
+    const bool palettesEqualFlag = caretMappableDataFile->isPaletteColorMappingEqualForAllMaps();
+    updateEditorInternal(caretMappableDataFile, mapIndex);
+    
+    if (m_previousCaretMappableDataFile != caretMappableDataFile) {
+        this->applyAllMapsCheckBox->blockSignals(true);
+        this->applyAllMapsCheckBox->setChecked(palettesEqualFlag);
+        this->applyAllMapsCheckBox->blockSignals(false);
+    }
+    
+    m_previousCaretMappableDataFile = caretMappableDataFile;
+}
+
+/**
+ * This PRIVATE method updates the editor content and MUST always be used
+ * when something within this class requires updating the displayed data.
+ *
+ * Update contents for editing a map settings for data in a caret
+ * mappable data file.
+ *
+ * @param caretMappableDataFile
+ *    Data file containing palette that is edited.
+ * @param mapIndexIn
+ *    Index of map for palette that is edited.
+ */
+void 
+MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile* caretMappableDataFile,
                                                    const int32_t mapIndexIn)
 {
     this->caretMappableDataFile = caretMappableDataFile;
