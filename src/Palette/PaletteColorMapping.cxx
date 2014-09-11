@@ -1278,110 +1278,164 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
 static AString
 formatValue(const double value)
 {
-    const double absValue = ((value < 0.0) ? -value : value);
+    if (MathFunctions::isZero(value)) {
+        return "0";
+    }
+    else if (MathFunctions::isNaN(value)) {
+        return "NaN";
+    }
+    
+//    const double absValue = ((value < 0.0) ? -value : value);
 //    const float  logValue = std::log10(absValue);
+
+//    char format    = 'f';
+//    int  precision = 0;
+//    
+//    AString textValue = "";
+//    
+//    if (logValue >= 6.0) {
+//        format = 'e';
+//        precision = 3;
+//    }
+//    else if (logValue >= 2) {
+//        format = 'f';
+//        precision = 0;
+//    }
+//    else if (logValue >= 1) {
+//        format = 'f';
+//        precision = 1;
+//    }
+//    else if (logValue >= -4) {
+//        format = 'f';
+//        precision = 4;
+//    }
+//    else {
+//        format = 'e';
+//        precision = 3;
+//    }
+//    if (MathFunctions::isZero(value)) {
+//        textValue = "0";
+//    }
+//    else if (absValue > 99999) {
+//        format    = 'e';
+//        precision = 0;
+//    }
+//    else if (absValue > 100) {
+//        format    = 'f';
+//        precision = 0;
+//    }
+//    else if (absValue > 10){
+//        format = 'f';
+//        precision = 2;
+//    }
+//    else if (absValue > 1) {
+//        format = 'f';
+//        precision = 2;
+//    }
+//    else if (absValue <= 0.009999) {
+//        format    = 'e';
+//        precision = 2;
+//    }
+//    else {
+//        format = 'f';
+//        precision = 4;
+//    }
+////    
+////    AString textValue = "";
+////    
+////    if (value < 0) {
+////        if (logValue < -2) {
+////            format    = 'e';
+////            precision = 4;
+////        }
+////        else if (value < -1.0) {
+////            precision = 4;
+////        }
+////        else {
+////            precision = 2;
+////        }
+////    }
+////    else if (value > 0) {
+////        if (logValue > 5) {
+////            format = 'e';
+////        }
+////        if (logValue < 1) {
+////            if (value < 1.0) {
+////                precision = 4;
+////            }
+////            else {
+////                precision = 2;
+////            }
+////        }
+////        else if (logValue < 2) {
+////            precision = 1;
+////        }
+////    }
+////    else {
+////        textValue = "0";
+////    }
+////
+    const double absValue = ((value < 0.0) ? -value : value);
+    const float  logValue = std::log10(absValue);
     
     char format    = 'f';
     int  precision = 0;
     
-    AString textValue = "";
-    if (MathFunctions::isZero(value)) {
-        textValue = "0";
+    if (logValue >= 6.0) {
+        format = 'e';
+        //        precision = 3;
     }
-    else if (absValue > 99999) {
-        format    = 'e';
+    else if (logValue >= 2) {
+        format = 'f';
         precision = 0;
     }
-    else if (absValue > 100) {
-        format    = 'f';
-        precision = 0;
-    }
-    else if (absValue > 10){
+    else if (logValue >= 1) {
         format = 'f';
-        precision = 2;
+        precision = 1;
     }
-    else if (absValue > 1) {
-        format = 'f';
-        precision = 2;
-    }
-    else if (absValue <= 0.009999) {
-        format    = 'e';
-        precision = 2;
-    }
-    else {
+    else if (logValue >= -4) {
         format = 'f';
         precision = 4;
     }
-//    
-//    AString textValue = "";
-//    
-//    if (value < 0) {
-//        if (logValue < -2) {
-//            format    = 'e';
-//            precision = 4;
-//        }
-//        else if (value < -1.0) {
-//            precision = 4;
-//        }
-//        else {
-//            precision = 2;
-//        }
-//    }
-//    else if (value > 0) {
-//        if (logValue > 5) {
-//            format = 'e';
-//        }
-//        if (logValue < 1) {
-//            if (value < 1.0) {
-//                precision = 4;
-//            }
-//            else {
-//                precision = 2;
-//            }
-//        }
-//        else if (logValue < 2) {
-//            precision = 1;
-//        }
-//    }
-//    else {
-//        textValue = "0";
-//    }
-//
-    if (textValue.isEmpty()) {
-        const int FIELD_WIDTH = 0;
-        
-        
-        AString numberValue = QString("%1").arg(absValue,
-                                      FIELD_WIDTH,
-                                      format,
-                                      precision);
-        int plusMinuxIndex = numberValue.indexOf('-');
-        if (plusMinuxIndex < 0) {
-            plusMinuxIndex = numberValue.indexOf('+');
-        }
-        if (plusMinuxIndex > 1) {
-            AString exponentText = numberValue.mid(plusMinuxIndex + 1);
-            const int firstNonZeroIndex = exponentText.indexNotOf('0');
-            if (firstNonZeroIndex >= 0) {
-                std::cout << "Before trimming leading zero " << qPrintable(numberValue);
-                numberValue = (numberValue.left(plusMinuxIndex + 1)
-                               + exponentText.mid(firstNonZeroIndex));
-                std::cout << " after " << qPrintable(numberValue) << std::endl;
-            }
-        }
-        
-        if (value < 0.0) {
-            textValue = "-";
-        }
-        textValue += numberValue;
+    else {
+        format = 'e';
+        //       precision = 3;
     }
+
+    const int FIELD_WIDTH = 0;
+    
+    
+    AString numberValue = QString("%1").arg(absValue,
+                                            FIELD_WIDTH,
+                                            format,
+                                            precision);
+    int plusMinuxIndex = numberValue.indexOf('-');
+    if (plusMinuxIndex < 0) {
+        plusMinuxIndex = numberValue.indexOf('+');
+    }
+    if (plusMinuxIndex > 1) {
+        AString exponentText = numberValue.mid(plusMinuxIndex + 1);
+        const int firstNonZeroIndex = exponentText.indexNotOf('0');
+        if (firstNonZeroIndex >= 0) {
+            std::cout << "Before trimming leading zero " << qPrintable(numberValue);
+            numberValue = (numberValue.left(plusMinuxIndex + 1)
+                           + exponentText.mid(firstNonZeroIndex));
+            std::cout << " after " << qPrintable(numberValue) << std::endl;
+        }
+    }
+    
+    AString textValue;
+    if (value < 0.0) {
+        textValue = "-";
+    }
+    textValue += numberValue;
     
     
     return textValue;
 }
 
 /**
- * Get the text characters for drawing the scale above the palette 
+ * Get the text characters for drawing the scale above the palette
  * color bar.
  *
  * @param minimumValueTextOut
