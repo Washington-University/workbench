@@ -77,7 +77,8 @@ BorderEditingSelectionDialog::BorderEditingSelectionDialog(const AString& modeDe
     QPushButton* allOffPushButton = new QPushButton("All Off");
     QObject::connect(allOffPushButton, SIGNAL(clicked()),
                      this, SLOT(allOffPushButtonClicked()));
-    QHBoxLayout* allOnOffLayout = new QHBoxLayout();
+    QWidget* allOnOffWidget = new QWidget();
+    QHBoxLayout* allOnOffLayout = new QHBoxLayout(allOnOffWidget);
     allOnOffLayout->addWidget(allOnPushButton);
     allOnOffLayout->addStrut(10);
     allOnOffLayout->addWidget(allOffPushButton);
@@ -98,11 +99,11 @@ BorderEditingSelectionDialog::BorderEditingSelectionDialog(const AString& modeDe
         m_borderNameCheckBoxes.push_back(cb);
         layout->addWidget(cb);
     }
-    layout->addStrut(5);
-    layout->addLayout(allOnOffLayout);
     
-    setCentralWidget(widget,
-                     WuQDialog::SCROLL_AREA_AS_NEEDED);
+    setTopBottomAndCentralWidgets(allOnOffWidget,
+                                  widget,
+                                  NULL,
+                                  WuQDialog::SCROLL_AREA_AS_NEEDED);
     
     disableAutoDefaultForAllPushButtons();
 }
