@@ -318,6 +318,8 @@ namespace caret {
         virtual void updateScalarColoringForMap(const int32_t mapIndex,
                                           const PaletteFile* paletteFile) = 0;
         
+        virtual bool isPaletteColorMappingEqualForAllMaps() const;
+        
         /**
          * @return The units for the 'interval' between two consecutive maps.
          */

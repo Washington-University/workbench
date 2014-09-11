@@ -187,6 +187,51 @@ CaretMappableDataFile::updateScalarColoringForAllMaps(const PaletteFile* palette
     }
 }
 
+/**
+ * @return True if this file is mapped using a palette and all palettes
+ * are equal, otherwise false.
+ */
+bool
+CaretMappableDataFile::isPaletteColorMappingEqualForAllMaps() const
+{
+    if ( ! isMappedWithPalette()) {
+        return false;
+    }
+    
+    const int32_t numMaps = getNumberOfMaps();
+    if (numMaps <= 0) {
+        return false;
+    }
+    
+    /*
+     * Some files use one palette color mapping for all maps
+     * and this can be detected if the pointer to palette
+     * color mapping is the same for all maps.
+     */
+    bool pointerTheSameFlag = true;
+    const PaletteColorMapping* firstPCM = getMapPaletteColorMapping(0);
+    for (int32_t iMap = 1; iMap < numMaps; iMap++) {
+        if (firstPCM != getMapPaletteColorMapping(iMap)) {
+            pointerTheSameFlag = false;
+            break;
+        }
+    }
+    if (pointerTheSameFlag) {
+        return true;
+    }
+    
+    /*
+     * Compare each palette color mapping to the first palette color mapping
+     */
+    for (int32_t iMap = 1; iMap < numMaps; iMap++) {
+        if (*firstPCM != *getMapPaletteColorMapping(iMap)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // note: method is documented in header file
 NiftiTimeUnitsEnum::Enum
 CaretMappableDataFile::getMapIntervalUnits() const
@@ -444,6 +489,9 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                                         isMappedWithPalette());
     
     if (isMappedWithPalette()) {
+        dataFileInformation.addNameAndValue("All Map Palettes Equal",
+                                            isPaletteColorMappingEqualForAllMaps());
+        
         NiftiTimeUnitsEnum::Enum timeUnits = getMapIntervalUnits();
         switch (timeUnits) {
             case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
