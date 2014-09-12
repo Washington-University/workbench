@@ -49,6 +49,7 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_cellWidth  = 10.0;
     m_cellHeight = 10.0;
     m_colorBarDisplayed = false;
+    m_highlightSelectedRowColumn = true;
     resetPropertiesToDefault();
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -57,6 +58,8 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_sceneAssistant->add("m_viewZooming", &m_viewZooming);
     m_sceneAssistant->addArray("m_viewPanning", m_viewPanning, 2, 0.0);
     m_sceneAssistant->add("m_colorBarDisplayed", &m_colorBarDisplayed);
+    m_sceneAssistant->add("m_highlightSelectedRowColumn", &m_highlightSelectedRowColumn);
+    
     
     m_sceneAssistant->add<ChartMatrixLoadingTypeEnum, ChartMatrixLoadingTypeEnum::Enum>("m_matrixLoadingType",
                                                                                         &m_matrixLoadingType);
@@ -399,6 +402,27 @@ void
 ChartMatrixDisplayProperties::setColorBarDisplayed(const bool displayed)
 {
     m_colorBarDisplayed = displayed;
+}
+
+/**
+ * Is the selected row/column highlighted?
+ */
+bool
+ChartMatrixDisplayProperties::isSelectedRowColumnHighlighted() const
+{
+    return m_highlightSelectedRowColumn;
+}
+
+/**
+ * Set the selected row/column highlighted status.
+ *
+ * @param highlightStatus
+ *    New status for lighlighting selected row/column.
+ */
+void
+ChartMatrixDisplayProperties::setSelectedRowColumnHighlighted(const bool highlightStatus)
+{
+    m_highlightSelectedRowColumn = highlightStatus;
 }
 
 

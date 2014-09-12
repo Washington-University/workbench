@@ -78,6 +78,10 @@ namespace caret {
         
         void resetPropertiesToDefault();
         
+        bool isSelectedRowColumnHighlighted() const;
+        
+        void setSelectedRowColumnHighlighted(const bool highlightStatus);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -131,6 +135,9 @@ namespace caret {
         
         /** Display color bar */
         bool m_colorBarDisplayed;
+        
+        /** Highlight the selected row/column */
+        bool m_highlightSelectedRowColumn;
         
         // ADD_NEW_MEMBERS_HERE
 

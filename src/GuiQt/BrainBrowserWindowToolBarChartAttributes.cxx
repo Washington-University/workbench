@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <QAction>
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -336,6 +337,10 @@ EventListenerInterface()
     WuQtUtilities::matchWidgetWidths(m_cellHeightSpinBox,
                                      m_cellWidthSpinBox);
     
+    m_highlightSelectionCheckBox = new QCheckBox("Highlight Selection");
+    QObject::connect(m_highlightSelectionCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(highlightSelectionCheckBoxClicked(bool)));
+    
     m_manualWidgetsGroup = new WuQWidgetObjectGroup(this);
     m_manualWidgetsGroup->add(m_cellWidthSpinBox);
     m_manualWidgetsGroup->add(m_cellHeightSpinBox);
@@ -355,6 +360,8 @@ EventListenerInterface()
     gridLayout->addWidget(m_cellHeightSpinBox, rowIndex, COLUMN_WIDGET);
     rowIndex++;
     gridLayout->addWidget(resetToolButton, rowIndex, COLUMN_LABEL, 1, 2, Qt::AlignHCenter);
+    rowIndex++;
+    gridLayout->addWidget(m_highlightSelectionCheckBox, rowIndex, COLUMN_LABEL, 1, 2, Qt::AlignHCenter);
     rowIndex++;
     
     gridWidget->setFixedSize(gridWidget->sizeHint());
@@ -417,6 +424,10 @@ MatrixChartAttributesWidget::updateContent()
         m_cellHeightSpinBox->blockSignals(true);
         m_cellHeightSpinBox->setValue(matrixDisplayProperties->getCellHeight());
         m_cellHeightSpinBox->blockSignals(false);
+        
+        m_highlightSelectionCheckBox->blockSignals(true);
+        m_highlightSelectionCheckBox->setChecked(matrixDisplayProperties->isSelectedRowColumnHighlighted());
+        m_highlightSelectionCheckBox->blockSignals(false);
     }
 }
 
@@ -468,5 +479,20 @@ MatrixChartAttributesWidget::resetButtonClicked()
     }
 }
 
+/**
+ * Called when the show selection check box is checked.
+ *
+ * @param checked
+ *    New checked status.
+ */
+void
+MatrixChartAttributesWidget::highlightSelectionCheckBoxClicked(bool checked)
+{
+    ChartMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableMatrixDisplayProperties();
+    if (matrixDisplayProperties != NULL) {
+        matrixDisplayProperties->setSelectedRowColumnHighlighted(checked);
+        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+    }
+}
 
 

@@ -973,6 +973,15 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
 {
     CaretAssert(chartMatrixInterface);
     
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    uint8_t highlightRGBByte[3];
+    prefs->getColorChartMatrixGridLines(highlightRGBByte);
+    const float highlightRGB[3] = {
+        highlightRGBByte[0] / 255.0,
+        highlightRGBByte[1] / 255.0,
+        highlightRGBByte[2] / 255.0
+    };
+    
     int32_t numberOfRows = 0;
     int32_t numberOfColumns = 0;
     std::vector<float> matrixRGBA;
@@ -1047,6 +1056,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                 applyTransformationsFlag = true;
                 break;
         }
+        
+        const bool highlightSelectedRowColumnFlag = matrixProperties->isSelectedRowColumnHighlighted();
         
         /*
          * Set the coordinates for the area in which the matrix is drawn.
@@ -1182,8 +1193,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
             
             if ( ! m_identificationModeFlag) {
                 if (rowIndex == loadedRowIndex) {
-                    const CaretColorEnum::Enum highlightColor = chartMatrixInterface->getSelectedParcelColor();
-                    const float* highlightRGB = CaretColorEnum::toRGB(highlightColor);
+                    //const CaretColorEnum::Enum highlightColor = chartMatrixInterface->getSelectedParcelColor();
+                    //const float* highlightRGB = CaretColorEnum::toRGB(highlightColor);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
                     loadedRowHighlightVerticesXYZ.push_back(cellY);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
@@ -1257,7 +1268,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
              * Drawn an outline around the matrix elements.
              */
             uint8_t gridLineColorBytes[3];
-            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
             prefs->getColorChartMatrixGridLines(gridLineColorBytes);
             float gridLineColorFloats[4];
             CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
@@ -1283,7 +1293,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
             }
             glEnd();
             
-            if (loadedRowDataValid) {
+            if (loadedRowDataValid
+                && highlightSelectedRowColumnFlag) {
                 CaretAssert((loadedRowHighlightVerticesXYZ.size() / 3) == (loadedRowHighlightVerticesRGBA.size() / 4));
                 
                 const int32_t numberOfVertices = static_cast<int32_t>(loadedRowHighlightVerticesXYZ.size() / 3);
@@ -1315,8 +1326,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                     const float columnIndex = *colIter;
                     const float colX = columnIndex * cellWidth;
                     
-                    const CaretColorEnum::Enum highlightColor = chartMatrixInterface->getSelectedParcelColor();
-                    const float* highlightRGB = CaretColorEnum::toRGB(highlightColor);
+                    //const CaretColorEnum::Enum highlightColor = chartMatrixInterface->getSelectedParcelColor();
+                    //const float* highlightRGB = CaretColorEnum::toRGB(highlightColor);
                     
                     columnXYZ.push_back(colX);
                     columnXYZ.push_back(0.0);
