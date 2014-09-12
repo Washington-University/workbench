@@ -405,6 +405,13 @@ void
 OverlaySettingsEditorDialog::closeButtonPressed()
 {
     /*
+     * Clear the content since it could be tied to an overlay
+     * and we don't want the dialog updating if it is not
+     * visible.
+     */
+    updateDialogContent(NULL);
+    
+    /*
      * Allow this dialog to be reused (checked means DO NOT reuse)
      */
     m_doNotReplaceCheckBox->setCheckState(Qt::Unchecked);
