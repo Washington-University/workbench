@@ -333,6 +333,33 @@ OverlayViewController::setVisible(bool visible)
     this->gridLayoutGroup->setVisible(visible);
 }
 
+/*
+ * If this overlay ins an overlay settings editor, update its content
+ */
+void
+OverlayViewController::updateOverlaySettingsEditor()
+{
+    if (overlay == NULL) {
+        return;
+    }
+
+    CaretMappableDataFile* mapFile = NULL;
+    int32_t mapIndex = -1;
+    overlay->getSelectionData(mapFile,
+                              mapIndex);
+    
+    if ((mapFile != NULL)
+        && (mapIndex >= 0)) {
+        EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_OVERLAY_MAP_CHANGED,
+                                                     this->browserWindowIndex,
+                                                     this->overlay,
+                                                     mapFile,
+                                                     mapIndex);
+        EventManager::get()->sendEvent(pcme.getPointer());
+    }
+}
+
+
 /**
  * Called when a selection is made from the file combo box.
  * @parm indx
@@ -353,6 +380,8 @@ OverlayViewController::fileComboBoxSelected(int indx)
     // not needed with call to validateYokingSelection: this->updateViewController(this->overlay);
     
     // called inside validateYokingSelection();  this->updateUserInterfaceAndGraphicsWindow();
+
+    updateOverlaySettingsEditor();
 }
 
 /**
@@ -389,6 +418,8 @@ OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
     
     this->updateUserInterfaceIfYoked();
     this->updateGraphicsWindow();
+    
+    updateOverlaySettingsEditor();
 }
 
 /**
@@ -422,6 +453,8 @@ OverlayViewController::mapNameComboBoxSelected(int indx)
     
     this->updateUserInterfaceIfYoked();
     this->updateGraphicsWindow();
+    
+    updateOverlaySettingsEditor();
 }
 
 /**
@@ -563,10 +596,11 @@ OverlayViewController::settingsActionTriggered()
     this->overlay->getSelectionData(mapFile, 
                                     mapIndex);
     if (mapFile != NULL) {
-        EventOverlaySettingsEditorDialogRequest pcme(this->browserWindowIndex,
-                                                 this->overlay,
-                                                 mapFile,
-                                                 mapIndex);
+        EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_SHOW_EDITOR,
+                                                     this->browserWindowIndex,
+                                                     this->overlay,
+                                                     mapFile,
+                                                     mapIndex);
         EventManager::get()->sendEvent(pcme.getPointer());
     }
 }

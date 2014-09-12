@@ -39,11 +39,13 @@ using namespace caret;
  * @param mapIndex
  *    Map index in mapFile.
  */
-EventOverlaySettingsEditorDialogRequest::EventOverlaySettingsEditorDialogRequest(const int32_t browserWindowIndex,
-                                                                         Overlay* overlay,
-                                                               CaretMappableDataFile* mapFile,
-                                                               const int32_t mapIndex)
-: Event(EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW)
+EventOverlaySettingsEditorDialogRequest::EventOverlaySettingsEditorDialogRequest(const Mode mode,
+                                                                                 const int32_t browserWindowIndex,
+                                                                                 Overlay* overlay,
+                                                                                 CaretMappableDataFile* mapFile,
+                                                                                 const int32_t mapIndex)
+: Event(EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW),
+m_mode(mode)
 {
     m_browserWindowIndex = browserWindowIndex;
     m_overlay = overlay;

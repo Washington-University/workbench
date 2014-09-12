@@ -199,6 +199,20 @@ OverlaySettingsEditorDialog::focusInEvent(QFocusEvent* /*event*/)
 }
 
 /**
+ * Update if the given overlay is displayed in the dialog.
+ * 
+ * @param overlay
+ *    The overlay.
+ */
+void
+OverlaySettingsEditorDialog::updateIfThisOverlayIsInDialog(Overlay* overlay)
+{
+    if (m_overlay == overlay) {
+        updateDialogContent(m_overlay);
+    }
+}
+
+/**
  * May be called to update the dialog's content.
  *
  * @param overlay

@@ -48,6 +48,8 @@ namespace caret {
         
         void updateDialogContent(Overlay* overlay);
         
+        void updateIfThisOverlayIsInDialog(Overlay* overlay);
+        
         void updateDialog();
         
         virtual ~OverlaySettingsEditorDialog();

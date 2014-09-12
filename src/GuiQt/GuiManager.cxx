@@ -962,44 +962,60 @@ GuiManager::receiveEvent(Event* event)
         dynamic_cast<EventOverlaySettingsEditorDialogRequest*>(event);
         CaretAssert(mapEditEvent);
         
+        const EventOverlaySettingsEditorDialogRequest::Mode mode = mapEditEvent->getMode();
         const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
         CaretAssertVectorIndex(m_brainBrowserWindows, browserWindowIndex);
         BrainBrowserWindow* browserWindow = m_brainBrowserWindows[browserWindowIndex];
         CaretAssert(browserWindow);
-        
         Overlay* overlay = mapEditEvent->getOverlay();
         
-        OverlaySettingsEditorDialog* overlayEditor = NULL;
-        for (std::set<OverlaySettingsEditorDialog*>::iterator overlayEditorIter = m_overlaySettingsEditors.begin();
-             overlayEditorIter != m_overlaySettingsEditors.end();
-             overlayEditorIter++) {
-            OverlaySettingsEditorDialog* med = *overlayEditorIter;
-            if (med->isDoNotReplaceSelected() == false) {
-                overlayEditor = med;
+        switch (mode) {
+            case EventOverlaySettingsEditorDialogRequest::MODE_OVERLAY_MAP_CHANGED:
+            {
+                for (std::set<OverlaySettingsEditorDialog*>::iterator overlayEditorIter = m_overlaySettingsEditors.begin();
+                     overlayEditorIter != m_overlaySettingsEditors.end();
+                     overlayEditorIter++) {
+                    OverlaySettingsEditorDialog* med = *overlayEditorIter;
+                    med->updateIfThisOverlayIsInDialog(overlay);
+                }
+            }
                 break;
+            case EventOverlaySettingsEditorDialogRequest::MODE_SHOW_EDITOR:
+            {
+                OverlaySettingsEditorDialog* overlayEditor = NULL;
+                for (std::set<OverlaySettingsEditorDialog*>::iterator overlayEditorIter = m_overlaySettingsEditors.begin();
+                     overlayEditorIter != m_overlaySettingsEditors.end();
+                     overlayEditorIter++) {
+                    OverlaySettingsEditorDialog* med = *overlayEditorIter;
+                    if (med->isDoNotReplaceSelected() == false) {
+                        overlayEditor = med;
+                        break;
+                    }
+                }
+                
+                bool placeInDefaultLocation = false;
+                if (overlayEditor == NULL) {
+                    overlayEditor = new OverlaySettingsEditorDialog(browserWindow);
+                    m_overlaySettingsEditors.insert(overlayEditor);
+                    this->addNonModalDialog(overlayEditor);
+                    placeInDefaultLocation = true;
+                }
+                else {
+                    if (overlayEditor->isHidden()) {
+                        placeInDefaultLocation = true;
+                    }
+                }
+                
+                overlayEditor->updateDialogContent(overlay);
+                overlayEditor->show();
+                overlayEditor->raise();
+                overlayEditor->activateWindow();
+                if (placeInDefaultLocation) {
+                    WuQtUtilities::moveWindowToSideOfParent(browserWindow,
+                                                            overlayEditor);
+                }
             }
-        }
-        
-        bool placeInDefaultLocation = false;
-        if (overlayEditor == NULL) {
-            overlayEditor = new OverlaySettingsEditorDialog(browserWindow);
-            m_overlaySettingsEditors.insert(overlayEditor);
-            this->addNonModalDialog(overlayEditor);
-            placeInDefaultLocation = true;
-        }
-        else {
-            if (overlayEditor->isHidden()) {
-                placeInDefaultLocation = true;
-            }
-        }
-        
-        overlayEditor->updateDialogContent(overlay);
-        overlayEditor->show();
-        overlayEditor->raise();
-        overlayEditor->activateWindow();
-        if (placeInDefaultLocation) {
-            WuQtUtilities::moveWindowToSideOfParent(browserWindow,
-                                                    overlayEditor);
+                break;
         }
         mapEditEvent->setEventProcessed();
     }

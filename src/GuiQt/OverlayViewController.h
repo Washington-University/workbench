@@ -110,6 +110,8 @@ namespace caret {
         
         void validateYokingSelection();
         
+        void updateOverlaySettingsEditor();
+        
         const int32_t browserWindowIndex;
         
         const int32_t m_overlayIndex;

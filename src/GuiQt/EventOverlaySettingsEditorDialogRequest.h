@@ -33,12 +33,22 @@ namespace caret {
     class EventOverlaySettingsEditorDialogRequest : public Event {
         
     public:
-        EventOverlaySettingsEditorDialogRequest(const int32_t browserWindowIndex,
-                                            Overlay* overlay,
-                                            CaretMappableDataFile* mapFile,
-                                            const int32_t mapIndex);
+        enum Mode {
+            MODE_SHOW_EDITOR,
+            MODE_OVERLAY_MAP_CHANGED
+        };
+        EventOverlaySettingsEditorDialogRequest(const Mode mode,
+                                                const int32_t browserWindowIndex,
+                                                Overlay* overlay,
+                                                CaretMappableDataFile* mapFile,
+                                                const int32_t mapIndex);
         
         virtual ~EventOverlaySettingsEditorDialogRequest();
+        
+        /**
+         * @return The mode (show or update)
+         */
+        Mode getMode() const { return m_mode; }
         
         /**
          * @return Get the index of the browser window for palette being edited.
@@ -69,18 +79,21 @@ namespace caret {
         EventOverlaySettingsEditorDialogRequest(const EventOverlaySettingsEditorDialogRequest&);
         
         EventOverlaySettingsEditorDialogRequest& operator=(const EventOverlaySettingsEditorDialogRequest&);
-        
-        /** Map file containing map whose color palette is edited */
-        CaretMappableDataFile* m_mapFile;
-        
-        /** Index of map in the map file */
-        int32_t m_mapIndex;
+
+        /** The mode show/update */
+        const Mode m_mode;
         
         /** index of browser window for palette editing */
         int32_t m_browserWindowIndex;
         
         /** Overlay for editor. */
         Overlay* m_overlay;
+
+        /** Map file containing map whose color palette is edited */
+        CaretMappableDataFile* m_mapFile;
+        
+        /** Index of map in the map file */
+        int32_t m_mapIndex;
     };
 
 } // namespace
