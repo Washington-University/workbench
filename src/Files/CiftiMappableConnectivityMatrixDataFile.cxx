@@ -466,69 +466,69 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
 }
 
 
-/**
- * Load connectivity data for the given map index.
- *
- * @param mapIndex
- *    Index of map.
- * @param surfaceNumberOfNodes
- *    Number of nodes in surface.
- * @param structure
- *    Surface's structure.
- * @param nodeIndex
- *    Index of node number.
- * @return
- *    Index of row that was loaded or -1 if no data was loaded.
- * @throw
- *    DataFileException if there is an error.
- */
-bool 
-CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionIndex) throw (DataFileException)
-{
-    if (m_ciftiFile == NULL) {
-        return false;
-    }
-    
-    /*
-     * Loading of data disabled?
-     */
-    if (m_dataLoadingEnabled == false) {
-        return false;
-    }
-    
-    
-    
-    bool dataWasLoaded = false;
-    
-    if (selectionIndex >= 0) {
-        const int64_t dataCount = m_ciftiFile->getNumberOfColumns();
-        if (dataCount > 0) {
-            m_rowLoadedTextForMapName = ("Row: "
-                                        + AString::number(selectionIndex+1)                                         
-                                        );
-
-            m_rowLoadedText = ("Row_"
-                                + AString::number(selectionIndex+1)
-                                );
-            CaretAssert((selectionIndex >= 0) && (selectionIndex < m_ciftiFile->getNumberOfRows()));
-            m_loadedRowData.resize(dataCount);
-            m_ciftiFile->getRow(&m_loadedRowData[0],
-                                        selectionIndex);
-            
-            CaretLogFine("Read row " + AString::number(selectionIndex+1));
-            
-            dataWasLoaded = true;
-        }
-    }
-    
-    if (dataWasLoaded == false) {
-        CaretLogFine("FAILED to read row " + AString::number(selectionIndex+1));
-    }
-    
-    updateForChangeInMapDataWithMapIndex(0);
-    
-    return true;
-}
+///**
+// * Load connectivity data for the given map index.
+// *
+// * @param mapIndex
+// *    Index of map.
+// * @param surfaceNumberOfNodes
+// *    Number of nodes in surface.
+// * @param structure
+// *    Surface's structure.
+// * @param nodeIndex
+// *    Index of node number.
+// * @return
+// *    Index of row that was loaded or -1 if no data was loaded.
+// * @throw
+// *    DataFileException if there is an error.
+// */
+//bool 
+//CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionIndex) throw (DataFileException)
+//{
+//    if (m_ciftiFile == NULL) {
+//        return false;
+//    }
+//    
+//    /*
+//     * Loading of data disabled?
+//     */
+//    if (m_dataLoadingEnabled == false) {
+//        return false;
+//    }
+//    
+//    
+//    
+//    bool dataWasLoaded = false;
+//    
+//    if (selectionIndex >= 0) {
+//        const int64_t dataCount = m_ciftiFile->getNumberOfColumns();
+//        if (dataCount > 0) {
+//            m_rowLoadedTextForMapName = ("Row: "
+//                                        + AString::number(selectionIndex+1)                                         
+//                                        );
+//
+//            m_rowLoadedText = ("Row_"
+//                                + AString::number(selectionIndex+1)
+//                                );
+//            CaretAssert((selectionIndex >= 0) && (selectionIndex < m_ciftiFile->getNumberOfRows()));
+//            m_loadedRowData.resize(dataCount);
+//            m_ciftiFile->getRow(&m_loadedRowData[0],
+//                                        selectionIndex);
+//            
+//            CaretLogFine("Read row " + AString::number(selectionIndex+1));
+//            
+//            dataWasLoaded = true;
+//        }
+//    }
+//    
+//    if (dataWasLoaded == false) {
+//        CaretLogFine("FAILED to read row " + AString::number(selectionIndex+1));
+//    }
+//    
+//    updateForChangeInMapDataWithMapIndex(0);
+//    
+//    return true;
+//}
 
 /**
  * Load connectivity data for the surface's nodes and then average the data.

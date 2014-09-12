@@ -81,7 +81,7 @@ namespace caret {
 
         virtual void getMapData(const int32_t mapIndex, std::vector<float>& dataOut) const;
 
-        bool loadMapData(const int32_t rowIndex) throw (DataFileException);
+//        bool loadMapData(const int32_t rowIndex) throw (DataFileException);
         
         const ConnectivityDataLoaded* getConnectivityDataLoaded() const;
         
