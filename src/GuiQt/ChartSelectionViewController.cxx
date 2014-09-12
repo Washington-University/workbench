@@ -118,16 +118,10 @@ ChartSelectionViewController::updateSelectionViewController()
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
 
-//    ChartModel* chartModel = NULL;
-    
     ChartDataTypeEnum::Enum chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
         chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
-//        chartModel = modelChart->getSelectedChartModel(browserTabIndex);
-//        if (chartModel != NULL) {
-//            chartDataType = chartModel->getChartDataType();
-//        }
     }
     
     switch (chartDataType) {
@@ -204,49 +198,6 @@ ChartSelectionViewController::brainordinateSelectionCheckBoxClicked(int indx)
     }
 }
 
-///**
-// * Called when a selection radio button is clicked.
-// *
-// * @param indx
-// *    Index of radio that was clicked.
-// */
-//void
-//ChartSelectionViewController::brainordinateSelectionRadioButtonClicked(int indx)
-//{
-//    switch (m_mode) {
-//        case MODE_INVALID:
-//            CaretAssertMessage(0, "Radiobutton should never be clicked when mode is invalid.");
-//            return;
-//            break;
-//        case MODE_BRAINORDINATE:
-//            CaretAssertMessage(0, "Radiobutton should never be clicked when mode is matrix.");
-//            return;
-//            break;
-//        case MODE_MATRIX:
-//            break;
-//    }
-//    
-//    ChartableMatrixInterface* chartMatrixFile = getMatrixFileAtIndex(indx);
-//    CaretAssert(chartMatrixFile);
-//    
-//    Brain* brain = GuiManager::get()->getBrain();
-//    
-//    BrowserTabContent* browserTabContent =
-//    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-//    if (browserTabContent == NULL) {
-//        return;
-//    }
-//    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    
-//    ModelChart* modelChart = brain->getChartModel();
-//    if (modelChart != NULL) {
-//        CaretDataFileSelectionModel* fileSelector =
-//           modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
-//        fileSelector->setSelectedFile(chartMatrixFile->getCaretMappableDataFile());
-//        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-//    }
-//}
-
 /**
  * Get the brainordinate file associated with the given index.
  *
@@ -270,31 +221,6 @@ ChartSelectionViewController::getBrainordinateFileAtIndex(const int32_t indx)
     
     return filePointer;
 }
-
-///**
-// * Get the brainordinate file associated with the given index.
-// *
-// * @param indx
-// *    The index.
-// * @return
-// *    Brainordinate chartable file associated with the given index or NULL
-// *    if not valid
-// */
-//ChartableMatrixInterface*
-//ChartSelectionViewController::getMatrixFileAtIndex(const int32_t indx)
-//{
-//    ChartableMatrixInterface* filePointer = NULL;
-//    
-//    CaretAssertVectorIndex(m_fileSelectionRadioButtons, indx);
-//    const QVariant filePointerVariant = m_fileSelectionRadioButtons[indx]->property(MATRIX_FILE_POINTER_PROPERTY_NAME);
-//    if (filePointerVariant.isValid()) {
-//        void* ptr = filePointerVariant.value<void*>();
-//        filePointer = (ChartableMatrixInterface*)ptr;
-//    }
-//    
-//    return filePointer;
-//}
-//
 
 /**
  * Receive an event.
@@ -570,10 +496,10 @@ ChartSelectionViewController::createMatrixChartWidget()
     m_matrixFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     QObject::connect(m_matrixFileSelectionComboBox, SIGNAL(fileSelected(CaretDataFile*)),
                      this, SLOT(matrixFileSelected(CaretDataFile*)));
-    m_matrixFileSelectionComboBox->getWidget()->setSizePolicy(QSizePolicy::MinimumExpanding,
-                                                              m_matrixFileSelectionComboBox->getWidget()->sizePolicy().verticalPolicy());
+//    m_matrixFileSelectionComboBox->getWidget()->setSizePolicy(QSizePolicy::Expanding,
+//                                                              m_matrixFileSelectionComboBox->getWidget()->sizePolicy().verticalPolicy());
     
-    QLabel* loadByLabel = new QLabel("Load by");
+    QLabel* loadByLabel = new QLabel("Loading");
     m_matrixLoadByColumnRadioButton = new QRadioButton("Column");
     m_matrixLoadByRowRadioButton    = new QRadioButton("Row");
     
@@ -594,35 +520,39 @@ ChartSelectionViewController::createMatrixChartWidget()
     QGridLayout* fileYokeLayout = new QGridLayout();
     fileYokeLayout->setColumnStretch(0, 0);
     fileYokeLayout->setColumnStretch(1, 0);
-    fileYokeLayout->setColumnStretch(2, 100);
+    fileYokeLayout->setColumnStretch(2, 0);
+    fileYokeLayout->setColumnStretch(3, 0);
+    fileYokeLayout->setColumnStretch(4, 100);
     
-    fileYokeLayout->addWidget(settingsLabel,
-                              0, 0,
-                              1, 2, Qt::AlignHCenter);
     fileYokeLayout->addWidget(loadByLabel,
-                              0, 2);
+                              0, 0,
+                              Qt::AlignHCenter);
+    fileYokeLayout->addWidget(settingsLabel,
+                              0, 1,
+                              1, 2,
+                              Qt::AlignHCenter);
     fileYokeLayout->addWidget(yokeLabel,
                               0, 3,
                               Qt::AlignHCenter);
     fileYokeLayout->addWidget(fileLabel,
                               0, 4,
                               Qt::AlignHCenter);
-    fileYokeLayout->addWidget(settingsToolButton,
-                              1, 0);
-    fileYokeLayout->addWidget(colorBarToolButton,
-                              1, 1);
     fileYokeLayout->addWidget(m_matrixLoadByColumnRadioButton,
-                              1, 2);
+                              1, 0);
     fileYokeLayout->addWidget(m_matrixLoadByRowRadioButton,
-                              2, 2);
+                              2, 0);
+    fileYokeLayout->addWidget(settingsToolButton,
+                              1, 1);
+    fileYokeLayout->addWidget(colorBarToolButton,
+                              1, 2);
     fileYokeLayout->addWidget(m_matrixYokingGroupComboBox->getWidget(),
                               1, 3);
     fileYokeLayout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
-                              1, 4,
-                              Qt::AlignLeft);
+                              1, 4);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     layout->addLayout(fileYokeLayout);
     layout->addStretch();
     
