@@ -1813,6 +1813,8 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:

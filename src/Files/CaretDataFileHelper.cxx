@@ -128,6 +128,9 @@ CaretDataFileHelper::readAnyCaretDataFile(const AString& filename, const bool& p
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             caretDataFile = new CiftiConnectivityMatrixParcelDenseFile();
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            CaretAssert(0);
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
             caretDataFile = new CiftiParcelScalarFile();
             break;

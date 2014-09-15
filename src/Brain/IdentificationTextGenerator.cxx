@@ -413,6 +413,8 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                     limitMapIndicesFlag = true;
                     break;

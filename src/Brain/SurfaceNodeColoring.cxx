@@ -34,6 +34,7 @@
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiParcelLabelFile.h"
 #include "CiftiParcelScalarFile.h"
 #include "CiftiParcelSeriesFile.h"
 #include "DisplayPropertiesSurface.h"
@@ -300,7 +301,7 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 }
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-                    isColoringValid = this->assignCiftiLabelColoring(displayPropertiesLabels,
+                    isColoringValid = this->assignCiftiDenseLabelColoring(displayPropertiesLabels,
                                                                      browserTabIndex,
                                                                      brainStructure,
                                                                       dynamic_cast<CiftiBrainordinateLabelFile*>(selectedMapFile),
@@ -361,6 +362,9 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                             numNodes,
                                                                             overlayRGBV);
                 }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                    CaretAssert(0);
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                     isColoringValid = this->assignCiftiParcelScalarColoring(brainStructure,
@@ -1045,7 +1049,7 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
 }
 
 /**
- * Assign cifti label coloring to nodes
+ * Assign cifti dense label coloring to nodes
  * @param brainStructure
  *    The brain structure that contains the data files.
  * @param ciftiLabelFile
@@ -1063,7 +1067,7 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
  *    True if coloring is valid, else false.
  */
 bool
-SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
+SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
                                               const int32_t browserTabIndex,
                                               const BrainStructure* brainStructure,
                                           CiftiBrainordinateLabelFile* ciftiLabelFile,
@@ -1200,6 +1204,105 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
 //        }
 //    }
     
+    return true;
+}
+
+/**
+ * Assign cifti parcel label coloring to nodes
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param ciftiParcelLabelFile
+ *    Cifti Parcel Label file that is selected.
+ * @param mapIndex
+ *    Index of selected map.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
+bool
+SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
+                                                   const int32_t browserTabIndex,
+                                                   const BrainStructure* brainStructure,
+                                                   CiftiParcelLabelFile* ciftiParcelLabelFile,
+                                                   const int32_t mapIndex,
+                                                   const int32_t numberOfNodes,
+                                                   float* rgbv)
+{
+    CaretAssert(displayPropertiesLabels);
+    CaretAssert(brainStructure);
+    CaretAssert(ciftiParcelLabelFile);
+    CaretAssert(rgbv);
+    
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiBrainordinateLabelFile*> allCiftiBrainordinateLabelFiles;
+    brain->getConnectivityDenseLabelFiles(allCiftiBrainordinateLabelFiles);
+    
+    if (mapIndex < 0) {
+        return false;
+    }
+    
+    const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
+                                                                                                browserTabIndex);
+    const CaretColorEnum::Enum outlineColor = displayPropertiesLabels->getOutlineColor(displayGroup,
+                                                                                       browserTabIndex);
+    
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        rgbv[i*4+3] = 0.0;
+    }
+    
+    /*
+     * Update coloring
+     */
+    if (ciftiParcelLabelFile->isMapColoringValid(mapIndex) == false) {
+        ciftiParcelLabelFile->updateScalarColoringForMap(mapIndex,
+                                                   brain->getPaletteFile());
+    }
+    
+    std::vector<float> dataValues(numberOfNodes);
+    
+    /*
+     * Assigns colors for all nodes.
+     */
+    const StructureEnum::Enum structure = brainStructure->getStructure();
+    ciftiParcelLabelFile->getMapSurfaceNodeColoring(mapIndex,
+                                              structure,
+                                              rgbv,
+                                              &dataValues[0],
+                                              numberOfNodes);
+    
+    const Surface* surface = ((brainStructure->getNumberOfSurfaces() > 0)
+                              ? brainStructure->getSurface(0)
+                              : NULL);
+    CaretPointer<TopologyHelper> topologyHelper;
+    if (surface != NULL) {
+        topologyHelper = surface->getTopologyHelper();
+    }
+    
+    /*
+     * All nodes are colored.  Remove coloring for nodes whose
+     * label is not selected.
+     */
+    GiftiLabelTable* labelTable = ciftiParcelLabelFile->getMapLabelTable(mapIndex);
+    CaretAssert(labelTable);
+    
+    assignLabelTableColors(labelTable,
+                           labelDrawingType,
+                           outlineColor,
+                           topologyHelper,
+                           displayGroup,
+                           browserTabIndex,
+                           dataValues,
+                           rgbv);
     return true;
 }
 

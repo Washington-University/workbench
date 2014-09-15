@@ -147,6 +147,12 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_LABEL_TABLE;
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
             m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
@@ -645,6 +651,10 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename) throw (Data
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             expectedAlongColumnMapType = CiftiMappingType::PARCELS;
             expectedAlongRowMapType = CiftiMappingType::BRAIN_MODELS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            expectedAlongColumnMapType = CiftiMappingType::PARCELS;
+            expectedAlongRowMapType = CiftiMappingType::LABELS;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
             expectedAlongColumnMapType = CiftiMappingType::PARCELS;
@@ -2951,6 +2961,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             useMapData = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            useMapData = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             useMapData = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:

@@ -55,6 +55,8 @@ public:
         CONNECTIVITY_PARCEL,
         /** Connectivity - Parcel Dense*/
         CONNECTIVITY_PARCEL_DENSE,
+        /** Connectivity - Parcel Label*/
+        CONNECTIVITY_PARCEL_LABEL,
         /** Connectivity - Parcel Scalar */
         CONNECTIVITY_PARCEL_SCALAR,
         /** Connectivity - Parcel Series */

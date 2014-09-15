@@ -43,6 +43,7 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDenseFile.h"
+#include "CiftiParcelLabelFile.h"
 #include "CiftiParcelSeriesFile.h"
 #include "CiftiParcelScalarFile.h"
 #include "DisplayPropertiesBorders.h"
@@ -413,6 +414,14 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityParcelSeriesFiles.clear();
     
+    for (std::vector<CiftiParcelLabelFile*>::iterator cpfi = m_connectivityParcelLabelFiles.begin();
+         cpfi != m_connectivityParcelLabelFiles.end();
+         cpfi++) {
+        CiftiParcelLabelFile* plf = *cpfi;
+        delete plf;
+    }
+    m_connectivityParcelLabelFiles.clear();
+    
     for (std::vector<CiftiParcelScalarFile*>::iterator clfi = m_connectivityParcelScalarFiles.begin();
          clfi != m_connectivityParcelScalarFiles.end();
          clfi++) {
@@ -562,6 +571,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                 break;
@@ -1797,6 +1808,72 @@ Brain::addReadOrReloadConnectivityParcelSeriesFile(const FileModeAddReadReload f
 }
 
 /**
+ * Read a connectivity parcel label file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+CiftiParcelLabelFile*
+Brain::addReadOrReloadConnectivityParcelLabelFile(const FileModeAddReadReload fileMode,
+                                                   CaretDataFile* caretDataFile,
+                                                   const AString& filename) throw (DataFileException)
+{
+    CiftiParcelLabelFile* clf = NULL;
+    if (caretDataFile != NULL) {
+        clf = dynamic_cast<CiftiParcelLabelFile*>(caretDataFile);
+        CaretAssert(clf);
+    }
+    else {
+        clf = new CiftiParcelLabelFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            clf->readFile(filename);
+            validateCiftiMappableDataFile(clf);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete clf;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        m_connectivityParcelLabelFiles.push_back(clf);
+    }
+    
+    return clf;
+}
+
+
+/**
  * Read a connectivity parcel scalar file.
  *
  * @param fileMode
@@ -2809,6 +2886,53 @@ Brain::getConnectivityDenseScalarFiles(std::vector<CiftiBrainordinateScalarFile*
     connectivityDenseScalarFilesOut = m_connectivityDenseScalarFiles;
 }
 
+
+/**
+ * @return Number of connectivity parcel label files.
+ */
+int32_t
+Brain::getNumberOfConnectivityParcelLabelFiles() const
+{
+    return m_connectivityParcelLabelFiles.size();
+}
+
+/**
+ * Get the connectivity parcel label file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Connectivity parcel label file at index.
+ */
+CiftiParcelLabelFile*
+Brain::getConnectivityParcelLabelFile(int32_t indx)
+{
+    CaretAssertVectorIndex(m_connectivityParcelLabelFiles, indx);
+    return m_connectivityParcelLabelFiles[indx];
+}
+
+/**
+ * Get the connectivity parcel label file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Connectivity parcel label file at index.
+ */
+const CiftiParcelLabelFile*
+Brain::getConnectivityParcelLabelFile(int32_t indx) const
+{
+    CaretAssertVectorIndex(m_connectivityParcelLabelFiles, indx);
+    return m_connectivityParcelLabelFiles[indx];
+}
+
+/**
+ * Get ALL connectivity parcel label files.
+ * @param connectivityParcelLabelFilesOut
+ *   Contains all connectivity parcel label files on exit.
+ */
+void
+Brain::getConnectivityParcelLabelFiles(std::vector<CiftiParcelLabelFile*>& connectivityParcelLabelFilesOut) const
+{
+    connectivityParcelLabelFilesOut = m_connectivityParcelLabelFiles;
+}
+
 /**
  * @return Number of connectivity parcel scalar files.
  */
@@ -3248,6 +3372,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
                     CiftiConnectivityMatrixParcelDenseFile* file = dynamic_cast<CiftiConnectivityMatrixParcelDenseFile*>(caretDataFile);
                     CaretAssert(file);
                     m_connectivityMatrixParcelDenseFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                {
+                    CiftiParcelLabelFile* file = dynamic_cast<CiftiParcelLabelFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityParcelLabelFiles.push_back(file);
                 }
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
@@ -3961,6 +4092,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead  = addReadOrReloadConnectivityMatrixParcelDenseFile(fileMode,
                                                                           caretDataFile,
                                                                           dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                caretDataFileRead  = addReadOrReloadConnectivityParcelLabelFile(fileMode,
+                                                                                 caretDataFile,
+                                                                                 dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                 caretDataFileRead  = addReadOrReloadConnectivityParcelScalarFile(fileMode,
@@ -4979,6 +5115,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityMatrixParcelDenseFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityParcelLabelFiles.begin(),
+                           m_connectivityParcelLabelFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityParcelScalarFiles.begin(),
                            m_connectivityParcelScalarFiles.end());
     
@@ -5237,6 +5377,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
                                                                                        caretDataFile);
     if (connParcelSeriesIterator != m_connectivityParcelSeriesFiles.end()) {
         m_connectivityParcelSeriesFiles.erase(connParcelSeriesIterator);
+        return true;
+    }
+    
+    std::vector<CiftiParcelLabelFile*>::iterator connParcelLabelIterator = std::find(m_connectivityParcelLabelFiles.begin(),
+                                                                                     m_connectivityParcelLabelFiles.end(),
+                                                                                     caretDataFile);
+    if (connParcelLabelIterator != m_connectivityParcelLabelFiles.end()) {
+        m_connectivityParcelLabelFiles.erase(connParcelLabelIterator);
         return true;
     }
     

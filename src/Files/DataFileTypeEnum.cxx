@@ -198,6 +198,14 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "pdconn.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_LABEL,
+                                        "CONNECTIVITY_PARCEL_LABEL",
+                                        "Connectivity - Parcel Label",
+                                        "CIFTI PARCEL LABEL",
+                                        false,
+                                        false,
+                                        "plabel.nii"));
+    
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_SCALAR,
                                         "CONNECTIVITY_PARCEL_SCALAR",
                                         "Connectivity - Parcel Scalar",

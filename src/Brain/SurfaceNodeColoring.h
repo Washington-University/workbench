@@ -35,6 +35,7 @@ namespace caret {
     class CiftiBrainordinateDataSeriesFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
+    class CiftiParcelLabelFile;
     class CiftiParcelScalarFile;
     class CiftiParcelSeriesFile;
     class DisplayPropertiesLabels;
@@ -93,10 +94,10 @@ namespace caret {
                                  const int32_t numberOfNodes,
                                  float* rgbv);
 
-        bool assignCiftiLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
+        bool assignCiftiDenseLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
                                       const int32_t browserTabIndex,
                                       const BrainStructure* brainStructure,
-                                  CiftiBrainordinateLabelFile* ciftiScalarFile,
+                                  CiftiBrainordinateLabelFile* ciftiLabelFile,
                                       const int32_t mapIndex,
                                       //const AString& metricMapUniqueID,
                                   const int32_t numberOfNodes,
@@ -108,6 +109,14 @@ namespace caret {
                                        //const AString& metricMapUniqueID,
                                        const int32_t numberOfNodes,
                                        float* rgbv);
+        
+        bool assignCiftiParcelLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
+                                           const int32_t browserTabIndex,
+                                           const BrainStructure* brainStructure,
+                                           CiftiParcelLabelFile* ciftiParcelLabelFile,
+                                           const int32_t mapIndex,
+                                           const int32_t numberOfNodes,
+                                           float* rgbv);
         
         bool assignCiftiParcelScalarColoring(const BrainStructure* brainStructure,
                                        CiftiParcelScalarFile* ciftiScalarFile,
