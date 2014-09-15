@@ -1671,7 +1671,7 @@ BrainBrowserWindow::processDataFileOpen()
      * Get all file filters.
      */
     std::vector<DataFileTypeEnum::Enum> dataFileTypes;
-    DataFileTypeEnum::getAllEnums(dataFileTypes, false, false);
+    DataFileTypeEnum::getAllEnums(dataFileTypes, false);
     QStringList filenameFilterList;
     filenameFilterList.append("Any File (*)");
     for (std::vector<DataFileTypeEnum::Enum>::const_iterator iter = dataFileTypes.begin();

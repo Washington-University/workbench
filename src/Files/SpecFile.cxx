@@ -157,7 +157,7 @@ SpecFile::initializeSpecFile()
     this->metadata = new GiftiMetaData();
     
     std::vector<DataFileTypeEnum::Enum> allEnums;
-    DataFileTypeEnum::getAllEnums(allEnums, false, false);
+    DataFileTypeEnum::getAllEnums(allEnums, false);
     
     /*
      * Do surface files first since they need to be loaded before other files

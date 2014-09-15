@@ -126,7 +126,8 @@ CaretFileRemoteDialog::createLocationWidget()
 {
     QStringList filenameFilterList;
     std::vector<DataFileTypeEnum::Enum> dataFileTypes;
-    DataFileTypeEnum::getAllEnums(dataFileTypes);
+    DataFileTypeEnum::getAllEnums(dataFileTypes,
+                                  false);
     
     m_locationCustomRadioButton = new QRadioButton("Custom");
     m_locationStandardRadioButton = new QRadioButton("Standard");

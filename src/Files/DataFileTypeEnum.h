@@ -102,8 +102,7 @@ public:
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
     static void getAllEnums(std::vector<Enum>& allEnums,
-                            const bool includeUnknown = false,
-                            const bool isForDataFileDialog = false);
+                            const bool includeUnknown = false);
 
     static Enum fromQFileDialogFilter(const AString& qFileDialogNameFilter, bool* isValidOut);
     
@@ -130,7 +129,6 @@ private:
                      const AString& guiName,
                      const AString& overlayTypeName,
                      const bool fileIsUsedWithOneStructure,
-                     const bool fileIsOpenedWithDataFileDialog,
                      const AString& fileExtensionOne,
                      const AString& fileExtensionTwo = "",
                      const AString& fileExtensionThree = "");
@@ -172,9 +170,6 @@ private:
     
     /** Is file for use with one structure */
     bool oneStructureFlag;
-    
-    /** File is opened with the data file dialog */
-    bool fileIsOpenedWithDataFileDialog;
 };
 
 #ifdef __DATA_FILE_TYPE_ENUM_DECLARE__
