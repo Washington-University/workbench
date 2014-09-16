@@ -64,7 +64,7 @@ AString CaretMathExpression::getExpressionHelpInfo()
         "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _, but may not take the name of a named constant.  " +
         "Currently, there is only one named constant, PI.  " +
         "The operators are +, -, *, /, ^, >, <, >=, <=, ==, !=, !, &&, ||.  " +
-        "These behave as in C, except that ^ is exponentiation, i.e. pow(x, y), and takes higher precedence than other binary operators (also, '-a^-b^-c' means '-(a^(-(b^-c)))').  " +
+        "These behave as in C, except that ^ is exponentiation, i.e. pow(x, y), and takes higher precedence than other binary operators (also, '-3^-4^-5' means '-(3^(-(4^-5)))').  " +
         "The <=, >=, ==, and != operators are given a small amount of wiggle room, equal to one millionth of the smaller of the absolute values of the values being compared.\n\n" +
         "Comparison and logical operators return 0 or 1, you can do masking with expressions like 'x * (mask > 0)'.  " +
         "For all logical operators, an input is considered true iff it is greater than 0.  " +
