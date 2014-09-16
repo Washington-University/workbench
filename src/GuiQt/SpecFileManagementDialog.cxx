@@ -533,7 +533,6 @@ SpecFileManagementDialog::getDataFileContentFromSpecFile()
             if ( ! sfdf->isSpecFileMember()) {
                 if (sfdf->getCaretDataFile() == NULL) {
                     if (! sfdf->exists()) {
-                        std::cout << "FILE: " << qPrintable(sfdf->getFileName()) << " is not in spec nor loaded." << std::endl;
                         continue;
                     }
                 }
@@ -1807,6 +1806,7 @@ SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
             }
         }
         EventManager::get()->sendEvent(EventDataFileDelete(caretDataFile).getPointer());
+        getDataFileContentFromSpecFile();
         loadSpecFileContentIntoDialog();
         updateGraphicWindowsAndUserInterface();
     }
