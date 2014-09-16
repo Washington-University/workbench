@@ -1004,6 +1004,25 @@ GuiManager::receiveEvent(Event* event)
                     if (overlayEditor->isHidden()) {
                         placeInDefaultLocation = true;
                     }
+                    
+                    /*
+                     * Is the overlay editor requested for a window
+                     * that is not the parent of this overlay editor?
+                     */
+                    if (browserWindow != overlayEditor->parent()) {
+                        /*
+                         * Switch the parent of the overlay editor.
+                         * On Linux, this will cause the overlay editor 
+                         * to be "brought to the front" only when its
+                         * parent is "brought to the front".
+                         * 
+                         * The position must be preserved.
+                         */
+                        const QPoint globalPos = overlayEditor->pos();
+                        overlayEditor->setParent(browserWindow,
+                                                 overlayEditor->windowFlags());
+                        overlayEditor->move(globalPos);
+                    }
                 }
                 
                 overlayEditor->updateDialogContent(overlay);
