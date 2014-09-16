@@ -571,7 +571,7 @@ bool CaretMathExpression::accept(const char& c)
 void CaretMathExpression::expect(const char& c, const int& exprStart)
 {
     CaretAssert(exprStart < m_end);
-    if (!skipWhitespace()) throw CaretException("unexpected end of input while parsing '" + m_input.mid(exprStart) + "'");
+    if (!skipWhitespace()) throw CaretException("unexpected end of input while parsing '" + m_input.mid(exprStart) + "', expected '" + AString(c) + "'");
     if (m_input[m_position] != c) throw CaretException("expected '" + AString(c) + "', got '" + m_input[m_position] + "' while parsing '" + m_input.mid(exprStart, m_position - exprStart + 1) + "'");
     ++m_position;
 }
@@ -869,7 +869,8 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::funcExpr()
                 expect(')', start);
             }
             if ((int)ret->m_arguments.size() != numArgs) throw CaretException("function '" + MathFunctionEnum::toName(myfunc) +
-                                                            "' takes " + AString::number(numArgs) + " arguments, but was given " + AString::number(ret->m_arguments.size()));
+                                                            "' takes " + AString::number(numArgs) + " argument(s), but was given " + AString::number(ret->m_arguments.size()) + ": '" +
+                                                            m_input.mid(start, m_position - start) + "'");
             return ret;
         }
     }
@@ -927,15 +928,21 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::tryLiteral()
     if (!skipWhitespace()) throw CaretException("unexpected end of input, expected operand");//now, try literal
     int litstart = m_position, litend = m_position;
     if (m_input[litend] == '-' || m_input[litend] == '+') ++litend;//allow literals to start with - or + : however, - will not happen, due to unary - (which does that so that -2^-2 works as -(2^(-2))
+    bool havedot = false;
     while (litend < m_end)
     {
         QChar mychar = m_input[litend];
-        if (mychar.isDigit() || mychar == '.')//don't manually test for multiple '.', it is not an operator
+        if (mychar.isDigit() || mychar == '.')//manually test for multiple '.' for better error messages, it can never be correct as a non-literal
         {
             ++litend;
+            if (mychar == '.')
+            {
+                if (havedot) throw CaretException("multiple '.' characters in literal: '" + m_input.mid(litstart, litend - litstart) + "'");
+                havedot = true;
+            }
             continue;
         }
-        if (mychar == 'e' || mychar == 'E') {//scientific notation, don't manually test for multiple 'e'
+        if (mychar == 'e' || mychar == 'E') {//scientific notation, don't manually test for multiple 'e', because '2e-3e' is subtraction of two variables
             ++litend;
             if (litend >= m_end) break;
             if (m_input[litend] == '-' || m_input[litend] == '+') ++litend;//allow + or - after e
