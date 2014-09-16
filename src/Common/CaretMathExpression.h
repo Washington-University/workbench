@@ -22,7 +22,10 @@
 /*LICENSE_END*/
 
 #include "AString.h"
+#include "CaretPointer.h"
 #include "MathFunctionEnum.h"
+
+#include <map>
 #include <vector>
 
 namespace caret {
@@ -34,9 +37,14 @@ class CaretMathExpression
         enum ExprType
         {
             INVALID,
+            OR,
+            AND,
+            EQUAL,
             GREATERLESS,
             ADDSUB,
             MULTDIV,
+            NOT,
+            NEGATE,
             POW,
             FUNC,
             VAR,
@@ -47,33 +55,38 @@ class CaretMathExpression
         AString m_constName;
         double m_constVal;
         int m_varIndex;
-        bool m_negate;
         std::vector<bool> m_invert;//whether it is subtract rather than add, or divide instead of multiply, or less instead of greater
         std::vector<bool> m_inclusive;//whether greater/less includes equals
-        std::vector<MathNode> m_arguments;
-        MathNode();
+        std::vector<CaretPointer<MathNode> > m_arguments;
+        MathNode() { m_type = INVALID; m_function = MathFunctionEnum::INVALID; }
+        MathNode(const ExprType& type) { m_type = type; m_function = MathFunctionEnum::INVALID; }
         double eval(const std::vector<float>& values) const;
         AString toString(const std::vector<AString>& varNames) const;
     };
-    bool parse(MathNode& node, const AString& input, const int& start, const int& end);//will throw, there is no syntax ambiguity that would need to be resolved by a failed call to this
-    bool tryGreaterLess(MathNode& node, const AString& input, const int& start, const int& end);
-    bool tryAddSub(MathNode& node, const AString& input, const int& start, const int& end);
-    bool tryMultDiv(MathNode& node, const AString& input, const int& start, const int& end);
-    bool tryUnaryMinus(MathNode& node, const AString& input, const int& start, const int& end);
-    bool tryPow(MathNode& node, const AString& input, const int& start, const int& end);
-    bool tryParen(MathNode& node, const AString& input, const int& start, const int& end);
-    bool tryFunc(MathNode& node, const AString& input, const int& start, const int& end);
-    bool tryVar(MathNode& node, const AString& input, const int& start, const int& end);
-    bool tryConst(MathNode& node, const AString& input, const int& start, const int& end);
-    MathNode m_root;
-    std::vector<AString> m_varNames;
-    CaretMathExpression();
+    std::map<AString, int> m_varNames;
+    AString m_input;
+    int m_position, m_end;
+    CaretPointer<MathNode> m_root;
+    bool skipWhitespace();
+    bool accept(const char& c);
+    void expect(const char& c, const int& exprStart);
+    CaretPointer<MathNode> orExpr();//hopefully we have enough stack space that we won't overflow without a hundred or so levels of parenthesis/functions/exponents
+    CaretPointer<MathNode> andExpr();
+    CaretPointer<MathNode> equalExpr();
+    CaretPointer<MathNode> greaterLessExpr();
+    CaretPointer<MathNode> addSubExpr();
+    CaretPointer<MathNode> multDivExpr();
+    CaretPointer<MathNode> unaryExpr();//accepts --x,  !!1, !--!-!!PI, etc
+    CaretPointer<MathNode> powExpr();
+    CaretPointer<MathNode> funcExpr();//also parenthesis
+    CaretPointer<MathNode> terminal();//literal, const, variable
+    CaretPointer<MathNode> tryLiteral();//NOTE: does not throw except on early end of input, returns NULL on failure
 public:
     static AString getExpressionHelpInfo();
     static bool getNamedConstant(const AString& name, double& valueOut);
     CaretMathExpression(const AString& expression);
     double evaluate(const std::vector<float>& variableValues) const;
-    const std::vector<AString>& getVarNames() const { return m_varNames; }
+    std::vector<AString> getVarNames() const;
     AString toString() const;//the expression, with a lot of parentheses added
 };
 

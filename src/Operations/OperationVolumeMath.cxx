@@ -75,7 +75,7 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     LevelProgress myProgress(myProgObj);
     AString expression = myParams->getString(1);
     CaretMathExpression myExpr(expression);
-    const vector<AString>& myVarNames = myExpr.getVarNames();
+    vector<AString> myVarNames = myExpr.getVarNames();
     VolumeFile* myVolOut = myParams->getOutputVolume(2);
     const vector<ParameterComponent*>& myVarOpts = *(myParams->getRepeatableParameterInstances(3));
     OptionalParameter* fixNanOpt = myParams->getOptionalParameter(4);

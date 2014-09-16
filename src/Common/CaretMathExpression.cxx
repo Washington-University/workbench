@@ -30,24 +30,32 @@ using namespace std;
 
 CaretMathExpression::CaretMathExpression(const AString& expression)
 {
-    int end = expression.size();
-    if (!parse(m_root, expression, 0, end))
+    m_input = expression;
+    m_position = 0;
+    m_end = m_input.size();
+    m_root = orExpr();
+    if (skipWhitespace())//if we DON'T hit the end of input, there are extra characters - like if the input is "x + 1 $blah"
     {
-        throw CaretException("error parsing expression '" + expression + "'");
+        throw CaretException("extra characters on end of expression input: '" + m_input.mid(m_position) + "'");
     }
     CaretLogInfo("parsed '" + expression + "' as '" + toString() + "'");
 }
 
 double CaretMathExpression::evaluate(const vector<float>& variableValues) const
 {
-    CaretAssert(variableValues.size() >= m_varNames.size());
-    return m_root.eval(variableValues);
+    CaretAssert(variableValues.size() == m_varNames.size());
+    return m_root->eval(variableValues);
 }
 
-CaretMathExpression::MathNode::MathNode()
+vector<AString> CaretMathExpression::getVarNames() const
 {
-    m_type = INVALID;
-    m_negate = false;
+    vector<AString> ret(m_varNames.size());
+    for (map<AString, int>::const_iterator iter = m_varNames.begin(); iter != m_varNames.end(); ++iter)
+    {
+        CaretAssert(iter->second < (int)ret.size());
+        ret[iter->second] = iter->first;
+    }
+    return ret;
 }
 
 AString CaretMathExpression::getExpressionHelpInfo()
@@ -55,14 +63,16 @@ AString CaretMathExpression::getExpressionHelpInfo()
     AString ret = AString("Expressions consist of constants, variables, operators, parentheses, and functions, in infix notation, such as 'exp(-x + 3) * scale'.  ") +
         "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _, but may not take the name of a named constant.  " +
         "Currently, there is only one named constant, PI.  " +
-        "The operators are +, -, *, /, ^, >, <, >=, <=.  These behave as in C, except that ^ is exponentiation, i.e. pow(x, y), and takes higher precedence than the rest.  " +
-        "The <= and >= operators are given a small amount of wiggle room, equal to one millionth of the smaller of the absolute values of the values being compared.\n\n" +
-        "Comparison operators return 0 or 1, you can do masking with expressions like 'x * (mask > 0)'.  " +
+        "The operators are +, -, *, /, ^, >, <, >=, <=, ==, !=, !, &&, ||.  " +
+        "These behave as in C, except that ^ is exponentiation, i.e. pow(x, y), and takes higher precedence than other binary operators (also, '-a^-b^-c' means '-(a^(-(b^-c)))').  " +
+        "The <=, >=, ==, and != operators are given a small amount of wiggle room, equal to one millionth of the smaller of the absolute values of the values being compared.\n\n" +
+        "Comparison and logical operators return 0 or 1, you can do masking with expressions like 'x * (mask > 0)'.  " +
+        "For all logical operators, an input is considered true iff it is greater than 0.  " +
         "The expression '0 < x < 5' is not syntactically wrong, but it will NOT do what is desired, because it is evaluated left to right, i.e. '((0 < x) < 5)', " +
         "which will always return 1, as both possible results of a comparison are less than 5.  A warning is generated if an expression of this type is detected.  " +
-        "Use '(x > 0) * (x < 5)' to get the desired behavior.\n\n" +
+        "Use something like 'x > 0 && x < 5' to get the desired behavior.\n\n" +
         "Whitespace between elements is ignored, ' sin ( 2 * x ) ' is equivalent to 'sin(2*x)', but 's in(2*x)' is an error.  " +
-        "Implied multiplication is not allowed, the expression '2x' will be parsed as a variable, use '2 * x'.  " +
+        "Implied multiplication is not allowed, the expression '2x' will be parsed as a variable.  " +
         "Parentheses are (), do not use [] or {}.  " +
         "Functions require parentheses, the expression 'sin x' is an error.\n\n" +
         "The following functions are supported:\n\n";
@@ -80,17 +90,65 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
     double ret = 0.0;
     switch (m_type)
     {
+        case OR:
+        {
+            int end = (int)m_arguments.size();
+            CaretAssert(end > 1);
+            bool temp = (m_arguments[0]->eval(values) > 0.0);
+            for (int i = 1; i < end; ++i)
+            {
+                if (temp) break;//lazy evaluation
+                temp = (m_arguments[i]->eval(values) > 0.0);//don't need to actually do ||, we already know all the ones to the left are false
+            }
+            ret = temp ? 1.0 : 0.0;
+            break;
+        }
+        case AND:
+        {
+            int end = (int)m_arguments.size();
+            CaretAssert(end > 1);
+            bool temp = (m_arguments[0]->eval(values) > 0.0);
+            for (int i = 1; i < end; ++i)
+            {
+                if (!temp) break;//lazy evaluation
+                temp = (m_arguments[i]->eval(values) > 0.0);//don't need to actually do &&, we already know all the ones to the left are true
+            }
+            ret = temp ? 1.0 : 0.0;
+            break;
+        }
+        case EQUAL:
+        {
+            int end = (int)m_arguments.size();
+            CaretAssert(end > 1);
+            CaretAssert((int)m_invert.size() == end);
+            ret = m_arguments[0]->eval(values);
+            for (int i = 1; i < end; ++i)
+            {
+                double temp = m_arguments[i]->eval(values);
+                float adjust = min(abs(ret), abs(temp)) / 1000000;//because == doesn't always work as expected, include a fudge factor based on the approximate precision of float
+                bool equal = (ret >= m_arguments[i]->eval(values) - adjust) && (ret <= m_arguments[i]->eval(values) + adjust);
+                if (m_invert[i])
+                {
+                    ret = equal ? 0.0 : 1.0;
+                } else {
+                    ret = equal ? 1.0 : 0.0;
+                }
+            }
+            break;
+        }
         case GREATERLESS:
         {
             int end = (int)m_arguments.size();//yes, you can chain < and >, but it will produce a parsing warning, as it evaluates left to right
-            CaretAssert(end > 0);
-            ret = m_arguments[0].eval(values);
+            CaretAssert(end > 1);
+            CaretAssert((int)m_invert.size() == end);
+            CaretAssert((int)m_inclusive.size() == end);
+            ret = m_arguments[0]->eval(values);
             for (int i = 1; i < end; ++i)
             {
-                double temp = m_arguments[i].eval(values);
+                double temp = m_arguments[i]->eval(values);
                 if (m_inclusive[i])
                 {
-                    float adjust = min(abs(ret), abs(temp)) / (1<<20);//because = doesn't always work as expected, include a fudge factor based on the approximate precision of float
+                    float adjust = min(abs(ret), abs(temp)) / 1000000;//because == doesn't always work as expected, include a fudge factor based on the approximate precision of float
                     if (m_invert[i])
                     {
                         ret = (ret <= temp + adjust ? 1.0 : 0.0);//don't trust booleans to cast to 0 and 1, just because
@@ -111,14 +169,16 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
         case ADDSUB:
         {
             int end = (int)m_arguments.size();
-            ret = 0.0;
-            for (int i = 0; i < end; ++i)
+            CaretAssert(end > 1);
+            CaretAssert((int)m_invert.size() == end);
+            ret = m_arguments[0]->eval(values);
+            for (int i = 1; i < end; ++i)
             {
                 if (m_invert[i])
                 {
-                    ret -= m_arguments[i].eval(values);
+                    ret -= m_arguments[i]->eval(values);
                 } else {
-                    ret += m_arguments[i].eval(values);
+                    ret += m_arguments[i]->eval(values);
                 }
             }
             break;
@@ -126,74 +186,80 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
         case MULTDIV:
         {
             int end = (int)m_arguments.size();
-            ret = 1.0;
-            for (int i = 0; i < end; ++i)
+            CaretAssert(end > 1);
+            CaretAssert((int)m_invert.size() == end);
+            ret = m_arguments[0]->eval(values);
+            for (int i = 1; i < end; ++i)
             {
                 if (m_invert[i])
                 {
-                    ret /= m_arguments[i].eval(values);
+                    ret /= m_arguments[i]->eval(values);
                 } else {
-                    ret *= m_arguments[i].eval(values);
+                    ret *= m_arguments[i]->eval(values);
                 }
             }
             break;
         }
+        case NOT:
+            CaretAssert(m_arguments.size() == 1);
+            ret = ((m_arguments[0]->eval(values)) > 0.0) ? 0.0 : 1.0;
+            break;
+        case NEGATE:
+            CaretAssert(m_arguments.size() == 1);
+            ret = -(m_arguments[0]->eval(values));
+            break;
         case POW:
         {
             int end = (int)m_arguments.size();
-            CaretAssert(end > 0);
-            ret = m_arguments[0].eval(values);
-            for (int i = 1; i < end; ++i)
-            {
-                ret = pow(ret, m_arguments[i].eval(values));
-            }
+            CaretAssert(end == 2);//a^b^c always gets parsed into 2 power nodes, because -a^-b is -(a^(-b))
+            ret = pow(m_arguments[0]->eval(values), m_arguments[1]->eval(values));
             break;
         }
         case FUNC:
         {
-            switch (m_function)//this COULD be moved into MathFunctionEnum, but it wouldn't strictly be an enum class then
+            switch (m_function)//this could be (partly) moved into MathFunctionEnum, but it wouldn't strictly be an enum class then
             {
                 case MathFunctionEnum::SIN:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = sin(m_arguments[0].eval(values));
+                    ret = sin(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::COS:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = cos(m_arguments[0].eval(values));
+                    ret = cos(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::TAN:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = tan(m_arguments[0].eval(values));
+                    ret = tan(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::ASIN:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = asin(m_arguments[0].eval(values));
+                    ret = asin(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::ACOS:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = acos(m_arguments[0].eval(values));
+                    ret = acos(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::ATAN:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = atan(m_arguments[0].eval(values));
+                    ret = atan(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::SINH:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = sinh(m_arguments[0].eval(values));
+                    ret = sinh(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::COSH:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = cosh(m_arguments[0].eval(values));
+                    ret = cosh(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::TANH:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = tanh(m_arguments[0].eval(values));
+                    ret = tanh(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::ASINH:
                 {
                     CaretAssert(m_arguments.size() == 1);
                     //ret = asinh(m_arguments[0].eval(values));//will work, and be preferred, when we use c++11, but doesn't work on windows with previous standard
-                    double arg = m_arguments[0].eval(values);
+                    double arg = m_arguments[0]->eval(values);
                     if (arg > 0)
                     {
                         ret = log(arg + sqrt(arg * arg + 1));
@@ -206,7 +272,7 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                 {
                     CaretAssert(m_arguments.size() == 1);
                     //ret = acosh(m_arguments[0].eval(values));
-                    double arg = m_arguments[0].eval(values);
+                    double arg = m_arguments[0]->eval(values);
                     ret = log(arg + sqrt(arg * arg - 1));
                     break;
                 }
@@ -214,38 +280,38 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                 {
                     CaretAssert(m_arguments.size() == 1);
                     //ret = atanh(m_arguments[0].eval(values));
-                    double arg = m_arguments[0].eval(values);
+                    double arg = m_arguments[0]->eval(values);
                     ret = 0.5 * log((1 + arg) / (1 - arg));
                     break;
                 }
                 case MathFunctionEnum::LN:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = log(m_arguments[0].eval(values));
+                    ret = log(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::EXP:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = exp(m_arguments[0].eval(values));
+                    ret = exp(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::LOG:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = log10(m_arguments[0].eval(values));
+                    ret = log10(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::SQRT:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = sqrt(m_arguments[0].eval(values));
+                    ret = sqrt(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::ABS:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = abs(m_arguments[0].eval(values));
+                    ret = abs(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::FLOOR:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = floor(m_arguments[0].eval(values));
+                    ret = floor(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::ROUND:
                 {
                     CaretAssert(m_arguments.size() == 1);
-                    double temp = m_arguments[0].eval(values);//windows doesn't use c99 when compiling c++ earlier than c++11, so implement manually
+                    double temp = m_arguments[0]->eval(values);//windows doesn't use c99 when compiling c++ earlier than c++11, so implement manually
                     if (temp > 0.0)
                     {
                         ret = floor(temp + 0.5);
@@ -256,37 +322,37 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                 }
                 case MathFunctionEnum::CEIL:
                     CaretAssert(m_arguments.size() == 1);
-                    ret = ceil(m_arguments[0].eval(values));
+                    ret = ceil(m_arguments[0]->eval(values));
                     break;
                 case MathFunctionEnum::ATAN2:
                     CaretAssert(m_arguments.size() == 2);
-                    ret = atan2(m_arguments[0].eval(values), m_arguments[1].eval(values));
+                    ret = atan2(m_arguments[0]->eval(values), m_arguments[1]->eval(values));
                     break;
                 case MathFunctionEnum::MIN:
                 {
                     CaretAssert(m_arguments.size() == 2);
-                    ret = m_arguments[0].eval(values);
-                    double other = m_arguments[1].eval(values);
+                    ret = m_arguments[0]->eval(values);
+                    double other = m_arguments[1]->eval(values);
                     if (ret > other) ret = other;
                     break;
                 }
                 case MathFunctionEnum::MAX:
                 {
                     CaretAssert(m_arguments.size() == 2);
-                    ret = m_arguments[0].eval(values);
-                    double other = m_arguments[1].eval(values);
+                    ret = m_arguments[0]->eval(values);
+                    double other = m_arguments[1]->eval(values);
                     if (ret < other) ret = other;
                     break;
                 }
                 case MathFunctionEnum::MOD:
                 {
                     CaretAssert(m_arguments.size() == 2);
-                    double second = m_arguments[1].eval(values);
+                    double second = m_arguments[1]->eval(values);
                     if (second == 0.0)
                     {
                         ret = 0.0;
                     } else {
-                        double first = m_arguments[0].eval(values);
+                        double first = m_arguments[0]->eval(values);
                         ret = first - second * floor(first / second);
                     }
                     break;
@@ -294,9 +360,9 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                 case MathFunctionEnum::CLAMP:
                 {
                     CaretAssert(m_arguments.size() == 3);
-                    ret = m_arguments[0].eval(values);
-                    double low = m_arguments[1].eval(values);
-                    double high = m_arguments[2].eval(values);
+                    ret = m_arguments[0]->eval(values);
+                    double low = m_arguments[1]->eval(values);
+                    double high = m_arguments[2]->eval(values);
                     if (ret < low)
                     {
                         ret = low;
@@ -319,19 +385,13 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
             ret = values[m_varIndex];
             break;
         case CONST:
-            ret = m_constVal;//this should never need negating, but keep the pattern
+            ret = m_constVal;
             break;
         case INVALID:
             CaretAssertMessage(0, "parsing left INVALID MathNode");
             throw CaretException("parsing problem in CaretMathExpression");
-            return 0.0;
     }
-    if (m_negate)
-    {
-        return -ret;
-    } else {
-        return ret;
-    }
+    return ret;
 }
 
 AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varNames) const
@@ -340,27 +400,68 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
     bool addParens = true;
     switch (m_type)
     {
+        case OR:
+        {
+            int end = (int)m_arguments.size();
+            CaretAssert(end > 1);
+            ret = m_arguments[0]->toString(varNames);
+            for (int i = 1; i < end; ++i)
+            {
+                ret += "||" + m_arguments[i]->toString(varNames);
+            }
+            break;
+        }
+        case AND:
+        {
+            int end = (int)m_arguments.size();
+            CaretAssert(end > 1);
+            ret = m_arguments[0]->toString(varNames);
+            for (int i = 1; i < end; ++i)
+            {
+                ret += "&&" + m_arguments[i]->toString(varNames);
+            }
+            break;
+        }
+        case EQUAL:
+        {
+            int end = (int)m_arguments.size();
+            CaretAssert(end > 1);
+            CaretAssert((int)m_invert.size() == end);
+            ret = m_arguments[0]->toString(varNames);
+            for (int i = 1; i < end; ++i)
+            {
+                if (m_invert[i])
+                {
+                    ret += "!=" + m_arguments[i]->toString(varNames);
+                } else {
+                    ret += "==" + m_arguments[i]->toString(varNames);
+                }
+            }
+            break;
+        }
         case GREATERLESS:
         {
             int end = (int)m_arguments.size();
-            CaretAssert(end > 0);
-            ret = m_arguments[0].toString(varNames);
+            CaretAssert(end > 1);
+            CaretAssert((int)m_invert.size() == end);
+            CaretAssert((int)m_inclusive.size() == end);
+            ret = m_arguments[0]->toString(varNames);
             for (int i = 1; i < end; ++i)
             {
                 if (m_inclusive[i])
                 {
                     if (m_invert[i])
                     {
-                        ret += "<=" + m_arguments[i].toString(varNames);
+                        ret += "<=" + m_arguments[i]->toString(varNames);
                     } else {
-                        ret += ">=" + m_arguments[i].toString(varNames);
+                        ret += ">=" + m_arguments[i]->toString(varNames);
                     }
                 } else {
                     if (m_invert[i])
                     {
-                        ret += "<" + m_arguments[i].toString(varNames);
+                        ret += "<" + m_arguments[i]->toString(varNames);
                     } else {
-                        ret += ">" + m_arguments[i].toString(varNames);
+                        ret += ">" + m_arguments[i]->toString(varNames);
                     }
                 }
             }
@@ -369,15 +470,16 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
         case ADDSUB:
         {
             int end = (int)m_arguments.size();
-            CaretAssert(end > 0);
-            ret = m_arguments[0].toString(varNames);
+            CaretAssert(end > 1);
+            CaretAssert((int)m_invert.size() == end);
+            ret = m_arguments[0]->toString(varNames);
             for (int i = 1; i < end; ++i)
             {
                 if (m_invert[i])
                 {
-                    ret += "-" + m_arguments[i].toString(varNames);
+                    ret += "-" + m_arguments[i]->toString(varNames);
                 } else {
-                    ret += "+" + m_arguments[i].toString(varNames);
+                    ret += "+" + m_arguments[i]->toString(varNames);
                 }
             }
             break;
@@ -385,32 +487,41 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
         case MULTDIV:
         {
             int end = (int)m_arguments.size();
-            CaretAssert(end > 0);
-            ret = m_arguments[0].toString(varNames);
+            CaretAssert(end > 1);
+            CaretAssert((int)m_invert.size() == end);
+            ret = m_arguments[0]->toString(varNames);
             for (int i = 1; i < end; ++i)
             {
                 if (m_invert[i])
                 {
-                    ret += "/" + m_arguments[i].toString(varNames);
+                    ret += "/" + m_arguments[i]->toString(varNames);
                 } else {
-                    ret += "*" + m_arguments[i].toString(varNames);
+                    ret += "*" + m_arguments[i]->toString(varNames);
                 }
             }
             break;
         }
+        case NOT:
+            CaretAssert(m_arguments.size() == 1);
+            ret = "!" + m_arguments[0]->toString(varNames);
+            break;
+        case NEGATE:
+            CaretAssert(m_arguments.size() == 1);
+            ret = "-" + m_arguments[0]->toString(varNames);
+            break;
         case POW:
             CaretAssert(m_arguments.size() == 2);
-            ret = m_arguments[0].toString(varNames) + "^" + m_arguments[1].toString(varNames);
+            ret = m_arguments[0]->toString(varNames) + "^" + m_arguments[1]->toString(varNames);
             break;
         case FUNC:
         {
             addParens = false;
             int end = (int)m_arguments.size();
-            CaretAssert(end > 0);
-            ret = MathFunctionEnum::toName(m_function) + "(" + m_arguments[0].toString(varNames);
+            ret = MathFunctionEnum::toName(m_function) + "(";
+            if (end > 0) ret += m_arguments[0]->toString(varNames);//allow for functions that take 0 arguments
             for (int i = 1; i < end; ++i)
             {
-                ret += "," + m_arguments[i].toString(varNames);
+                ret += "," + m_arguments[i]->toString(varNames);
             }
             ret += ")";
             break;
@@ -430,547 +541,415 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             }
             break;
         case INVALID:
-            ret = "???";
+            CaretAssertMessage(0, "toString called on invalid MathNode");
+            throw CaretException("parsing problem in CaretMathExpression");
     }
-    if (m_negate) addParens = true;
     if (addParens) ret = "(" + ret + ")";//parenthesize almost everything
-    if (m_negate)
-    {
-        ret = "(-" + ret + ")";
-    }
     return ret;
 }
 
 AString CaretMathExpression::toString() const
 {
-    return m_root.toString(m_varNames);
+    return m_root->toString(getVarNames());
 }
 
-bool CaretMathExpression::parse(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
+bool CaretMathExpression::skipWhitespace()//return false if end of input
 {
-    CaretAssert(start >= 0 && start <= end && end <= input.size());
-    if (end - start == 0) return false;
-    if (tryConst(node, input, start, end)) return true;
-    if (tryGreaterLess(node, input, start, end)) return true;
-    if (tryAddSub(node, input, start, end)) return true;
-    if (tryMultDiv(node, input, start, end)) return true;
-    if (tryUnaryMinus(node, input, start, end)) return true;
-    if (tryPow(node, input, start, end)) return true;
-    if (tryParen(node, input, start, end)) return true;
-    if (tryFunc(node, input, start, end)) return true;
-    if (tryVar(node, input, start, end)) return true;
-    throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-    return false;
+    while (m_position < m_end && m_input[m_position].isSpace()) ++m_position;
+    return m_position < m_end;
 }
-
-bool CaretMathExpression::tryUnaryMinus(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
+bool CaretMathExpression::accept(const char& c)
 {
-    int mystart = start;
-    while (mystart < end && input[mystart].isSpace()) ++mystart;//trim whitespace
-    if (mystart >= end) return false;
-    if (input[mystart] != '-') return false;
-    node.m_negate = !node.m_negate;//flip the sign and recurse without generating a new node, automatically collapse double or more negations in parenthesis, but don't allow "--x"
-    if (tryPow(node, input, mystart + 1, end)) return true;
-    if (tryParen(node, input, mystart + 1, end)) return true;
-    if (tryFunc(node, input, mystart + 1, end)) return true;
-    if (tryVar(node, input, mystart + 1, end)) return true;
-    throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");//since first character is a -, failure to parse any of these is fatal, generate a generic error message rather than letting tryvar fail on it in parse
-    return false;
-}
-
-bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, const caret::AString& input, const int& start, const int& end)
-{
-    node.m_arguments.clear();//reset the node, in case it was previously partially attempted by something else
-    node.m_invert.clear();
-    node.m_inclusive.clear();
-    int parenDepth = 0;
-    bool ret = false;
-    bool invertElement = false;//these initial values don't actually matter, they aren't used
-    bool inclusive = false;
-    int nextStart = start;
-    int nextEnd = start;
-    for (int i = start; i < end; ++i)
+    if (!skipWhitespace()) return false;//end of input
+    if (m_input[m_position] == c)
     {
-        if (parenDepth == 0)
-        {
-            switch (input[i].toAscii())
-            {
-                case '<':
-                    ret = true;//prepare to say successful parse, because we found a less than operator
-                    nextEnd = i;
-                    node.m_arguments.push_back(MathNode());
-                    node.m_invert.push_back(invertElement);
-                    node.m_inclusive.push_back(inclusive);
-                    ++i;//now, search for an = sign
-                    while (i < end && input[i].isSpace()) ++i;
-                    if (i < end && input[i] == '=')
-                    {
-                        inclusive = true;
-                    } else {
-                        inclusive = false;
-                        --i;
-                    }
-                    invertElement = true;//inversion applies to the element AFTER the less than sign, this is the element BEFORE it
-                    if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess on the element
-                    {
-                        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-                    }
-                    nextStart = i + 1;
-                    break;
-                case '>':
-                    ret = true;//prepare to say successful parse, because we found a greather than operator
-                    nextEnd = i;
-                    node.m_arguments.push_back(MathNode());
-                    node.m_invert.push_back(invertElement);
-                    node.m_inclusive.push_back(inclusive);
-                    ++i;//now, search for an = sign
-                    while (i < end && input[i].isSpace()) ++i;
-                    if (i < end && input[i] == '=')
-                    {
-                        inclusive = true;
-                    } else {
-                        inclusive = false;
-                        --i;
-                    }
-                    invertElement = false;//inversion applies to the element AFTER the greater than sign, this is the element BEFORE it
-                    if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess on the element
-                    {
-                        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-                    }
-                    nextStart = i + 1;
-                    break;
-                case '('://NOTE: do not test for ')', so that we generate (hopefully) more specific error messages about unbalanced parens
-                    ++parenDepth;
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            switch (input[i].toAscii())
-            {
-                case '(':
-                    ++parenDepth;
-                    break;
-                case ')':
-                    --parenDepth;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    if (ret)//don't try to parse the inside if we didn't find a greater or less operator, to avoid infinite recursion
-    {
-        node.m_arguments.push_back(MathNode());//and parse the final element
-        node.m_invert.push_back(invertElement);
-        node.m_inclusive.push_back(inclusive);
-        if (!parse(node.m_arguments.back(), input, nextStart, end))//NOTE: this uneccessarily does tryGreaterLess on the element
-        {
-            throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-        }
-        if (node.m_arguments.size() != 2)
-        {
-            CaretLogWarning("WARNING: expression '" + input.mid(start, end - start) + "' does a comparison on the result of a comparison, this is not likely to be useful.  " +
-                            "To test whether a value lies between two values, use ((x > low) * (x < high)).");
-        }
-        node.m_type = MathNode::GREATERLESS;
-    }
-    return ret;
-}
-
-bool CaretMathExpression::tryAddSub(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
-{
-    node.m_arguments.clear();//reset the node, in case it was previously partially attempted by something else
-    node.m_invert.clear();
-    int parenDepth = 0;
-    bool ret = false;
-    bool afterOp = true;
-    bool invertElement = false;
-    int nextStart = start;
-    int nextEnd = start;
-    for (int i = start; i < end; ++i)
-    {
-        if (parenDepth == 0)
-        {
-            if (input[i].isSpace()) continue;//ignore whitespace
-            switch (input[i].toAscii())
-            {
-                case '-':
-                    if (afterOp)//allow unary minus after operation
-                    {
-                        afterOp = false;
-                        break;
-                    }//otherwise, we have a new subelement to try to parse
-                    afterOp = true;
-                    ret = true;//prepare to say successful parse, because we found a minus operator
-                    nextEnd = i;
-                    node.m_arguments.push_back(MathNode());
-                    node.m_invert.push_back(invertElement);
-                    invertElement = true;//negation applies to the element AFTER the minus sign, this is the element BEFORE it
-                    if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess and tryAddSub on the element
-                    {
-                        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-                    }
-                    nextStart = i + 1;
-                    break;
-                case '+':
-                    if (afterOp)//allow + as part of a constant, ie (+13.6), let tryConst sort it out
-                    {
-                        afterOp = false;
-                        break;
-                    }
-                    afterOp = true;
-                    ret = true;//prepare to say successful parse, because we found a plus operator
-                    nextEnd = i;
-                    node.m_arguments.push_back(MathNode());
-                    node.m_invert.push_back(invertElement);
-                    invertElement = false;//negation applies to the element AFTER the plus sign, this is the element BEFORE it
-                    if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess and tryAddSub on the element
-                    {
-                        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-                    }
-                    nextStart = i + 1;
-                    break;
-                case '*':
-                case '/':
-                case '^':
-                case '<':
-                case '=':
-                    afterOp = true;//check for unary negation/negative constant after other operators
-                    break;
-                case '('://NOTE: we do not test for ')' in order to generate (hopefully) more specific error messages about unbalanced parens
-                    afterOp = false;
-                    ++parenDepth;
-                    break;
-                case ' ':
-                    break;//spaces don't change state
-                default:
-                    afterOp = false;
-                    break;
-            }
-        } else {
-            switch (input[i].toAscii())
-            {
-                case '(':
-                    ++parenDepth;
-                    break;
-                case ')':
-                    --parenDepth;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    if (ret)//don't try to parse the inside if we didn't find a plus or minus operator, to avoid infinite recursion
-    {
-        node.m_arguments.push_back(MathNode());//and parse the final element
-        node.m_invert.push_back(invertElement);
-        if (!parse(node.m_arguments.back(), input, nextStart, end))//NOTE: this uneccessarily does tryAddSub on the element
-        {
-            throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-        }
-        node.m_type = MathNode::ADDSUB;
-    }
-    return ret;
-}
-
-bool CaretMathExpression::tryMultDiv(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
-{
-    node.m_arguments.clear();//reset the node, in case it was previously partially attempted by something else
-    node.m_invert.clear();
-    int parenDepth = 0;
-    bool ret = false;
-    bool invertElement = false;
-    int nextStart = start;
-    int nextEnd = start;
-    for (int i = start; i < end; ++i)
-    {
-        if (parenDepth == 0)
-        {
-            switch (input[i].toAscii())
-            {
-                case '/':
-                    ret = true;//prepare to say successful parse, because we found a divide operator
-                    nextEnd = i;
-                    node.m_arguments.push_back(MathNode());
-                    node.m_invert.push_back(invertElement);
-                    invertElement = true;//negation applies to the element AFTER the divide sign, this is the element BEFORE it
-                    if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess, tryAddSub and tryMultDiv on the element
-                    {
-                        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-                    }
-                    nextStart = i + 1;
-                    break;
-                case '*':
-                    ret = true;//prepare to say successful parse, because we found a times operator
-                    nextEnd = i;
-                    node.m_arguments.push_back(MathNode());
-                    node.m_invert.push_back(invertElement);
-                    invertElement = false;//negation applies to the element AFTER the multiply sign, this is the element BEFORE it
-                    if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess, tryAddSub and tryMultDiv on the element
-                    {
-                        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-                    }
-                    nextStart = i + 1;
-                    break;
-                case '('://NOTE: do not test for ')', so that we generate (hopefully) more specific error messages about unbalanced parens
-                    ++parenDepth;
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            switch (input[i].toAscii())
-            {
-                case '(':
-                    ++parenDepth;
-                    break;
-                case ')':
-                    --parenDepth;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    if (ret)//don't try to parse the inside if we didn't find a times or divide operator, to avoid infinite recursion
-    {
-        node.m_arguments.push_back(MathNode());//and parse the final element
-        node.m_invert.push_back(invertElement);
-        if (!parse(node.m_arguments.back(), input, nextStart, end))//NOTE: this uneccessarily does tryAddSub and tryMultDiv on the element
-        {
-            throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-        }
-        node.m_type = MathNode::MULTDIV;
-    }
-    return ret;
-}
-
-bool CaretMathExpression::tryPow(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
-{
-    node.m_arguments.clear();//reset the node, in case it was previously partially attempted by something else
-    int parenDepth = 0;
-    bool ret = false;
-    int nextStart = start;
-    int nextEnd = start;
-    for (int i = start; i < end; ++i)
-    {
-        if (parenDepth == 0)
-        {
-            switch (input[i].toAscii())
-            {
-                case '^':
-                    ret = true;//prepare to say successful parse, because we found an exponentiation operator
-                    nextEnd = i;
-                    node.m_arguments.push_back(MathNode());
-                    if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryAddSub and tryMultDiv on the element
-                    {
-                        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-                    }
-                    nextStart = i + 1;
-                    break;
-                case '('://NOTE: do not test for ')', so that we generate (hopefully) more specific error messages about unbalanced parens
-                    ++parenDepth;
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            switch (input[i].toAscii())
-            {
-                case '(':
-                    ++parenDepth;
-                    break;
-                case ')':
-                    --parenDepth;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    if (ret)//don't try to parse the inside if we didn't find an exponentiation operator, to avoid infinite recursion
-    {
-        node.m_arguments.push_back(MathNode());//and parse the final element
-        if (!parse(node.m_arguments.back(), input, nextStart, end))//NOTE: this uneccessarily does tryAddSub and tryMultDiv on the element
-        {
-            throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-        }
-        node.m_type = MathNode::POW;
-    }
-    return ret;
-}
-
-bool CaretMathExpression::tryParen(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
-{
-    int mystart = start;
-    while (mystart < end && input[mystart].isSpace()) ++mystart;//skip whitespace
-    if (mystart >= end) return false;
-    if (input[mystart] != '(') return false;//all operators have already been parsed out
-    int myend = mystart + 1;
-    bool found = false;
-    int parendepth = 0;
-    while (!found && myend < end)
-    {
-        if (parendepth == 0)
-        {
-            switch (input[myend].toAscii())
-            {
-                case '(':
-                    ++parendepth;
-                    break;
-                case ')':
-                    found = true;
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            switch (input[myend].toAscii())
-            {
-                case '(':
-                    ++parendepth;
-                    break;
-                case ')':
-                    --parendepth;
-                    break;
-                default:
-                    break;
-            }
-        }
-        ++myend;
-    }
-    if (!found) throw CaretException("missing close parenthesis in expression '" + input.mid(start, end - start) + "'");//so anything else here is an error
-    for (int i = myend; i < end; ++i)
-    {
-        if (!input[i].isSpace()) throw CaretException("trailing characters after close parenthesis in expression '" + input.mid(start, end - start));
-    }
-    if (!parse(node, input, mystart + 1, myend - 1))
-    {
-        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-    }
-    return true;
-}
-
-bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
-{
-    node.m_arguments.clear();//reset the node, in case it was previously partially attempted by something else
-    int firstParen = input.indexOf("(", start);
-    if (firstParen <= start || firstParen >= end) return false;//catch -1 and first character (, and going past the current substring
-    AString funcName = input.mid(start, firstParen - start).trimmed();
-    if (funcName.size() == 0) return false;//if there are only spaces before the paren, return false to generate the more generic error
-    bool ok = false;
-    MathFunctionEnum::Enum myFunc = MathFunctionEnum::fromName(funcName, &ok);
-    if (!ok) throw CaretException("unknown function: '" + funcName + "'");//since we know there are nonspace characters, throw instead of returning false, to give a specific error message
-    int numArgs = 0;
-    switch(myFunc)
-    {
-        case MathFunctionEnum::SIN:
-        case MathFunctionEnum::COS:
-        case MathFunctionEnum::TAN:
-        case MathFunctionEnum::ASIN:
-        case MathFunctionEnum::ACOS:
-        case MathFunctionEnum::ATAN:
-        case MathFunctionEnum::SINH:
-        case MathFunctionEnum::COSH:
-        case MathFunctionEnum::TANH:
-        case MathFunctionEnum::ASINH:
-        case MathFunctionEnum::ACOSH:
-        case MathFunctionEnum::ATANH:
-        case MathFunctionEnum::LN:
-        case MathFunctionEnum::EXP:
-        case MathFunctionEnum::LOG:
-        case MathFunctionEnum::SQRT:
-        case MathFunctionEnum::ABS:
-        case MathFunctionEnum::FLOOR:
-        case MathFunctionEnum::ROUND:
-        case MathFunctionEnum::CEIL:
-            numArgs = 1;
-            break;
-        case MathFunctionEnum::ATAN2:
-        case MathFunctionEnum::MIN:
-        case MathFunctionEnum::MAX:
-        case MathFunctionEnum::MOD:
-            numArgs = 2;
-            break;
-        case MathFunctionEnum::CLAMP:
-            numArgs = 3;
-            break;
-        case MathFunctionEnum::INVALID://this should not happen
-            return false;
-    }
-    node.m_arguments.clear();//reset the node, in case it was previously partially attempted by something else
-    int parenDepth = 0;
-    int nextStart = firstParen + 1;//we are now committed to the function, don't return false, but throw instead, there is no other way to parse this string
-    int nextEnd = nextStart;
-    for (int i = firstParen + 1; i < end; ++i)
-    {
-        if (parenDepth == 0)
-        {
-            switch (input[i].toAscii())
-            {
-                case ',':
-                    nextEnd = i;
-                    if ((int)(node.m_arguments.size() + 2) > numArgs) throw CaretException("function '" + funcName + "' takes " + AString::number(numArgs) + " arguments, error parsing '" +
-                                                                                        input.mid(start, end - start) + "'");
-                    node.m_arguments.push_back(MathNode());
-                    if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))
-                    {
-                        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-                    }
-                    nextStart = i + 1;
-                    break;
-                case '(':
-                    ++parenDepth;
-                    break;
-                case ')':
-                    nextEnd = i;
-                    if ((int)(node.m_arguments.size() + 1) != numArgs) throw CaretException("function '" + funcName + "' takes " + AString::number(numArgs) + " arguments, error parsing '" +
-                                                                                        input.mid(start, end - start) + "'");
-                    for (int j = i + 1; j < end; ++j) if (!input[j].isSpace()) throw CaretException("trailing characters on function expression '" +
-                                                                                            input.mid(start, end - start) + "'");
-                    node.m_arguments.push_back(MathNode());
-                    if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))
-                    {
-                        throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
-                    }
-                    node.m_type = MathNode::FUNC;
-                    node.m_function = myFunc;
-                    return true;
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            switch (input[i].toAscii())
-            {
-                case '(':
-                    ++parenDepth;
-                    break;
-                case ')':
-                    --parenDepth;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    throw CaretException("missing close parenthesis in function expression '" + input.mid(start, end - start) + "'");
-    return false;
-}
-
-bool CaretMathExpression::tryConst(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
-{
-    node.m_arguments.clear();
-    bool ok = false;
-    node.m_constVal = input.mid(start, end - start).trimmed().toDouble(&ok);
-    if (ok)
-    {
-        node.m_type = MathNode::CONST;
+        ++m_position;
         return true;
     }
     return false;
+}
+void CaretMathExpression::expect(const char& c, const int& exprStart)
+{
+    CaretAssert(exprStart < m_end);
+    if (!skipWhitespace()) throw CaretException("unexpected end of input while parsing '" + m_input.mid(exprStart) + "'");
+    if (m_input[m_position] != c) throw CaretException("expected '" + AString(c) + "', got '" + m_input[m_position] + "' while parsing '" + m_input.mid(exprStart, m_position - exprStart + 1) + "'");
+    ++m_position;
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::orExpr()
+{
+    int start = m_position;//for error reporting
+    CaretPointer<MathNode> temp = andExpr();
+    if (accept('|'))
+    {
+        CaretPointer<MathNode> ret(new MathNode(MathNode::OR));
+        ret->m_arguments.push_back(temp);
+        do
+        {
+            expect('|', start);
+            ret->m_arguments.push_back(andExpr());
+        } while (accept('|'));
+        return ret;
+    }
+    return temp;
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::andExpr()
+{
+    int start = m_position;//for error reporting
+    CaretPointer<MathNode> temp = equalExpr();
+    if (accept('&'))
+    {
+        CaretPointer<MathNode> ret(new MathNode(MathNode::AND));
+        ret->m_arguments.push_back(temp);
+        do
+        {
+            expect('&', start);
+            ret->m_arguments.push_back(equalExpr());
+        } while (accept('&'));
+        return ret;
+    }
+    return temp;
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::equalExpr()
+{
+    int start = m_position;//for error reporting
+    CaretPointer<MathNode> temp = greaterLessExpr();
+    bool good = false, invert;//means not equal
+    if (accept('='))
+    {
+        good = true;
+        invert = false;
+    } else if (accept('!')) {
+        good = true;
+        invert = true;
+    }
+    if (good)
+    {
+        CaretPointer<MathNode> ret(new MathNode(MathNode::EQUAL));
+        ret->m_arguments.push_back(temp);
+        ret->m_invert.push_back(false);//first one isn't used, they apply to the operator to the left of the argument
+        do
+        {
+            expect('=', start);
+            ret->m_arguments.push_back(greaterLessExpr());
+            ret->m_invert.push_back(invert);
+            good = false;
+            if (accept('='))
+            {
+                good = true;
+                invert = false;
+            } else if (accept('!')) {
+                good = true;
+                invert = true;
+            }
+        } while (good);
+        if (ret->m_arguments.size() > 2)
+        {
+            CaretLogWarning("expression '" + m_input.mid(start, m_position - start) + "' will do equality comparison left to right");
+        }
+        return ret;
+    }
+    return temp;
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::greaterLessExpr()
+{
+    int start = m_position;//for error reporting
+    CaretPointer<MathNode> temp = addSubExpr();
+    bool good = false, invert, inclusive = false;//invert means less than
+    if (accept('>'))
+    {
+        good = true;
+        invert = false;
+    } else if (accept('<')) {
+        good = true;
+        invert = true;
+    }
+    if (good && accept('=')) inclusive = true;
+    if (good)
+    {
+        CaretPointer<MathNode> ret(new MathNode(MathNode::GREATERLESS));
+        ret->m_arguments.push_back(temp);
+        ret->m_invert.push_back(false);//first one isn't used, they apply to the operator to the left of the argument
+        ret->m_inclusive.push_back(false);//ditto
+        do
+        {
+            ret->m_arguments.push_back(addSubExpr());
+            ret->m_invert.push_back(invert);
+            ret->m_inclusive.push_back(inclusive);
+            good = false;
+            inclusive = false;
+            if (accept('>'))
+            {
+                good = true;
+                invert = false;
+            } else if (accept('<')) {
+                good = true;
+                invert = true;
+            }
+            if (good && accept('=')) inclusive = true;
+        } while (good);
+        if (ret->m_arguments.size() > 2)
+        {
+            CaretLogWarning("expression '" + m_input.mid(start, m_position - start) + "' will do inequality comparison left to right");
+        }
+        return ret;
+    }
+    return temp;
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::addSubExpr()
+{
+    CaretPointer<MathNode> temp = multDivExpr();
+    bool good = false, invert;//means subtract
+    if (accept('+'))
+    {
+        good = true;
+        invert = false;
+    } else if (accept('-')) {
+        good = true;
+        invert = true;
+    }
+    if (good)
+    {
+        CaretPointer<MathNode> ret(new MathNode(MathNode::ADDSUB));
+        ret->m_arguments.push_back(temp);
+        ret->m_invert.push_back(false);//first one isn't used, they apply to the operator to the left of the argument
+        do
+        {
+            ret->m_arguments.push_back(multDivExpr());
+            ret->m_invert.push_back(invert);
+            good = false;
+            if (accept('+'))
+            {
+                good = true;
+                invert = false;
+            } else if (accept('-')) {
+                good = true;
+                invert = true;
+            }
+        } while (good);
+        return ret;
+    }
+    return temp;
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::multDivExpr()
+{
+    CaretPointer<MathNode> temp = unaryExpr();
+    bool good = false, invert;//means divide
+    if (accept('*'))
+    {
+        good = true;
+        invert = false;
+    } else if (accept('/')) {
+        good = true;
+        invert = true;
+    }
+    if (good)
+    {
+        CaretPointer<MathNode> ret(new MathNode(MathNode::MULTDIV));
+        ret->m_arguments.push_back(temp);
+        ret->m_invert.push_back(false);//first one isn't used, they apply to the operator to the left of the argument
+        do
+        {
+            ret->m_arguments.push_back(unaryExpr());
+            ret->m_invert.push_back(invert);
+            good = false;
+            if (accept('*'))
+            {
+                good = true;
+                invert = false;
+            } else if (accept('/')) {
+                good = true;
+                invert = true;
+            }
+        } while (good);
+        return ret;
+    }
+    return temp;
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::unaryExpr()
+{
+    CaretPointer<MathNode> ret;
+    if (accept('-'))
+    {
+        ret.grabNew(new MathNode(MathNode::NEGATE));
+        ret->m_arguments.push_back(unaryExpr());//allow -----x and other silliness, because it is more complicated to try to prevent it
+        return ret;
+    } else if (accept('!')) {
+        ret.grabNew(new MathNode(MathNode::NOT));
+        ret->m_arguments.push_back(unaryExpr());//similarly, !!!!x...and !!--!---!!!!-!!-!!!1, etc
+        return ret;
+    } else if (accept('+')) {//unary plus does nothing
+        return unaryExpr();//this is not infinitely recursive, accept() removes a char of input
+    }
+    return powExpr();
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::powExpr()
+{
+    CaretPointer<MathNode> temp = funcExpr();
+    if (accept('^'))
+    {
+        CaretPointer<MathNode> ret(new MathNode(MathNode::POW));
+        ret->m_arguments.push_back(temp);
+        ret->m_arguments.push_back(unaryExpr());//because -x^y is -(x^y), but x^-y is x^(-y)
+        return ret;
+    }
+    return temp;
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::funcExpr()
+{
+    int start = m_position;
+    if (accept('('))
+    {
+        CaretPointer<MathNode> ret = orExpr();
+        expect(')', start);
+        return ret;
+    }//and now a non-predictive bit - checking for valid function name
+    int funcnameEnd = m_input.indexOf('(', m_position);
+    if (funcnameEnd != -1)
+    {
+        bool ok = false;
+        MathFunctionEnum::Enum myfunc = MathFunctionEnum::fromName(m_input.mid(m_position, funcnameEnd - m_position).trimmed(), &ok);
+        if (ok)
+        {
+            int numArgs = -1;
+            switch(myfunc)
+            {
+                case MathFunctionEnum::SIN:
+                case MathFunctionEnum::COS:
+                case MathFunctionEnum::TAN:
+                case MathFunctionEnum::ASIN:
+                case MathFunctionEnum::ACOS:
+                case MathFunctionEnum::ATAN:
+                case MathFunctionEnum::SINH:
+                case MathFunctionEnum::COSH:
+                case MathFunctionEnum::TANH:
+                case MathFunctionEnum::ASINH:
+                case MathFunctionEnum::ACOSH:
+                case MathFunctionEnum::ATANH:
+                case MathFunctionEnum::LN:
+                case MathFunctionEnum::EXP:
+                case MathFunctionEnum::LOG:
+                case MathFunctionEnum::SQRT:
+                case MathFunctionEnum::ABS:
+                case MathFunctionEnum::FLOOR:
+                case MathFunctionEnum::ROUND:
+                case MathFunctionEnum::CEIL:
+                    numArgs = 1;
+                    break;
+                case MathFunctionEnum::ATAN2:
+                case MathFunctionEnum::MIN:
+                case MathFunctionEnum::MAX:
+                case MathFunctionEnum::MOD:
+                    numArgs = 2;
+                    break;
+                case MathFunctionEnum::CLAMP:
+                    numArgs = 3;
+                    break;
+                case MathFunctionEnum::INVALID://this should not happen
+                    CaretAssert(false);
+            }
+            CaretPointer<MathNode> ret(new MathNode(MathNode::FUNC));
+            ret->m_function = myfunc;
+            m_position = funcnameEnd + 1;//skip the ( of the function
+            if (!accept(')'))//zero arguments case
+            {
+                ret->m_arguments.push_back(orExpr());
+                while (accept(','))
+                {
+                    ret->m_arguments.push_back(orExpr());
+                }
+                expect(')', start);
+            }
+            if ((int)ret->m_arguments.size() != numArgs) throw CaretException("function '" + MathFunctionEnum::toName(myfunc) +
+                                                            "' takes " + AString::number(numArgs) + " arguments, but was given " + AString::number(ret->m_arguments.size()));
+            return ret;
+        }
+    }
+    return terminal();//if it isn't parenthesis or a function, the only thing left is terminal
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::terminal()
+{
+    CaretPointer<MathNode> ret = tryLiteral();//try literal first, our relaxed rules for variable names overlap with integers
+    if (ret != NULL) return ret;
+    if (!skipWhitespace()) throw CaretException("unexpected end of input, expected operand");//now, try named constant/variable
+    int varEnd = m_position;
+    bool onlydigits = true;
+    while (varEnd < m_end)
+    {
+        QChar thisChar = m_input[varEnd];//allow letters, numbers, and underscore
+        if (!thisChar.isLetterOrNumber() && thisChar != '_')
+        {
+            break;
+        }
+        if (!thisChar.isDigit()) onlydigits = false;//if there are only digits, this is not a variable, tryLiteral failed on something that was intended to be a literal
+        ++varEnd;
+    }
+    double constVal = 0.0f;
+    AString identifier = m_input.mid(m_position, varEnd - m_position);
+    if (identifier.size() == 0)//hit an invalid character or end of input before getting any valid characters
+    {//figure out why we stopped, give appropriate error
+        if (varEnd >= m_end) throw CaretException("unexpected end of input, expected operand");
+        throw CaretException("unexpected character '" + AString(m_input[varEnd]) + "' at beginning of operand");//if it fails for all prefix unary, parens, function, literal, variable, then this character can never start an operand
+    }
+    if (onlydigits) throw CaretException("error parsing literal value beginning with '" + identifier + "'");
+    m_position = varEnd;
+    if (getNamedConstant(identifier, constVal))
+    {
+        ret.grabNew(new MathNode(MathNode::CONST));
+        ret->m_constName = identifier;
+        ret->m_constVal = constVal;
+        return ret;
+    }
+    ret.grabNew(new MathNode(MathNode::VAR));
+    map<AString, int>::const_iterator iter = m_varNames.find(identifier);
+    if (iter == m_varNames.end())
+    {
+        int index = (int)m_varNames.size();
+        m_varNames.insert(make_pair(identifier, index));
+        ret->m_varIndex = index;
+    } else {
+        ret->m_varIndex = iter->second;
+    }
+    return ret;
+}
+
+CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::tryLiteral()
+{
+    if (!skipWhitespace()) throw CaretException("unexpected end of input, expected operand");//now, try literal
+    int litstart = m_position, litend = m_position;
+    if (m_input[litend] == '-' || m_input[litend] == '+') ++litend;//allow literals to start with - or + : however, - will not happen, due to unary - (which does that so that -2^-2 works as -(2^(-2))
+    while (litend < m_end)
+    {
+        QChar mychar = m_input[litend];
+        if (mychar.isDigit() || mychar == '.')//don't manually test for multiple '.', it is not an operator
+        {
+            ++litend;
+            continue;
+        }
+        if (mychar == 'e' || mychar == 'E') {//scientific notation, don't manually test for multiple 'e'
+            ++litend;
+            if (litend >= m_end) break;
+            if (m_input[litend] == '-' || m_input[litend] == '+') ++litend;//allow + or - after e
+            continue;
+        }//spaces are not allowed inside literals
+        break;//yes, break at the end of a while loop - anything we don't recognize as valid ends the loop
+    }
+    bool ok = false;
+    double litVal = m_input.mid(litstart, litend - litstart).toDouble(&ok);
+    if (!ok) return CaretPointer<MathNode>();
+    m_position = litend;
+    CaretPointer<MathNode> ret(new MathNode(MathNode::CONST));
+    ret->m_constVal = litVal;
+    return ret;
 }
 
 bool CaretMathExpression::getNamedConstant(const AString& name, double& valueOut)
@@ -981,53 +960,4 @@ bool CaretMathExpression::getNamedConstant(const AString& name, double& valueOut
         return true;
     }
     return false;//presumably we will have more named constants later
-}
-
-bool CaretMathExpression::tryVar(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
-{
-    node.m_arguments.clear();
-    AString varName = input.mid(start, end - start).trimmed();
-    int numChars = varName.size();
-    if (numChars == 0) return false;
-    for (int i = 0; i < numChars; ++i)
-    {
-        char inchar = varName[i].toAscii();
-        switch (inchar)
-        {
-            case '<':
-            case '>':
-            case '+':
-            case '-':
-            case '*':
-            case '/':
-            case '^':
-            case '(':
-            case ')'://these shouldn't happen, tryVar comes last, so just return false to generate the generic error
-                //throw CaretException("found operator character in tryVar for '" + input.mid(start, end - start) + "'");
-                return false;
-            default:
-                break;
-        }//allow a-z, A-Z, 0-9, _
-        if ((inchar < 'a' || inchar > 'z') && (inchar < 'A' || inchar > 'Z') && (inchar < '0' || inchar > '9') &&
-            inchar != '_')
-        {
-            //throw CaretException(AString("the character '") + inchar + "' is not allowed in variable name '" + input.mid(start, end - start) + "'");//instead of returning false, since we know tryVar is last
-            return false;//calling something like '11,000' a variable is likely to be confusing, so again, just generate a generic error
-        }
-    }
-    if (getNamedConstant(varName, node.m_constVal))
-    {
-        node.m_type = MathNode::CONST;
-        node.m_constName = varName;
-        return true;
-    }
-    int i;
-    for (i = 0; i < (int)m_varNames.size(); ++i)
-    {
-        if (varName == m_varNames[i]) break;
-    }
-    if (i == (int)m_varNames.size()) m_varNames.push_back(varName);
-    node.m_varIndex = i;
-    node.m_type = MathNode::VAR;
-    return true;
 }

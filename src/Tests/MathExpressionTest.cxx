@@ -32,10 +32,10 @@ MathExpressionTest::MathExpressionTest(const AString& identifier) : TestInterfac
 
 void MathExpressionTest::execute()
 {
-    CaretMathExpression myExpr(" sin ( - yip * 5 ) + x ^ 3 * ( clamp(1, 3, 5) + 2 ) ");//clamp(1, 3, 5) equals 3
+    CaretMathExpression myExpr(" sin ( - yip * 5 ) + x ^ 3 * ( clamp(1, 3, 5) + 2 ) + - 2 ^ - 2 ");//clamp(1, 3, 5) equals 3
     vector<float> vars(2);
     const float TOLER = 0.000001f;
-    const vector<AString>& varNames = myExpr.getVarNames();
+    vector<AString> varNames = myExpr.getVarNames();
     if (varNames.size() != 2) setFailed("incorrect number of variables found");
     float x = 3.75f;
     float yip = -2.75f;
@@ -50,7 +50,7 @@ void MathExpressionTest::execute()
         vars[1] = x;
     }
     double testresult = myExpr.evaluate(vars);
-    double correctresult = sin(-yip * 5.0) + pow((double)x, 3.0) * (3.0 + 2.0);
+    double correctresult = sin(-yip * 5.0) + pow((double)x, 3.0) * (3.0 + 2.0) + -pow(2.0, -2.0);
     if (!(abs(testresult - correctresult) <= correctresult * TOLER))//trap NaNs
     {
         setFailed("output value incorrect, expected " + AString::number(correctresult) + ", got " + AString::number(testresult));
