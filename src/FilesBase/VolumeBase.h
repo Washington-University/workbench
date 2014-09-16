@@ -274,7 +274,7 @@ namespace caret {
             } else {
                 m_data[getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component)] = valueIn;
             }
-            setModified();
+            setModifiedVolumeBase();
         }
         
         /// set every voxel to the given value
@@ -324,9 +324,9 @@ namespace caret {
             return true;
         }
 
-        virtual void setModified();//virtual because we need the functions that change voxels in this class to call the setModified in VolumeFile if it really is a VolumeFile (which it always is)
-        virtual void clearModified();
-        virtual bool isModified() const;
+        void setModifiedVolumeBase();//virtual because we need the functions that change voxels in this class to call the setModified in VolumeFile if it really is a VolumeFile (which it always is)
+        void clearModifiedVolumeBase();
+        bool isModifiedVolumeBase() const;
         
         bool isEmpty() const;
         

@@ -669,7 +669,7 @@ void
 VolumeFile::setModified()
 {
     DataFile::setModified();//do we need to do both of these?
-    VolumeBase::setModified();
+    setModifiedVolumeBase();
     m_brickStatisticsValid = false;
     m_splinesValid = false;
 }
@@ -681,7 +681,7 @@ void
 VolumeFile::clearModified()
 {
     CaretMappableDataFile::clearModified();
-    VolumeBase::clearModified();
+    clearModifiedVolumeBase();
 
     const int32_t numMaps = getNumberOfMaps();
     if (isMappedWithPalette())
@@ -709,7 +709,7 @@ VolumeFile::isModifiedExcludingPaletteColorMapping() const
     if (CaretMappableDataFile::isModifiedExcludingPaletteColorMapping()) {
         return true;
     }
-    if (VolumeBase::isModified()) {
+    if (isModifiedVolumeBase()) {
         return true;
     }
     

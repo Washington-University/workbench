@@ -95,7 +95,7 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
 void VolumeBase::setVolumeSpace(const vector<vector<float> >& indexToSpace)
 {
     m_volSpace.setSpace(m_dimensions, indexToSpace);
-    setModified();
+    setModifiedVolumeBase();
 }
 
 VolumeBase::VolumeBase()
@@ -503,7 +503,7 @@ void VolumeBase::setFrame(const float* frameIn, const int64_t brickIndex, const 
         m_data[myIndex] = frameIn[inIndex];
         ++inIndex;
     }
-    setModified();
+    setModifiedVolumeBase();
 }
 
 void 
@@ -512,7 +512,7 @@ VolumeBase::setValueAllVoxels(const float value)
     for (int64_t i = 0; i < m_dataSize; i++) {
         m_data[i] = value;
     }
-    setModified();
+    setModifiedVolumeBase();
     //std::fill(m_data, (m_data + m_dataSize), value);
 }
 
@@ -520,7 +520,7 @@ VolumeBase::setValueAllVoxels(const float value)
  * @return Is this instance modified?
  */
 bool 
-VolumeBase::isModified() const 
+VolumeBase::isModifiedVolumeBase() const 
 { 
     if (m_ModifiedFlag) {
         return true;
@@ -532,7 +532,7 @@ VolumeBase::isModified() const
  * Clear this instance's modified status
  */
 void 
-VolumeBase::clearModified() 
+VolumeBase::clearModifiedVolumeBase() 
 { 
     m_ModifiedFlag = false;
 }
@@ -541,7 +541,7 @@ VolumeBase::clearModified()
  * Set this instance's status to modified.
  */
 void 
-VolumeBase::setModified()
+VolumeBase::setModifiedVolumeBase()
 { 
     m_ModifiedFlag = true;
 }
