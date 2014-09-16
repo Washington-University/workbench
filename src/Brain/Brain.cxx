@@ -324,6 +324,67 @@ Brain::getBrainStructure(StructureEnum::Enum structure,
 }
 
 /**
+ * Increment and return the duplicate counter for the given data file type.
+ *
+ * @param dataFileType
+ *     Type of data file.
+ * @return
+ *     Next duplicate counter for the file type.
+ */
+int32_t
+Brain::getDuplicateFileNameCounterForFileType(const DataFileTypeEnum::Enum dataFileType)
+{
+    int32_t counterValue = 0;
+    
+    std::map<DataFileTypeEnum::Enum, int32_t>::iterator duplicateCounterIter = m_duplicateFileNameCounter.find(dataFileType);
+    if (duplicateCounterIter != m_duplicateFileNameCounter.end()) {
+        counterValue = duplicateCounterIter->second;
+    }
+    
+    /*
+     * Extremely unlikely that that this will happen
+     */
+    if (counterValue == std::numeric_limits<int32_t>::max()) {
+        counterValue = 0;
+    }
+    
+    ++counterValue;
+
+    m_duplicateFileNameCounter[dataFileType] = counterValue;
+    
+//    m_duplicateFileNameCounter.insert(std::make_pair(dataFileType,
+//                                                     counterValue));
+    
+    return counterValue;
+}
+
+/**
+ * Reset the duplicate file name counter for all data file types.  In some
+ * instances, the scene file counter is not altered and needs to be
+ * preserved.
+ *
+ * @param preserveSceneFileCounter
+ *    If true, do not reset the scene file duplicate counter.
+ */
+void
+Brain::resetDuplicateFileNameCounter(const bool preserveSceneFileCounter)
+{
+    int32_t sceneDuplicateCounter = -1;
+    if (preserveSceneFileCounter) {
+        std::map<DataFileTypeEnum::Enum, int32_t>::iterator sceneDuplicateIter = m_duplicateFileNameCounter.find(DataFileTypeEnum::SCENE);
+        if (sceneDuplicateIter != m_duplicateFileNameCounter.end()) {
+            sceneDuplicateCounter = sceneDuplicateIter->second;
+        }
+    }
+    m_duplicateFileNameCounter.clear();
+    if (sceneDuplicateCounter > 0) {
+        m_duplicateFileNameCounter.insert(std::make_pair(DataFileTypeEnum::SCENE,
+                                                         sceneDuplicateCounter));
+    }
+}
+
+
+/**
  * Reset the brain structure.
  * @param keepSceneFiles
  *    Status of keeping scene files.
@@ -333,8 +394,14 @@ Brain::getBrainStructure(StructureEnum::Enum structure,
 void 
 Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
                   const ResetBrainKeepSpecFile keepSpecFile)
-{    m_isSpecFileBeingRead = false;
+{
+    m_isSpecFileBeingRead = false;
     
+    /*
+     * Clear the counters used to prevent duplicate file names.
+     */
+    resetDuplicateFileNameCounter(keepSceneFiles);
+
     int num = getNumberOfBrainStructures();
     for (int32_t i = 0; i < num; i++) {
         delete m_brainStructures[i];
@@ -1237,6 +1304,8 @@ Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
                  + " seconds.");
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_volumeFiles,
+                                      vf);
         m_volumeFiles.push_back(vf);
     }
     
@@ -1354,6 +1423,8 @@ Brain::addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_borderFiles,
+                                      bf);
         m_borderFiles.push_back(bf);
     }
     
@@ -1419,6 +1490,8 @@ Brain::addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_fociFiles,
+                                      ff);
         m_fociFiles.push_back(ff);
     }
     
@@ -1524,6 +1597,8 @@ Brain::addReadOrReloadConnectivityDenseFile(const FileModeAddReadReload fileMode
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityMatrixDenseFiles,
+                                      cmdf);
         m_connectivityMatrixDenseFiles.push_back(cmdf);
     }
     
@@ -1591,6 +1666,8 @@ Brain::addReadOrReloadConnectivityDenseLabelFile(const FileModeAddReadReload fil
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityDenseLabelFiles,
+                                      file);
         m_connectivityDenseLabelFiles.push_back(file);
     }
     
@@ -1656,6 +1733,8 @@ Brain::addReadOrReloadConnectivityMatrixDenseParcelFile(const FileModeAddReadRel
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityMatrixDenseParcelFiles,
+                                      file);
         m_connectivityMatrixDenseParcelFiles.push_back(file);
     }
     
@@ -1677,6 +1756,8 @@ Brain::updateFiberTrajectoryMatchingFiberOrientationFiles()
         trajFile->updateMatchingFiberOrientationFileFromList(m_connectivityFiberOrientationFiles);
     }
 }
+
+
 /**
  * Read a connectivity dense scalar file.
  *
@@ -1736,6 +1817,8 @@ Brain::addReadOrReloadConnectivityDenseScalarFile(const FileModeAddReadReload fi
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityDenseScalarFiles,
+                                      clf);
         m_connectivityDenseScalarFiles.push_back(clf);
     }
     
@@ -1801,6 +1884,8 @@ Brain::addReadOrReloadConnectivityParcelSeriesFile(const FileModeAddReadReload f
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityParcelSeriesFiles,
+                                      clf);
         m_connectivityParcelSeriesFiles.push_back(clf);
     }
     
@@ -1866,6 +1951,8 @@ Brain::addReadOrReloadConnectivityParcelLabelFile(const FileModeAddReadReload fi
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityParcelLabelFiles,
+                                      clf);
         m_connectivityParcelLabelFiles.push_back(clf);
     }
     
@@ -1932,6 +2019,8 @@ Brain::addReadOrReloadConnectivityParcelScalarFile(const FileModeAddReadReload f
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityParcelScalarFiles,
+                                      clf);
         m_connectivityParcelScalarFiles.push_back(clf);
     }
     
@@ -2149,6 +2238,8 @@ Brain::addReadOrReloadConnectivityFiberOrientationFile(const FileModeAddReadRelo
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityFiberOrientationFiles,
+                                      cfof);
         m_connectivityFiberOrientationFiles.push_back(cfof);
     }
     
@@ -2213,6 +2304,8 @@ Brain::addReadOrReloadConnectivityFiberTrajectoryFile(const FileModeAddReadReloa
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityFiberTrajectoryFiles,
+                                      cftf);
         m_connectivityFiberTrajectoryFiles.push_back(cftf);
     }
     
@@ -2278,6 +2371,8 @@ Brain::addReadOrReloadConnectivityMatrixParcelFile(const FileModeAddReadReload f
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityMatrixParcelFiles,
+                                      file);
         m_connectivityMatrixParcelFiles.push_back(file);
     }
     
@@ -2343,6 +2438,8 @@ Brain::addReadOrReloadConnectivityMatrixParcelDenseFile(const FileModeAddReadRel
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityMatrixParcelDenseFiles,
+                                      file);
         m_connectivityMatrixParcelDenseFiles.push_back(file);
     }
     
@@ -2408,6 +2505,8 @@ Brain::addReadOrReloadConnectivityDataSeriesFile(const FileModeAddReadReload fil
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityDataSeriesFiles,
+                                      file);
         m_connectivityDataSeriesFiles.push_back(file);
     }
     
@@ -2518,6 +2617,8 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
     }
     
     if (addFlag) {
+        updateDataFileNameIfDuplicate(m_sceneFiles,
+                                      sf);
         m_sceneFiles.push_back(sf);
     }
     
@@ -4005,7 +4106,7 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
  *    Type of data file to read.
  * @param structure
  *    Struture of file (used if not invalid)
- * @param dataFileName
+ * @param dataFileNameIn
  *    Name of data file to read.
  * @param markDataFileAsModified
  *    If file has invalid structure and settings structure, mark file modified
@@ -4020,9 +4121,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                             CaretDataFile* caretDataFile,
                             const DataFileTypeEnum::Enum dataFileType,
                             const StructureEnum::Enum structure,
-                            const AString& dataFileName,
+                            const AString& dataFileNameIn,
                             const bool markDataFileAsModified) throw (DataFileException)
 {
+    AString dataFileName = dataFileNameIn;
+    
     CaretDataFile* caretDataFileRead = NULL;
 
     switch (fileMode) {
@@ -4166,6 +4269,12 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
         }
         
         if (caretDataFileRead != NULL) {
+            /*
+             * NOTE: Name may have changed if it is a duplicate file name
+             * for the data type.
+             */
+            dataFileName = caretDataFileRead->getFileName();
+            
             m_specFile->addCaretDataFile(caretDataFileRead);
             
         }

@@ -499,7 +499,7 @@ FileInformation::getFileExtension() const
  * Example: /Volumes/myelin1/caret7_gui_design/data/HCP_demo/areas.border
  * Returns
  *   absolutePathOut => /Volumes/myelin1/caret7_gui_design/data/HCP_demo
- *   fileNameWithoutExtensionOut => areas.
+ *   fileNameWithoutExtensionOut => areas
  *   extensionWithoutDotOut => border
  *
  * @param absolutePathOut
@@ -527,6 +527,34 @@ FileInformation::getFileComponents(AString& absolutePathOut,
         extensionWithoutDotOut = "";
     }
 }
+
+/**
+ * Assemble the file components into a file path and name.
+ *
+ * @param pathName
+ *     Path for file (may be absolute, relative, or empty).
+ * @param fileNameWithoutExtension
+ *     Name of file without extension.
+ * @param extensionWithoutDot
+ *     The file extension without the leading dot.
+ */
+AString
+FileInformation::assembleFileComponents(AString& pathName,
+                                        AString& fileNameWithoutExtension,
+                                        AString& extensionWithoutDot)
+{
+    AString name;
+    if ( ! pathName.isEmpty()) {
+        name += (pathName + "/");
+    }
+    name += fileNameWithoutExtension;
+    if ( ! extensionWithoutDot.isEmpty()) {
+        name += ("." + extensionWithoutDot);
+    }
+
+    return name;
+}
+
 
 /**
  * @return The file's absolute path.

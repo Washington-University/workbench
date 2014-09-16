@@ -86,6 +86,10 @@ namespace caret {
                                AString& fileNameWithoutExtensionOut,
                                AString& extensionWithoutDotOut) const;
         
+        static AString assembleFileComponents(AString& pathName,
+                                              AString& fileNameWithoutExtension,
+                                              AString& extensionWithoutDot);
+        
         bool remove();
         
         void getRemoteUrlUsernameAndPassword(AString& urlOut,

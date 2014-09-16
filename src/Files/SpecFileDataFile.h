@@ -69,6 +69,8 @@ namespace caret {
         
         void setSpecFileMember(const bool status);
         
+        bool exists() const;
+        
     public:
         virtual AString toString() const;
         

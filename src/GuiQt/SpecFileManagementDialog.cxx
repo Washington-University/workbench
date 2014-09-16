@@ -520,6 +520,24 @@ SpecFileManagementDialog::getDataFileContentFromSpecFile()
         for (int iFile = 0; iFile < numFiles; iFile++) {
             SpecFileDataFile* sfdf = group->getFileInformation(iFile);
             
+            /*
+             * If the spec file entry is not a member of the spec file,
+             * AND if it does not match a loaded file
+             * AND the file does not exist
+             * THEN the file likely was a duplicate (more than one copy
+             * of a specific file was loaded with the same name) and 
+             * the user had removed it from Workbench.
+             *
+             * So, hide the file from view.
+             */
+            if ( ! sfdf->isSpecFileMember()) {
+                if (sfdf->getCaretDataFile() == NULL) {
+                    if (! sfdf->exists()) {
+                        std::cout << "FILE: " << qPrintable(sfdf->getFileName()) << " is not in spec nor loaded." << std::endl;
+                        continue;
+                    }
+                }
+            }
             SpecFileManagementDialogRowContent* rowContent = new SpecFileManagementDialogRowContent(group,
                                                                               sfdf);
             m_tableRowDataFileContent.push_back(rowContent);

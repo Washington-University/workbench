@@ -23,6 +23,8 @@
 #include "SpecFileDataFile.h"
 #undef __SPEC_FILE_GROUP_FILE_DECLARE__
 
+#include "FileInformation.h"
+
 using namespace caret;
 
 /**
@@ -280,6 +282,29 @@ SpecFileDataFile::setSpecFileMember(const bool status)
         m_specFileMember = status;
         setModified();
     }
+}
+
+/**
+ * @return True if the file "exists". 
+ *
+ * If the file is on the file system, true is returned if the file exists,
+ * else false.
+ *
+ * If the file is remote (http, ftp, etc), true is ALWAYS returned.
+ */
+bool
+SpecFileDataFile::exists() const
+{
+    if (DataFile::isFileOnNetwork(getFileName())) {
+        return true;
+    }
+    
+    FileInformation fileInfo(getFileName());
+    if (fileInfo.exists()) {
+        return true;
+    }
+    
+    return false;
 }
 
 

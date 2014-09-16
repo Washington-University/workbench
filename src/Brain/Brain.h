@@ -32,8 +32,10 @@
 #include "EventListenerInterface.h"
 #include "FiberOrientationSamplesLoader.h"
 #include "FiberOrientationSamplesVector.h"
+#include "FileInformation.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
+#include "VolumeFile.h"
 
 namespace caret {
     
@@ -414,6 +416,95 @@ namespace caret {
                           const AString& dataFileName,
                           const bool markDataFileAsModified) throw (DataFileException);
         
+        /**
+         * Is the data file with the given name already loaded?
+         *
+         * @param loadedDataFiles
+         *     All files of a particular data type that are loaded.
+         * @param fileName
+         *     File name for matching.
+         */
+        template <class DFT>
+        bool
+        dataFileWithNameIsLoaded(const std::vector<DFT*>& loadedDataFiles,
+                                        const AString& fileName)
+        {
+            typename std::vector<DFT*>::const_iterator iter;
+            for (iter = loadedDataFiles.begin();
+                 iter != loadedDataFiles.end();
+                 iter++) {
+                const DFT* file = *iter;
+                if (file->getFileName() == fileName) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        /**
+         * If needed, update the name of a data file so that there are no two files
+         * of the same type with the same name.  If a duplicate needs to be created,
+         * an underscore followed by a number is placed in the file name just
+         * before the extension.
+         *
+         * @param loadedDataFiles
+         *     All files of a particular data type that are loaded.
+         * @param newDataFile
+         *     New data file whose name may get changed if it duplicates
+         *     a currently loaded file.
+         */
+        template <class DFT>
+        void
+        updateDataFileNameIfDuplicate(const std::vector<DFT*>& loadedDataFiles,
+                                      DFT* newDataFile)
+        {
+            AString newFileName = newDataFile->getFileName();
+            const DataFileTypeEnum::Enum dataFileType = newDataFile->getDataFileType();
+            
+            /*
+             * Is there a file of the same name?
+             */
+            if (dataFileWithNameIsLoaded(loadedDataFiles,
+                                         newFileName)) {
+                FileInformation fileInfo(newFileName);
+                AString path;
+                AString name;
+                AString extension;
+                fileInfo.getFileComponents(path,
+                                           name,
+                                           extension);
+                
+                /*
+                 * Modify the filename with a number (duplicate counter)
+                 * at the end of the file's name but before the extension's
+                 * dot.
+                 */
+                bool done = false;
+                while ( ! done) {
+                    const int32_t duplicateCounter = getDuplicateFileNameCounterForFileType(dataFileType);
+                    AString versionName = (name
+                                           + "_"
+                                           + AString::number(duplicateCounter));
+                    
+                    const AString versionFullName = FileInformation::assembleFileComponents(path,
+                                                                                            versionName,
+                                                                                            extension);
+                    if ( ! dataFileWithNameIsLoaded(loadedDataFiles,
+                                                    versionFullName)) {
+                        /*
+                         * Update name of file with version number and exit loop
+                         */
+                        const bool modStatus = newDataFile->isModified();
+                        newDataFile->setFileName(versionFullName);
+                        if ( ! modStatus) {
+                            newDataFile->clearModified();
+                        }
+                        done = true;
+                    }
+                }
+            }
+        }
+        
         CaretDataFile* addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                             CaretDataFile* caretDataFile,
                                             const DataFileTypeEnum::Enum dataFileType,
@@ -531,6 +622,10 @@ namespace caret {
         
         void validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) const throw (DataFileException);
         
+        int32_t getDuplicateFileNameCounterForFileType(const DataFileTypeEnum::Enum dataFileType);
+        
+        void resetDuplicateFileNameCounter(const bool preserveSceneFileCounter);
+        
         std::vector<BrainStructure*> m_brainStructures;
         
         std::vector<BorderFile*> m_borderFiles;
@@ -635,6 +730,8 @@ namespace caret {
         
         /** The loader of fiber orientation samples */
         FiberOrientationSamplesLoader* m_fiberOrientationSamplesLoader;
+        
+        std::map<DataFileTypeEnum::Enum, int32_t> m_duplicateFileNameCounter;
         
     };
 
