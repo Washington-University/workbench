@@ -47,7 +47,6 @@ CiftiParcelLabelFile.h
 CiftiParcelSeriesFile.h
 CiftiParcelScalarFile.h
 ConnectivityDataLoaded.h
-DataFileTypeEnum.h
 EventGetDisplayedDataFiles.h
 EventPaletteGetByName.h
 EventSurfaceColoringInvalidate.h
@@ -140,7 +139,6 @@ CiftiParcelLabelFile.cxx
 CiftiParcelSeriesFile.cxx
 CiftiParcelScalarFile.cxx
 ConnectivityDataLoaded.cxx
-DataFileTypeEnum.cxx
 EventGetDisplayedDataFiles.cxx
 EventPaletteGetByName.cxx
 EventSurfaceColoringInvalidate.cxx

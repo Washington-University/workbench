@@ -570,6 +570,27 @@ DataFileTypeEnum::getAllFileExtensions(const Enum enumValue)
 }
 
 /**
+ * @return All valid file extensions for all file types except UNKNOWN.
+ */
+std::vector<AString>
+DataFileTypeEnum::getFilesExtensionsForEveryFile()
+{
+    std::vector<AString> allExtensions;
+    
+    for (std::vector<DataFileTypeEnum>::iterator enumIter = enumData.begin();
+         enumIter != enumData.end();
+         enumIter++) {
+        if (enumIter->enumValue != DataFileTypeEnum::UNKNOWN) {
+            allExtensions.insert(allExtensions.end(),
+                                 enumIter->fileExtensions.begin(),
+                                 enumIter->fileExtensions.end());
+        }
+    }
+    
+    return allExtensions;
+}
+
+/**
  * If the given filename does not contain a file extension that is valid
  * for the given data file type, add the first valid file extension from
  * the given data file type.

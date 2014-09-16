@@ -27,6 +27,7 @@
 
 #include "CaretLogger.h"
 #include "DataFile.h"
+#include "DataFileTypeEnum.h"
 
 using namespace caret;
 
@@ -468,24 +469,44 @@ FileInformation::getCanonicalPath() const
 /**
  * @return The file name's extension.
  *
- * For a remote file, the extension is anything after the last
- * "." in the file's name.  If there is no "." an empty string
- * is returned.
+ * Many Workbench files have filename extensions that include a 
+ * dot (nii.gz, pconn.nii, etc) AND users sometimes include dots
+ * in the names of the files (Glasser_PilotIII.L.20k_fs_LR.shape.gii)
+ * so FileInfo::suffix and FileInfo::completeSuffix methods will
+ * not provide the correct file extension.
+ *
+ * This method will compare the end of the file's name to every Workbench
+ * file extension.  If there is a match, this extension is returned.
+ * Otherwise FileInfo::suffix is called and that will return anything
+ * after but not including the last dot.
  */
 AString
 FileInformation::getFileExtension() const
 {
-    if (m_isRemoteFile) {
-        AString ext = getFileName();
-        const int indx = ext.lastIndexOf('.');
-        if ((indx >= 0) && (indx < ext.length())) {
-            ext = ext.mid(indx + 1);
-            return ext;
-        }
-        else {
-            return "";
+    const std::vector<AString> workbenchExtensions = DataFileTypeEnum::getFilesExtensionsForEveryFile();
+
+    for (std::vector<AString>::const_iterator extIter = workbenchExtensions.begin();
+         extIter != workbenchExtensions.end();
+         extIter++) {
+        const AString extension = *extIter;
+        if ( ! extension.isEmpty()) {
+            if (getFileName().endsWith(extension)) {
+                return extension;
+            }
         }
     }
+    
+//    if (m_isRemoteFile) {
+//        AString ext = getFileName();
+//        const int indx = ext.lastIndexOf('.');
+//        if ((indx >= 0) && (indx < ext.length())) {
+//            ext = ext.mid(indx + 1);
+//            return ext;
+//        }
+//        else {
+//            return "";
+//        }
+//    }
     
     return m_fileInfo.suffix();
 }

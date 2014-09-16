@@ -60,6 +60,7 @@ DataFile.h
 DataFileContentInformation.h
 DataFileException.h
 DataFileInterface.h
+DataFileTypeEnum.h
 DescriptiveStatistics.h
 ElapsedTimer.h
 Event.h
@@ -137,6 +138,7 @@ DataCompressZLib.cxx
 DataFile.cxx
 DataFileContentInformation.cxx
 DataFileException.cxx
+DataFileTypeEnum.cxx
 DescriptiveStatistics.cxx
 ElapsedTimer.cxx
 Event.cxx

@@ -114,6 +114,8 @@ public:
     
     static std::vector<AString> getAllFileExtensions(const Enum enumValue);
     
+    static std::vector<AString> getFilesExtensionsForEveryFile();
+    
     static bool isFileUsedWithOneStructure(const Enum enumValue);
     
     static bool isConnectivityDataType(const Enum enumValue);
