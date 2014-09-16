@@ -518,6 +518,19 @@ BrainStructure::getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
 }
 
 /**
+ * Get all surfaces.
+ *
+ * @param surfaceOut
+ *    Output containing all surfaces.
+ */
+void
+BrainStructure::getSurfaces(std::vector<Surface*>& surfacesOut) const
+{
+    surfacesOut = m_surfaces;
+}
+
+
+/**
  * @return The surface used for volume interaction.
  * Returns NULL if no anatomical surfaces.
  */

@@ -425,7 +425,7 @@ namespace caret {
          *     File name for matching.
          */
         template <class DFT>
-        bool
+        static bool
         dataFileWithNameIsLoaded(const std::vector<DFT*>& loadedDataFiles,
                                         const AString& fileName)
         {
@@ -732,7 +732,6 @@ namespace caret {
         FiberOrientationSamplesLoader* m_fiberOrientationSamplesLoader;
         
         std::map<DataFileTypeEnum::Enum, int32_t> m_duplicateFileNameCounter;
-        
     };
 
 } // namespace

@@ -108,6 +108,8 @@ namespace caret {
         Surface* getSurfaceWithName(const AString& surfaceFileName,
                                     const bool useAbsolutePath);
         
+        void getSurfaces(std::vector<Surface*>& surfacesOut) const;
+        
         void setVolumeInteractionSurface(Surface* surface);
         
         Brain* getBrain();

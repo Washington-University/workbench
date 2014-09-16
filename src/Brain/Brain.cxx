@@ -814,6 +814,13 @@ Brain::addReadOrReloadSurfaceFile(const FileModeAddReadReload fileMode,
                 initializeOverlaysFlag = true;
             }
         }
+        
+        if (addFlag) {
+            std::vector<Surface*> allSurfaces;
+            bs->getSurfaces(allSurfaces);
+            updateDataFileNameIfDuplicate(allSurfaces,
+                                          surface);
+        }
         bs->addSurface(surface,
                        addFlag,
                        initializeOverlaysFlag);
@@ -940,6 +947,12 @@ Brain::addReadOrReloadLabelFile(const FileModeAddReadReload fileMode,
     BrainStructure* bs = getBrainStructure(structure, false);
     if (bs != NULL) {
         try {
+            if (addFlag) {
+                std::vector<LabelFile*> allLabelFiles;
+                bs->getLabelFiles(allLabelFiles);
+                updateDataFileNameIfDuplicate(allLabelFiles,
+                                              labelFile);
+            }
             bs->addLabelFile(labelFile,
                              addFlag);
         }
@@ -1072,6 +1085,12 @@ Brain::addReadOrReloadMetricFile(const FileModeAddReadReload fileMode,
     BrainStructure* bs = getBrainStructure(structure, false);
     if (bs != NULL) {
         try {
+            if (addFlag) {
+                std::vector<MetricFile*> allMetricFiles;
+                bs->getMetricFiles(allMetricFiles);
+                updateDataFileNameIfDuplicate(allMetricFiles,
+                                              metricFile);
+            }
             bs->addMetricFile(metricFile,
                               addFlag);
         }
@@ -1205,6 +1224,13 @@ Brain::addReadOrReloadRgbaFile(const FileModeAddReadReload fileMode,
     BrainStructure* bs = getBrainStructure(structure, false);
     if (bs != NULL) {
         try {
+            if (addFlag) {
+                std::vector<RgbaFile*> allRgbaFiles;
+                bs->getRgbaFiles(allRgbaFiles);
+                updateDataFileNameIfDuplicate(allRgbaFiles,
+                                              rgbaFile);
+            }
+            
             bs->addRgbaFile(rgbaFile,
                             addFlag);
         }
