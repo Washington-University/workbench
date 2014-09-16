@@ -672,6 +672,7 @@ QByteArray CiftiXML::writeXMLToQByteArray(const CiftiVersion& writingVersion) co
     QByteArray ret;
     QXmlStreamWriter xml(&ret);
     xml.setAutoFormatting(true);
+    xml.writeStartDocument();
     writeXML(xml, writingVersion);
     return ret;
 }
@@ -681,6 +682,7 @@ QString CiftiXML::writeXMLToString(const CiftiVersion& writingVersion) const
     QString ret;
     QXmlStreamWriter xml(&ret);
     xml.setAutoFormatting(true);
+    xml.writeStartDocument();
     writeXML(xml, writingVersion);
     return ret;
 }
