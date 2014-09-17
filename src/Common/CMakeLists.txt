@@ -89,6 +89,7 @@ ModelTransform.h
 MultiDimArray.h
 MultiDimIterator.h
 NetworkException.h
+NumericTextFormatting.h
 OctTree.h
 OpenGLDrawingMethodEnum.h
 PlainTextStringBuilder.h
@@ -163,6 +164,7 @@ MathFunctionEnum.cxx
 MathFunctions.cxx
 ModelTransform.cxx
 NetworkException.cxx
+NumericTextFormatting.cxx
 OpenGLDrawingMethodEnum.cxx
 PlainTextStringBuilder.cxx
 Plane.cxx

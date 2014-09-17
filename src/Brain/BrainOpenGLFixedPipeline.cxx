@@ -5888,8 +5888,11 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     AString textLeft;
     AString textCenter;
     AString textRight;
-    const bool useNewFormattingFlag = false;
+    const bool useNewFormattingFlag = true;
     if (useNewFormattingFlag) {
+        /*
+         * NEW FORMATTING !!!!!
+         */
         paletteColorMapping->getPaletteColorBarScaleText(statistics,
                                                          textLeft,
                                                          textCenter,
