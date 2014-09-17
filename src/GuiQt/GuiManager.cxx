@@ -2307,21 +2307,23 @@ GuiManager::processIdentification(const int32_t tabIndex,
             if (chartMatrixInterface != NULL) {
                 CiftiConnectivityMatrixParcelFile* ciftiParcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(chartMatrixInterface);
                 if (ciftiParcelFile != NULL) {
-                    const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
-                    if (rowIndex >= 0) {
-                        try {
-                            ciftiConnectivityManager->loadRowFromParcelFile(brain,
-                                                                            ciftiParcelFile,
-                                                                            rowIndex,
-                                                                            ciftiLoadingInfo);
-                            
+                    if (ciftiParcelFile->isMapDataLoadingEnabled(0)) {
+                        const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
+                        if (rowIndex >= 0) {
+                            try {
+                                ciftiConnectivityManager->loadRowFromParcelFile(brain,
+                                                                                ciftiParcelFile,
+                                                                                rowIndex,
+                                                                                ciftiLoadingInfo);
+                                
+                            }
+                            catch (const DataFileException& e) {
+                                cursor.restoreCursor();
+                                QMessageBox::critical(parentWidget, "", e.whatString());
+                                cursor.showWaitCursor();
+                            }
+                            updateGraphicsFlag = true;
                         }
-                        catch (const DataFileException& e) {
-                            cursor.restoreCursor();
-                            QMessageBox::critical(parentWidget, "", e.whatString());
-                            cursor.showWaitCursor();
-                        }
-                        updateGraphicsFlag = true;
                     }
                 }
             }
