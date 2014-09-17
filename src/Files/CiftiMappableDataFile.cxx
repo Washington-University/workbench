@@ -3167,7 +3167,8 @@ CiftiMappableDataFile::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
  *    True if coloring is valid, else false.
  */
 bool
-CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
+CiftiMappableDataFile::getMapSurfaceNodeColoring(const PaletteFile* paletteFile,
+                                                 const int32_t mapIndex,
                                                   const StructureEnum::Enum structure,
                                                   float* surfaceRGBAOut,
                                                   float* dataValuesOut,
@@ -3210,6 +3211,15 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
     }
     
     const MapContent* mc = m_mapContent[mapIndex];
+    
+    /*
+     * May need to update map coloring
+     */
+    if ( ! mc->m_rgbaValid) {
+        updateScalarColoringForMap(mapIndex,
+                                   paletteFile);
+    }
+    
     std::vector<int64_t> dataIndicesForNodes;
 
     bool validColorsFlag = false;

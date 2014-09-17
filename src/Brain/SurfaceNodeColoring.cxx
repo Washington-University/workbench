@@ -955,7 +955,9 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
     
     const StructureEnum::Enum structure = brainStructure->getStructure();
     std::vector<float> dataValues(numberOfNodes);
-    ciftiConnectivityMatrixFile->getMapSurfaceNodeColoring(mapIndex,
+    
+    ciftiConnectivityMatrixFile->getMapSurfaceNodeColoring(brainStructure->getBrain()->getPaletteFile(),
+                                                           mapIndex,
                                                            structure,
                                                            rgbv,
                                                            &dataValues[0],
@@ -1129,7 +1131,8 @@ SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels
      * Assigns colors for all nodes.
      */
     const StructureEnum::Enum structure = brainStructure->getStructure();
-    ciftiLabelFile->getMapSurfaceNodeColoring(mapIndex,
+    ciftiLabelFile->getMapSurfaceNodeColoring(brainStructure->getBrain()->getPaletteFile(),
+                                              mapIndex,
                                               structure,
                                               rgbv,
                                               &dataValues[0],
@@ -1274,7 +1277,8 @@ SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabel
      * Assigns colors for all nodes.
      */
     const StructureEnum::Enum structure = brainStructure->getStructure();
-    ciftiParcelLabelFile->getMapSurfaceNodeColoring(mapIndex,
+    ciftiParcelLabelFile->getMapSurfaceNodeColoring(brainStructure->getBrain()->getPaletteFile(),
+                                                    mapIndex,
                                               structure,
                                               rgbv,
                                               &dataValues[0],
@@ -1370,7 +1374,8 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
     
     std::vector<float> dataValues(numberOfNodes);
     const StructureEnum::Enum structure = brainStructure->getStructure();
-    ciftiScalarFile->getMapSurfaceNodeColoring(mapIndex,
+    ciftiScalarFile->getMapSurfaceNodeColoring(brainStructure->getBrain()->getPaletteFile(),
+                                               mapIndex,
                                                structure,
                                                rgbv,
                                                &dataValues[0],
@@ -1442,7 +1447,8 @@ SurfaceNodeColoring::assignCiftiParcelScalarColoring(const BrainStructure* brain
     
     std::vector<float> dataValues(numberOfNodes);
     const StructureEnum::Enum structure = brainStructure->getStructure();
-    ciftiParcelScalarFile->getMapSurfaceNodeColoring(mapIndex,
+    ciftiParcelScalarFile->getMapSurfaceNodeColoring(brainStructure->getBrain()->getPaletteFile(),
+                                                     mapIndex,
                                                structure,
                                                rgbv,
                                                &dataValues[0],
@@ -1517,7 +1523,8 @@ SurfaceNodeColoring::assignCiftiDataSeriesColoring(const BrainStructure* brainSt
      */
     std::vector<float> dataValues(numberOfNodes);
     const StructureEnum::Enum structure = brainStructure->getStructure();
-    ciftiDataSeriesFile->getMapSurfaceNodeColoring(mapIndex,
+    ciftiDataSeriesFile->getMapSurfaceNodeColoring(brainStructure->getBrain()->getPaletteFile(),
+                                                   mapIndex,
                                                structure,
                                                rgbv,
                                                &dataValues[0],
@@ -1592,7 +1599,8 @@ SurfaceNodeColoring::assignCiftiParcelSeriesColoring(const BrainStructure* brain
      */
     std::vector<float> dataValues(numberOfNodes);
     const StructureEnum::Enum structure = brainStructure->getStructure();
-    ciftiParcelSeriesFile->getMapSurfaceNodeColoring(mapIndex,
+    ciftiParcelSeriesFile->getMapSurfaceNodeColoring(brainStructure->getBrain()->getPaletteFile(),
+                                                     mapIndex,
                                                    structure,
                                                    rgbv,
                                                    &dataValues[0],

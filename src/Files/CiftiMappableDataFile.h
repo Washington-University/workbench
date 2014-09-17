@@ -351,7 +351,8 @@ namespace caret {
         bool getSeriesDataForVoxelAtCoordinate(const float xyz[3],
                                                std::vector<float>& seriesDataOut) const;
         
-        virtual bool getMapSurfaceNodeColoring(const int32_t mapIndex,
+        virtual bool getMapSurfaceNodeColoring(const PaletteFile* paletteFile,
+                                               const int32_t mapIndex,
                                                const StructureEnum::Enum structure,
                                                float* surfaceRGBAOut,
                                                float* dataValuesOut,
