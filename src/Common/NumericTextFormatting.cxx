@@ -86,9 +86,12 @@ NumericTextFormatting::cleanZerosInValueText(const AString& textValueIn)
     textValue = textValue.trimmed();
     
     if (textValue == "-0.0") {
-        textValue = "0.0";
+        textValue = "0";
     }
     else if (textValue == "-0") {
+        textValue = "0";
+    }
+    else if (textValue == "0.0") {
         textValue = "0";
     }
     
