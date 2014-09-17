@@ -975,7 +975,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     uint8_t highlightRGBByte[3];
-    prefs->getColorChartMatrixGridLines(highlightRGBByte);
+    //prefs->getColorChartMatrixGridLines(highlightRGBByte);
+    prefs->getColorForegroundChartView(highlightRGBByte);
     const float highlightRGB[3] = {
         highlightRGBByte[0] / 255.0,
         highlightRGBByte[1] / 255.0,
@@ -1193,8 +1194,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
             
             if ( ! m_identificationModeFlag) {
                 if (rowIndex == loadedRowIndex) {
-                    //const CaretColorEnum::Enum highlightColor = chartMatrixInterface->getSelectedParcelColor();
-                    //const float* highlightRGB = CaretColorEnum::toRGB(highlightColor);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
                     loadedRowHighlightVerticesXYZ.push_back(cellY);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
@@ -1316,7 +1315,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                 glLineWidth(1.0);
             }
             
-            if ( ! selectedColumnIndices.empty()) {
+            if ( (! selectedColumnIndices.empty())
+                && highlightSelectedRowColumnFlag) {
                 std::vector<float> columnXYZ;
                 std::vector<float> columnRGBA;
                 
