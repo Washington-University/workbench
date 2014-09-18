@@ -77,7 +77,6 @@ HtmlStringBuilder.h
 ImageCaptureMethodEnum.h
 Logger.h
 LogHandler.h
-LogHandlerInformationTextDisplay.h
 LogHandlerStandardError.h
 LogLevelEnum.h
 LogManager.h
@@ -155,7 +154,6 @@ HtmlStringBuilder.cxx
 ImageCaptureMethodEnum.cxx
 Logger.cxx
 LogHandler.cxx
-LogHandlerInformationTextDisplay.cxx
 LogHandlerStandardError.cxx
 LogLevelEnum.cxx
 LogManager.cxx

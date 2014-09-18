@@ -210,8 +210,7 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
             break;
         case POW:
         {
-            int end = (int)m_arguments.size();
-            CaretAssert(end == 2);//a^b^c always gets parsed into 2 power nodes, because -a^-b is -(a^(-b))
+            CaretAssert(m_arguments.size() == 2);//a^b^c always gets parsed into 2 power nodes, because -a^-b is -(a^(-b))
             ret = pow(m_arguments[0]->eval(values), m_arguments[1]->eval(values));
             break;
         }

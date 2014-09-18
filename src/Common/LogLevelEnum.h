@@ -74,6 +74,10 @@ public:
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
+    static AString toHintedName(Enum enumValue);
+    
+    static Enum fromHintedName(const AString& hintedName, bool* isValidOut);
+    
     static int32_t toIntegerCode(Enum enumValue);
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
@@ -84,7 +88,8 @@ private:
     LogLevelEnum(const Enum enumValue, 
                  const int32_t integerCode, 
                  const AString& name,
-                 const AString& guiName);
+                 const AString& guiName,
+                 const AString& hintedName);
 
     static const LogLevelEnum* findData(const Enum enumValue);
 
@@ -108,6 +113,9 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** A name that emphasizes important levels with all-caps */
+    AString hintedName;
 };
 
 #ifdef __LOG_LEVEL_ENUM_DECLARE__

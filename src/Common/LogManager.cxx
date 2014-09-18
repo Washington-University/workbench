@@ -26,7 +26,6 @@
 
 #include "CaretAssert.h"
 #include "Logger.h"
-#include "LogHandlerInformationTextDisplay.h"
 #include "LogHandlerStandardError.h"
 
 using namespace caret;
@@ -146,7 +145,6 @@ LogManager::createLogManager()
     caretLoggerInstance->setLevel(LogLevelEnum::CONFIG);
     //caretLoggerInstance->setLevel(LogLevelEnum::FINEST);
     caretLoggerInstance->addLogHandler(new LogHandlerStandardError());
-    caretLoggerInstance->addLogHandler(new LogHandlerInformationTextDisplay());
     CaretLogger::setLogger(caretLoggerInstance);
 }
 

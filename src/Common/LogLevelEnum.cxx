@@ -44,12 +44,14 @@ using namespace caret;
 LogLevelEnum::LogLevelEnum(const Enum enumValue,
                            const int32_t integerCode,
                            const AString& name,
-                           const AString& guiName)
+                           const AString& guiName,
+                           const AString& hintedName)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCode;
     this->name = name;
     this->guiName = guiName;
+    this->hintedName = hintedName;
 }
 
 /**
@@ -73,47 +75,56 @@ LogLevelEnum::initialize()
     enumData.push_back(LogLevelEnum(SEVERE, 
                                     800, 
                                     "SEVERE", 
-                                    "Severe"));
+                                    "Severe",
+                                    "SEVERE"));
     
     enumData.push_back(LogLevelEnum(WARNING, 
                                     700, 
                                     "WARNING", 
-                                    "Warning"));
+                                    "Warning",
+                                    "WARNING"));
     
     enumData.push_back(LogLevelEnum(INFO, 
                                     600, 
                                     "INFO", 
-                                    "Information"));
+                                    "Information",
+                                    "Info"));
     
     enumData.push_back(LogLevelEnum(CONFIG, 
                                     500, 
                                     "CONFIG", 
-                                    "Configuration"));
+                                    "Configuration",
+                                    "Config"));
     
     enumData.push_back(LogLevelEnum(FINE, 
                                     400, 
                                     "FINE", 
-                                    "Fine (Tracing)"));
+                                    "Fine (Tracing)",
+                                    "Fine"));
     
     enumData.push_back(LogLevelEnum(FINER, 
                                     300, 
                                     "FINER", 
-                                    "Finer (Detailed Tracing)"));
+                                    "Finer (Detailed Tracing)",
+                                    "Finer"));
     
     enumData.push_back(LogLevelEnum(FINEST, 
                                     200, 
                                     "FINEST", 
-                                    "Finest (Very Detailed Tracing)"));
+                                    "Finest (Very Detailed Tracing)",
+                                    "Finest"));
     
     enumData.push_back(LogLevelEnum(ALL, 
                                     100, 
                                     "ALL", 
-                                    "All"));
+                                    "All",
+                                    "ALL"));//shouldn't get used in messages - do we even need this?  FINEST should show everything
     
     enumData.push_back(LogLevelEnum(OFF, 
                                     0, 
                                     "OFF", 
-                                    "Off"));
+                                    "Off",
+                                    "Off"));//also shouldn't get used in messages
     
 }
 
@@ -188,7 +199,7 @@ LogLevelEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type LogLevelEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type LogLevelEnum"));
     }
     return enumValue;
 }
@@ -241,7 +252,39 @@ LogLevelEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type LogLevelEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type LogLevelEnum"));
+    }
+    return enumValue;
+}
+
+AString LogLevelEnum::toHintedName(LogLevelEnum::Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const LogLevelEnum* enumInstance = findData(enumValue);
+    CaretAssert(enumInstance != NULL);
+    return enumInstance->hintedName;
+}
+
+LogLevelEnum::Enum LogLevelEnum::fromHintedName(const AString& hintedName, bool* isValidOut)
+{
+    if (initializedFlag == false) initialize();
+    bool validFlag = false;
+    Enum enumValue = OFF;
+    for (std::vector<LogLevelEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const LogLevelEnum& d = *iter;
+        if (d.hintedName == hintedName) {
+            enumValue = d.enumValue;
+            validFlag = true;
+            break;
+        }
+    }
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("hintedName " + hintedName + " failed to match enumerated value for type LogLevelEnum"));
     }
     return enumValue;
 }

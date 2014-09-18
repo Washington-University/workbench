@@ -25,10 +25,11 @@
 #include "LogHandlerStandardError.h"
 #undef __LOG_HANDLER_STANDARD_ERROR_DECLARE__
 
+#include "FileInformation.h"
 #include "LogRecord.h"
 
 using namespace caret;
-
+using namespace std;
 
 /**
  * Constructor.
@@ -84,15 +85,25 @@ LogHandlerStandardError::flush()
 void 
 LogHandlerStandardError::publish(const LogRecord& logRecord)
 {
-    std::cerr << std::endl;
-    std::cerr << "Level: " << LogLevelEnum::toName(logRecord.getLevel()) << std::endl;
-    if (logRecord.getMethodName().isEmpty() == false) {
-        std::cerr << "Method: " << logRecord.getMethodName() << std::endl;        
+    cerr << endl;
+    cerr << LogLevelEnum::toHintedName(logRecord.getLevel()) << ": " << logRecord.getText() << endl;
+#ifndef NDEBUG
+    if (logRecord.getMethodName().isEmpty() == false)
+    {//in debug, also give method name and source location
+        cerr << "Method: " << logRecord.getMethodName() << endl;
     }
-    std::cerr << "File:   " << logRecord.getFilename() << std::endl;
-    std::cerr << "Line:   " << logRecord.getLineNumber() << std::endl;
-    std::cerr << "Text:   " << logRecord.getText() << std::endl;
-    std::cerr << std::endl;
+    cerr << "Location: " << logRecord.getFilename() << ":" << AString::number(logRecord.getLineNumber()) << endl;
+#else
+    if (LogLevelEnum::toIntegerCode(logRecord.getLevel()) >= LogLevelEnum::toIntegerCode(LogLevelEnum::SEVERE))//in release, give method and simplified source location only for severe or worse
+    {
+        if (logRecord.getMethodName().isEmpty() == false)
+        {
+            cerr << "Method: " << logRecord.getMethodName() << endl;
+        }
+        cerr << "Location: " << FileInformation(logRecord.getFilename()).getFileName() << ":" << AString::number(logRecord.getLineNumber()) << endl;
+    }
+#endif
+    cerr << endl;
 }
 
 
