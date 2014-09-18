@@ -408,6 +408,14 @@ namespace caret {
         virtual void getFileData(std::vector<float>& data) const;
         
     protected:
+        virtual bool getParcelLabelMapSurfaceNodeValue(const int32_t mapIndex,
+                                            const StructureEnum::Enum structure,
+                                            const int nodeIndex,
+                                            const int32_t numberOfNodes,
+                                            float& numericalValueOut,
+                                            bool& numericalValueOutValid,
+                                            AString& textValueOut) const;
+        
         void updateForChangeInMapDataWithMapIndex(const int32_t mapIndex);
         
         ChartDataCartesian* helpLoadChartDataForSurfaceNode(const StructureEnum::Enum structure,

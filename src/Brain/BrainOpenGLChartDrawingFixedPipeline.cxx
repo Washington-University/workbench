@@ -41,6 +41,7 @@
 #include "CaretPreferences.h"
 #include "ChartPoint.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiParcelLabelFile.h"
 #include "CiftiParcelScalarFile.h"
 #include "Brain.h"
 #include "ConnectivityDataLoaded.h"
@@ -1002,6 +1003,13 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
         CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<CiftiParcelScalarFile*>(chartMatrixInterface);
         if (parcelScalarFile != NULL) {
             EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);
+            EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+            selectedColumnIndices = mapOverlayEvent.getSelectedMapIndices();
+        }
+        
+        CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<CiftiParcelLabelFile*>(chartMatrixInterface);
+        if (parcelLabelFile != NULL) {
+            EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelLabelFile);
             EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
             selectedColumnIndices = mapOverlayEvent.getSelectedMapIndices();
         }

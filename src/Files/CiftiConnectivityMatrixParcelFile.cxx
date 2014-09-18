@@ -125,7 +125,7 @@ CiftiConnectivityMatrixParcelFile::getMatrixDataRGBA(int32_t& numberOfRowsOut,
 bool
 CiftiConnectivityMatrixParcelFile::getMatrixCellAttributes(const int32_t rowIndex,
                                                            const int32_t columnIndex,
-                                                           float& cellValueOut,
+                                                           AString& cellValueOut,
                                                            AString& rowNameOut,
                                                            AString& columnNameOut) const
 {
@@ -148,7 +148,7 @@ CiftiConnectivityMatrixParcelFile::getMatrixCellAttributes(const int32_t rowInde
         m_ciftiFile->getRow(&rowData[0],
                                  rowIndex);
         CaretAssertVectorIndex(rowData, columnIndex);
-        cellValueOut = rowData[columnIndex];
+        cellValueOut = AString::number(rowData[columnIndex], 'f', 6);
         
         return true;
     }

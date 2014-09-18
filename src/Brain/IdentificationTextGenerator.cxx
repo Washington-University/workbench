@@ -414,6 +414,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                    limitMapIndicesFlag = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                     limitMapIndicesFlag = true;
@@ -611,7 +612,7 @@ IdentificationTextGenerator::generateChartMatrixIdentificationText(Identificatio
         const int32_t columnIndex = idChartMatrix->getMatrixColumnIndex();
         AString rowName;
         AString columnName;
-        float cellValue;
+        AString cellValue;
         const bool validData = chartMatrixInterface->getMatrixCellAttributes(rowIndex,
                                                                              columnIndex,
                                                                              cellValue,
@@ -631,7 +632,7 @@ IdentificationTextGenerator::generateChartMatrixIdentificationText(Identificatio
                            ("Column " + AString::number(columnIndex)),
                            columnName);
             idText.addLine(true, "Value",
-                           AString::number(cellValue, 'f', 6));
+                           cellValue);
         }
     }
 }

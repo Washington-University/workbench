@@ -33,6 +33,7 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiParcelLabelFile.h"
 #include "CaretTemporaryFile.h"
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
@@ -2873,34 +2874,91 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
             break;
     }
     
+    return false;
+}
+
+/**
+ * Get Parcel Label File value for a surface's node.  When the data is mapped
+ * to parcels, the numerical value will not be valid.
+ *
+ * @param mapIndex
+ *     Index of the map.
+ * @param structure
+ *     Surface's structure.
+ * @param nodeIndex
+ *     Index of the node
+ * @param numberOfNodes
+ *     Number of nodes in the surface.
+ * @param numericalValueOut
+ *     Numerical value out.
+ * @param numericalValueOutValid
+ *     Output that indicates the numerical value output is valid.
+ *     For label data, this value will be the lable key.
+ * @param textValueOut
+ *     Text containing node' value will always be valid if the method
+ *     returns true.  For parcel data, this will contain the name of the
+ *     parcel.  For label data, this will contain the name of the label.
+ *     For numerical data, this will contain the text representation
+ *     of the numerical value.
+ * @return
+ *    True if the text value is valid.  The numerical value may or may not
+ *    also be valid.
+ */
+bool
+CiftiMappableDataFile::getParcelLabelMapSurfaceNodeValue(const int32_t mapIndex,
+                                              const StructureEnum::Enum structure,
+                                              const int nodeIndex,
+                                              const int32_t numberOfNodes,
+                                              float& numericalValueOut,
+                                              bool& numericalValueOutValid,
+                                              AString& textValueOut) const
+{
+    numericalValueOut = 0.0;
+    numericalValueOutValid = false;
+    textValueOut = "";
     
-//        /*
-//         * At this time, ciftiXML.getRowIndexForNode() does not return
-//         * the index for a node in a Parcel Dense File.  
-//         */
-//        if (nodeMap.empty() == false) {
-//            const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
-//            for (int i = 0; i < numNodeMaps; i++) {
-//                if (nodeMap[i].m_surfaceNode == nodeIndex) {
-//                    std::vector<float> mapData;
-//                    getMapData(mapIndex, mapData);
-//                    if (mapData.size() == 0)//if the node to load data for is not in the column mapping, we will have no map data
-//                    {
-//                        numericalValueOutValid = false;
-//                        return false;
-//                    } else {
-//                        CaretAssertVectorIndex(mapData,
-//                                            nodeMap[i].m_ciftiIndex);
-//                        numericalValueOut = mapData[nodeMap[i].m_ciftiIndex];
-//                        numericalValueOutValid = true;
-//                        textValueOut = AString::number(numericalValueOut, 'f');
-//                        return true;
-//                    }
-//                }
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    
+    CaretAssert(m_ciftiFile);
+    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+    
+    AString areaName = "";
+    
+    const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
+    if (map.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+        const std::vector<CiftiParcelsMap::Parcel>& parcels = map.getParcels();
+        const int64_t parcelIndex = map.getIndexForNode(nodeIndex,
+                                                        structure);
+        if ((parcelIndex >= 0)
+            && (parcelIndex < static_cast<int64_t>(parcels.size()))) {
+            areaName = parcels[parcelIndex].m_name;
+            
+//            const int32_t numRows = m_ciftiFile->getNumberOfRows();
+//            std::vector<float> data(numRows);
+//            m_ciftiFile->getColumn(&data[0], mapIndex);
+//            const int32_t labelKey = data[parcelIndex];
+//            const GiftiLabelTable* labelTable = getMapLabelTable(mapIndex);
+//            const GiftiLabel* label = labelTable->getLabel(labelKey);
+//            AString networkName;
+//            if (label != NULL) {
+//                networkName = label->getName();
 //            }
-//        }
-//    }
+//            else {
+//                networkName = ("Invalid Label Key="
+//                               + AString::number(labelKey));
+//            }
+            const AString networkName = getMapName(mapIndex);
+            
+            textValueOut = ("Area: "
+                            + areaName
+                            + ", Network: "
+                            + networkName);
+            return true;
+        }
+    }
     
+
     return false;
 }
 
@@ -2931,6 +2989,7 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
     }
 
     bool useMapData = false;
+    bool useParcelLabelMapData = false;
     bool useSeriesData = false;
     switch (getDataFileType()) {
         case DataFileTypeEnum::BORDER:
@@ -2964,7 +3023,7 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             useMapData = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-            useMapData = true;
+            useParcelLabelMapData = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
             useMapData = true;
@@ -3064,6 +3123,26 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
                 }
                 
                 textOut += " ";
+            }
+        }
+    }
+    else if (useParcelLabelMapData) {
+        for (int32_t i = 0; i < numberOfMapIndices; i++) {
+            const int32_t mapIndex = mapIndices[i];
+            
+            float numericalValue;
+            AString textValue;
+            bool numericalValueValid;
+            if (getParcelLabelMapSurfaceNodeValue(mapIndex,
+                                                  structure,
+                                                  nodeIndex,
+                                                  numberOfNodes,
+                                                  numericalValue,
+                                                  numericalValueValid,
+                                                  textValue)) {
+                textOut += textValue;
+                textOut += " ";
+                validID = true;
             }
         }
     }
@@ -3404,71 +3483,96 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                                                                                ijk[2]);
         if (dataOffset >= 0) {
             const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
-            switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
-                case CiftiMappingType::BRAIN_MODELS:
-                {
-                    /*
-                     * Note: For a Dense connectivity file, it may not have
-                     * data loaded since data is loaded upon demand.
-                     */
-                    std::vector<float> mapData;
-                    getMapData(mapIndex,
-                               mapData);
-                    if ( ! mapData.empty()) {
-                        CaretAssertVectorIndex(mapData,
-                                               dataOffset);
-                        numericalValueOut = mapData[dataOffset];
-                        
-                        if (isMappedWithLabelTable()) {
-                            textValueOut = "Invalid Label Index";
+            
+            const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(this);
+            if (parcelLabelFile != NULL) {
+                const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
+                const int64_t parcelMapIndex = map.getIndexForVoxel(ijk);
+                const std::vector<CiftiParcelsMap::Parcel>& parcels = map.getParcels();
+                AString areaName = "";
+                if ((parcelMapIndex >= 0)
+                    && (parcelMapIndex < static_cast<int64_t>(parcels.size()))) {
+                    CaretAssertVectorIndex(parcels,
+                                           parcelMapIndex);
+                    areaName = parcels[parcelMapIndex].m_name;
+                }
+                
+                const AString networkName = getMapName(mapIndex);
+                
+                textValueOut = ("Area: "
+                                + areaName
+                                + ", Network: "
+                                + networkName);
+                return true;
+            
+            }
+            else {
+                switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
+                    case CiftiMappingType::BRAIN_MODELS:
+                    {
+                        /*
+                         * Note: For a Dense connectivity file, it may not have
+                         * data loaded since data is loaded upon demand.
+                         */
+                        std::vector<float> mapData;
+                        getMapData(mapIndex,
+                                   mapData);
+                        if ( ! mapData.empty()) {
+                            CaretAssertVectorIndex(mapData,
+                                                   dataOffset);
+                            numericalValueOut = mapData[dataOffset];
                             
-                            const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
-                            const int32_t labelKey = static_cast<int32_t>(numericalValueOut);
-                            const GiftiLabel* gl = glt->getLabel(labelKey);
-                            if (gl != NULL) {
-                                textValueOut = gl->getName();
+                            if (isMappedWithLabelTable()) {
+                                textValueOut = "Invalid Label Index";
+                                
+                                const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
+                                const int32_t labelKey = static_cast<int32_t>(numericalValueOut);
+                                const GiftiLabel* gl = glt->getLabel(labelKey);
+                                if (gl != NULL) {
+                                    textValueOut = gl->getName();
+                                }
+                                else {
+                                    textValueOut += ("InvalidLabelKey="
+                                                     + AString::number(labelKey));
+                                }
+                                numericalValueOutValid = true;
+                            }
+                            else if (isMappedWithPalette()) {
+                                numericalValueOutValid = true;
+                                textValueOut = AString::number(numericalValueOut);
                             }
                             else {
-                                textValueOut += ("InvalidLabelKey="
-                                                 + AString::number(labelKey));
+                                CaretAssert(0);
                             }
-                            numericalValueOutValid = true;
+                            
+                            return true;
                         }
-                        else if (isMappedWithPalette()) {
-                            numericalValueOutValid = true;
-                            textValueOut = AString::number(numericalValueOut);
-                        }
-                        else {
-                            CaretAssert(0);
-                        }
-                        
-                        return true;
                     }
-                }
-                    break;
-                case CiftiMappingType::LABELS:
-                    CaretAssertMessage(0, "Mapping type should never be LABELS");
-                    break;
-                case CiftiMappingType::PARCELS:
-                {
-                    const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
-                    const int64_t parcelMapIndex = map.getIndexForVoxel(ijk);
-                    const std::vector<CiftiParcelsMap::Parcel>& parcels = map.getParcels();
-                    if ((parcelMapIndex >= 0)
-                        && (parcelMapIndex < static_cast<int64_t>(parcels.size()))) {
-                        CaretAssertVectorIndex(parcels,
-                                               parcelMapIndex);
-                        textValueOut = parcels[parcelMapIndex].m_name;
-                        return true;
+                        break;
+                    case CiftiMappingType::LABELS:
+                        CaretAssertMessage(0, "Mapping type should never be LABELS");
+                        break;
+                    case CiftiMappingType::PARCELS:
+                    {
+                        const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
+                        const int64_t parcelMapIndex = map.getIndexForVoxel(ijk);
+                        const std::vector<CiftiParcelsMap::Parcel>& parcels = map.getParcels();
+                        if ((parcelMapIndex >= 0)
+                            && (parcelMapIndex < static_cast<int64_t>(parcels.size()))) {
+                            CaretAssertVectorIndex(parcels,
+                                                   parcelMapIndex);
+                            textValueOut = parcels[parcelMapIndex].m_name;
+                            return true;
+                        }
                     }
+                        break;
+                    case CiftiMappingType::SCALARS:
+                        CaretAssertMessage(0, "Mapping type should never be SCALARS");
+                        break;
+                    case CiftiMappingType::SERIES:
+                        CaretAssertMessage(0, "Mapping type should never be SERIES");
+                        break;
                 }
-                    break;
-                case CiftiMappingType::SCALARS:
-                    CaretAssertMessage(0, "Mapping type should never be SCALARS");
-                    break;
-                case CiftiMappingType::SERIES:
-                    CaretAssertMessage(0, "Mapping type should never be SERIES");
-                    break;
             }
         }
     }
@@ -4397,38 +4501,42 @@ CiftiMappableDataFile::helpLoadChartDataMatrixForMap(const int32_t mapIndex,
     /*
      * Get palette for color mapping.
      */
-    const AString paletteName = mc->m_paletteColorMapping->getSelectedPaletteName();
-    if (paletteName.isEmpty()) {
-        CaretLogSevere("No palette name for coloring matrix chart data.");
-        return false;
-    }
-    EventPaletteGetByName eventPaletteGetName(paletteName);
-    EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
-    const Palette* palette = eventPaletteGetName.getPalette();
-    if (palette == NULL) {
-        CaretLogSevere("No palette named "
-                       + paletteName
-                       + " found for coloring matrix chart data.");
-        return false;
+    if (isMappedWithPalette()) {
+        const AString paletteName = mc->m_paletteColorMapping->getSelectedPaletteName();
+        if (paletteName.isEmpty()) {
+            CaretLogSevere("No palette name for coloring matrix chart data.");
+            return false;
+        }
+        EventPaletteGetByName eventPaletteGetName(paletteName);
+        EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
+        const Palette* palette = eventPaletteGetName.getPalette();
+        if (palette == NULL) {
+            CaretLogSevere("No palette named "
+                           + paletteName
+                           + " found for coloring matrix chart data.");
+            return false;
+        }
+        
+        /*
+         * Color the data.
+         */
+        const int32_t numRGBA = numberOfData * 4;
+        rgbaOut.resize(numRGBA);
+        FastStatistics fastStatistics;
+        fastStatistics.update(&data[0],
+                              numberOfData);
+        NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
+                                                      mc->m_paletteColorMapping,
+                                                      palette,
+                                                      &data[0],
+                                                      &data[0],
+                                                      numberOfData,
+                                                      &rgbaOut[0]);
+        
+        return true;
     }
     
-    /*
-     * Color the data.
-     */
-    const int32_t numRGBA = numberOfData * 4;
-    rgbaOut.resize(numRGBA);
-    FastStatistics fastStatistics;
-    fastStatistics.update(&data[0],
-                          numberOfData);
-    NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
-                                                  mc->m_paletteColorMapping,
-                                                  palette,
-                                                  &data[0],
-                                                  &data[0],
-                                                  numberOfData,
-                                                  &rgbaOut[0]);
-    
-    return true;
+    return false;
 }
 
 ///* ========================================================================== */

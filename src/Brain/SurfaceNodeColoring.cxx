@@ -364,7 +364,16 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 }
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-                    CaretAssert(0);
+                {
+                    CiftiParcelLabelFile* cplf = dynamic_cast<CiftiParcelLabelFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiParcelLabelColoring(displayPropertiesLabels,
+                                                   browserTabIndex,
+                                                   brainStructure,
+                                                   cplf,
+                                                   selectedMapIndex,
+                                                   numNodes,
+                                                   overlayRGBV);
+                }
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                     isColoringValid = this->assignCiftiParcelScalarColoring(brainStructure,

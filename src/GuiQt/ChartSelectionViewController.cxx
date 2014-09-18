@@ -624,6 +624,7 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
     CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
     m_matrixFileSelectionComboBox->updateComboBox(fileSelectionModel);
     
+    bool enablePaletteOptions = false;
     const ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
     if (displayProperties != NULL) {
         const ChartMatrixLoadingTypeEnum::Enum loadType = displayProperties->getMatrixLoadingType();
@@ -641,8 +642,21 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
         m_matrixYokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(yokingGroup);
         m_matrixColorBarAction->blockSignals(true);
         m_matrixColorBarAction->setChecked(displayProperties->isColorBarDisplayed());
-        m_matrixColorBarAction->blockSignals(false); 
+        m_matrixColorBarAction->blockSignals(false);
     }
+    
+    /*
+     * Enable palette options only for palette mapped files
+     */
+    const CaretDataFile* cdf = fileSelectionModel->getSelectedFile();
+    if (cdf != NULL) {
+        const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(cdf);
+        if (cmdf != NULL) {
+            enablePaletteOptions = cmdf->isMappedWithPalette();
+        }
+    }
+    m_matrixColorBarAction->setEnabled(enablePaletteOptions);
+    m_matrixSettingsAction->setEnabled(enablePaletteOptions);
 }
 
 ///**

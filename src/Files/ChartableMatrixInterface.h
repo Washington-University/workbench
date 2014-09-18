@@ -73,7 +73,7 @@ namespace caret {
          */
         virtual bool getMatrixCellAttributes(const int32_t rowIndex,
                                              const int32_t columnIndex,
-                                             float& cellValueOut,
+                                             AString& cellValueOut,
                                              AString& rowNameOut,
                                              AString& columnNameOut) const = 0;
 
