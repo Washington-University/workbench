@@ -23,6 +23,9 @@
 #include "CiftiFile.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "ReductionOperation.h"
+
+#include <cmath>
 #include <map>
 
 using namespace caret;
@@ -133,65 +136,147 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
             ++parcelCounts[parcel];
         }
     }
+    bool isLabel = (myInputXML.getMappingType(1 - direction) == CiftiMappingType::LABELS);//we already checked it is 2D
     if (direction == CiftiXML::ALONG_ROW)
     {
         vector<float> scratchOutRow(numParcels);
-        for (int64_t i = 0; i < numRows; ++i)
+        if (isLabel)
         {
-            vector<double> scratchAccum(numParcels, 0.0);
-            myCiftiIn->getRow(scratchRow.data(), i);
-            for (int64_t j = 0; j < numCols; ++j)
-            {
-                int parcel = indexToParcel[j];
-                if (parcel != -1)
-                {
-                    scratchAccum[parcel] += scratchRow[j];
-                }
-            }
+            vector<vector<float> > parcelData(numParcels);//float so we can use ReductionOperation (when not considering vertex area, etc)
             for (int j = 0; j < numParcels; ++j)
             {
-                if (parcelCounts[j] > 0)
-                {
-                    scratchOutRow[j] = scratchAccum[j] / parcelCounts[j];
-                } else {
-                    scratchOutRow[j] = 0.0f;
-                }
+                parcelData[j].reserve(parcelCounts[j]);
             }
-            myCiftiOut->setRow(scratchOutRow.data(), i);
+            for (int64_t i = 0; i < numRows; ++i)
+            {
+                for (int j = 0; j < numParcels; ++j)
+                {
+                    parcelData[j].clear();//doesn't change allocation
+                }
+                myCiftiIn->getRow(scratchRow.data(), i);
+                for (int64_t j = 0; j < numCols; ++j)
+                {
+                    int parcel = indexToParcel[j];
+                    if (parcel != -1)
+                    {
+                        parcelData[parcel].push_back(floor(scratchRow[j] + 0.5f));//round to nearest integer to be safe
+                    }
+                }
+                for (int j = 0; j < numParcels; ++j)
+                {
+                    CaretAssert(parcelCounts[j] == (int64_t)parcelData[j].size());
+                    if (parcelCounts[j] > 0)
+                    {
+                        scratchOutRow[j] = ReductionOperation::reduce(parcelData[j].data(), parcelData[j].size(), ReductionEnum::MODE);
+                    } else {
+                        scratchOutRow[j] = myOutXML.getLabelsMap(CiftiXML::ALONG_COLUMN).getMapLabelTable(i)->getUnassignedLabelKey();
+                    }
+                }
+                myCiftiOut->setRow(scratchOutRow.data(), i);
+            }
+        } else {
+            for (int64_t i = 0; i < numRows; ++i)
+            {
+                vector<double> scratchAccum(numParcels, 0.0);
+                myCiftiIn->getRow(scratchRow.data(), i);
+                for (int64_t j = 0; j < numCols; ++j)
+                {
+                    int parcel = indexToParcel[j];
+                    if (parcel != -1)
+                    {
+                        scratchAccum[parcel] += scratchRow[j];
+                    }
+                }
+                for (int j = 0; j < numParcels; ++j)
+                {
+                    if (parcelCounts[j] > 0)
+                    {
+                        scratchOutRow[j] = scratchAccum[j] / parcelCounts[j];
+                    } else {
+                        scratchOutRow[j] = 0.0f;
+                    }
+                }
+                myCiftiOut->setRow(scratchOutRow.data(), i);
+            }
         }
     } else if (direction == CiftiXML::ALONG_COLUMN) {
-        vector<vector<double> > accumRows(numParcels, vector<double>(numCols, 0.0f));
-        for (int64_t i = 0; i < numRows; ++i)
-        {
-            int parcel = indexToParcel[i];
-            if (parcel != -1)
-            {
-                myCiftiIn->getRow(scratchRow.data(), i);
-                vector<double>& parcelRowRef = accumRows[parcel];
-                for (int64_t j = 0; j < numCols; ++j)
-                {
-                    parcelRowRef[j] += scratchRow[j];
-                }
-            }
-        }
         vector<float> scratchOutRow(numCols);
-        for (int i = 0; i < numParcels; ++i)
+        if (isLabel)
         {
-            int64_t count = parcelCounts[i];
-            if (count > 0)
+            vector<vector<vector<float> > > parcelData(numParcels, vector<vector<float> >(numCols));//float so we can use ReductionOperation (when not considering vertex area, etc)
+            for (int i = 0; i < numParcels; ++i)
             {
-                vector<double>& parcelRowRef = accumRows[i];
-                for (int64_t j = 0; j < numCols; ++j)
+                for (int j = 0; j < numCols; ++j)
                 {
-                    scratchOutRow[j] = parcelRowRef[j] / count;
-                }
-            } else {
-                for (int64_t j = 0; j < numCols; ++j)
-                {
-                    scratchOutRow[j] = 0.0f;
+                    parcelData[i][j].reserve(parcelCounts[i]);
                 }
             }
-            myCiftiOut->setRow(scratchOutRow.data(), i);
+            for (int64_t i = 0; i < numRows; ++i)
+            {
+                int parcel = indexToParcel[i];
+                if (parcel != -1)
+                {
+                    myCiftiIn->getRow(scratchRow.data(), i);
+                    vector<vector<float> >& parcelRef = parcelData[parcel];
+                    for (int j = 0; j < numCols; ++j)
+                    {
+                        parcelRef[j].push_back(floor(scratchRow[j] + 0.5f));
+                    }
+                }
+            }
+            for (int i = 0; i < numParcels; ++i)
+            {
+                int64_t count = parcelCounts[i];
+                vector<vector<float> >& parcelRef = parcelData[i];
+                if (count > 0)
+                {
+                    for (int j = 0; j < numCols; ++j)
+                    {
+                        CaretAssert((int64_t)parcelRef[j].size() == count);
+                        scratchOutRow[j] = ReductionOperation::reduce(parcelRef[j].data(), parcelRef[j].size(), ReductionEnum::MODE);
+                    }
+                } else {
+                    for (int j = 0; j < numCols; ++j)
+                    {
+                        CaretAssert((int64_t)parcelRef[j].size() == count);
+                        scratchOutRow[j] = myOutXML.getLabelsMap(CiftiXML::ALONG_ROW).getMapLabelTable(j)->getUnassignedLabelKey();
+                    }
+                }
+                myCiftiOut->setRow(scratchOutRow.data(), i);
+            }
+        } else {
+            vector<vector<double> > accumRows(numParcels, vector<double>(numCols, 0.0f));
+            for (int64_t i = 0; i < numRows; ++i)
+            {
+                int parcel = indexToParcel[i];
+                if (parcel != -1)
+                {
+                    myCiftiIn->getRow(scratchRow.data(), i);
+                    vector<double>& parcelRowRef = accumRows[parcel];
+                    for (int64_t j = 0; j < numCols; ++j)
+                    {
+                        parcelRowRef[j] += scratchRow[j];
+                    }
+                }
+            }
+            for (int i = 0; i < numParcels; ++i)
+            {
+                int64_t count = parcelCounts[i];
+                if (count > 0)
+                {
+                    vector<double>& parcelRowRef = accumRows[i];
+                    for (int64_t j = 0; j < numCols; ++j)
+                    {
+                        scratchOutRow[j] = parcelRowRef[j] / count;
+                    }
+                } else {
+                    for (int64_t j = 0; j < numCols; ++j)
+                    {
+                        scratchOutRow[j] = 0.0f;
+                    }
+                }
+                myCiftiOut->setRow(scratchOutRow.data(), i);
+            }
         }
     } else {
         throw AlgorithmException("AlgorithmCiftiParcellate doesn't support this direction");
