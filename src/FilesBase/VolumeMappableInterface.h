@@ -79,22 +79,13 @@ namespace caret {
          */
         virtual void getDimensions(std::vector<int64_t>& dimsOut) const = 0;
 
-        /**
-         * Does this volume have these spatial dimensions?
-         *
-         * @param dim1
-         *     First dimension.
-         * @param dim2
-         *     Second dimension.
-         * @param dim3
-         *     Third dimension.
-         * @return
-         *     True if this volume's spatial dimensions match the
-         *     given dimensions, else false.
-         */
         bool matchesDimensions(const int64_t dim1,
                                const int64_t dim2,
                                const int64_t dim3) const;
+        
+        void limitIndicesToValidIndices(int64_t& index1,
+                                        int64_t& index2,
+                                        int64_t& index3) const;
         
         /**
          * @return The number of componenents per voxel.

@@ -83,3 +83,46 @@ VolumeMappableInterface::matchesDimensions(const int64_t dim1,
     
     return false;
 }
+/**
+ * Adjust the given indices so that they are valid
+ * in the range 0 to (volume dimension - 1)
+ *
+ * @param index1
+ *     First index.
+ * @param index2
+ *     Second index.
+ * @param index3
+ *     Third index.
+ */
+void
+VolumeMappableInterface::limitIndicesToValidIndices(int64_t& index1,
+                                                int64_t& index2,
+                                                int64_t& index3) const
+{
+    std::vector<int64_t> dims;
+    getDimensions(dims);
+    
+    if (dims.size() >= 3) {
+        if (index1 >= dims[0]) {
+            index1 = dims[0] - 1;
+        }
+        if (index1 < 0) {
+            index1 = 0;
+        }
+        
+        if (index2 >= dims[1]) {
+            index2 = dims[1] - 1;
+        }
+        if (index2 < 0) {
+            index2 = 0;
+        }
+
+        if (index3 >= dims[2]) {
+            index3 = dims[2] - 1;
+        }
+        if (index3 < 0) {
+            index3 = 0;
+        }
+    }
+}
+
