@@ -114,6 +114,10 @@ public:
     
     bool isCoordinateWithinBoundingBox(const float xyz[]) const;
 
+    void limitCoordinateToBoundingBox(float xyz[3]) const;
+    
+    void limitCoordinateToBoundingBox(double xyz[3]) const;
+    
     AString toString() const;
 
 private:

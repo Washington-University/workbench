@@ -507,6 +507,42 @@ BoundingBox::isCoordinateWithinBoundingBox(const float xyz[]) const
 }
 
 /**
+ * Limit the given coordinate to the bounding box.
+ *
+ * @param xyz
+ *    The coordinate.
+ */
+void
+BoundingBox::limitCoordinateToBoundingBox(float xyz[3]) const
+{
+    if (xyz[0] < this->boundingBox[0]) xyz[0] = this->boundingBox[0];
+    if (xyz[0] > this->boundingBox[1]) xyz[0] = this->boundingBox[1];
+    if (xyz[1] < this->boundingBox[2]) xyz[1] = this->boundingBox[2];
+    if (xyz[1] > this->boundingBox[3]) xyz[1] = this->boundingBox[3];
+    if (xyz[2] < this->boundingBox[4]) xyz[2] = this->boundingBox[4];
+    if (xyz[2] > this->boundingBox[5]) xyz[2] = this->boundingBox[5];
+}
+
+/**
+ * Limit the given coordinate to the bounding box.
+ *
+ * @param xyz
+ *    The coordinate.
+ */
+void
+BoundingBox::limitCoordinateToBoundingBox(double xyz[3]) const
+{
+    if (xyz[0] < this->boundingBox[0]) xyz[0] = this->boundingBox[0];
+    if (xyz[0] > this->boundingBox[1]) xyz[0] = this->boundingBox[1];
+    if (xyz[1] < this->boundingBox[2]) xyz[1] = this->boundingBox[2];
+    if (xyz[1] > this->boundingBox[3]) xyz[1] = this->boundingBox[3];
+    if (xyz[2] < this->boundingBox[4]) xyz[2] = this->boundingBox[4];
+    if (xyz[2] > this->boundingBox[5]) xyz[2] = this->boundingBox[5];
+}
+
+
+
+/**
  * Get String representation of bounding box.
  * @return String containing bounding box.
  *

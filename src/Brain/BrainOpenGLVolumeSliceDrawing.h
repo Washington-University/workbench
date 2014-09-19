@@ -294,6 +294,9 @@ namespace caret {
                                       const int32_t voxelK,
                                       uint8_t rgbaForColorIdentificationOut[4]);
         
+        void getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                  const VolumeMappableInterface* volumeFile) ;
+        
         void processIdentification();
         
         void resetIdentification();

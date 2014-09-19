@@ -1740,6 +1740,10 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
         const float voxelStepY = y1 - originY;
         const float voxelStepZ = z1 - originZ;
         
+ 
+//        getVolumeDrawingViewDependentCulling(sliceViewPlane,
+//                                             volumeFile);
+        
         /*
          * Determine index of slice being viewed for the volume
          */
@@ -3862,6 +3866,181 @@ BrainOpenGLVolumeSliceDrawing::createObliqueTransformationMatrix(const float sli
 }
 
 
+void
+BrainOpenGLVolumeSliceDrawing::getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                    const VolumeMappableInterface* volumeFile)
+{
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    double projectionMatrix[16];
+    glGetDoublev(GL_PROJECTION_MATRIX,
+                 projectionMatrix);
+    double modelMatrix[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX,
+                 modelMatrix);
+    
+    const double vpMinX = viewport[0];
+    const double vpMaxX = viewport[0] + viewport[2];
+    const double vpMinY = viewport[1];
+    const double vpMaxY = viewport[1] + viewport[3];
+    
+    GLdouble bottomLeftWin[3] = {
+        vpMinX,
+        vpMinY,
+        0.0
+    };
+    GLdouble bottomRightWin[3] = {
+        vpMaxX,
+        vpMinY,
+        0.0
+    };
+    GLdouble topRightWin[3] = {
+        vpMaxX,
+        vpMaxY,
+        0.0
+    };
+    GLdouble topLeftWin[3] = {
+        vpMinX,
+        vpMaxY,
+        0.0
+    };
+    
+    double bottomLeftCoord[3];
+    int32_t cornersValidCount = 0;
+    if (gluUnProject(bottomLeftWin[0], bottomLeftWin[1], bottomLeftWin[2],
+                     modelMatrix, projectionMatrix, viewport,
+                     &bottomLeftCoord[0], &bottomLeftCoord[1], &bottomLeftCoord[2])) {
+        cornersValidCount++;
+    }
+    
+    double bottomRightCoord[3];
+    if (gluUnProject(bottomRightWin[0], bottomRightWin[1], bottomRightWin[2],
+                     modelMatrix, projectionMatrix, viewport,
+                     &bottomRightCoord[0], &bottomRightCoord[1], &bottomRightCoord[2])) {
+        cornersValidCount++;
+    }
+    
+    double topRightCoord[3];
+    if (gluUnProject(topRightWin[0], topRightWin[1], topRightWin[2],
+                     modelMatrix, projectionMatrix, viewport,
+                     &topRightCoord[0], &topRightCoord[1], &topRightCoord[2])) {
+        cornersValidCount++;
+    }
+    
+    double topLeftCoord[3];
+    if (gluUnProject(topLeftWin[0], topLeftWin[1], topLeftWin[2],
+                     modelMatrix, projectionMatrix, viewport,
+                     &topLeftCoord[0], &topLeftCoord[1], &topLeftCoord[2])) {
+        cornersValidCount++;
+    }
+    
+    
+    if (cornersValidCount) {
+        std::cout << std::endl;
+        std::cout << "Bottom Left:  " << qPrintable(AString::fromNumbers(bottomLeftCoord, 3, ",")) << std::endl;
+        std::cout << "Bottom Right: " << qPrintable(AString::fromNumbers(bottomRightCoord, 3, ",")) << std::endl;
+        std::cout << "Top Right:    " << qPrintable(AString::fromNumbers(topRightCoord, 3, ",")) << std::endl;
+        std::cout << "Top Left:     " << qPrintable(AString::fromNumbers(topLeftCoord, 3, ",")) << std::endl;
+
+        BoundingBox boundingBox;
+        volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+        std::cout << "Bounding Box: " << qPrintable(boundingBox.toString()) << std::endl;
+        
+        boundingBox.limitCoordinateToBoundingBox(bottomLeftCoord);
+        boundingBox.limitCoordinateToBoundingBox(bottomRightCoord);
+        boundingBox.limitCoordinateToBoundingBox(topRightCoord);
+        boundingBox.limitCoordinateToBoundingBox(topLeftCoord);
+        
+        std::cout << "Limited Bottom Left:  " << qPrintable(AString::fromNumbers(bottomLeftCoord, 3, ",")) << std::endl;
+        std::cout << "Limited Bottom Right: " << qPrintable(AString::fromNumbers(bottomRightCoord, 3, ",")) << std::endl;
+        std::cout << "Limited Top Right:    " << qPrintable(AString::fromNumbers(topRightCoord, 3, ",")) << std::endl;
+        std::cout << "Limited Top Left:     " << qPrintable(AString::fromNumbers(topLeftCoord, 3, ",")) << std::endl;
+        std::cout << std::endl;
+        
+        /*
+         * Note: Spacing may be negative for some orientations
+         * and positive may be on left or bottom
+         */
+        float voxelDeltaX, voxelDeltaY, voxelDeltaZ;
+        volumeFile->getVoxelSpacing(voxelDeltaX,
+                                    voxelDeltaY,
+                                    voxelDeltaZ);
+        voxelDeltaX = std::fabs(voxelDeltaX);
+        voxelDeltaY = std::fabs(voxelDeltaY);
+        voxelDeltaZ = std::fabs(voxelDeltaZ);
+        if (bottomLeftCoord[0] > topRightCoord[0]) {
+            voxelDeltaX = -voxelDeltaX;
+        }
+        if (bottomLeftCoord[1] > topRightCoord[1]) {
+            voxelDeltaY = -voxelDeltaY;
+        }
+        if (bottomLeftCoord[2] > topRightCoord[2]) {
+            voxelDeltaZ = -voxelDeltaZ;
+        }
+        bool adjustX = false;
+        bool adjustY = false;
+        bool adjustZ = false;
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                adjustX = true;
+                adjustY = true;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                adjustX = true;
+                adjustZ = true;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                adjustY = true;
+                adjustZ = true;
+                break;
+        }
+        
+        /*
+         * Adjust by one voxel to ensure full coverage
+         */
+        if (adjustX) {
+            bottomLeftCoord[0] -= voxelDeltaX;
+            topRightCoord[0]   += voxelDeltaX;
+        }
+        if (adjustY) {
+            bottomLeftCoord[1] -= voxelDeltaY;
+            topRightCoord[1]   += voxelDeltaY;
+        }
+        if (adjustZ) {
+            bottomLeftCoord[2] -= voxelDeltaZ;
+            topRightCoord[2]   += voxelDeltaZ;
+        }
+        
+        std::cout << "Adjusted Bottom Left:  " << qPrintable(AString::fromNumbers(bottomLeftCoord, 3, ",")) << std::endl;
+        std::cout << "Adjusted Top Right:    " << qPrintable(AString::fromNumbers(topRightCoord, 3, ",")) << std::endl;
+        
+        int64_t bottomLeftIJK[3];
+        volumeFile->enclosingVoxel(bottomLeftCoord[0],
+                                   bottomLeftCoord[1],
+                                   bottomLeftCoord[2],
+                                   bottomLeftIJK[0],
+                                   bottomLeftIJK[1],
+                                   bottomLeftIJK[2]);
+
+        int64_t topRightIJK[3];
+        volumeFile->enclosingVoxel(topRightCoord[0],
+                                   topRightCoord[1],
+                                   topRightCoord[2],
+                                   topRightIJK[0],
+                                   topRightIJK[1],
+                                   topRightIJK[2]);
+
+        volumeFile->limitIndicesToValidIndices(bottomLeftIJK[0], bottomLeftIJK[1], bottomLeftIJK[2]);
+        volumeFile->limitIndicesToValidIndices(topRightIJK[0], topRightIJK[1], topRightIJK[2]);
+        std::cout << "Bottom Left Dimensions:  " << qPrintable(AString::fromNumbers(bottomLeftIJK, 3, ",")) << std::endl;
+        std::cout << "Top Right Dimensions:    " << qPrintable(AString::fromNumbers(topRightIJK, 3, ",")) << std::endl;
+        
+    }
+}
 
 /* ======================================================================= */
 
@@ -3990,5 +4169,6 @@ BrainOpenGLVolumeSliceDrawing::VoxelToDraw::addVolumeValue(const int64_t sliceIn
     m_sliceIndices.push_back(sliceIndex);
     m_sliceOffsets.push_back(sliceOffset);
 }
+
 
 
