@@ -158,6 +158,7 @@
 #include "OperationMetricMath.h"
 #include "OperationMetricMerge.h"
 #include "OperationMetricPalette.h"
+#include "OperationMetricStats.h"
 #include "OperationMetricVertexSum.h"
 #include "OperationNiftiInformation.h"
 #include "OperationProbtrackXDotConvert.h"
@@ -377,6 +378,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMath()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationMetricStats()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationNiftiInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
