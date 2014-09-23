@@ -115,7 +115,7 @@ namespace
         }
         if (toUse.empty()) throw OperationException("roi contains no vertices");
         sort(toUse.begin(), toUse.end());
-        const float index = percent * toUse.size();
+        const float index = percent / 100.0f * toUse.size();
         if (index <= 0) return toUse[0];
         if (index >= toUse.size()) return toUse.back();
         float ipart, fpart;
