@@ -26,12 +26,12 @@ using namespace std;
 
 AString AlgorithmName::getCommandSwitch()
 {
-    //return "-command-switch";
+    return "-command-switch";
 }
 
 AString AlgorithmName::getShortDescription()
 {
-    //return "SHORT DESCRIPTION";
+    return "SHORT DESCRIPTION";
 }
 
 OperationParameters* AlgorithmName::getParameters()
