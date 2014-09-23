@@ -26,9 +26,10 @@
 #include "CiftiParcelColoringModeEnum.h"
 
 namespace caret {
-
+    
     class CaretMappableDataFile;
     class ChartMatrixDisplayProperties;
+    class CiftiParcelLabelFile;
     
     class ChartableMatrixInterface {
         
@@ -76,7 +77,7 @@ namespace caret {
                                              AString& cellValueOut,
                                              AString& rowNameOut,
                                              AString& columnNameOut) const = 0;
-
+        
         /**
          * @return The CaretMappableDataFile that implements this interface (const methdod).
          */
@@ -142,7 +143,7 @@ namespace caret {
          *    New status for charting enabled.
          */
         virtual void setMatrixChartingEnabled(const int32_t tabIndex,
-                                                     const bool enabled) = 0;
+                                              const bool enabled) = 0;
         
         /**
          * Get chart data types supported by the file.
@@ -153,21 +154,51 @@ namespace caret {
         virtual void getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
         
         bool isMatrixChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
-
+        
+        /**
+         * Get the selected parcel label file used for reordering of parcels.
+         *
+         * @param selectedParcelLabelFileOut
+         *    The selected parcel label file used for reordering the parcels.
+         *    May be NULL!
+         * @param selectedParcelLabelFileMapIndexOut
+         *    Map index in the selected parcel label file.
+         * @param enabledStatusOut
+         *    Enabled status of reordering.
+         */
+        virtual void getSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+                                                 int32_t& selectedParcelLabelFileMapIndexOut,
+                                                 bool& enabledStatusOut) const = 0;
+        
+        /**
+         * Set the selected parcel label file used for reordering of parcels.
+         *
+         * @param selectedParcelLabelFile
+         *    The selected parcel label file used for reordering the parcels.
+         *    May be NULL!
+         * @param selectedParcelLabelFileMapIndex
+         *    Map index in the selected parcel label file.
+         * @param enabledStatus
+         *    Enabled status of reordering.
+         */
+        virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
+                                                 int32_t& selectedParcelLabelFileMapIndex,
+                                                 bool& enabledStatus) = 0;
+        
         // ADD_NEW_METHODS_HERE
-
+        
     private:
         ChartableMatrixInterface(const ChartableMatrixInterface&);
-
+        
         ChartableMatrixInterface& operator=(const ChartableMatrixInterface&);
         
         // ADD_NEW_MEMBERS_HERE
-
+        
     };
     
 #ifdef __CHARTABLE_MATRIX_INTERFACE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __CHARTABLE_MATRIX_INTERFACE_DECLARE__
-
+    
 } // namespace
 #endif  //__CHARTABLE_MATRIX_INTERFACE_H__

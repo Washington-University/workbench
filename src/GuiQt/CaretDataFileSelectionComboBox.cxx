@@ -29,6 +29,7 @@
 #include "CaretDataFile.h"
 #include "CaretDataFileSelectionModel.h"
 #include "FilePathNamePrefixCompactor.h"
+#include "WuQEventBlockingFilter.h"
 
 using namespace caret;
 
@@ -50,6 +51,8 @@ CaretDataFileSelectionComboBox::CaretDataFileSelectionComboBox(QObject* parent)
     m_comboBox = new QComboBox();
     QObject::connect(m_comboBox, SIGNAL(activated(int)),
                      this, SLOT(slotFileIndexSelected(int)));
+
+    WuQEventBlockingFilter::blockMouseWheelEventInMacComboBox(m_comboBox);
 }
 
 /**

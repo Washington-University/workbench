@@ -41,6 +41,7 @@ namespace caret {
     class Brain;
     class CaretDataFile;
     class CaretDataFileSelectionComboBox;
+    class CaretMappableDataFileAndMapSelectorObject;
     class ChartableBrainordinateInterface;
     class ChartMatrixDisplayProperties;
     class ChartableMatrixInterface;
@@ -71,6 +72,8 @@ namespace caret {
         void matrixColorBarActionTriggered(bool status);
         
         void matrixSettingsActionTriggered();
+        
+        void parcelLabelFileRemappingFileSelectorChanged();
         
     private:
         ChartSelectionViewController(const ChartSelectionViewController&);
@@ -143,6 +146,8 @@ namespace caret {
         QAction* m_matrixColorBarAction;
         
         QAction* m_matrixSettingsAction;
+        
+        CaretMappableDataFileAndMapSelectorObject* m_parcelLabelFileRemappingFileSelector;
         
         static const int COLUMN_CHECKBOX;
         static const int COLUMN_LINE_EDIT;

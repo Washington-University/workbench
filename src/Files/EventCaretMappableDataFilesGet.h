@@ -26,16 +26,6 @@
 namespace caret {
 
     class CaretMappableDataFile;
-    class CiftiMappableConnectivityMatrixDataFile;
-    class CiftiBrainordinateDataSeriesFile;
-    class CiftiBrainordinateLabelFile;
-    class CiftiBrainordinateScalarFile;
-    class CiftiFiberTrajectoryFile;
-    class LabelFile;
-    class MetricFile;
-    class Model;
-    class RgbaFile;
-    class VolumeFile;
     
     /// Event that gets all caret mappable data files.
     class EventCaretMappableDataFilesGet : public Event {

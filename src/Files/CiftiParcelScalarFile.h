@@ -28,7 +28,7 @@
 #include "CiftiMappableDataFile.h"
 
 namespace caret {
-
+    class CiftiParcelReorderingModel;
     class SceneClassAssistant;
     
     class CiftiParcelScalarFile : 
@@ -89,6 +89,14 @@ namespace caret {
         
         virtual void setSelectedParcelColor(const CaretColorEnum::Enum color);
         
+        virtual void getSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+                                                                   int32_t& selectedParcelLabelFileMapIndexOut,
+                                                                   bool& enabledStatusOut) const;
+        
+        virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
+                                                 int32_t& selectedParcelLabelFileMapIndex,
+                                                 bool& enabledStatus);
+        
     private:
         CiftiParcelScalarFile(const CiftiParcelScalarFile&);
 
@@ -117,6 +125,9 @@ namespace caret {
         CiftiParcelColoringModeEnum::Enum m_selectedParcelColoringMode;
         
         CaretColorEnum::Enum m_selectedParcelColor;
+
+        CiftiParcelReorderingModel* m_parcelReorderingModel;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

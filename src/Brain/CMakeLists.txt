@@ -67,6 +67,7 @@ BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
 CaretDataFileSelectionModel.h
+CaretMappableDataFileAndMapSelectionModel.h
 CaretOpenGLInclude.h
 ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
@@ -86,7 +87,6 @@ EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabNew.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
-EventCaretMappableDataFilesGet.h
 EventDataFileAdd.h
 EventDataFileDelete.h
 EventDataFileRead.h
@@ -183,6 +183,7 @@ BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
 CaretDataFileSelectionModel.cxx
+CaretMappableDataFileAndMapSelectionModel.cxx
 ChartingDataManager.cxx
 CiftiConnectivityMatrixDataFileManager.cxx
 CiftiFiberTrajectoryManager.cxx
@@ -201,7 +202,6 @@ EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabNew.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx
-EventCaretMappableDataFilesGet.cxx
 EventDataFileAdd.cxx
 EventDataFileDelete.cxx
 EventDataFileRead.cxx

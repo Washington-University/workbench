@@ -25,6 +25,8 @@
 #include <QHash>
 #include <QObject>
 
+class QComboBox;
+
 namespace caret {
 
     class WuQEventBlockingFilter : public QObject {
@@ -32,6 +34,8 @@ namespace caret {
         Q_OBJECT
 
     public:
+        static void blockMouseWheelEventInMacComboBox(QComboBox* comboBox);
+        
         WuQEventBlockingFilter(QObject* parent);
         
         virtual ~WuQEventBlockingFilter();

@@ -44,9 +44,11 @@ CiftiMappableDataFile.h
 CiftiMappableConnectivityMatrixDataFile.h
 CiftiParcelColoringModeEnum.h
 CiftiParcelLabelFile.h
+CiftiParcelReorderingModel.h
 CiftiParcelSeriesFile.h
 CiftiParcelScalarFile.h
 ConnectivityDataLoaded.h
+EventCaretMappableDataFilesGet.h
 EventGetDisplayedDataFiles.h
 EventPaletteGetByName.h
 EventSurfaceColoringInvalidate.h
@@ -136,9 +138,11 @@ CiftiMappableDataFile.cxx
 CiftiMappableConnectivityMatrixDataFile.cxx
 CiftiParcelColoringModeEnum.cxx
 CiftiParcelLabelFile.cxx
+CiftiParcelReorderingModel.cxx
 CiftiParcelSeriesFile.cxx
 CiftiParcelScalarFile.cxx
 ConnectivityDataLoaded.cxx
+EventCaretMappableDataFilesGet.cxx
 EventGetDisplayedDataFiles.cxx
 EventPaletteGetByName.cxx
 EventSurfaceColoringInvalidate.cxx

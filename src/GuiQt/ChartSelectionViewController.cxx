@@ -42,11 +42,14 @@
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFile.h"
+#include "CaretMappableDataFileAndMapSelectionModel.h"
+#include "CaretMappableDataFileAndMapSelectorObject.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "ChartMatrixLoadingTypeEnum.h"
 #include "ChartModel.h"
 #include "ChartableBrainordinateInterface.h"
+#include "CiftiParcelLabelFile.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -550,10 +553,32 @@ ChartSelectionViewController::createMatrixChartWidget()
     fileYokeLayout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
                               1, 4);
     
+    
+    m_parcelLabelFileRemappingFileSelector = new CaretMappableDataFileAndMapSelectorObject(DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL,
+                                                                                           CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
+                                                                                           this);
+    QWidget* mapFileComboBox = NULL;
+    QWidget* mapIndexSpinBox = NULL;
+    QWidget* mapNameComboBox = NULL;
+    m_parcelLabelFileRemappingFileSelector->getWidgetsForAddingToLayout(mapFileComboBox,
+                                                                        mapIndexSpinBox,
+                                                                        mapNameComboBox);
+    QGroupBox* m_remappingGroupBox = new QGroupBox("Parcel Label Remapping");
+    QHBoxLayout* parcelMapFileLayout = new QHBoxLayout(m_remappingGroupBox);
+    parcelMapFileLayout->addWidget(mapFileComboBox);
+    parcelMapFileLayout->addWidget(mapIndexSpinBox);
+    parcelMapFileLayout->addWidget(mapNameComboBox);
+    parcelMapFileLayout->setStretchFactor(mapFileComboBox, 100);
+    parcelMapFileLayout->setStretchFactor(mapIndexSpinBox, 0);
+    parcelMapFileLayout->setStretchFactor(mapNameComboBox, 100);
+    QObject::connect(m_parcelLabelFileRemappingFileSelector, SIGNAL(selectionWasPerformed()),
+                     this, SLOT(parcelLabelFileRemappingFileSelectorChanged()));
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     layout->addLayout(fileYokeLayout);
+    layout->addWidget(m_remappingGroupBox);
     layout->addStretch();
     
     /*
@@ -607,6 +632,52 @@ ChartSelectionViewController::getChartMatrixDisplayProperties()
 }
 
 /**
+ * Gets called when a change is made in the parcel label file remapping 
+ * selections.
+ */
+void
+ChartSelectionViewController::parcelLabelFileRemappingFileSelectorChanged()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return;
+    }
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    
+    ChartDataTypeEnum::Enum chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+    ModelChart* modelChart = brain->getChartModel();
+    
+    if (modelChart != NULL) {
+        chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
+    }
+    CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
+    
+    CaretDataFile* cdf = fileSelectionModel->getSelectedFile();
+    if (cdf != NULL) {
+        CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(cdf);
+        if (cmdf != NULL) {
+            
+            ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(cmdf);
+            if (matrixInterface != NULL) {
+                CaretMappableDataFileAndMapSelectionModel* model = m_parcelLabelFileRemappingFileSelector->getModel();
+                CiftiParcelLabelFile* parcelLabelFile = model->getSelectedFileOfType<CiftiParcelLabelFile>();
+                int32_t parcelLabelFileMapIndex = model->getSelectedMapIndex();
+                bool remappingEnabled = false;
+                CaretAssertToDoWarning(); // enabled status
+
+                matrixInterface->setSelectedParcelLabelFileAndMapForReordering(parcelLabelFile,
+                                                                               parcelLabelFileMapIndex,
+                                                                               remappingEnabled);
+            }
+        }
+    }
+}
+
+
+/**
  * Update the matrix chart widget.
  *
  * @param brain
@@ -623,7 +694,8 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
 {
     CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
     m_matrixFileSelectionComboBox->updateComboBox(fileSelectionModel);
-    
+//    m_parcelLabelFileRemappingFileSelector->updateFileAndMapSelector(parcelLabelReMapModel);
+
     bool enablePaletteOptions = false;
     const ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
     if (displayProperties != NULL) {
@@ -648,13 +720,28 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
     /*
      * Enable palette options only for palette mapped files
      */
-    const CaretDataFile* cdf = fileSelectionModel->getSelectedFile();
+    CiftiParcelLabelFile* parcelLabelFile = NULL;
+    int32_t parcelLabelFileMapIndex = -1;
+    bool remappingEnabled = false;
+    CaretDataFile* cdf = fileSelectionModel->getSelectedFile();
     if (cdf != NULL) {
-        const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(cdf);
+        CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(cdf);
         if (cmdf != NULL) {
             enablePaletteOptions = cmdf->isMappedWithPalette();
+            
+            ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(cmdf);
+            if (matrixInterface != NULL) {
+                matrixInterface->getSelectedParcelLabelFileAndMapForReordering(parcelLabelFile,
+                                                                               parcelLabelFileMapIndex,
+                                                                               remappingEnabled);
+            }
         }
     }
+    CaretMappableDataFileAndMapSelectionModel* model = m_parcelLabelFileRemappingFileSelector->getModel();
+    model->setSelectedFile(parcelLabelFile);
+    model->setSelectedMapIndex(parcelLabelFileMapIndex);
+    m_parcelLabelFileRemappingFileSelector->updateFileAndMapSelector(model);
+    
     m_matrixColorBarAction->setEnabled(enablePaletteOptions);
     m_matrixSettingsAction->setEnabled(enablePaletteOptions);
 }

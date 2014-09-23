@@ -22,16 +22,7 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
-#include "CiftiBrainordinateDataSeriesFile.h"
-#include "CiftiBrainordinateLabelFile.h"
-#include "CiftiBrainordinateScalarFile.h"
-#include "CiftiFiberTrajectoryFile.h"
-#include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventCaretMappableDataFilesGet.h"
-#include "LabelFile.h"
-#include "MetricFile.h"
-#include "RgbaFile.h"
-#include "VolumeFile.h"
 
 using namespace caret;
 

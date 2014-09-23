@@ -54,6 +54,7 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
+CaretMappableDataFileAndMapSelectorObject.h
 ChartHistoryViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
@@ -170,6 +171,7 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
+CaretMappableDataFileAndMapSelectorObject.h
 ChartHistoryViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
@@ -306,6 +308,7 @@ CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx
 CaretFileRemoteDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
+CaretMappableDataFileAndMapSelectorObject.cxx
 ChartHistoryViewController.cxx
 ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx

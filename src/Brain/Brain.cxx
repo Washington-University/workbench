@@ -5163,6 +5163,7 @@ void
 Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
                                      std::vector<CaretDataFile*>& caretDataFilesOut) const
 {
+    caretDataFilesOut.clear();
     
     std::vector<CaretDataFile*> allDataFiles;
     getAllDataFiles(allDataFiles,
@@ -5176,8 +5177,6 @@ Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType
             caretDataFilesOut.push_back(cdf);
         }
     }
-    
-    caretDataFilesOut.clear();
 }
 
 

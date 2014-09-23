@@ -28,6 +28,7 @@
 namespace caret {
 
     class ChartMatrixDisplayProperties;
+    class CiftiParcelReorderingModel;
     class PaletteFile;
     
     class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile, public ChartableMatrixInterface {
@@ -74,6 +75,14 @@ namespace caret {
         
         virtual void setSelectedParcelColor(const CaretColorEnum::Enum color);
         
+        virtual void getSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+                                                                   int32_t& selectedParcelLabelFileMapIndexOut,
+                                                                   bool& enabledStatusOut) const;
+        
+        virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
+                                                                   int32_t& selectedParcelLabelFileMapIndex,
+                                                                   bool& enabledStatus);
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -97,6 +106,8 @@ namespace caret {
         CiftiParcelColoringModeEnum::Enum m_selectedParcelColoringMode;
         
         CaretColorEnum::Enum m_selectedParcelColor;
+        
+        CiftiParcelReorderingModel* m_parcelReorderingModel;
         
     };
     

@@ -23,6 +23,8 @@
 #include "WuQEventBlockingFilter.h"
 #undef __WU_Q_EVENT_BLOCKING_FILTER_DECLARE__
 
+#include <QComboBox>
+
 #include <CaretAssert.h>
 
 using namespace caret;
@@ -55,6 +57,30 @@ using namespace caret;
 WuQEventBlockingFilter::WuQEventBlockingFilter(QObject* parent)
 : QObject(parent)
 {
+}
+
+/**
+ * Add a wheel blocking filter to a combo box (on mac only).  On a Mac,
+ * if the mouse pointer is moved across a combo box (particularly when
+ * the user is using a Track Pad), Qt will get this event and apply it
+ * as a wheel event to the combo box changing the selection in the 
+ * combo box.
+ *
+ * @param comboBox
+ *    Combo box that has its wheel event blocked.
+ */
+void
+WuQEventBlockingFilter::blockMouseWheelEventInMacComboBox(QComboBox* comboBox)
+{
+#ifdef CARET_OS_MACOSX
+    /*
+     * Attach an event filter that blocks wheel events in the combo box if Mac
+     */
+    WuQEventBlockingFilter* comboBoxWheelEventBlockingFilter = new WuQEventBlockingFilter(comboBox);
+    comboBoxWheelEventBlockingFilter->setEventBlocked(QEvent::Wheel,
+                                                      true);
+    comboBox->installEventFilter(comboBoxWheelEventBlockingFilter);
+#endif // CARET_OS_MACOSX
 }
 
 /**
