@@ -66,6 +66,11 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
 
     m_parcelReorderingModel = new CiftiParcelReorderingModel();
 
+    m_chartLoadingType = ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_ROW;
+    
+    m_chartLoadingYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    
+
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<CiftiParcelColoringModeEnum, CiftiParcelColoringModeEnum::Enum>("m_selectedParcelColoringMode",
                                                                                           &m_selectedParcelColoringMode);
@@ -74,6 +79,10 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
     m_sceneAssistant->add("m_parcelReorderingModel",
                           "CiftiParcelReorderingModel",
                           m_parcelReorderingModel);
+    m_sceneAssistant->add<ChartMatrixLoadingTypeEnum, ChartMatrixLoadingTypeEnum::Enum>("m_chartLoadingType",
+                                                                &m_chartLoadingType);
+    m_sceneAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartLoadingYokingGroup",
+                                                                                        &m_chartLoadingYokingGroup);
 }
 
 /**
@@ -428,5 +437,63 @@ CiftiConnectivityMatrixParcelFile::setSelectedParcelLabelFileAndMapForReordering
                                                                            enabledStatus);
 }
 
+/**
+ * @return True if loading attributes (column/row, yoking) are
+ * supported by this file type.
+ */
+bool
+CiftiConnectivityMatrixParcelFile::isSupportsLoadingAttributes()
+{
+    return true;
+}
 
+/**
+ * @return The matrix loading type (by row/column).
+ */
+ChartMatrixLoadingTypeEnum::Enum
+CiftiConnectivityMatrixParcelFile::getMatrixLoadingType() const
+{
+    return m_chartLoadingType;
+}
+
+/**
+ * Set the matrix loading type (by row/column).
+ *
+ * @param matrixLoadingType
+ *    New value for matrix loading type.
+ */
+void
+CiftiConnectivityMatrixParcelFile::setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType)
+{
+    m_chartLoadingType = matrixLoadingType;
+}
+
+/**
+ * @return Selected yoking group.
+ */
+YokingGroupEnum::Enum
+CiftiConnectivityMatrixParcelFile::getYokingGroup() const
+{
+    return m_chartLoadingYokingGroup;
+}
+
+/**
+ * Set the selected yoking group.
+ *
+ * @param yokingGroup
+ *    New value for yoking group.
+ */
+void
+CiftiConnectivityMatrixParcelFile::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
+{
+    m_chartLoadingYokingGroup = yokingGroup;
+    
+    if (m_chartLoadingYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    /* 
+     * Updated selected row/column to match yoking.
+     */
+}
 

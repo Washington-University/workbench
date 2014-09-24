@@ -83,6 +83,17 @@ namespace caret {
                                                                    const int32_t selectedParcelLabelFileMapIndex,
                                                                    const bool enabledStatus);
         
+        virtual bool isSupportsLoadingAttributes();
+        
+        virtual ChartMatrixLoadingTypeEnum::Enum getMatrixLoadingType() const;
+        
+        virtual void setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType);
+        
+        virtual YokingGroupEnum::Enum getYokingGroup() const;
+        
+        virtual void setYokingGroup(const YokingGroupEnum::Enum yokingType);
+        
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -108,6 +119,10 @@ namespace caret {
         CaretColorEnum::Enum m_selectedParcelColor;
         
         CiftiParcelReorderingModel* m_parcelReorderingModel;
+        
+        ChartMatrixLoadingTypeEnum::Enum m_chartLoadingType;
+        
+        YokingGroupEnum::Enum m_chartLoadingYokingGroup;
         
     };
     

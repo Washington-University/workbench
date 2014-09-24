@@ -77,7 +77,16 @@ namespace caret {
                                                                    const int32_t selectedParcelLabelFileMapIndex,
                                                                    const bool enabledStatus);
         
+        virtual bool isSupportsLoadingAttributes();
         
+        virtual ChartMatrixLoadingTypeEnum::Enum getMatrixLoadingType() const;
+        
+        virtual void setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType);
+        
+        virtual YokingGroupEnum::Enum getYokingGroup() const;
+        
+        virtual void setYokingGroup(const YokingGroupEnum::Enum yokingType);
+
         // ADD_NEW_METHODS_HERE
         
         

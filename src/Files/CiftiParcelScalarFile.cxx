@@ -596,5 +596,60 @@ CiftiParcelScalarFile::setSelectedParcelLabelFileAndMapForReordering(CiftiParcel
 }
 
 
+/**
+ * @return True if loading attributes (column/row, yoking) are
+ * supported by this file type.
+ */
+bool
+CiftiParcelScalarFile::isSupportsLoadingAttributes()
+{
+    return false;
+}
+
+/**
+ * @return The matrix loading type (by row/column).
+ */
+ChartMatrixLoadingTypeEnum::Enum
+CiftiParcelScalarFile::getMatrixLoadingType() const
+{
+    /* not supported in this file */
+    return ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_COLUMN;
+}
+
+/**
+ * Set the matrix loading type (by row/column).
+ *
+ * @param matrixLoadingType
+ *    New value for matrix loading type.
+ */
+void
+CiftiParcelScalarFile::setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum /* matrixLoadingType */)
+{
+    /* not supported in this file */
+}
+
+/**
+ * @return Selected yoking group.
+ */
+YokingGroupEnum::Enum
+CiftiParcelScalarFile::getYokingGroup() const
+{
+    /* not supported in this file */
+    return YokingGroupEnum::YOKING_GROUP_OFF;
+}
+
+/**
+ * Set the selected yoking group.
+ *
+ * @param yokingGroup
+ *    New value for yoking group.
+ */
+void
+CiftiParcelScalarFile::setYokingGroup(const YokingGroupEnum::Enum /* yokingGroup */)
+{
+    /* not supported in this file */
+}
+
+
 
 

@@ -23,7 +23,9 @@
 
 #include "CaretColorEnum.h"
 #include "ChartDataTypeEnum.h"
+#include "ChartMatrixLoadingTypeEnum.h"
 #include "CiftiParcelColoringModeEnum.h"
+#include "YokingGroupEnum.h"
 
 namespace caret {
     
@@ -184,6 +186,38 @@ namespace caret {
         virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
                                                                    const int32_t selectedParcelLabelFileMapIndex,
                                                                    const bool enabledStatus) = 0;
+        
+        /**
+         * @return True if loading attributes (column/row, yoking) are
+         * supported by this file type.
+         */
+        virtual bool isSupportsLoadingAttributes() = 0;
+        
+        /**
+         * @return The matrix loading type (by row/column).
+         */
+        virtual ChartMatrixLoadingTypeEnum::Enum getMatrixLoadingType() const = 0;
+        
+        /**
+         * Set the matrix loading type (by row/column).
+         *
+         * @param matrixLoadingType
+         *    New value for matrix loading type.
+         */
+        virtual void setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType) = 0;
+        
+        /**
+         * @return Selected yoking group.
+         */
+        virtual YokingGroupEnum::Enum getYokingGroup() const = 0;
+        
+        /**
+         * Set the selected yoking group.
+         *
+         * @param yokingGroup
+         *    New value for yoking group.
+         */
+        virtual void setYokingGroup(const YokingGroupEnum::Enum yokingType) = 0;
         
         // ADD_NEW_METHODS_HERE
         

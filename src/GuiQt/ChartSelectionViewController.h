@@ -42,6 +42,7 @@ namespace caret {
     class Brain;
     class CaretDataFile;
     class CaretDataFileSelectionComboBox;
+    class CaretMappableDataFile;
     class CaretMappableDataFileAndMapSelectorObject;
     class ChartableBrainordinateInterface;
     class ChartMatrixDisplayProperties;
@@ -66,7 +67,7 @@ namespace caret {
         
         void matrixFileSelected(CaretDataFile* caretDataFile);
         
-        void matrixFileLoadingComboBoxActivated(int);
+        void matrixFileLoadingComboBoxActivated();
 
         void matrixYokingGroupEnumComboBoxActivated();
         
@@ -116,7 +117,9 @@ namespace caret {
         
 //        ChartModel* getSelectedChartModel();
         
-        ChartMatrixDisplayProperties* getChartMatrixDisplayProperties();
+        bool getChartMatrixAndProperties(CaretMappableDataFile* &caretMappableDataFileOut,
+                                         ChartableMatrixInterface* & chartableMatrixInterfaceOut,
+                                         ChartMatrixDisplayProperties* &chartMatrixDisplayPropertiesOut);
         
         QStackedWidget* m_stackedWidget;
         
@@ -138,7 +141,7 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_matrixFileSelectionComboBox;
         
-        QComboBox* m_matrixLoadByColumnRowComboBox;
+        EnumComboBoxTemplate* m_matrixLoadByColumnRowComboBox;
                 
         EnumComboBoxTemplate* m_matrixYokingGroupComboBox;
 
