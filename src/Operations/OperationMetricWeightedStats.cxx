@@ -278,14 +278,14 @@ void OperationMetricWeightedStats::useParameters(OperationParameters* myParams, 
         for (int i = 0; i < numCols; ++i)
         {//store result before printing anything, in case it throws while computing
             const float result = doOperation(input->getValuePointerForColumn(i), useWeights, numNodes, myop, roiData, argument);
-            if (showMapName) cout << AString(i + 1) << ": " << input->getMapName(i) << ": ";
+            if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
             stringstream resultsstr;
             resultsstr << setprecision(7) << result;
             cout << resultsstr.str() << endl;
         }
     } else {
         const float result = doOperation(input->getValuePointerForColumn(column), useWeights, numNodes, myop, roiData, argument);
-        if (showMapName) cout << AString(column + 1) << ": " << input->getMapName(column) << ": ";
+        if (showMapName) cout << AString::number(column + 1) << ": " << input->getMapName(column) << ": ";
         stringstream resultsstr;
         resultsstr << setprecision(7) << result;
         cout << resultsstr.str() << endl;

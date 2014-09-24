@@ -173,7 +173,7 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
             for (int i = 0; i < numCols; ++i)
             {//store result before printing anything, in case it throws while computing
                 const float result = reduce(input->getValuePointerForColumn(i), numNodes, myop, roiData);
-                if (showMapName) cout << AString(i + 1) << ": " << input->getMapName(i) << ": ";
+                if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
                 stringstream resultsstr;
                 resultsstr << setprecision(7) << result;
                 cout << resultsstr.str() << endl;
@@ -183,7 +183,7 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
             for (int i = 0; i < numCols; ++i)
             {//store result before printing anything, in case it throws while computing
                 const float result = percentile(input->getValuePointerForColumn(i), numNodes, percent, roiData);
-                if (showMapName) cout << AString(i + 1) << ": " << input->getMapName(i) << ": ";
+                if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
                 stringstream resultsstr;
                 resultsstr << setprecision(7) << result;
                 cout << resultsstr.str() << endl;
@@ -194,14 +194,14 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
         if (reduceOpt->m_present)
         {
             const float result = reduce(input->getValuePointerForColumn(column), numNodes, myop, roiData);
-            if (showMapName) cout << AString(column + 1) << ": " << input->getMapName(column) << ": ";
+            if (showMapName) cout << AString::number(column + 1) << ": " << input->getMapName(column) << ": ";
             stringstream resultsstr;
             resultsstr << setprecision(7) << result;
             cout << resultsstr.str() << endl;
         } else {
             CaretAssert(percentileOpt->m_present);
             const float result = percentile(input->getValuePointerForColumn(column), numNodes, percent, roiData);
-            if (showMapName) cout << AString(column + 1) << ": " << input->getMapName(column) << ": ";
+            if (showMapName) cout << AString::number(column + 1) << ": " << input->getMapName(column) << ": ";
             stringstream resultsstr;
             resultsstr << setprecision(7) << result;
             cout << resultsstr.str() << endl;
