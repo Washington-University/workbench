@@ -60,6 +60,7 @@ OperationMetricMerge.h
 OperationMetricPalette.h
 OperationMetricStats.h
 OperationMetricVertexSum.h
+OperationMetricWeightedStats.h
 OperationNiftiInformation.h
 OperationProbtrackXDotConvert.h
 OperationSetMapName.h
@@ -132,6 +133,7 @@ OperationMetricMerge.cxx
 OperationMetricPalette.cxx
 OperationMetricStats.cxx
 OperationMetricVertexSum.cxx
+OperationMetricWeightedStats.cxx
 OperationNiftiInformation.cxx
 OperationProbtrackXDotConvert.cxx
 OperationSetMapName.cxx

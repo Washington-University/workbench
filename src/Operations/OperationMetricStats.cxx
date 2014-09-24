@@ -133,7 +133,7 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
     OptionalParameter* percentileOpt = myParams->getOptionalParameter(3);
     if (reduceOpt->m_present == percentileOpt->m_present)//use == as logical xor
     {
-        throw OperationException("You must use exactly one of -reduce or -percentile");
+        throw OperationException("you must use exactly one of -reduce or -percentile");
     }
     ReductionEnum::Enum myop = ReductionEnum::INVALID;
     if (reduceOpt->m_present)

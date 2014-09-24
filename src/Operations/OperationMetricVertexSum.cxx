@@ -38,7 +38,7 @@ AString OperationMetricVertexSum::getCommandSwitch()
 
 AString OperationMetricVertexSum::getShortDescription()
 {
-    return "SUM VALUES ACROSS VERTICES IN A METRIC FILE";
+    return "DEPRECATED: use -metric-stats or -metric-weighted-stats";
 }
 
 OperationParameters* OperationMetricVertexSum::getParameters()
@@ -59,7 +59,8 @@ OperationParameters* OperationMetricVertexSum::getParameters()
     columnOpt->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
-        AString("For each column in <metric-in>, sum the values across all vertices, then print the sum on standard output.  ") +
+        AString("DEPRECATED: this command will be removed in a future release, use -metric-stats or -metric-weighted-stats.\n\n") +
+        "For each column in <metric-in>, sum the values across all vertices, then print the sum on standard output.  " +
         "-integrate and -integrate-metric multiply each vertex value by the vertex area before doing the sum.  " +
         "Only one of -integrate and -integrate-metric may be specified.  " +
         "Use -roi to only sum within a specific area.  " +
