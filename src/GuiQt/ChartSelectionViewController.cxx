@@ -41,6 +41,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretDataFileSelectionModel.h"
+#include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
@@ -58,6 +59,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ModelChart.h"
+#include "WuQFactory.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -382,21 +384,26 @@ ChartSelectionViewController::matrixFileSelected(CaretDataFile* /*caretDataFile*
 }
 
 /**
- * Gets called when matrix loading button is clicked.
+ * Gets called when matrix loading combo box is changed.
+ *
+ * @param itemIndex
+ *     Index of item that was clicked.
  */
 void
-ChartSelectionViewController::matrixFileLoadingButtonClicked()
+ChartSelectionViewController::matrixFileLoadingComboBoxActivated(int itemIndex)
 {
     ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
     if (displayProperties != NULL) {
-        if (m_matrixLoadByColumnRadioButton->isChecked()) {
-            displayProperties->setMatrixLoadingType(ChartMatrixLoadingTypeEnum:: CHART_MATRIX_LOAD_BY_COLUMN);
-        }
-        else if (m_matrixLoadByRowRadioButton->isChecked()) {
-            displayProperties->setMatrixLoadingType(ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_ROW);
+        const int32_t loadTypeInt = m_matrixLoadByColumnRowComboBox->itemData(itemIndex).toInt();
+        bool valid = false;
+        ChartMatrixLoadingTypeEnum::Enum loadType = ChartMatrixLoadingTypeEnum::fromIntegerCode(loadTypeInt,
+                                                                                                &valid);
+        if (valid) {
+            displayProperties->setMatrixLoadingType(loadType);
         }
         else {
             CaretAssert(0);
+            CaretLogSevere("Unable to find load type for combo box data.");
         }
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
@@ -495,23 +502,21 @@ ChartSelectionViewController::createMatrixChartWidget()
     settingsToolButton->setDefaultAction(m_matrixSettingsAction);
     
     
-    QLabel* fileLabel = new QLabel("File ");
+    QLabel* fileLabel = new QLabel("Matrix File");
     m_matrixFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     QObject::connect(m_matrixFileSelectionComboBox, SIGNAL(fileSelected(CaretDataFile*)),
                      this, SLOT(matrixFileSelected(CaretDataFile*)));
 //    m_matrixFileSelectionComboBox->getWidget()->setSizePolicy(QSizePolicy::Expanding,
 //                                                              m_matrixFileSelectionComboBox->getWidget()->sizePolicy().verticalPolicy());
     
-    QLabel* loadByLabel = new QLabel("Loading");
-    m_matrixLoadByColumnRadioButton = new QRadioButton("Column");
-    m_matrixLoadByRowRadioButton    = new QRadioButton("Row");
-    
-    QButtonGroup* matrixLoadButtonGroup = new QButtonGroup(this);
-    matrixLoadButtonGroup->addButton(m_matrixLoadByColumnRadioButton);
-    matrixLoadButtonGroup->addButton(m_matrixLoadByRowRadioButton);
-    matrixLoadButtonGroup->setExclusive(true);
-    QObject::connect(matrixLoadButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
-                     this, SLOT(matrixFileLoadingButtonClicked()));
+    QLabel* loadDimensionLabel = new QLabel("Dimension");
+    m_matrixLoadByColumnRowComboBox = WuQFactory::newComboBox();
+    m_matrixLoadByColumnRowComboBox->addItem("Column",
+                                             static_cast<int>(ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_COLUMN));
+    m_matrixLoadByColumnRowComboBox->addItem("Row",
+                                             static_cast<int>(ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_ROW));
+    QObject::connect(m_matrixLoadByColumnRowComboBox, SIGNAL(activated(int)),
+                     this, SLOT(matrixFileLoadingComboBoxActivated(int)));
 
     
     QLabel* yokeLabel = new QLabel("Yoke ");
@@ -520,14 +525,17 @@ ChartSelectionViewController::createMatrixChartWidget()
     QObject::connect(m_matrixYokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(matrixYokingGroupEnumComboBoxActivated()));
     
-    QGridLayout* fileYokeLayout = new QGridLayout();
+    QGroupBox* fileYokeGroupBox = new QGroupBox("Matrix Loading");
+    fileYokeGroupBox->setFlat(true);
+    QGridLayout* fileYokeLayout = new QGridLayout(fileYokeGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(fileYokeLayout, 2, 0);
     fileYokeLayout->setColumnStretch(0, 0);
     fileYokeLayout->setColumnStretch(1, 0);
     fileYokeLayout->setColumnStretch(2, 0);
     fileYokeLayout->setColumnStretch(3, 0);
     fileYokeLayout->setColumnStretch(4, 100);
     
-    fileYokeLayout->addWidget(loadByLabel,
+    fileYokeLayout->addWidget(loadDimensionLabel,
                               0, 0,
                               Qt::AlignHCenter);
     fileYokeLayout->addWidget(settingsLabel,
@@ -540,10 +548,8 @@ ChartSelectionViewController::createMatrixChartWidget()
     fileYokeLayout->addWidget(fileLabel,
                               0, 4,
                               Qt::AlignHCenter);
-    fileYokeLayout->addWidget(m_matrixLoadByColumnRadioButton,
+    fileYokeLayout->addWidget(m_matrixLoadByColumnRowComboBox,
                               1, 0);
-    fileYokeLayout->addWidget(m_matrixLoadByRowRadioButton,
-                              2, 0);
     fileYokeLayout->addWidget(settingsToolButton,
                               1, 1);
     fileYokeLayout->addWidget(colorBarToolButton,
@@ -553,31 +559,45 @@ ChartSelectionViewController::createMatrixChartWidget()
     fileYokeLayout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
                               1, 4);
     
+    m_parcelReorderingEnabledCheckBox = new QCheckBox("");
+    QObject::connect(m_parcelReorderingEnabledCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(parcelLabelFileRemappingFileSelectorChanged()));
     
     m_parcelLabelFileRemappingFileSelector = new CaretMappableDataFileAndMapSelectorObject(DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL,
                                                                                            CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
                                                                                            this);
+    QObject::connect(m_parcelLabelFileRemappingFileSelector, SIGNAL(selectionWasPerformed()),
+                     this, SLOT(parcelLabelFileRemappingFileSelectorChanged()));
+    
+    QLabel* parcelCheckBoxLabel = new QLabel("On");
+    QLabel* parcelFileLabel = new QLabel("Parcel Label File");
+    QLabel* parcelFileMapLabel = new QLabel("Map");
     QWidget* mapFileComboBox = NULL;
     QWidget* mapIndexSpinBox = NULL;
     QWidget* mapNameComboBox = NULL;
     m_parcelLabelFileRemappingFileSelector->getWidgetsForAddingToLayout(mapFileComboBox,
                                                                         mapIndexSpinBox,
                                                                         mapNameComboBox);
-    QGroupBox* m_remappingGroupBox = new QGroupBox("Parcel Label Remapping");
-    QHBoxLayout* parcelMapFileLayout = new QHBoxLayout(m_remappingGroupBox);
-    parcelMapFileLayout->addWidget(mapFileComboBox);
-    parcelMapFileLayout->addWidget(mapIndexSpinBox);
-    parcelMapFileLayout->addWidget(mapNameComboBox);
-    parcelMapFileLayout->setStretchFactor(mapFileComboBox, 100);
-    parcelMapFileLayout->setStretchFactor(mapIndexSpinBox, 0);
-    parcelMapFileLayout->setStretchFactor(mapNameComboBox, 100);
-    QObject::connect(m_parcelLabelFileRemappingFileSelector, SIGNAL(selectionWasPerformed()),
-                     this, SLOT(parcelLabelFileRemappingFileSelectorChanged()));
+    QGroupBox* m_remappingGroupBox = new QGroupBox("Parcel Reordering");
+    m_remappingGroupBox->setFlat(true);
+    QGridLayout* parcelMapFileLayout = new QGridLayout(m_remappingGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(parcelMapFileLayout, 2, 0);
+    parcelMapFileLayout->setColumnStretch(0,   0);
+    parcelMapFileLayout->setColumnStretch(1, 100);
+    parcelMapFileLayout->setColumnStretch(2,   0);
+    parcelMapFileLayout->setColumnStretch(3, 100);
+    parcelMapFileLayout->addWidget(parcelCheckBoxLabel, 0, 0, Qt::AlignHCenter);
+    parcelMapFileLayout->addWidget(parcelFileLabel, 0, 1, Qt::AlignHCenter);
+    parcelMapFileLayout->addWidget(parcelFileMapLabel, 0, 2, 1, 2, Qt::AlignHCenter);
+    parcelMapFileLayout->addWidget(m_parcelReorderingEnabledCheckBox, 1,0);
+    parcelMapFileLayout->addWidget(mapFileComboBox, 1, 1);
+    parcelMapFileLayout->addWidget(mapIndexSpinBox, 1, 2);
+    parcelMapFileLayout->addWidget(mapNameComboBox, 1, 3);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
-    layout->addLayout(fileYokeLayout);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 1, 0);
+    layout->addWidget(fileYokeGroupBox);
     layout->addWidget(m_remappingGroupBox);
     layout->addStretch();
     
@@ -585,11 +605,10 @@ ChartSelectionViewController::createMatrixChartWidget()
      * TEMP TODO
      * FINISH IMPLEMENTATION OF LOADING AND YOKING
      */
-    const bool hideLoadAndYokeControls = true;
+    const bool hideLoadAndYokeControls = false;
     if (hideLoadAndYokeControls) {
-        loadByLabel->hide();
-        m_matrixLoadByColumnRadioButton->hide();
-        m_matrixLoadByRowRadioButton->hide();
+        loadDimensionLabel->hide();
+        m_matrixLoadByColumnRowComboBox->hide();
         yokeLabel->hide();
         m_matrixYokingGroupComboBox->getWidget()->hide();
     }
@@ -662,10 +681,11 @@ ChartSelectionViewController::parcelLabelFileRemappingFileSelectorChanged()
             
             ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(cmdf);
             if (matrixInterface != NULL) {
+                bool remappingEnabled = m_parcelReorderingEnabledCheckBox->isChecked();
+                
                 CaretMappableDataFileAndMapSelectionModel* model = m_parcelLabelFileRemappingFileSelector->getModel();
                 CiftiParcelLabelFile* parcelLabelFile = model->getSelectedFileOfType<CiftiParcelLabelFile>();
                 int32_t parcelLabelFileMapIndex = model->getSelectedMapIndex();
-                bool remappingEnabled = false;
                 CaretAssertToDoWarning(); // enabled status
 
                 matrixInterface->setSelectedParcelLabelFileAndMapForReordering(parcelLabelFile,
@@ -700,14 +720,14 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
     const ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
     if (displayProperties != NULL) {
         const ChartMatrixLoadingTypeEnum::Enum loadType = displayProperties->getMatrixLoadingType();
-        
-        switch (loadType) {
-            case ChartMatrixLoadingTypeEnum:: CHART_MATRIX_LOAD_BY_COLUMN:
-                m_matrixLoadByColumnRadioButton->setChecked(true);
-                break;
-            case ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_ROW:
-                m_matrixLoadByRowRadioButton->setChecked(true);
-                break;
+        const int loadTypeInt = ChartMatrixLoadingTypeEnum::toIntegerCode(loadType);
+        int32_t itemIndex = m_matrixLoadByColumnRowComboBox->findData(loadTypeInt);
+        if (itemIndex >= 0) {
+            m_matrixLoadByColumnRowComboBox->setCurrentIndex(itemIndex);
+        }
+        else {
+            CaretAssert(0);
+            CaretLogSevere("Unable to find load type in combo box data.");
         }
         
         const YokingGroupEnum::Enum yokingGroup = displayProperties->getYokingGroup();
@@ -737,6 +757,7 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
             }
         }
     }
+    m_parcelReorderingEnabledCheckBox->setChecked(remappingEnabled);
     CaretMappableDataFileAndMapSelectionModel* model = m_parcelLabelFileRemappingFileSelector->getModel();
     model->setSelectedFile(parcelLabelFile);
     model->setSelectedMapIndex(parcelLabelFileMapIndex);

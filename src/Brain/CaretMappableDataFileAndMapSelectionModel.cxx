@@ -142,6 +142,7 @@ CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionM
  */
 CaretMappableDataFileAndMapSelectionModel::~CaretMappableDataFileAndMapSelectionModel()
 {
+    delete m_caretDataFileSelectionModel;
     delete m_sceneAssistant;
 }
 

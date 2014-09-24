@@ -94,8 +94,8 @@ namespace caret {
                                                                    bool& enabledStatusOut) const;
         
         virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
-                                                 int32_t& selectedParcelLabelFileMapIndex,
-                                                 bool& enabledStatus);
+                                                                   const int32_t selectedParcelLabelFileMapIndex,
+                                                                   const bool enabledStatus);
         
     private:
         CiftiParcelScalarFile(const CiftiParcelScalarFile&);

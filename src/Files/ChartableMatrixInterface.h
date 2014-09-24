@@ -182,8 +182,8 @@ namespace caret {
          *    Enabled status of reordering.
          */
         virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
-                                                 int32_t& selectedParcelLabelFileMapIndex,
-                                                 bool& enabledStatus) = 0;
+                                                                   const int32_t selectedParcelLabelFileMapIndex,
+                                                                   const bool enabledStatus) = 0;
         
         // ADD_NEW_METHODS_HERE
         

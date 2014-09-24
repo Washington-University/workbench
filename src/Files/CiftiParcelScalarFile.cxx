@@ -587,8 +587,8 @@ CiftiParcelScalarFile::getSelectedParcelLabelFileAndMapForReordering(CiftiParcel
  */
 void
 CiftiParcelScalarFile::setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
-                                                  int32_t& selectedParcelLabelFileMapIndex,
-                                                  bool& enabledStatus)
+                                                                     const int32_t selectedParcelLabelFileMapIndex,
+                                                                     const bool enabledStatus)
 {
     m_parcelReorderingModel->setSelectedParcelLabelFileAndMapForReordering(selectedParcelLabelFile,
                                                                            selectedParcelLabelFileMapIndex,

@@ -29,6 +29,7 @@
 
 class QButtonGroup;
 class QCheckBox;
+class QComboBox;
 class QGridLayout;
 class QLabel;
 class QLineEdit;
@@ -65,7 +66,7 @@ namespace caret {
         
         void matrixFileSelected(CaretDataFile* caretDataFile);
         
-        void matrixFileLoadingButtonClicked();
+        void matrixFileLoadingComboBoxActivated(int);
 
         void matrixYokingGroupEnumComboBoxActivated();
         
@@ -137,15 +138,15 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_matrixFileSelectionComboBox;
         
-        QRadioButton* m_matrixLoadByColumnRadioButton;
-        
-        QRadioButton* m_matrixLoadByRowRadioButton;
+        QComboBox* m_matrixLoadByColumnRowComboBox;
                 
         EnumComboBoxTemplate* m_matrixYokingGroupComboBox;
 
         QAction* m_matrixColorBarAction;
         
         QAction* m_matrixSettingsAction;
+        
+        QCheckBox* m_parcelReorderingEnabledCheckBox;
         
         CaretMappableDataFileAndMapSelectorObject* m_parcelLabelFileRemappingFileSelector;
         
