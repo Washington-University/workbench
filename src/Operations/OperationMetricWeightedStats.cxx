@@ -75,11 +75,11 @@ OperationParameters* OperationMetricWeightedStats::getParameters()
     ret->createOptionalParameter(10, "-show-map-name", "print map index and name before each output");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  ") +
-        "DO NOT add the info about what the command line format is, and do not give the command switch, " +
-        "short description, or the short descriptions of parameters.  " +
-        "Do not indent, manually break long lines, or format the text in any way " +
-        "other than to separate paragraphs within the help text prose, usually with two newlines."
+        AString("For each column of the input, a single number is printed, resulting from the specified operation.  ") +
+        "Use -column to only give output for a single column.  " +
+        "Use -roi to consider only the data within a region.  " +
+        "Exactly one of -reduce or -percentile must be specified, and exactly one of -mean, -stdev, -percentile or -sum must be specified.\n\n" +
+        "Using -sum with -area-surface (or -weight-metric with a metric containing similar data) is equivalent to integrating with respect to surface area."
     );
     return ret;
 }
