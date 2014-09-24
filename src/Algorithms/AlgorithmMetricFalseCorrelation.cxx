@@ -65,9 +65,9 @@ OperationParameters* AlgorithmMetricFalseCorrelation::getParameters()
     dumpTextOpt->addStringParameter(1, "text-out", "the output text file");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
-        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
-        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+        AString("For each vertex, compute the average correlation within a range of geodesic distances that don't cross a sulcus/gyrus, and the correlation to the closest vertex crossing a sulcus/gyrus.  ") +
+        "A vertex is considered to cross a sulcus/gyrus if the 3D distance is less than a third of the geodesic distance.  " +
+        "The output file contains the ratio between these correlations, and some additional maps to help explain the ratio."
     );
     return ret;
 }
