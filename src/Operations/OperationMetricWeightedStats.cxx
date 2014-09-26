@@ -143,6 +143,7 @@ namespace
                 }
                 if (myop == STDEV) return sqrt(accum / weightsum);
                 CaretAssert(myop == SAMPSTDEV);
+                if (numUse < 2) throw OperationException("sample standard deviation requires at least 2 elements in the roi");
                 return sqrt(accum / (weightsum - weightsum2 / weightsum));//http://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_variance
             }
             case PERCENTILE:

@@ -87,6 +87,7 @@ OperationVolumePalette.h
 OperationVolumeReorient.h
 OperationVolumeSetSpace.h
 OperationVolumeStats.h
+OperationVolumeWeightedStats.h
 OperationWbsparseMergeDense.h
 OperationZipSceneFile.h
 OperationZipSpecFile.h
@@ -161,6 +162,7 @@ OperationVolumePalette.cxx
 OperationVolumeReorient.cxx
 OperationVolumeSetSpace.cxx
 OperationVolumeStats.cxx
+OperationVolumeWeightedStats.cxx
 OperationWbsparseMergeDense.cxx
 OperationZipSceneFile.cxx
 OperationZipSpecFile.cxx

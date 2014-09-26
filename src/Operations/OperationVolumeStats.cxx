@@ -91,7 +91,7 @@ namespace
                     toUse.push_back(data[i]);
                 }
             }
-            if (toUse.empty()) throw OperationException("roi contains no vertices");
+            if (toUse.empty()) throw OperationException("roi contains no voxels");
             return ReductionOperation::reduce(toUse.data(), toUse.size(), myop);
         }
     }
@@ -113,7 +113,7 @@ namespace
                 }
             }
         }
-        if (toUse.empty()) throw OperationException("roi contains no vertices");
+        if (toUse.empty()) throw OperationException("roi contains no voxels");
         sort(toUse.begin(), toUse.end());
         const double index = percent / 100.0f * (toUse.size() - 1);
         if (index <= 0) return toUse[0];

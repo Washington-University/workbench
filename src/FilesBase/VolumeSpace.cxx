@@ -170,6 +170,13 @@ void VolumeSpace::getSpacingVectors(Vector3D& iStep, Vector3D& jStep, Vector3D& 
     FloatMatrix(m_sform).getAffineVectors(iStep, jStep, kStep, origin);
 }
 
+float VolumeSpace::getVoxelVolume() const
+{
+    Vector3D spacingVecs[4];
+    getSpacingVectors(spacingVecs[0], spacingVecs[1], spacingVecs[2], spacingVecs[3]);
+    return abs(spacingVecs[0].dot(spacingVecs[1].cross(spacingVecs[2])));
+}
+
 void VolumeSpace::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* originOut) const
 {
     CaretAssert(isPlumb());
@@ -215,7 +222,7 @@ void VolumeSpace::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spa
     }
 }
 
-void VolumeSpace::getOrientation(VolumeSpace::OrientTypes orientOut[3]) const
+void VolumeSpace::getOrientation(OrientTypes orientOut[3]) const
 {
     Vector3D ivec, jvec, kvec, origin;
     getSpacingVectors(ivec, jvec, kvec, origin);

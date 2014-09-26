@@ -57,6 +57,7 @@ namespace caret
         const int64_t* getDims() const { return m_dims; }
         const std::vector<std::vector<float> >& getSform() const { return m_sform; }
         void getSpacingVectors(Vector3D& iStep, Vector3D& jStep, Vector3D& kStep, Vector3D& origin) const;
+        float getVoxelVolume() const;
         bool matches(const VolumeSpace& right) const;//allows slight mismatches
         bool operator==(const VolumeSpace& right) const;//requires that it be exact
         bool operator!=(const VolumeSpace& right) const { return !(*this == right); }
