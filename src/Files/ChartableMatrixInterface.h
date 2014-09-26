@@ -31,7 +31,10 @@ namespace caret {
     
     class CaretMappableDataFile;
     class ChartMatrixDisplayProperties;
+    class CiftiMappableDataFile;
     class CiftiParcelLabelFile;
+    class CiftiParcelReordering;
+    class CiftiParcelsMap;
     
     class ChartableMatrixInterface {
         
@@ -116,15 +119,13 @@ namespace caret {
          */
         virtual void setSelectedParcelColor(const CaretColorEnum::Enum color) = 0;
         
-        /**
-         * @return The CaretMappableDataFile that implements this interface.
-         */
         virtual CaretMappableDataFile* getMatrixChartCaretMappableDataFile();
         
-        /**
-         * @return The CaretMappableDataFile that implements this interface.
-         */
         virtual const CaretMappableDataFile* getMatrixChartCaretMappableDataFile() const;
+        
+        virtual CiftiMappableDataFile* getMatrixChartCiftiMappableDataFile();
+        
+        virtual const CiftiMappableDataFile* getMatrixChartCiftiMappableDataFile() const;
         
         /**
          * @return Is charting enabled for this file in the given tab?
@@ -160,6 +161,9 @@ namespace caret {
         /**
          * Get the selected parcel label file used for reordering of parcels.
          *
+         * @param compatibleParcelLabelFilesOut
+         *    All Parcel Label files that are compatible with file implementing
+         *    this interface.
          * @param selectedParcelLabelFileOut
          *    The selected parcel label file used for reordering the parcels.
          *    May be NULL!
@@ -168,7 +172,8 @@ namespace caret {
          * @param enabledStatusOut
          *    Enabled status of reordering.
          */
-        virtual void getSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+        virtual void getSelectedParcelLabelFileAndMapForReordering(std::vector<CiftiParcelLabelFile*>& compatibleParcelLabelFilesOut,
+                                                                   CiftiParcelLabelFile* &selectedParcelLabelFileOut,
                                                  int32_t& selectedParcelLabelFileMapIndexOut,
                                                  bool& enabledStatusOut) const = 0;
         
@@ -186,6 +191,37 @@ namespace caret {
         virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
                                                                    const int32_t selectedParcelLabelFileMapIndex,
                                                                    const bool enabledStatus) = 0;
+        
+        /**
+         * Create the parcel reordering for the given map index using
+         * the given parcel label file and its map index.
+         *
+         * @param parcelLabelFile
+         *    The selected parcel label file used for reordering the parcels.
+         * @param parcelLabelFileMapIndex
+         *    Map index in the selected parcel label file.
+         * @param errorMessageOut
+         *    Error message output.  Will only be non-empty if NULL is returned.
+         * @return
+         *    Pointer to parcel reordering or NULL if not found.
+         */
+        virtual bool createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                    const int32_t parcelLabelFileMapIndex,
+                                    AString& errorMessageOut) = 0;
+        
+        /**
+         * Get the parcel reordering for the given map index that was created using
+         * the given parcel label file and its map index.
+         *
+         * @param parcelLabelFile
+         *    The selected parcel label file used for reordering the parcels.
+         * @param parcelLabelFileMapIndex
+         *    Map index in the selected parcel label file.
+         * @return
+         *    Pointer to parcel reordering or NULL if not found.
+         */
+        virtual const CiftiParcelReordering* getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                         const int32_t parcelLabelFileMapIndex) const = 0;
         
         /**
          * @return True if loading attributes (column/row, yoking) are

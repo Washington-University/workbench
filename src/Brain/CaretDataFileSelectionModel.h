@@ -54,6 +54,8 @@ namespace caret {
         
         std::vector<CaretDataFile*> getAvailableFiles() const;
         
+        void overrideAvailableDataFiles(std::vector<CaretDataFile*>& availableFiles);
+        
         /**
          * @return Selected file dynamically cast to the templated
          * data file type.
@@ -111,6 +113,10 @@ namespace caret {
         void updateSelection() const;
         
         const FileMode m_fileMode;
+        
+        std::vector<CaretDataFile*> m_overrideOfAvailableFiles;
+        
+        bool m_overrideOfAvailableFilesValid;
         
         Brain* m_brain;
         

@@ -26,6 +26,7 @@
 #include "CaretLogger.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "CiftiFile.h"
+#include "CiftiParcelReordering.h"
 #include "CiftiParcelReorderingModel.h"
 #include "FastStatistics.h"
 #include "NodeAndVoxelColoring.h"
@@ -64,7 +65,7 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
     m_selectedParcelColoringMode = CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_OUTLINE;
     m_selectedParcelColor = CaretColorEnum::WHITE;
 
-    m_parcelReorderingModel = new CiftiParcelReorderingModel();
+    m_parcelReorderingModel = new CiftiParcelReorderingModel(this);
 
     m_chartLoadingType = ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_ROW;
     
@@ -116,10 +117,30 @@ CiftiConnectivityMatrixParcelFile::getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                                     int32_t& numberOfColumnsOut,
                                                     std::vector<float>& rgbaOut) const
 {
-    return helpLoadChartDataMatrixForMap(0,
-                                         numberOfRowsOut,
-                                         numberOfColumnsOut,
-                                         rgbaOut);
+    CiftiParcelLabelFile* parcelLabelFile = NULL;
+    int32_t parcelLabelFileMapIndex = -1;
+    bool enabled = false;
+    
+    std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
+    getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
+                                                  parcelLabelFile,
+                                                  parcelLabelFileMapIndex,
+                                                  enabled);
+    
+    if (enabled) {
+        const CiftiParcelReordering* parcelReordering = getParcelReordering(parcelLabelFile, parcelLabelFileMapIndex);
+        if (parcelReordering != NULL) {
+            const std::vector<int32_t> rowIndices = parcelReordering->getReorderedParcelIndices();
+            return helpLoadChartDataMatrixRGBAWithRowIndicese(numberOfRowsOut,
+                                                              numberOfColumnsOut,
+                                                              rowIndices,
+                                                              rgbaOut);
+        }
+    }
+    
+    return helpLoadChartDataMatrixRGBA(numberOfRowsOut,
+                                       numberOfColumnsOut,
+                                       rgbaOut);
 }
 
 /**
@@ -398,6 +419,9 @@ CiftiConnectivityMatrixParcelFile::setSelectedParcelColor(const CaretColorEnum::
 /**
  * Get the selected parcel label file used for reordering of parcels.
  *
+ * @param compatibleParcelLabelFilesOut
+ *    All Parcel Label files that are compatible with file implementing
+ *    this interface
  * @param selectedParcelLabelFileOut
  *    The selected parcel label file used for reordering the parcels.
  *    May be NULL!
@@ -407,11 +431,13 @@ CiftiConnectivityMatrixParcelFile::setSelectedParcelColor(const CaretColorEnum::
  *    Enabled status of reordering.
  */
 void
-CiftiConnectivityMatrixParcelFile::getSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+CiftiConnectivityMatrixParcelFile::getSelectedParcelLabelFileAndMapForReordering(std::vector<CiftiParcelLabelFile*>& compatibleParcelLabelFilesOut,
+                                                                                 CiftiParcelLabelFile* &selectedParcelLabelFileOut,
                                                                                  int32_t& selectedParcelLabelFileMapIndexOut,
                                                                                  bool& enabledStatusOut) const
 {
-    m_parcelReorderingModel->getSelectedParcelLabelFileAndMapForReordering(selectedParcelLabelFileOut,
+    m_parcelReorderingModel->getSelectedParcelLabelFileAndMapForReordering(compatibleParcelLabelFilesOut,
+                                                                           selectedParcelLabelFileOut,
                                                                            selectedParcelLabelFileMapIndexOut,
                                                                            enabledStatusOut);
 }
@@ -435,6 +461,51 @@ CiftiConnectivityMatrixParcelFile::setSelectedParcelLabelFileAndMapForReordering
     m_parcelReorderingModel->setSelectedParcelLabelFileAndMapForReordering(selectedParcelLabelFile,
                                                                            selectedParcelLabelFileMapIndex,
                                                                            enabledStatus);
+}
+
+/**
+ * Get the parcel reordering for the given map index that was created using
+ * the given parcel label file and its map index.
+ *
+ * @param parcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ * @param parcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @return
+ *    Pointer to parcel reordering or NULL if not found.
+ */
+const CiftiParcelReordering*
+CiftiConnectivityMatrixParcelFile::getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                const int32_t parcelLabelFileMapIndex) const
+{
+    return m_parcelReorderingModel->getParcelReordering(parcelLabelFile,
+                                                        parcelLabelFileMapIndex);
+}
+
+/**
+ * Create the parcel reordering for the given map index using
+ * the given parcel label file and its map index.
+ *
+ * @param parcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ * @param parcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @param ciftiParcelsMap
+ *    The CIFTI parcels map that will or has been reordered.
+ * @param errorMessageOut
+ *    Error message output.  Will only be non-empty if NULL is returned.
+ * @return
+ *    Pointer to parcel reordering or NULL if not found.
+ */
+bool
+CiftiConnectivityMatrixParcelFile::createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                   const int32_t parcelLabelFileMapIndex,
+                                                   AString& errorMessageOut)
+{
+    return m_parcelReorderingModel->createParcelReordering(parcelLabelFile,
+                                                           parcelLabelFileMapIndex,
+                                                           getCiftiParcelsMapForBrainordinateMapping(),
+                                                           errorMessageOut);
 }
 
 /**

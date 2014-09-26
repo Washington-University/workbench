@@ -24,7 +24,11 @@
 #undef __CIFTI_PARCEL_REORDERING_MODEL_DECLARE__
 
 #include "CaretAssert.h"
+#include "CiftiMappableDataFile.h"
 #include "CiftiParcelLabelFile.h"
+#include "CiftiParcelReordering.h"
+#include "CiftiParcelsMap.h"
+#include "CiftiXML.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "SceneClass.h"
@@ -37,18 +41,28 @@ using namespace caret;
     
 /**
  * \class caret::CiftiParcelReorderingModel 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Controls reordering of parcels for a CIFTI data file.
  * \ingroup Files
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
  */
 
 /**
  * Constructor.
  */
-CiftiParcelReorderingModel::CiftiParcelReorderingModel()
-: CaretObject()
+CiftiParcelReorderingModel::CiftiParcelReorderingModel(const CiftiMappableDataFile* parentCiftiMappableDataFile)
+: CaretObject(),
+m_parentCiftiMappableDataFile(parentCiftiMappableDataFile)
 {
+    CaretAssert(parentCiftiMappableDataFile);
+    
+    switch (parentCiftiMappableDataFile->getDataFileType()) {
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        default:
+            CaretAssert(0);
+    }
+    
     m_parcelReorderingEnabledStatus = false;
     m_selectedParcelLabelFile = NULL;
     m_selectedParcelLabelFileMapIndex = -1;
@@ -66,6 +80,13 @@ CiftiParcelReorderingModel::CiftiParcelReorderingModel()
 CiftiParcelReorderingModel::~CiftiParcelReorderingModel()
 {
     delete m_sceneAssistant;
+    
+    for (std::vector<CiftiParcelReordering*>::iterator iter = m_parcelReordering.begin();
+         iter != m_parcelReordering.end();
+         iter++) {
+        delete *iter;
+    }
+    m_parcelReordering.clear();
 }
 
 /**
@@ -104,10 +125,12 @@ CiftiParcelReorderingModel::operator=(const CiftiParcelReorderingModel& obj)
 void 
 CiftiParcelReorderingModel::copyHelperCiftiParcelReorderingModel(const CiftiParcelReorderingModel& obj)
 {
+    std::vector<CiftiParcelLabelFile*> compatibleParcelLabelFiles;
     CiftiParcelLabelFile* selectedParcelLabelFile;
     int32_t selectedParcelLabelFileMapIndex;
     bool enabledStatus;
-    obj.getSelectedParcelLabelFileAndMapForReordering(selectedParcelLabelFile,
+    obj.getSelectedParcelLabelFileAndMapForReordering(compatibleParcelLabelFiles,
+                                                      selectedParcelLabelFile,
                                                   selectedParcelLabelFileMapIndex,
                                                   enabledStatus);
     setSelectedParcelLabelFileAndMapForReordering(selectedParcelLabelFile,
@@ -116,7 +139,15 @@ CiftiParcelReorderingModel::copyHelperCiftiParcelReorderingModel(const CiftiParc
 }
 
 /**
- * @return Parcel label files that contain at least one map.
+ * (1) Since the user may load/unload files at will, any current
+ * selection requests will need to validate against available
+ * parcel label files.
+ *
+ * (2) The parcel label files must test for compatibility by 
+ * matching their CiftiParcelMaps.
+ *
+ * @return Parcel label files that contain at least one map and
+ *         contain compatible CiftiParcelMaps.
  */
 std::vector<CiftiParcelLabelFile*>
 CiftiParcelReorderingModel::getParcelLabelFiles() const
@@ -133,9 +164,78 @@ CiftiParcelReorderingModel::getParcelLabelFiles() const
          iter++) {
         CaretMappableDataFile* cmdf = *iter;
         if (cmdf->getNumberOfMaps() > 0) {
-            CiftiParcelLabelFile* plf = dynamic_cast<CiftiParcelLabelFile*>(*iter);
-            CaretAssert(plf);
-            parcelLabelFiles.push_back(plf);
+            CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<CiftiParcelLabelFile*>(*iter);
+            CaretAssert(parcelLabelFile);
+            
+            std::map<CiftiParcelLabelFile*, bool>::iterator fileStatusIter = m_parcelLabelFileCompatibilityStatus.find(parcelLabelFile);
+            if (fileStatusIter != m_parcelLabelFileCompatibilityStatus.end()) {
+                const bool compatibleFlag = fileStatusIter->second;
+                if (compatibleFlag) {
+                    /*
+                     * File was previously verified for parcel compatibility.
+                     */
+                    parcelLabelFiles.push_back(parcelLabelFile);
+                }
+            }
+            else {
+                const CiftiParcelsMap* parcelsMap = parcelLabelFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_COLUMN);
+                CaretAssert(parcelsMap);
+                
+                bool testAlongRow    = false;
+                bool testAlongColumn = false;
+                switch (m_parentCiftiMappableDataFile->getDataFileType()) {
+                    case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                        testAlongColumn = true;
+                        testAlongRow    = true;
+                        break;
+                    case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                        testAlongColumn = true;
+                        break;
+                    case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                        testAlongColumn = true;
+                        break;
+                    default:
+                        CaretAssert(0);
+                }
+                int32_t passCount = 0;
+                int32_t failCount = 0;
+                
+                if (testAlongColumn) {
+                    if (m_parentCiftiMappableDataFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_COLUMN)->approximateMatch(*parcelsMap)) {
+                        ++passCount;
+                    }
+                    else {
+                        ++failCount;
+                    }
+                }
+                
+                if (testAlongRow) {
+                    if (m_parentCiftiMappableDataFile->getCiftiParcelsMapForDirection(CiftiXML::ALONG_ROW)->approximateMatch(*parcelsMap)) {
+                        ++passCount;
+                    }
+                    else {
+                        ++failCount;
+                    }
+                }
+                
+                bool compatibleFlag = false;
+                if ((passCount > 0)
+                    && (failCount <= 0)) {
+                    parcelLabelFiles.push_back(parcelLabelFile);
+                    
+                    /*
+                     * NOTE: Since file was found to be compatible it will
+                     * always be compatible.
+                     */
+                    compatibleFlag = true;
+                }
+                /*
+                 * NOTE: Compatiblity status will never change so cache it
+                 * to avoid retesting.
+                 */
+                m_parcelLabelFileCompatibilityStatus.insert(std::make_pair(parcelLabelFile,
+                                                                           compatibleFlag));
+            }
         }
     }
     
@@ -144,9 +244,12 @@ CiftiParcelReorderingModel::getParcelLabelFiles() const
 
 /**
  * Validate the selected parcel label file and map.
+ *
+ * @param optionalParcelLabelFilesOut
+ *    If not NULL, the matching parcel labels files are inserted into this.
  */
 void
-CiftiParcelReorderingModel::validateSelectedParcelLabelFileAndMap() const
+CiftiParcelReorderingModel::validateSelectedParcelLabelFileAndMap(std::vector<CiftiParcelLabelFile*>* optionalParcelLabelFilesOut) const
 {
     std::vector<CiftiParcelLabelFile*> parcelLabelFiles = getParcelLabelFiles();
     bool foundFile = false;
@@ -183,6 +286,10 @@ CiftiParcelReorderingModel::validateSelectedParcelLabelFileAndMap() const
             m_parcelReorderingEnabledStatus   = false;
         }
     }
+    
+    if (optionalParcelLabelFilesOut != NULL) {
+        *optionalParcelLabelFilesOut = parcelLabelFiles;
+    }
 }
 
 
@@ -199,6 +306,8 @@ CiftiParcelReorderingModel::toString() const
 /**
  * Get the selected parcel label file used for reordering of parcels.
  *
+ * @param parcelLabelFilesOut
+ *    The compatible parcel label files.
  * @param selectedParcelLabelFileOut
  *    The selected parcel label file used for reordering the parcels.
  *    May be NULL!
@@ -208,11 +317,12 @@ CiftiParcelReorderingModel::toString() const
  *    Enabled status of reordering.
  */
 void
-CiftiParcelReorderingModel::getSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+CiftiParcelReorderingModel::getSelectedParcelLabelFileAndMapForReordering(std::vector<CiftiParcelLabelFile*>& parcelLabelFilesOut,
+                                                                          CiftiParcelLabelFile* &selectedParcelLabelFileOut,
                                                                           int32_t& selectedParcelLabelFileMapIndexOut,
                                                                           bool& enabledStatusOut) const
 {
-    validateSelectedParcelLabelFileAndMap();
+    validateSelectedParcelLabelFileAndMap(&parcelLabelFilesOut);
 
     selectedParcelLabelFileOut = m_selectedParcelLabelFile;
     selectedParcelLabelFileMapIndexOut = m_selectedParcelLabelFileMapIndex;
@@ -240,6 +350,80 @@ CiftiParcelReorderingModel::setSelectedParcelLabelFileAndMapForReordering(CiftiP
     m_parcelReorderingEnabledStatus   = enabledStatus;
 }
 
+void createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                            const int32_t parcelLabelFileMapIndex,
+                            const CiftiParcelsMap* ciftiParcelsMap,
+                            const int32_t mapIndex,
+                            AString& errorMessageOut);
+
+/**
+ * Get the parcel reordering for the given map index that was created using
+ * the given parcel label file and its map index.
+ *
+ * @param parcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ * @param parcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @return
+ *    Pointer to parcel reordering or NULL if not found.
+ */
+const CiftiParcelReordering*
+CiftiParcelReorderingModel::getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                 const int32_t parcelLabelFileMapIndex) const
+{
+    for (std::vector<CiftiParcelReordering*>::const_iterator iter = m_parcelReordering.begin();
+         iter != m_parcelReordering.end();
+         iter++) {
+        const CiftiParcelReordering* parcelReordering = *iter;
+        
+        if (parcelReordering->isMatch(parcelLabelFile,
+                                      parcelLabelFileMapIndex)) {
+            return parcelReordering;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
+ * Create the parcel reordering for the given parcels map index using
+ * the given parcel label file and its map index.
+ *
+ * @param parcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ * @param parcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @param ciftiParcelsMap
+ *    Parcel map for which a reordering is created.
+ * @param errorMessageOut
+ *    Error message output.  Will only be non-empty if NULL is returned.
+ * @return
+ *    Pointer to parcel reordering or NULL if not found.
+ */
+bool
+CiftiParcelReorderingModel::createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                   const int32_t parcelLabelFileMapIndex,
+                                                   const CiftiParcelsMap* ciftiParcelsMap,
+                                                   AString& errorMessageOut)
+{
+    if (getParcelReordering(parcelLabelFile,
+                            parcelLabelFileMapIndex) != NULL) {
+        return true;
+    }
+    
+    CiftiParcelReordering* parcelReordering = new CiftiParcelReordering();
+    if (parcelReordering->createReordering(parcelLabelFile,
+                                           parcelLabelFileMapIndex,
+                                           *ciftiParcelsMap,
+                                           errorMessageOut)) {
+        m_parcelReordering.push_back(parcelReordering);
+        return true;
+    }
+    
+    return false;
+}
+
+
 /**
  * Save information specific to this type of model to the scene.
  *
@@ -255,7 +439,7 @@ SceneClass*
 CiftiParcelReorderingModel::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
-    validateSelectedParcelLabelFileAndMap();
+    validateSelectedParcelLabelFileAndMap(NULL);
     
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "CiftiParcelReorderingModel",
@@ -267,6 +451,7 @@ CiftiParcelReorderingModel::saveToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addPathName("m_selectedParcelLabelFile",
                                 m_selectedParcelLabelFile->getFileName());
     }
+
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
     //                        sceneClass);
@@ -309,7 +494,7 @@ CiftiParcelReorderingModel::restoreFromScene(const SceneAttributes* sceneAttribu
         }
     }
     
-    validateSelectedParcelLabelFileAndMap();
+    validateSelectedParcelLabelFileAndMap(NULL);
 
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,

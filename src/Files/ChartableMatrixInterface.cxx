@@ -23,6 +23,7 @@
 #undef __CHARTABLE_MATRIX_INTERFACE_DECLARE__
 
 #include "CaretMappableDataFile.h"
+#include "CiftiMappableDataFile.h"
 
 using namespace caret;
 
@@ -79,4 +80,29 @@ ChartableMatrixInterface::getMatrixChartCaretMappableDataFile() const
     CaretAssert(cmdf);
     return cmdf;
 }
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ * Will be NULL if this interface is not implemented by a CaretMappableDataFile.
+ */
+CiftiMappableDataFile*
+ChartableMatrixInterface::getMatrixChartCiftiMappableDataFile()
+{
+    CiftiMappableDataFile* cmdf = dynamic_cast<CiftiMappableDataFile*>(this);
+    CaretAssert(cmdf);
+    return cmdf;
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ * Will be NULL if this interface is not implemented by a CaretMappableDataFile.
+ */
+const CiftiMappableDataFile*
+ChartableMatrixInterface::getMatrixChartCiftiMappableDataFile() const
+{
+    const CiftiMappableDataFile* cmdf = dynamic_cast<const CiftiMappableDataFile*>(this);
+    CaretAssert(cmdf);
+    return cmdf;
+}
+
 

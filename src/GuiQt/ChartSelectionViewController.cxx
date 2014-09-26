@@ -50,6 +50,7 @@
 #include "ChartMatrixLoadingTypeEnum.h"
 #include "ChartModel.h"
 #include "ChartableBrainordinateInterface.h"
+#include "CiftiMappableDataFile.h"
 #include "CiftiParcelLabelFile.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
@@ -60,6 +61,7 @@
 #include "GuiManager.h"
 #include "ModelChart.h"
 #include "WuQFactory.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -696,6 +698,20 @@ ChartSelectionViewController::parcelLabelFileRemappingFileSelectorChanged()
     chartableMatrixInterface->setSelectedParcelLabelFileAndMapForReordering(parcelLabelFile,
                                                                    parcelLabelFileMapIndex,
                                                                    remappingEnabled);
+    
+    
+    if (remappingEnabled) {
+            AString errorMessage;
+            if ( ! chartableMatrixInterface->createParcelReordering(parcelLabelFile,
+                                                                    parcelLabelFileMapIndex,
+                                                                    errorMessage)) {
+                WuQMessageBox::errorOk(this,
+                                       errorMessage);
+            }
+//        const CiftiMappableDataFile* cmdf = c
+//        const CiftiParcelsMap* parcelsMap = chartableMatrixInterface->get
+//        chartableMatrixInterface->createParcelReordering(parcelLabelFile, parcelLabelFileMapIndex, <#const caret::CiftiParcelsMap *ciftiParcelsMap#>, <#const int32_t mapIndex#>, <#caret::AString &errorMessageOut#>)
+    }
 //    Brain* brain = GuiManager::get()->getBrain();
 //
 //    BrowserTabContent* browserTabContent =
@@ -787,6 +803,7 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
     /*
      * Update palette reordering.
      */
+    std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
     CiftiParcelLabelFile* parcelLabelFile = NULL;
     int32_t parcelLabelFileMapIndex = -1;
     bool remappingEnabled = false;
@@ -798,14 +815,22 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
 //            
 //            ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(cmdf);
 //            if (matrixInterface != NULL) {
-                chartableMatrixInterface->getSelectedParcelLabelFileAndMapForReordering(parcelLabelFile,
+                chartableMatrixInterface->getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
+                                                                                        parcelLabelFile,
                                                                                parcelLabelFileMapIndex,
                                                                                remappingEnabled);
 //            }
 //        }
 //    }
+    std::vector<CaretMappableDataFile*> caretMapDataFiles;
+    if ( ! parcelLabelFiles.empty()) {
+        caretMapDataFiles.insert(caretMapDataFiles.end(),
+                              parcelLabelFiles.begin(),
+                              parcelLabelFiles.end());
+    }
     m_parcelReorderingEnabledCheckBox->setChecked(remappingEnabled);
     CaretMappableDataFileAndMapSelectionModel* model = m_parcelLabelFileRemappingFileSelector->getModel();
+    model->overrideAvailableDataFiles(caretMapDataFiles);
     model->setSelectedFile(parcelLabelFile);
     model->setSelectedMapIndex(parcelLabelFileMapIndex);
     m_parcelLabelFileRemappingFileSelector->updateFileAndMapSelector(model);

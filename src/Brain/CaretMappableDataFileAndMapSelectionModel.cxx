@@ -248,7 +248,6 @@ CaretMappableDataFileAndMapSelectionModel::getSelectedMapIndex() const
 std::vector<CaretMappableDataFile*>
 CaretMappableDataFileAndMapSelectionModel::getAvailableFiles() const
 {
-    
     std::vector<CaretDataFile*> caretDataFiles = m_caretDataFileSelectionModel->getAvailableFiles();
     std::vector<CaretMappableDataFile*> mappableFiles;
     for (std::vector<CaretDataFile*>::iterator iter = caretDataFiles.begin();
@@ -263,7 +262,25 @@ CaretMappableDataFileAndMapSelectionModel::getAvailableFiles() const
 }
 
 /**
- * Set the selected file 
+ * Override the available files with the given files.  Once this method
+ * is called, these will be the available files until this method is called
+ * again.
+ *
+ * @param availableFiles
+ *    Files that will be used in this model.
+ */
+void
+CaretMappableDataFileAndMapSelectionModel::overrideAvailableDataFiles(std::vector<CaretMappableDataFile*>& availableFiles)
+{
+    std::vector<CaretDataFile*> files(availableFiles.begin(),
+                                      availableFiles.end());
+    
+    m_caretDataFileSelectionModel->overrideAvailableDataFiles(files);
+}
+
+
+/**
+ * Set the selected file
  *
  * @param selectedFile
  *    New selected file.

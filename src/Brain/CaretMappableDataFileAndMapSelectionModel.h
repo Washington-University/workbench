@@ -55,6 +55,8 @@ namespace caret {
         
         std::vector<CaretMappableDataFile*> getAvailableFiles() const;
         
+        void overrideAvailableDataFiles(std::vector<CaretMappableDataFile*>& availableFiles);
+        
         /**
          * @return Selected file dynamically cast to the templated
          * data file type.

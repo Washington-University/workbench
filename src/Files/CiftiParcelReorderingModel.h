@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 
 #include "CaretObject.h"
 
@@ -28,13 +29,16 @@
 
 
 namespace caret {
+    class CiftiMappableDataFile;
     class CiftiParcelLabelFile;
+    class CiftiParcelReordering;
+    class CiftiParcelsMap;
     class SceneClassAssistant;
 
     class CiftiParcelReorderingModel : public CaretObject, public SceneableInterface {
         
     public:
-        CiftiParcelReorderingModel();
+        CiftiParcelReorderingModel(const CiftiMappableDataFile* ciftiMappableDataFile);
         
         virtual ~CiftiParcelReorderingModel();
         
@@ -42,35 +46,22 @@ namespace caret {
 
         CiftiParcelReorderingModel& operator=(const CiftiParcelReorderingModel& obj);
         
-        /**
-         * Get the selected parcel label file used for reordering of parcels.
-         *
-         * @param selectedParcelLabelFileOut
-         *    The selected parcel label file used for reordering the parcels.
-         *    May be NULL!
-         * @param selectedParcelLabelFileMapIndexOut
-         *    Map index in the selected parcel label file.
-         * @param enabledStatusOut
-         *    Enabled status of reordering.
-         */
-        void getSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+        void getSelectedParcelLabelFileAndMapForReordering(std::vector<CiftiParcelLabelFile*>& parcelLabelFilesOut,
+                                                           CiftiParcelLabelFile* &selectedParcelLabelFileOut,
                                                            int32_t& selectedParcelLabelFileMapIndexOut,
                                                            bool& enabledStatusOut) const;
         
-        /**
-         * Set the selected parcel label file used for reordering of parcels.
-         *
-         * @param selectedParcelLabelFile
-         *    The selected parcel label file used for reordering the parcels.
-         *    May be NULL!
-         * @param selectedParcelLabelFileMapIndex
-         *    Map index in the selected parcel label file.
-         * @param enabledStatus
-         *    Enabled status of reordering.
-         */
         void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
                                                            const int32_t selectedParcelLabelFileMapIndex,
                                                            const bool enabledStatus);
+        
+        bool createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                    const int32_t parcelLabelFileMapIndex,
+                                    const CiftiParcelsMap* ciftiParcelsMap,
+                                    AString& errorMessageOut);
+        
+        const CiftiParcelReordering* getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                         const int32_t parcelLabelFileMapIndex) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -100,12 +91,18 @@ namespace caret {
     private:
         void copyHelperCiftiParcelReorderingModel(const CiftiParcelReorderingModel& obj);
 
-        void validateSelectedParcelLabelFileAndMap() const;
+        void validateSelectedParcelLabelFileAndMap(std::vector<CiftiParcelLabelFile*>* optionalParcelLabelFilesOut) const;
         
         std::vector<CiftiParcelLabelFile*> getParcelLabelFiles() const;
         
+        mutable std::map<CiftiParcelLabelFile*, bool> m_parcelLabelFileCompatibilityStatus;
+        
+        const CiftiMappableDataFile* m_parentCiftiMappableDataFile;
+        
         SceneClassAssistant* m_sceneAssistant;
 
+        std::vector<CiftiParcelReordering*> m_parcelReordering;
+        
         mutable CiftiParcelLabelFile* m_selectedParcelLabelFile;
         
         mutable int32_t m_selectedParcelLabelFileMapIndex;

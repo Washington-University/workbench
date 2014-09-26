@@ -1634,6 +1634,59 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex) const
 }
 
 /**
+ * Get the CIFTI parcels map used for brainordinate mapping.
+ *
+ * @return
+ *     Pointer to the map's Cifti Parcels Map or NULL if the file is not
+ *     mapped using parcels.
+ */
+const CiftiParcelsMap*
+CiftiMappableDataFile::getCiftiParcelsMapForBrainordinateMapping() const
+{
+    return getCiftiParcelsMapForDirection(m_dataMappingDirectionForCiftiXML);
+    
+//    if (m_ciftiFile != NULL) {
+//        const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+//        const CiftiParcelsMap& parcelsMap = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
+//        return &parcelsMap;
+//    }
+//    
+//    return NULL;
+}
+
+/**
+ * Get the CIFTI parcels for the given direction.
+ *
+ * @param direction
+ *     Direction of mapping.  MUST BE one of CiftiXML::ALONG_ROW or
+ *     CiftiXML::ALONG_COLUMN.
+ * @return
+ *     Pointer to the map's Cifti Parcels Map or NULL if the file is not
+ *     mapped using parcels or NULL if direction is invalid.
+ */
+const CiftiParcelsMap*
+CiftiMappableDataFile::getCiftiParcelsMapForDirection(const int direction) const
+{
+    if (m_ciftiFile != NULL) {
+        if ((direction != CiftiXML::ALONG_ROW)
+            && (direction != CiftiXML::ALONG_COLUMN)) {
+            CaretAssert(0);
+            return NULL;
+        }
+        
+        const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+        const CiftiMappingType* mapping = ciftiXML.getMap(direction);
+        if (mapping->getType() == CiftiMappingType::PARCELS) {
+            const CiftiParcelsMap* cpm = dynamic_cast<const CiftiParcelsMap*>(mapping);
+            CaretAssert(cpm);
+            return cpm;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
  * @return Is the data in the file mapped to colors using
  * a label table.
  */
@@ -4452,12 +4505,101 @@ CiftiMappableDataFile::setMapDataForSurface(const int32_t mapIndex,
     }
 }
 
+/**
+ * Help load matrix chart data and order in the given row indices
+ *
+ * @param numberOfRowsOut
+ *    Output number of rows in rgba matrix.
+ * @param numberOfColumnsOut
+ *    Output number of Columns in rgba matrix.
+ * @param rowIndices
+ *    Indices of rows inserted into matrix.
+ * @param rgbaOut
+ *    RGBA matrix (number of elements is rows * columns * 4).
+ * @return
+ *    True if output data is valid, else false.
+ */
+bool
+CiftiMappableDataFile::helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numberOfRowsOut,
+                                                int32_t& numberOfColumnsOut,
+                                                const std::vector<int32_t>& rowIndices,
+                                                std::vector<float>& rgbaOut) const
+{
+    CaretAssert(m_ciftiFile);
+    MapContent* mc = m_mapContent[0];
+    
+    /*
+     * Dimensions of matrix.
+     */
+    numberOfRowsOut    = m_ciftiFile->getNumberOfRows();
+    numberOfColumnsOut = m_ciftiFile->getNumberOfColumns();
+    const int32_t numberOfData = numberOfRowsOut * numberOfColumnsOut;
+    if (numberOfData <= 0) {
+        return false;
+    }
+    
+    if (numberOfRowsOut != static_cast<int32_t>(rowIndices.size())) {
+        return false;
+    }
+    
+    /*
+     * Get the data.
+     */
+    std::vector<float> data(numberOfData);
+    for (int32_t iRow = 0; iRow < numberOfRowsOut; iRow++) {
+        CaretAssertVectorIndex(rowIndices, iRow);
+        const int32_t rowIndex = rowIndices[iRow];
+        const int32_t rowOffset = rowIndex * numberOfColumnsOut;
+        CaretAssertVectorIndex(data, rowOffset + numberOfColumnsOut - 1);
+        m_ciftiFile->getRow(&data[rowOffset],
+                            iRow);
+    }
+    
+    /*
+     * Get palette for color mapping.
+     */
+    if (isMappedWithPalette()) {
+        const AString paletteName = mc->m_paletteColorMapping->getSelectedPaletteName();
+        if (paletteName.isEmpty()) {
+            CaretLogSevere("No palette name for coloring matrix chart data.");
+            return false;
+        }
+        EventPaletteGetByName eventPaletteGetName(paletteName);
+        EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
+        const Palette* palette = eventPaletteGetName.getPalette();
+        if (palette == NULL) {
+            CaretLogSevere("No palette named "
+                           + paletteName
+                           + " found for coloring matrix chart data.");
+            return false;
+        }
+        
+        /*
+         * Color the data.
+         */
+        const int32_t numRGBA = numberOfData * 4;
+        rgbaOut.resize(numRGBA);
+        FastStatistics fastStatistics;
+        fastStatistics.update(&data[0],
+                              numberOfData);
+        NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
+                                                      mc->m_paletteColorMapping,
+                                                      palette,
+                                                      &data[0],
+                                                      &data[0],
+                                                      numberOfData,
+                                                      &rgbaOut[0]);
+        
+        return true;
+    }
+    
+    return false;
+}
+
 
 /**
  * Help load matrix chart data.
  *
- * @param mapIndex
- *    Index of map for which chart data is requested.
  * @param numberOfRowsOut
  *    Output number of rows in rgba matrix.
  * @param numberOfColumnsOut
@@ -4468,14 +4610,12 @@ CiftiMappableDataFile::setMapDataForSurface(const int32_t mapIndex,
  *    True if output data is valid, else false.
  */
 bool
-CiftiMappableDataFile::helpLoadChartDataMatrixForMap(const int32_t mapIndex,
-                                                     int32_t& numberOfRowsOut,
-                                                     int32_t& numberOfColumnsOut,
-                                                     std::vector<float>& rgbaOut) const
+CiftiMappableDataFile::helpLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
+                                                   int32_t& numberOfColumnsOut,
+                                                   std::vector<float>& rgbaOut) const
 {
     CaretAssert(m_ciftiFile);
-    CaretAssertVectorIndex(m_mapContent, mapIndex);
-    MapContent* mc = m_mapContent[mapIndex];
+    MapContent* mc = m_mapContent[0];
     
     /*
      * Dimensions of matrix.

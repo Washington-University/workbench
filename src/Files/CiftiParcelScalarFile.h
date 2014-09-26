@@ -89,13 +89,21 @@ namespace caret {
         
         virtual void setSelectedParcelColor(const CaretColorEnum::Enum color);
         
-        virtual void getSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+        virtual void getSelectedParcelLabelFileAndMapForReordering(std::vector<CiftiParcelLabelFile*>& compatibleParcelLabelFilesOut,
+                                                                   CiftiParcelLabelFile* &selectedParcelLabelFileOut,
                                                                    int32_t& selectedParcelLabelFileMapIndexOut,
                                                                    bool& enabledStatusOut) const;
         
         virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
                                                                    const int32_t selectedParcelLabelFileMapIndex,
                                                                    const bool enabledStatus);
+        
+        virtual bool createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                            const int32_t parcelLabelFileMapIndex,
+                                            AString& errorMessageOut);
+        
+        virtual const CiftiParcelReordering* getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                                 const int32_t parcelLabelFileMapIndex) const;
         
         virtual bool isSupportsLoadingAttributes();
         

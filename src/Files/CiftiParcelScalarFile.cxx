@@ -64,7 +64,7 @@ CiftiParcelScalarFile::CiftiParcelScalarFile()
     m_selectedParcelColoringMode = CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_OUTLINE;
     m_selectedParcelColor = CaretColorEnum::WHITE;
     
-    m_parcelReorderingModel = new CiftiParcelReorderingModel();
+    m_parcelReorderingModel = new CiftiParcelReorderingModel(this);
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<CiftiParcelColoringModeEnum, CiftiParcelColoringModeEnum::Enum>("m_selectedParcelColoringMode",
@@ -258,10 +258,9 @@ CiftiParcelScalarFile::getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                                      int32_t& numberOfColumnsOut,
                                                      std::vector<float>& rgbaOut) const
 {
-    return helpLoadChartDataMatrixForMap(0,
-                                         numberOfRowsOut,
-                                         numberOfColumnsOut,
-                                         rgbaOut);
+    return helpLoadChartDataMatrixRGBA(numberOfRowsOut,
+                                       numberOfColumnsOut,
+                                       rgbaOut);
 }
 
 /**
@@ -556,6 +555,9 @@ CiftiParcelScalarFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
 /**
  * Get the selected parcel label file used for reordering of parcels.
  *
+ * @param compatibleParcelLabelFilesOut
+ *    All Parcel Label files that are compatible with file implementing
+ *    this interface.
  * @param selectedParcelLabelFileOut
  *    The selected parcel label file used for reordering the parcels.
  *    May be NULL!
@@ -565,11 +567,13 @@ CiftiParcelScalarFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
  *    Enabled status of reordering.
  */
 void
-CiftiParcelScalarFile::getSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* &selectedParcelLabelFileOut,
+CiftiParcelScalarFile::getSelectedParcelLabelFileAndMapForReordering(std::vector<CiftiParcelLabelFile*>& compatibleParcelLabelFilesOut,
+                                                                     CiftiParcelLabelFile* &selectedParcelLabelFileOut,
                                                                      int32_t& selectedParcelLabelFileMapIndexOut,
                                                                      bool& enabledStatusOut) const
 {
-    m_parcelReorderingModel->getSelectedParcelLabelFileAndMapForReordering(selectedParcelLabelFileOut,
+    m_parcelReorderingModel->getSelectedParcelLabelFileAndMapForReordering(compatibleParcelLabelFilesOut,
+                                                                           selectedParcelLabelFileOut,
                                                                            selectedParcelLabelFileMapIndexOut,
                                                                            enabledStatusOut);
 }
@@ -593,6 +597,51 @@ CiftiParcelScalarFile::setSelectedParcelLabelFileAndMapForReordering(CiftiParcel
     m_parcelReorderingModel->setSelectedParcelLabelFileAndMapForReordering(selectedParcelLabelFile,
                                                                            selectedParcelLabelFileMapIndex,
                                                                            enabledStatus);
+}
+
+/**
+ * Get the parcel reordering for the given map index that was created using
+ * the given parcel label file and its map index.
+ *
+ * @param parcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ * @param parcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @return
+ *    Pointer to parcel reordering or NULL if not found.
+ */
+const CiftiParcelReordering*
+CiftiParcelScalarFile::getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                       const int32_t parcelLabelFileMapIndex) const
+{
+    return m_parcelReorderingModel->getParcelReordering(parcelLabelFile,
+                                                        parcelLabelFileMapIndex);
+}
+
+/**
+ * Create the parcel reordering for the given map index using
+ * the given parcel label file and its map index.
+ *
+ * @param parcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ * @param parcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @param ciftiParcelsMap
+ *    The CIFTI parcels map that will or has been reordered.
+ * @param errorMessageOut
+ *    Error message output.  Will only be non-empty if NULL is returned.
+ * @return
+ *    Pointer to parcel reordering or NULL if not found.
+ */
+bool
+CiftiParcelScalarFile::createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                          const int32_t parcelLabelFileMapIndex,
+                                                          AString& errorMessageOut)
+{
+    return m_parcelReorderingModel->createParcelReordering(parcelLabelFile,
+                                                           parcelLabelFileMapIndex,
+                                                           getCiftiParcelsMapForBrainordinateMapping(),
+                                                           errorMessageOut);
 }
 
 

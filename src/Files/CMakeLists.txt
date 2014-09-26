@@ -44,6 +44,7 @@ CiftiMappableDataFile.h
 CiftiMappableConnectivityMatrixDataFile.h
 CiftiParcelColoringModeEnum.h
 CiftiParcelLabelFile.h
+CiftiParcelReordering.h
 CiftiParcelReorderingModel.h
 CiftiParcelSeriesFile.h
 CiftiParcelScalarFile.h
@@ -138,6 +139,7 @@ CiftiMappableDataFile.cxx
 CiftiMappableConnectivityMatrixDataFile.cxx
 CiftiParcelColoringModeEnum.cxx
 CiftiParcelLabelFile.cxx
+CiftiParcelReordering.cxx
 CiftiParcelReorderingModel.cxx
 CiftiParcelSeriesFile.cxx
 CiftiParcelScalarFile.cxx

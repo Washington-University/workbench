@@ -36,6 +36,7 @@ namespace caret {
     class ChartData;
     class ChartDataCartesian;
     class CiftiFile;
+    class CiftiParcelsMap;
     class CiftiXML;
     class FastStatistics;
     class GroupAndNameHierarchyModel;
@@ -212,6 +213,10 @@ namespace caret {
         virtual PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
         
         virtual const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const;
+        
+        const CiftiParcelsMap* getCiftiParcelsMapForBrainordinateMapping() const;
+        
+        const CiftiParcelsMap* getCiftiParcelsMapForDirection(const int direction) const;
         
         virtual bool isMappedWithLabelTable() const;
         
@@ -426,11 +431,15 @@ namespace caret {
         
         ChartDataCartesian* helpLoadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
-        bool helpLoadChartDataMatrixForMap(const int32_t mapIndex,
-                                                       int32_t& numberOfRowsOut,
-                                                       int32_t& numberOfColumnsOut,
-                                                       std::vector<float>& rgbaOut) const;
+        bool helpLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
+                                         int32_t& numberOfColumnsOut,
+                                         std::vector<float>& rgbaOut) const;
 
+        bool helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numberOfRowsOut,
+                                                        int32_t& numberOfColumnsOut,
+                                                        const std::vector<int32_t>& rowIndices,
+                                                        std::vector<float>& rgbaOut) const;
+        
     private:
         class MapContent : public CaretObjectTracksModification {
             

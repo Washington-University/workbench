@@ -61,6 +61,8 @@ CaretDataFileSelectionModel::CaretDataFileSelectionModel(Brain* brain,
 m_fileMode(fileMode),
 m_brain(brain)
 {
+    m_overrideOfAvailableFilesValid = false;
+    
     CaretAssert(brain);
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -169,6 +171,8 @@ CaretDataFileSelectionModel::copyHelperCaretDataFileSelectionModel(const CaretDa
     m_brain        = obj.m_brain;
     m_dataFileType = obj.m_dataFileType;
     m_selectedFile = obj.m_selectedFile;
+    m_overrideOfAvailableFilesValid = obj.m_overrideOfAvailableFilesValid;
+    m_overrideOfAvailableFiles      = obj.m_overrideOfAvailableFiles;
 }
 
 /**
@@ -209,6 +213,10 @@ CaretDataFileSelectionModel::setSelectedFile(CaretDataFile* selectedFile)
 std::vector<CaretDataFile*>
 CaretDataFileSelectionModel::getAvailableFiles() const
 {
+    if (m_overrideOfAvailableFilesValid) {
+        return m_overrideOfAvailableFiles;
+    }
+    
     std::vector<CaretDataFile*> caretDataFiles;
     
     switch (m_fileMode) {
@@ -247,6 +255,23 @@ CaretDataFileSelectionModel::getAvailableFiles() const
 
     return caretDataFiles;
 }
+
+/**
+ * Override the available files with the given files.  Once this method
+ * is called, these will be the available files until this method is called
+ * again.
+ *
+ * @param availableFiles
+ *    Files that will be used in this model.
+ */
+void
+CaretDataFileSelectionModel::overrideAvailableDataFiles(std::vector<CaretDataFile*>& availableFiles)
+{
+    m_overrideOfAvailableFiles = availableFiles;
+    m_overrideOfAvailableFilesValid = true;
+}
+
+
 
 /**
  * Update the selected file.
