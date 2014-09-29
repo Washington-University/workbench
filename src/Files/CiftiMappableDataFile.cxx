@@ -4507,12 +4507,14 @@ CiftiMappableDataFile::setMapDataForSurface(const int32_t mapIndex,
 
 /**
  * Help load matrix chart data and order in the given row indices
+ * for a file with multi-mapped file that uses a unqiue palette
+ * or label table for each column (row) in the file.
  *
  * @param numberOfRowsOut
  *    Output number of rows in rgba matrix.
  * @param numberOfColumnsOut
  *    Output number of Columns in rgba matrix.
- * @param rowIndices
+ * @param rowIndicesIn
  *    Indices of rows inserted into matrix.
  * @param rgbaOut
  *    RGBA matrix (number of elements is rows * columns * 4).
@@ -4520,13 +4522,189 @@ CiftiMappableDataFile::setMapDataForSurface(const int32_t mapIndex,
  *    True if output data is valid, else false.
  */
 bool
-CiftiMappableDataFile::helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numberOfRowsOut,
-                                                int32_t& numberOfColumnsOut,
-                                                const std::vector<int32_t>& rowIndices,
-                                                std::vector<float>& rgbaOut) const
+CiftiMappableDataFile::helpMapFileLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
+                                                          int32_t& numberOfColumnsOut,
+                                                          const std::vector<int32_t>& rowIndicesIn,
+                                                          std::vector<float>& rgbaOut) const
 {
     CaretAssert(m_ciftiFile);
-    MapContent* mc = m_mapContent[0];
+
+    /*
+     * Dimensions of matrix.
+     */
+    numberOfRowsOut    = m_ciftiFile->getNumberOfRows();
+    numberOfColumnsOut = m_ciftiFile->getNumberOfColumns();
+    const int32_t numberOfData = numberOfRowsOut * numberOfColumnsOut;
+    if (numberOfData <= 0) {
+        return false;
+    }
+
+    const bool useLabelTableFlag = isMappedWithLabelTable();
+    const bool usePaletteFlag    = isMappedWithPalette();
+    
+    if (( ! useLabelTableFlag)
+        && ( ! usePaletteFlag)) {
+        CaretAssert(0);
+        return false;
+    }
+    
+    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+    
+    const AString badMapTypeMessage("Matrix charts supports only maps in columns at this time for LABEL and SCALAR data");
+    if (useLabelTableFlag) {
+        if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::LABELS) {
+            CaretAssertMessage(0, badMapTypeMessage);
+            CaretLogSevere(badMapTypeMessage);
+            return false;
+        }
+    }
+
+    if (usePaletteFlag) {
+        if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::SCALARS) {
+            CaretAssertMessage(0, badMapTypeMessage);
+            CaretLogSevere(badMapTypeMessage);
+            return false;
+        }
+    }
+    
+    std::vector<int32_t> rowIndices = rowIndicesIn;
+    if (rowIndices.empty()) {
+        rowIndices.resize(numberOfRowsOut);
+        for (int32_t i = 0; i < numberOfRowsOut; i++) {
+            rowIndices[i] = i;
+        }
+    }
+    else {
+        if (static_cast<int32_t>(rowIndices.size()) != numberOfRowsOut) {
+            const AString msg = AString("rowIndices size=%1 is different than "
+                                        "number of rows in the matrix=%2.").arg(rowIndices.size()).arg(numberOfRowsOut);
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return false;
+        }
+    }
+    
+    /*
+     * Set up Fast Stats for files that use all data for
+     * statistics and color mapping.
+     */
+    CiftiMappableDataFile* nonConstMapFile = const_cast<CiftiMappableDataFile*>(this);
+    const FastStatistics* fileFastStats = ((usePaletteFlag
+                                            && (m_histogramAndStatisticsMethod == HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA))
+                                           ? nonConstMapFile->getMapFastStatistics(0)
+                                           : NULL);
+    
+    /*
+     * Allocate rgba output
+     */
+    const int32_t numberOfRgba = numberOfData * 4;
+    rgbaOut.resize(numberOfRgba);
+
+    /*
+     * Get each column, color it using its label table, and then
+     * add the column's coloring into the output coloring.
+     */
+    std::vector<float> columnData(numberOfRowsOut);
+    std::vector<float> columnRGBA(numberOfRowsOut * 4);
+    for (int32_t iCol = 0; iCol < numberOfColumnsOut; iCol++) {
+        CaretAssertVectorIndex(m_mapContent, iCol);
+        m_ciftiFile->getColumn(&columnData[0],
+                               iCol);
+        if (useLabelTableFlag) {
+            const GiftiLabelTable* labelTable = getMapLabelTable(iCol);
+            NodeAndVoxelColoring::colorIndicesWithLabelTable(labelTable,
+                                                             &columnData[0],
+                                                             numberOfRowsOut,
+                                                             &columnRGBA[0]);
+        }
+        else if (usePaletteFlag) {
+            const PaletteColorMapping* pcm = getMapPaletteColorMapping(iCol);
+            CaretAssert(pcm);
+            const AString paletteName = pcm->getSelectedPaletteName();
+            if (paletteName.isEmpty()) {
+                CaretLogSevere("No palette name for coloring matrix chart data.");
+                return false;
+            }
+            EventPaletteGetByName eventPaletteGetName(paletteName);
+            EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
+            const Palette* palette = eventPaletteGetName.getPalette();
+            if (palette == NULL) {
+                CaretLogSevere("No palette named "
+                               + paletteName
+                               + " found for coloring matrix chart data.");
+                return false;
+            }
+            
+            /*
+             * Color the data.
+             */
+            switch (m_histogramAndStatisticsMethod) {
+                case HISTOGRAM_AND_STATISTICS_INVALID:
+                    CaretAssert(0);
+                    break;
+                case HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA:
+                    NodeAndVoxelColoring::colorScalarsWithPalette(fileFastStats,
+                                                                  pcm,
+                                                                  palette,
+                                                                  &columnData[0],
+                                                                  &columnData[0],
+                                                                  numberOfRowsOut,
+                                                                  &columnRGBA[0]);
+                    break;
+                case HISTOGRAM_AND_STATISTICS_USE_MAP_DATA:
+                    NodeAndVoxelColoring::colorScalarsWithPalette(nonConstMapFile->getMapFastStatistics(iCol),
+                                                                  pcm,
+                                                                  palette,
+                                                                  &columnData[0],
+                                                                  &columnData[0],
+                                                                  numberOfRowsOut,
+                                                                  &columnRGBA[0]);
+                    break;
+            }
+        }
+        else {
+            CaretAssert(0);
+        }
+
+        for (int32_t iRow = 0; iRow < numberOfRowsOut; iRow++) {
+            const int32_t rgbaOffset = (((iRow * numberOfColumnsOut)
+                                        + iCol) * 4);
+            CaretAssertVectorIndex(rgbaOut, rgbaOffset + 3);
+            const int32_t columnRgbaOffset = (iRow * 4);
+            CaretAssertVectorIndex(columnRGBA, columnRgbaOffset + 3);
+            rgbaOut[rgbaOffset] = columnRGBA[columnRgbaOffset];
+            rgbaOut[rgbaOffset+1] = columnRGBA[columnRgbaOffset+1];
+            rgbaOut[rgbaOffset+2] = columnRGBA[columnRgbaOffset+2];
+            rgbaOut[rgbaOffset+3] = columnRGBA[columnRgbaOffset+3];
+        }
+    }
+        
+    return true;
+}
+
+/**
+ * Help load matrix chart data and order in the given row indices
+ * for a connectivity matrix file where one palette is used
+ * for all data in the file.
+ *
+ * @param numberOfRowsOut
+ *    Output number of rows in rgba matrix.
+ * @param numberOfColumnsOut
+ *    Output number of Columns in rgba matrix.
+ * @param rowIndicesIn
+ *    Indices of rows inserted into matrix.
+ * @param rgbaOut
+ *    RGBA matrix (number of elements is rows * columns * 4).
+ * @return
+ *    True if output data is valid, else false.
+ */
+bool
+CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
+                                                             int32_t& numberOfColumnsOut,
+                                                             const std::vector<int32_t>& rowIndicesIn,
+                                                             std::vector<float>& rgbaOut) const
+{
+    CaretAssert(m_ciftiFile);
     
     /*
      * Dimensions of matrix.
@@ -4538,8 +4716,21 @@ CiftiMappableDataFile::helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numbe
         return false;
     }
     
-    if (numberOfRowsOut != static_cast<int32_t>(rowIndices.size())) {
-        return false;
+    std::vector<int32_t> rowIndices = rowIndicesIn;
+    if (rowIndices.empty()) {
+        rowIndices.resize(numberOfRowsOut);
+        for (int32_t i = 0; i < numberOfRowsOut; i++) {
+            rowIndices[i] = i;
+        }
+    }
+    else {
+        if (static_cast<int32_t>(rowIndices.size()) != numberOfRowsOut) {
+            const AString msg = AString("rowIndices size=%1 is different than "
+                                        "number of rows in the matrix=%2.").arg(rowIndices.size()).arg(numberOfRowsOut);
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return false;
+        }
     }
     
     /*
@@ -4559,7 +4750,10 @@ CiftiMappableDataFile::helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numbe
      * Get palette for color mapping.
      */
     if (isMappedWithPalette()) {
-        const AString paletteName = mc->m_paletteColorMapping->getSelectedPaletteName();
+        const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+        const PaletteColorMapping* pcm = ciftiXML.getFilePalette();
+        CaretAssert(pcm);
+        const AString paletteName = pcm->getSelectedPaletteName();
         if (paletteName.isEmpty()) {
             CaretLogSevere("No palette name for coloring matrix chart data.");
             return false;
@@ -4583,7 +4777,7 @@ CiftiMappableDataFile::helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numbe
         fastStatistics.update(&data[0],
                               numberOfData);
         NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
-                                                      mc->m_paletteColorMapping,
+                                                      pcm,
                                                       palette,
                                                       &data[0],
                                                       &data[0],
@@ -4597,87 +4791,215 @@ CiftiMappableDataFile::helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numbe
 }
 
 
-/**
- * Help load matrix chart data.
- *
- * @param numberOfRowsOut
- *    Output number of rows in rgba matrix.
- * @param numberOfColumnsOut
- *    Output number of Columns in rgba matrix.
- * @param rgbaOut
- *    RGBA matrix (number of elements is rows * columns * 4).
- * @return
- *    True if output data is valid, else false.
- */
-bool
-CiftiMappableDataFile::helpLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
-                                                   int32_t& numberOfColumnsOut,
-                                                   std::vector<float>& rgbaOut) const
-{
-    CaretAssert(m_ciftiFile);
-    MapContent* mc = m_mapContent[0];
-    
-    /*
-     * Dimensions of matrix.
-     */
-    numberOfRowsOut    = m_ciftiFile->getNumberOfRows();
-    numberOfColumnsOut = m_ciftiFile->getNumberOfColumns();
-    const int32_t numberOfData = numberOfRowsOut * numberOfColumnsOut;
-    if (numberOfData <= 0) {
-        return false;
-    }
-    
-    /*
-     * Get the data.
-     */
-    std::vector<float> data(numberOfData);
-    for (int32_t iRow = 0; iRow < numberOfRowsOut; iRow++) {
-        const int32_t rowOffset = iRow * numberOfColumnsOut;
-        CaretAssertVectorIndex(data, rowOffset + numberOfColumnsOut - 1);
-        m_ciftiFile->getRow(&data[rowOffset],
-                                 iRow);
-    }
+///**
+// * Help load matrix chart data and order in the given row indices
+// *
+// * @param numberOfRowsOut
+// *    Output number of rows in rgba matrix.
+// * @param numberOfColumnsOut
+// *    Output number of Columns in rgba matrix.
+// * @param rowIndices
+// *    Indices of rows inserted into matrix.
+// * @param rgbaOut
+// *    RGBA matrix (number of elements is rows * columns * 4).
+// * @return
+// *    True if output data is valid, else false.
+// */
+//bool
+//CiftiMappableDataFile::helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numberOfRowsOut,
+//                                                int32_t& numberOfColumnsOut,
+//                                                const std::vector<int32_t>& rowIndices,
+//                                                std::vector<float>& rgbaOut) const
+//{
+//    CaretAssert(m_ciftiFile);
+//    
+//    switch (m_colorMappingMethod) {
+//        case COLOR_MAPPING_METHOD_INVALID:
+//            break;
+//        case COLOR_MAPPING_METHOD_LABEL_TABLE:
+//            break;
+//        case COLOR_MAPPING_METHOD_PALETTE:
+//            switch (m_paletteColorMappingSource) {
+//                case PALETTE_COLOR_MAPPING_SOURCE_INVALID:
+//                    break;
+//                case PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE:
+//                    pcm = ciftiXML.getFilePalette();
+//                    break;
+//                case PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP:
+//                    CaretAssertVectorIndex(m_mapContent,
+//                                           mapIndex);
+//                    pcm = m_mapContent[mapIndex]->m_paletteColorMapping;
+//                    break;
+//            }
+//            break;
+//    }
+//
+//    
+//    
+//    MapContent* mc = m_mapContent[0];
+//    
+//    /*
+//     * Dimensions of matrix.
+//     */
+//    numberOfRowsOut    = m_ciftiFile->getNumberOfRows();
+//    numberOfColumnsOut = m_ciftiFile->getNumberOfColumns();
+//    const int32_t numberOfData = numberOfRowsOut * numberOfColumnsOut;
+//    if (numberOfData <= 0) {
+//        return false;
+//    }
+//    
+//    if (numberOfRowsOut != static_cast<int32_t>(rowIndices.size())) {
+//        return false;
+//    }
+//    
+//    /*
+//     * Get the data.
+//     */
+//    std::vector<float> data(numberOfData);
+//    for (int32_t iRow = 0; iRow < numberOfRowsOut; iRow++) {
+//        CaretAssertVectorIndex(rowIndices, iRow);
+//        const int32_t rowIndex = rowIndices[iRow];
+//        const int32_t rowOffset = rowIndex * numberOfColumnsOut;
+//        CaretAssertVectorIndex(data, rowOffset + numberOfColumnsOut - 1);
+//        m_ciftiFile->getRow(&data[rowOffset],
+//                            iRow);
+//    }
+//    
+//    /*
+//     * Get palette for color mapping.
+//     */
+//    if (isMappedWithPalette()) {
+//        const AString paletteName = mc->m_paletteColorMapping->getSelectedPaletteName();
+//        if (paletteName.isEmpty()) {
+//            CaretLogSevere("No palette name for coloring matrix chart data.");
+//            return false;
+//        }
+//        EventPaletteGetByName eventPaletteGetName(paletteName);
+//        EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
+//        const Palette* palette = eventPaletteGetName.getPalette();
+//        if (palette == NULL) {
+//            CaretLogSevere("No palette named "
+//                           + paletteName
+//                           + " found for coloring matrix chart data.");
+//            return false;
+//        }
+//        
+//        /*
+//         * Color the data.
+//         */
+//        const int32_t numRGBA = numberOfData * 4;
+//        rgbaOut.resize(numRGBA);
+//        FastStatistics fastStatistics;
+//        fastStatistics.update(&data[0],
+//                              numberOfData);
+//        NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
+//                                                      mc->m_paletteColorMapping,
+//                                                      palette,
+//                                                      &data[0],
+//                                                      &data[0],
+//                                                      numberOfData,
+//                                                      &rgbaOut[0]);
+//        
+//        return true;
+//    }
+//    
+//    return false;
+//}
 
-    /*
-     * Get palette for color mapping.
-     */
-    if (isMappedWithPalette()) {
-        const AString paletteName = mc->m_paletteColorMapping->getSelectedPaletteName();
-        if (paletteName.isEmpty()) {
-            CaretLogSevere("No palette name for coloring matrix chart data.");
-            return false;
-        }
-        EventPaletteGetByName eventPaletteGetName(paletteName);
-        EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
-        const Palette* palette = eventPaletteGetName.getPalette();
-        if (palette == NULL) {
-            CaretLogSevere("No palette named "
-                           + paletteName
-                           + " found for coloring matrix chart data.");
-            return false;
-        }
-        
-        /*
-         * Color the data.
-         */
-        const int32_t numRGBA = numberOfData * 4;
-        rgbaOut.resize(numRGBA);
-        FastStatistics fastStatistics;
-        fastStatistics.update(&data[0],
-                              numberOfData);
-        NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
-                                                      mc->m_paletteColorMapping,
-                                                      palette,
-                                                      &data[0],
-                                                      &data[0],
-                                                      numberOfData,
-                                                      &rgbaOut[0]);
-        
-        return true;
-    }
-    
-    return false;
-}
+
+///**
+// * Help load matrix chart data.
+// *
+// * @param numberOfRowsOut
+// *    Output number of rows in rgba matrix.
+// * @param numberOfColumnsOut
+// *    Output number of Columns in rgba matrix.
+// * @param rgbaOut
+// *    RGBA matrix (number of elements is rows * columns * 4).
+// * @return
+// *    True if output data is valid, else false.
+// */
+//bool
+//CiftiMappableDataFile::helpLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
+//                                                   int32_t& numberOfColumnsOut,
+//                                                   std::vector<float>& rgbaOut) const
+//{
+//    const int32_t numRows = m_ciftiFile->getNumberOfRows();
+//    std::vector<int32_t> rowIndices(numRows);
+//    for (int32_t i = 0; i < numRows; i++) {
+//        CaretAssertVectorIndex(rowIndices, i);
+//        rowIndices[i] = i;
+//    }
+//    
+//    return helpLoadChartDataMatrixRGBAWithRowIndicese(numberOfRowsOut,
+//                                                      numberOfColumnsOut,
+//                                                      rowIndices,
+//                                                      rgbaOut);
+//    
+////    CaretAssert(m_ciftiFile);
+////    MapContent* mc = m_mapContent[0];
+////    
+////    /*
+////     * Dimensions of matrix.
+////     */
+////    numberOfRowsOut    = m_ciftiFile->getNumberOfRows();
+////    numberOfColumnsOut = m_ciftiFile->getNumberOfColumns();
+////    const int32_t numberOfData = numberOfRowsOut * numberOfColumnsOut;
+////    if (numberOfData <= 0) {
+////        return false;
+////    }
+////    
+////    /*
+////     * Get the data.
+////     */
+////    std::vector<float> data(numberOfData);
+////    for (int32_t iRow = 0; iRow < numberOfRowsOut; iRow++) {
+////        const int32_t rowOffset = iRow * numberOfColumnsOut;
+////        CaretAssertVectorIndex(data, rowOffset + numberOfColumnsOut - 1);
+////        m_ciftiFile->getRow(&data[rowOffset],
+////                                 iRow);
+////    }
+////
+////    /*
+////     * Get palette for color mapping.
+////     */
+////    if (isMappedWithPalette()) {
+////        const AString paletteName = mc->m_paletteColorMapping->getSelectedPaletteName();
+////        if (paletteName.isEmpty()) {
+////            CaretLogSevere("No palette name for coloring matrix chart data.");
+////            return false;
+////        }
+////        EventPaletteGetByName eventPaletteGetName(paletteName);
+////        EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
+////        const Palette* palette = eventPaletteGetName.getPalette();
+////        if (palette == NULL) {
+////            CaretLogSevere("No palette named "
+////                           + paletteName
+////                           + " found for coloring matrix chart data.");
+////            return false;
+////        }
+////        
+////        /*
+////         * Color the data.
+////         */
+////        const int32_t numRGBA = numberOfData * 4;
+////        rgbaOut.resize(numRGBA);
+////        FastStatistics fastStatistics;
+////        fastStatistics.update(&data[0],
+////                              numberOfData);
+////        NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
+////                                                      mc->m_paletteColorMapping,
+////                                                      palette,
+////                                                      &data[0],
+////                                                      &data[0],
+////                                                      numberOfData,
+////                                                      &rgbaOut[0]);
+////        
+////        return true;
+////    }
+////    
+////    return false;
+//}
 
 ///* ========================================================================== */
 

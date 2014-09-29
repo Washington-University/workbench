@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "CiftiFile.h"
+#include "CiftiParcelReordering.h"
 #include "CiftiParcelReorderingModel.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -100,54 +101,77 @@ CiftiParcelLabelFile::getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                                      int32_t& numberOfColumnsOut,
                                                      std::vector<float>& rgbaOut) const
 {
-    CaretAssert(m_ciftiFile);
+    CiftiParcelLabelFile* parcelLabelFile = NULL;
+    int32_t parcelLabelFileMapIndex = -1;
+    bool enabled = false;
     
-    /*
-     * Dimensions of matrix.
-     */
-    numberOfRowsOut    = m_ciftiFile->getNumberOfRows();
-    numberOfColumnsOut = m_ciftiFile->getNumberOfColumns();
-    const int32_t numberOfData = numberOfRowsOut * numberOfColumnsOut;
-    if (numberOfData <= 0) {
-        return false;
-    }
+    std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
+    getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
+                                                  parcelLabelFile,
+                                                  parcelLabelFileMapIndex,
+                                                  enabled);
     
-    /*
-     * Allocate rgba output
-     */
-    const int32_t numberOfRgba = numberOfData * 4;
-    rgbaOut.resize(numberOfRgba);
-    
-    /*
-     * Get each column, color it using its label table, and then
-     * add the column's coloring into the output coloring.
-     */
-    std::vector<float> columnData(numberOfRowsOut);
-    std::vector<float> columnRGBA(numberOfRowsOut * 4);
-    for (int32_t iCol = 0; iCol < numberOfColumnsOut; iCol++) {
-        CaretAssertVectorIndex(m_mapContent, iCol);
-        m_ciftiFile->getColumn(&columnData[0],
-                               iCol);
-        const GiftiLabelTable* labelTable = getMapLabelTable(iCol);
-        NodeAndVoxelColoring::colorIndicesWithLabelTable(labelTable,
-                                                         &columnData[0],
-                                                         numberOfRowsOut,
-                                                         &columnRGBA[0]);
-        
-        for (int32_t iRow = 0; iRow < numberOfRowsOut; iRow++) {
-            const int32_t rgbaOffset = (((iRow * numberOfColumnsOut)
-                                        + iCol) * 4);
-            CaretAssertVectorIndex(rgbaOut, rgbaOffset + 3);
-            const int32_t columnRgbaOffset = (iRow * 4);
-            CaretAssertVectorIndex(columnRGBA, columnRgbaOffset + 3);
-            rgbaOut[rgbaOffset] = columnRGBA[columnRgbaOffset];
-            rgbaOut[rgbaOffset+1] = columnRGBA[columnRgbaOffset+1];
-            rgbaOut[rgbaOffset+2] = columnRGBA[columnRgbaOffset+2];
-            rgbaOut[rgbaOffset+3] = columnRGBA[columnRgbaOffset+3];
+    std::vector<int32_t> rowIndices;
+    if (enabled) {
+        const CiftiParcelReordering* parcelReordering = getParcelReordering(parcelLabelFile,
+                                                                            parcelLabelFileMapIndex);
+        if (parcelReordering != NULL) {
+            rowIndices = parcelReordering->getReorderedParcelIndices();
         }
     }
-        
-    return true;
+    
+    return helpMapFileLoadChartDataMatrixRGBA(numberOfRowsOut,
+                                              numberOfColumnsOut,
+                                              rowIndices,
+                                              rgbaOut);
+//    CaretAssert(m_ciftiFile);
+//    
+//    /*
+//     * Dimensions of matrix.
+//     */
+//    numberOfRowsOut    = m_ciftiFile->getNumberOfRows();
+//    numberOfColumnsOut = m_ciftiFile->getNumberOfColumns();
+//    const int32_t numberOfData = numberOfRowsOut * numberOfColumnsOut;
+//    if (numberOfData <= 0) {
+//        return false;
+//    }
+//    
+//    /*
+//     * Allocate rgba output
+//     */
+//    const int32_t numberOfRgba = numberOfData * 4;
+//    rgbaOut.resize(numberOfRgba);
+//    
+//    /*
+//     * Get each column, color it using its label table, and then
+//     * add the column's coloring into the output coloring.
+//     */
+//    std::vector<float> columnData(numberOfRowsOut);
+//    std::vector<float> columnRGBA(numberOfRowsOut * 4);
+//    for (int32_t iCol = 0; iCol < numberOfColumnsOut; iCol++) {
+//        CaretAssertVectorIndex(m_mapContent, iCol);
+//        m_ciftiFile->getColumn(&columnData[0],
+//                               iCol);
+//        const GiftiLabelTable* labelTable = getMapLabelTable(iCol);
+//        NodeAndVoxelColoring::colorIndicesWithLabelTable(labelTable,
+//                                                         &columnData[0],
+//                                                         numberOfRowsOut,
+//                                                         &columnRGBA[0]);
+//        
+//        for (int32_t iRow = 0; iRow < numberOfRowsOut; iRow++) {
+//            const int32_t rgbaOffset = (((iRow * numberOfColumnsOut)
+//                                        + iCol) * 4);
+//            CaretAssertVectorIndex(rgbaOut, rgbaOffset + 3);
+//            const int32_t columnRgbaOffset = (iRow * 4);
+//            CaretAssertVectorIndex(columnRGBA, columnRgbaOffset + 3);
+//            rgbaOut[rgbaOffset] = columnRGBA[columnRgbaOffset];
+//            rgbaOut[rgbaOffset+1] = columnRGBA[columnRgbaOffset+1];
+//            rgbaOut[rgbaOffset+2] = columnRGBA[columnRgbaOffset+2];
+//            rgbaOut[rgbaOffset+3] = columnRGBA[columnRgbaOffset+3];
+//        }
+//    }
+//        
+//    return true;
 }
 
 /**
@@ -519,7 +543,6 @@ CiftiParcelLabelFile::createParcelReordering(const CiftiParcelLabelFile* parcelL
 {
     return m_parcelReorderingModel->createParcelReordering(parcelLabelFile,
                                                            parcelLabelFileMapIndex,
-                                                           getCiftiParcelsMapForBrainordinateMapping(),
                                                            errorMessageOut);
 }
 

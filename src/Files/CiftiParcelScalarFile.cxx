@@ -27,6 +27,7 @@
 #include "ChartDataCartesian.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "CiftiFile.h"
+#include "CiftiParcelReordering.h"
 #include "CiftiParcelReorderingModel.h"
 #include "CiftiXML.h"
 #include "FastStatistics.h"
@@ -258,9 +259,29 @@ CiftiParcelScalarFile::getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                                      int32_t& numberOfColumnsOut,
                                                      std::vector<float>& rgbaOut) const
 {
-    return helpLoadChartDataMatrixRGBA(numberOfRowsOut,
-                                       numberOfColumnsOut,
-                                       rgbaOut);
+    CiftiParcelLabelFile* parcelLabelFile = NULL;
+    int32_t parcelLabelFileMapIndex = -1;
+    bool enabled = false;
+    
+    std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
+    getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
+                                                  parcelLabelFile,
+                                                  parcelLabelFileMapIndex,
+                                                  enabled);
+    
+    std::vector<int32_t> rowIndices;
+    if (enabled) {
+        const CiftiParcelReordering* parcelReordering = getParcelReordering(parcelLabelFile,
+                                                                            parcelLabelFileMapIndex);
+        if (parcelReordering != NULL) {
+            rowIndices = parcelReordering->getReorderedParcelIndices();
+        }
+    }
+    
+    return helpMapFileLoadChartDataMatrixRGBA(numberOfRowsOut,
+                                              numberOfColumnsOut,
+                                              rowIndices,
+                                              rgbaOut);
 }
 
 /**
@@ -640,7 +661,6 @@ CiftiParcelScalarFile::createParcelReordering(const CiftiParcelLabelFile* parcel
 {
     return m_parcelReorderingModel->createParcelReordering(parcelLabelFile,
                                                            parcelLabelFileMapIndex,
-                                                           getCiftiParcelsMapForBrainordinateMapping(),
                                                            errorMessageOut);
 }
 

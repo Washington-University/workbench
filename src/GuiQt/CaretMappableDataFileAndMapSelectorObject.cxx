@@ -218,7 +218,7 @@ CaretMappableDataFileAndMapSelectorObject::updateContent()
         }
     }
     
-    if (m_mapIndexSpinBox != NULL){
+    if (m_mapIndexSpinBox != NULL) {
         m_mapIndexSpinBox->setEnabled(validFlag);
     }
     m_mapNameComboBox->setEnabled(validFlag);
@@ -231,7 +231,7 @@ CaretMappableDataFileAndMapSelectorObject::updateContent()
  *    File that is selected.
  */
 void
-CaretMappableDataFileAndMapSelectorObject::mapFileComboBoxFileSelected(CaretDataFile* caretDataFile)
+CaretMappableDataFileAndMapSelectorObject::mapFileComboBoxFileSelected(CaretDataFile* /*caretDataFile*/)
 {
     updateContent();
     
@@ -252,7 +252,8 @@ CaretMappableDataFileAndMapSelectorObject::mapIndexSpinBoxValuesChanged(int mapI
          * Note: Indices are zero to num-maps minus 1
          * but show 1 to num-maps
          */
-        m_model->setSelectedMapIndex(mapIndex - 1);
+        int32_t zeroToOneMapIndex = mapIndex - 1;
+        m_model->setSelectedMapIndex(zeroToOneMapIndex);
         updateContent();
         
         emit selectionWasPerformed();

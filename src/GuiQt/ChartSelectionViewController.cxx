@@ -613,7 +613,7 @@ ChartSelectionViewController::createMatrixChartWidget()
      * TEMP TODO
      * FINISH IMPLEMENTATION OF LOADING AND YOKING
      */
-    const bool hideLoadAndYokeControls = false;
+    const bool hideLoadAndYokeControls = true;
     if (hideLoadAndYokeControls) {
         loadDimensionLabel->hide();
         m_matrixLoadByColumnRowComboBox->getWidget()->hide();

@@ -431,14 +431,24 @@ namespace caret {
         
         ChartDataCartesian* helpLoadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
-        bool helpLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
-                                         int32_t& numberOfColumnsOut,
-                                         std::vector<float>& rgbaOut) const;
-
-        bool helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numberOfRowsOut,
-                                                        int32_t& numberOfColumnsOut,
-                                                        const std::vector<int32_t>& rowIndices,
-                                                        std::vector<float>& rgbaOut) const;
+        bool helpMapFileLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
+                                                int32_t& numberOfColumnsOut,
+                                                const std::vector<int32_t>& rowIndicesIn,
+                                                std::vector<float>& rgbaOut) const;
+        
+        bool helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
+                                                   int32_t& numberOfColumnsOut,
+                                                   const std::vector<int32_t>& rowIndicesIn,
+                                                   std::vector<float>& rgbaOut) const;
+        
+//        bool helpLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
+//                                         int32_t& numberOfColumnsOut,
+//                                         std::vector<float>& rgbaOut) const;
+//
+//        bool helpLoadChartDataMatrixRGBAWithRowIndicese(int32_t& numberOfRowsOut,
+//                                                        int32_t& numberOfColumnsOut,
+//                                                        const std::vector<int32_t>& rowIndices,
+//                                                        std::vector<float>& rgbaOut) const;
         
     private:
         class MapContent : public CaretObjectTracksModification {

@@ -127,20 +127,19 @@ CiftiConnectivityMatrixParcelFile::getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                                   parcelLabelFileMapIndex,
                                                   enabled);
     
+    std::vector<int32_t> rowIndices;
     if (enabled) {
-        const CiftiParcelReordering* parcelReordering = getParcelReordering(parcelLabelFile, parcelLabelFileMapIndex);
+        const CiftiParcelReordering* parcelReordering = getParcelReordering(parcelLabelFile,
+                                                                            parcelLabelFileMapIndex);
         if (parcelReordering != NULL) {
-            const std::vector<int32_t> rowIndices = parcelReordering->getReorderedParcelIndices();
-            return helpLoadChartDataMatrixRGBAWithRowIndicese(numberOfRowsOut,
-                                                              numberOfColumnsOut,
-                                                              rowIndices,
-                                                              rgbaOut);
+            rowIndices = parcelReordering->getReorderedParcelIndices();
         }
     }
     
-    return helpLoadChartDataMatrixRGBA(numberOfRowsOut,
-                                       numberOfColumnsOut,
-                                       rgbaOut);
+    return helpMatrixFileLoadChartDataMatrixRGBA(numberOfRowsOut,
+                                                 numberOfColumnsOut,
+                                                 rowIndices,
+                                                 rgbaOut);
 }
 
 /**
@@ -504,7 +503,6 @@ CiftiConnectivityMatrixParcelFile::createParcelReordering(const CiftiParcelLabel
 {
     return m_parcelReorderingModel->createParcelReordering(parcelLabelFile,
                                                            parcelLabelFileMapIndex,
-                                                           getCiftiParcelsMapForBrainordinateMapping(),
                                                            errorMessageOut);
 }
 

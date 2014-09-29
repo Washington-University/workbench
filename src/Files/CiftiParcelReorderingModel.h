@@ -57,7 +57,6 @@ namespace caret {
         
         bool createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
                                     const int32_t parcelLabelFileMapIndex,
-                                    const CiftiParcelsMap* ciftiParcelsMap,
                                     AString& errorMessageOut);
         
         const CiftiParcelReordering* getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,

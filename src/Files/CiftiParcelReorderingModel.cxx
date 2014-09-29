@@ -350,12 +350,6 @@ CiftiParcelReorderingModel::setSelectedParcelLabelFileAndMapForReordering(CiftiP
     m_parcelReorderingEnabledStatus   = enabledStatus;
 }
 
-void createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
-                            const int32_t parcelLabelFileMapIndex,
-                            const CiftiParcelsMap* ciftiParcelsMap,
-                            const int32_t mapIndex,
-                            AString& errorMessageOut);
-
 /**
  * Get the parcel reordering for the given map index that was created using
  * the given parcel label file and its map index.
@@ -386,15 +380,13 @@ CiftiParcelReorderingModel::getParcelReordering(const CiftiParcelLabelFile* parc
 }
 
 /**
- * Create the parcel reordering for the given parcels map index using
+ * Create the parcel reordering for the parent file's parcels map index using
  * the given parcel label file and its map index.
  *
  * @param parcelLabelFile
  *    The selected parcel label file used for reordering the parcels.
  * @param parcelLabelFileMapIndex
  *    Map index in the selected parcel label file.
- * @param ciftiParcelsMap
- *    Parcel map for which a reordering is created.
  * @param errorMessageOut
  *    Error message output.  Will only be non-empty if NULL is returned.
  * @return
@@ -403,13 +395,15 @@ CiftiParcelReorderingModel::getParcelReordering(const CiftiParcelLabelFile* parc
 bool
 CiftiParcelReorderingModel::createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
                                                    const int32_t parcelLabelFileMapIndex,
-                                                   const CiftiParcelsMap* ciftiParcelsMap,
                                                    AString& errorMessageOut)
 {
     if (getParcelReordering(parcelLabelFile,
                             parcelLabelFileMapIndex) != NULL) {
         return true;
     }
+    
+    const CiftiParcelsMap* ciftiParcelsMap = m_parentCiftiMappableDataFile->getCiftiParcelsMapForBrainordinateMapping();
+    CaretAssert(ciftiParcelsMap);
     
     CiftiParcelReordering* parcelReordering = new CiftiParcelReordering();
     if (parcelReordering->createReordering(parcelLabelFile,
