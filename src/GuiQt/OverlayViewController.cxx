@@ -376,7 +376,7 @@ OverlayViewController::fileComboBoxSelected(int indx)
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
     overlay->setSelectionData(file, 0);
     
-    validateYokingSelection();
+    validateYokingSelection(overlay->getYokingGroup());
     // not needed with call to validateYokingSelection: this->updateViewController(this->overlay);
     
     // called inside validateYokingSelection();  this->updateUserInterfaceAndGraphicsWindow();
@@ -511,7 +511,7 @@ OverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
  * Validate and possibly change the yoking group selection.
  */
 void
-OverlayViewController::validateYokingSelection()
+OverlayViewController::validateYokingSelection(const OverlayYokingGroupEnum::Enum previousYokingGroup)
 {
     OverlayYokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
     if (yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
@@ -539,9 +539,20 @@ OverlayViewController::validateYokingSelection()
                 message.appendWithNewLine("Allow yoking?");
                 
                 message = WuQtUtilities::createWordWrappedToolTipText(message);
-                if (WuQMessageBox::warningYesNo(m_yokingGroupComboBox->getWidget(),
-                                                message) == false) {
-                    yokingGroup = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
+                
+                WuQMessageBox::YesNoCancelResult result =
+                WuQMessageBox::warningYesNoCancel(m_yokingGroupComboBox->getWidget(),
+                                                  message,
+                                                  "");
+                switch (result) {
+                    case WuQMessageBox::RESULT_YES:
+                        break;
+                    case WuQMessageBox::RESULT_NO:
+                        yokingGroup = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
+                        break;
+                    case WuQMessageBox::RESULT_CANCEL:
+                        yokingGroup = previousYokingGroup;
+                        break;
                 }
             }
             
@@ -576,7 +587,7 @@ OverlayViewController::yokingGroupActivated()
      * Has yoking group changed?
      */
     if (yokingGroup != overlay->getYokingGroup()) {
-        validateYokingSelection();
+        validateYokingSelection(overlay->getYokingGroup());
     }
 }
 

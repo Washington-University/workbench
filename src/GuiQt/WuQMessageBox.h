@@ -30,6 +30,11 @@ namespace caret {
         Q_OBJECT
         
     public:
+        enum YesNoCancelResult {
+            RESULT_YES,
+            RESULT_NO,
+            RESULT_CANCEL
+        };
         
         static void errorOk(QWidget* parent,
                                   const QString& text);
@@ -50,6 +55,10 @@ namespace caret {
         static bool warningYesNo(QWidget* parent,
                                     const QString& text,
                                     const QString& informativeText);
+        
+        static YesNoCancelResult warningYesNoCancel(QWidget* parent,
+                                                    const QString& text,
+                                                    const QString& informativeText);
         
         static bool warningCloseCancel(QWidget* parent,
                                        const QString& text,
