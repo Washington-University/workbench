@@ -1330,9 +1330,12 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
     }
     
     AString minMaxValueText[4];
-    NumericTextFormatting::formatValueRange(minMax,
-                                            minMaxValueText,
-                                            4);
+//    NumericTextFormatting::formatValueRange(minMax,
+//                                            minMaxValueText,
+//                                            4);
+    
+    NumericTextFormatting::formatValueRangeNegativeAndPositive(minMax,
+                                                               minMaxValueText);
     
     /*
      * Types of values for display

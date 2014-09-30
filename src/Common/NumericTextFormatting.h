@@ -31,10 +31,12 @@ namespace caret {
     class NumericTextFormatting : public CaretObject {
         
     public:
+        static void formatValueRangeNegativeAndPositive(const float negMaxNegMinPosMinPosMaxValuesIn[4],
+                                                        AString formattedValuesOut[4]);
+        
         static void formatValueRange(const float valuesIn[],
                                      AString formattedValuesOut[],
                                      const int32_t numberOfValues);
-        
         static void formatValuesIndividually(const float valuesIn[],
                                              AString formattedValuesOut[],
                                              const int32_t numberOfValues);

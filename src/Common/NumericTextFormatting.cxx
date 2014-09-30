@@ -328,6 +328,33 @@ NumericTextFormatting::formatValueRange(const float valuesIn[],
 }
 
 /**
+ * Format the values by formatting the negative and positive
+ * ranges separately.
+ *
+ * @param negMaxNegMinPosMinPosMaxValuesIn
+ *    [0] => most negative value
+ *    [1] => least negative value
+ *    [2] => least positive value
+ *    [3] => most positive value
+ *    [0] <= [1] <= 0.0 <= [2] <= [3]
+ * @param formattedValuesOut
+ *    Output containing values formatted as text.
+ */
+void
+NumericTextFormatting::formatValueRangeNegativeAndPositive(const float negMaxNegMinPosMinPosMaxValuesIn[4],
+                                                           AString formattedValuesOut[4])
+{
+    formatValueRange(&negMaxNegMinPosMinPosMaxValuesIn[0],
+                     &formattedValuesOut[0],
+                     2);
+    
+    formatValueRange(&negMaxNegMinPosMinPosMaxValuesIn[2],
+                     &formattedValuesOut[2],
+                     2);
+}
+
+
+/**
  * Format each of the values.
  *
  * @param valuesIn
