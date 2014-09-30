@@ -380,6 +380,35 @@ CiftiParcelReorderingModel::getParcelReordering(const CiftiParcelLabelFile* parc
 }
 
 /**
+ * Get the parcel reordering for the given map index that was created using
+ * the given parcel label file and its map index.
+ *
+ * @param parcelLabelFile
+ *    The selected parcel label file used for reordering the parcels.
+ * @param parcelLabelFileMapIndex
+ *    Map index in the selected parcel label file.
+ * @return
+ *    Pointer to parcel reordering or NULL if not found.
+ */
+CiftiParcelReordering*
+CiftiParcelReorderingModel::getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                const int32_t parcelLabelFileMapIndex)
+{
+    for (std::vector<CiftiParcelReordering*>::iterator iter = m_parcelReordering.begin();
+         iter != m_parcelReordering.end();
+         iter++) {
+        CiftiParcelReordering* parcelReordering = *iter;
+        
+        if (parcelReordering->isMatch(parcelLabelFile,
+                                      parcelLabelFileMapIndex)) {
+            return parcelReordering;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
  * Create the parcel reordering for the parent file's parcels map index using
  * the given parcel label file and its map index.
  *
@@ -446,6 +475,12 @@ CiftiParcelReorderingModel::saveToScene(const SceneAttributes* sceneAttributes,
                                 m_selectedParcelLabelFile->getFileName());
     }
 
+    /*
+     * NOTE: the parcel reorderings are not saved to the scene.
+     * When the scene is restored, a parcel reordering is created
+     * for the restored parcel label file and map index.
+     */
+    
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
     //                        sceneClass);
@@ -475,21 +510,40 @@ CiftiParcelReorderingModel::restoreFromScene(const SceneAttributes* sceneAttribu
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    const AString parcelLabelFileName = sceneClass->getPathNameValue("m_selectedParcelLabelFile");
+    m_selectedParcelLabelFile = NULL;
+    m_parcelReordering.clear();
     
-    std::vector<CiftiParcelLabelFile*> parcelLabelFiles = getParcelLabelFiles();
-    for (std::vector<CiftiParcelLabelFile*>::iterator iter = parcelLabelFiles.begin();
-         iter != parcelLabelFiles.end();
-         iter++) {
-        CiftiParcelLabelFile* plf = *iter;
-        if (plf->getFileName() == parcelLabelFileName) {
-            m_selectedParcelLabelFile = plf;
-            break;
+    const AString parcelLabelFileName = sceneClass->getPathNameValue("m_selectedParcelLabelFile");
+    if ( ! parcelLabelFileName.isEmpty()) {
+        std::vector<CiftiParcelLabelFile*> parcelLabelFiles = getParcelLabelFiles();
+        for (std::vector<CiftiParcelLabelFile*>::iterator iter = parcelLabelFiles.begin();
+             iter != parcelLabelFiles.end();
+             iter++) {
+            CiftiParcelLabelFile* plf = *iter;
+            if (plf->getFileName() == parcelLabelFileName) {
+                m_selectedParcelLabelFile = plf;
+                break;
+            }
         }
     }
     
     validateSelectedParcelLabelFileAndMap(NULL);
 
+    /*
+     * If there is a valid selected parcel label file,
+     * create the reordering for it.
+     */
+    if (m_selectedParcelLabelFile != NULL) {
+        if (m_selectedParcelLabelFileMapIndex >= 0) {
+            AString errorMessage;
+            if ( ! createParcelReordering(m_selectedParcelLabelFile,
+                                          m_selectedParcelLabelFileMapIndex,
+                                          errorMessage)) {
+                sceneAttributes->addToErrorMessage(errorMessage);
+            }
+        }
+    }
+    
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);

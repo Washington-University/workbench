@@ -24,6 +24,7 @@
 #undef __CIFTI_PARCEL_LABEL_FILE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "CiftiFile.h"
 #include "CiftiParcelReordering.h"
@@ -639,10 +640,10 @@ CiftiParcelLabelFile::getReorderedParcelIndicesFromMap(const int32_t mapIndex,
     m_ciftiFile->getColumn(&columnData[0],
                            mapIndex);
     
-    std::cout << "Column values size="
-    << columnData.size()
-    << ": "
-    << AString::fromNumbers(columnData, ",") << std::endl;
+    CaretLogFine("Column values size="
+                 + AString::number(columnData.size())
+                 + ": "
+                 + AString::fromNumbers(columnData, ","));
     
     std::vector<bool> indexProcessed(numberOfRows,
                                      false);
@@ -672,10 +673,10 @@ CiftiParcelLabelFile::getReorderedParcelIndicesFromMap(const int32_t mapIndex,
         return false;
     }
     
-    std::cout << "Reordered parcel indices size="
-    << reorderedParcelIndicesOut.size()
-    << ": "
-    << AString::fromNumbers(reorderedParcelIndicesOut, ",") << std::endl;
+    CaretLogFine("Reordered parcel indices (not values!) size="
+                   + AString::number(reorderedParcelIndicesOut.size())
+                   + ": "
+                   + AString::fromNumbers(reorderedParcelIndicesOut, ","));
     
     return true;
 }

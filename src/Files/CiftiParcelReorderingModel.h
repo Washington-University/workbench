@@ -62,6 +62,9 @@ namespace caret {
         const CiftiParcelReordering* getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
                                                          const int32_t parcelLabelFileMapIndex) const;
         
+        CiftiParcelReordering* getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
+                                                         const int32_t parcelLabelFileMapIndex);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

@@ -419,7 +419,7 @@ CiftiParcelReordering::createReordering(const CiftiParcelLabelFile* sourceParcel
         return false;
     }
     
-    std::cout << "Time to match parcels was: " << timer.getElapsedTimeSeconds() << " seconds." << std::endl;
+    //std::cout << "Time to match parcels was: " << timer.getElapsedTimeSeconds() << " seconds." << std::endl;
     
     m_sourceParcelLabelFile         = const_cast<CiftiParcelLabelFile*>(sourceParcelLabelFile);
     m_sourceParcelLabelFileMapIndex = sourceParcelLabelFileMapIndex;
