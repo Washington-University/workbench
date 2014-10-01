@@ -223,6 +223,10 @@ namespace caret {
                                  const float sliceCoordinates[3],
                                  const Plane& plane);
         
+        void drawOrthogonalSliceWithCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                            const float sliceCoordinates[3],
+                                            const Plane& plane);
+        
         void createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                       const float sliceCoordinates[3],
@@ -277,6 +281,7 @@ namespace caret {
                                        const int64_t numberOfColumns,
                                        const int64_t numberOfRows,
                                        const std::vector<uint8_t>& sliceRGBA,
+                                       const VolumeMappableInterface* volumeInterface,
                                        const int32_t volumeIndex,
                                        const int32_t mapIndex,
                                        const uint8_t sliceOpacity);
@@ -294,8 +299,11 @@ namespace caret {
                                       const int32_t voxelK,
                                       uint8_t rgbaForColorIdentificationOut[4]);
         
-        void getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                  const VolumeMappableInterface* volumeFile) ;
+        bool getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                  const VolumeMappableInterface* volumeFile,
+                                                  int64_t culledFirstVoxelIJKOut[3],
+                                                  int64_t culledLastVoxelIJKOut[3],
+                                                  float voxelDeltaXYZOut[3]);
         
         void processIdentification();
         

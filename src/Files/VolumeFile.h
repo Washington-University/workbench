@@ -245,6 +245,17 @@ namespace caret {
                                          const int32_t tabIndex,
                                          uint8_t* rgbaOut) const;
 
+        virtual void getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
+                                                    const int32_t mapIndex,
+                                                    const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                    const int64_t sliceIndex,
+                                                    const int64_t firstCornerVoxelIndex[3],
+                                                    const int64_t lastCornerVoxelIndex[3],
+                                                    const int64_t voxelCountIJK[3],
+                                                    const DisplayGroupEnum::Enum displayGroup,
+                                                    const int32_t tabIndex,
+                                                    uint8_t* rgbaOut) const;
+        
         void getVoxelValuesForSliceInMap(const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,

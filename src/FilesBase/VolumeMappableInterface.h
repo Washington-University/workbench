@@ -285,6 +285,42 @@ namespace caret {
                                                  uint8_t* rgbaOut) const = 0;
         
         /**
+         * Get the voxel colors for a sub slice in the map.
+         *
+         * @param paletteFile
+         *    The palette file.
+         * @param mapIndex
+         *    Index of the map.
+         * @param slicePlane
+         *    The slice plane.
+         * @param sliceIndex
+         *    Index of the slice.
+         * @param firstCornerVoxelIndex
+         *    Indices of voxel for first corner of sub-slice (inclusive).
+         * @param lastCornerVoxelIndex
+         *    Indices of voxel for last corner of sub-slice (inclusive).
+         * @param voxelCountIJK
+         *    Voxel counts for each axis.
+         * @param displayGroup
+         *    The selected display group.
+         * @param tabIndex
+         *    Index of selected tab.
+         * @param rgbaOut
+         *    Output containing the rgba values (must have been allocated
+         *    by caller to sufficient count of elements in the slice).
+         */
+        virtual void getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
+                                                    const int32_t mapIndex,
+                                                    const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                    const int64_t sliceIndex,
+                                                    const int64_t firstCornerVoxelIndex[3],
+                                                    const int64_t lastCornerVoxelIndex[3],
+                                                    const int64_t voxelCountIJK[3],
+                                                    const DisplayGroupEnum::Enum displayGroup,
+                                                    const int32_t tabIndex,
+                                                    uint8_t* rgbaOut) const = 0;
+        
+        /**
          * Get the voxel coloring for the voxel at the given indices.
          *
          * @param paletteFile

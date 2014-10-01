@@ -2432,6 +2432,525 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
 }
 
 /**
+ * Get the voxel colors for a sub slice in the map.
+ *
+ * @param paletteFile
+ *    The palette file.
+ * @param mapIndex
+ *    Index of the map.
+ * @param slicePlane
+ *    The slice plane.
+ * @param sliceIndex
+ *    Index of the slice.
+ * @param firstCornerVoxelIndex
+ *    Indices of voxel for first corner of sub-slice (inclusive).
+ * @param lastCornerVoxelIndex
+ *    Indices of voxel for last corner of sub-slice (inclusive).
+ * @param voxelCountIJK
+ *    Voxel counts for each axis.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbaOut
+ *    Output containing the rgba values (must have been allocated
+ *    by caller to sufficient count of elements in the slice).
+ */
+void
+CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
+                                                      const int32_t mapIndex,
+                                                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                      const int64_t sliceIndex,
+                                                      const int64_t firstCornerVoxelIndex[3],
+                                                      const int64_t lastCornerVoxelIndex[3],
+                                                      const int64_t voxelCountIJK[3],
+                                                      const DisplayGroupEnum::Enum displayGroup,
+                                                      const int32_t tabIndex,
+                                                      uint8_t* rgbaOut) const
+{
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    CaretAssertMessage((sliceIndex >= 0),
+                       "Slice index is invalid.");
+    if (sliceIndex < 0) {
+        return;
+    }
+    
+    if (isMapColoringValid(mapIndex) == false) {
+        CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
+        nonConstThis->updateScalarColoringForMap(mapIndex,
+                                                 paletteFile);
+    }
+    
+    const int64_t iStart = firstCornerVoxelIndex[0];
+    const int64_t jStart = firstCornerVoxelIndex[1];
+    const int64_t kStart = firstCornerVoxelIndex[2];
+    
+    const int64_t iEnd = lastCornerVoxelIndex[0];
+    const int64_t jEnd = lastCornerVoxelIndex[1];
+    const int64_t kEnd = lastCornerVoxelIndex[2];
+    
+    const int64_t voxelCountI = voxelCountIJK[0];
+    const int64_t voxelCountJ = voxelCountIJK[1];
+    const int64_t voxelCountK = voxelCountIJK[2];
+    
+    int64_t dimI, dimJ, dimK, dimTime, dimComp;
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    
+    int64_t voxelCount = 0;
+    
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            voxelCount = voxelCountI * voxelCountJ;
+            CaretAssert((sliceIndex < dimK));
+            if (sliceIndex >= dimK) {
+                return;
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            voxelCount = voxelCountI * voxelCountK;
+            CaretAssert((sliceIndex < dimJ));
+            if (sliceIndex >= dimJ) {
+                return;
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            voxelCount = voxelCountJ * voxelCountK;
+            CaretAssert((sliceIndex < dimI));
+            if (sliceIndex >= dimI) {
+                return;
+            }
+            break;
+    }
+    
+    if (voxelCount <= 0) {
+        return;
+    }
+    const int64_t componentCount = voxelCount * 4;
+    
+    /*
+     * Clear the slice rgba coloring.
+     */
+    for (int64_t i = 0; i < componentCount; i++) {
+        rgbaOut[i] = 0;
+    }
+    
+    const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
+    
+    
+    /*
+     * RGBA size will be zero if no data has been loaded for a CIFTI
+     * matrix type file (user clicking brainordinate).
+     */
+    if (mapRgbaCount <= 0) {
+        return;
+    }
+    
+    const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
+    
+    CaretAssert(m_voxelIndicesToOffset);
+    
+    std::vector<float> dataValues;
+    getMapData(mapIndex,
+               dataValues);
+    const GiftiLabelTable* labelTable = (isMappedWithLabelTable()
+                                         ? getMapLabelTable(mapIndex)
+                                         : NULL);
+    if (isMappedWithLabelTable()) {
+        CaretAssert(labelTable);
+    }
+    
+    /*
+     * Note that step indices may be positive or negative
+     */
+    const int64_t kStep = ((kEnd < kStart) ? -1 : 1);
+    const int64_t jStep = ((jEnd < jStart) ? -1 : 1);
+    const int64_t iStep = ((iEnd < iStart) ? -1 : 1);
+    
+    /*
+     * Set the rgba components for the slice.
+     */
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+        {
+            int64_t rgbaOffset = 0;
+            
+            int64_t j = jStart;
+            bool jLoopFlag = true;
+            while (jLoopFlag) {
+                
+                int64_t i = iStart;
+                bool iLoopFlag = true;
+                while (iLoopFlag) {
+                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+                                                                                           j,
+                                                                                           sliceIndex);
+                    if (dataOffset >= 0) {
+                        const int64_t dataOffset4 = dataOffset * 4;
+                        CaretAssert(dataOffset4 < mapRgbaCount);
+                        
+                        CaretAssert(rgbaOffset < componentCount);
+                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
+                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
+                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
+                        /*
+                         * A negative value for alpha indicates "do not draw".
+                         * Since unsigned bytes do not have negative values,
+                         * change the value to zero (which indicates "transparent").
+                         */
+                        float alpha = mapRGBA[dataOffset4+3];
+                        if (alpha < 0.0) {
+                            alpha = 0.0;
+                        }
+                        
+                        if (alpha > 0.0) {
+                            if (labelTable != NULL) {
+                                /*
+                                 * For label data, verify that the label is displayed.
+                                 * If NOT displayed, zero out the alpha value to
+                                 * prevent display of the data.
+                                 */
+                                const int32_t dataValue = dataValues[dataOffset];
+                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+                                if (label != NULL) {
+                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                    CaretAssert(item);
+                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+                                        alpha = 0.0;
+                                    }
+                                }
+                            }
+                            
+                        }
+                        
+                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                    }
+                    
+                    if (i == iEnd) {
+                        iLoopFlag = false;
+                    }
+                    else {
+                        i += iStep;
+                    }
+                    
+                    rgbaOffset += 4;
+                }
+                
+                if (j == jEnd) {
+                    jLoopFlag = false;
+                }
+                else {
+                    j += jStep;
+                }
+            }
+
+        }
+//            for (int64_t j = jStart; j <= jEnd; j++) {
+//                for (int64_t i = iStart; i <= iEnd; i++) {
+//                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+//                                                                                           j,
+//                                                                                           sliceIndex);
+//                    if (dataOffset >= 0) {
+//                        const int64_t dataOffset4 = dataOffset * 4;
+//                        CaretAssert(dataOffset4 < mapRgbaCount);
+//                        
+//                        const int64_t rgbaOffset = (((j - jStart) * voxelCountI) + (i - iStart)) * 4;
+//                        CaretAssert(rgbaOffset < componentCount);
+//                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
+//                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
+//                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
+//                        /*
+//                         * A negative value for alpha indicates "do not draw".
+//                         * Since unsigned bytes do not have negative values,
+//                         * change the value to zero (which indicates "transparent").
+//                         */
+//                        float alpha = mapRGBA[dataOffset4+3];
+//                        if (alpha < 0.0) {
+//                            alpha = 0.0;
+//                        }
+//                        
+//                        if (alpha > 0.0) {
+//                            if (labelTable != NULL) {
+//                                /*
+//                                 * For label data, verify that the label is displayed.
+//                                 * If NOT displayed, zero out the alpha value to
+//                                 * prevent display of the data.
+//                                 */
+//                                const int32_t dataValue = dataValues[dataOffset];
+//                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+//                                if (label != NULL) {
+//                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+//                                    CaretAssert(item);
+//                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+//                                        alpha = 0.0;
+//                                    }
+//                                }
+//                            }
+//                            
+//                        }
+//                        
+//                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+//                    }
+//                }
+//            }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+        {
+            int64_t rgbaOffset = 0;
+            
+            int64_t k = kStart;
+            bool kLoopFlag = true;
+            while (kLoopFlag) {
+                
+                int64_t i = iStart;
+                bool iLoopFlag = true;
+                while (iLoopFlag) {
+            
+                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+                                                                                           sliceIndex,
+                                                                                           k);
+                    if (dataOffset >= 0) {
+                        const int64_t dataOffset4 = dataOffset * 4;
+                        CaretAssert(dataOffset4 < mapRgbaCount);
+                        
+                        CaretAssert(rgbaOffset < componentCount);
+                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
+                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
+                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
+                        /*
+                         * A negative value for alpha indicates "do not draw".
+                         * Since unsigned bytes do not have negative values,
+                         * change the value to zero (which indicates "transparent").
+                         */
+                        float alpha = mapRGBA[dataOffset4+3];
+                        if (alpha < 0.0) {
+                            alpha = 0.0;
+                        }
+                        
+                        if (alpha > 0.0) {
+                            if (labelTable != NULL) {
+                                /*
+                                 * For label data, verify that the label is displayed.
+                                 * If NOT displayed, zero out the alpha value to
+                                 * prevent display of the data.
+                                 */
+                                const int32_t dataValue = dataValues[dataOffset];
+                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+                                if (label != NULL) {
+                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                    CaretAssert(item);
+                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+                                        alpha = 0.0;
+                                    }
+                                }
+                            }
+                            
+                        }
+                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                    }
+                    
+                    
+                    if (i == iEnd) {
+                        iLoopFlag = false;
+                    }
+                    else {
+                        i += iStep;
+                    }
+                    
+                    rgbaOffset += 4;
+                }
+                
+                if (k == kEnd) {
+                    kLoopFlag = false;
+                }
+                else {
+                    k += kStep;
+                }
+            }
+        }
+//            for (int64_t k = kStart; k <= kEnd; k++) {
+//                for (int64_t i = iStart; i <= iEnd; i++) {
+//                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+//                                                                                           sliceIndex,
+//                                                                                           k);
+//                    if (dataOffset >= 0) {
+//                        const int64_t dataOffset4 = dataOffset * 4;
+//                        CaretAssert(dataOffset4 < mapRgbaCount);
+//                        
+//                        const int64_t rgbaOffset = (((k - kStart) * voxelCountI) + (i - iStart)) * 4;
+//                        CaretAssert(rgbaOffset < componentCount);
+//                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
+//                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
+//                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
+//                        /*
+//                         * A negative value for alpha indicates "do not draw".
+//                         * Since unsigned bytes do not have negative values,
+//                         * change the value to zero (which indicates "transparent").
+//                         */
+//                        float alpha = mapRGBA[dataOffset4+3];
+//                        if (alpha < 0.0) {
+//                            alpha = 0.0;
+//                        }
+//                        
+//                        if (alpha > 0.0) {
+//                            if (labelTable != NULL) {
+//                                /*
+//                                 * For label data, verify that the label is displayed.
+//                                 * If NOT displayed, zero out the alpha value to
+//                                 * prevent display of the data.
+//                                 */
+//                                const int32_t dataValue = dataValues[dataOffset];
+//                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+//                                if (label != NULL) {
+//                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+//                                    CaretAssert(item);
+//                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+//                                        alpha = 0.0;
+//                                    }
+//                                }
+//                            }
+//                            
+//                        }
+//                        
+//                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+//                    }
+//                }
+//            }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+        {
+            int64_t rgbaOffset = 0;
+            
+            int64_t k = kStart;
+            bool kLoopFlag = true;
+            while (kLoopFlag) {
+                
+                int64_t j = jStart;
+                bool jLoopFlag = true;
+                while (jLoopFlag) {
+                    
+                    
+                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(sliceIndex,
+                                                                                           j,
+                                                                                           k);
+                    if (dataOffset >= 0) {
+                        const int64_t dataOffset4 = dataOffset * 4;
+                        CaretAssert(dataOffset4 < mapRgbaCount);
+                        
+                        CaretAssert(rgbaOffset < componentCount);
+                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
+                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
+                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
+                        /*
+                         * A negative value for alpha indicates "do not draw".
+                         * Since unsigned bytes do not have negative values,
+                         * change the value to zero (which indicates "transparent").
+                         */
+                        float alpha = mapRGBA[dataOffset4+3];
+                        if (alpha < 0.0) {
+                            alpha = 0.0;
+                        }
+                        
+                        if (alpha > 0.0) {
+                            if (labelTable != NULL) {
+                                /*
+                                 * For label data, verify that the label is displayed.
+                                 * If NOT displayed, zero out the alpha value to
+                                 * prevent display of the data.
+                                 */
+                                const int32_t dataValue = dataValues[dataOffset];
+                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+                                if (label != NULL) {
+                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                    CaretAssert(item);
+                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+                                        alpha = 0.0;
+                                    }
+                                }
+                            }
+                            
+                        }
+                        
+                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                    }
+                    
+                    if (j == jEnd) {
+                        jLoopFlag = false;
+                    }
+                    else {
+                        j += jStep;
+                    }
+                    
+                    rgbaOffset += 4;
+                }
+                
+                if (k == kEnd) {
+                    kLoopFlag = false;
+                }
+                else {
+                    k += kStep;
+                }
+            }
+        }
+            for (int64_t k = kStart; k <= kEnd; k++) {
+                for (int64_t j = jStart; j < jEnd; j++) {
+                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(sliceIndex,
+                                                                                           j,
+                                                                                           k);
+                    if (dataOffset >= 0) {
+                        const int64_t dataOffset4 = dataOffset * 4;
+                        CaretAssert(dataOffset4 < mapRgbaCount);
+                        
+                        const int64_t rgbaOffset = (((k - kStart) * voxelCountJ) + (j - jStart)) * 4;
+                        CaretAssert(rgbaOffset < componentCount);
+                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
+                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
+                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
+                        /*
+                         * A negative value for alpha indicates "do not draw".
+                         * Since unsigned bytes do not have negative values,
+                         * change the value to zero (which indicates "transparent").
+                         */
+                        float alpha = mapRGBA[dataOffset4+3];
+                        if (alpha < 0.0) {
+                            alpha = 0.0;
+                        }
+                        
+                        if (alpha > 0.0) {
+                            if (labelTable != NULL) {
+                                /*
+                                 * For label data, verify that the label is displayed.
+                                 * If NOT displayed, zero out the alpha value to
+                                 * prevent display of the data.
+                                 */
+                                const int32_t dataValue = dataValues[dataOffset];
+                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+                                if (label != NULL) {
+                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                    CaretAssert(item);
+                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+                                        alpha = 0.0;
+                                    }
+                                }
+                            }
+                            
+                        }
+                        
+                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                    }
+                }
+            }
+            break;
+    }
+}
+
+/**
  * Get the voxel coloring for the voxel at the given indices.
  * This method is for label data.  Accessing the actual voxel values is
  * needed for coloring labels.  But, one can only access the entire set
