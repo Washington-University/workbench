@@ -62,6 +62,7 @@ DataFileException.h
 DataFileInterface.h
 DataFileTypeEnum.h
 DescriptiveStatistics.h
+DeveloperFlagsEnum.h
 ElapsedTimer.h
 Event.h
 EventListenerInterface.h
@@ -140,6 +141,7 @@ DataFileContentInformation.cxx
 DataFileException.cxx
 DataFileTypeEnum.cxx
 DescriptiveStatistics.cxx
+DeveloperFlagsEnum.cxx
 ElapsedTimer.cxx
 Event.cxx
 EventManager.cxx

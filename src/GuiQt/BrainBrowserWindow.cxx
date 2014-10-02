@@ -50,6 +50,7 @@
 #include "CaretFileRemoteDialog.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesVolume.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
@@ -715,6 +716,8 @@ BrainBrowserWindow::createMenuDevelop()
 {
     QMenu* menu = new QMenu("Develop",
                             this);
+    QObject::connect(menu, SIGNAL(aboutToShow()),
+                     this, SLOT(developerMenuAboutToShow()));
     menu->addAction(m_developerExportVtkFileAction);
     
     /*
@@ -724,8 +727,94 @@ BrainBrowserWindow::createMenuDevelop()
     
     menu->addAction(m_developerGraphicsTimingAction);
     
+    std::vector<DeveloperFlagsEnum::Enum> developerFlags;
+    DeveloperFlagsEnum::getAllEnums(developerFlags);
+    
+    m_developerFlagsActionGroup = NULL;
+    
+    if ( ! developerFlags.empty()) {
+        menu->addSeparator();
+        
+        m_developerFlagsActionGroup = new QActionGroup(this);
+        m_developerFlagsActionGroup->setExclusive(false);
+        QObject::connect(m_developerFlagsActionGroup, SIGNAL(triggered(QAction*)),
+                         this, SLOT(developerMenuFlagTriggered(QAction*)));
+        
+        for (std::vector<DeveloperFlagsEnum::Enum>::iterator iter = developerFlags.begin();
+             iter != developerFlags.end();
+             iter++) {
+            const DeveloperFlagsEnum::Enum flag = *iter;
+            
+            QAction* action = menu->addAction(DeveloperFlagsEnum::toGuiName(flag));
+            action->setCheckable(true);
+            action->setData(static_cast<int>(DeveloperFlagsEnum::toIntegerCode(flag)));
+            m_developerFlagsActionGroup->addAction(action);
+        }
+    }
+    
     return menu;
 }
+
+/**
+ * Called when developer menu is about to show.
+ */
+void
+BrainBrowserWindow::developerMenuAboutToShow()
+{
+    std::vector<DeveloperFlagsEnum::Enum> developerFlags;
+    DeveloperFlagsEnum::getAllEnums(developerFlags);
+    
+    QList<QAction*> actions = m_developerFlagsActionGroup->actions();
+    QListIterator<QAction*> iter(actions);
+    while (iter.hasNext()) {
+        QAction* action = iter.next();
+        const int integerCode = action->data().toInt();
+        
+        bool valid = false;
+        const DeveloperFlagsEnum::Enum enumValue = DeveloperFlagsEnum::fromIntegerCode(integerCode,
+                                                                                       &valid);
+        if (valid) {
+            const bool flag = DeveloperFlagsEnum::isFlag(enumValue);
+            action->setChecked(flag);
+        }
+        else {
+            CaretLogSevere("Failed to find develper flag for updating menu: "
+                           + action->text());
+        }
+    }
+}
+
+/**
+ * Called when developer flag is checked/unchecked.
+ *
+ * @param action
+ *    Action that is checked/unchecked.
+ */
+void
+BrainBrowserWindow::developerMenuFlagTriggered(QAction* action)
+{
+    const int integerCode = action->data().toInt();
+    
+    bool valid = false;
+    const DeveloperFlagsEnum::Enum enumValue = DeveloperFlagsEnum::fromIntegerCode(integerCode,
+                                                                                   &valid);
+    if (valid) {
+        DeveloperFlagsEnum::setFlag(enumValue,
+                                    action->isChecked());
+
+        /*
+         * Update graphics and GUI
+         */
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+    else {
+        CaretLogSevere("Failed to find develper flag for reading menu: "
+                       + action->text());
+    }
+}
+
 
 /**
  * Create the file menu.
