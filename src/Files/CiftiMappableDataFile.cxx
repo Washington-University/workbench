@@ -5288,6 +5288,24 @@ CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRo
         }
         
         /*
+         * Set up Fast Stats for files that use all data for
+         * statistics and color mapping.
+         * Map "0" will return the file fast statistics
+         */
+        CiftiMappableDataFile* nonConstMapFile = const_cast<CiftiMappableDataFile*>(this);
+        const FastStatistics* fileFastStats = nonConstMapFile->getMapFastStatistics(0);
+        switch (m_histogramAndStatisticsMethod) {
+            case HISTOGRAM_AND_STATISTICS_INVALID:
+                CaretAssert(0);
+                break;
+            case HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA:
+                break;
+            case HISTOGRAM_AND_STATISTICS_USE_MAP_DATA:
+                CaretAssert(0);
+                break;
+        }
+
+        /*
          * Color the data.
          */
         const int32_t numRGBA = numberOfData * 4;
@@ -5295,7 +5313,7 @@ CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRo
         FastStatistics fastStatistics;
         fastStatistics.update(&data[0],
                               numberOfData);
-        NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
+        NodeAndVoxelColoring::colorScalarsWithPalette(fileFastStats,
                                                       pcm,
                                                       palette,
                                                       &data[0],
@@ -5304,6 +5322,9 @@ CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRo
                                                       &rgbaOut[0]);
         
         return true;
+    }
+    else {
+        CaretAssertMessage(0, "Only palette mapped files supported at this time.");
     }
     
     return false;

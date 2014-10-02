@@ -1260,6 +1260,13 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
             glEnd();
         }
         else {
+            /*
+             * Enable alpha blending so voxels that are not drawn from higher layers
+             * allow voxels from lower layers to be seen.
+             */
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            
             CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesFloatRGBA.size() / 4));
             const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
             glBegin(GL_QUADS);
@@ -1270,6 +1277,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                 glVertex3fv(&quadVerticesXYZ[i*3]);
             }
             glEnd();
+            
+            glDisable(GL_BLEND);
             
             /*
              * Drawn an outline around the matrix elements.

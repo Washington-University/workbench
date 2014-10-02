@@ -211,7 +211,7 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
                 rgbaFloat[i4]   =  0.0;
                 rgbaFloat[i4+1] =  0.0;
                 rgbaFloat[i4+2] =  0.0;
-                rgbaFloat[i4+3] = -1.0;
+                rgbaFloat[i4+3] =  0.0;
                 break;
             case COLOR_TYPE_UNSIGNED_BTYE:
                 rgbaUnsignedByte[i4]   =  0;
@@ -255,7 +255,7 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
              0.0,
              0.0,
              0.0,
-            -1.0
+             0.0
         };
         
         const float normalValue = normalizedValues[i];
@@ -319,7 +319,7 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
             }
         }
         if (thresholdPassedFlag == false) {
-            rgbaOut[3] = -1.0;
+            rgbaOut[3] = 0.0;
             if (showMappedThresholdFailuresInGreen) {
                 if (thresholdType == PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED) {
                     if (threshold > 0.0f) {
