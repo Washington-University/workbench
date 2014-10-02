@@ -34,6 +34,7 @@
 #include "CaretOpenGLInclude.h"
 #include "CaretPreferences.h"
 #include "CiftiMappableDataFile.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesLabels.h"
 #include "FociFile.h"
@@ -716,9 +717,16 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             if (m_modelVolume != NULL) {
-                drawOrthogonalSliceWithCulling(sliceViewPlane,
-                                               sliceCoordinates,
-                                               slicePlane);
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CULLING)) {
+                    drawOrthogonalSliceWithCulling(sliceViewPlane,
+                                                   sliceCoordinates,
+                                                   slicePlane);
+                }
+                else {
+                    drawOrthogonalSlice(sliceViewPlane,
+                                        sliceCoordinates,
+                                        slicePlane);
+                }
             }
             else if (m_modelWholeBrain != NULL) {
                 drawOrthogonalSlice(sliceViewPlane,

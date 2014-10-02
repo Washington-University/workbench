@@ -31,6 +31,7 @@ class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class QGridLayout;
+class QGroupBox;
 class QLabel;
 class QLineEdit;
 class QRadioButton;
@@ -148,6 +149,8 @@ namespace caret {
         QAction* m_matrixColorBarAction;
         
         QAction* m_matrixSettingsAction;
+        
+        QGroupBox* m_parcelRemappingGroupBox;
         
         QCheckBox* m_parcelReorderingEnabledCheckBox;
         

@@ -52,6 +52,7 @@
 #include "ChartableBrainordinateInterface.h"
 #include "CiftiMappableDataFile.h"
 #include "CiftiParcelLabelFile.h"
+#include "DeveloperFlagsEnum.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -585,10 +586,10 @@ ChartSelectionViewController::createMatrixChartWidget()
     m_parcelLabelFileRemappingFileSelector->getWidgetsForAddingToLayout(mapFileComboBox,
                                                                         mapIndexSpinBox,
                                                                         mapNameComboBox);
-    QGroupBox* remappingGroupBox = new QGroupBox("Parcel Reordering");
-    remappingGroupBox->setFlat(true);
-    remappingGroupBox->setAlignment(Qt::AlignHCenter);
-    QGridLayout* parcelMapFileLayout = new QGridLayout(remappingGroupBox);
+    m_parcelRemappingGroupBox = new QGroupBox("Parcel Reordering");
+    m_parcelRemappingGroupBox->setFlat(true);
+    m_parcelRemappingGroupBox->setAlignment(Qt::AlignHCenter);
+    QGridLayout* parcelMapFileLayout = new QGridLayout(m_parcelRemappingGroupBox);
     WuQtUtilities::setLayoutSpacingAndMargins(parcelMapFileLayout, 2, 0);
     parcelMapFileLayout->setColumnStretch(0,   0);
     parcelMapFileLayout->setColumnStretch(1, 100);
@@ -606,7 +607,7 @@ ChartSelectionViewController::createMatrixChartWidget()
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 1, 0);
     layout->addWidget(fileYokeGroupBox);
-    layout->addWidget(remappingGroupBox);
+    layout->addWidget(m_parcelRemappingGroupBox);
     layout->addStretch();
     
     /*
@@ -708,47 +709,7 @@ ChartSelectionViewController::parcelLabelFileRemappingFileSelectorChanged()
                 WuQMessageBox::errorOk(this,
                                        errorMessage);
             }
-//        const CiftiMappableDataFile* cmdf = c
-//        const CiftiParcelsMap* parcelsMap = chartableMatrixInterface->get
-//        chartableMatrixInterface->createParcelReordering(parcelLabelFile, parcelLabelFileMapIndex, <#const caret::CiftiParcelsMap *ciftiParcelsMap#>, <#const int32_t mapIndex#>, <#caret::AString &errorMessageOut#>)
     }
-//    Brain* brain = GuiManager::get()->getBrain();
-//
-//    BrowserTabContent* browserTabContent =
-//    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-//    if (browserTabContent == NULL) {
-//        return;
-//    }
-//    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    
-//    ChartDataTypeEnum::Enum chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
-//    ModelChart* modelChart = brain->getChartModel();
-//    
-//    if (modelChart != NULL) {
-//        chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
-//    }
-//    CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
-//    
-//    CaretDataFile* cdf = fileSelectionModel->getSelectedFile();
-//    if (cdf != NULL) {
-//        CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(cdf);
-//        if (cmdf != NULL) {
-//            
-//            ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(cmdf);
-//            if (matrixInterface != NULL) {
-//                bool remappingEnabled = m_parcelReorderingEnabledCheckBox->isChecked();
-//                
-//                CaretMappableDataFileAndMapSelectionModel* model = m_parcelLabelFileRemappingFileSelector->getModel();
-//                CiftiParcelLabelFile* parcelLabelFile = model->getSelectedFileOfType<CiftiParcelLabelFile>();
-//                int32_t parcelLabelFileMapIndex = model->getSelectedMapIndex();
-//                CaretAssertToDoWarning(); // enabled status
-//
-//                matrixInterface->setSelectedParcelLabelFileAndMapForReordering(parcelLabelFile,
-//                                                                               parcelLabelFileMapIndex,
-//                                                                               remappingEnabled);
-//            }
-//        }
-//    }
 }
 
 
@@ -837,6 +798,9 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
     
     m_matrixColorBarAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
     m_matrixSettingsAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
+    
+    const bool showParcelGUI = DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_PARCEL_REORDERING);
+    m_parcelRemappingGroupBox->setVisible(showParcelGUI);
 }
 
 ///**
