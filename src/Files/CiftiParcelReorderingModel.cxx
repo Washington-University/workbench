@@ -95,7 +95,9 @@ CiftiParcelReorderingModel::~CiftiParcelReorderingModel()
  *    Object that is copied.
  */
 CiftiParcelReorderingModel::CiftiParcelReorderingModel(const CiftiParcelReorderingModel& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
+
 {
     this->copyHelperCiftiParcelReorderingModel(obj);
 }

@@ -1964,9 +1964,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
         /*
          * Draw the voxels in the slice.
          */
-        drawOrthogonalSliceVoxels(sliceViewPlane,
-                                  sliceNormalVector,
-                                  selectedSliceIndices,
+        drawOrthogonalSliceVoxels(sliceNormalVector,
                                   startCoordinate,
                                   rowStep,
                                   columnStep,
@@ -2316,9 +2314,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
         /*
          * Draw the voxels in the slice.
          */
-        drawOrthogonalSliceVoxels(sliceViewPlane,
-                                  sliceNormalVector,
-                                  selectedSliceIndices,
+        drawOrthogonalSliceVoxels(sliceNormalVector,
                                   startCoordinate,
                                   rowStep,
                                   columnStep,
@@ -3768,12 +3764,8 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
 /**
  * Draw the voxels in an orthogonal slice.
  *
- * @param sliceViewPlane
- *    The slice plane being viewed.
  * @param sliceNormalVector
  *    Normal vector of the slice plane.
- * @param selectedSliceIndices
- *    Selected slice indices.
  * @param coordinate
  *    Coordinate of first voxel in the slice (bottom left as begin viewed)
  * @param rowStep
@@ -3786,17 +3778,17 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
  *    Number of rows in the slice.
  * @param sliceRGBA
  *    RGBA coloring for voxels in the slice.
- * @param volumeIndex
+ * @param volumeInterface
  *    Index of the volume being drawn.
+ * @param volumeIndex
+ *    Selected map in the volume being drawn.
  * @param mapIndex
  *    Selected map in the volume being drawn.
  * @param sliceOpacity
  *    Opacity from the overlay.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                         const float sliceNormalVector[3],
-                                                         const int64_t selectedSliceIndices[3],
+BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormalVector[3],
                                                          const float coordinate[3],
                                                          const float rowStep[3],
                                                          const float columnStep[3],

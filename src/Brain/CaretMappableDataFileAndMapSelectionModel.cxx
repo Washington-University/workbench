@@ -152,7 +152,8 @@ CaretMappableDataFileAndMapSelectionModel::~CaretMappableDataFileAndMapSelection
  *    Object that is copied.
  */
 CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFileAndMapSelectionModel& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperCaretMappableDataFileAndMapSelectionModel(obj);
 }

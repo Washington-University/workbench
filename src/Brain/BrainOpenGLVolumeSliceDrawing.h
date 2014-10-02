@@ -272,9 +272,7 @@ namespace caret {
         void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
         
-        void drawOrthogonalSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                       const float sliceNormalVector[3],
-                                       const int64_t selectedSliceIndices[3],
+        void drawOrthogonalSliceVoxels(const float sliceNormalVector[3],
                                        const float coordinate[3],
                                        const float rowStep[3],
                                        const float columnStep[3],
