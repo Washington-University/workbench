@@ -297,16 +297,16 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
     
     CaretAssert(chartMatrixInterface);
     
-    int32_t numberOfRows = 0;
-    int32_t numberOfColumns = 0;
-    std::vector<float> matrixRGBA;
-    chartMatrixInterface->getMatrixDataRGBA(numberOfRows,
-                                            numberOfColumns,
-                                            matrixRGBA);
-    if ((numberOfRows <= 0)
-        || (numberOfColumns <= 0)) {
-        return;
-    }
+//    int32_t numberOfRows = 0;
+//    int32_t numberOfColumns = 0;
+//    std::vector<float> matrixRGBA;
+//    chartMatrixInterface->getMatrixDataRGBA(numberOfRows,
+//                                            numberOfColumns,
+//                                            matrixRGBA);
+//    if ((numberOfRows <= 0)
+//        || (numberOfColumns <= 0)) {
+//        return;
+//    }
     
     saveStateOfOpenGL();
     
