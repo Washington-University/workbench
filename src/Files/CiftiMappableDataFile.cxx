@@ -4598,6 +4598,21 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     }
     dataFileInformation.addNameAndValue("Histogram/Stats",
                                         histoStatsType);
+
+    AString paletteType;
+    switch (m_paletteColorMappingSource) {
+        case PALETTE_COLOR_MAPPING_SOURCE_INVALID:
+            paletteType = "None";
+            break;
+        case PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE:
+            paletteType = "File (One for all maps)";
+            break;
+        case PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP:
+            paletteType = "Map (Unique for each map)";
+            break;
+    }
+    dataFileInformation.addNameAndValue("Palette Type",
+                                        paletteType);
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
