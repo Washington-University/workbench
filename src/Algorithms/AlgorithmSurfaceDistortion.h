@@ -33,7 +33,7 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmSurfaceDistortion(ProgressObject* myProgObj, const SurfaceFile* referenceSurf, const SurfaceFile* distortedSurf,
-                                   MetricFile* myMetricOut, const float& smooth = -1.0f, const bool& caret5method = false);
+                                   MetricFile* myMetricOut, const float& smooth = -1.0f, const bool& caret5method = false, const bool& edgeMethod = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
