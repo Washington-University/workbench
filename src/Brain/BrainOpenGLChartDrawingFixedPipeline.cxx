@@ -990,16 +990,24 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
     if (chartMatrixInterface->getMatrixDataRGBA(numberOfRows,
                                        numberOfColumns,
                                        matrixRGBA)) {
+        std::set<int32_t> selectedColumnIndices;
+        
         int64_t loadedRowIndex = -1;
+        int64_t loadedColumnIndex = -1;
         CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(chartMatrixInterface);
         if (connMapFile != NULL) {
             const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
             if (connDataLoaded != NULL) {
-                connDataLoaded->getRowLoading(loadedRowIndex);
+                connDataLoaded->getRowColumnLoading(loadedRowIndex,
+                                                    loadedColumnIndex);
+                if (loadedRowIndex < 0) {
+                    if (loadedColumnIndex >= 0) {
+                        selectedColumnIndices.insert(loadedColumnIndex);
+                    }
+                }
             }
         }
         
-        std::set<int32_t> selectedColumnIndices;
         CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<CiftiParcelScalarFile*>(chartMatrixInterface);
         if (parcelScalarFile != NULL) {
             EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);

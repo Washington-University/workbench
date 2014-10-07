@@ -23,7 +23,7 @@
 
 #include "CaretColorEnum.h"
 #include "ChartDataTypeEnum.h"
-#include "ChartMatrixLoadingTypeEnum.h"
+#include "ChartMatrixLoadingDimensionEnum.h"
 #include "CiftiParcelColoringModeEnum.h"
 #include "YokingGroupEnum.h"
 
@@ -232,7 +232,7 @@ namespace caret {
         /**
          * @return The matrix loading type (by row/column).
          */
-        virtual ChartMatrixLoadingTypeEnum::Enum getMatrixLoadingType() const = 0;
+        virtual ChartMatrixLoadingDimensionEnum::Enum getMatrixLoadingType() const = 0;
         
         /**
          * Set the matrix loading type (by row/column).
@@ -240,7 +240,7 @@ namespace caret {
          * @param matrixLoadingType
          *    New value for matrix loading type.
          */
-        virtual void setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType) = 0;
+        virtual void setMatrixLoadingType(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType) = 0;
         
         /**
          * @return Selected yoking group.

@@ -198,29 +198,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
 
     }
 
-    switch (m_dataMappingAccessMethod) {
-        case DATA_ACCESS_METHOD_INVALID:
-            CaretAssert(0);
-            break;
-        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
-            m_dataMappingDirectionForCiftiXML = CiftiXML::ALONG_COLUMN;
-            break;
-        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
-            m_dataMappingDirectionForCiftiXML = CiftiXML::ALONG_ROW;
-            break;
-    }
-
-    switch (m_dataReadingAccessMethod) {
-        case DATA_ACCESS_METHOD_INVALID:
-            CaretAssert(0);
-            break;
-        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
-            m_dataReadingDirectionForCiftiXML = CiftiXML::ALONG_COLUMN;
-            break;
-        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
-            m_dataReadingDirectionForCiftiXML = CiftiXML::ALONG_ROW;
-            break;
-    }
+    setupCiftiReadingMappingDirection();
     
     m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel());
 }
@@ -392,13 +370,7 @@ CiftiMappableDataFile::clearPrivate()
     
     m_ciftiFile.grabNew(NULL);
     
-    const int64_t num = static_cast<int64_t>(m_mapContent.size());
-    for (int64_t i = 0; i < num; i++) {
-        delete m_mapContent[i];
-    }
-    m_mapContent.clear();
-    m_classNameHierarchy->clear();
-    m_forceUpdateOfGroupAndNameHierarchy = true;
+    resetDataLoadingMembers();
     
     m_containsSurfaceData = false;
     m_containsVolumeData = false;
@@ -406,6 +378,22 @@ CiftiMappableDataFile::clearPrivate()
     m_mappingTimeStart = 0.0;
     m_mappingTimeStep = 0.0;
     m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
+}
+
+/**
+ * Reset data loading members.
+ * Also used when parcel row/column loading is changed.
+ */
+void
+CiftiMappableDataFile::resetDataLoadingMembers()
+{
+    const int64_t num = static_cast<int64_t>(m_mapContent.size());
+    for (int64_t i = 0; i < num; i++) {
+        delete m_mapContent[i];
+    }
+    m_mapContent.clear();
+    m_classNameHierarchy->clear();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
@@ -715,6 +703,38 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename) throw (Data
 }
 
 /**
+ * Setup the CIFTI mapping and reading directions.
+ */
+void
+CiftiMappableDataFile::setupCiftiReadingMappingDirection()
+{
+    switch (m_dataMappingAccessMethod) {
+        case DATA_ACCESS_METHOD_INVALID:
+            CaretAssert(0);
+            break;
+        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
+            m_dataMappingDirectionForCiftiXML = CiftiXML::ALONG_COLUMN;
+            break;
+        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            m_dataMappingDirectionForCiftiXML = CiftiXML::ALONG_ROW;
+            break;
+    }
+    
+    switch (m_dataReadingAccessMethod) {
+        case DATA_ACCESS_METHOD_INVALID:
+            CaretAssert(0);
+            break;
+        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
+            m_dataReadingDirectionForCiftiXML = CiftiXML::ALONG_COLUMN;
+            break;
+        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            m_dataReadingDirectionForCiftiXML = CiftiXML::ALONG_ROW;
+            break;
+    }
+}
+
+
+/**
  * Initialize the CIFTI file.
  *
  * @param filename
@@ -724,6 +744,8 @@ void
 CiftiMappableDataFile::initializeAfterReading(const AString& filename) throw (DataFileException)
 {
     CaretAssert(m_ciftiFile);
+    
+    setupCiftiReadingMappingDirection();
     
     validateMappingTypes(filename);
     
@@ -6027,7 +6049,10 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
         return;
     }
     
-    CaretAssert(m_dataCount == static_cast<int64_t>(data.size()));
+    if (m_dataCount != static_cast<int64_t>(data.size())) {
+        m_dataCount = static_cast<int64_t>(data.size());
+    }
+//    CaretAssert(m_dataCount == static_cast<int64_t>(data.size()));
     const uint64_t rgbaCount = m_dataCount * 4;
     if (m_rgba.size() != rgbaCount) {
         m_rgba.resize(rgbaCount, 0);

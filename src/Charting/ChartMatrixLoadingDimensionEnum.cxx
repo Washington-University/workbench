@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #define __CHART_MATRIX_LOADING_TYPE_ENUM_DECLARE__
-#include "ChartMatrixLoadingTypeEnum.h"
+#include "ChartMatrixLoadingDimensionEnum.h"
 #undef __CHART_MATRIX_LOADING_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartMatrixLoadingTypeEnum 
+ * \class caret::ChartMatrixLoadingDimensionEnum 
  * \brief Enumerated type for loading matrix data by row or column
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_chartMatrixLoadingTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_ChartMatrixLoadingDimensionEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void chartMatrixLoadingTypeEnumComboBoxItemActivated();
+ *             void ChartMatrixLoadingDimensionEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "ChartMatrixLoadingTypeEnum.h"
+ *         #include "ChartMatrixLoadingDimensionEnum.h"
  * 
  *     Instatiate:
- *         m_chartMatrixLoadingTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_chartMatrixLoadingTypeEnumComboBox->setup<ChartMatrixLoadingTypeEnum,ChartMatrixLoadingTypeEnum::Enum>();
+ *         m_ChartMatrixLoadingDimensionEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_ChartMatrixLoadingDimensionEnumComboBox->setup<ChartMatrixLoadingDimensionEnum,ChartMatrixLoadingDimensionEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_chartMatrixLoadingTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(chartMatrixLoadingTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_ChartMatrixLoadingDimensionEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(ChartMatrixLoadingDimensionEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_chartMatrixLoadingTypeEnumComboBox->setSelectedItem<ChartMatrixLoadingTypeEnum,ChartMatrixLoadingTypeEnum::Enum>(NEW_VALUE);
+ *         m_ChartMatrixLoadingDimensionEnumComboBox->setSelectedItem<ChartMatrixLoadingDimensionEnum,ChartMatrixLoadingDimensionEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const ChartMatrixLoadingTypeEnum::Enum VARIABLE = m_chartMatrixLoadingTypeEnumComboBox->getSelectedItem<ChartMatrixLoadingTypeEnum,ChartMatrixLoadingTypeEnum::Enum>();
+ *         const ChartMatrixLoadingDimensionEnum::Enum VARIABLE = m_ChartMatrixLoadingDimensionEnumComboBox->getSelectedItem<ChartMatrixLoadingDimensionEnum,ChartMatrixLoadingDimensionEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-ChartMatrixLoadingTypeEnum::ChartMatrixLoadingTypeEnum(const Enum enumValue,
+ChartMatrixLoadingDimensionEnum::ChartMatrixLoadingDimensionEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ ChartMatrixLoadingTypeEnum::ChartMatrixLoadingTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-ChartMatrixLoadingTypeEnum::~ChartMatrixLoadingTypeEnum()
+ChartMatrixLoadingDimensionEnum::~ChartMatrixLoadingDimensionEnum()
 {
 }
 
@@ -99,21 +99,20 @@ ChartMatrixLoadingTypeEnum::~ChartMatrixLoadingTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-ChartMatrixLoadingTypeEnum::initialize()
+ChartMatrixLoadingDimensionEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ChartMatrixLoadingTypeEnum( CHART_MATRIX_LOAD_BY_COLUMN,
-                                    " CHART_MATRIX_LOAD_BY_COLUMN", 
-                                    "Column"));
+    enumData.push_back(ChartMatrixLoadingDimensionEnum(CHART_MATRIX_LOADING_BY_ROW,
+                                                       "CHART_MATRIX_LOADING_BY_ROW",
+                                                       "Row"));
     
-    enumData.push_back(ChartMatrixLoadingTypeEnum(CHART_MATRIX_LOAD_BY_ROW, 
-                                    "CHART_MATRIX_LOAD_BY_ROW", 
-                                    "Row"));
-    
+    enumData.push_back(ChartMatrixLoadingDimensionEnum(CHART_MATRIX_LOADING_BY_COLUMN,
+                                                       "CHART_MATRIX_LOADING_BY_COLUMN",
+                                                       "Column"));
 }
 
 /**
@@ -123,14 +122,14 @@ ChartMatrixLoadingTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ChartMatrixLoadingTypeEnum*
-ChartMatrixLoadingTypeEnum::findData(const Enum enumValue)
+const ChartMatrixLoadingDimensionEnum*
+ChartMatrixLoadingDimensionEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const ChartMatrixLoadingTypeEnum* d = &enumData[i];
+        const ChartMatrixLoadingDimensionEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -147,10 +146,10 @@ ChartMatrixLoadingTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-ChartMatrixLoadingTypeEnum::toName(Enum enumValue) {
+ChartMatrixLoadingDimensionEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ChartMatrixLoadingTypeEnum* enumInstance = findData(enumValue);
+    const ChartMatrixLoadingDimensionEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -164,18 +163,18 @@ ChartMatrixLoadingTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ChartMatrixLoadingTypeEnum::Enum 
-ChartMatrixLoadingTypeEnum::fromName(const AString& name, bool* isValidOut)
+ChartMatrixLoadingDimensionEnum::Enum 
+ChartMatrixLoadingDimensionEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartMatrixLoadingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartMatrixLoadingDimensionEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartMatrixLoadingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartMatrixLoadingDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartMatrixLoadingTypeEnum& d = *iter;
+        const ChartMatrixLoadingDimensionEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -187,7 +186,7 @@ ChartMatrixLoadingTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartMatrixLoadingTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartMatrixLoadingDimensionEnum"));
     }
     return enumValue;
 }
@@ -200,10 +199,10 @@ ChartMatrixLoadingTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-ChartMatrixLoadingTypeEnum::toGuiName(Enum enumValue) {
+ChartMatrixLoadingDimensionEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ChartMatrixLoadingTypeEnum* enumInstance = findData(enumValue);
+    const ChartMatrixLoadingDimensionEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -217,18 +216,18 @@ ChartMatrixLoadingTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ChartMatrixLoadingTypeEnum::Enum 
-ChartMatrixLoadingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ChartMatrixLoadingDimensionEnum::Enum 
+ChartMatrixLoadingDimensionEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartMatrixLoadingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartMatrixLoadingDimensionEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartMatrixLoadingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartMatrixLoadingDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartMatrixLoadingTypeEnum& d = *iter;
+        const ChartMatrixLoadingDimensionEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -240,7 +239,7 @@ ChartMatrixLoadingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartMatrixLoadingTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartMatrixLoadingDimensionEnum"));
     }
     return enumValue;
 }
@@ -252,10 +251,10 @@ ChartMatrixLoadingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut
  *    Integer code for data type.
  */
 int32_t
-ChartMatrixLoadingTypeEnum::toIntegerCode(Enum enumValue)
+ChartMatrixLoadingDimensionEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const ChartMatrixLoadingTypeEnum* enumInstance = findData(enumValue);
+    const ChartMatrixLoadingDimensionEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -270,18 +269,18 @@ ChartMatrixLoadingTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-ChartMatrixLoadingTypeEnum::Enum
-ChartMatrixLoadingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ChartMatrixLoadingDimensionEnum::Enum
+ChartMatrixLoadingDimensionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartMatrixLoadingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartMatrixLoadingDimensionEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartMatrixLoadingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartMatrixLoadingDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartMatrixLoadingTypeEnum& enumInstance = *iter;
+        const ChartMatrixLoadingDimensionEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -293,7 +292,7 @@ ChartMatrixLoadingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isV
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartMatrixLoadingTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartMatrixLoadingDimensionEnum"));
     }
     return enumValue;
 }
@@ -306,13 +305,13 @@ ChartMatrixLoadingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isV
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-ChartMatrixLoadingTypeEnum::getAllEnums(std::vector<ChartMatrixLoadingTypeEnum::Enum>& allEnums)
+ChartMatrixLoadingDimensionEnum::getAllEnums(std::vector<ChartMatrixLoadingDimensionEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<ChartMatrixLoadingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartMatrixLoadingDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -328,16 +327,16 @@ ChartMatrixLoadingTypeEnum::getAllEnums(std::vector<ChartMatrixLoadingTypeEnum::
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ChartMatrixLoadingTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ChartMatrixLoadingDimensionEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<ChartMatrixLoadingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartMatrixLoadingDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(ChartMatrixLoadingTypeEnum::toName(iter->enumValue));
+        allNames.push_back(ChartMatrixLoadingDimensionEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -354,16 +353,16 @@ ChartMatrixLoadingTypeEnum::getAllNames(std::vector<AString>& allNames, const bo
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ChartMatrixLoadingTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ChartMatrixLoadingDimensionEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<ChartMatrixLoadingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartMatrixLoadingDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(ChartMatrixLoadingTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ChartMatrixLoadingDimensionEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

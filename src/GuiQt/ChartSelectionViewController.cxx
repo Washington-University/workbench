@@ -47,7 +47,7 @@
 #include "CaretMappableDataFileAndMapSelectorObject.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartMatrixDisplayProperties.h"
-#include "ChartMatrixLoadingTypeEnum.h"
+#include "ChartMatrixLoadingDimensionEnum.h"
 #include "ChartModel.h"
 #include "ChartableBrainordinateInterface.h"
 #include "CiftiMappableDataFile.h"
@@ -58,6 +58,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventPaletteColorMappingEditorDialogRequest.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ModelChart.h"
@@ -402,8 +403,9 @@ ChartSelectionViewController::matrixFileLoadingComboBoxActivated()
         return;
     }
     
-    chartableMatrixInterface->setMatrixLoadingType(m_matrixLoadByColumnRowComboBox->getSelectedItem<ChartMatrixLoadingTypeEnum,
-                                                   ChartMatrixLoadingTypeEnum::Enum>());
+    chartableMatrixInterface->setMatrixLoadingType(m_matrixLoadByColumnRowComboBox->getSelectedItem<ChartMatrixLoadingDimensionEnum,
+                                                   ChartMatrixLoadingDimensionEnum::Enum>());
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -521,7 +523,7 @@ ChartSelectionViewController::createMatrixChartWidget()
     
     QLabel* loadDimensionLabel = new QLabel("Load By");
     m_matrixLoadByColumnRowComboBox = new EnumComboBoxTemplate(this);
-    m_matrixLoadByColumnRowComboBox->setup<ChartMatrixLoadingTypeEnum, ChartMatrixLoadingTypeEnum::Enum>();
+    m_matrixLoadByColumnRowComboBox->setup<ChartMatrixLoadingDimensionEnum, ChartMatrixLoadingDimensionEnum::Enum>();
     QObject::connect(m_matrixLoadByColumnRowComboBox, SIGNAL(itemActivated()),
                      this, SLOT(matrixFileLoadingComboBoxActivated()));
 
@@ -614,10 +616,13 @@ ChartSelectionViewController::createMatrixChartWidget()
      * TEMP TODO
      * FINISH IMPLEMENTATION OF LOADING AND YOKING
      */
-    const bool hideLoadAndYokeControls = true;
-    if (hideLoadAndYokeControls) {
+    const bool hideLoadControls = false;
+    const bool hideYokeControls = true;
+    if (hideLoadControls) {
         loadDimensionLabel->hide();
         m_matrixLoadByColumnRowComboBox->getWidget()->hide();
+    }
+    if (hideYokeControls) {
         yokeLabel->hide();
         m_matrixYokingGroupComboBox->getWidget()->hide();
     }
@@ -748,8 +753,8 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
 //    bool enablePaletteOptions = false;
 //    const ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
 //    if (displayProperties != NULL) {
-    const ChartMatrixLoadingTypeEnum::Enum loadType = chartableMatrixInterface->getMatrixLoadingType();
-    m_matrixLoadByColumnRowComboBox->setSelectedItem<ChartMatrixLoadingTypeEnum, ChartMatrixLoadingTypeEnum::Enum>(loadType);
+    const ChartMatrixLoadingDimensionEnum::Enum loadType = chartableMatrixInterface->getMatrixLoadingType();
+    m_matrixLoadByColumnRowComboBox->setSelectedItem<ChartMatrixLoadingDimensionEnum, ChartMatrixLoadingDimensionEnum::Enum>(loadType);
         
         const YokingGroupEnum::Enum yokingGroup = chartableMatrixInterface->getYokingGroup();
         m_matrixYokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(yokingGroup);

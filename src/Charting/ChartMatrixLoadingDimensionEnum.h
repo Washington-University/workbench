@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class ChartMatrixLoadingTypeEnum {
+class ChartMatrixLoadingDimensionEnum {
 
 public:
     /**
@@ -36,13 +36,13 @@ public:
      */
     enum Enum {
         /** Load data from column */
-         CHART_MATRIX_LOAD_BY_COLUMN,
+         CHART_MATRIX_LOADING_BY_COLUMN,
         /** Load data from row */
-        CHART_MATRIX_LOAD_BY_ROW
+        CHART_MATRIX_LOADING_BY_ROW
     };
 
 
-    ~ChartMatrixLoadingTypeEnum();
+    ~ChartMatrixLoadingDimensionEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    ChartMatrixLoadingTypeEnum(const Enum enumValue, 
+    ChartMatrixLoadingDimensionEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const ChartMatrixLoadingTypeEnum* findData(const Enum enumValue);
+    static const ChartMatrixLoadingDimensionEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<ChartMatrixLoadingTypeEnum> enumData;
+    static std::vector<ChartMatrixLoadingDimensionEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -95,9 +95,9 @@ private:
 };
 
 #ifdef __CHART_MATRIX_LOADING_TYPE_ENUM_DECLARE__
-std::vector<ChartMatrixLoadingTypeEnum> ChartMatrixLoadingTypeEnum::enumData;
-bool ChartMatrixLoadingTypeEnum::initializedFlag = false;
-int32_t ChartMatrixLoadingTypeEnum::integerCodeCounter = 0; 
+std::vector<ChartMatrixLoadingDimensionEnum> ChartMatrixLoadingDimensionEnum::enumData;
+bool ChartMatrixLoadingDimensionEnum::initializedFlag = false;
+int32_t ChartMatrixLoadingDimensionEnum::integerCodeCounter = 0; 
 #endif // __CHART_MATRIX_LOADING_TYPE_ENUM_DECLARE__
 
 } // namespace

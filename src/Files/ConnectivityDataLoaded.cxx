@@ -52,6 +52,8 @@ ConnectivityDataLoaded::ConnectivityDataLoaded()
     
     m_sceneAssistant->add("m_rowIndex",
                           &m_rowIndex);
+    m_sceneAssistant->add("m_columnIndex",
+                          &m_columnIndex);
     m_sceneAssistant->add("m_surfaceNumberOfNodes",
                           &m_surfaceNumberOfNodes);
     m_sceneAssistant->add<StructureEnum, StructureEnum::Enum>("m_surfaceStructure",
@@ -81,7 +83,8 @@ ConnectivityDataLoaded::reset()
 {
     m_mode = MODE_NONE;
     
-    m_rowIndex = -1;
+    m_rowIndex    = -1;
+    m_columnIndex = -1;
     
     m_surfaceNodeIndices.clear();
     m_surfaceNumberOfNodes = 0;
@@ -101,33 +104,50 @@ ConnectivityDataLoaded::getMode() const
 
 /**
  * Get the row that were loaded.
- * 
+ *
  * @param rowIndex
- *    Row that were loaded, -1 if none.
+ *    Row that was loaded (may be -1 if none).
+ * @param columnIndex
+ *    Column that was loaded (may be -1 if none).
  */
 void
-ConnectivityDataLoaded::getRowLoading(int64_t& rowIndex) const
+ConnectivityDataLoaded::getRowColumnLoading(int64_t& rowIndex,
+                                            int64_t& columnIndex) const
 {
     rowIndex = m_rowIndex;
+    columnIndex = m_columnIndex;
 }
 
 /**
  * Set the row that were loaded.
  *
  * @param rowIndex
- *    Indices of rows that were loaded.
+ *    Row that was loaded (may be -1 if none).
+ * @param columnIndex
+ *    Column that was loaded (may be -1 if none)
  */
 void
-ConnectivityDataLoaded::setRowLoading(const int64_t rowIndex)
+ConnectivityDataLoaded::setRowColumnLoading(const int64_t rowIndex,
+                                            const int64_t columnIndex)
 {
     reset();
     
-    m_mode = MODE_ROW;
-    m_rowIndex = rowIndex;
+    if (rowIndex >= 0) {
+        m_mode = MODE_ROW;
+        m_rowIndex = rowIndex;
+    }
+    else if (columnIndex >= 0) {
+        m_mode = MODE_COLUMN;
+        m_columnIndex = columnIndex;
+    }
+    else {
+        CaretAssertMessage(0, "One or row index or column index should be negative indicating that dimension was not loaded.");
+    }
 }
 
 /**
  * Get the surface loading information (MODE_SURFACE_NODE)
+ * One of rowIndex or columnIndex will be negative.
  *
  * @param structure
  *    The surface structure.
@@ -136,13 +156,16 @@ ConnectivityDataLoaded::setRowLoading(const int64_t rowIndex)
  * @param surfaceNodeIndex
  *    Index of the surface node.
  * @param rowIndex
- *    Index of row corresponding to the surface node.
+ *    Index of row corresponding to the surface node (may be -1 if none).
+ * @param columnIndex
+ *    Index of row corresponding to the surface node (may be -1 if none).
  */
 void
 ConnectivityDataLoaded::getSurfaceNodeLoading(StructureEnum::Enum& structure,
                                               int32_t& surfaceNumberOfNodes,
                                               int32_t& surfaceNodeIndex,
-                                              int64_t& rowIndex) const
+                                              int64_t& rowIndex,
+                                              int64_t& columnIndex) const
 {
     structure = m_surfaceStructure;
     surfaceNumberOfNodes = m_surfaceNumberOfNodes;
@@ -153,10 +176,12 @@ ConnectivityDataLoaded::getSurfaceNodeLoading(StructureEnum::Enum& structure,
         surfaceNodeIndex = -1;
     }
     rowIndex = m_rowIndex;
+    columnIndex = m_columnIndex;
 }
 
 /**
  * Set the surface loading information (MODE_SURFACE_NODE)
+ * One of rowIndex or columnIndex must be negative.
  *
  * @param structure
  *    The surface structure.
@@ -165,13 +190,16 @@ ConnectivityDataLoaded::getSurfaceNodeLoading(StructureEnum::Enum& structure,
  * @param surfaceNodeIndex
  *    Index of the surface node.
  * @param rowIndex
- *    Index of row corresponding to the surface node.
+ *    Index of row corresponding to the surface node (may be -1 if none).
+ * @param columnIndex
+ *    Index of column corresponding to the surface node (may be -1 if none).
  */
 void
 ConnectivityDataLoaded::setSurfaceNodeLoading(const StructureEnum::Enum structure,
                                               const int32_t surfaceNumberOfNodes,
                                               const int32_t surfaceNodeIndex,
-                                              const int64_t rowIndex)
+                                              const int64_t rowIndex,
+                                              const int64_t columnIndex)
 {
     reset();
     
@@ -180,6 +208,12 @@ ConnectivityDataLoaded::setSurfaceNodeLoading(const StructureEnum::Enum structur
     m_surfaceNumberOfNodes = surfaceNumberOfNodes;
     m_surfaceNodeIndices.push_back(surfaceNodeIndex);
     m_rowIndex = rowIndex;
+    m_columnIndex = columnIndex;
+    
+    if ((rowIndex >= 0)
+        && (columnIndex >= 0)) {
+        CaretAssertMessage(0, "One of row or column index must be negative.");
+    }
 }
 
 /**
@@ -224,6 +258,7 @@ ConnectivityDataLoaded::setSurfaceAverageNodeLoading(const StructureEnum::Enum s
     m_surfaceNumberOfNodes = surfaceNumberOfNodes;
     m_surfaceNodeIndices = surfaceNodeIndices;
     m_rowIndex = -1;
+    m_columnIndex = -1;
 }
 
 /**
@@ -232,19 +267,21 @@ ConnectivityDataLoaded::setSurfaceAverageNodeLoading(const StructureEnum::Enum s
  * @param volumeXYZ
  *    Coordinate of location.
  * @param rowIndex
- *    Index of row corresponding to the voxel.
+ *    Index of row corresponding to the voxel (may be -1 if none).
+ * @param columnIndex
+ *    Index of column corresponding to the voxel (may be -1 if none).
  */
 void
 ConnectivityDataLoaded::getVolumeXYZLoading(float volumeXYZ[3],
-                                            int64_t& rowIndex) const
+                                            int64_t& rowIndex,
+                                            int64_t& columnIndex) const
 {
     volumeXYZ[0] = m_volumeXYZ[0];
     volumeXYZ[1] = m_volumeXYZ[1];
     volumeXYZ[2] = m_volumeXYZ[2];
     rowIndex = m_rowIndex;
+    columnIndex = m_columnIndex;
 }
-
-void setVolumeXYZLoading(const float volumeXYZ[3]);
 
 /**
  * Set the volume loading XYZ coordinate (MODE_VOXEL_XYZ).
@@ -252,10 +289,13 @@ void setVolumeXYZLoading(const float volumeXYZ[3]);
  * @param volumeXYZ
  *    Coordinate of location.
  * @param rowIndex
- *    Index of row corresponding to the voxel.
+ *    Index of row corresponding to the voxel(may be -1 if none).
+ * @param columnIndex
+ *    Index of column corresponding to the voxel (may be -1 if none).
  */
 void ConnectivityDataLoaded::setVolumeXYZLoading(const float volumeXYZ[3],
-                                                 const int64_t rowIndex)
+                                                 const int64_t rowIndex,
+                                                 const int64_t columnIndex)
 {
     reset();
     
@@ -264,6 +304,7 @@ void ConnectivityDataLoaded::setVolumeXYZLoading(const float volumeXYZ[3],
     m_volumeXYZ[1] = volumeXYZ[1];
     m_volumeXYZ[2] = volumeXYZ[2];
     m_rowIndex = rowIndex;
+    m_columnIndex = columnIndex;
 }
 
 /**
@@ -300,6 +341,7 @@ ConnectivityDataLoaded::setVolumeAverageVoxelLoading(const int64_t volumeDimensi
     m_mode = MODE_VOXEL_IJK_AVERAGE;
     m_voxelIndices = voxelIndicesIJK;
     m_rowIndex = -1;
+    m_columnIndex = -1;
 }
 
 
@@ -336,6 +378,9 @@ ConnectivityDataLoaded::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     else if (modeName == "MODE_ROW") {
         m_mode = MODE_ROW;
+    }
+    else if (modeName == "MODE_COLUMN") {
+        m_mode = MODE_COLUMN;
     }
     else if (modeName == "MODE_SURFACE_NODE_AVERAGE") {
         m_mode = MODE_SURFACE_NODE_AVERAGE;
@@ -408,6 +453,9 @@ ConnectivityDataLoaded::saveToScene(const SceneAttributes* sceneAttributes,
             break;
         case MODE_ROW:
             modeName = "MODE_ROW";
+            break;
+        case MODE_COLUMN:
+            modeName = "MODE_COLUMN";
             break;
         case MODE_SURFACE_NODE:
             modeName = "MODE_SURFACE_NODE";

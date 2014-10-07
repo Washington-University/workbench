@@ -2309,12 +2309,14 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 if (ciftiParcelFile != NULL) {
                     if (ciftiParcelFile->isMapDataLoadingEnabled(0)) {
                         const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
+                        const int32_t columnIndex = idChartMatrix->getMatrixColumnIndex();
                         if (rowIndex >= 0) {
                             try {
-                                ciftiConnectivityManager->loadRowFromParcelFile(brain,
-                                                                                ciftiParcelFile,
-                                                                                rowIndex,
-                                                                                ciftiLoadingInfo);
+                                ciftiConnectivityManager->loadRowOrColumnFromParcelFile(brain,
+                                                                                        ciftiParcelFile,
+                                                                                        rowIndex,
+                                                                                        columnIndex,
+                                                                                        ciftiLoadingInfo);
                                 
                             }
                             catch (const DataFileException& e) {
@@ -2414,7 +2416,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
         AString ciftiInfo;
         if (ciftiLoadingInfo.empty() == false) {
             IdentificationStringBuilder ciftiIdStringBuilder;
-            ciftiIdStringBuilder.addLine(false, "CIFTI Rows loaded", " ");
+            ciftiIdStringBuilder.addLine(false, "CIFTI data loaded", " ");
             for (std::vector<AString>::iterator iter = ciftiLoadingInfo.begin();
                  iter != ciftiLoadingInfo.end();
                  iter++) {

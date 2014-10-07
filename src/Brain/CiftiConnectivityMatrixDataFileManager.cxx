@@ -71,19 +71,38 @@ CiftiConnectivityMatrixDataFileManager::~CiftiConnectivityMatrixDataFileManager(
  *    The parcel file.
  * @param rowIndex
  *    Index of the row.
+ * @param columnIndex
+ *    Index of the column.
  * @param rowColumnInformationOut
  *    Appends one string for each row/column loaded
  * @return
  *    true if success, else false.
  */
 bool
-CiftiConnectivityMatrixDataFileManager::loadRowFromParcelFile(Brain* brain,
-                                                              CiftiConnectivityMatrixParcelFile* parcelFile,
-                                                              const int32_t rowIndex,
-                                                              std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* brain,
+                                                                      CiftiConnectivityMatrixParcelFile* parcelFile,
+                                                                      const int32_t rowIndex,
+                                                                      const int32_t columnIndex,
+                                                                      std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     CaretAssert(parcelFile);
-    parcelFile->loadDataForRowIndex(rowIndex);
+    
+    ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(parcelFile);
+    CaretAssert(matrixFile);
+    
+    AString rowColumnName;
+    switch (matrixFile->getMatrixLoadingType()) {
+        case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+            parcelFile->loadDataForColumnIndex(columnIndex);
+            rowColumnName = ("column index="
+                             + AString::number(columnIndex));
+            break;
+        case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+            parcelFile->loadDataForRowIndex(rowIndex);
+            rowColumnName = ("row index="
+                             + AString::number(rowIndex));
+            break;
+    }
 
     PaletteFile* paletteFile = brain->getPaletteFile();
     const int32_t mapIndex = 0;
@@ -91,8 +110,8 @@ CiftiConnectivityMatrixDataFileManager::loadRowFromParcelFile(Brain* brain,
                                     paletteFile);
     
     rowColumnInformationOut.push_back(parcelFile->getFileNameNoPath()
-                                      + " row index= "
-                                      + AString::number(rowIndex));
+                                      + " "
+                                      + rowColumnName);
     return true;
 }
 
@@ -128,10 +147,14 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
         CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
         if (cmf->isEmpty() == false) {
             const int32_t mapIndex = 0;
-            const int64_t rowIndex = cmf->loadMapDataForSurfaceNode(mapIndex,
-                                                                    surfaceFile->getNumberOfNodes(),
-                                                                    surfaceFile->getStructure(),
-                                                                    nodeIndex);
+            int64_t rowIndex = -1;
+            int64_t columnIndex = -1;
+            cmf->loadMapDataForSurfaceNode(mapIndex,
+                                           surfaceFile->getNumberOfNodes(),
+                                           surfaceFile->getStructure(),
+                                           nodeIndex,
+                                           rowIndex,
+                                           columnIndex);
             cmf->updateScalarColoringForMap(mapIndex,
                                             paletteFile);
             haveData = true;
@@ -145,6 +168,16 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                                   + AString::number(nodeIndex)
                                                   + ", row index= "
                                                   + AString::number(rowIndex));
+            }
+            else if (columnIndex >= 0) {
+                /*
+                 * Get row/column info for node
+                 */
+                rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
+                                                  + " nodeIndex="
+                                                  + AString::number(nodeIndex)
+                                                  + ", column index= "
+                                                  + AString::number(columnIndex));
             }
         }
     }
@@ -229,8 +262,12 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
         CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
         if (cmf->isEmpty() == false) {
             const int32_t mapIndex = 0;
-            const int64_t rowIndex = cmf->loadMapDataForVoxelAtCoordinate(mapIndex,
-                                                                          xyz);
+            int64_t rowIndex;
+            int64_t columnIndex;
+            cmf->loadMapDataForVoxelAtCoordinate(mapIndex,
+                                                 xyz,
+                                                 rowIndex,
+                                                 columnIndex);
             cmf->updateScalarColoringForMap(mapIndex,
                                             paletteFile);
             haveData = true;
@@ -244,6 +281,16 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                   + AString::fromNumbers(xyz, 3, ",")
                                                   + ", row index= "
                                                   + AString::number(rowIndex));
+            }
+            else if (columnIndex >= 0) {
+                /*
+                 * Get row/column info for node
+                 */
+                rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
+                                                  + " Voxel XYZ="
+                                                  + AString::fromNumbers(xyz, 3, ",")
+                                                  + ", column index= "
+                                                  + AString::number(columnIndex));
             }
         }
     }

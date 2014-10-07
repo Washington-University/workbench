@@ -580,7 +580,7 @@ namespace caret {
         
         void validateMappingTypes(const AString& filename) throw (DataFileException);
         
-        //static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
+        void resetDataLoadingMembers();
         
         void validateKeysAndLabels() const;
         
@@ -595,6 +595,8 @@ namespace caret {
         bool getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
                                                              const int64_t surfaceNumberOfNodes,
                                                              std::vector<int64_t>& dataIndicesForNodes) const;
+        
+        void setupCiftiReadingMappingDirection();
         
         static AString mappingTypeToName(const CiftiMappingType::MappingType mappingType);
 

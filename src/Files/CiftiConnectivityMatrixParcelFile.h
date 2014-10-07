@@ -93,9 +93,9 @@ namespace caret {
         
         virtual bool isSupportsLoadingAttributes();
         
-        virtual ChartMatrixLoadingTypeEnum::Enum getMatrixLoadingType() const;
+        virtual ChartMatrixLoadingDimensionEnum::Enum getMatrixLoadingType() const;
         
-        virtual void setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType);
+        virtual void setMatrixLoadingType(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType);
         
         virtual YokingGroupEnum::Enum getYokingGroup() const;
         
@@ -106,13 +106,20 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                             SceneClass* sceneClass);
+        
+        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                  const SceneClass* sceneClass);
+        
+//        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+//                                         SceneClass* sceneClass);
+//        
+//        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+//                                              const SceneClass* sceneClass);
+        
     private:
-        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
-                                         SceneClass* sceneClass);
-        
-        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
-                                              const SceneClass* sceneClass);
-        
 
         // ADD_NEW_MEMBERS_HERE
 
@@ -127,8 +134,6 @@ namespace caret {
         CaretColorEnum::Enum m_selectedParcelColor;
         
         CiftiParcelReorderingModel* m_parcelReorderingModel;
-        
-        ChartMatrixLoadingTypeEnum::Enum m_chartLoadingType;
         
         YokingGroupEnum::Enum m_chartLoadingYokingGroup;
         

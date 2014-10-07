@@ -107,9 +107,9 @@ namespace caret {
         
         virtual bool isSupportsLoadingAttributes();
         
-        virtual ChartMatrixLoadingTypeEnum::Enum getMatrixLoadingType() const;
+        virtual ChartMatrixLoadingDimensionEnum::Enum getMatrixLoadingType() const;
         
-        virtual void setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType);
+        virtual void setMatrixLoadingType(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType);
         
         virtual YokingGroupEnum::Enum getYokingGroup() const;
         

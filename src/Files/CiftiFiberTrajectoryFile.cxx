@@ -1051,7 +1051,8 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
         m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
                                                         surfaceNumberOfNodes,
                                                         nodeIndex,
-                                                        rowIndex);
+                                                        rowIndex,
+                                                        -1);
     }
     else {
         m_connectivityDataLoaded->reset();
@@ -1315,7 +1316,8 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
         m_loadedDataDescriptionForFileCopy = ("Row_"
                                               + AString::number(rowIndex));
         m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
-                                                      rowIndex);
+                                                      rowIndex,
+                                                      -1);
     }
     else {
         return -1;
@@ -1433,7 +1435,8 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex) throw (Dat
         m_loadedDataDescriptionForFileCopy = ("Row_"
                                               + AString::number(rowIndex));
         
-        m_connectivityDataLoaded->setRowLoading(rowIndex);
+        m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
+                                                      -1);
     }
     else {
         throw DataFileException("Row "
@@ -1467,8 +1470,19 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
         case ConnectivityDataLoaded::MODE_ROW:
         {
             int64_t rowIndex;
-            m_connectivityDataLoaded->getRowLoading(rowIndex);
+            int64_t columnIndex;
+            m_connectivityDataLoaded->getRowColumnLoading(rowIndex,
+                                                          columnIndex);
             loadDataForRowIndex(rowIndex);
+        }
+            break;
+        case ConnectivityDataLoaded::MODE_COLUMN:
+        {
+            /*
+             * Never load by column !!!
+             */
+            CaretAssertMessage(0,
+                               "Fiber Trajectory never loads by column.");
         }
             break;
         case ConnectivityDataLoaded::MODE_SURFACE_NODE:
@@ -1477,10 +1491,12 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
             int32_t surfaceNumberOfNodes;
             int32_t surfaceNodeIndex;
             int64_t rowIndex;
+            int64_t columnIndex;
             m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
                                                             surfaceNumberOfNodes,
                                                             surfaceNodeIndex,
-                                                            rowIndex);
+                                                            rowIndex,
+                                                            columnIndex);
             loadDataForSurfaceNode(structure,
                                    surfaceNumberOfNodes,
                                    surfaceNodeIndex);
@@ -1503,9 +1519,11 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
         {
             float volumeXYZ[3];
             int64_t rowIndex;
+            int64_t columnIndex;
             m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ,
-                                                          rowIndex);
-            CaretAssert(0); // NEED TO IMPLEMENT
+                                                          rowIndex,
+                                                          columnIndex);
+            loadMapDataForVoxelAtCoordinate(volumeXYZ);
         }
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
@@ -1514,7 +1532,8 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
             std::vector<VoxelIJK> voxelIndicesIJK;
             m_connectivityDataLoaded->getVolumeAverageVoxelLoading(volumeDimensionsIJK,
                                                                    voxelIndicesIJK);
-            CaretAssert(0); // NEED TO IMPLEMENT
+            loadMapAverageDataForVoxelIndices(volumeDimensionsIJK,
+                                              voxelIndicesIJK);
         }
             break;
     }

@@ -48,6 +48,7 @@ namespace caret {
         enum Mode {
             MODE_NONE,
             MODE_ROW,
+            MODE_COLUMN,
             MODE_SURFACE_NODE,
             MODE_SURFACE_NODE_AVERAGE,
             MODE_VOXEL_XYZ,
@@ -58,19 +59,23 @@ namespace caret {
         
         Mode getMode() const;
         
-        void getRowLoading(int64_t& rowIndex) const;
+        void getRowColumnLoading(int64_t& rowIndex,
+                                 int64_t& columnIndex) const;
         
-        void setRowLoading(const int64_t rowIndex);
+        void setRowColumnLoading(const int64_t rowIndex,
+                                 const int64_t columnIndex);
         
         void getSurfaceNodeLoading(StructureEnum::Enum& structure,
                                    int32_t& surfaceNumberOfNodes,
                                    int32_t& surfaceNodeIndex,
-                                   int64_t& rowIndex) const;
+                                   int64_t& rowIndex,
+                                   int64_t& columnIndex) const;
         
         void setSurfaceNodeLoading(const StructureEnum::Enum structure,
                                    const int32_t surfaceNumberOfNodes,
                                    const int32_t surfaceNodeIndex,
-                                   const int64_t rowIndex);
+                                   const int64_t rowIndex,
+                                   const int64_t columnIndex);
         
         void getSurfaceAverageNodeLoading(StructureEnum::Enum& structure,
                                    int32_t& surfaceNumberOfNode,
@@ -81,10 +86,12 @@ namespace caret {
                                           const std::vector<int32_t>& surfaceNodeIndices);
         
         void getVolumeXYZLoading(float volumeXYZ[3],
-                                 int64_t& rowIndex) const;
+                                 int64_t& rowIndex,
+                                 int64_t& columnIndex) const;
         
         void setVolumeXYZLoading(const float volumeXYZ[3],
-                                 const int64_t rowIndex);
+                                 const int64_t rowIndex,
+                                 const int64_t columnIndex);
         
         void getVolumeAverageVoxelLoading(int64_t volumeDimensionsIJK[3],
                                           std::vector<VoxelIJK>& voxelIndicesIJK) const;
@@ -106,6 +113,8 @@ namespace caret {
         Mode m_mode;
         
         int32_t m_rowIndex;
+        
+        int32_t m_columnIndex;
         
         StructureEnum::Enum m_surfaceStructure;
         

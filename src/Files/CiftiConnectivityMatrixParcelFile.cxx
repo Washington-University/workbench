@@ -67,8 +67,6 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
 
     m_parcelReorderingModel = new CiftiParcelReorderingModel(this);
 
-    m_chartLoadingType = ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_ROW;
-    
     m_chartLoadingYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
 
@@ -80,8 +78,6 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
     m_sceneAssistant->add("m_parcelReorderingModel",
                           "CiftiParcelReorderingModel",
                           m_parcelReorderingModel);
-    m_sceneAssistant->add<ChartMatrixLoadingTypeEnum, ChartMatrixLoadingTypeEnum::Enum>("m_chartLoadingType",
-                                                                &m_chartLoadingType);
     m_sceneAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartLoadingYokingGroup",
                                                                                         &m_chartLoadingYokingGroup);
 }
@@ -264,11 +260,8 @@ CiftiConnectivityMatrixParcelFile::getChartMatrixDisplayProperties(const int32_t
     return m_chartMatrixDisplayProperties[tabIndex];
 }
 
-
 /**
- * Save file data from the scene.  For subclasses that need to
- * save to a scene, this method should be overriden.  sceneClass
- * will be valid and any scene data should be added to it.
+ * Save subclass data to the scene.
  *
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
@@ -276,22 +269,20 @@ CiftiConnectivityMatrixParcelFile::getChartMatrixDisplayProperties(const int32_t
  *    restoring the scene.
  *
  * @param sceneClass
- *     sceneClass to which data members should be added.
+ *     sceneClass to which data members should be added.  Will always
+ *     be valid (non-NULL).
  */
 void
-CiftiConnectivityMatrixParcelFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
-                                                  SceneClass* sceneClass)
+CiftiConnectivityMatrixParcelFile::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                              SceneClass* sceneClass)
 {
-    CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(sceneAttributes,
-                                               sceneClass);
-    
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
     sceneClass->addBooleanArray("m_chartingEnabledForTab",
                                 m_chartingEnabledForTab,
                                 BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
-
+    
     /*
      * Save chart matrix properties
      */
@@ -311,9 +302,7 @@ CiftiConnectivityMatrixParcelFile::saveFileDataToScene(const SceneAttributes* sc
 }
 
 /**
- * Restore file data from the scene.  For subclasses that need to
- * restore from a scene, this method should be overridden. The scene class
- * will be valid and any scene data may be obtained from it.
+ * Restore file data from the scene.
  *
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
@@ -325,14 +314,14 @@ CiftiConnectivityMatrixParcelFile::saveFileDataToScene(const SceneAttributes* sc
  *     this interface.  Will NEVER be NULL.
  */
 void
-CiftiConnectivityMatrixParcelFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
-                                                       const SceneClass* sceneClass)
+CiftiConnectivityMatrixParcelFile::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                   const SceneClass* sceneClass)
 {
-    CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(sceneAttributes,
-                                                    sceneClass);
-    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    //    CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(sceneAttributes,
+    //                                                                      sceneClass);
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
@@ -370,8 +359,134 @@ CiftiConnectivityMatrixParcelFile::restoreFileDataFromScene(const SceneAttribute
                                                                        sceneClass);
         }
     }
-    
 }
+
+///**
+// * Save file data from the scene.  For subclasses that need to
+// * save to a scene, this method should be overriden.  sceneClass
+// * will be valid and any scene data should be added to it.
+// *
+// * @param sceneAttributes
+// *    Attributes for the scene.  Scenes may be of different types
+// *    (full, generic, etc) and the attributes should be checked when
+// *    restoring the scene.
+// *
+// * @param sceneClass
+// *     sceneClass to which data members should be added.
+// */
+//void
+//CiftiConnectivityMatrixParcelFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
+//                                                  SceneClass* sceneClass)
+//{
+//    CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(sceneAttributes,
+//                                               sceneClass);
+//    
+//    m_sceneAssistant->saveMembers(sceneAttributes,
+//                                  sceneClass);
+//    
+//    sceneClass->addBooleanArray("m_chartingEnabledForTab",
+//                                m_chartingEnabledForTab,
+//                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+//
+//    /*
+//     * Save chart matrix properties
+//     */
+//    SceneObjectMapIntegerKey* chartMatrixPropertiesMap = new SceneObjectMapIntegerKey("m_chartMatrixDisplayPropertiesMap",
+//                                                                                      SceneObjectDataTypeEnum::SCENE_CLASS);
+//    const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+//    for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+//         tabIter != tabIndices.end();
+//         tabIter++) {
+//        const int32_t tabIndex = *tabIter;
+//        
+//        chartMatrixPropertiesMap->addClass(tabIndex,
+//                                           m_chartMatrixDisplayProperties[tabIndex]->saveToScene(sceneAttributes,
+//                                                                                                 "m_chartMatrixDisplayProperties"));
+//    }
+//    sceneClass->addChild(chartMatrixPropertiesMap);
+//}
+//
+///**
+// * Restore file data from the scene.  For subclasses that need to
+// * restore from a scene, this method should be overridden. The scene class
+// * will be valid and any scene data may be obtained from it.
+// *
+// * @param sceneAttributes
+// *    Attributes for the scene.  Scenes may be of different types
+// *    (full, generic, etc) and the attributes should be checked when
+// *    restoring the scene.
+// *
+// * @param sceneClass
+// *     sceneClass for the instance of a class that implements
+// *     this interface.  Will NEVER be NULL.
+// */
+//void
+//CiftiConnectivityMatrixParcelFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+//                                                       const SceneClass* sceneClass)
+//{
+//    CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(sceneAttributes,
+//                                                    sceneClass);
+//    
+//    m_sceneAssistant->restoreMembers(sceneAttributes,
+//                                     sceneClass);
+//   
+//    /*
+//     * The chart loading type is restored by the scene assistant.
+//     * Swap its value so that calling setMatrixLoadingType requires
+//     * the value to change for it to have any affect including
+//     * setting size of data.
+//     */
+//    switch (m_chartLoadingType) {
+//        case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+//            m_chartLoadingType = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW;
+//            break;
+//        case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+//            m_chartLoadingType = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
+//            break;
+//    }
+//    setMatrixLoadingType(m_chartLoadingType);
+//    
+////    CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(sceneAttributes,
+////                                                                      sceneClass);
+//    
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        m_chartingEnabledForTab[i] = false;
+//    }
+//    
+//    const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
+//    if (tabArray != NULL) {
+//        sceneClass->getBooleanArrayValue("m_chartingEnabledForTab",
+//                                         m_chartingEnabledForTab,
+//                                         BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+//    }
+//    else {
+//        /*
+//         * Obsolete value when charting was not 'per tab'
+//         */
+//        const bool chartingEnabled = sceneClass->getBooleanValue("m_chartingEnabled",
+//                                                                 false);
+//        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//            m_chartingEnabledForTab[i] = chartingEnabled;
+//        }
+//    }
+//    
+//    /*
+//     * Restore chart matrix properties
+//     */
+//    const SceneObjectMapIntegerKey* chartMatrixPropertiesMap = sceneClass->getMapIntegerKey("m_chartMatrixDisplayPropertiesMap");
+//    if (chartMatrixPropertiesMap != NULL) {
+//        const std::vector<int32_t> tabIndices = chartMatrixPropertiesMap->getKeys();
+//        for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+//             tabIter != tabIndices.end();
+//             tabIter++) {
+//            const int32_t tabIndex = *tabIter;
+//            const SceneClass* sceneClass = chartMatrixPropertiesMap->classValue(tabIndex);
+//            m_chartMatrixDisplayProperties[tabIndex]->restoreFromScene(sceneAttributes,
+//                                                                       sceneClass);
+//        }
+//    }
+//    
+//}
 
 /**
  * @return Coloring mode for selected parcel.
@@ -519,10 +634,10 @@ CiftiConnectivityMatrixParcelFile::isSupportsLoadingAttributes()
 /**
  * @return The matrix loading type (by row/column).
  */
-ChartMatrixLoadingTypeEnum::Enum
+ChartMatrixLoadingDimensionEnum::Enum
 CiftiConnectivityMatrixParcelFile::getMatrixLoadingType() const
 {
-    return m_chartLoadingType;
+    return getChartMatrixLoadingDimension();
 }
 
 /**
@@ -532,9 +647,14 @@ CiftiConnectivityMatrixParcelFile::getMatrixLoadingType() const
  *    New value for matrix loading type.
  */
 void
-CiftiConnectivityMatrixParcelFile::setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType)
+CiftiConnectivityMatrixParcelFile::setMatrixLoadingType(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType)
 {
-    m_chartLoadingType = matrixLoadingType;
+    /*
+     * Ignore when the loading dimension does not change
+     */
+    if (matrixLoadingType != getMatrixLoadingType()) {
+        setChartMatrixLoadingDimension(matrixLoadingType);
+    }
 }
 
 /**
