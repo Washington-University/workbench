@@ -561,7 +561,7 @@ CiftiParcelLabelFile::isSupportsLoadingAttributes()
  * @return The matrix loading type (by row/column).
  */
 ChartMatrixLoadingDimensionEnum::Enum
-CiftiParcelLabelFile::getMatrixLoadingType() const
+CiftiParcelLabelFile::getMatrixLoadingDimension() const
 {
     /*
      * This file supports loading by column only !
@@ -576,7 +576,7 @@ CiftiParcelLabelFile::getMatrixLoadingType() const
  *    New value for matrix loading type.
  */
 void
-CiftiParcelLabelFile::setMatrixLoadingType(const ChartMatrixLoadingDimensionEnum::Enum /* matrixLoadingType */)
+CiftiParcelLabelFile::setMatrixLoadingDimension(const ChartMatrixLoadingDimensionEnum::Enum /* matrixLoadingType */)
 {
     CaretLogSevere("Attempting to change matrix loading type for a file that only supports loading by column");
 }

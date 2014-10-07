@@ -403,7 +403,7 @@ ChartSelectionViewController::matrixFileLoadingComboBoxActivated()
         return;
     }
     
-    chartableMatrixInterface->setMatrixLoadingType(m_matrixLoadByColumnRowComboBox->getSelectedItem<ChartMatrixLoadingDimensionEnum,
+    chartableMatrixInterface->setMatrixLoadingDimension(m_matrixLoadByColumnRowComboBox->getSelectedItem<ChartMatrixLoadingDimensionEnum,
                                                    ChartMatrixLoadingDimensionEnum::Enum>());
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -753,7 +753,7 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
 //    bool enablePaletteOptions = false;
 //    const ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
 //    if (displayProperties != NULL) {
-    const ChartMatrixLoadingDimensionEnum::Enum loadType = chartableMatrixInterface->getMatrixLoadingType();
+    const ChartMatrixLoadingDimensionEnum::Enum loadType = chartableMatrixInterface->getMatrixLoadingDimension();
     m_matrixLoadByColumnRowComboBox->setSelectedItem<ChartMatrixLoadingDimensionEnum, ChartMatrixLoadingDimensionEnum::Enum>(loadType);
         
         const YokingGroupEnum::Enum yokingGroup = chartableMatrixInterface->getYokingGroup();

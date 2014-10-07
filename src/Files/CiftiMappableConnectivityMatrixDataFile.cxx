@@ -364,7 +364,7 @@ CiftiMappableConnectivityMatrixDataFile::getCifitDirectionForLoadingRowOrColumn(
      */
     ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(this);
     if (matrixInterface != NULL) {
-        switch (matrixInterface->getMatrixLoadingType()) {
+        switch (matrixInterface->getMatrixLoadingDimension()) {
             case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
                 ciftiDirection = CiftiXML::ALONG_ROW;
                 break;

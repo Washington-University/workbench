@@ -679,7 +679,7 @@ CiftiParcelScalarFile::isSupportsLoadingAttributes()
  * @return The matrix loading type (by row/column).
  */
 ChartMatrixLoadingDimensionEnum::Enum
-CiftiParcelScalarFile::getMatrixLoadingType() const
+CiftiParcelScalarFile::getMatrixLoadingDimension() const
 {
     /*
      * This file supports loading by column only !
@@ -694,7 +694,7 @@ CiftiParcelScalarFile::getMatrixLoadingType() const
  *    New value for matrix loading type.
  */
 void
-CiftiParcelScalarFile::setMatrixLoadingType(const ChartMatrixLoadingDimensionEnum::Enum /* matrixLoadingType */)
+CiftiParcelScalarFile::setMatrixLoadingDimension(const ChartMatrixLoadingDimensionEnum::Enum /* matrixLoadingType */)
 {
     CaretLogSevere("Attempting to change matrix loading type for a file that only supports loading by column");
 }

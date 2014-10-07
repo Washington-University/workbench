@@ -232,7 +232,7 @@ namespace caret {
         /**
          * @return The matrix loading type (by row/column).
          */
-        virtual ChartMatrixLoadingDimensionEnum::Enum getMatrixLoadingType() const = 0;
+        virtual ChartMatrixLoadingDimensionEnum::Enum getMatrixLoadingDimension() const = 0;
         
         /**
          * Set the matrix loading type (by row/column).
@@ -240,7 +240,7 @@ namespace caret {
          * @param matrixLoadingType
          *    New value for matrix loading type.
          */
-        virtual void setMatrixLoadingType(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType) = 0;
+        virtual void setMatrixLoadingDimension(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType) = 0;
         
         /**
          * @return Selected yoking group.

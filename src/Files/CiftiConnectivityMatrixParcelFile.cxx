@@ -432,7 +432,7 @@ CiftiConnectivityMatrixParcelFile::restoreSubClassDataFromScene(const SceneAttri
 //   
 //    /*
 //     * The chart loading type is restored by the scene assistant.
-//     * Swap its value so that calling setMatrixLoadingType requires
+//     * Swap its value so that calling setMatrixLoadingDimension requires
 //     * the value to change for it to have any affect including
 //     * setting size of data.
 //     */
@@ -444,7 +444,7 @@ CiftiConnectivityMatrixParcelFile::restoreSubClassDataFromScene(const SceneAttri
 //            m_chartLoadingType = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
 //            break;
 //    }
-//    setMatrixLoadingType(m_chartLoadingType);
+//    setMatrixLoadingDimension(m_chartLoadingType);
 //    
 ////    CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(sceneAttributes,
 ////                                                                      sceneClass);
@@ -635,7 +635,7 @@ CiftiConnectivityMatrixParcelFile::isSupportsLoadingAttributes()
  * @return The matrix loading type (by row/column).
  */
 ChartMatrixLoadingDimensionEnum::Enum
-CiftiConnectivityMatrixParcelFile::getMatrixLoadingType() const
+CiftiConnectivityMatrixParcelFile::getMatrixLoadingDimension() const
 {
     return getChartMatrixLoadingDimension();
 }
@@ -647,12 +647,12 @@ CiftiConnectivityMatrixParcelFile::getMatrixLoadingType() const
  *    New value for matrix loading type.
  */
 void
-CiftiConnectivityMatrixParcelFile::setMatrixLoadingType(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType)
+CiftiConnectivityMatrixParcelFile::setMatrixLoadingDimension(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType)
 {
     /*
      * Ignore when the loading dimension does not change
      */
-    if (matrixLoadingType != getMatrixLoadingType()) {
+    if (matrixLoadingType != getMatrixLoadingDimension()) {
         setChartMatrixLoadingDimension(matrixLoadingType);
     }
 }

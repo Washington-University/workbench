@@ -91,7 +91,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
     CaretAssert(matrixFile);
     
     AString rowColumnName;
-    switch (matrixFile->getMatrixLoadingType()) {
+    switch (matrixFile->getMatrixLoadingDimension()) {
         case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
             parcelFile->loadDataForColumnIndex(columnIndex);
             rowColumnName = ("column index="
