@@ -192,9 +192,9 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
                 } else {
                     ratio = refLength / distortLength;
                 }
-                accum += ratio;
+                accum += log(ratio) / log(2.0f);
             }
-            myMetricOut->setValue(i, 0, log(accum / numNeigh) / log(2.0f));
+            myMetricOut->setValue(i, 0, accum / numNeigh);
         }
     } else {
         myMetricOut->setColumnName(0, "area distortion");
