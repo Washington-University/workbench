@@ -451,7 +451,7 @@ CommandOperationManager::~CommandOperationManager()
  *    If the command failed.
  */
 void 
-CommandOperationManager::runCommand(ProgramParameters& parameters) throw (CommandException)
+CommandOperationManager::runCommand(ProgramParameters& parameters)
 {
     vector<AString> globalOptionArgs;//not used yet
     bool preventProvenance = getGlobalOption(parameters, "-disable-provenance", 0, globalOptionArgs);//check these BEFORE we test if we have a command switch
@@ -464,51 +464,45 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
     }
     
     AString commandSwitch;
-    try {
-        commandSwitch = parameters.nextString("Command Name");
+    commandSwitch = parameters.nextString("Command Name");
+    
+    if (commandSwitch == "-help")
+    {
+        printHelpInfo();
+    } else if (commandSwitch == "-arguments-help") {
+        printArgumentsHelp(parameters.getProgramName());
+    } else if (commandSwitch == "-version") {
+        printVersionInfo();
+    } else if (commandSwitch == "-list-commands") {
+        printAllCommands();
+    } else if (commandSwitch == "-all-commands-help") {
+        printAllCommandsHelpInfo(parameters.getProgramName());
+    } else {
         
-        if (commandSwitch == "-help")
-        {
-            printHelpInfo();
-        } else if (commandSwitch == "-arguments-help") {
-            printArgumentsHelp(parameters.getProgramName());
-        } else if (commandSwitch == "-version") {
-            printVersionInfo();
-        } else if (commandSwitch == "-list-commands") {
-            printAllCommands();
-        } else if (commandSwitch == "-all-commands-help") {
-            printAllCommandsHelpInfo(parameters.getProgramName());
-        } else {
-            
-            CommandOperation* operation = NULL;
-            
-            for (uint64_t i = 0; i < numberOfCommands; i++) {
-                if (this->commandOperations[i]->getCommandLineSwitch() == commandSwitch) {
-                    operation = this->commandOperations[i];
-                    break;
-                }
-            }
-            
-            if (operation == NULL) {
-                if (!parameters.hasNext())
-                {
-                    printAllCommandsMatching(commandSwitch);
-                } else {
-                    throw CommandException("Command \"" + commandSwitch + "\" not found.");
-                }
-            } else {
-                if (!parameters.hasNext() && operation->takesParameters())
-                {
-                    cout << operation->getHelpInformation(parameters.getProgramName()) << endl;
-                } else {
-                    operation->execute(parameters, preventProvenance);
-                }
+        CommandOperation* operation = NULL;
+        
+        for (uint64_t i = 0; i < numberOfCommands; i++) {
+            if (this->commandOperations[i]->getCommandLineSwitch() == commandSwitch) {
+                operation = this->commandOperations[i];
+                break;
             }
         }
-    }
-    catch (ProgramParametersException& e) {
-        cerr << "caught PPE" << endl;
-        throw CommandException(e);
+        
+        if (operation == NULL) {
+            if (!parameters.hasNext())
+            {
+                printAllCommandsMatching(commandSwitch);
+            } else {
+                throw CommandException("Command \"" + commandSwitch + "\" not found.");
+            }
+        } else {
+            if (!parameters.hasNext() && operation->takesParameters())
+            {
+                cout << operation->getHelpInformation(parameters.getProgramName()) << endl;
+            } else {
+                operation->execute(parameters, preventProvenance);
+            }
+        }
     }
 }
 

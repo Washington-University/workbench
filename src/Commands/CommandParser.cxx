@@ -62,39 +62,28 @@ void CommandParser::disableProvenance()
 }
 
 
-void CommandParser::executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
+void CommandParser::executeOperation(ProgramParameters& parameters)
 {
-    try
-    {
-        CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
-        vector<OutputAssoc> myOutAssoc;
-        m_provenance = caret_global_commandLine;
-        //the idea is to have m_provenance set before the command executes, so it can be overridden, but have m_parentProvenance set AFTER the processing is complete
-        //the parent provenance should never be generated manually
-        m_parentProvenance = "";//in case someone tries to use the same instance more than once
-        m_workingDir = QDir::currentPath();//get the current path, in case some stupid command changes the working directory
-        //these get set on output files during writeOutput (and for on-disk in provenanceBeforeOperation)
-        parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
-        parameters.verifyAllParametersProcessed();
-        makeOnDiskOutputs(myOutAssoc);//check for input on-disk files used as output on-disk files
-        //code to show what arguments map to what parameters should go here
-        if (m_doProvenance) provenanceBeforeOperation(myOutAssoc);
-        m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
-        if (m_doProvenance) provenanceAfterOperation(myOutAssoc);
-        //TODO: deallocate input files - give abstract parameter a virtual deallocate method? use CaretPointer and rely on reference counting?
-        writeOutput(myOutAssoc);
-    } catch (ProgramParametersException& e) {
-        throw e;
-    } catch (CaretException& e) {
-        throw CommandException(e);//rethrow all other caret exceptions as CommandException
-    } catch (exception& e) {
-        throw CommandException(e.what());//rethrow std::exception and derived as CommandException
-    } catch (...) {
-        throw CommandException("unknown exception type thrown");//throw dummy CommandException for anything else
-    }
+    CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
+    vector<OutputAssoc> myOutAssoc;
+    m_provenance = caret_global_commandLine;
+    //the idea is to have m_provenance set before the command executes, so it can be overridden, but have m_parentProvenance set AFTER the processing is complete
+    //the parent provenance should never be generated manually
+    m_parentProvenance = "";//in case someone tries to use the same instance more than once
+    m_workingDir = QDir::currentPath();//get the current path, in case some stupid command changes the working directory
+    //these get set on output files during writeOutput (and for on-disk in provenanceBeforeOperation)
+    parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
+    parameters.verifyAllParametersProcessed();
+    makeOnDiskOutputs(myOutAssoc);//check for input on-disk files used as output on-disk files
+    //code to show what arguments map to what parameters should go here
+    if (m_doProvenance) provenanceBeforeOperation(myOutAssoc);
+    m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
+    if (m_doProvenance) provenanceAfterOperation(myOutAssoc);
+    //TODO: deallocate input files - give abstract parameter a virtual deallocate method? use CaretPointer and rely on reference counting?
+    writeOutput(myOutAssoc);
 }
 
-void CommandParser::showParsedOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
+void CommandParser::showParsedOperation(ProgramParameters& parameters)
 {
     CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
     vector<OutputAssoc> myOutAssoc;

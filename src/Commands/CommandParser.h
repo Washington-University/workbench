@@ -61,8 +61,8 @@ namespace caret {
     public:
         CommandParser(AutoOperationInterface* myAutoOper);
         void disableProvenance();
-        void executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException);
-        void showParsedOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException);
+        void executeOperation(ProgramParameters& parameters);
+        void showParsedOperation(ProgramParameters& parameters);
         AString getHelpInformation(const AString& programName);
         bool takesParameters();
     };

@@ -42,7 +42,7 @@ namespace caret {
         
         ~CommandOperationManager();
         
-        void runCommand(ProgramParameters& parameters) throw (CommandException);
+        void runCommand(ProgramParameters& parameters);
         
         std::vector<CommandOperation*> getCommandOperations();
         

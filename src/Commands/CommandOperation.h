@@ -37,8 +37,7 @@ namespace caret {
     public:
         virtual ~CommandOperation();
         
-        void execute(ProgramParameters& parameters, const bool& preventProvenance)
-            throw (CommandException);
+        void execute(ProgramParameters& parameters, const bool& preventProvenance);
         
     protected:
         /**
@@ -51,9 +50,7 @@ namespace caret {
          * @throws ProgramParametersException
          *   If there is an error in the parameters.
          */
-        virtual void executeOperation(ProgramParameters& parameters) 
-           throw (CommandException,
-                ProgramParametersException) = 0;
+        virtual void executeOperation(ProgramParameters& parameters) = 0;
         
         virtual void disableProvenance();
         

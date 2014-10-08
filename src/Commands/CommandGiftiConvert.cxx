@@ -91,8 +91,7 @@ CommandGiftiConvert::getHelpInformation(const AString& /*programName*/)
  *   If there is an error in the parameters.
  */
 void 
-CommandGiftiConvert::executeOperation(ProgramParameters& parameters) throw (CommandException,
-                                                               ProgramParametersException)
+CommandGiftiConvert::executeOperation(ProgramParameters& parameters)
 {
     const AString encodingName = parameters.nextString("GIFTI Encoding Name");
     const AString inputFileName = parameters.nextString("Input GIFTI File Name");
@@ -110,19 +109,8 @@ CommandGiftiConvert::executeOperation(ProgramParameters& parameters) throw (Comm
         throw CommandException("Input GIFTI file name is empty.");
     }
 
-    try {
-        GiftiFile gf;
-        gf.readFile(inputFileName);
-        gf.setEncodingForWriting(encoding);
-        gf.writeFile(outputFileName);
-    }
-    catch (const GiftiException& e) {
-        throw CommandException(e);
-    } catch (CaretException& e) {
-        throw CommandException(e);//rethrow all other caret exceptions as CommandException
-    } catch (std::exception& e) {
-        throw CommandException(e.what());//rethrow std::exception and derived as CommandException
-    } catch (...) {
-        throw CommandException("unknown exception type thrown");//throw dummy CommandException for anything else
-    }
+    GiftiFile gf;
+    gf.readFile(inputFileName);
+    gf.setEncodingForWriting(encoding);
+    gf.writeFile(outputFileName);
 }
