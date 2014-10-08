@@ -492,13 +492,12 @@ namespace caret {
                     if ( ! dataFileWithNameIsLoaded(loadedDataFiles,
                                                     versionFullName)) {
                         /*
-                         * Update name of file with version number and exit loop
+                         * Update name of file with version number,
+                         * Set the file modified (name changed),
+                         * and exit loop
                          */
-                        const bool modStatus = newDataFile->isModified();
                         newDataFile->setFileName(versionFullName);
-                        if ( ! modStatus) {
-                            newDataFile->clearModified();
-                        }
+                        newDataFile->setModified();
                         done = true;
                     }
                 }
