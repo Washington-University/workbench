@@ -239,7 +239,21 @@ CiftiParcelScalarFile::loadBrainordinateChartDataForVoxelAtCoordinate(const floa
     return chartData;
 }
 
-
+/**
+ * Get the matrix dimensions.
+ *
+ * @param numberOfRowsOut
+ *    Number of rows in the matrix.
+ * @param numberOfColumnsOut
+ *    Number of rows in the matrix.
+ */
+void
+CiftiParcelScalarFile::getMatrixDimensions(int32_t& numberOfRowsOut,
+                                           int32_t& numberOfColumnsOut) const
+{
+    helpMapFileGetMatrixDimensions(numberOfRowsOut,
+                                   numberOfColumnsOut);
+}
 
 /**
  * Get the matrix RGBA coloring for this matrix data creator.
@@ -256,8 +270,8 @@ CiftiParcelScalarFile::loadBrainordinateChartDataForVoxelAtCoordinate(const floa
  */
 bool
 CiftiParcelScalarFile::getMatrixDataRGBA(int32_t& numberOfRowsOut,
-                                                     int32_t& numberOfColumnsOut,
-                                                     std::vector<float>& rgbaOut) const
+                                         int32_t& numberOfColumnsOut,
+                                         std::vector<float>& rgbaOut) const
 {
     CiftiParcelLabelFile* parcelLabelFile = NULL;
     int32_t parcelLabelFileMapIndex = -1;

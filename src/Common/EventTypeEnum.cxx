@@ -113,10 +113,14 @@ EventTypeEnum::initialize()
                                      "EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS",
                                      "Get Caret Mappable data file maps viewed in overlays"));
     
+    enumData.push_back(EventTypeEnum(EVENT_CHART_MATRIX_YOKING_VALIDATION,
+                                     "EVENT_CHART_MATRIX_YOKING_VALIDATION",
+                                     "Validate Yoking of matrix chart's rows/columns"));
+
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_ADD,
                                      "EVENT_DATA_FILE_ADD",
                                      "Add a data file to the Brain"));
-
+    
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_DELETE,
                                      "EVENT_DATA_FILE_DELETE",
                                      "Delete a data file from the Brain"));

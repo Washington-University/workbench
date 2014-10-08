@@ -50,6 +50,7 @@ CiftiParcelSeriesFile.h
 CiftiParcelScalarFile.h
 ConnectivityDataLoaded.h
 EventCaretMappableDataFilesGet.h
+EventChartMatrixYokingValidation.h
 EventGetDisplayedDataFiles.h
 EventPaletteGetByName.h
 EventSurfaceColoringInvalidate.h
@@ -145,6 +146,7 @@ CiftiParcelSeriesFile.cxx
 CiftiParcelScalarFile.cxx
 ConnectivityDataLoaded.cxx
 EventCaretMappableDataFilesGet.cxx
+EventChartMatrixYokingValidation.cxx
 EventGetDisplayedDataFiles.cxx
 EventPaletteGetByName.cxx
 EventSurfaceColoringInvalidate.cxx

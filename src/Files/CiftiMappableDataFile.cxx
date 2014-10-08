@@ -5062,6 +5062,28 @@ CiftiMappableDataFile::setMapDataForSurface(const int32_t mapIndex,
 }
 
 /**
+ * Get the matrix dimensions.
+ *
+ * @param numberOfRowsOut
+ *    Output number of rows in rgba matrix.
+ * @param numberOfColumnsOut
+ *    Output number of Columns in rgba matrix.
+ */
+void
+CiftiMappableDataFile::helpMapFileGetMatrixDimensions(int32_t& numberOfRowsOut,
+                                                      int32_t& numberOfColumnsOut) const
+{
+    CaretAssert(m_ciftiFile);
+    
+    /*
+     * Dimensions of matrix.
+     */
+    numberOfRowsOut    = m_ciftiFile->getNumberOfRows();
+    numberOfColumnsOut = m_ciftiFile->getNumberOfColumns();
+}
+
+
+/**
  * Help load matrix chart data and order in the given row indices
  * for a file with multi-mapped file that uses a unqiue palette
  * or label table for each column (row) in the file.

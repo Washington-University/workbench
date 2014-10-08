@@ -442,6 +442,9 @@ namespace caret {
         
         ChartDataCartesian* helpLoadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
+        void helpMapFileGetMatrixDimensions(int32_t& numberOfRowsOut,
+                                            int32_t& numberOfColumnsOut) const;
+        
         bool helpMapFileLoadChartDataMatrixRGBA(int32_t& numberOfRowsOut,
                                                 int32_t& numberOfColumnsOut,
                                                 const std::vector<int32_t>& rowIndicesIn,

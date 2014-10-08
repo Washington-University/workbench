@@ -24,6 +24,7 @@
 #include "BrainConstants.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "ChartableMatrixInterface.h"
+#include "EventListenerInterface.h"
 
 namespace caret {
 
@@ -31,7 +32,10 @@ namespace caret {
     class CiftiParcelReorderingModel;
     class PaletteFile;
     
-    class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile, public ChartableMatrixInterface {
+    class CiftiConnectivityMatrixParcelFile :
+    public CiftiMappableConnectivityMatrixDataFile,
+    public ChartableMatrixInterface,
+    public EventListenerInterface {
         
     public:
         CiftiConnectivityMatrixParcelFile();
@@ -44,6 +48,11 @@ namespace caret {
         CiftiConnectivityMatrixParcelFile& operator=(const CiftiConnectivityMatrixParcelFile&);
 
     public:
+        virtual void receiveEvent(Event* event);
+        
+        virtual void getMatrixDimensions(int32_t& numberOfRowsOut,
+                                         int32_t& numberOfColumnsOut) const;
+        
         virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                        int32_t& numberOfColumnsOut,
                                        std::vector<float>& rgbaOut) const;

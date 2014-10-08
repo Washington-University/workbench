@@ -592,26 +592,29 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
     
     const int64_t dataCount = m_ciftiFile->getNumberOfColumns();
     if (dataCount > 0) {
-        m_rowLoadedTextForMapName = ("Row: "
-                                        + AString::number(rowIndex));
-        
-        m_rowLoadedText = ("Row_"
-                            + AString::number(rowIndex));
-        CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiFile->getNumberOfRows()));
-        m_loadedRowData.resize(dataCount);
-        
-        m_ciftiFile->getRow(&m_loadedRowData[0],
-                                    rowIndex);
-        
-        CaretLogFine("Read row " + AString::number(rowIndex));
-        m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
-                                                      -1);
+        if ((rowIndex >= 0)
+            && (rowIndex < m_ciftiFile->getNumberOfRows())) {
+            m_rowLoadedTextForMapName = ("Row: "
+                                         + AString::number(rowIndex));
+            
+            m_rowLoadedText = ("Row_"
+                               + AString::number(rowIndex));
+            CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiFile->getNumberOfRows()));
+            m_loadedRowData.resize(dataCount);
+            
+            m_ciftiFile->getRow(&m_loadedRowData[0],
+                                rowIndex);
+            
+            CaretLogFine("Read row " + AString::number(rowIndex));
+            m_connectivityDataLoaded->setRowColumnLoading(rowIndex,
+                                                          -1);
+        }
     }
-    else {
-        throw DataFileException("Row "
-                                + AString::number(rowIndex)
-                                + " is invalid or contains no data.");
-    }
+//    else {
+//        throw DataFileException("Row "
+//                                + AString::number(rowIndex)
+//                                + " is invalid or contains no data.");
+//    }
     
     updateForChangeInMapDataWithMapIndex(0);
 }
@@ -635,26 +638,29 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
     
     const int64_t dataCount = m_ciftiFile->getNumberOfRows();
     if (dataCount > 0) {
-        m_rowLoadedTextForMapName = ("Column: "
-                                     + AString::number(columnIndex));
-        
-        m_rowLoadedText = ("Column_"
-                           + AString::number(columnIndex));
-        CaretAssert((columnIndex >= 0) && (columnIndex < m_ciftiFile->getNumberOfColumns()));
-        m_loadedRowData.resize(dataCount);
-        
-        m_ciftiFile->getColumn(&m_loadedRowData[0],
-                            columnIndex);
-        
-        CaretLogFine("Read column " + AString::number(columnIndex));
-        m_connectivityDataLoaded->setRowColumnLoading(-1,
-                                                      columnIndex);
+        if ((columnIndex >= 0)
+            && (columnIndex < m_ciftiFile->getNumberOfColumns())) {
+            m_rowLoadedTextForMapName = ("Column: "
+                                         + AString::number(columnIndex));
+            
+            m_rowLoadedText = ("Column_"
+                               + AString::number(columnIndex));
+            CaretAssert((columnIndex >= 0) && (columnIndex < m_ciftiFile->getNumberOfColumns()));
+            m_loadedRowData.resize(dataCount);
+            
+            m_ciftiFile->getColumn(&m_loadedRowData[0],
+                                   columnIndex);
+            
+            CaretLogFine("Read column " + AString::number(columnIndex));
+            m_connectivityDataLoaded->setRowColumnLoading(-1,
+                                                          columnIndex);
+        }
     }
-    else {
-        throw DataFileException("Column "
-                                + AString::number(columnIndex)
-                                + " is invalid or contains no data.");
-    }
+//    else {
+//        throw DataFileException("Column "
+//                                + AString::number(columnIndex)
+//                                + " is invalid or contains no data.");
+//    }
     
     updateForChangeInMapDataWithMapIndex(0);
 }

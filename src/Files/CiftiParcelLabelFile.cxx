@@ -85,6 +85,22 @@ CiftiParcelLabelFile::~CiftiParcelLabelFile()
 }
 
 /**
+ * Get the matrix dimensions.
+ *
+ * @param numberOfRowsOut
+ *    Number of rows in the matrix.
+ * @param numberOfColumnsOut
+ *    Number of rows in the matrix.
+ */
+void
+CiftiParcelLabelFile::getMatrixDimensions(int32_t& numberOfRowsOut,
+                                                       int32_t& numberOfColumnsOut) const
+{
+    helpMapFileGetMatrixDimensions(numberOfRowsOut,
+                                   numberOfColumnsOut);
+}
+
+/**
  * Get the matrix RGBA coloring for this matrix data creator.
  *
  * @param numberOfRowsOut

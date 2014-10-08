@@ -45,6 +45,17 @@ namespace caret {
         
     public:
         /**
+         * Get the matrix dimensions.
+         *
+         * @param numberOfRowsOut
+         *    Number of rows in the matrix.
+         * @param numberOfColumnsOut
+         *    Number of rows in the matrix.
+         */
+        virtual void getMatrixDimensions(int32_t& numberOfRowsOut,
+                                         int32_t& numberOfColumnsOut) const = 0;
+        
+        /**
          * Get the matrix RGBA coloring for this matrix data creator.
          *
          * @param numberOfRowsOut

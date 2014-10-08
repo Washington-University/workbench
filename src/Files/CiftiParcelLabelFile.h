@@ -38,6 +38,9 @@ namespace caret {
         
         virtual ~CiftiParcelLabelFile();
         
+        virtual void getMatrixDimensions(int32_t& numberOfRowsOut,
+                                         int32_t& numberOfColumnsOut) const;
+        
         virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                        int32_t& numberOfColumnsOut,
                                        std::vector<float>& rgbaOut) const;

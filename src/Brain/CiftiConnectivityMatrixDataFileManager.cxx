@@ -87,31 +87,69 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
 {
     CaretAssert(parcelFile);
     
-    ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(parcelFile);
-    CaretAssert(matrixFile);
+//    ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(parcelFile);
+//    CaretAssert(matrixFile);
     
-    AString rowColumnName;
-    switch (matrixFile->getMatrixLoadingDimension()) {
+    
+    int32_t rowColumnIndexToLoad = -1;
+    switch (parcelFile->getMatrixLoadingDimension()) {
         case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
-            parcelFile->loadDataForColumnIndex(columnIndex);
-            rowColumnName = ("column index="
-                             + AString::number(columnIndex));
+            rowColumnIndexToLoad = columnIndex;
             break;
         case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
-            parcelFile->loadDataForRowIndex(rowIndex);
-            rowColumnName = ("row index="
-                             + AString::number(rowIndex));
+            rowColumnIndexToLoad = rowIndex;
             break;
     }
-
+    
+    /*
+     * If yoked, find other files yoked to the same group
+     */
+    const YokingGroupEnum::Enum selectedYokingGroup = parcelFile->getYokingGroup();
+    std::vector<CiftiConnectivityMatrixParcelFile*> parcelFilesToLoadFrom;
+    if (selectedYokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+        for (int32_t i = 0; i < brain->getNumberOfConnectivityMatrixParcelFiles(); i++) {
+            CiftiConnectivityMatrixParcelFile* pf = brain->getConnectivityMatrixParcelFile(i);
+            if (pf->getYokingGroup() == selectedYokingGroup) {
+                parcelFilesToLoadFrom.push_back(pf);
+            }
+        }
+    }
+    else {
+        parcelFilesToLoadFrom.push_back(parcelFile);
+    }
+    
+//    AString rowColumnInfo;
     PaletteFile* paletteFile = brain->getPaletteFile();
     const int32_t mapIndex = 0;
-    parcelFile->updateScalarColoringForMap(mapIndex,
-                                    paletteFile);
     
-    rowColumnInformationOut.push_back(parcelFile->getFileNameNoPath()
-                                      + " "
-                                      + rowColumnName);
+    /*
+     * Load row/color for the "parcelFile" and any other files with
+     * which it is yoked.
+     */
+    for (std::vector<CiftiConnectivityMatrixParcelFile*>::iterator iter = parcelFilesToLoadFrom.begin();
+         iter != parcelFilesToLoadFrom.end();
+         iter++) {
+        CiftiConnectivityMatrixParcelFile* pf = *iter;
+        switch (pf->getMatrixLoadingDimension()) {
+            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                pf->loadDataForColumnIndex(rowColumnIndexToLoad);
+                pf->updateScalarColoringForMap(mapIndex,
+                                               paletteFile);
+                rowColumnInformationOut.push_back(pf->getFileNameNoPath()
+                                                  + " column index="
+                                                  + AString::number(rowColumnIndexToLoad));
+                break;
+            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                pf->loadDataForRowIndex(rowColumnIndexToLoad);
+                pf->updateScalarColoringForMap(mapIndex,
+                                               paletteFile);
+                rowColumnInformationOut.push_back(pf->getFileNameNoPath()
+                                                  + " row index="
+                                                  + AString::number(rowColumnIndexToLoad));
+                break;
+        }
+    }
+    
     return true;
 }
 

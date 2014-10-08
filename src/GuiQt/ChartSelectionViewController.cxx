@@ -50,10 +50,12 @@
 #include "ChartMatrixLoadingDimensionEnum.h"
 #include "ChartModel.h"
 #include "ChartableBrainordinateInterface.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CiftiParcelLabelFile.h"
 #include "DeveloperFlagsEnum.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventChartMatrixYokingValidation.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -425,7 +427,65 @@ ChartSelectionViewController::matrixYokingGroupEnumComboBoxActivated()
         return;
     }
     
-    chartableMatrixInterface->setYokingGroup(m_matrixYokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>());
+    YokingGroupEnum::Enum newYokingGroup = m_matrixYokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
+    int32_t selectedRowColumnIndex = -1;
+    if (newYokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+        const YokingGroupEnum::Enum previousYokingGroup = chartableMatrixInterface->getYokingGroup();
+        
+        EventChartMatrixYokingValidation yokeEvent(chartableMatrixInterface,
+                                                newYokingGroup);
+        EventManager::get()->sendEvent(yokeEvent.getPointer());
+        AString message;
+        if ( ! yokeEvent.isValidateYokingCompatible(message,
+                                                    selectedRowColumnIndex)) {
+            message = WuQtUtilities::createWordWrappedToolTipText(message);
+            
+            WuQMessageBox::YesNoCancelResult result =
+            WuQMessageBox::warningYesNoCancel(m_matrixYokingGroupComboBox->getWidget(),
+                                              message,
+                                              "");
+            switch (result) {
+                case WuQMessageBox::RESULT_YES:
+                    break;
+                case WuQMessageBox::RESULT_NO:
+                    newYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+                    selectedRowColumnIndex = -1;
+                    break;
+                case WuQMessageBox::RESULT_CANCEL:
+                    newYokingGroup = previousYokingGroup;
+                    selectedRowColumnIndex = -1;
+                    break;
+            }
+        }
+    }
+    
+    /*
+     * Need to update combo box since user may have changed mind and 
+     * the combo box status needs to change
+     */
+    m_matrixYokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(newYokingGroup);
+    
+    chartableMatrixInterface->setYokingGroup(newYokingGroup);
+    
+    /*
+     * If yoking changed update the file's selected row or column
+     */
+    if (newYokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+        if (selectedRowColumnIndex >= 0) {
+            CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(chartableMatrixInterface);
+            if (matrixFile != NULL) {
+                switch (chartableMatrixInterface->getMatrixLoadingDimension()) {
+                    case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                        matrixFile->loadDataForColumnIndex(selectedRowColumnIndex);
+                        break;
+                    case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                        matrixFile->loadDataForRowIndex(selectedRowColumnIndex);
+                        break;
+                }
+            }
+        }
+    }
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -617,7 +677,7 @@ ChartSelectionViewController::createMatrixChartWidget()
      * FINISH IMPLEMENTATION OF LOADING AND YOKING
      */
     const bool hideLoadControls = false;
-    const bool hideYokeControls = true;
+    const bool hideYokeControls = false;
     if (hideLoadControls) {
         loadDimensionLabel->hide();
         m_matrixLoadByColumnRowComboBox->getWidget()->hide();

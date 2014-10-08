@@ -28,6 +28,9 @@
 #include "CiftiFile.h"
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelReorderingModel.h"
+#include "ConnectivityDataLoaded.h"
+#include "EventChartMatrixYokingValidation.h"
+#include "EventManager.h"
 #include "FastStatistics.h"
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
@@ -80,6 +83,8 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
                           m_parcelReorderingModel);
     m_sceneAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartLoadingYokingGroup",
                                                                                         &m_chartLoadingYokingGroup);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_MATRIX_YOKING_VALIDATION);
 }
 
 /**
@@ -87,12 +92,98 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
  */
 CiftiConnectivityMatrixParcelFile::~CiftiConnectivityMatrixParcelFile()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         delete m_chartMatrixDisplayProperties[i];
     }
     
     delete m_parcelReorderingModel;
     delete m_sceneAssistant;
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+CiftiConnectivityMatrixParcelFile::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_CHART_MATRIX_YOKING_VALIDATION) {
+        EventChartMatrixYokingValidation* yokeEvent = dynamic_cast<EventChartMatrixYokingValidation*>(event);
+        CaretAssert(yokeEvent);
+        
+        if (yokeEvent->getChartableMatrixInterface() != this) {
+            switch (yokeEvent->getMode()) {
+                case EventChartMatrixYokingValidation::MODE_APPLY_YOKING:
+                {
+//                    YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+//                    int32_t rowOrColumnIndex = -1;
+//                    yokeEvent->getApplyYokingSelections(yokingGroup,
+//                                                        rowOrColumnIndex);
+//                    if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
+//                        && (rowOrColumnIndex >= 0)) {
+//                        int32_t numRows = -1;
+//                        int32_t numCols = -1;
+//                        getMatrixDimensions(numRows,
+//                                            numCols);
+//                        switch (getMatrixLoadingDimension()) {
+//                            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+//                                if (rowOrColumnIndex < numCols) {
+//                                    loadDataForColumnIndex(rowOrColumnIndex);
+//                                }
+//                                else {
+//                                }
+//                                break;
+//                            case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+//                                if (rowOrColumnIndex < numRows) {
+//                                    loadDataForRowIndex(rowOrColumnIndex);
+//                                }
+//                                break;
+//                        }
+//                    }
+                }
+                    break;
+                case EventChartMatrixYokingValidation::MODE_VALIDATE_YOKING:
+                {
+                    const ConnectivityDataLoaded* connData = getConnectivityDataLoaded();
+                    int64_t rowIndex    = -1;
+                    int64_t columnIndex = -1;
+                    connData->getRowColumnLoading(rowIndex, columnIndex);
+                    
+                    int64_t selectedRowColumnIndex = -1;
+                    if (rowIndex >= 0) {
+                        selectedRowColumnIndex = rowIndex;
+                    }
+                    else if (columnIndex >= 0) {
+                        selectedRowColumnIndex = columnIndex;
+                    }
+                    
+                    yokeEvent->addValidateYokingChartableInterface(this,
+                                                                   selectedRowColumnIndex);
+                }
+                    break;
+            }
+        }
+    }
+}
+
+/**
+ * Get the matrix dimensions.
+ *
+ * @param numberOfRowsOut
+ *    Number of rows in the matrix.
+ * @param numberOfColumnsOut
+ *    Number of columns in the matrix.
+ */
+void
+CiftiConnectivityMatrixParcelFile::getMatrixDimensions(int32_t& numberOfRowsOut,
+                                                       int32_t& numberOfColumnsOut) const
+{
+   helpMapFileGetMatrixDimensions(numberOfRowsOut,
+                                  numberOfColumnsOut);
 }
 
 /**
