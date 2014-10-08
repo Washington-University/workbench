@@ -594,7 +594,6 @@ SceneDialog::checkForModifiedFiles()
      *   Spec Files
      */
     std::vector<DataFileTypeEnum::Enum> dataFileTypesToExclude;
-    DataFileTypeEnum::getAllConnectivityEnums(dataFileTypesToExclude);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::SCENE);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::SPECIFICATION);
     
