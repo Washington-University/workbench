@@ -43,10 +43,6 @@ namespace caret {
         EventChartMatrixYokingValidation(const ChartableMatrixInterface* chartableInterface,
                                       const YokingGroupEnum::Enum yokingGroup);
         
-//        EventChartMatrixYokingValidation(const ChartableMatrixInterface* chartableInterface,
-//                                      const YokingGroupEnum::Enum yokingGroup,
-//                                      const int32_t selectedRowOrColumnIndex);
-        
         virtual ~EventChartMatrixYokingValidation();
         
         Mode getMode() const;
@@ -58,9 +54,6 @@ namespace caret {
                                         int32_t& selectedRowOrColumnIndexOut) const;
 
         const ChartableMatrixInterface* getChartableMatrixInterface() const;
-        
-//        void getApplyYokingSelections(YokingGroupEnum::Enum yokingGroupOut,
-//                                      int32_t& selectedRowOrColumnIndexOut) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -74,8 +67,6 @@ namespace caret {
         const ChartableMatrixInterface* m_chartableInterface;
         
         const YokingGroupEnum::Enum m_yokingGroup;
-        
-//        const int32_t m_selectedRowOrColumnIndex;
         
         AString m_incompatibilityMessage;
         

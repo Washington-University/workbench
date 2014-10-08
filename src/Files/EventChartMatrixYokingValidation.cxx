@@ -54,35 +54,9 @@ EventChartMatrixYokingValidation::EventChartMatrixYokingValidation(const Chartab
 m_mode(MODE_VALIDATE_YOKING),
 m_chartableInterface(chartableInterface),
 m_yokingGroup(yokingGroup)
-//m_selectedRowOrColumnIndex(-1)
 {
     CaretAssert(chartableInterface);
 }
-
-///**
-// * Constructor for applying yoking.
-// *
-// * @param chartableInterface
-// *   The file that had its row/column selected.
-// * @param yokingGroup
-// *   The selected yoking group.
-// * @param selectedRowOrColumnIndex
-// *   The row or column that has been selected and should be used
-// *   by yoked files.
-// */
-//EventChartMatrixYokingValidation::EventChartMatrixYokingValidation(const ChartableMatrixInterface* chartableInterface,
-//                                                             const YokingGroupEnum::Enum yokingGroup,
-//                                                             const int32_t selectedRowOrColumnIndex)
-//: Event(EventTypeEnum::EVENT_CHART_MATRIX_YOKING_VALIDATION),
-//m_mode(MODE_APPLY_YOKING),
-//m_chartableInterface(chartableInterface),
-//m_yokingGroup(yokingGroup),
-//m_selectedRowOrColumnIndex(selectedRowOrColumnIndex)
-//{
-//    CaretAssert(chartableInterface);
-//    CaretAssert(selectedRowOrColumnIndex >= 0);
-//}
-
 
 /**
  * Destructor.
@@ -232,22 +206,4 @@ EventChartMatrixYokingValidation::getChartableMatrixInterface() const
 {
     return m_chartableInterface;
 }
-
-///**
-// * Get the apply yoking selections.
-// *
-// * @param yokingGroupOut
-// *   The selected yoking group.
-// * @param selectedRowOrColumnIndexOut
-// *   The row or column that has been selected and should be used
-// *   by yoked files.
-// */
-//void
-//EventChartMatrixYokingValidation::getApplyYokingSelections(YokingGroupEnum::Enum yokingGroupOut,
-//                                                        int32_t& selectedRowOrColumnIndexOut) const
-//{
-//    yokingGroupOut              = m_yokingGroup;
-//    selectedRowOrColumnIndexOut = m_selectedRowOrColumnIndex;
-//}
-
 
