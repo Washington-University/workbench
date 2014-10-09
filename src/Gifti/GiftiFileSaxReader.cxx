@@ -514,27 +514,24 @@ void
 GiftiFileSaxReader::processArrayData() throw (XmlSaxParserException)
 {
     this->dataArrayDataHasBeenRead = true;
-   //
-   // Should the data arrays be read ?
-   //
-   //if (giftiFile->getReadMetaDataOnlyFlag()) {
-   //   return true;
-   //}
-   
-   try {
-      dataArray->readFromText(elementText, 
-                           this->endianForReadingArrayData,
-                           arraySubscriptingOrderForReadingArrayData,
-                           dataTypeForReadingArrayData,
-                           dimensionsForReadingArrayData,
-                           encodingForReadingArrayData,
-                           externalFileNameForReadingData,
-                           externalFileOffsetForReadingData,
-                              this->giftiFile->getReadMetaDataOnlyFlag());
-   }
-   catch (const GiftiException& e) {
-       throw XmlSaxParserException(e.whatString());
-   }
+
+    CaretAssert(dataArray);
+    try {
+        dataArray->readFromText(elementText,
+                                this->endianForReadingArrayData,
+                                arraySubscriptingOrderForReadingArrayData,
+                                dataTypeForReadingArrayData,
+                                dimensionsForReadingArrayData,
+                                encodingForReadingArrayData,
+                                externalFileNameForReadingData,
+                                externalFileOffsetForReadingData,
+                                this->giftiFile->getReadMetaDataOnlyFlag());
+    }
+    catch (const GiftiException& e) {
+        delete dataArray;
+        dataArray = NULL;
+        throw XmlSaxParserException(e.whatString());
+    }
 }
 
 /**
