@@ -98,7 +98,7 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
             this->flagStatus = true;
             break;
         case FLAG_VOLUME_CULLING:
-            this->flagStatus = false;
+            this->flagStatus = true;
             break;
     }
 }
