@@ -526,6 +526,9 @@ GiftiFileSaxReader::processArrayData() throw (XmlSaxParserException)
                                 externalFileNameForReadingData,
                                 externalFileOffsetForReadingData,
                                 this->giftiFile->getReadMetaDataOnlyFlag());
+        // for testing
+        //throw std::bad_alloc();
+        //throw std::exception();
     }
     catch (const GiftiException& e) {
         delete dataArray;

@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <new>
 
 #include "CaretAssert.h"
 
@@ -4318,11 +4319,20 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                        + " seconds.");
         CaretLogInfo(msg);
     }
-    catch (const DataFileException& dfe) {
+    catch (DataFileException& dfe) {
         if (caretDataFile != NULL) {
             m_specFile->removeCaretDataFile(caretDataFile);
         }
         throw dfe;
+    }
+    catch (std::bad_alloc& badAllocException) {
+        std::cout << "Caught bad alloc exception: " << badAllocException.what() << std::endl;
+    }
+    catch (std::exception&) {
+        std::cout << "Caught exception" << std::endl;
+    }
+    catch (...) {
+        std::cout << "Caught unknown exception" << std::endl;
     }
    
     updateAfterFilesAddedOrRemoved();
