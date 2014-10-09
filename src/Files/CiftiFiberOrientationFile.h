@@ -71,9 +71,9 @@ namespace caret {
         
         virtual const GiftiMetaData* getFileMetaData() const;
         
-        virtual void readFile(const AString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename);
         
-        virtual void writeFile(const AString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename);
         
         bool supportsWriting() const;
         

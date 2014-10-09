@@ -223,7 +223,7 @@ void
 XmlUtilities::getArrayOfNumbersFromText(const AString& elementName,
                                         const AString& text,
                                         const int32_t correctVectorLength,
-                                        std::vector<float>& numbersOut) throw (XmlSaxParserException)
+                                        std::vector<float>& numbersOut)
 {
     numbersOut.clear();
     AString::toNumbers(text, numbersOut);
@@ -257,7 +257,7 @@ void
 XmlUtilities::getArrayOfNumbersFromText(const AString& elementName,
                                         const AString& text,
                                         const int32_t correctVectorLength,
-                                        std::vector<int32_t>& numbersOut) throw (XmlSaxParserException)
+                                        std::vector<int32_t>& numbersOut)
 {
     numbersOut.clear();
     AString::toNumbers(text, numbersOut);

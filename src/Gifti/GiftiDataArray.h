@@ -80,7 +80,7 @@ namespace caret {
         void deleteRows(const std::vector<int32_t>& rowsToDelete);
         
         // convert all data arrays to data type
-        void convertToDataType(const NiftiDataTypeEnum::Enum newDataType)  throw (GiftiException);
+        void convertToDataType(const NiftiDataTypeEnum::Enum newDataType) ;
         
         // set the dimensions 
         void setDimensions(const std::vector<int64_t> dimensionsIn);
@@ -121,12 +121,12 @@ namespace caret {
                           const GiftiEncodingEnum::Enum encodingForReading,
                           const AString& externalFileNameForReading,
                           const int64_t externalFileOffsetForReading,
-                          const bool isReadOnlyMetaData) throw (GiftiException);
+                          const bool isReadOnlyMetaData);
         
         // write the data as XML
         void writeAsXML(std::ostream& stream, 
                         std::ostream* externalBinaryOutputStream,
-                        GiftiEncodingEnum::Enum encodingForWriting) throw (GiftiException);
+                        GiftiEncodingEnum::Enum encodingForWriting);
         
         /// get endian
         GiftiEndianEnum::Enum getEndian() const { return endian; }
@@ -321,7 +321,7 @@ namespace caret {
         void byteSwapData(const GiftiEndianEnum::Enum newEndian);
         
         /// convert array indexing order of data
-        void convertArrayIndexingOrder() throw (GiftiException);
+        void convertArrayIndexingOrder();
         
         /// the data
         std::vector<uint8_t> data;

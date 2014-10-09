@@ -46,9 +46,9 @@ namespace caret {
         
         void clear();
         
-        void readFile(const AString& filename) throw (DataFileException);
+        void readFile(const AString& filename);
         
-        void writeFile(const AString& filename) throw (DataFileException);
+        void writeFile(const AString& filename);
         
         bool isEmpty() const;
 

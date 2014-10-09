@@ -65,7 +65,7 @@ ChartingDataManager::~ChartingDataManager()
  */
 void
 ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceFile,
-                                                     const std::vector<int32_t>& nodeIndices) const throw (DataFileException)
+                                                     const std::vector<int32_t>& nodeIndices) const
 {
     CaretAssert(surfaceFile);
     
@@ -87,7 +87,7 @@ ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceF
  */
 void
 ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
-                                             const int32_t nodeIndex) const throw (DataFileException)
+                                             const int32_t nodeIndex) const
 {
     CaretAssert(surfaceFile);
     
@@ -106,7 +106,7 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
  *     Coordinate of voxel.
  */
 void
-ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3]) const throw (DataFileException)
+ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3]) const
 {
     ModelChart* modelChart = m_brain->getChartModel();
     if (modelChart != NULL) {

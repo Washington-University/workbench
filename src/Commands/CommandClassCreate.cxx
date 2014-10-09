@@ -116,8 +116,7 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
  *   If there is an error in the parameters.
  */
 void 
-CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (CommandException,
-                                                               ProgramParametersException)
+CommandClassCreate::executeOperation(ProgramParameters& parameters)
 {
     const AString className = parameters.nextString("Class Name");
     AString derivedFromClassName = "CaretObject";

@@ -349,7 +349,7 @@ SceneFile::getFileMetaData() const
  *    If there is an error reading the file.
  */
 void 
-SceneFile::readFile(const AString& filenameIn) throw (DataFileException)
+SceneFile::readFile(const AString& filenameIn)
 {
     clear();
     
@@ -405,7 +405,7 @@ SceneFile::readFile(const AString& filenameIn) throw (DataFileException)
  *    If there is an error writing the file.
  */
 void 
-SceneFile::writeFile(const AString& filename) throw (DataFileException)
+SceneFile::writeFile(const AString& filename)
 {
     checkFileWritability(filename);
     

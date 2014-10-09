@@ -415,7 +415,7 @@ CiftiFiberOrientationFile::getCiftiXML() const
  *    If the file was not successfully read.
  */
 void
-CiftiFiberOrientationFile::readFile(const AString& filename) throw (DataFileException)
+CiftiFiberOrientationFile::readFile(const AString& filename)
 {
     clear();
     
@@ -523,7 +523,7 @@ CiftiFiberOrientationFile::addToDataFileContentInformation(DataFileContentInform
  *    If the file was not successfully written.
  */
 void
-CiftiFiberOrientationFile::writeFile(const AString& /*filename*/) throw (DataFileException)
+CiftiFiberOrientationFile::writeFile(const AString& /*filename*/)
 {
     throw DataFileException("Writing of Cifti Orientation Files not supported.");
 }

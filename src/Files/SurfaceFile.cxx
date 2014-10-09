@@ -157,7 +157,7 @@ public:
  * data arrays and proper data types/dimensions.
  */
 void 
-SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
+SurfaceFile::validateDataArraysAfterReading()
 {
     this->initializeMembersSurfaceFile();
     

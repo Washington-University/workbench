@@ -75,7 +75,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully read.
          */
-        virtual void readFile(const AString& filename) throw (DataFileException) = 0;
+        virtual void readFile(const AString& filename) = 0;
         
         /**
          * Write the data file.
@@ -85,7 +85,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully written.
          */
-        virtual void writeFile(const AString& filename) throw (DataFileException) = 0;
+        virtual void writeFile(const AString& filename) = 0;
         
     };
     

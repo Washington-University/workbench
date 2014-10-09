@@ -53,7 +53,7 @@ namespace caret {
          *     of the pointer and must delete it when no longer needed.
          */
         virtual ChartDataCartesian* loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                       const int32_t nodeIndex) throw (DataFileException) = 0;
+                                                       const int32_t nodeIndex) = 0;
         
         /**
          * Load average charting data for the surface with the given structure and node indices.
@@ -68,7 +68,7 @@ namespace caret {
          *     of the pointer and must delete it when no longer needed.
          */
         virtual ChartDataCartesian* loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException) = 0;
+                                                            const std::vector<int32_t>& nodeIndices) = 0;
 
         /**
          * Load charting data for the voxel enclosing the given coordinate.
@@ -80,7 +80,7 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException) = 0;
+        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) = 0;
         
         /**
          * @return The CaretMappableDataFile that implements this interface.

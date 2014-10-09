@@ -33,7 +33,7 @@ namespace caret {
     class CaretDataFileHelper {
         
     public:
-        static CaretDataFile* readAnyCaretDataFile(const AString& filename, const bool& preferOnDisk = false) throw (DataFileException);
+        static CaretDataFile* readAnyCaretDataFile(const AString& filename, const bool& preferOnDisk = false);
         
     private:
         CaretDataFileHelper();

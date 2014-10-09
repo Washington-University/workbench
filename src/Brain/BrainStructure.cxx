@@ -155,7 +155,7 @@ BrainStructure::getStructure() const
  */
 void 
 BrainStructure::addLabelFile(LabelFile* labelFile,
-                             const bool addFileToBrainStructure) throw (DataFileException)
+                             const bool addFileToBrainStructure)
 {
     CaretAssert(labelFile);
     
@@ -209,7 +209,7 @@ BrainStructure::addLabelFile(LabelFile* labelFile,
  */
 void 
 BrainStructure::addMetricFile(MetricFile* metricFile,
-                              const bool addFileToBrainStructure) throw (DataFileException)
+                              const bool addFileToBrainStructure)
 {
     CaretAssert(metricFile);
     
@@ -263,7 +263,7 @@ BrainStructure::addMetricFile(MetricFile* metricFile,
  */
 void 
 BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
-                            const bool addFileToBrainStructure) throw (DataFileException)
+                            const bool addFileToBrainStructure)
 {
     CaretAssert(rgbaFile);
     
@@ -319,7 +319,7 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
 void 
 BrainStructure::addSurface(Surface* surface,
                            const bool addFileToBrainStructure,
-                           const bool initilizeOverlaysFlag) throw (DataFileException)
+                           const bool initilizeOverlaysFlag)
 {
     CaretAssert(surface);
     

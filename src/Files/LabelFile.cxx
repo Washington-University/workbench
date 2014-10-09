@@ -142,7 +142,7 @@ LabelFile::getGroupAndNameHierarchyModel() const
  * data arrays and proper data types/dimensions.
  */
 void 
-LabelFile::validateDataArraysAfterReading() throw (DataFileException)
+LabelFile::validateDataArraysAfterReading()
 {
     this->columnDataPointers.clear();
 
@@ -451,7 +451,7 @@ void LabelFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
  */
 void 
 LabelFile::addMaps(const int32_t numberOfNodes,
-                       const int32_t numberOfMaps) throw (DataFileException)
+                       const int32_t numberOfMaps)
 {
     if (numberOfNodes <= 0) {
         throw DataFileException("When adding maps to "

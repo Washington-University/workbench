@@ -55,7 +55,7 @@ void
 PaletteColorMappingSaxReader::startElement(const AString& /* namespaceURI */,
                                          const AString& /* localName */,
                                          const AString& qName,
-                                         const XmlAttributes& attributes)  throw (XmlSaxParserException)
+                                         const XmlAttributes& attributes) 
 {
    const STATE previousState = this->state;
 
@@ -144,7 +144,7 @@ toFloatVector(const AString& s)
 void 
 PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                                        const AString& /* localName */,
-                                       const AString& qName) throw (XmlSaxParserException)
+                                       const AString& qName)
 {
    switch (state) {
       case STATE_NONE:
@@ -310,7 +310,7 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
  * get characters in an element.
  */
 void 
-PaletteColorMappingSaxReader::characters(const char* ch) throw (XmlSaxParserException)
+PaletteColorMappingSaxReader::characters(const char* ch)
 {
    this->elementText += ch;
 }
@@ -319,7 +319,7 @@ PaletteColorMappingSaxReader::characters(const char* ch) throw (XmlSaxParserExce
  * a fatal error occurs.
  */
 void 
-PaletteColorMappingSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
+PaletteColorMappingSaxReader::fatalError(const XmlSaxParserException& e)
 {
    throw e;
 }
@@ -328,26 +328,26 @@ PaletteColorMappingSaxReader::fatalError(const XmlSaxParserException& e) throw (
  * A warning occurs
  */
 void 
-PaletteColorMappingSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
+PaletteColorMappingSaxReader::warning(const XmlSaxParserException& e)
 {    
     CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void 
-PaletteColorMappingSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
+PaletteColorMappingSaxReader::error(const XmlSaxParserException& e)
 {   
     CaretLogSevere("XML Parser Error: " + e.whatString());
     throw e;
 }
 
 void 
-PaletteColorMappingSaxReader::startDocument()  throw (XmlSaxParserException)
+PaletteColorMappingSaxReader::startDocument() 
 {    
 }
 
 void 
-PaletteColorMappingSaxReader::endDocument() throw (XmlSaxParserException)
+PaletteColorMappingSaxReader::endDocument()
 {
 }
 

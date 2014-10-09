@@ -102,8 +102,7 @@ CommandClassAddMember::getHelpInformation(const AString& /*programName*/)
  *   If there is an error in the parameters.
  */
 void 
-CommandClassAddMember::executeOperation(ProgramParameters& parameters) throw (CommandException,
-                                                               ProgramParametersException)
+CommandClassAddMember::executeOperation(ProgramParameters& parameters)
 {
     bool isAddToFiles = false;
     AString headerMemberCode = "";

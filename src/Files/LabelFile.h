@@ -56,7 +56,7 @@ namespace caret {
         void setNumberOfNodesAndColumns(int32_t nodes, int32_t columns);
 
         virtual void addMaps(const int32_t numberOfNodes,
-                             const int32_t numberOfMaps) throw (DataFileException);
+                             const int32_t numberOfMaps);
         
         GiftiLabelTable* getLabelTable();
         
@@ -92,7 +92,7 @@ namespace caret {
          * has been read such as correct number of 
          * data arrays and proper data types/dimensions.
          */
-        virtual void validateDataArraysAfterReading() throw (DataFileException);
+        virtual void validateDataArraysAfterReading();
         
         void copyHelperLabelFile(const LabelFile& sf);
         

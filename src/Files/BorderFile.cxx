@@ -1237,7 +1237,7 @@ BorderFile::getFileVersionAsString()
  *    If the file was not successfully read.
  */
 void 
-BorderFile::readFile(const AString& filename) throw (DataFileException)
+BorderFile::readFile(const AString& filename)
 {
     clear();
     checkFileReadability(filename);
@@ -1313,7 +1313,7 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
  *    If the file was not successfully written.
  */
 void 
-BorderFile::writeFile(const AString& filename) throw (DataFileException)
+BorderFile::writeFile(const AString& filename)
 {
     if (canWriteAsVersion(3))
     {
@@ -1971,7 +1971,7 @@ BorderFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
  */
 void
 BorderFile::exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
-                                 const AString& outputCaret5FilesPrefix) throw (DataFileException)
+                                 const AString& outputCaret5FilesPrefix)
 {
     AString errorMessage;
     

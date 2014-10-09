@@ -161,7 +161,7 @@ StudyMetaDataLinkSet::setLinkSetFromCodedText(const AString& txt)
  * called to write XML.
  */
 void
-StudyMetaDataLinkSet::writeXML(XmlWriter& xmlWriter) const throw (XmlException)
+StudyMetaDataLinkSet::writeXML(XmlWriter& xmlWriter) const
 {
    xmlWriter.writeStartElement(XML_TAG_STUDY_META_DATA_LINK_SET);
    const int num = getNumberOfStudyMetaDataLinks();

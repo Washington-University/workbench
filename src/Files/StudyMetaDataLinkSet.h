@@ -71,7 +71,7 @@ namespace caret {
         void setLinkSetFromCodedText(const AString& txt);
         
         // called to write XML
-        void writeXML(XmlWriter& xmlWriter) const throw (XmlException);
+        void writeXML(XmlWriter& xmlWriter) const;
         
         //
         //----- tags for reading and writing 

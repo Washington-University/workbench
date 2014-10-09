@@ -74,7 +74,7 @@ TextFile::isEmpty() const
  *    If there is an error reading the file.
  */
 void 
-TextFile::readFile(const AString& filename) throw (DataFileException)
+TextFile::readFile(const AString& filename)
 {
     clear();
     checkFileReadability(filename);
@@ -106,7 +106,7 @@ TextFile::readFile(const AString& filename) throw (DataFileException)
  *    If there is an error writing the file.
  */
 void 
-TextFile::writeFile(const AString& filename) throw (DataFileException)
+TextFile::writeFile(const AString& filename)
 {
     checkFileWritability(filename);
     

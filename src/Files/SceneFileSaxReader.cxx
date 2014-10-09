@@ -88,7 +88,7 @@ void
 SceneFileSaxReader::startElement(const AString& namespaceURI,
                                  const AString& localName,
                                  const AString& qName,
-                                 const XmlAttributes& attributes)  throw (XmlSaxParserException)
+                                 const XmlAttributes& attributes) 
 {
     const STATE previousState = m_state;
     switch (m_state) {
@@ -195,7 +195,7 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
 void 
 SceneFileSaxReader::endElement(const AString& namespaceURI,
                                const AString& localName,
-                               const AString& qName) throw (XmlSaxParserException)
+                               const AString& qName)
 {
     switch (m_state) {
         case STATE_NONE:
@@ -278,7 +278,7 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
  * get characters in an element.
  */
 void 
-SceneFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
+SceneFileSaxReader::characters(const char* ch)
 {
     if (m_metaDataSaxReader != NULL) {
         m_metaDataSaxReader->characters(ch);
@@ -298,7 +298,7 @@ SceneFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
  * a fatal error occurs.
  */
 void 
-SceneFileSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SceneFileSaxReader::fatalError(const XmlSaxParserException& e)
 {
     /*
      std::ostringstream str;
@@ -319,26 +319,26 @@ SceneFileSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxPars
 
 // a warning occurs
 void 
-SceneFileSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SceneFileSaxReader::warning(const XmlSaxParserException& e)
 {    
     CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void 
-SceneFileSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SceneFileSaxReader::error(const XmlSaxParserException& e)
 {   
     CaretLogSevere("XML Parser Error: " + e.whatString());
     throw e;
 }
 
 void 
-SceneFileSaxReader::startDocument()  throw (XmlSaxParserException)
+SceneFileSaxReader::startDocument() 
 {    
 }
 
 void 
-SceneFileSaxReader::endDocument() throw (XmlSaxParserException)
+SceneFileSaxReader::endDocument()
 {
 }
 

@@ -99,7 +99,7 @@ namespace caret {
         void setLinkFromCodedText(const AString& txt);
         
         // called to write XML
-        void writeXML(XmlWriter& xmlWriter) const throw (XmlException);
+        void writeXML(XmlWriter& xmlWriter) const;
         
         /// set element from text (used by SAX XML parser)
         void setElementFromText(const AString& elementName,

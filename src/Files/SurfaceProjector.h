@@ -56,14 +56,14 @@ namespace caret {
         
         virtual ~SurfaceProjector();
         
-        void projectItemToTriangle(SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
+        void projectItemToTriangle(SurfaceProjectedItem* spi);
         
-        void projectItemToTriangleOrEdge(SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
+        void projectItemToTriangleOrEdge(SurfaceProjectedItem* spi);
         
-        void projectFociFile(FociFile* fociFile) throw (SurfaceProjectorException);
+        void projectFociFile(FociFile* fociFile);
         
         void projectFocus(const int32_t focusIndex,
-                          Focus* focus) throw (SurfaceProjectorException);
+                          Focus* focus);
         
         void setSurfaceOffset(const float surfaceOffset);
         
@@ -124,28 +124,28 @@ namespace caret {
         
         void getProjectionLocation(const SurfaceFile* surfaceFile,
                                    const float xyz[3],
-                                   ProjectionLocation& projectionLocation) const throw (SurfaceProjectorException);
+                                   ProjectionLocation& projectionLocation) const;
         
         void projectItem(SurfaceProjectedItem* spi,
-                         SurfaceProjectedItem* secondSpi) throw (SurfaceProjectorException);
+                         SurfaceProjectedItem* secondSpi);
         
         void projectItemToSurfaceFile(const SurfaceFile* surfaceFile,
-                                  SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
+                                  SurfaceProjectedItem* spi);
         
         void projectToSurface(const SurfaceFile* surfaceFile,
                               const float xyz[3],
                               SurfaceProjectedItem* spi)
-                                  throw (SurfaceProjectorException);
+                                 ;
         
         void projectToSurfaceTriangle(const SurfaceFile* surfaceFile,
                               const ProjectionLocation& projectionLocation,
                               SurfaceProjectionBarycentric* baryProj)
-                    throw (SurfaceProjectorException);
+                   ;
 
         int32_t projectToSurfaceTriangleAux(const SurfaceFile* surfaceFile,
                                             const ProjectionLocation& projectionLocation,
                                             SurfaceProjectionBarycentric* baryProj)
-                    throw (SurfaceProjectorException);
+                   ;
         
         void checkItemInTriangle(const SurfaceFile* surfaceFile,
                                  const int32_t triangleNumber,
@@ -163,13 +163,13 @@ namespace caret {
                               float areasOut[3]);
         
         void convertToTriangleProjection(const SurfaceFile* surfaceFile,
-                                         ProjectionLocation& projectionLocation) throw (SurfaceProjectorException);
+                                         ProjectionLocation& projectionLocation);
 
         
         void projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
                                           const ProjectionLocation& projectionLocation,
                                           SurfaceProjectionVanEssen* spve)
-            throw (SurfaceProjectorException);
+           ;
         
         std::vector<const SurfaceFile*> m_surfaceFiles;
         

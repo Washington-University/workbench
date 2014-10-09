@@ -60,7 +60,7 @@ void
 SpecFileSaxReader::startElement(const AString& namespaceURI,
                                          const AString& localName,
                                          const AString& qName,
-                                         const XmlAttributes& attributes)  throw (XmlSaxParserException)
+                                         const XmlAttributes& attributes) 
 {
    const STATE previousState = this->state;
    switch (this->state) {
@@ -161,7 +161,7 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
 void 
 SpecFileSaxReader::endElement(const AString& namespaceURI,
                                        const AString& localName,
-                                       const AString& qName) throw (XmlSaxParserException)
+                                       const AString& qName)
 {
    switch (this->state) {
       case STATE_NONE:
@@ -216,7 +216,7 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
  * get characters in an element.
  */
 void 
-SpecFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
+SpecFileSaxReader::characters(const char* ch)
 {
     if (this->metaDataSaxReader != NULL) {
         this->metaDataSaxReader->characters(ch);
@@ -230,7 +230,7 @@ SpecFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
  * a fatal error occurs.
  */
 void 
-SpecFileSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SpecFileSaxReader::fatalError(const XmlSaxParserException& e)
 {
 /*
    std::ostringstream str;
@@ -251,26 +251,26 @@ SpecFileSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParse
 
 // a warning occurs
 void 
-SpecFileSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SpecFileSaxReader::warning(const XmlSaxParserException& e)
 {    
     CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void 
-SpecFileSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SpecFileSaxReader::error(const XmlSaxParserException& e)
 {   
     CaretLogSevere("XML Parser Error: " + e.whatString());
     throw e;
 }
 
 void 
-SpecFileSaxReader::startDocument()  throw (XmlSaxParserException)
+SpecFileSaxReader::startDocument() 
 {    
 }
 
 void 
-SpecFileSaxReader::endDocument() throw (XmlSaxParserException)
+SpecFileSaxReader::endDocument()
 {
 }
 

@@ -72,7 +72,7 @@ namespace caret {
         
         void setValid(const bool valid);
         
-        void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        void writeAsXML(XmlWriter& xmlWriter);
         
         void readBorderFileXML1(QXmlStreamReader& xml);
         

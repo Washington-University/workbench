@@ -52,23 +52,23 @@ namespace caret {
         void startElement(const AString& namespaceURI,
                           const AString& localName,
                           const AString& qName,
-                          const XmlAttributes& attributes) throw (XmlSaxParserException);
+                          const XmlAttributes& attributes);
         
         void endElement(const AString& namspaceURI,
                         const AString& localName,
-                        const AString& qName) throw (XmlSaxParserException);
+                        const AString& qName);
         
-        void characters(const char* ch) throw (XmlSaxParserException);
+        void characters(const char* ch);
         
-        void fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException);
+        void fatalError(const XmlSaxParserException& e);
         
-        void warning(const XmlSaxParserException& e) throw (XmlSaxParserException);
+        void warning(const XmlSaxParserException& e);
         
-        void error(const XmlSaxParserException& e) throw (XmlSaxParserException);
+        void error(const XmlSaxParserException& e);
         
-        void startDocument() throw (XmlSaxParserException);
+        void startDocument();
         
-        void endDocument() throw (XmlSaxParserException);
+        void endDocument();
         
     protected:
         /// file reading states
@@ -93,11 +93,11 @@ namespace caret {
             STATE_OBJECT_MAP_VALUE
         };
         
-        void processObjectStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException);
+        void processObjectStartTag(const XmlAttributes& attributes);
         
-        void processObjectArrayStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException);
+        void processObjectArrayStartTag(const XmlAttributes& attributes);
         
-        void processObjectMapStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException);
+        void processObjectMapStartTag(const XmlAttributes& attributes);
         
         void addChildToParentClass(SceneObject* sceneObject);
         

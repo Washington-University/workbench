@@ -44,25 +44,25 @@ namespace caret {
         bool loadDataForSurfaceNode(Brain* brain,
                                     const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex,
-                                    std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
+                                    std::vector<AString>& rowColumnInformationOut);
         
         bool loadAverageDataForSurfaceNodes(Brain* brain,
                                             const SurfaceFile* surfaceFile,
-                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                            const std::vector<int32_t>& nodeIndices);
         
         bool loadDataForVoxelAtCoordinate(Brain* brain,
                                           const float xyz[3],
-                                          std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
+                                          std::vector<AString>& rowColumnInformationOut);
         
         bool loadAverageDataForVoxelIndices(Brain* brain,
                                             const int64_t volumeDimensionIJK[3],
-                                            const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
+                                            const std::vector<VoxelIJK>& voxelIndices);
 
         bool loadRowOrColumnFromParcelFile(Brain* brain,
                                            CiftiConnectivityMatrixParcelFile* parcelFile,
                                            const int32_t rowIndex,
                                            const int32_t columnIndex,
-                                           std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
+                                           std::vector<AString>& rowColumnInformationOut);
         
         bool hasNetworkFiles(Brain* brain) const;
         

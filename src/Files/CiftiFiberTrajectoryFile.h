@@ -99,24 +99,24 @@ namespace caret {
         
         virtual void updateScalarColoringForMap(const int32_t mapIndex,
                                                 const PaletteFile* paletteFile);
-        virtual void readFile(const AString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename);
         
-        virtual void writeFile(const AString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename);
         
         int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t surfaceNumberOfNodes,
-                                    const int32_t nodeIndex) throw (DataFileException);
+                                    const int32_t nodeIndex);
         
         void loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
                                             const int32_t surfaceNumberOfNodes,
-                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                            const std::vector<int32_t>& nodeIndices);
         
-        virtual int64_t loadMapDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        virtual int64_t loadMapDataForVoxelAtCoordinate(const float xyz[3]);
         
         virtual void loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                                       const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
+                                                       const std::vector<VoxelIJK>& voxelIndices);
         
-        void loadDataForRowIndex(const int64_t rowIndex) throw (DataFileException);
+        void loadDataForRowIndex(const int64_t rowIndex);
         
         const std::vector<FiberOrientationTrajectory*>& getLoadedFiberOrientationTrajectories() const;
         
@@ -140,7 +140,7 @@ namespace caret {
         
         void updateMatchingFiberOrientationFileFromList(std::vector<CiftiFiberOrientationFile*> matchingFiberOrientationFiles);
         
-        void finishRestorationOfScene() throw (DataFileException);
+        void finishRestorationOfScene();
         
         bool supportsWriting() const;
         
@@ -174,15 +174,15 @@ namespace caret {
             FIBER_TRAJECTORY_LOAD_SINGLE_ROW
         };
         
-        bool loadRowsForAveraging(const std::vector<int64_t>& rowIndices) throw (DataFileException);
+        bool loadRowsForAveraging(const std::vector<int64_t>& rowIndices);
         
         void clearPrivate();
         
-        void validateAssignedMatchingFiberOrientationFile() throw (DataFileException);
+        void validateAssignedMatchingFiberOrientationFile();
         
         void finishFiberOrientationTrajectoriesAveraging();
        
-        void writeLoadedDataToFile(const AString& filename) const throw (DataFileException);
+        void writeLoadedDataToFile(const AString& filename) const;
         
         /** True if file supports loading of data by row */
         FiberTrajectoryFileType m_fiberTrajectoryFileType;

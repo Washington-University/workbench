@@ -247,7 +247,7 @@ namespace caret {
         void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
         void saveWindowComponentStatus(WindowComponentStatus& wcs);
         
-        void openSpecFile(const AString& specFileName) throw (DataFileException);
+        void openSpecFile(const AString& specFileName);
         
         void processViewFullScreen(bool showFullScreenDisplay,
                                    const bool saveRestoreWindowStatus);

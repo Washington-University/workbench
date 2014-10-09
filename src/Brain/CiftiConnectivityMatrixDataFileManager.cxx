@@ -83,7 +83,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
                                                                       CiftiConnectivityMatrixParcelFile* parcelFile,
                                                                       const int32_t rowIndex,
                                                                       const int32_t columnIndex,
-                                                                      std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+                                                                      std::vector<AString>& rowColumnInformationOut)
 {
     CaretAssert(parcelFile);
     
@@ -171,7 +171,7 @@ bool
 CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                                                const SurfaceFile* surfaceFile,
                                                                const int32_t nodeIndex,
-                                                               std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+                                                               std::vector<AString>& rowColumnInformationOut)
 {
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
@@ -241,7 +241,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
 bool
 CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(Brain* brain,
                                                                        const SurfaceFile* surfaceFile,
-                                                                       const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                                       const std::vector<int32_t>& nodeIndices)
 {
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
@@ -286,7 +286,7 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(Brain* br
 bool
 CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brain,
                                                                      const float xyz[3],
-                                                                     std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+                                                                     std::vector<AString>& rowColumnInformationOut)
 {
     PaletteFile* paletteFile = brain->getPaletteFile();
     
@@ -357,7 +357,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
 bool
 CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(Brain* brain,
                                                                        const int64_t volumeDimensionIJK[3],
-                                                                       const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+                                                                       const std::vector<VoxelIJK>& voxelIndices)
 {
     PaletteFile* paletteFile = brain->getPaletteFile();
     

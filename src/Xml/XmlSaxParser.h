@@ -38,7 +38,7 @@ namespace caret {
     class XmlSaxParser : public CaretObject {
         
     public:
-        static XmlSaxParser* createXmlParser() throw (XmlSaxParserException);
+        static XmlSaxParser* createXmlParser();
         
         virtual ~XmlSaxParser();
         
@@ -59,7 +59,7 @@ namespace caret {
          *    If an error occurs.
          */
         virtual void parseFile(const QString& filename,
-                   XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException) = 0;
+                   XmlSaxParserHandlerInterface* handler) = 0;
         
         /**
          * Parse the contents of the strring using
@@ -74,7 +74,7 @@ namespace caret {
          *    If an error occurs.
          */
         virtual void parseString(const QString& xmlString,
-                               XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException) = 0;
+                               XmlSaxParserHandlerInterface* handler) = 0;
         
     protected:
         XmlSaxParser(const XmlSaxParser& sp);

@@ -70,7 +70,7 @@ bool
 CiftiFiberTrajectoryManager::loadDataForSurfaceNode(Brain* brain,
                                                     const SurfaceFile* surfaceFile,
                                                     const int32_t nodeIndex,
-                                                    std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+                                                    std::vector<AString>& rowColumnInformationOut)
 {
     bool dataWasLoaded = false;
     
@@ -112,7 +112,7 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(Brain* brain,
 bool
 CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(Brain* brain,
                                                             const SurfaceFile* surfaceFile,
-                                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                            const std::vector<int32_t>& nodeIndices)
 {
     bool dataWasLoaded = false;
     AString errorMessage;
@@ -154,7 +154,7 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(Brain* brain,
 bool
 CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
                                                           const float xyz[3],
-                                                          std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+                                                          std::vector<AString>& rowColumnInformationOut)
 {
     std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
     brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
@@ -198,7 +198,7 @@ CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
 bool
 CiftiFiberTrajectoryManager::loadAverageDataForVoxelIndices(Brain* brain,
                                                             const int64_t volumeDimensionIJK[3],
-                                                            const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+                                                            const std::vector<VoxelIJK>& voxelIndices)
 {
     std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
     brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);

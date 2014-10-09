@@ -74,17 +74,17 @@ namespace caret {
 
     public:
         void addLabelFile(LabelFile* labelFile,
-                          const bool addFileToBrainStructure) throw (DataFileException);
+                          const bool addFileToBrainStructure);
         
         void addMetricFile(MetricFile* metricFile,
-                           const bool addFileToBrainStructure) throw (DataFileException);
+                           const bool addFileToBrainStructure);
         
         void addRgbaFile(RgbaFile* rgbaFile,
-                         const bool addFileToBrainStructure) throw (DataFileException);
+                         const bool addFileToBrainStructure);
         
         void addSurface(Surface* surface,
                         const bool addFileToBrainStructure,
-                        const bool initilizeOverlaysFlag) throw (DataFileException);
+                        const bool initilizeOverlaysFlag);
         
         int getNumberOfSurfaces() const;
         

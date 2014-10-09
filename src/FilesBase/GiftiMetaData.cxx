@@ -490,7 +490,7 @@ GiftiMetaData::toFormattedString(const AString& indentation)
  */
 void
 GiftiMetaData::writeAsXML(XmlWriter& xmlWriter)
-            throw (GiftiException)
+           
 {
     try {
         //

@@ -502,7 +502,7 @@ FociFile::invalidateAllAssignedColors()
  *    If the file was not successfully read.
  */
 void 
-FociFile::readFile(const AString& filename) throw (DataFileException)
+FociFile::readFile(const AString& filename)
 {
     clear();
     
@@ -563,7 +563,7 @@ FociFile::readFile(const AString& filename) throw (DataFileException)
  *    If the file was not successfully written.
  */
 void 
-FociFile::writeFile(const AString& filename) throw (DataFileException)
+FociFile::writeFile(const AString& filename)
 {
     checkFileWritability(filename);
     

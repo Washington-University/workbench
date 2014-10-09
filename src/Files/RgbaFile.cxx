@@ -91,7 +91,7 @@ RgbaFile::clear()
  * data arrays and proper data types/dimensions.
  */
 void 
-RgbaFile::validateDataArraysAfterReading() throw (DataFileException)
+RgbaFile::validateDataArraysAfterReading()
 {
     this->initializeMembersRgbaFile();
     

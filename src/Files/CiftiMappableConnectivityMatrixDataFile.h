@@ -52,25 +52,25 @@ namespace caret {
                                                   const StructureEnum::Enum structure,
                                                   const int32_t nodeIndex,
                                                   int64_t& rowIndexOut,
-                                                  int64_t& columnIndexOut) throw (DataFileException);
+                                                  int64_t& columnIndexOut);
         
         virtual void loadMapAverageDataForSurfaceNodes(const int32_t mapIndex,
                                                        const int32_t surfaceNumberOfNodes,
                                                        const StructureEnum::Enum structure,
-                                                       const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                                       const std::vector<int32_t>& nodeIndices);
         
         virtual void loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                      const float xyz[3],
                                                      int64_t& rowIndexOut,
-                                                     int64_t& columnIndexOut) throw (DataFileException);
+                                                     int64_t& columnIndexOut);
 
         virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
                                                        const int64_t volumeDimensionIJK[3],
-                                                       const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
+                                                       const std::vector<VoxelIJK>& voxelIndices);
 
-        void loadDataForRowIndex(const int64_t rowIndex) throw (DataFileException);
+        void loadDataForRowIndex(const int64_t rowIndex);
         
-        void loadDataForColumnIndex(const int64_t rowIndex) throw (DataFileException);
+        void loadDataForColumnIndex(const int64_t rowIndex);
                 
         virtual void clear();
         
@@ -88,7 +88,7 @@ namespace caret {
 
         virtual void getMapData(const int32_t mapIndex, std::vector<float>& dataOut) const;
 
-//        bool loadMapData(const int32_t rowIndex) throw (DataFileException);
+//        bool loadMapData(const int32_t rowIndex);
         
         const ConnectivityDataLoaded* getConnectivityDataLoaded() const;
         

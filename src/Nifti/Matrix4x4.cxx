@@ -1909,7 +1909,7 @@ Matrix4x4::writeAsGiftiXML(XmlWriter& xmlWriter,
                            const AString& xmlMatrixTag,
                            const AString& xmlDataSpaceTag,
                            const AString& xmlTransformedSpaceTag,
-                           const AString& xmlMatrixDataTag) throw (XmlException)
+                           const AString& xmlMatrixDataTag)
 {
     xmlWriter.writeStartElement(xmlMatrixTag);
     

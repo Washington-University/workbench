@@ -58,7 +58,7 @@ void
 SurfaceProjectedItemSaxReader::startElement(const AString& /* namespaceURI */,
                                             const AString& /* localName */,
                                             const AString& qName,
-                                            const XmlAttributes& /*attributes*/)  throw (XmlSaxParserException)
+                                            const XmlAttributes& /*attributes*/) 
 {
     const STATE previousState = this->state;
     switch (state) {
@@ -145,7 +145,7 @@ SurfaceProjectedItemSaxReader::startElement(const AString& /* namespaceURI */,
 void 
 SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
                                           const AString& /* localName */,
-                                          const AString& qName) throw (XmlSaxParserException)
+                                          const AString& qName)
 {
     const AString text = this->elementText.trimmed();
     
@@ -322,7 +322,7 @@ SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
  * get characters in an element.
  */
 void 
-SurfaceProjectedItemSaxReader::characters(const char* ch) throw (XmlSaxParserException)
+SurfaceProjectedItemSaxReader::characters(const char* ch)
 {
     this->elementText += ch;
 }
@@ -331,7 +331,7 @@ SurfaceProjectedItemSaxReader::characters(const char* ch) throw (XmlSaxParserExc
  * a fatal error occurs.
  */
 void 
-SurfaceProjectedItemSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SurfaceProjectedItemSaxReader::fatalError(const XmlSaxParserException& e)
 {
     //
     // Stop parsing
@@ -342,25 +342,25 @@ SurfaceProjectedItemSaxReader::fatalError(const XmlSaxParserException& e) throw 
 
 // a warning occurs
 void 
-SurfaceProjectedItemSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SurfaceProjectedItemSaxReader::warning(const XmlSaxParserException& e)
 {    
     CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void 
-SurfaceProjectedItemSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SurfaceProjectedItemSaxReader::error(const XmlSaxParserException& e)
 {   
     throw e;
 }
 
 void 
-SurfaceProjectedItemSaxReader::startDocument()  throw (XmlSaxParserException)
+SurfaceProjectedItemSaxReader::startDocument() 
 {    
 }
 
 void 
-SurfaceProjectedItemSaxReader::endDocument() throw (XmlSaxParserException)
+SurfaceProjectedItemSaxReader::endDocument()
 {
 }
 

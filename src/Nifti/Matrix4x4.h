@@ -171,7 +171,7 @@ public:
                          const AString& xmlMatrixTag,
                          const AString& xmlDataSpaceTag,
                          const AString& xmlTransformedSpaceTag,
-                         const AString& xmlMatrixDataTag) throw (XmlException);
+                         const AString& xmlMatrixDataTag);
     
 private:
     double fixZero(const double f);

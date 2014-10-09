@@ -159,7 +159,7 @@ CiftiParcelScalarFile::setBrainordinateChartingEnabled(const int32_t tabIndex,
  */
 ChartDataCartesian*
 CiftiParcelScalarFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                               const int32_t nodeIndex) throw (DataFileException)
+                                                               const int32_t nodeIndex)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNode(structure,
                                                            nodeIndex);
@@ -215,7 +215,7 @@ CiftiParcelScalarFile::loadBrainordinateChartDataForSurfaceNode(const StructureE
  */
 ChartDataCartesian*
 CiftiParcelScalarFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                                      const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                                      const std::vector<int32_t>& nodeIndices)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNodeAverage(structure,
                                                                   nodeIndices);
@@ -233,7 +233,7 @@ CiftiParcelScalarFile::loadAverageBrainordinateChartDataForSurfaceNodes(const St
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiParcelScalarFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+CiftiParcelScalarFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3])
 {
     ChartDataCartesian* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;

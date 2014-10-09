@@ -44,9 +44,9 @@ namespace caret {
         
         virtual void setFileName(const AString& filename);
         
-        virtual void readFile(const AString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename);
         
-        virtual void writeFile(const AString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename);
 
         // ADD_NEW_METHODS_HERE
 

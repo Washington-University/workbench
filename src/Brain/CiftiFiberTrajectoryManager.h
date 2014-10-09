@@ -41,18 +41,18 @@ namespace caret {
         bool loadDataForSurfaceNode(Brain* brain,
                                     const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex,
-                                    std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
+                                    std::vector<AString>& rowColumnInformationOut);
         
         bool loadDataAverageForSurfaceNodes(Brain* brain,
                                             const SurfaceFile* surfaceFile,
-                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                            const std::vector<int32_t>& nodeIndices);
         bool loadDataForVoxelAtCoordinate(Brain* brain,
                                           const float xyz[3],
-                                          std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
+                                          std::vector<AString>& rowColumnInformationOut);
         
         bool loadAverageDataForVoxelIndices(Brain* brain,
                                             const int64_t volumeDimensionIJK[3],
-                                            const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
+                                            const std::vector<VoxelIJK>& voxelIndices);
         
         // ADD_NEW_METHODS_HERE
         

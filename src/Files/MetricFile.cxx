@@ -100,7 +100,7 @@ MetricFile::clear()
  * data arrays and proper data types/dimensions.
  */
 void 
-MetricFile::validateDataArraysAfterReading() throw (DataFileException)
+MetricFile::validateDataArraysAfterReading()
 {
     this->columnDataPointers.clear();
 
@@ -296,7 +296,7 @@ void MetricFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
  */
 void 
 MetricFile::addMaps(const int32_t numberOfNodes,
-                       const int32_t numberOfMaps) throw (DataFileException)
+                       const int32_t numberOfMaps)
 {
     if (numberOfNodes <= 0) {
         throw DataFileException("When adding maps to "
@@ -483,7 +483,7 @@ MetricFile::getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnu
  */
 ChartDataCartesian*
 MetricFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                          const int32_t nodeIndex) throw (DataFileException)
+                                                          const int32_t nodeIndex)
 {
     ChartDataCartesian* chartData = NULL;
 
@@ -532,7 +532,7 @@ MetricFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum s
  */
 ChartDataCartesian*
 MetricFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                                  const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                                  const std::vector<int32_t>& nodeIndices)
 {
     ChartDataCartesian* chartData = NULL;
     
@@ -600,7 +600,7 @@ MetricFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-MetricFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float * /*xyz[3]*/) throw (DataFileException)
+MetricFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float * /*xyz[3]*/)
 {
     ChartDataCartesian* chartData = NULL; //helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;

@@ -90,7 +90,7 @@ GiftiFileWriter::~GiftiFileWriter()
 void 
 GiftiFileWriter::start(const int numberOfDataArrays,
            GiftiMetaData* metadata,
-           GiftiLabelTable* labelTable) throw (GiftiException)
+           GiftiLabelTable* labelTable)
 {
     this->numberOfDataArrays = numberOfDataArrays;
     
@@ -178,7 +178,7 @@ GiftiFileWriter::start(const int numberOfDataArrays,
  * @throws GiftiException - If an error occurs.
  */
 void 
-GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
+GiftiFileWriter::writeDataArray(GiftiDataArray* gda)
 {
     this->verifyOpened();
     
@@ -244,7 +244,7 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
  *   does not match number of data arrays passed to start() method.
  */
 void 
-GiftiFileWriter::finish() throw (GiftiException)
+GiftiFileWriter::finish()
 {
     this->verifyOpened();
     
@@ -320,7 +320,7 @@ GiftiFileWriter::closeFiles()
  * @throws GiftiException If file was not opened properly.
  */
 void 
-GiftiFileWriter::verifyOpened() throw (GiftiException)
+GiftiFileWriter::verifyOpened()
 {
     if (this->xmlWriter == NULL) {
         throw GiftiException("Trying to write to file named \""
@@ -337,7 +337,7 @@ GiftiFileWriter::verifyOpened() throw (GiftiException)
  * @throws GiftiException - If unable to delete a file.
  */
 void 
-GiftiFileWriter::removeExternalFiles() throw (GiftiException)
+GiftiFileWriter::removeExternalFiles()
 {
     int maxFiles = 50;  // more than enough
     for (int counter = -1; counter <= maxFiles; counter++) {

@@ -587,7 +587,7 @@ GiftiDataArray::readFromText(const AString text,
                              const GiftiEncodingEnum::Enum encodingForReading,
                              const AString& externalFileNameForReading,
                              const int64_t externalFileOffsetForReading,
-                             const bool isReadOnlyMetaData) throw (GiftiException)
+                             const bool isReadOnlyMetaData)
 {
    const NiftiDataTypeEnum::Enum requiredDataType = dataType;
    dataType = dataTypeForReading;
@@ -821,7 +821,7 @@ GiftiDataArray::readFromText(const AString text,
  * convert array indexing order of data.
  */
 void
-GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
+GiftiDataArray::convertArrayIndexingOrder()
 {
     const int32_t numDim = static_cast<int32_t>(dimensions.size());
 
@@ -1013,7 +1013,7 @@ void
 GiftiDataArray::writeAsXML(std::ostream& stream, 
                            std::ostream* externalBinaryOutputStream,
                            GiftiEncodingEnum::Enum encodingForWriting) 
-                                                throw (GiftiException)
+                                               
 {
     this->encoding = encodingForWriting;
     
@@ -1263,7 +1263,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
  * convert to data type.
  */
 void 
-GiftiDataArray::convertToDataType(const NiftiDataTypeEnum::Enum newDataType) throw (GiftiException)
+GiftiDataArray::convertToDataType(const NiftiDataTypeEnum::Enum newDataType)
 {
    if (newDataType != dataType) {      
       //

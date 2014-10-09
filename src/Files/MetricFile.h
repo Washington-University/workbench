@@ -56,7 +56,7 @@ namespace caret {
         virtual void setNumberOfNodesAndColumns(int32_t nodes, int32_t columns);
 
         virtual void addMaps(const int32_t numberOfNodes,
-                             const int32_t numberOfMaps) throw (DataFileException);
+                             const int32_t numberOfMaps);
         
         float getValue(const int32_t nodeIndex,
                        const int32_t columnIndex) const;
@@ -82,12 +82,12 @@ namespace caret {
         virtual bool isBrainordinateChartingSupported() const;
         
         virtual ChartDataCartesian* loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                                const int32_t nodeIndex) throw (DataFileException);
+                                                                const int32_t nodeIndex);
         
         virtual ChartDataCartesian* loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                                        const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                                                        const std::vector<int32_t>& nodeIndices);
         
-        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]);
         
         
         virtual void getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
@@ -98,7 +98,7 @@ namespace caret {
          * has been read such as correct number of 
          * data arrays and proper data types/dimensions.
          */
-        virtual void validateDataArraysAfterReading() throw (DataFileException);
+        virtual void validateDataArraysAfterReading();
         
         void copyHelperMetricFile(const MetricFile& sf);
         

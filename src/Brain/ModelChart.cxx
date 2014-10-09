@@ -156,7 +156,7 @@ ModelChart::removeAllCharts()
 void
 ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                          const int32_t surfaceNumberOfNodes,
-                                         const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                         const std::vector<int32_t>& nodeIndices)
 {
     std::map<ChartableBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
     getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
@@ -191,7 +191,7 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
  *     DataFileException if there is an error loading data.
  */
 void
-ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3])
 {
     std::map<ChartableBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
     getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
@@ -326,7 +326,7 @@ ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableBrainordinateI
 void
 ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                         const int32_t surfaceNumberOfNodes,
-                                        const int32_t nodeIndex) throw (DataFileException)
+                                        const int32_t nodeIndex)
 {
     std::map<ChartableBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
     getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);

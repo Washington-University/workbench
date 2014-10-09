@@ -101,17 +101,17 @@ namespace caret
                                   const AString& localName,
                                   const AString& qName,
                                   const XmlAttributes& atts) 
-                      throw (XmlSaxParserException);
+                     ;
         virtual void endElement(const AString& namespaceURI,
                                        const AString& localName,
                                        const AString& qualifiedName) 
-                      throw (XmlSaxParserException);
-        virtual void characters(const char* ch) throw (XmlSaxParserException);
-        virtual void warning(const XmlSaxParserException& exception) throw (XmlSaxParserException);
-        virtual void error(const XmlSaxParserException& exception) throw (XmlSaxParserException);
-        virtual void fatalError(const XmlSaxParserException& exception) throw (XmlSaxParserException);
-        virtual void startDocument() throw (XmlSaxParserException);
-        virtual void endDocument() throw (XmlSaxParserException);
+                     ;
+        virtual void characters(const char* ch);
+        virtual void warning(const XmlSaxParserException& exception);
+        virtual void error(const XmlSaxParserException& exception);
+        virtual void fatalError(const XmlSaxParserException& exception);
+        virtual void startDocument();
+        virtual void endDocument();
     };
 
 }

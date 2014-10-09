@@ -174,9 +174,9 @@ namespace caret {
         
 //        virtual void setPreferOnDiskReading(const bool& prefer);
         
-        virtual void readFile(const AString& ciftiMapFileName) throw (DataFileException);
+        virtual void readFile(const AString& ciftiMapFileName);
         
-        virtual void writeFile(const AString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename);
         
         virtual bool isSurfaceMappable() const;
         
@@ -388,7 +388,7 @@ namespace caret {
         
         void setMapDataForSurface(const int32_t mapIndex,
                                   const StructureEnum::Enum structure,
-                                  const std::vector<float> surfaceMapData) throw (DataFileException);
+                                  const std::vector<float> surfaceMapData);
         
         bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut,
                                                     const StructureEnum::Enum &structure,
@@ -403,7 +403,7 @@ namespace caret {
                                           bool& surfaceNodeValidOut,
                                           int64_t voxelIJKOut[3],
                                           float voxelXYZOut[3],
-                                          bool& voxelValidOut) const throw (DataFileException);
+                                          bool& voxelValidOut) const;
         
     private:
         
@@ -435,12 +435,12 @@ namespace caret {
         void updateForChangeInMapDataWithMapIndex(const int32_t mapIndex);
         
         ChartDataCartesian* helpLoadChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                       const int32_t nodeIndex) throw (DataFileException);
+                                                       const int32_t nodeIndex);
         
         ChartDataCartesian* helpLoadChartDataForSurfaceNodeAverage(const StructureEnum::Enum structure,
-                                                          const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                                          const std::vector<int32_t>& nodeIndices);
         
-        ChartDataCartesian* helpLoadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        ChartDataCartesian* helpLoadChartDataForVoxelAtCoordinate(const float xyz[3]);
         
         void helpMapFileGetMatrixDimensions(int32_t& numberOfRowsOut,
                                             int32_t& numberOfColumnsOut) const;
@@ -579,15 +579,15 @@ namespace caret {
         void clearPrivate();
         
     protected:
-        void initializeAfterReading(const AString& filename) throw (DataFileException);
+        void initializeAfterReading(const AString& filename);
         
-        void validateMappingTypes(const AString& filename) throw (DataFileException);
+        void validateMappingTypes(const AString& filename);
         
         void resetDataLoadingMembers();
         
         void validateKeysAndLabels() const;
         
-        virtual void validateAfterFileReading() throw (DataFileException);
+        virtual void validateAfterFileReading();
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);

@@ -93,7 +93,7 @@ namespace caret {
     private:
         void copyHelperTileTabsConfiguration(const TileTabsConfiguration& obj);
 
-        void parseVersionOneXML(QDomDocument& doc) throw (CaretException);
+        void parseVersionOneXML(QDomDocument& doc);
         
         void initialize();
         

@@ -77,7 +77,7 @@ namespace caret {
                                   const AString& localName,
                                   const AString& qName,
                                   const XmlAttributes& atts) 
-                      throw (XmlSaxParserException) = 0;
+                      = 0;
         
         /**
          * Receive notification of an end element.
@@ -102,7 +102,7 @@ namespace caret {
         virtual void endElement(const AString& namespaceURI,
                                        const AString& localName,
                                        const AString& qualifiedName) 
-                      throw (XmlSaxParserException) = 0;
+                      = 0;
         
         /**
          * Receive notification of characters.  
@@ -115,7 +115,7 @@ namespace caret {
          *
          * @param ch The characters from the XML document.
          */
-        virtual void characters(const char* ch) throw (XmlSaxParserException) = 0;
+        virtual void characters(const char* ch) = 0;
 
         /**
          * Receive notification of a warning.
@@ -135,7 +135,7 @@ namespace caret {
          * @param XmlSaxParserExcetion
          *     Thrown to stop parsing.
          */
-        virtual void warning(const XmlSaxParserException& exception) throw (XmlSaxParserException) = 0;
+        virtual void warning(const XmlSaxParserException& exception) = 0;
         
         /**
          * Receive notification of a recoverable error.
@@ -159,7 +159,7 @@ namespace caret {
          * @param XmlSaxParserExcetion
          *     Thrown to stop parsing.
          */
-        virtual void error(const XmlSaxParserException& exception) throw (XmlSaxParserException) = 0;
+        virtual void error(const XmlSaxParserException& exception) = 0;
         
         /**
          * Receive notification of a non-recoverable error.
@@ -186,7 +186,7 @@ namespace caret {
          * @param XmlSaxParserExcetion
          *     Thrown to stop parsing.
          */
-        virtual void fatalError(const XmlSaxParserException& exception) throw (XmlSaxParserException) = 0;
+        virtual void fatalError(const XmlSaxParserException& exception) = 0;
         
         /**
          * Receive notification of the beginning of a document.
@@ -194,7 +194,7 @@ namespace caret {
          * @throws XmlParsingException  
          *        If an error is encountered and parsing should cease.
          */
-        virtual void startDocument() throw (XmlSaxParserException) = 0;
+        virtual void startDocument() = 0;
 
         /** 
          * Receive notification of the end of a document.
@@ -202,7 +202,7 @@ namespace caret {
          * @throws XmlParsingException  
          *        If an error is encountered and parsing should cease.
          */
-        virtual void endDocument() throw (XmlSaxParserException) = 0;
+        virtual void endDocument() = 0;
     };
     
 } // namespace

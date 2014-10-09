@@ -44,10 +44,10 @@ namespace caret {
          
         void start(const int numberOfDataArrays,
                    GiftiMetaData* metadata,
-                   GiftiLabelTable* labelTable) throw (GiftiException);
-        void writeDataArray(GiftiDataArray* gda) throw (GiftiException);
+                   GiftiLabelTable* labelTable);
+        void writeDataArray(GiftiDataArray* gda);
         
-        void finish() throw (GiftiException);
+        void finish();
         
         long getMaximumExternalFileSize() const;
         
@@ -60,9 +60,9 @@ namespace caret {
         
         void closeFiles();
         
-        void verifyOpened() throw (GiftiException);
+        void verifyOpened();
         
-        void removeExternalFiles() throw (GiftiException);
+        void removeExternalFiles();
         
         AString getExternalFileNamePrefix() const;
         

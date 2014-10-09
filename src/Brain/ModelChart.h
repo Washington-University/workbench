@@ -64,13 +64,13 @@ namespace caret {
         
         void loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                          const int32_t surfaceNumberOfNodes,
-                                         const int32_t nodeIndex) throw (DataFileException);
+                                         const int32_t nodeIndex);
         
         void loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                  const int32_t surfaceNumberOfNodes,
-                                                               const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                                               const std::vector<int32_t>& nodeIndices);
         
-        void loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        void loadChartDataForVoxelAtCoordinate(const float xyz[3]);
         
         OverlaySet* getOverlaySet(const int tabIndex);
         

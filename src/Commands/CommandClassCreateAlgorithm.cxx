@@ -85,8 +85,7 @@ CommandClassCreateAlgorithm::getHelpInformation(const AString& /*programName*/)
  *   If there is an error in the parameters.
  */
 void 
-CommandClassCreateAlgorithm::executeOperation(ProgramParameters& parameters) throw (CommandException,
-                                                               ProgramParametersException)
+CommandClassCreateAlgorithm::executeOperation(ProgramParameters& parameters)
 {
     const AString algorithmClassName = parameters.nextString("Algorithm Class Name");
     const AString commandLineSwitch  = parameters.nextString("Command Line Switch");

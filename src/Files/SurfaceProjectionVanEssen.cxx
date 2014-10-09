@@ -810,7 +810,7 @@ SurfaceProjectionVanEssen::setValid(const bool valid)
  *   If an error occurs.
  */
 void 
-SurfaceProjectionVanEssen::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
+SurfaceProjectionVanEssen::writeAsXML(XmlWriter& xmlWriter)
 {
     if (this->projectionValid) {
         xmlWriter.writeStartElement(XML_TAG_PROJECTION_VAN_ESSEN);

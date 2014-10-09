@@ -138,7 +138,7 @@ CaretTemporaryFile::setFileName(const AString& filename)
  *    If the file was not successfully read.
  */
 void
-CaretTemporaryFile::readFile(const AString& filename) throw (DataFileException)
+CaretTemporaryFile::readFile(const AString& filename)
 {
     if (DataFile::isFileOnNetwork(filename)) {
         /*
@@ -241,7 +241,7 @@ CaretTemporaryFile::readFile(const AString& filename) throw (DataFileException)
  *    If the file was not successfully written.
  */
 void
-CaretTemporaryFile::writeFile(const AString& filename) throw (DataFileException)
+CaretTemporaryFile::writeFile(const AString& filename)
 {
     checkFileWritability(filename);
     

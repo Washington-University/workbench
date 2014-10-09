@@ -99,7 +99,7 @@ ProgramParameters::hasNext() const
  */
 void
 ProgramParameters::verifyAllParametersProcessed()
-            throw (ProgramParametersException)
+           
 {
     if (this->hasNext()) {
         throw ProgramParametersException("Unexpected parameter: " + nextString("unexpected"));
@@ -116,7 +116,7 @@ ProgramParameters::verifyAllParametersProcessed()
  */
 AString
 ProgramParameters::nextString(const AString& parameterName)
-            throw (ProgramParametersException)
+           
 {
     if (this->hasNext() == false) {
         throw ProgramParametersException(parameterName + " is missing (No more parameters).");
@@ -142,7 +142,7 @@ ProgramParameters::nextString(const AString& parameterName)
  */
 bool
 ProgramParameters::nextBoolean(const AString& parameterName)
-            throw (ProgramParametersException)
+           
 {
     AString s = this->nextString(parameterName).toLower();
     if ((s == "true")
@@ -170,7 +170,7 @@ ProgramParameters::nextBoolean(const AString& parameterName)
  */
 int32_t
 ProgramParameters::nextInt(const AString& parameterName)
-            throw (ProgramParametersException)
+           
 {
     AString s = this->nextString(parameterName);
     bool ok = false;
@@ -193,7 +193,7 @@ ProgramParameters::nextInt(const AString& parameterName)
  */
 int64_t
 ProgramParameters::nextLong(const AString& parameterName)
-            throw (ProgramParametersException)
+           
 {
     AString s = this->nextString(parameterName);
     bool ok = false;
@@ -216,7 +216,7 @@ ProgramParameters::nextLong(const AString& parameterName)
  */
 float
 ProgramParameters::nextFloat(const AString& parameterName)
-            throw (ProgramParametersException)
+           
 {
     AString s = this->nextString(parameterName);
     bool ok = false;
@@ -239,7 +239,7 @@ ProgramParameters::nextFloat(const AString& parameterName)
  */
 double
 ProgramParameters::nextDouble(const AString& parameterName)
-            throw (ProgramParametersException)
+           
 {
     AString s = this->nextString(parameterName);
     bool ok = false;

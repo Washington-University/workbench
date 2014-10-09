@@ -99,9 +99,9 @@ namespace caret {
         
         void clearModified();
         
-        virtual void readFile(const AString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename);
         
-        virtual void writeFile(const AString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename);
         
         virtual StructureEnum::Enum getStructure() const;
         

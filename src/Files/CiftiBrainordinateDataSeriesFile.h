@@ -45,12 +45,12 @@ namespace caret {
         virtual bool isBrainordinateChartingSupported() const;
         
         virtual ChartDataCartesian* loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                                                   const int32_t nodeIndex) throw (DataFileException);
+                                                                                   const int32_t nodeIndex);
         
         virtual ChartDataCartesian* loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                               const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                                               const std::vector<int32_t>& nodeIndices);
         
-        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]);
         
         
         virtual void getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;

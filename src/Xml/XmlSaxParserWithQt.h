@@ -47,10 +47,10 @@ namespace caret {
         virtual ~XmlSaxParserWithQt();
 
         virtual void parseFile(const QString& filename,
-                   XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
+                   XmlSaxParserHandlerInterface* handler);
         
         virtual void parseString(const QString& xmlString,
-                           XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
+                           XmlSaxParserHandlerInterface* handler);
         
     private:
         XmlSaxParserWithQt(const XmlSaxParserWithQt& sp);

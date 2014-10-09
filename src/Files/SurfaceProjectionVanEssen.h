@@ -107,7 +107,7 @@ namespace caret {
         
         virtual AString toString() const;
         
-        void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        void writeAsXML(XmlWriter& xmlWriter);
         
         static  const AString XML_TAG_PROJECTION_VAN_ESSEN;
         

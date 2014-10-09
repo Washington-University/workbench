@@ -91,7 +91,7 @@ namespace caret {
          * @throw XmlException
          *   If an error occurs.
          */
-        virtual void writeAsXML(XmlWriter& xmlWriter) throw (XmlException) = 0;
+        virtual void writeAsXML(XmlWriter& xmlWriter) = 0;
         
         /* @return a string describing the projection */
         virtual AString toString() const;

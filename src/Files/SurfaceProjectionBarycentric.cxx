@@ -409,7 +409,7 @@ SurfaceProjectionBarycentric::resetAllValues()
  *   If an error occurs.
  */
 void 
-SurfaceProjectionBarycentric::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
+SurfaceProjectionBarycentric::writeAsXML(XmlWriter& xmlWriter)
 {
     /*
      * Note: Degenerate status is not saved!

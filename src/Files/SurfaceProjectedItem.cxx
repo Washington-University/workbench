@@ -492,7 +492,7 @@ SurfaceProjectedItem::getVanEssenProjection() const
  *   Writer for XML output.
  */
 void 
-SurfaceProjectedItem::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
+SurfaceProjectedItem::writeAsXML(XmlWriter& xmlWriter)
 {
     xmlWriter.writeStartElement(XML_TAG_SURFACE_PROJECTED_ITEM);
     xmlWriter.writeElementCharacters(XML_TAG_STRUCTURE, StructureEnum::toName(this->structure));

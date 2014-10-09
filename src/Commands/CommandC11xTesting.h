@@ -34,9 +34,7 @@ namespace caret {
         
         virtual ~CommandC11xTesting();
 
-        virtual void executeOperation(ProgramParameters& parameters) 
-            throw (CommandException,
-                   ProgramParametersException);
+        virtual void executeOperation(ProgramParameters& parameters);
             
         AString getHelpInformation(const AString& /*programName*/);
         

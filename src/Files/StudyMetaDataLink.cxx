@@ -241,7 +241,7 @@ StudyMetaDataLink::setElementFromText(const AString& elementName,
  * called to write XML.
  */
 void
-StudyMetaDataLink::writeXML(XmlWriter& xmlWriter) const throw (XmlException)
+StudyMetaDataLink::writeXML(XmlWriter& xmlWriter) const
 {
    xmlWriter.writeStartElement(XML_TAG_STUDY_META_DATA_LINK);
    xmlWriter.writeElementCData(XML_TAG_PUBMED_ID, m_pubMedID);

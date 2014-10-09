@@ -70,9 +70,9 @@ namespace caret {
         
         const GiftiMetaData* getFileMetaData() const;
         
-        void readFile(const AString& filename) throw (DataFileException);
+        void readFile(const AString& filename);
         
-        void writeFile(const AString& filename) throw (DataFileException);
+        void writeFile(const AString& filename);
         
         void writeFile(const AString& filename, const int& version);
         
@@ -162,7 +162,7 @@ namespace caret {
         static AString getFileVersionAsString();
         
         void exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
-                                  const AString& outputCaret5FilesPrefix) throw (DataFileException);
+                                  const AString& outputCaret5FilesPrefix);
         
         AString getObsoleteMultiStructureFormatMessage();
         

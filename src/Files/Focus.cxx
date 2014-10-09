@@ -765,7 +765,7 @@ Focus::getStudyMetaDataLinkSet() const
  */
 void 
 Focus::writeAsXML(XmlWriter& xmlWriter,
-                  const int32_t focusIndex) throw (XmlException)
+                  const int32_t focusIndex)
 {
     XmlAttributes atts;
     atts.addAttribute(XML_ATTRIBUTE_FOCUS_INDEX, focusIndex);

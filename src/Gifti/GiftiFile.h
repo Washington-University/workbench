@@ -68,12 +68,12 @@ class GiftiFile : public DataFile {
       void addRows(const int32_t numberOfRowsToAdd);
 
       // append a data array file to this one
-      virtual void append(const GiftiFile& naf) throw (GiftiException);
+      virtual void append(const GiftiFile& naf);
 
       // append a data array file to this one but selectively load/overwrite arraysumns
       // arrayDestination is where naf's arrays should be (-1=new, -2=do not load)
       virtual void append(const GiftiFile& naf, 
-                          std::vector<int32_t>& indexDestinationg) throw (GiftiException);
+                          std::vector<int32_t>& indexDestinationg);
 
       /// compare a file for unit testing (returns true if "within tolerance")
       virtual bool compareFileForUnitTesting(const GiftiFile* gf,
@@ -179,10 +179,10 @@ class GiftiFile : public DataFile {
       void setNumberOfNodesForSparseNodeIndexFiles(const int32_t numNodes);
       
     // read the XML file 
-    virtual void readFile(const AString& filename) throw (DataFileException);
+    virtual void readFile(const AString& filename);
     
     // write the XML file
-    virtual void writeFile(const AString& filename) throw (DataFileException);
+    virtual void writeFile(const AString& filename);
     
     bool getReadMetaDataOnlyFlag() const { return false; }
     
@@ -208,10 +208,10 @@ class GiftiFile : public DataFile {
       
       
       // process NIFTI_INTENT_NODE_INDEX arrays
-      void procesNiftiIntentNodeIndexArrays() throw (GiftiException);
+      void procesNiftiIntentNodeIndexArrays();
 
       // validate the data arrays (optional for subclasses)
-      virtual void validateDataArrays() throw (GiftiException);
+      virtual void validateDataArrays();
 
       /// the data arrays
       std::vector<GiftiDataArray*> dataArrays;

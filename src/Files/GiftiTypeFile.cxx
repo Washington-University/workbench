@@ -140,7 +140,7 @@ GiftiTypeFile::isEmpty() const
  *    If there is an error reading the file.
  */
 void 
-GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
+GiftiTypeFile::readFile(const AString& filename)
 {
     clear();
     
@@ -162,7 +162,7 @@ GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
  *    If there is an error writing the file.
  */
 void 
-GiftiTypeFile::writeFile(const AString& filename) throw (DataFileException)
+GiftiTypeFile::writeFile(const AString& filename)
 {
     checkFileWritability(filename);
     this->giftiFile->writeFile(filename);
@@ -265,7 +265,7 @@ GiftiTypeFile::setStructure(const StructureEnum::Enum structure)
  */
 void 
 GiftiTypeFile::addMaps(const int32_t /*numberOfNodes*/,
-                       const int32_t /*numberOfMaps*/) throw (DataFileException)
+                       const int32_t /*numberOfMaps*/)
 {
     throw DataFileException("This file, "
                             + this->getFileNameNoPath()
@@ -297,7 +297,7 @@ GiftiTypeFile::getFileMetaData() const
  */
 void 
 GiftiTypeFile::verifyDataArraysHaveSameNumberOfRows(const int32_t minimumSecondDimension,
-                                                    const int32_t maximumSecondDimension) const throw (DataFileException)
+                                                    const int32_t maximumSecondDimension) const
 {
     const int32_t numberOfArrays = this->giftiFile->getNumberOfDataArrays();
     if (numberOfArrays > 1) {

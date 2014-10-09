@@ -67,9 +67,9 @@ public:
     
     void setFromQImage(const QImage& img);
     
-    virtual void readFile(const AString& filename) throw (DataFileException);
+    virtual void readFile(const AString& filename);
     
-    virtual void writeFile(const AString& filename) throw (DataFileException);
+    virtual void writeFile(const AString& filename);
     
     void cropImageRemoveBackground(const int marginSize,
                                    const uint8_t backgroundColor[3]);
@@ -96,10 +96,10 @@ public:
     void resizeToWidth(const int32_t width);
     
     void getImageInByteArray(QByteArray& byteArrayOut,
-                             const AString& format) const throw (DataFileException);
+                             const AString& format) const;
     
     void setImageFromByteArray(const QByteArray& byteArray,
-                               const AString& format) throw (DataFileException);
+                               const AString& format);
     
     void combinePreservingAspectAndFillIfNeeded(const std::vector<ImageFile*>& imageFiles,
                                                 const int numImagesPerRow,
@@ -118,12 +118,12 @@ private:
     
     void insertImage(const QImage& otherImage,
                      const int x,
-                     const int y) throw (DataFileException);
+                     const int y);
     
     static void insertImage(const QImage& insertThisImage,
                             QImage& intoThisImage,
                             const int positionX,
-                            const int positionY) throw (DataFileException);
+                            const int positionY);
     
     QImage* m_image;
 };

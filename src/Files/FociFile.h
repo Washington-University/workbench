@@ -51,9 +51,9 @@ namespace caret {
         
         void setStructure(const StructureEnum::Enum structure);
         
-        void readFile(const AString& filename) throw (DataFileException);
+        void readFile(const AString& filename);
         
-        void writeFile(const AString& filename) throw (DataFileException);
+        void writeFile(const AString& filename);
         
         void clear();
         

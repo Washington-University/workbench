@@ -112,7 +112,7 @@ CiftiBrainordinateDataSeriesFile::setBrainordinateChartingEnabled(const int32_t 
  */
 ChartDataCartesian*
 CiftiBrainordinateDataSeriesFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                               const int32_t nodeIndex) throw (DataFileException)
+                                                               const int32_t nodeIndex)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNode(structure,
                                                            nodeIndex);
@@ -224,7 +224,7 @@ CiftiBrainordinateDataSeriesFile::loadBrainordinateChartDataForSurfaceNode(const
  */
 ChartDataCartesian*
 CiftiBrainordinateDataSeriesFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                                      const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                                      const std::vector<int32_t>& nodeIndices)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNodeAverage(structure,
                                                                   nodeIndices);
@@ -242,7 +242,7 @@ CiftiBrainordinateDataSeriesFile::loadAverageBrainordinateChartDataForSurfaceNod
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiBrainordinateDataSeriesFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+CiftiBrainordinateDataSeriesFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3])
 {
     ChartDataCartesian* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;

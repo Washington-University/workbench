@@ -201,7 +201,7 @@ DataFile::isFileOnNetwork(const AString& filename)
  *    If there is a problem that will prevent the file from being read.
  */
 void
-DataFile::checkFileReadability(const AString& filename) throw (DataFileException)
+DataFile::checkFileReadability(const AString& filename)
 {
     if (filename.isEmpty()) {
         throw DataFileException("Name of file for reading is empty.");
@@ -241,7 +241,7 @@ DataFile::checkFileReadability(const AString& filename) throw (DataFileException
  *    If there is a problem that will prevent the file from being read.
  */
 void
-DataFile::checkFileWritability(const AString& filename) throw (DataFileException)
+DataFile::checkFileWritability(const AString& filename)
 {
     if (filename.isEmpty()) {
         throw DataFileException("Name of file for writing is empty.");

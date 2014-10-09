@@ -57,26 +57,19 @@ public:
 
     bool hasNext() const;
 
-    void verifyAllParametersProcessed()
-            throw (ProgramParametersException);
+    void verifyAllParametersProcessed();
 
-    AString nextString(const AString& parameterName)
-            throw (ProgramParametersException);
+    AString nextString(const AString& parameterName);
 
-    bool nextBoolean(const AString& parameterName)
-            throw (ProgramParametersException);
+    bool nextBoolean(const AString& parameterName);
 
-    int32_t nextInt(const AString& parameterName)
-            throw (ProgramParametersException);
+    int32_t nextInt(const AString& parameterName);
 
-    int64_t nextLong(const AString& parameterName)
-            throw (ProgramParametersException);
+    int64_t nextLong(const AString& parameterName);
 
-    float nextFloat(const AString& parameterName)
-            throw (ProgramParametersException);
+    float nextFloat(const AString& parameterName);
 
-    double nextDouble(const AString& parameterName)
-            throw (ProgramParametersException);
+    double nextDouble(const AString& parameterName);
 
     void backup();
 

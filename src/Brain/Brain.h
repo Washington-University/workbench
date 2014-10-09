@@ -312,7 +312,7 @@ namespace caret {
         void getAllModifiedFiles(const std::vector<DataFileTypeEnum::Enum>& excludeTheseDataTypes,
                                  std::vector<CaretDataFile*>& modifiedDataFilesOut) const;
         
-        void writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
+        void writeDataFile(CaretDataFile* caretDataFile);
         
         DisplayPropertiesBorders* getDisplayPropertiesBorders();
         
@@ -389,7 +389,7 @@ namespace caret {
             FILE_MODE_RELOAD
         };
         
-        void addDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
+        void addDataFile(CaretDataFile* caretDataFile);
         
         bool removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile);
         
@@ -414,7 +414,7 @@ namespace caret {
         CaretDataFile* readDataFile(const DataFileTypeEnum::Enum dataFileType,
                           const StructureEnum::Enum structure,
                           const AString& dataFileName,
-                          const bool markDataFileAsModified) throw (DataFileException);
+                          const bool markDataFileAsModified);
         
         /**
          * Is the data file with the given name already loaded?
@@ -509,7 +509,7 @@ namespace caret {
                                             const DataFileTypeEnum::Enum dataFileType,
                                             const StructureEnum::Enum structure,
                                             const AString& dataFileName,
-                                            const bool markDataFileAsModified) throw (DataFileException);
+                                            const bool markDataFileAsModified);
         
         void updateAfterFilesAddedOrRemoved();
         
@@ -517,97 +517,97 @@ namespace caret {
                                  CaretDataFile* caretDataFile,
                                  const AString& filename,
                                  const StructureEnum::Enum structure,
-                                 const bool markDataFileAsModified) throw (DataFileException);
+                                 const bool markDataFileAsModified);
         
         MetricFile* addReadOrReloadMetricFile(const FileModeAddReadReload fileMode,
                                    CaretDataFile* caretDataFile,
                                    const AString& filename,
                                    const StructureEnum::Enum structure,
-                                   const bool markDataFileAsModified) throw (DataFileException);
+                                   const bool markDataFileAsModified);
         
         RgbaFile* addReadOrReloadRgbaFile(const FileModeAddReadReload fileMode,
                                CaretDataFile* caretDataFile,
                                const AString& filename,
                                const StructureEnum::Enum structure,
-                               const bool markDataFileAsModified) throw (DataFileException);
+                               const bool markDataFileAsModified);
         
         Surface* addReadOrReloadSurfaceFile(const FileModeAddReadReload fileMode,
                                  CaretDataFile* caretDataFile,
                                  const AString& filename,
                                  const StructureEnum::Enum structure,
-                                 const bool markDataFileAsModified) throw (DataFileException);
+                                 const bool markDataFileAsModified);
         
         VolumeFile* addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
                                    CaretDataFile* caretDataFile,
-                                   const AString& filename) throw (DataFileException);
+                                   const AString& filename);
                             
         BorderFile* addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
                                    CaretDataFile* caretDataFile,
-                                   const AString& filename) throw (DataFileException);
+                                   const AString& filename);
         
         CiftiConnectivityMatrixDenseFile* addReadOrReloadConnectivityDenseFile(const FileModeAddReadReload fileMode,
                                                                     CaretDataFile* caretDataFile,
-                                                                    const AString& filename) throw (DataFileException);
+                                                                    const AString& filename);
         
         CiftiBrainordinateLabelFile* addReadOrReloadConnectivityDenseLabelFile(const FileModeAddReadReload fileMode,
                                                                     CaretDataFile* caretDataFile,
-                                                                    const AString& filename) throw (DataFileException);
+                                                                    const AString& filename);
         
         CiftiConnectivityMatrixDenseParcelFile* addReadOrReloadConnectivityMatrixDenseParcelFile(const FileModeAddReadReload fileMode,
                                                                                       CaretDataFile* caretDataFile,
-                                                                                      const AString& filename) throw (DataFileException);
+                                                                                      const AString& filename);
         
         CiftiBrainordinateScalarFile* addReadOrReloadConnectivityDenseScalarFile(const FileModeAddReadReload fileMode,
                                                                       CaretDataFile* caretDataFile,
-                                                                      const AString& filename) throw (DataFileException);
+                                                                      const AString& filename);
         
         CiftiParcelLabelFile* addReadOrReloadConnectivityParcelLabelFile(const FileModeAddReadReload fileMode,
                                                                 CaretDataFile* caretDataFile,
-                                                                const AString& filename) throw (DataFileException);
+                                                                const AString& filename);
         
         CiftiParcelScalarFile* addReadOrReloadConnectivityParcelScalarFile(const FileModeAddReadReload fileMode,
                                                                            CaretDataFile* caretDataFile,
-                                                                           const AString& filename) throw (DataFileException);
+                                                                           const AString& filename);
         
         CiftiParcelSeriesFile* addReadOrReloadConnectivityParcelSeriesFile(const FileModeAddReadReload fileMode,
                                                                 CaretDataFile* caretDataFile,
-                                                                const AString& filename) throw (DataFileException);
+                                                                const AString& filename);
         
         CiftiFiberOrientationFile* addReadOrReloadConnectivityFiberOrientationFile(const FileModeAddReadReload fileMode,
                                                                         CaretDataFile* caretDataFile,
-                                                                        const AString& filename) throw (DataFileException);
+                                                                        const AString& filename);
         
         CiftiFiberTrajectoryFile* addReadOrReloadConnectivityFiberTrajectoryFile(const FileModeAddReadReload fileMode,
                                                                       CaretDataFile* caretDataFile,
-                                                                      const AString& filename) throw (DataFileException);
+                                                                      const AString& filename);
         
         CiftiConnectivityMatrixParcelFile* addReadOrReloadConnectivityMatrixParcelFile(const FileModeAddReadReload fileMode,
                                                                             CaretDataFile* caretDataFile,
-                                                                            const AString& filename) throw (DataFileException);
+                                                                            const AString& filename);
         
         CiftiConnectivityMatrixParcelDenseFile* addReadOrReloadConnectivityMatrixParcelDenseFile(const FileModeAddReadReload fileMode,
                                                                                       CaretDataFile* caretDataFile,
-                                                                                      const AString& filename) throw (DataFileException);
+                                                                                      const AString& filename);
         
         CiftiBrainordinateDataSeriesFile* addReadOrReloadConnectivityDataSeriesFile(const FileModeAddReadReload fileMode,
                                                                          CaretDataFile* caretDataFile,
-                                                                         const AString& filename) throw (DataFileException);
+                                                                         const AString& filename);
         
         FociFile* addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
                                CaretDataFile* caretDataFile,
-                               const AString& filename) throw (DataFileException);
+                               const AString& filename);
         
         PaletteFile* addReadOrReloadPaletteFile(const FileModeAddReadReload fileMode,
                                      CaretDataFile* caretDataFile,
-                                     const AString& filename) throw (DataFileException);
+                                     const AString& filename);
         
         SceneFile* addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
                                  CaretDataFile* caretDataFile,
-                                 const AString& filename) throw (DataFileException);
+                                 const AString& filename);
         
         AString updateFileNameForReading(const AString& filename);
         
-        AString updateFileNameForWriting(const AString& filename) throw (DataFileException);
+        AString updateFileNameForWriting(const AString& filename);
         
         void updateChartModel();
         
@@ -619,7 +619,7 @@ namespace caret {
         
         void updateFiberTrajectoryMatchingFiberOrientationFiles();
         
-        void validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) const throw (DataFileException);
+        void validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) const;
         
         int32_t getDuplicateFileNameCounterForFileType(const DataFileTypeEnum::Enum dataFileType);
         

@@ -73,14 +73,14 @@ namespace caret {
                          const AString& filename,
                          const bool fileLoadingSelectionStatus,
                          const bool fileSavingSelectionStatus,
-                         const bool specFileMemberStatus) throw (DataFileException);
+                         const bool specFileMemberStatus);
         
         void addDataFile(const AString& dataFileTypeName,
                          const AString& structureName,
                          const AString& filename,
                          const bool fileLoadingSelectionStatus,
                          const bool fileSavingSelectionStatus,
-                         const bool specFileMemberStatus) throw (DataFileException);
+                         const bool specFileMemberStatus);
         
         void setFileLoadingSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
                                     const StructureEnum::Enum structure,
@@ -101,9 +101,9 @@ namespace caret {
         
         void removeAnyFileInformationIfNotInSpecAndNoCaretDataFile();
         
-        virtual void readFile(const AString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename);
         
-        virtual void writeFile(const AString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename);
         
         virtual AString toString() const;
         
@@ -188,18 +188,18 @@ namespace caret {
                                              const AString& filename,
                                              const bool fileLoadingSelectionStatus,
                                              const bool fileSavingSelectionStatus,
-                                             const bool specFileMemberStatus) throw (DataFileException);
+                                             const bool specFileMemberStatus);
         
-        void readFileFromString(const AString& string) throw (DataFileException);
+        void readFileFromString(const AString& string);
         
         AString updateFileNameAndPathForWriting(const AString& dataFileName);
         
 //        AString writeFileToString(const WriteMetaDataType writeMetaDataStatus,
-//                                  const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException);   
+//                                  const WriteFilesSelectedType writeFilesSelectedStatus);   
         
         void writeFileContentToXML(XmlWriter& xmlWriter,
                                    const WriteMetaDataType writeMetaDataStatus,
-                                   const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException);
+                                   const WriteFilesSelectedType writeFilesSelectedStatus);
         
         std::vector<SpecFileDataFileTypeGroup*> dataFileTypeGroups;
         

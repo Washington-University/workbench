@@ -54,10 +54,10 @@ namespace caret {
          * @throws DataFileException
          *    If the file is not valid.
          */
-        virtual void validateDataArraysAfterReading() throw (DataFileException) = 0;
+        virtual void validateDataArraysAfterReading() = 0;
         
         void verifyDataArraysHaveSameNumberOfRows(const int32_t minimumSecondDimension,
-                                                  const int32_t maximumSecondDimension) const throw (DataFileException);
+                                                  const int32_t maximumSecondDimension) const;
 
     public:
         virtual void clear();
@@ -68,9 +68,9 @@ namespace caret {
         
         virtual bool isEmpty() const;
 
-        virtual void readFile(const AString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename);
         
-        virtual void writeFile(const AString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename);
         
         virtual AString toString() const;
         
@@ -83,7 +83,7 @@ namespace caret {
         virtual void setStructure(const StructureEnum::Enum structure);
 
         virtual void addMaps(const int32_t numberOfNodes,
-                             const int32_t numberOfMaps) throw (DataFileException);
+                             const int32_t numberOfMaps);
         
         /** @return  Number of nodes in the file. */
         virtual int32_t getNumberOfNodes() const = 0;

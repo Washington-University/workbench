@@ -670,7 +670,7 @@ CiftiFiberTrajectoryFile::getFiberTrajectoryMapProperties() const
  *    If the file was not successfully read.
  */
 void
-CiftiFiberTrajectoryFile::readFile(const AString& filename) throw (DataFileException)
+CiftiFiberTrajectoryFile::readFile(const AString& filename)
 {
     clear();
 
@@ -704,7 +704,7 @@ CiftiFiberTrajectoryFile::readFile(const AString& filename) throw (DataFileExcep
  *    If the file was not successfully written.
  */
 void
-CiftiFiberTrajectoryFile::writeFile(const AString& filename) throw (DataFileException)
+CiftiFiberTrajectoryFile::writeFile(const AString& filename)
 {
     switch (m_fiberTrajectoryFileType) {
         case FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE:
@@ -807,7 +807,7 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& error
  *    If an error occurs.
  */
 void
-CiftiFiberTrajectoryFile::writeLoadedDataToFile(const AString& filename) const throw (DataFileException)
+CiftiFiberTrajectoryFile::writeLoadedDataToFile(const AString& filename) const
 {
     CiftiXML xml = m_sparseFile->getCiftiXML();
     
@@ -913,7 +913,7 @@ CiftiFiberTrajectoryFile::clearLoadedFiberOrientations()
  *    If fiber orientation file is NULL or incompatible.
  */
 void
-CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile() throw (DataFileException)
+CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile()
 {
     if (m_sparseFile == NULL) {
         throw DataFileException("No data has been loaded.");
@@ -955,7 +955,7 @@ CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile() throw (
 int64_t
 CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                                  const int32_t surfaceNumberOfNodes,
-                                                 const int32_t nodeIndex) throw (DataFileException)
+                                                 const int32_t nodeIndex)
 {
     switch (m_fiberTrajectoryFileType) {
         case FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE:
@@ -1086,7 +1086,7 @@ CiftiFiberTrajectoryFile::finishFiberOrientationTrajectoriesAveraging()
 void
 CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
                                                          const int32_t surfaceNumberOfNodes,
-                                                         const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                         const std::vector<int32_t>& nodeIndices)
 {
     switch (m_fiberTrajectoryFileType) {
         case FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE:
@@ -1167,7 +1167,7 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
  *    DataFileException if there is an error.
  */
 bool
-CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndices) throw (DataFileException)
+CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndices)
 {
     
     const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
@@ -1243,7 +1243,7 @@ CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIn
  *    DataFileException if there is an error.
  */
 int64_t
-CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3])
 {
     m_connectivityDataLoaded->reset();
     
@@ -1338,7 +1338,7 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
  */
 void
 CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                                            const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+                                                            const std::vector<VoxelIJK>& voxelIndices)
 {
     switch (m_fiberTrajectoryFileType) {
         case FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE:
@@ -1395,7 +1395,7 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
  *    If an error occurs.
  */
 void
-CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex) throw (DataFileException)
+CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex)
 {
     clearLoadedFiberOrientations();
     
@@ -1454,7 +1454,7 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex) throw (Dat
  *    If there was an error restoring the data.
  */
 void
-CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
+CiftiFiberTrajectoryFile::finishRestorationOfScene()
 {
     /*
      * Loading of data may be disabled in the scene

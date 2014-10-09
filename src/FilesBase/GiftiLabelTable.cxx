@@ -1177,7 +1177,7 @@ GiftiLabelTable::createLabelsForKeys(const std::set<int32_t>& newKeys)
  *
  */
 void
-GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
+GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter)
 {
     try {
         //
@@ -1398,7 +1398,7 @@ GiftiLabelTable::toFormattedString(const AString& indentation) const
  *
 void
 GiftiLabelTable::readFromXMLDOM(const Node* rootNode)
-            throw (GiftiException)
+           
 {
 }
 */
@@ -1412,7 +1412,7 @@ GiftiLabelTable::readFromXMLDOM(const Node* rootNode)
  */
 void
 GiftiLabelTable::readFromXmlString(const AString& /*s*/)
-            throw (GiftiException)
+           
 {
     CaretAssertMessage(0, "Not implemented yet!");
 }
@@ -1621,7 +1621,7 @@ GiftiLabelTable::issueLabelKeyZeroWarning(const AString& name) const
  * Export the content of the GIFTI Label Table to a Caret5 Color File.
  */
 void
-GiftiLabelTable::exportToCaret5ColorFile(const AString& filename) const throw (GiftiException)
+GiftiLabelTable::exportToCaret5ColorFile(const AString& filename) const
 {
     if (filename.isEmpty()) {
         throw GiftiException("Missing filename for export of label table to caret5 color file format.");

@@ -64,7 +64,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully read.
          */
-        virtual void readFile(const AString& filename) throw (DataFileException) = 0;
+        virtual void readFile(const AString& filename) = 0;
         
         /**
          * Write the data file.
@@ -74,7 +74,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully written.
          */
-        virtual void writeFile(const AString& filename) throw (DataFileException) = 0;
+        virtual void writeFile(const AString& filename) = 0;
         
         virtual void setModified();
 
@@ -86,9 +86,9 @@ namespace caret {
         
         static bool isFileOnNetwork(const AString& filename);
         
-        void checkFileReadability(const AString& filename) throw (DataFileException);
+        void checkFileReadability(const AString& filename);
         
-        void checkFileWritability(const AString& filename) throw (DataFileException);
+        void checkFileWritability(const AString& filename);
         
     private:
         void copyHelperDataFile(const DataFile& df);

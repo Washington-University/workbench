@@ -60,12 +60,12 @@ namespace caret {
         static void getArrayOfNumbersFromText(const AString& elementName,
                                               const AString& text,
                                               const int32_t requiredCountOfNumbers,
-                                              std::vector<float>& numbersOut) throw (XmlSaxParserException);
+                                              std::vector<float>& numbersOut);
         
         static void getArrayOfNumbersFromText(const AString& elementName,
                                               const AString& text,
                                               const int32_t requiredCountOfNumbers,
-                                              std::vector<int32_t>& numbersOut) throw (XmlSaxParserException);
+                                              std::vector<int32_t>& numbersOut);
     private:
 
     };

@@ -108,18 +108,18 @@ namespace caret {
         
         void reviseExtendFromPointIndex(SurfaceFile* surfaceFile,
                                         const int32_t pointIndex,
-                                        const Border* segment) throw (BorderException);
+                                        const Border* segment);
         
         void reviseExtendFromEnd(SurfaceFile* surfaceFile,
-                                 const Border* segment) throw (BorderException);
+                                 const Border* segment);
         
         void reviseEraseFromEnd(SurfaceFile* surfaceFile,
-                                const Border* segment) throw (BorderException);
+                                const Border* segment);
         
         void reviseReplaceSegment(SurfaceFile* surfaceFile,
-                                  const Border* segment) throw (BorderException);
+                                  const Border* segment);
         
-        void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        void writeAsXML(XmlWriter& xmlWriter);
         
         void writeXML3(QXmlStreamWriter& xml) const;
         

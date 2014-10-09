@@ -142,7 +142,7 @@ namespace caret {
         const GroupAndNameHierarchyItem* getGroupNameSelectionItem() const;
         
         void writeAsXML(XmlWriter& xmlWriter,
-                        const int32_t focusIndex) throw (XmlException);
+                        const int32_t focusIndex);
         
         bool setElementFromText(const AString& elementName,
                                 const AString& textValue);

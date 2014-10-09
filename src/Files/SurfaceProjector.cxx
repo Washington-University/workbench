@@ -159,7 +159,7 @@ SurfaceProjector::setSurfaceOffset(const float surfaceOffset)
  *      If projecting an item failed.
  */
 void
-SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorException)
+SurfaceProjector::projectFociFile(FociFile* fociFile)
 {
     CaretAssert(fociFile);
     const int32_t numberOfFoci = fociFile->getNumberOfFoci();
@@ -205,7 +205,7 @@ SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorExc
  */
 void
 SurfaceProjector::projectFocus(const int32_t focusIndex,
-                               Focus* focus) throw (SurfaceProjectorException)
+                               Focus* focus)
 {
     const int32_t numberOfProjections = focus->getNumberOfProjections();
     CaretAssert(numberOfProjections > 0);
@@ -259,7 +259,7 @@ SurfaceProjector::projectFocus(const int32_t focusIndex,
  *      If projecting an item failed.
  */
 void
-SurfaceProjector::projectItemToTriangle(SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
+SurfaceProjector::projectItemToTriangle(SurfaceProjectedItem* spi)
 {
     CaretAssert(spi);
     m_allowEdgeProjection = false;
@@ -280,7 +280,7 @@ SurfaceProjector::projectItemToTriangle(SurfaceProjectedItem* spi) throw (Surfac
  *      If projecting an item failed.
  */
 void
-SurfaceProjector::projectItemToTriangleOrEdge(SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
+SurfaceProjector::projectItemToTriangleOrEdge(SurfaceProjectedItem* spi)
 {
     CaretAssert(spi);
     m_allowEdgeProjection = true;
@@ -305,7 +305,7 @@ SurfaceProjector::projectItemToTriangleOrEdge(SurfaceProjectedItem* spi) throw (
  */
 void
 SurfaceProjector::projectItem(SurfaceProjectedItem* spi,
-                              SurfaceProjectedItem* secondSpi) throw (SurfaceProjectorException)
+                              SurfaceProjectedItem* secondSpi)
 {
     m_projectionWarning = "";
     
@@ -457,7 +457,7 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi,
  */
 void
 SurfaceProjector::projectItemToSurfaceFile(const SurfaceFile* surfaceFile,
-                                              SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
+                                              SurfaceProjectedItem* spi)
 {
     float originalXYZ[3];
     spi->getStereotaxicXYZ(originalXYZ);
@@ -655,7 +655,7 @@ void
 SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
                                    const float xyz[3],
                                    SurfaceProjectedItem* spi)
-            throw (SurfaceProjectorException)
+           
 {
     //
     // If needed, create node locator
@@ -766,7 +766,7 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
 void
 SurfaceProjector::convertToTriangleProjection(const SurfaceFile* surfaceFile,
                                               ProjectionLocation& projectionLocation)
-                                                         throw (SurfaceProjectorException)
+                                                        
 {
     bool doIt = false;
     
@@ -827,7 +827,7 @@ void
 SurfaceProjector::projectToSurfaceTriangle(const SurfaceFile* surfaceFile,
                                            const ProjectionLocation& projectionLocation,
                                            SurfaceProjectionBarycentric* baryProj)
-                                            throw (SurfaceProjectorException)
+                                           
 {
     /*
      * At one time, there was a need to 'perturb' (slightly move) the
@@ -858,7 +858,7 @@ SurfaceProjector::projectToSurfaceTriangle(const SurfaceFile* surfaceFile,
 void
 SurfaceProjector::getProjectionLocation(const SurfaceFile* surfaceFile,
                                         const float xyz[3],
-                                        ProjectionLocation& projectionLocation) const throw (SurfaceProjectorException)
+                                        ProjectionLocation& projectionLocation) const
 {
     /*
      * Find nearest point on the surface
@@ -1055,7 +1055,7 @@ int32_t
 SurfaceProjector::projectToSurfaceTriangleAux(const SurfaceFile* surfaceFile,
                                               const ProjectionLocation& projectionLocation,
                                       SurfaceProjectionBarycentric* baryProj)
-                                             throw (SurfaceProjectorException)
+                                            
 {
     /*
      * Set the projection.
@@ -1326,7 +1326,7 @@ void
 SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
                                                const ProjectionLocation& projectionLocation,
                                                SurfaceProjectionVanEssen* spve)
-            throw (SurfaceProjectorException)
+           
 {
     float xyz[3] = {
         projectionLocation.m_pointXYZ[0],

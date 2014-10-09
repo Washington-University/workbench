@@ -46,13 +46,13 @@ namespace caret {
         
         XmlWriter(QTextStream& writerIn);
         
-        void writeStartDocument(const AString& xmlVersion) throw (XmlException);
+        void writeStartDocument(const AString& xmlVersion);
         
-        void writeStartDocument() throw (XmlException);
+        void writeStartDocument();
         
-        void writeDTD(const AString& rootTag, const AString& dtdURL) throw(XmlException);
+        void writeDTD(const AString& rootTag, const AString& dtdURL);
         
-        void writeEndDocument() throw(XmlException);
+        void writeEndDocument();
         
         void writeElementCharacters(const AString& localName, const float f);
         
@@ -66,31 +66,31 @@ namespace caret {
         void writeElementCharacters(const AString& localName, const int* values, const int32_t num);
         
         
-        void writeElementCharacters(const AString& localName, const AString& text) throw(XmlException);
+        void writeElementCharacters(const AString& localName, const AString& text);
         
         void writeElementCharacters(const AString& localName, 
                                     const XmlAttributes& attributes,
-                                    const AString& text) throw(XmlException);
+                                    const AString& text);
         
-        void writeElementCData(const AString& localName, const AString& text) throw(XmlException);
+        void writeElementCData(const AString& localName, const AString& text);
         
         void writeElementCData(const AString& localName,
                                const XmlAttributes& attributes,
-                               const AString& text) throw(XmlException);
+                               const AString& text);
         
-        void writeElementNoSpace(const AString& localName, const AString& text) throw(XmlException);
-        void writeStartElement(const AString& localName) throw(XmlException);
+        void writeElementNoSpace(const AString& localName, const AString& text);
+        void writeStartElement(const AString& localName);
         
         void writeStartElement(const AString& localName,
-                               const XmlAttributes& attributes) throw(XmlException);
+                               const XmlAttributes& attributes);
         
-        void writeEndElement() throw(XmlException);
+        void writeEndElement();
         
-        void writeCData(const AString& data) throw(XmlException);
+        void writeCData(const AString& data);
         
-        void writeCharacters(const AString& text) throw(XmlException);
+        void writeCharacters(const AString& text);
         
-        void writeCharactersWithIndent(const AString& text) throw(XmlException);
+        void writeCharactersWithIndent(const AString& text);
         
         void setNumberOfDecimalPlaces(const int32_t decimals);
         
@@ -105,7 +105,7 @@ namespace caret {
             OUTPUT_STREAM_STD_OUTPUT_STREAM
         };
         
-        void writeIndentation() throw(XmlException);
+        void writeIndentation();
         
         /** The std::ostream writer to which XML is written */
         std::ostream* stdOutputStreamWriter;

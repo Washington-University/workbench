@@ -56,7 +56,7 @@ using namespace caret;
 void
 VtkFileExporter::writeSurfaces(const std::vector<SurfaceFile*>& surfaceFiles,
                                const std::vector<const float*>& surfaceFilesColoring,
-                               const AString& vtkFileName) throw (DataFileException)
+                               const AString& vtkFileName)
 {
     try {
         const int32_t numberOfSurfaceFiles = static_cast<int32_t>(surfaceFiles.size());

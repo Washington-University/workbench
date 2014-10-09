@@ -557,7 +557,7 @@ GiftiFile::addDataArray(GiftiDataArray* gda)
  * append a gifti array data  file to this one.
  */
 void 
-GiftiFile::append(const GiftiFile& gf) throw (GiftiException)
+GiftiFile::append(const GiftiFile& gf)
 {
     const bool copyDataArrayFlag = true;
    const int32_t numArrays = gf.getNumberOfDataArrays();
@@ -611,7 +611,7 @@ GiftiFile::append(const GiftiFile& gf) throw (GiftiException)
  */
 void 
 GiftiFile::append(const GiftiFile& gf, 
-                     std::vector<int32_t>& indexDestination) throw (GiftiException)
+                     std::vector<int32_t>& indexDestination)
 {
     const bool copyDataArrayFlag = true;
    const int32_t numArrays = gf.getNumberOfDataArrays();
@@ -838,7 +838,7 @@ GiftiFile::removeDataArray(const GiftiDataArray* arrayPointer)
  * read the file.
  */
 void
-GiftiFile::readFile(const AString& filename) throw (DataFileException)
+GiftiFile::readFile(const AString& filename)
 {
     this->clear();
     this->setFileName(filename);
@@ -889,7 +889,7 @@ GiftiFile::readFile(const AString& filename) throw (DataFileException)
  * write the file. 
  */
 void 
-GiftiFile::writeFile(const AString& filename) throw (DataFileException)
+GiftiFile::writeFile(const AString& filename)
 {
     try {
         this->setFileName(filename);
@@ -1062,7 +1062,7 @@ GiftiFile::setNumberOfNodesForSparseNodeIndexFiles(const int32_t numNodes)
  * process NIFTI_INTENT_NODE_INDEX arrays.
  */
 void 
-GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
+GiftiFile::procesNiftiIntentNodeIndexArrays()
 {
    //
    // See if there is a node index array
@@ -1241,7 +1241,7 @@ GiftiFile::setEncodingForWriting(const GiftiEncodingEnum::Enum encoding)
  * Validate the data arrays (optional for subclasses).
  */
 void 
-GiftiFile::validateDataArrays() throw (GiftiException)
+GiftiFile::validateDataArrays()
 {
     // nothing 
 }

@@ -130,7 +130,7 @@ CaretVolumeExtensionXMLReader::CaretVolumeExtensionXMLReader(CaretVolumeExtensio
     m_viIndex = -1;
 }
 
-void CaretVolumeExtensionXMLReader::characters(const char* ch) throw (XmlSaxParserException)
+void CaretVolumeExtensionXMLReader::characters(const char* ch)
 {
     CaretAssert(m_charDataStack.size() != 0);
     CaretAssert(m_stateStack.size() != 0);
@@ -149,7 +149,7 @@ void CaretVolumeExtensionXMLReader::characters(const char* ch) throw (XmlSaxPars
     }
 }
 
-void CaretVolumeExtensionXMLReader::endDocument() throw (XmlSaxParserException)
+void CaretVolumeExtensionXMLReader::endDocument()
 {
     if (m_stateStack.size() != 0)
     {
@@ -157,7 +157,7 @@ void CaretVolumeExtensionXMLReader::endDocument() throw (XmlSaxParserException)
     }
 }
 
-void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, const AString& localName, const AString& qualifiedName) throw (XmlSaxParserException)
+void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, const AString& localName, const AString& qualifiedName)
 {
     CaretAssert(m_charDataStack.size() != 0);
     CaretAssert(m_stateStack.size() != 0);
@@ -244,21 +244,21 @@ void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, cons
     }
 }
 
-void CaretVolumeExtensionXMLReader::error(const XmlSaxParserException& exception) throw (XmlSaxParserException)
+void CaretVolumeExtensionXMLReader::error(const XmlSaxParserException& exception)
 {
     CaretLogWarning(AString("encountered non-fatal XML error in CaretVolumeExtension: ") + exception.whatString());
 }
 
-void CaretVolumeExtensionXMLReader::fatalError(const XmlSaxParserException& exception) throw (XmlSaxParserException)
+void CaretVolumeExtensionXMLReader::fatalError(const XmlSaxParserException& exception)
 {//all of our members are self-deleting, no worries, just throw
     throw XmlSaxParserException(exception);//throw a copy of it rather than the original reference, not sure if it matters
 }
 
-void CaretVolumeExtensionXMLReader::startDocument() throw (XmlSaxParserException)
+void CaretVolumeExtensionXMLReader::startDocument()
 {
 }
 
-void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AString& localName, const AString& qName, const XmlAttributes& atts) throw (XmlSaxParserException)
+void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AString& localName, const AString& qName, const XmlAttributes& atts)
 {
     bool addState = true;
     State nextState = INVALID;
@@ -354,7 +354,7 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
     }
 }
 
-void CaretVolumeExtensionXMLReader::warning(const caret::XmlSaxParserException& exception) throw (XmlSaxParserException)
+void CaretVolumeExtensionXMLReader::warning(const caret::XmlSaxParserException& exception)
 {
     CaretLogWarning(AString("encountered XML warning in CaretVolumeExtension: ") + exception.whatString());
 }

@@ -152,9 +152,9 @@ namespace caret {
         ///returns true if volume space matches in spatial dimensions and sform
         bool matchesVolumeSpace(const int64_t dims[3], const std::vector<std::vector<float> >& sform) const;
         
-        void readFile(const AString& filename) throw (DataFileException);
+        void readFile(const AString& filename);
 
-        void writeFile(const AString& filename) throw (DataFileException);
+        void writeFile(const AString& filename);
 
         bool isEmpty() const { return VolumeBase::isEmpty(); }
         
@@ -293,12 +293,12 @@ namespace caret {
         virtual bool isBrainordinateChartingSupported() const;
         
         virtual ChartDataCartesian* loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                                const int32_t nodeIndex) throw (DataFileException);
+                                                                const int32_t nodeIndex);
         
         virtual ChartDataCartesian* loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                                        const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                                                        const std::vector<int32_t>& nodeIndices);
         
-        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]);
         
         
         virtual void getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;

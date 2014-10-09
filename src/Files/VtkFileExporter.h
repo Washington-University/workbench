@@ -37,7 +37,7 @@ namespace caret {
     public:
         static void writeSurfaces(const std::vector<SurfaceFile*>& surfaceFiles,
                                   const std::vector<const float*>& surfaceFilesColoring,
-                                  const AString& vtkFileName) throw (DataFileException);
+                                  const AString& vtkFileName);
         
     private:
         VtkFileExporter();

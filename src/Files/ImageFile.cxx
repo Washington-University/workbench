@@ -574,7 +574,7 @@ ImageFile::combinePreservingAspectAndFillIfNeeded(const std::vector<ImageFile*>&
  *    If error reading image.
  */
 void
-ImageFile::readFile(const AString& filename) throw (DataFileException)
+ImageFile::readFile(const AString& filename)
 {
     clear();
     
@@ -654,7 +654,7 @@ ImageFile::appendImageAtBottom(const ImageFile& img)
 void
 ImageFile::insertImage(const QImage& otherImage,
                        const int x,
-                       const int y) throw (DataFileException)
+                       const int y)
 {
     ImageFile::insertImage(otherImage,
                            *m_image,
@@ -709,7 +709,7 @@ void
 ImageFile::insertImage(const QImage& insertThisImage,
                        QImage& intoThisImage,
                        const int positionX,
-                       const int positionY) throw (DataFileException)
+                       const int positionY)
 {
     if (positionX < 0) {
         throw DataFileException("X position is less than zero.");
@@ -819,7 +819,7 @@ ImageFile::compareFileForUnitTesting(const DataFile* dataFile,
  *    If error writing image.
  */
 void
-ImageFile::writeFile(const AString& filename) throw (DataFileException)
+ImageFile::writeFile(const AString& filename)
 {
     checkFileWritability(filename);
     
@@ -1069,7 +1069,7 @@ ImageFile::resizeToMaximumWidthOrHeight(const int32_t maximumWidthOrHeight)
  */
 void
 ImageFile::getImageInByteArray(QByteArray& byteArrayOut,
-                               const AString& format) const throw (DataFileException)
+                               const AString& format) const
 {
     byteArrayOut.clear();
     
@@ -1105,7 +1105,7 @@ ImageFile::getImageInByteArray(QByteArray& byteArrayOut,
  */
 void
 ImageFile::setImageFromByteArray(const QByteArray& byteArray,
-                                 const AString& format) throw (DataFileException)
+                                 const AString& format)
 {
     bool successFlag = false;
     if (format.isEmpty()) {

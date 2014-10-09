@@ -38,12 +38,12 @@ namespace caret {
         virtual ~ChartingDataManager();
         
         void loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceFile,
-                                             const std::vector<int32_t>& nodeIndices) const throw (DataFileException);
+                                             const std::vector<int32_t>& nodeIndices) const;
         
         void loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
-                                     const int32_t nodeIndex) const throw (DataFileException);
+                                     const int32_t nodeIndex) const;
         
-        void loadChartForVoxelAtCoordinate(const float xyz[3]) const throw (DataFileException);
+        void loadChartForVoxelAtCoordinate(const float xyz[3]) const;
         
         bool hasNetworkFiles() const;
         

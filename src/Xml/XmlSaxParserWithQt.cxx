@@ -71,7 +71,7 @@ XmlSaxParserWithQt::initializeMembersXmlSaxParserWithQt()
 // */
 //void 
 //XmlSaxParserWithQt::parseFile(const QString& filename,
-//                   XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
+//                   XmlSaxParserHandlerInterface* handler)
 //{
 //    PrivateHandler privateHandler(handler);
 //    
@@ -155,7 +155,7 @@ XmlSaxParserWithQt::initializeMembersXmlSaxParserWithQt()
  */
 void
 XmlSaxParserWithQt::parseFile(const QString& filename,
-                              XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
+                              XmlSaxParserHandlerInterface* handler)
 {
     if (DataFile::isFileOnNetwork(filename)) {
         CaretHttpRequest request;
@@ -225,7 +225,7 @@ XmlSaxParserWithQt::parseFile(const QString& filename,
  */
 void 
 XmlSaxParserWithQt::parseString(const QString& xmlString,
-                         XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
+                         XmlSaxParserHandlerInterface* handler)
 {
     PrivateHandler privateHandler(handler);
     

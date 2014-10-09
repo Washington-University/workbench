@@ -357,7 +357,7 @@ namespace caret {
 
         CaretMappableDataFile& operator=(const CaretMappableDataFile&);
         
-        ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data) throw (DataFileException);
+        ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data);
         
         void helpGetSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         

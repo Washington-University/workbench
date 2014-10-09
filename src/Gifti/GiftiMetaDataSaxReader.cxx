@@ -58,7 +58,7 @@ void
 GiftiMetaDataSaxReader::startElement(const AString& /* namespaceURI */,
                                          const AString& /* localName */,
                                          const AString& qName,
-                                         const XmlAttributes& /*attributes*/)  throw (XmlSaxParserException)
+                                         const XmlAttributes& /*attributes*/) 
 {
    const STATE previousState = this->state;
    switch (this->state) {
@@ -132,7 +132,7 @@ GiftiMetaDataSaxReader::startElement(const AString& /* namespaceURI */,
 void 
 GiftiMetaDataSaxReader::endElement(const AString& /* namspaceURI */,
                                        const AString& /* localName */,
-                                       const AString& /*qName*/) throw (XmlSaxParserException)
+                                       const AString& /*qName*/)
 {
 
    switch (state) {
@@ -180,7 +180,7 @@ GiftiMetaDataSaxReader::endElement(const AString& /* namspaceURI */,
  * get characters in an element.
  */
 void 
-GiftiMetaDataSaxReader::characters(const char* ch) throw (XmlSaxParserException)
+GiftiMetaDataSaxReader::characters(const char* ch)
 {
    this->elementText += ch;
 }
@@ -189,7 +189,7 @@ GiftiMetaDataSaxReader::characters(const char* ch) throw (XmlSaxParserException)
  * a fatal error occurs.
  */
 void 
-GiftiMetaDataSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
+GiftiMetaDataSaxReader::fatalError(const XmlSaxParserException& e)
 {
    //
    // Stop parsing
@@ -200,25 +200,25 @@ GiftiMetaDataSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSax
 
 // a warning occurs
 void 
-GiftiMetaDataSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
+GiftiMetaDataSaxReader::warning(const XmlSaxParserException& e)
 {    
     CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void 
-GiftiMetaDataSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
+GiftiMetaDataSaxReader::error(const XmlSaxParserException& e)
 {   
     throw e;
 }
 
 void 
-GiftiMetaDataSaxReader::startDocument()  throw (XmlSaxParserException)
+GiftiMetaDataSaxReader::startDocument() 
 {    
 }
 
 void 
-GiftiMetaDataSaxReader::endDocument() throw (XmlSaxParserException)
+GiftiMetaDataSaxReader::endDocument()
 {
 }
 

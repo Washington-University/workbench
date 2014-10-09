@@ -61,14 +61,14 @@ namespace caret {
         
     public:
         void writeAsXML(XmlWriter& xmlWriter)
-        throw (XmlException);
+       ;
         
         AString encodeInXML()
-        throw (XmlException);
+       ;
         
         
         void decodeFromStringXML(const AString& xml)
-        throw (XmlException);
+       ;
         
         float getAutoScalePercentageNegativeMaximum() const;
         

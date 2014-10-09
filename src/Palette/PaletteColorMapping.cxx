@@ -208,7 +208,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
  */
 void
 PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
-                       throw (XmlException)
+                      
 {
     XmlAttributes attributes;
     attributes.addAttribute(
@@ -309,7 +309,7 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
  */
 AString
 PaletteColorMapping::encodeInXML()
-            throw (XmlException)
+           
 {
     std::ostringstream str;
     XmlWriter xmlWriter(str);
@@ -326,7 +326,7 @@ PaletteColorMapping::encodeInXML()
  */
 void
 PaletteColorMapping::decodeFromStringXML(const AString& xml)
-            throw (XmlException)
+           
 {
     PaletteColorMappingSaxReader saxReader(this);
     XmlSaxParser* parser = XmlSaxParser::createXmlParser();

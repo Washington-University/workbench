@@ -497,7 +497,7 @@ CiftiMappableDataFile:: getFileMetaData() const
  *    DataFileException if there is an error reading the file.
  */
 void
-CiftiMappableDataFile::readFile(const AString& ciftiMapFileName) throw (DataFileException)
+CiftiMappableDataFile::readFile(const AString& ciftiMapFileName)
 {
     clear();
 
@@ -604,7 +604,7 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName) throw (DataFile
  *     Name of file.
  */
 void
-CiftiMappableDataFile::validateMappingTypes(const AString& filename) throw (DataFileException)
+CiftiMappableDataFile::validateMappingTypes(const AString& filename)
 {
     CaretAssert(m_ciftiFile);
     
@@ -741,7 +741,7 @@ CiftiMappableDataFile::setupCiftiReadingMappingDirection()
  *     Name of file.
  */
 void
-CiftiMappableDataFile::initializeAfterReading(const AString& filename) throw (DataFileException)
+CiftiMappableDataFile::initializeAfterReading(const AString& filename)
 {
     CaretAssert(m_ciftiFile);
     
@@ -921,7 +921,7 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename) throw (Da
  * called after successfully reading a file.
  */
 void
-CiftiMappableDataFile::validateAfterFileReading() throw (DataFileException)
+CiftiMappableDataFile::validateAfterFileReading()
 {
     /* nothing - see method comment. */
 }
@@ -935,7 +935,7 @@ CiftiMappableDataFile::validateAfterFileReading() throw (DataFileException)
  *    DataFileException if there is an error writing the file.
  */
 void
-CiftiMappableDataFile::writeFile(const AString& ciftiMapFileName) throw (DataFileException)
+CiftiMappableDataFile::writeFile(const AString& ciftiMapFileName)
 {
     if (m_ciftiFile == NULL) {
         throw DataFileException(ciftiMapFileName
@@ -3148,7 +3148,7 @@ CiftiMappableDataFile::getBrainordinateFromRowIndex(const int64_t rowIndex,
                                                     bool& surfaceNodeValidOut,
                                                     int64_t voxelIJKOut[3],
                                                     float voxelXYZOut[3],
-                                                    bool& voxelValidOut) const throw (DataFileException)
+                                                    bool& voxelValidOut) const
 {
     surfaceNodeValidOut = false;
     voxelValidOut       = false;
@@ -4869,7 +4869,7 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
  */
 ChartDataCartesian*
 CiftiMappableDataFile::helpLoadChartDataForSurfaceNodeAverage(const StructureEnum::Enum structure,
-                                                              const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                              const std::vector<int32_t>& nodeIndices)
 {
     ChartDataCartesian* chartData = NULL;
     
@@ -4939,7 +4939,7 @@ CiftiMappableDataFile::helpLoadChartDataForSurfaceNodeAverage(const StructureEnu
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiMappableDataFile::helpLoadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+CiftiMappableDataFile::helpLoadChartDataForVoxelAtCoordinate(const float xyz[3])
 {
     ChartDataCartesian* chartData = NULL;
     
@@ -4976,7 +4976,7 @@ CiftiMappableDataFile::helpLoadChartDataForVoxelAtCoordinate(const float xyz[3])
  */
 ChartDataCartesian*
 CiftiMappableDataFile::helpLoadChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                       const int32_t nodeIndex) throw (DataFileException)
+                                                       const int32_t nodeIndex)
 {
     ChartDataCartesian* chartData = NULL;
     
@@ -5018,7 +5018,7 @@ CiftiMappableDataFile::helpLoadChartDataForSurfaceNode(const StructureEnum::Enum
 void
 CiftiMappableDataFile::setMapDataForSurface(const int32_t mapIndex,
                                                    const StructureEnum::Enum structure,
-                                                   const std::vector<float> surfaceMapData) throw (DataFileException)
+                                                   const std::vector<float> surfaceMapData)
 {
     CaretAssert(m_ciftiFile);
     CaretAssertVectorIndex(m_mapContent, mapIndex);

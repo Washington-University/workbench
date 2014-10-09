@@ -85,7 +85,7 @@ CaretDataFileHelper::~CaretDataFileHelper()
  *    DataFileException if unable to read the file for any reason.
  */
 CaretDataFile*
-CaretDataFileHelper::readAnyCaretDataFile(const AString& filename, const bool& preferOnDisk) throw (DataFileException)
+CaretDataFileHelper::readAnyCaretDataFile(const AString& filename, const bool& preferOnDisk)
 {
     bool isValid = false;
     const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(filename,

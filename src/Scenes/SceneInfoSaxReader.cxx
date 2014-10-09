@@ -67,7 +67,7 @@ void
 SceneInfoSaxReader::startElement(const AString& /* namespaceURI */,
                              const AString& /* localName */,
                              const AString& qName,
-                             const XmlAttributes& attributes)  throw (XmlSaxParserException)
+                             const XmlAttributes& attributes) 
 {
     const STATE previousState = m_state;
     switch (m_state) {
@@ -130,7 +130,7 @@ SceneInfoSaxReader::startElement(const AString& /* namespaceURI */,
 void 
 SceneInfoSaxReader::endElement(const AString& /* namspaceURI */,
                            const AString& /* localName */,
-                           const AString& /*qName*/) throw (XmlSaxParserException)
+                           const AString& /*qName*/)
 {
     const AString stringValue = m_elementText.trimmed();
     
@@ -179,7 +179,7 @@ SceneInfoSaxReader::endElement(const AString& /* namspaceURI */,
  * get characters in an element.
  */
 void 
-SceneInfoSaxReader::characters(const char* ch) throw (XmlSaxParserException)
+SceneInfoSaxReader::characters(const char* ch)
 {
     m_elementText += ch;
 }
@@ -188,7 +188,7 @@ SceneInfoSaxReader::characters(const char* ch) throw (XmlSaxParserException)
  * a fatal error occurs.
  */
 void 
-SceneInfoSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SceneInfoSaxReader::fatalError(const XmlSaxParserException& e)
 {
     throw e;
 }
@@ -197,25 +197,25 @@ SceneInfoSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxPars
  * A warning occurs
  */
 void 
-SceneInfoSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SceneInfoSaxReader::warning(const XmlSaxParserException& e)
 {    
     CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void 
-SceneInfoSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
+SceneInfoSaxReader::error(const XmlSaxParserException& e)
 {   
     throw e;
 }
 
 void 
-SceneInfoSaxReader::startDocument()  throw (XmlSaxParserException)
+SceneInfoSaxReader::startDocument() 
 {    
 }
 
 void 
-SceneInfoSaxReader::endDocument() throw (XmlSaxParserException)
+SceneInfoSaxReader::endDocument()
 {
 }
 

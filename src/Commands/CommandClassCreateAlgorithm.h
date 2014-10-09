@@ -34,9 +34,7 @@ namespace caret {
         
         virtual ~CommandClassCreateAlgorithm();
 
-        virtual void executeOperation(ProgramParameters& parameters) 
-            throw (CommandException,
-                   ProgramParametersException);
+        virtual void executeOperation(ProgramParameters& parameters);
         
         AString getHelpInformation(const AString& /*programName*/);
             

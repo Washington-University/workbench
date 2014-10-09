@@ -760,7 +760,7 @@ Border::reverse()
 void
 Border::reviseExtendFromPointIndex(SurfaceFile* surfaceFile,
                                    const int32_t pointIndex,
-                                   const Border* segment) throw (BorderException)
+                                   const Border* segment)
 {
     const int32_t numPoints = getNumberOfPoints();
     if (numPoints <= 2) {
@@ -848,7 +848,7 @@ Border::reviseExtendFromPointIndex(SurfaceFile* surfaceFile,
  */
 void
 Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
-                            const Border* segment) throw (BorderException)
+                            const Border* segment)
 {
     const int32_t numPoints = getNumberOfPoints();
     if (numPoints <= 0) {
@@ -977,7 +977,7 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
  */
 void 
 Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
-                           const Border* segment) throw (BorderException)
+                           const Border* segment)
 {
     /*
      * Get coordinate of first and last points in the segment
@@ -1070,7 +1070,7 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
  */
 void
 Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
-                             const Border* segment) throw (BorderException)
+                             const Border* segment)
 {
     /*
      * Get coordinate of first and last points in the segment
@@ -1282,7 +1282,7 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
 // */
 //void
 //Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
-//                             const Border* segment) throw (BorderException)
+//                             const Border* segment)
 //{
 //    /*
 //     * Get coordinate of first and last points in the segment
@@ -1600,7 +1600,7 @@ Border::toString() const
  *   Writer for XML output.
  */
 void 
-Border::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
+Border::writeAsXML(XmlWriter& xmlWriter)
 {
     xmlWriter.writeStartElement(XML_TAG_BORDER);
     

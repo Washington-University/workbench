@@ -192,7 +192,7 @@ VolumeFile::clear()
     VolumeBase::clear();
 }
 
-void VolumeFile::readFile(const AString& filename) throw (DataFileException)
+void VolumeFile::readFile(const AString& filename)
 {
     ElapsedTimer timer;
     timer.start();
@@ -295,7 +295,7 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
  *    If the file was not successfully written.
  */
 void 
-VolumeFile::writeFile(const AString& filename) throw (DataFileException)
+VolumeFile::writeFile(const AString& filename)
 {
     checkFileWritability(filename);
     
@@ -1718,7 +1718,7 @@ VolumeFile::getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnu
  */
 ChartDataCartesian*
 VolumeFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum /*structure*/,
-                                        const int32_t /*nodeIndex*/) throw (DataFileException)
+                                        const int32_t /*nodeIndex*/)
 {
     ChartDataCartesian* chartData = NULL;
     return chartData;
@@ -1738,7 +1738,7 @@ VolumeFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum /
  */
 ChartDataCartesian*
 VolumeFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum /*structure*/,
-                                                const std::vector<int32_t>& /*nodeIndices*/) throw (DataFileException)
+                                                const std::vector<int32_t>& /*nodeIndices*/)
 {
     ChartDataCartesian* chartData = NULL;
     return chartData;
@@ -1755,7 +1755,7 @@ VolumeFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-VolumeFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+VolumeFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3])
 {
     ChartDataCartesian* chartData = NULL;
 

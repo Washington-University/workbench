@@ -443,7 +443,7 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
                       const AString& filename,
                       const bool fileLoadingSelectionStatus,
                       const bool fileSavingSelectionStatus,
-                      const bool specFileMemberStatus) throw (DataFileException)
+                      const bool specFileMemberStatus)
 {
     addDataFilePrivate(dataFileType,
                        structure,
@@ -481,7 +481,7 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
                              const AString& filename,
                              const bool fileLoadingSelectionStatus,
                              const bool fileSavingSelectionStatus,
-                             const bool specFileMemberStatus) throw (DataFileException)
+                             const bool specFileMemberStatus)
 {
     AString name = filename;
 
@@ -652,7 +652,7 @@ SpecFile::addDataFile(const AString& dataFileTypeName,
                       const AString& filename,
                       const bool fileLoadingSelectionStatus,
                       const bool fileSavingSelectionStatus,
-                      const bool specFileMemberStatus) throw (DataFileException)
+                      const bool specFileMemberStatus)
 {
     bool validType = false;
     DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromName(dataFileTypeName, &validType);
@@ -865,7 +865,7 @@ SpecFile::removeAnyFileInformationIfNotInSpecAndNoCaretDataFile()
  *    If there is an error reading the file.
  */
 void 
-SpecFile::readFile(const AString& filenameIn) throw (DataFileException)
+SpecFile::readFile(const AString& filenameIn)
 {
     clear();
     
@@ -924,7 +924,7 @@ SpecFile::readFile(const AString& filenameIn) throw (DataFileException)
  *    If there is an error reading the file from the string.
  */
 void 
-SpecFile::readFileFromString(const AString& string) throw (DataFileException)
+SpecFile::readFileFromString(const AString& string)
 {
     SpecFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
@@ -968,7 +968,7 @@ SpecFile::readFileFromString(const AString& string) throw (DataFileException)
  *    If there is an error writing the file.
  */
 void 
-SpecFile::writeFile(const AString& filename) throw (DataFileException)
+SpecFile::writeFile(const AString& filename)
 {
     checkFileWritability(filename);
     
@@ -1029,7 +1029,7 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
 void 
 SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
                                 const WriteMetaDataType writeMetaDataStatus,
-                                const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException)
+                                const WriteFilesSelectedType writeFilesSelectedStatus)
 {    
     //
     // Write header info
@@ -1150,7 +1150,7 @@ SpecFile::updateFileNameAndPathForWriting(const AString& dataFileNameIn)
  */
 //AString 
 //SpecFile::writeFileToString(const WriteMetaDataType writeMetaDataStatus,
-//                            const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException)
+//                            const WriteFilesSelectedType writeFilesSelectedStatus)
 //{    
 //    /*
 //     * Create a TextStream that writes to a string.

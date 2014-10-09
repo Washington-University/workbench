@@ -772,7 +772,7 @@ CaretMappableDataFile::isModified() const
  *     Pointer to the ChartDataCartesian instance.
  */
 ChartDataCartesian*
-CaretMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& data) throw (DataFileException)
+CaretMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& data)
 {
     const int64_t numData = static_cast<int64_t>(data.size());
     

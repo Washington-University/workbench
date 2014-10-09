@@ -41,7 +41,7 @@ XmlSaxParser::~XmlSaxParser()
 }
 
 XmlSaxParser* 
-XmlSaxParser::createXmlParser() throw (XmlSaxParserException)
+XmlSaxParser::createXmlParser()
 {
     XmlSaxParser* parser = new XmlSaxParserWithQt();
     

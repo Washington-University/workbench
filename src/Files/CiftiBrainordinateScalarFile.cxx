@@ -233,7 +233,7 @@ CiftiBrainordinateScalarFile::getSupportedBrainordinateChartDataTypes(std::vecto
  */
 ChartDataCartesian*
 CiftiBrainordinateScalarFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                               const int32_t nodeIndex) throw (DataFileException)
+                                                               const int32_t nodeIndex)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNode(structure,
                                                            nodeIndex);
@@ -289,7 +289,7 @@ CiftiBrainordinateScalarFile::loadBrainordinateChartDataForSurfaceNode(const Str
  */
 ChartDataCartesian*
 CiftiBrainordinateScalarFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                                      const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                                      const std::vector<int32_t>& nodeIndices)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNodeAverage(structure,
                                                                   nodeIndices);
@@ -307,7 +307,7 @@ CiftiBrainordinateScalarFile::loadAverageBrainordinateChartDataForSurfaceNodes(c
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiBrainordinateScalarFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+CiftiBrainordinateScalarFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3])
 {
     ChartDataCartesian* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;

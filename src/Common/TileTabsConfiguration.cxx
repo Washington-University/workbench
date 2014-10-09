@@ -433,7 +433,7 @@ TileTabsConfiguration::decodeFromXML(const AString& xmlString)
  *    XML DOM document.
  */
 void
-TileTabsConfiguration::parseVersionOneXML(QDomDocument& doc) throw (CaretException)
+TileTabsConfiguration::parseVersionOneXML(QDomDocument& doc)
 {
     QDomNodeList nameNodeList = doc.elementsByTagName(s_nameTagName);
     if (nameNodeList.isEmpty()) {

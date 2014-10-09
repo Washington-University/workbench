@@ -93,8 +93,7 @@ CommandClassCreateEnum::getHelpInformation(const AString& /*programName*/)
  *   If there is an error in the parameters.
  */
 void 
-CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (CommandException,
-                                                               ProgramParametersException)
+CommandClassCreateEnum::executeOperation(ProgramParameters& parameters)
 {
     const AString enumClassName = parameters.nextString("Enum Class Name");
     int32_t numberOfEnumValues = parameters.nextInt("Number of Enum Values");

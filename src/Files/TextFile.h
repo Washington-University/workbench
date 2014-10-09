@@ -48,9 +48,9 @@ namespace caret {
         
         virtual bool isEmpty() const;
         
-        virtual void readFile(const AString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename);
         
-        virtual void writeFile(const AString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename);
         
         virtual AString toString() const;
         

@@ -104,7 +104,7 @@ void
 FociFileSaxReader::startElement(const AString& namespaceURI,
                                 const AString& localName,
                                 const AString& qName,
-                                const XmlAttributes& attributes)  throw (XmlSaxParserException)
+                                const XmlAttributes& attributes) 
 {
     const STATE previousState = m_state;
     switch (m_state) {
@@ -245,7 +245,7 @@ FociFileSaxReader::startElement(const AString& namespaceURI,
 void
 FociFileSaxReader::endElement(const AString& namespaceURI,
                               const AString& localName,
-                              const AString& qName) throw (XmlSaxParserException)
+                              const AString& qName)
 {
     switch (m_state) {
         case STATE_NONE:
@@ -346,7 +346,7 @@ FociFileSaxReader::endElement(const AString& namespaceURI,
  * get characters in an element.
  */
 void
-FociFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
+FociFileSaxReader::characters(const char* ch)
 {
     if (m_metaDataSaxReader != NULL) {
         m_metaDataSaxReader->characters(ch);
@@ -366,7 +366,7 @@ FociFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
  * a fatal error occurs.
  */
 void
-FociFileSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
+FociFileSaxReader::fatalError(const XmlSaxParserException& e)
 {
     /*
      std::ostringstream str;
@@ -387,26 +387,26 @@ FociFileSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParse
 
 // a warning occurs
 void
-FociFileSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
+FociFileSaxReader::warning(const XmlSaxParserException& e)
 {
     CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void
-FociFileSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
+FociFileSaxReader::error(const XmlSaxParserException& e)
 {
     CaretLogSevere("XML Parser Error: " + e.whatString());
     throw e;
 }
 
 void 
-FociFileSaxReader::startDocument()  throw (XmlSaxParserException)
+FociFileSaxReader::startDocument() 
 {    
 }
 
 void 
-FociFileSaxReader::endDocument() throw (XmlSaxParserException)
+FociFileSaxReader::endDocument()
 {
     if (m_versionOneColorTable != NULL) {
         m_fociFile->createNameAndClassColorTables(m_versionOneColorTable);

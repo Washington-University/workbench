@@ -359,7 +359,7 @@ PaletteFile::assignColorsToPalette(Palette& p)
  *    If the file was not successfully read.
  */
 void 
-PaletteFile::readFile(const AString& /*filename*/) throw (DataFileException)
+PaletteFile::readFile(const AString& /*filename*/)
 {
     clear();
 //    checkFileReadability(filename);
@@ -376,7 +376,7 @@ PaletteFile::readFile(const AString& /*filename*/) throw (DataFileException)
  *    If the file was not successfully written.
  */
 void 
-PaletteFile::writeFile(const AString& /*filename*/) throw (DataFileException)
+PaletteFile::writeFile(const AString& /*filename*/)
 {
 //    checkFileWritability(filename);
     

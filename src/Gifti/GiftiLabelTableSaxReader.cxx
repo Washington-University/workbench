@@ -60,7 +60,7 @@ void
 GiftiLabelTableSaxReader::startElement(const AString& /* namespaceURI */,
                                          const AString& /* localName */,
                                          const AString& qName,
-                                         const XmlAttributes& attributes)  throw (XmlSaxParserException)
+                                         const XmlAttributes& attributes) 
 {
    const STATE previousState = this->state;
    switch (this->state) {
@@ -150,7 +150,7 @@ GiftiLabelTableSaxReader::startElement(const AString& /* namespaceURI */,
 void 
 GiftiLabelTableSaxReader::endElement(const AString& /* namspaceURI */,
                                        const AString& /* localName */,
-                                       const AString& /*qName*/) throw (XmlSaxParserException)
+                                       const AString& /*qName*/)
 {
    switch (state) {
       case STATE_NONE:
@@ -207,7 +207,7 @@ GiftiLabelTableSaxReader::endElement(const AString& /* namspaceURI */,
  * get characters in an element.
  */
 void 
-GiftiLabelTableSaxReader::characters(const char* ch) throw (XmlSaxParserException)
+GiftiLabelTableSaxReader::characters(const char* ch)
 {
    this->elementText += ch;
 }
@@ -216,7 +216,7 @@ GiftiLabelTableSaxReader::characters(const char* ch) throw (XmlSaxParserExceptio
  * a fatal error occurs.
  */
 void 
-GiftiLabelTableSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
+GiftiLabelTableSaxReader::fatalError(const XmlSaxParserException& e)
 {
    throw e;
 }
@@ -225,25 +225,25 @@ GiftiLabelTableSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlS
  * A warning occurs
  */
 void 
-GiftiLabelTableSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
+GiftiLabelTableSaxReader::warning(const XmlSaxParserException& e)
 {    
     CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void 
-GiftiLabelTableSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
+GiftiLabelTableSaxReader::error(const XmlSaxParserException& e)
 {   
     throw e;
 }
 
 void 
-GiftiLabelTableSaxReader::startDocument()  throw (XmlSaxParserException)
+GiftiLabelTableSaxReader::startDocument() 
 {    
 }
 
 void 
-GiftiLabelTableSaxReader::endDocument() throw (XmlSaxParserException)
+GiftiLabelTableSaxReader::endDocument()
 {
 }
 

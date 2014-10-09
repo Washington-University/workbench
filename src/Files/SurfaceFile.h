@@ -198,7 +198,7 @@ namespace caret {
          * has been read such as correct number of 
          * data arrays and proper data types/dimensions.
          */
-        virtual void validateDataArraysAfterReading() throw (DataFileException);
+        virtual void validateDataArraysAfterReading();
         
         void copyHelperSurfaceFile(const SurfaceFile& sf);
         

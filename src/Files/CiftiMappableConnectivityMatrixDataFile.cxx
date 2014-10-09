@@ -586,7 +586,7 @@ CiftiMappableConnectivityMatrixDataFile::resetLoadedRowDataToEmpty()
  *    If an error occurs.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIndex) throw (DataFileException)
+CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIndex)
 {
     setLoadedRowDataToAllZeros();
     
@@ -632,7 +632,7 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
  *    If an error occurs.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t columnIndex) throw (DataFileException)
+CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t columnIndex)
 {
     setLoadedRowDataToAllZeros();
     
@@ -691,7 +691,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                                            const StructureEnum::Enum structure,
                                                                    const int32_t nodeIndex,
                                                                    int64_t& rowIndexOut,
-                                                                   int64_t& columnIndexOut) throw (DataFileException)
+                                                                   int64_t& columnIndexOut)
 {
     rowIndexOut    = -1;
     columnIndexOut = -1;
@@ -824,7 +824,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
 // *    DataFileException if there is an error.
 // */
 //bool 
-//CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionIndex) throw (DataFileException)
+//CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionIndex)
 //{
 //    if (m_ciftiFile == NULL) {
 //        return false;
@@ -891,7 +891,7 @@ void
 CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
                                                                    const int32_t surfaceNumberOfNodes,
                                                                    const StructureEnum::Enum structure,
-                                                                   const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                                   const std::vector<int32_t>& nodeIndices)
 {
     if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
@@ -1075,7 +1075,7 @@ void
 CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                                          const float xyz[3],
                                                                          int64_t& rowIndexOut,
-                                                                         int64_t& columnIndexOut) throw (DataFileException)
+                                                                         int64_t& columnIndexOut)
 {
     rowIndexOut    = -1;
     columnIndexOut = -1;
@@ -1188,7 +1188,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
 bool
 CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
                                                                            const int64_t volumeDimensionIJK[3],
-                                                                           const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+                                                                           const std::vector<VoxelIJK>& voxelIndices)
 {
     
     if (mapIndex != 0) { // eliminates compilation warning when compiled for release
