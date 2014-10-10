@@ -764,7 +764,7 @@ Brain::addReadOrReloadSurfaceFile(const FileModeAddReadReload fileMode,
             try {
                 surface->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -918,7 +918,7 @@ Brain::addReadOrReloadLabelFile(const FileModeAddReadReload fileMode,
             try {
                 labelFile->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -1067,7 +1067,7 @@ Brain::addReadOrReloadMetricFile(const FileModeAddReadReload fileMode,
             try {
                 metricFile->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -1217,7 +1217,7 @@ Brain::addReadOrReloadRgbaFile(const FileModeAddReadReload fileMode,
             try {
                 rgbaFile->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -1356,7 +1356,7 @@ Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
             try {
                 vf->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -1481,7 +1481,7 @@ Brain::addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
             try {
                 bf->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -1574,7 +1574,7 @@ Brain::addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
             try {
                 ff->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -1690,7 +1690,7 @@ Brain::addReadOrReloadConnectivityDenseFile(const FileModeAddReadReload fileMode
             try {
                 cmdf->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -1772,7 +1772,7 @@ Brain::addReadOrReloadConnectivityDenseLabelFile(const FileModeAddReadReload fil
             try {
                 file->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -1851,7 +1851,7 @@ Brain::addReadOrReloadConnectivityMatrixDenseParcelFile(const FileModeAddReadRel
             try {
                 file->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -1947,7 +1947,7 @@ Brain::addReadOrReloadConnectivityDenseScalarFile(const FileModeAddReadReload fi
             try {
                 clf->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -2026,7 +2026,7 @@ Brain::addReadOrReloadConnectivityParcelSeriesFile(const FileModeAddReadReload f
             try {
                 clf->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -2105,7 +2105,7 @@ Brain::addReadOrReloadConnectivityParcelLabelFile(const FileModeAddReadReload fi
             try {
                 clf->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -2185,7 +2185,7 @@ Brain::addReadOrReloadConnectivityParcelScalarFile(const FileModeAddReadReload f
             try {
                 clf->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -2397,7 +2397,7 @@ Brain::addReadOrReloadConnectivityFiberOrientationFile(const FileModeAddReadRelo
             try {
                 cfof->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -2494,7 +2494,7 @@ Brain::addReadOrReloadConnectivityFiberTrajectoryFile(const FileModeAddReadReloa
             try {
                 cftf->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -2571,7 +2571,7 @@ Brain::addReadOrReloadConnectivityMatrixParcelFile(const FileModeAddReadReload f
             try {
                 file->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -2650,7 +2650,7 @@ Brain::addReadOrReloadConnectivityMatrixParcelDenseFile(const FileModeAddReadRel
             try {
                 file->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -2729,7 +2729,7 @@ Brain::addReadOrReloadConnectivityDataSeriesFile(const FileModeAddReadReload fil
             try {
                 file->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
@@ -2854,7 +2854,7 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
             try {
                 sf->readFile(filename);
             }
-            catch (const std::bad_alloc& badAlloc) {
+            catch (const std::bad_alloc&) {
                 /*
                  * This DataFileException will be caught
                  * in the outer try/catch and it will
