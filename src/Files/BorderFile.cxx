@@ -1252,6 +1252,8 @@ BorderFile::readFile(const AString& filename)
         throw e;//rethrow it
     } catch (CaretException& e) {
         throw DataFileException(e);//convert it and throw
+    } catch (std::bad_alloc& e) {
+        throw e;
     } catch (std::exception& e) {
         throw DataFileException(AString(e.what()));//ditto
     } catch (...) {

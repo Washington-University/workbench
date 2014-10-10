@@ -268,6 +268,8 @@ void VolumeFile::readFile(const AString& filename)
     } catch (const CaretException& e) {
         clear();
         throw DataFileException(e);
+    } catch (const std::bad_alloc& ba) {
+        throw ba;
     } catch (...) {
         clear();
         throw DataFileException("unknown error while trying to open volume file " + filename);
