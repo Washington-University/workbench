@@ -549,18 +549,27 @@ static void newHandler()
 }
 
 /**
- * Set handlers for unhandled exceptions or
- * out of memory errors.
+ * Set the handler for an unexpected (uncaught) exception.
  */
-void 
-SystemUtilities::setHandlersForUnexpected()
+void
+SystemUtilities::setUnexpectedHandler()
 {
     std::set_unexpected(unexpectedHandler);
-    std::set_new_handler(newHandler);
-
 }
 
-
+/**
+ * Set the handler for when "operator new" is unable to allocate memory.
+ * This new handler will print a message to the terminal containing a
+ * backtrace and then calls abort to end the program.
+ *
+ * NOTE: If this new handler is set, "operator new" WILL NOT
+ * throw a std::bad_alloc exception.
+ */
+void
+SystemUtilities::setNewHandler()
+{
+    std::set_new_handler(newHandler);
+}
 /**
  * Return the current directory as indicated 
  * by the system.  In most cases, use the
