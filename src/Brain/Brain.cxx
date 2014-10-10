@@ -31,6 +31,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "CaretDataFileHelper.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "ChartingDataManager.h"
@@ -770,7 +771,7 @@ Brain::addReadOrReloadSurfaceFile(const FileModeAddReadReload fileMode,
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
         }
         catch (const DataFileException& dfe) {
@@ -924,7 +925,7 @@ Brain::addReadOrReloadLabelFile(const FileModeAddReadReload fileMode,
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
         }
         catch (const DataFileException& dfe) {
@@ -1073,7 +1074,7 @@ Brain::addReadOrReloadMetricFile(const FileModeAddReadReload fileMode,
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
         }
         catch (const DataFileException& dfe) {
@@ -1223,7 +1224,7 @@ Brain::addReadOrReloadRgbaFile(const FileModeAddReadReload fileMode,
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
         }
         catch (const DataFileException& dfe) {
@@ -1362,7 +1363,7 @@ Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
         }
         catch (const DataFileException& e) {
@@ -1392,35 +1393,6 @@ Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
     }
     
     return vf;
-}
-
-/**
- * Creates a useful error message when a std::bad_alloc exception occurs.
- *
- * @param filename
- *     Name of file that caused the std::bad_alloc exception.
- * @return
- *     Message with info about the file.
- */
-AString
-Brain::getBadAllocExceptionMessage(const AString& filename)
-{
-    FileInformation fileInfo(filename);
-    
-    AString message("Unable to allocate memory for reading the file.");
-    if (fileInfo.exists()) {
-        message.appendWithNewLine("File Size: " + AString::number(fileInfo.size()) + " bytes");
-        const float gigabytes = fileInfo.size() / (1024 * 1024 * 1024);
-        if (gigabytes >= 1.0) {
-            message.appendWithNewLine("      " + AString::number(gigabytes, 'f', 3) + " gigabytes");
-        }
-        message.appendWithNewLine("");
-        message.appendWithNewLine("Note: The amount of memory required to read a data file may be "
-                                  "substantially larger than the size of the file due to the way the "
-                                  "file's data is organized in memory or compression of data within the file.");
-    }
-    
-    return message;
 }
 
 /**
@@ -1516,7 +1488,7 @@ Brain::addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
 
             /*
@@ -1609,7 +1581,7 @@ Brain::addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
         }
         catch (DataFileException& dfe) {
@@ -1725,7 +1697,7 @@ Brain::addReadOrReloadConnectivityDenseFile(const FileModeAddReadReload fileMode
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
             
             cmdf->clearModified();
@@ -1807,7 +1779,7 @@ Brain::addReadOrReloadConnectivityDenseLabelFile(const FileModeAddReadReload fil
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
             
             validateCiftiMappableDataFile(file);
@@ -1886,7 +1858,7 @@ Brain::addReadOrReloadConnectivityMatrixDenseParcelFile(const FileModeAddReadRel
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
             
             validateCiftiMappableDataFile(file);
@@ -1982,7 +1954,7 @@ Brain::addReadOrReloadConnectivityDenseScalarFile(const FileModeAddReadReload fi
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
             
             validateCiftiMappableDataFile(clf);
@@ -2061,7 +2033,7 @@ Brain::addReadOrReloadConnectivityParcelSeriesFile(const FileModeAddReadReload f
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
             
             validateCiftiMappableDataFile(clf);
@@ -2140,7 +2112,7 @@ Brain::addReadOrReloadConnectivityParcelLabelFile(const FileModeAddReadReload fi
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
             
             validateCiftiMappableDataFile(clf);
@@ -2220,7 +2192,7 @@ Brain::addReadOrReloadConnectivityParcelScalarFile(const FileModeAddReadReload f
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
 
             validateCiftiMappableDataFile(clf);
@@ -2432,7 +2404,7 @@ Brain::addReadOrReloadConnectivityFiberOrientationFile(const FileModeAddReadRelo
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
         }
         catch (const DataFileException& dfe) {
@@ -2529,7 +2501,7 @@ Brain::addReadOrReloadConnectivityFiberTrajectoryFile(const FileModeAddReadReloa
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
         }
         catch (const DataFileException& dfe) {
@@ -2606,7 +2578,7 @@ Brain::addReadOrReloadConnectivityMatrixParcelFile(const FileModeAddReadReload f
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
 
             validateCiftiMappableDataFile(file);
@@ -2685,7 +2657,7 @@ Brain::addReadOrReloadConnectivityMatrixParcelDenseFile(const FileModeAddReadRel
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
 
             validateCiftiMappableDataFile(file);
@@ -2764,7 +2736,7 @@ Brain::addReadOrReloadConnectivityDataSeriesFile(const FileModeAddReadReload fil
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
             
             validateCiftiMappableDataFile(file);
@@ -2889,7 +2861,7 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
                  * clean up to avoid memory leaks.
                  */
                 throw DataFileException(filename,
-                                        getBadAllocExceptionMessage(filename));
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
             }
         }
         catch (DataFileException& dfe) {

@@ -605,8 +605,6 @@ namespace caret {
                                  CaretDataFile* caretDataFile,
                                  const AString& filename);
         
-        AString getBadAllocExceptionMessage(const AString& filename);
-        
         AString updateFileNameForReading(const AString& filename);
         
         AString updateFileNameForWriting(const AString& filename);
