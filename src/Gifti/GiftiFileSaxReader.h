@@ -26,6 +26,7 @@
 #include <AString.h>
 #include <stdint.h>
 
+#include "CaretPointer.h"
 #include "GiftiArrayIndexingOrderEnum.h"
 #include "GiftiEndianEnum.h"
 #include "GiftiEncodingEnum.h"
@@ -121,7 +122,7 @@ namespace caret {
         AString elementText;
         
         /// GIFTI data array being read
-        GiftiDataArray* dataArray;
+        CaretPointer<GiftiDataArray> dataArray;
         
         /// GIFTI label table being read
         GiftiLabelTable* labelTable;

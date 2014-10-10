@@ -45,7 +45,7 @@ GiftiFileSaxReader::GiftiFileSaxReader(GiftiFile* giftiFileIn)
    this->state = STATE_NONE;
    this->stateStack.push(this->state);
    this->elementText = "";
-   this->dataArray = NULL;
+   this->dataArray.grabNew(NULL);
    this->labelTable = NULL;
     this->labelTableSaxReader = NULL;
     this->metaDataSaxReader = NULL;
@@ -254,8 +254,7 @@ GiftiFileSaxReader::endElement(const AString& namespaceURI,
                      this->processArrayData();
                  }
              }
-             this->giftiFile->addDataArray(this->dataArray);
-             this->dataArray = NULL;
+             this->giftiFile->addDataArray(this->dataArray.releasePointer());
          }
          else {
          }
@@ -499,7 +498,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes)
                      + subscriptOrderString);
    }
          
-   this->dataArray = new GiftiDataArray(intent);
+   this->dataArray.grabNew(new GiftiDataArray(intent));
     
     /*
      * Indicate that data has not been read.
@@ -528,8 +527,6 @@ GiftiFileSaxReader::processArrayData()
                                 this->giftiFile->getReadMetaDataOnlyFlag());
     }
     catch (const GiftiException& e) {
-        delete dataArray;
-        dataArray = NULL;
         throw XmlSaxParserException(e.whatString());
     }
 }
