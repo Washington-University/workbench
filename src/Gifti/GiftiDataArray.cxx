@@ -350,10 +350,10 @@ GiftiDataArray::allocateData()
    // Does data need to be allocated
    //
    if (dataSizeInBytes > 0) {
-      //
-      //  Allocate the needed memory
-      //
-      data.resize(dataSizeInBytes);
+       //
+       //  Allocate the needed memory
+       //
+       data.resize(dataSizeInBytes);
    }
    else {
       data.clear();

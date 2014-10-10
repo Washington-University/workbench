@@ -760,7 +760,18 @@ Brain::addReadOrReloadSurfaceFile(const FileModeAddReadReload fileMode,
     
     if (readFlag) {
         try {
-            surface->readFile(filename);
+            try {
+                surface->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
         }
         catch (const DataFileException& dfe) {
             if (reloadFlag) {
@@ -903,7 +914,18 @@ Brain::addReadOrReloadLabelFile(const FileModeAddReadReload fileMode,
     
     if (readFlag) {
         try {
-            labelFile->readFile(filename);
+            try {
+                labelFile->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
         }
         catch (const DataFileException& dfe) {
             if (reloadFlag) {
@@ -1041,7 +1063,18 @@ Brain::addReadOrReloadMetricFile(const FileModeAddReadReload fileMode,
     
     if (readFlag) {
         try {
-            metricFile->readFile(filename);
+            try {
+                metricFile->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
         }
         catch (const DataFileException& dfe) {
             if (reloadFlag) {
@@ -1180,7 +1213,18 @@ Brain::addReadOrReloadRgbaFile(const FileModeAddReadReload fileMode,
     
     if (readFlag) {
         try {
-            rgbaFile->readFile(filename);
+            try {
+                rgbaFile->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
         }
         catch (const DataFileException& dfe) {
             if (reloadFlag) {
@@ -1308,7 +1352,18 @@ Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
     
     if (readFlag) {
         try {
-            vf->readFile(filename);
+            try {
+                vf->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
         }
         catch (const DataFileException& e) {
             if (caretDataFile != NULL) {
@@ -1337,6 +1392,35 @@ Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
     }
     
     return vf;
+}
+
+/**
+ * Creates a useful error message when a std::bad_alloc exception occurs.
+ *
+ * @param filename
+ *     Name of file that caused the std::bad_alloc exception.
+ * @return
+ *     Message with info about the file.
+ */
+AString
+Brain::getBadAllocExceptionMessage(const AString& filename)
+{
+    FileInformation fileInfo(filename);
+    
+    AString message("Unable to allocate memory for reading the file.");
+    if (fileInfo.exists()) {
+        message.appendWithNewLine("File Size: " + AString::number(fileInfo.size()) + " bytes");
+        const float gigabytes = fileInfo.size() / (1024 * 1024 * 1024);
+        if (gigabytes >= 1.0) {
+            message.appendWithNewLine("      " + AString::number(gigabytes, 'f', 3) + " gigabytes");
+        }
+        message.appendWithNewLine("");
+        message.appendWithNewLine("Note: The amount of memory required to read a data file may be "
+                                  "substantially larger than the size of the file due to the way the "
+                                  "file's data is organized in memory or compression of data within the file.");
+    }
+    
+    return message;
 }
 
 /**
@@ -1422,6 +1506,19 @@ Brain::addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
     
     if (readFlag) {
         try {
+            try {
+                bf->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+
             /*
              * Create a map of structure to number of nodes
              */
@@ -1435,7 +1532,6 @@ Brain::addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
                                                               bs->getNumberOfNodes()));
             }
             
-            bf->readFile(filename);
             bf->updateNumberOfNodesIfSingleStructure(structureToNodeCountMap);
         }
         catch (DataFileException& dfe) {
@@ -1503,7 +1599,18 @@ Brain::addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
     
     if (readFlag) {
         try {
-            ff->readFile(filename);
+            try {
+                ff->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
         }
         catch (DataFileException& dfe) {
             if (caretDataFile != NULL) {
@@ -1608,7 +1715,19 @@ Brain::addReadOrReloadConnectivityDenseFile(const FileModeAddReadReload fileMode
     
     if (readFlag) {
         try {
-            cmdf->readFile(filename);
+            try {
+                cmdf->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+            
             cmdf->clearModified();
             validateCiftiMappableDataFile(cmdf);
         }
@@ -1678,7 +1797,19 @@ Brain::addReadOrReloadConnectivityDenseLabelFile(const FileModeAddReadReload fil
     
     if (readFlag) {
         try {
-            file->readFile(filename);
+            try {
+                file->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+            
             validateCiftiMappableDataFile(file);
         }
         catch (const DataFileException& dfe) {
@@ -1745,7 +1876,19 @@ Brain::addReadOrReloadConnectivityMatrixDenseParcelFile(const FileModeAddReadRel
     
     if (readFlag) {
         try {
-            file->readFile(filename);
+            try {
+                file->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+            
             validateCiftiMappableDataFile(file);
         }
         catch (const DataFileException& dfe) {
@@ -1829,7 +1972,19 @@ Brain::addReadOrReloadConnectivityDenseScalarFile(const FileModeAddReadReload fi
     
     if (readFlag) {
         try {
-            clf->readFile(filename);
+            try {
+                clf->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+            
             validateCiftiMappableDataFile(clf);
         }
         catch (const DataFileException& dfe) {
@@ -1896,7 +2051,19 @@ Brain::addReadOrReloadConnectivityParcelSeriesFile(const FileModeAddReadReload f
     
     if (readFlag) {
         try {
-            clf->readFile(filename);
+            try {
+                clf->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+            
             validateCiftiMappableDataFile(clf);
         }
         catch (const DataFileException& dfe) {
@@ -1963,7 +2130,19 @@ Brain::addReadOrReloadConnectivityParcelLabelFile(const FileModeAddReadReload fi
     
     if (readFlag) {
         try {
-            clf->readFile(filename);
+            try {
+                clf->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+            
             validateCiftiMappableDataFile(clf);
         }
         catch (const DataFileException& dfe) {
@@ -2031,7 +2210,19 @@ Brain::addReadOrReloadConnectivityParcelScalarFile(const FileModeAddReadReload f
     
     if (readFlag) {
         try {
-            clf->readFile(filename);
+            try {
+                clf->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+
             validateCiftiMappableDataFile(clf);
         }
         catch (const DataFileException& dfe) {
@@ -2231,7 +2422,18 @@ Brain::addReadOrReloadConnectivityFiberOrientationFile(const FileModeAddReadRelo
     
     if (readFlag) {
         try {
-            cfof->readFile(filename);
+            try {
+                cfof->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
         }
         catch (const DataFileException& dfe) {
             if (caretDataFile != NULL) {
@@ -2317,7 +2519,18 @@ Brain::addReadOrReloadConnectivityFiberTrajectoryFile(const FileModeAddReadReloa
     
     if (readFlag) {
         try {
-            cftf->readFile(filename);
+            try {
+                cftf->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
         }
         catch (const DataFileException& dfe) {
             if (caretDataFile != NULL) {
@@ -2383,7 +2596,19 @@ Brain::addReadOrReloadConnectivityMatrixParcelFile(const FileModeAddReadReload f
     
     if (readFlag) {
         try {
-            file->readFile(filename);
+            try {
+                file->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+
             validateCiftiMappableDataFile(file);
         }
         catch (const DataFileException& dfe) {
@@ -2450,7 +2675,19 @@ Brain::addReadOrReloadConnectivityMatrixParcelDenseFile(const FileModeAddReadRel
     
     if (readFlag) {
         try {
-            file->readFile(filename);
+            try {
+                file->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+
             validateCiftiMappableDataFile(file);
         }
         catch (const DataFileException& dfe) {
@@ -2517,7 +2754,19 @@ Brain::addReadOrReloadConnectivityDataSeriesFile(const FileModeAddReadReload fil
     
     if (readFlag) {
         try {
-            file->readFile(filename);
+            try {
+                file->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
+            
             validateCiftiMappableDataFile(file);
         }
         catch (const DataFileException& dfe) {
@@ -2630,7 +2879,18 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
     
     if (readFlag) {
         try {
-            sf->readFile(filename);
+            try {
+                sf->readFile(filename);
+            }
+            catch (const std::bad_alloc& badAlloc) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        getBadAllocExceptionMessage(filename));
+            }
         }
         catch (DataFileException& dfe) {
             if (caretDataFile != NULL) {
@@ -4334,25 +4594,6 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
             }
         }
         throw dfe;
-    }
-    catch (const std::bad_alloc& badAllocException) {
-        /*
-         * If "caretDataFile" is not NULL, then we were trying to
-         * reload a file so remove it from the "loaded files"
-         */
-        if (caretDataFile != NULL) {
-            m_specFile->removeCaretDataFile(caretDataFile);
-        }
-        else {
-            if (caretDataFileRead != NULL) {
-                delete caretDataFileRead;
-                caretDataFileRead = NULL;
-            }
-        }
-        throw DataFileException(dataFileName,
-                                ("Ran out of memory trying to read file ("
-                                 + AString(badAllocException.what())
-                                 + ")."));
     }
    
     updateAfterFilesAddedOrRemoved();
