@@ -64,6 +64,7 @@ CaretDataFileHelper::~CaretDataFileHelper()
 #include "CiftiParcelSeriesFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
+#include "FileInformation.h"
 #include "FociFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -174,7 +175,18 @@ CaretDataFileHelper::readAnyCaretDataFile(const AString& filename, const bool& p
     
     try {
         if (preferOnDisk) caretDataFile->setPreferOnDiskReading(true);//NOTE: because Dense Connectivity also pays attention to this, never change default behaviors away from on disk
-        caretDataFile->readFile(filename);
+        try {
+            caretDataFile->readFile(filename);
+        }
+        catch (const std::bad_alloc& badAlloc) {
+            /*
+             * This DataFileException will be caught
+             * in the outer try/catch and it will
+             * clean up to avoid memory leaks.
+             */
+            throw DataFileException(filename,
+                                    createBadAllocExceptionMessage(filename));
+        }
     }
     catch (const DataFileException& dfe) {
         delete caretDataFile;
@@ -183,6 +195,35 @@ CaretDataFileHelper::readAnyCaretDataFile(const AString& filename, const bool& p
     }
     
     return caretDataFile;
+}
+
+/**
+ * Creates a useful error message when a std::bad_alloc exception occurs.
+ *
+ * @param filename
+ *     Name of file that caused the std::bad_alloc exception.
+ * @return
+ *     Message with info about the file.
+ */
+AString
+CaretDataFileHelper::createBadAllocExceptionMessage(const AString& filename)
+{
+    FileInformation fileInfo(filename);
+    
+    AString message("Unable to allocate memory for reading the file.");
+    if (fileInfo.exists()) {
+        message.appendWithNewLine("File Size: " + AString::number(fileInfo.size()) + " bytes");
+        const float gigabytes = fileInfo.size() / (1024 * 1024 * 1024);
+        if (gigabytes >= 1.0) {
+            message.appendWithNewLine("      " + AString::number(gigabytes, 'f', 3) + " gigabytes");
+        }
+        message.appendWithNewLine("");
+        message.appendWithNewLine("Note: The amount of memory required to read a data file may be "
+                                  "substantially larger than the size of the file due to the way the "
+                                  "file's data is organized in memory or compression of data within the file.");
+    }
+    
+    return message;
 }
 
 

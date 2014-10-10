@@ -35,6 +35,8 @@ namespace caret {
     public:
         static CaretDataFile* readAnyCaretDataFile(const AString& filename, const bool& preferOnDisk = false);
         
+        static AString createBadAllocExceptionMessage(const AString& filename);
+        
     private:
         CaretDataFileHelper();
         
