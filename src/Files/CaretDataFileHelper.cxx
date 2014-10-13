@@ -212,11 +212,16 @@ CaretDataFileHelper::createBadAllocExceptionMessage(const AString& filename)
     
     AString message("Unable to allocate memory for reading the file.");
     if (fileInfo.exists()) {
-        message.appendWithNewLine("File Size: " + AString::number(fileInfo.size()) + " bytes");
-        const float gigabytes = fileInfo.size() / (1024 * 1024 * 1024);
-        if (gigabytes >= 1.0) {
-            message.appendWithNewLine("      " + AString::number(gigabytes, 'f', 3) + " gigabytes");
+        float bytes = (float)fileInfo.size();
+        short index = 0;
+        static const char *labels[9] = {" Bytes", " Kilobytes", " Megabytes", " Gigabytes", " Terabytes", " Petabytes", " Exabytes", " Zettabytes", " Yottabytes"};
+        while (index < 8 && bytes > 1000.0f)
+        {
+            ++index;
+            bytes = bytes / 1000.0f;//using 1024 would make it Kibibytes, etc
         }
+        AString sizeString = AString::number(bytes, 'f', 2) + labels[index];//2 digits after decimal point
+        message.appendWithNewLine("File Size: " + sizeString);
         message.appendWithNewLine("");
         message.appendWithNewLine("Note: The amount of memory required to read a data file may be "
                                   "substantially larger than the size of the file due to the way the "

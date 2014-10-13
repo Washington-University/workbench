@@ -329,16 +329,16 @@ void GeodesicHelper::dijkstra(const int32_t root, bool smooth)
 
 float** GeodesicHelper::getGeoAllToAll(const bool smooth)
 {
-    long long bytes = (((long long)numNodes) * numNodes * (sizeof(float) + sizeof(int32_t)) + numNodes * (sizeof(float*) + sizeof(int32_t*))) * 100;//fixed point
+    float bytes = (float)(((long long)numNodes) * numNodes * (sizeof(float) + sizeof(int32_t)) + numNodes * (sizeof(float*) + sizeof(int32_t*)));
     short index = 0;
     static const char *labels[9] = {" Bytes", " Kilobytes", " Megabytes", " Gigabytes", " Terabytes", " Petabytes", " Exabytes", " Zettabytes", " Yottabytes"};
-    while (index < 8 && bytes > 80000)
-    {//add 2 zeroes, thats 800.00
+    while (index < 8 && bytes > 1000.0f)
+    {
         ++index;
-        bytes = bytes >> 10;
+        bytes = bytes / 1000.0f;//using 1024 would make it Kibibytes, etc
     }
     CaretMutexLocker locked(&inUse);//don't sit there with memory allocated but locked out of computation, lock early - also before status messages
-    std::cout << "attempting to allocate " << bytes / 100 << "." << bytes % 100 << labels[index] << "...";
+    std::cout << "attempting to allocate " << AString::number(bytes, 'f', 2) << labels[index] << "...";
     std::cout.flush();
     int32_t i = -1, j;
     bool fail = false;

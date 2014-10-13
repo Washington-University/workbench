@@ -340,9 +340,6 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                     }
                     break;
                 }
-                default:
-                    CaretAssertMessage(false, "Parsing of this parameter type has not been implemented in this parser");//assert instead of throw because this is a code error, not a user error
-                    throw CommandException("Internal parsing error, please let the developers know what you just tried to do");//but don't let release pass by it either
             };
         }
         catch (const bad_alloc&) {
@@ -364,11 +361,11 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                                             CaretDataFileHelper::createBadAllocExceptionMessage(nextArg));
 
                     break;
-                case OperationParametersEnum::DOUBLE://ignore these output types
+                case OperationParametersEnum::DOUBLE:
                 case OperationParametersEnum::INT:
                 case OperationParametersEnum::STRING:
                 case OperationParametersEnum::BOOL:
-                    throw DataFileException("Unable to allocate memory for primitive data type: "
+                    throw DataFileException("Unable to allocate memory for input: "
                                             + nextArg);
                     break;
             }
@@ -437,9 +434,6 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             case OperationParametersEnum::BOOL:
                 CaretLogWarning("encountered ignored output type, " + OperationParametersEnum::toName(myComponent->m_outputList[i]->getType()));
                 break;
-            default:
-                CaretAssertMessage(false, "Output of this parameter type has not been implemented in parser");//assert instead of throw because this is a code error, not a user error
-                throw CommandException("Internal parsing error, please let the developers know what you just tried to do");//but don't let release pass by it either
         }
         outAssociation.push_back(tempItem);
         if (debug)
