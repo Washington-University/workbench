@@ -127,7 +127,13 @@ VolumeBase::VolumeBase(const vector<uint64_t>& dimensionsIn, const vector<vector
     m_kMult = NULL;
     m_bMult = NULL;
     m_cMult = NULL;
-    reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
+    try
+    {
+        reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
+    } catch (...) {
+        clear();
+        throw;
+    }
     m_ModifiedFlag = true;
 }
 
@@ -140,7 +146,13 @@ VolumeBase::VolumeBase(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_kMult = NULL;
     m_bMult = NULL;
     m_cMult = NULL;
-    reinitialize(dimensionsIn, indexToSpace, numComponents);
+    try
+    {
+        reinitialize(dimensionsIn, indexToSpace, numComponents);
+    } catch (...) {
+        clear();
+        throw;
+    }
     m_ModifiedFlag = true;
 }
 

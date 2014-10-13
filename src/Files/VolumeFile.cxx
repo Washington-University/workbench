@@ -198,15 +198,15 @@ void VolumeFile::readFile(const AString& filename)
     timer.start();
     
     clear();
-    AString fileToRead;
-    try {
+    {
         /*
          * CaretTemporaryFile must be outside of the "if" statment block of code.
          * Otherwise, at the end of the "if" statement block, the 
          * CaretTemporaryFile object will go out of scope and the temporary
          * file will be deleted so there will be no file to read.
          */
-        CaretTemporaryFile tempFile; 
+        AString fileToRead;
+        CaretTemporaryFile tempFile;
         if (DataFile::isFileOnNetwork(filename)) {
             tempFile.readFile(filename);
             fileToRead = tempFile.getFileName();
@@ -265,14 +265,6 @@ void VolumeFile::readFile(const AString& filename)
         }//end nifti-specific code
         parseExtensions();
         clearModified();
-    } catch (const CaretException& e) {
-        clear();
-        throw DataFileException(e);
-    } catch (const std::bad_alloc& ba) {
-        throw ba;
-    } catch (...) {
-        clear();
-        throw DataFileException("unknown error while trying to open volume file " + filename);
     }
     
     /*
@@ -301,48 +293,43 @@ VolumeFile::writeFile(const AString& filename)
 {
     checkFileWritability(filename);
     
-    try {
-        if (getNumberOfComponents() != 1)
-        {
-            throw DataFileException("writing multi-component volumes is not currently supported");//its a hassle, and uncommon, and there is only one 3-component type, restricted to 0-255
-        }
-        updateCaretExtension();
-        NiftiHeader outHeader;//begin nifti-specific code
-        if (m_header != NULL && (m_header->getType() == AbstractHeader::NIFTI))
-        {
-            outHeader = *((NiftiHeader*)m_header.getPointer());
-        }
-        outHeader.clearDataScaling();
-        outHeader.setSForm(m_volSpace.getSform());
-        outHeader.setDimensions(m_origDims);
-        outHeader.setDataType(NIFTI_TYPE_FLOAT32);
-        outHeader.m_extensions.clear();
-        for (int64_t i = 0; i < (int64_t)m_extensions.size(); ++i)
-        {
-            if (m_extensions[i]->getType() == AbstractVolumeExtension::NIFTI)
-            {//ugliness due to smart pointer operator= not allowing you to go from base to derived - could use dynamic_cast internally, but might allow more stupid mistakes past the compiler
-                outHeader.m_extensions.push_back(CaretPointer<NiftiExtension>(new NiftiExtension(*((NiftiExtension*)m_extensions[i].getPointer()))));
-            }
-        }
-        NiftiIO myIO;
-        int outVersion = 1;
-        if (!outHeader.canWriteVersion(1)) outVersion = 2;
-        myIO.writeNew(filename, outHeader, outVersion);
-        const vector<int64_t>& origDims = getOriginalDimensions();
-        vector<int64_t> extraDims;//non-spatial dims
-        if (origDims.size() > 3)
-        {
-            extraDims = vector<int64_t>(origDims.begin() + 3, origDims.end());
-        }
-        for (MultiDimIterator<int64_t> myiter(extraDims); !myiter.atEnd(); ++myiter)
-        {
-            myIO.writeData(getFrame(getBrickIndexFromNonSpatialIndexes(*myiter)), 3, *myiter);//NOTE: does not deal with multi-component volumes
-        }
-        m_header.grabNew(new NiftiHeader(outHeader));//update header to last written version, end nifti-specific code
+    if (getNumberOfComponents() != 1)
+    {
+        throw DataFileException("writing multi-component volumes is not currently supported");//its a hassle, and uncommon, and there is only one 3-component type, restricted to 0-255
     }
-    catch (const CaretException& e) {
-        throw DataFileException(e);
+    updateCaretExtension();
+    NiftiHeader outHeader;//begin nifti-specific code
+    if (m_header != NULL && (m_header->getType() == AbstractHeader::NIFTI))
+    {
+        outHeader = *((NiftiHeader*)m_header.getPointer());
     }
+    outHeader.clearDataScaling();
+    outHeader.setSForm(m_volSpace.getSform());
+    outHeader.setDimensions(m_origDims);
+    outHeader.setDataType(NIFTI_TYPE_FLOAT32);
+    outHeader.m_extensions.clear();
+    for (int64_t i = 0; i < (int64_t)m_extensions.size(); ++i)
+    {
+        if (m_extensions[i]->getType() == AbstractVolumeExtension::NIFTI)
+        {//ugliness due to smart pointer operator= not allowing you to go from base to derived - could use dynamic_cast internally, but might allow more stupid mistakes past the compiler
+            outHeader.m_extensions.push_back(CaretPointer<NiftiExtension>(new NiftiExtension(*((NiftiExtension*)m_extensions[i].getPointer()))));
+        }
+    }
+    NiftiIO myIO;
+    int outVersion = 1;
+    if (!outHeader.canWriteVersion(1)) outVersion = 2;
+    myIO.writeNew(filename, outHeader, outVersion);
+    const vector<int64_t>& origDims = getOriginalDimensions();
+    vector<int64_t> extraDims;//non-spatial dims
+    if (origDims.size() > 3)
+    {
+        extraDims = vector<int64_t>(origDims.begin() + 3, origDims.end());
+    }
+    for (MultiDimIterator<int64_t> myiter(extraDims); !myiter.atEnd(); ++myiter)
+    {
+        myIO.writeData(getFrame(getBrickIndexFromNonSpatialIndexes(*myiter)), 3, *myiter);//NOTE: does not deal with multi-component volumes
+    }
+    m_header.grabNew(new NiftiHeader(outHeader));//update header to last written version, end nifti-specific code
 }
 
 float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
