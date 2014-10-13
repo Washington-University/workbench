@@ -124,6 +124,7 @@ WuQGridLayoutGroup.h
 WuQImageLabel.h
 WuQListWidget.h
 WuQMessageBox.h
+WuQwtPlot.h
 WuQSpinBoxGroup.h
 WuQTabWidget.h
 WuQTimedMessageDisplay.h
@@ -269,6 +270,7 @@ WuQGridLayoutGroup.h
 WuQImageLabel.h
 WuQListWidget.h
 WuQMessageBox.h
+WuQwtPlot.h
 WuQSpinBoxGroup.h
 WuQTabWidget.h
 WuQTimedMessageDisplay.h
@@ -404,6 +406,7 @@ WuQGridLayoutGroup.cxx
 WuQImageLabel.cxx
 WuQListWidget.cxx
 WuQMessageBox.cxx
+WuQwtPlot.cxx
 WuQSpinBoxGroup.cxx
 WuQTabWidget.cxx
 WuQTimedMessageDisplay.cxx

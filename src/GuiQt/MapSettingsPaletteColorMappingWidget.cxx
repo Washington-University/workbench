@@ -31,6 +31,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QMenu>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSlider>
@@ -42,6 +43,7 @@
 
 #include "Brain.h"
 #include "CaretMappableDataFile.h"
+#include "CursorDisplayScoped.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -60,8 +62,8 @@
 #include "WuQDoubleSlider.h"
 #include "WuQFactory.h"
 #include "WuQtUtilities.h"
+#include "WuQwtPlot.h"
 
-#include "qwt_plot.h"
 #include "qwt_plot_curve.h"
 #include "qwt_plot_histogram.h"
 #include "qwt_plot_intervalcurve.h"
@@ -95,6 +97,7 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     
     /*
      * No context menu, it screws things up
+     * but one is used on the histogram plot
      */
     this->setContextMenuPolicy(Qt::NoContextMenu);
     
@@ -633,7 +636,14 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
 QWidget* 
 MapSettingsPaletteColorMappingWidget::createHistogramSection()
 {
-    this->thresholdPlot = new QwtPlot();
+    //this->thresholdPlot = new QwtPlot();
+    this->thresholdPlot = new WuQwtPlot();
+    QObject::connect(this->thresholdPlot, SIGNAL(contextMenuDisplay(QContextMenuEvent*,
+                                                                    float,
+                                                                    float)),
+                     this, SLOT(contextMenuDisplayRequested(QContextMenuEvent*,
+                                                            float,
+                                                            float)));
     this->thresholdPlot->plotLayout()->setAlignCanvasToScales(true);
     
     /*
@@ -672,6 +682,39 @@ MapSettingsPaletteColorMappingWidget::createHistogramSection()
     layout->addWidget(resetViewToolButton, 0, Qt::AlignHCenter);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     return  widget;
+}
+
+/**
+ * Called when the context menu is to be displayed.
+ *
+ * @param event
+ *    The context menu event.
+ * @param graphX
+ *    X-coordinate on plot.
+ * @param graphY
+ *    Y-coordinate on plot.
+ */
+void
+MapSettingsPaletteColorMappingWidget::contextMenuDisplayRequested(QContextMenuEvent* event,
+                                                                  float graphX,
+                                                                  float /*graphY*/)
+{
+    if (this->paletteColorMapping != NULL) {
+        if (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+            CursorDisplayScoped cursor;
+            cursor.showCursor(Qt::ArrowCursor);
+            QMenu menu(this);
+            QAction* minThreshAction = menu.addAction("Set Minimum Threshold");
+            QAction* maxThreshAction = menu.addAction("Set Maximum Threshold");
+            QAction* selectedAction = menu.exec(event->globalPos());
+            if (selectedAction == minThreshAction) {
+                this->thresholdLowSpinBox->setValue(graphX);
+            }
+            else if (selectedAction == maxThreshAction) {
+                this->thresholdHighSpinBox->setValue(graphX);
+            }
+        }
+    }
 }
 
 /**

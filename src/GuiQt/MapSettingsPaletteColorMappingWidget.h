@@ -20,10 +20,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /*LICENSE_END*/
-
 #include <set>
 #include <stdint.h> // needed by windows
 #include <QWidget>
+#include <qwt_plot.h>
 
 class QAbstractButton;
 class QCheckBox;
@@ -45,6 +45,7 @@ namespace caret {
     class PaletteColorMapping;
     class WuQDoubleSlider;
     class WuQWidgetObjectGroup;
+    class WuQwtPlot;
     
     class MapSettingsPaletteColorMappingWidget : public QWidget {
         Q_OBJECT
@@ -80,6 +81,10 @@ namespace caret {
         void applyAllMapsCheckBoxStateChanged(bool);
         
         void applyToMultipleFilesPushbuttonClicked();
+        
+        void contextMenuDisplayRequested(QContextMenuEvent* event,
+                                         float graphX,
+                                         float graphY);
         
     private:
         void updateEditorInternal(CaretMappableDataFile* caretMappableDataFile,
@@ -142,7 +147,8 @@ namespace caret {
         
         EnumComboBoxTemplate* thresholdRangeModeComboBox;
         
-        QwtPlot* thresholdPlot;
+        //QwtPlot* thresholdPlot;
+        WuQwtPlot* thresholdPlot;
         
         QLabel* statisticsMinimumValueLabel;
         QLabel* statisticsMaximumValueLabel;
