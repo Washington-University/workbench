@@ -25,6 +25,7 @@
 #include "BorderFile.h"
 #include "CaretAssert.h"
 #include "CaretCommandLine.h"
+#include "CaretDataFileHelper.h"
 #include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "DataFileException.h"
@@ -119,228 +120,259 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 continue;//so skip trying to parse it as a required argument
             }
         }
-        switch (myComponent->m_paramList[i]->getType())
-        {
-            case OperationParametersEnum::BOOL:
+        const OperationParametersEnum::Enum nextType = myComponent->m_paramList[i]->getType();// need in catch statement below
+        try {
+            switch (myComponent->m_paramList[i]->getType())
             {
-                parameters.backup();
-                ((BooleanParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextBoolean(myComponent->m_paramList[i]->m_shortName);
-                if (debug)
+                case OperationParametersEnum::BOOL:
                 {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
-                    cout << (((BooleanParameter*)myComponent->m_paramList[i])->m_parameter ? "true" : "false") << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::BORDER:
-            {
-                CaretPointer<BorderFile> myFile(new BorderFile());
-                myFile->readFile(nextArg);
-                if (m_doProvenance)
-                {
-                    const GiftiMetaData* md = myFile->getFileMetaData();
-                    if (md != NULL)
+                    parameters.backup();
+                    ((BooleanParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextBoolean(myComponent->m_paramList[i]->m_shortName);
+                    if (debug)
                     {
-                        AString prov = md->get(PROVENANCE_NAME);
-                        if (prov != "")
-                        {
-                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
-                        }
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
+                        cout << (((BooleanParameter*)myComponent->m_paramList[i])->m_parameter ? "true" : "false") << endl;
                     }
+                    break;
                 }
-                ((BorderParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
-                if (debug)
+                case OperationParametersEnum::BORDER:
                 {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
-                    cout << nextArg << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::CIFTI:
-            {
-                FileInformation myInfo(nextArg);
-                CaretPointer<CiftiFile> myFile(new CiftiFile());
-                myFile->openFile(nextArg);
-                m_inputCiftiNames.insert(myInfo.getCanonicalFilePath());//track only names of input cifti, because inputs are always on-disk
-                if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
-                {
-                    const GiftiMetaData* md = myFile->getCiftiXML().getFileMetaData();
-                    if (md != NULL)
+                    CaretPointer<BorderFile> myFile(new BorderFile());
+                    myFile->readFile(nextArg);
+                    if (m_doProvenance)
                     {
-                        if (md->exists(PROVENANCE_NAME))
+                        const GiftiMetaData* md = myFile->getFileMetaData();
+                        if (md != NULL)
                         {
-                            AString provenance = md->get(PROVENANCE_NAME);
-                            if (provenance != "")
+                            AString prov = md->get(PROVENANCE_NAME);
+                            if (prov != "")
                             {
-                                m_parentProvenance += nextArg + ":\n" + provenance + "\n\n";
+                                m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
                             }
                         }
                     }
-                }
-                ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
-                if (debug)
-                {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
-                    cout << nextArg << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::DOUBLE:
-            {
-                parameters.backup();
-                ((DoubleParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextDouble(myComponent->m_paramList[i]->m_shortName);
-                if (debug)
-                {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
-                    cout << ((DoubleParameter*)myComponent->m_paramList[i])->m_parameter << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::FOCI:
-            {
-                CaretPointer<FociFile> myFile(new FociFile());
-                myFile->readFile(nextArg);
-                if (m_doProvenance)
-                {
-                    const GiftiMetaData* md = myFile->getFileMetaData();
-                    if (md != NULL)
+                    ((BorderParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                    if (debug)
                     {
-                        AString prov = md->get(PROVENANCE_NAME);
-                        if (prov != "")
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                        cout << nextArg << endl;
+                    }
+                    break;
+                }
+                case OperationParametersEnum::CIFTI:
+                {
+                    FileInformation myInfo(nextArg);
+                    CaretPointer<CiftiFile> myFile(new CiftiFile());
+                    myFile->openFile(nextArg);
+                    m_inputCiftiNames.insert(myInfo.getCanonicalFilePath());//track only names of input cifti, because inputs are always on-disk
+                    if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
+                    {
+                        const GiftiMetaData* md = myFile->getCiftiXML().getFileMetaData();
+                        if (md != NULL)
                         {
-                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            if (md->exists(PROVENANCE_NAME))
+                            {
+                                AString provenance = md->get(PROVENANCE_NAME);
+                                if (provenance != "")
+                                {
+                                    m_parentProvenance += nextArg + ":\n" + provenance + "\n\n";
+                                }
+                            }
                         }
                     }
-                }
-                ((FociParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
-                if (debug)
-                {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
-                    cout << nextArg << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::INT:
-            {
-                parameters.backup();
-                ((IntegerParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextLong(myComponent->m_paramList[i]->m_shortName);
-                if (debug)
-                {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
-                    cout << ((IntegerParameter*)myComponent->m_paramList[i])->m_parameter << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::LABEL:
-            {
-                CaretPointer<LabelFile> myFile(new LabelFile());
-                myFile->readFile(nextArg);
-                if (m_doProvenance)
-                {
-                    const GiftiMetaData* md = myFile->getFileMetaData();
-                    if (md != NULL)
+                    ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                    if (debug)
                     {
-                        AString prov = md->get(PROVENANCE_NAME);
-                        if (prov != "")
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                        cout << nextArg << endl;
+                    }
+                    break;
+                }
+                case OperationParametersEnum::DOUBLE:
+                {
+                    parameters.backup();
+                    ((DoubleParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextDouble(myComponent->m_paramList[i]->m_shortName);
+                    if (debug)
+                    {
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
+                        cout << ((DoubleParameter*)myComponent->m_paramList[i])->m_parameter << endl;
+                    }
+                    break;
+                }
+                case OperationParametersEnum::FOCI:
+                {
+                    CaretPointer<FociFile> myFile(new FociFile());
+                    myFile->readFile(nextArg);
+                    if (m_doProvenance)
+                    {
+                        const GiftiMetaData* md = myFile->getFileMetaData();
+                        if (md != NULL)
                         {
-                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            AString prov = md->get(PROVENANCE_NAME);
+                            if (prov != "")
+                            {
+                                m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            }
                         }
                     }
-                }
-                ((LabelParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
-                if (debug)
-                {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
-                    cout << nextArg << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::METRIC:
-            {
-                CaretPointer<MetricFile> myFile(new MetricFile());
-                myFile->readFile(nextArg);
-                if (m_doProvenance)
-                {
-                    const GiftiMetaData* md = myFile->getFileMetaData();
-                    if (md != NULL)
+                    ((FociParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                    if (debug)
                     {
-                        AString prov = md->get(PROVENANCE_NAME);
-                        if (prov != "")
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                        cout << nextArg << endl;
+                    }
+                    break;
+                }
+                case OperationParametersEnum::INT:
+                {
+                    parameters.backup();
+                    ((IntegerParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextLong(myComponent->m_paramList[i]->m_shortName);
+                    if (debug)
+                    {
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
+                        cout << ((IntegerParameter*)myComponent->m_paramList[i])->m_parameter << endl;
+                    }
+                    break;
+                }
+                case OperationParametersEnum::LABEL:
+                {
+                    CaretPointer<LabelFile> myFile(new LabelFile());
+                    myFile->readFile(nextArg);
+                    if (m_doProvenance)
+                    {
+                        const GiftiMetaData* md = myFile->getFileMetaData();
+                        if (md != NULL)
                         {
-                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            AString prov = md->get(PROVENANCE_NAME);
+                            if (prov != "")
+                            {
+                                m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            }
                         }
                     }
-                }
-                ((MetricParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
-                if (debug)
-                {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
-                    cout << nextArg << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::STRING:
-            {
-                ((StringParameter*)myComponent->m_paramList[i])->m_parameter = nextArg;
-                if (debug)
-                {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
-                    cout << ((StringParameter*)myComponent->m_paramList[i])->m_parameter << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::SURFACE:
-            {
-                CaretPointer<SurfaceFile> myFile(new SurfaceFile());
-                myFile->readFile(nextArg);
-                if (m_doProvenance)
-                {
-                    const GiftiMetaData* md = myFile->getFileMetaData();
-                    if (md != NULL)
+                    ((LabelParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                    if (debug)
                     {
-                        AString prov = md->get(PROVENANCE_NAME);
-                        if (prov != "")
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                        cout << nextArg << endl;
+                    }
+                    break;
+                }
+                case OperationParametersEnum::METRIC:
+                {
+                    CaretPointer<MetricFile> myFile(new MetricFile());
+                    myFile->readFile(nextArg);
+                    if (m_doProvenance)
+                    {
+                        const GiftiMetaData* md = myFile->getFileMetaData();
+                        if (md != NULL)
                         {
-                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            AString prov = md->get(PROVENANCE_NAME);
+                            if (prov != "")
+                            {
+                                m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            }
                         }
                     }
-                }
-                ((SurfaceParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
-                if (debug)
-                {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
-                    cout << nextArg << endl;
-                }
-                break;
-            }
-            case OperationParametersEnum::VOLUME:
-            {
-                CaretPointer<VolumeFile> myFile(new VolumeFile());
-                myFile->readFile(nextArg);
-                if (m_doProvenance)
-                {
-                    const GiftiMetaData* md = myFile->getFileMetaData();
-                    if (md != NULL)
+                    ((MetricParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                    if (debug)
                     {
-                        AString prov = md->get(PROVENANCE_NAME);
-                        if (prov != "")
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                        cout << nextArg << endl;
+                    }
+                    break;
+                }
+                case OperationParametersEnum::STRING:
+                {
+                    ((StringParameter*)myComponent->m_paramList[i])->m_parameter = nextArg;
+                    if (debug)
+                    {
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
+                        cout << ((StringParameter*)myComponent->m_paramList[i])->m_parameter << endl;
+                    }
+                    break;
+                }
+                case OperationParametersEnum::SURFACE:
+                {
+                    CaretPointer<SurfaceFile> myFile(new SurfaceFile());
+                    myFile->readFile(nextArg);
+                    if (m_doProvenance)
+                    {
+                        const GiftiMetaData* md = myFile->getFileMetaData();
+                        if (md != NULL)
                         {
-                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            AString prov = md->get(PROVENANCE_NAME);
+                            if (prov != "")
+                            {
+                                m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            }
                         }
                     }
+                    ((SurfaceParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                    if (debug)
+                    {
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                        cout << nextArg << endl;
+                    }
+                    break;
                 }
-                ((VolumeParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
-                if (debug)
+                case OperationParametersEnum::VOLUME:
                 {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
-                    cout << nextArg << endl;
+                    CaretPointer<VolumeFile> myFile(new VolumeFile());
+                    myFile->readFile(nextArg);
+                    if (m_doProvenance)
+                    {
+                        const GiftiMetaData* md = myFile->getFileMetaData();
+                        if (md != NULL)
+                        {
+                            AString prov = md->get(PROVENANCE_NAME);
+                            if (prov != "")
+                            {
+                                m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            }
+                        }
+                    }
+                    ((VolumeParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                    if (debug)
+                    {
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                        cout << nextArg << endl;
+                    }
+                    break;
                 }
-                break;
+                default:
+                    CaretAssertMessage(false, "Parsing of this parameter type has not been implemented in this parser");//assert instead of throw because this is a code error, not a user error
+                    throw CommandException("Internal parsing error, please let the developers know what you just tried to do");//but don't let release pass by it either
+            };
+        }
+        catch (const bad_alloc&) {
+            switch (nextType)
+            {
+                case OperationParametersEnum::BORDER:
+                case OperationParametersEnum::CIFTI:
+                case OperationParametersEnum::FOCI:
+                case OperationParametersEnum::LABEL:
+                case OperationParametersEnum::METRIC:
+                case OperationParametersEnum::SURFACE:
+                case OperationParametersEnum::VOLUME:
+                    /*
+                     * Provide information to the user about which
+                     * file caused the std::bad_alloc including
+                     * the size of the file.
+                     */
+                    throw DataFileException(nextArg,
+                                            CaretDataFileHelper::createBadAllocExceptionMessage(nextArg));
+
+                    break;
+                case OperationParametersEnum::DOUBLE://ignore these output types
+                case OperationParametersEnum::INT:
+                case OperationParametersEnum::STRING:
+                case OperationParametersEnum::BOOL:
+                    throw DataFileException("Unable to allocate memory for primitive data type: "
+                                            + nextArg);
+                    break;
             }
-            default:
-                CaretAssertMessage(false, "Parsing of this parameter type has not been implemented in this parser");//assert instead of throw because this is a code error, not a user error
-                throw CommandException("Internal parsing error, please let the developers know what you just tried to do");//but don't let release pass by it either
-        };
+        }
     }
     for (i = 0; i < myComponent->m_outputList.size(); ++i)
     {//parse the output options of this component
