@@ -364,11 +364,22 @@ ImageCaptureDialog::createImageDimensionsSection()
                                     0,
                                     Qt::AlignTop);
     
+    QLabel* imageBytesLabel = new QLabel("Uncompressed Image Memory Size: ");
+    m_imageNumberOfBytesLabel = new QLabel("                    ");
+    QWidget* imageBytesWidget = new QWidget();
+    QHBoxLayout* imageBytesLayout = new QHBoxLayout(imageBytesWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(imageBytesLayout, 4, 0);
+    imageBytesLayout->addWidget(imageBytesLabel);
+    imageBytesLayout->addWidget(m_imageNumberOfBytesLabel);
+    imageBytesLayout->addStretch();
+    
     QGroupBox* groupBox = new QGroupBox("Dimensions");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->addWidget(m_imageSizeWindowRadioButton, 0, Qt::AlignLeft);
     layout->addWidget(m_imageSizeCustomRadioButton, 0, Qt::AlignLeft);
     layout->addWidget(m_customDimensionsWidget, 0, Qt::AlignLeft);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addWidget(imageBytesWidget);
     
     m_imageSizeWindowRadioButton->setChecked(true);
     sizeRadioButtonClicked(sizeButtonGroup->checkedButton());
@@ -391,6 +402,8 @@ ImageCaptureDialog::sizeRadioButtonClicked(QAbstractButton* button)
     else if (button == m_imageSizeCustomRadioButton) {
         m_customDimensionsWidget->setEnabled(true);
     }
+    
+    updateImageNumberOfBytesLabel();
 }
 
 /**
@@ -440,7 +453,45 @@ ImageCaptureDialog::updateDialogWithImageDimensionsModel()
     m_imageResolutionSpinBox->setValue(m_imageDimensionsModel->getNumberOfPixelsPerSpatialUnit(pixelsPerSpatialUnit));
     m_imageResolutionSpinBox->blockSignals(false);
     
+    updateImageNumberOfBytesLabel();
 }
+
+/**
+ * Update the image number of bytes label.
+ */
+void
+ImageCaptureDialog::updateImageNumberOfBytesLabel()
+{
+    int32_t imageWidth  = 0;
+    int32_t imageHeight = 0;
+    
+    if (m_imageSizeCustomRadioButton->isChecked()) {
+        imageWidth = m_pixelWidthSpinBox->value();
+        imageHeight = m_pixelHeightSpinBox->value();
+    }
+    else if (m_imageSizeWindowRadioButton->isChecked()) {
+        float aspectRatio = 0.0;
+        if ( ! getSelectedWindowWidthAndHeight(imageWidth,
+                                               imageHeight,
+                                               aspectRatio)) {
+            imageWidth  = 0;
+            imageHeight = 0;
+        }
+    }
+    
+    const int64_t bytesPerPixel = 3;   // RGB
+    const int64_t numberOfBytes = (static_cast<int64_t>(imageWidth)
+                                   * static_cast<int64_t>(imageHeight)
+                                   * bytesPerPixel);
+    if (numberOfBytes > 0) {
+        const AString sizeString = FileInformation::fileSizeToStandardUnits(numberOfBytes);
+        m_imageNumberOfBytesLabel->setText(sizeString);
+    }
+    else {
+        m_imageNumberOfBytesLabel->setText("Invalid/Unknown");
+    }
+}
+
 
 /**
  * Called when pixel width value is changed.

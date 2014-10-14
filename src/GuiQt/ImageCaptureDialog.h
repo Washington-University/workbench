@@ -95,6 +95,8 @@ namespace caret {
         
         void updateDialogWithImageDimensionsModel();
         
+        void updateImageNumberOfBytesLabel();
+        
         QCheckBox* m_saveImageToFileCheckBox;
         QCheckBox* m_copyImageToClipboardCheckBox;
         QLineEdit* m_imageFileNameLineEdit;
@@ -108,9 +110,12 @@ namespace caret {
         QDoubleSpinBox* m_imageResolutionSpinBox;
         QCheckBox* m_scaleProportionallyCheckBox;
         
+        
         EnumComboBoxTemplate* m_imagePixelsPerSpatialUnitsEnumComboBox;
         EnumComboBoxTemplate* m_imageSpatialUnitsEnumComboBox;
 
+        QLabel* m_imageNumberOfBytesLabel;
+        
         QCheckBox* m_imageAutoCropCheckBox;
         QSpinBox*  m_imageAutoCropMarginSpinBox;
         

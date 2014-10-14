@@ -637,4 +637,28 @@ FileInformation::getRemoteUrlUsernameAndPassword(AString& urlOut,
     urlOut = getAbsoluteFilePath();
 }
 
+/**
+ * Convert the number of bytes to a string that includes standard units
+ * (ie: Bytes, Kilobytes, Megabytes, Gigabytes, etc.)
+ *
+ * @param numberOfBytes
+ *    The number of bytes.
+ * @return
+ *    String with the size in standard units.
+ */
+AString
+FileInformation::fileSizeToStandardUnits(const int64_t numberOfBytes)
+{
+    double bytes = numberOfBytes;
+    short index = 0;
+    static const char *labels[9] = {" Bytes", " Kilobytes", " Megabytes", " Gigabytes", " Terabytes", " Petabytes", " Exabytes", " Zettabytes", " Yottabytes"};
+    while (index < 8 && bytes > 1000.0f)
+    {
+        ++index;
+        bytes = bytes / 1000.0f;//using 1024 would make it Kibibytes, etc
+    }
+    AString sizeString = AString::number(bytes, 'f', 2) + labels[index];//2 digits after decimal point
+    return sizeString;
+}
+
 

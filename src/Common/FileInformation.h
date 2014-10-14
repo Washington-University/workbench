@@ -96,6 +96,8 @@ namespace caret {
                                              AString& usernameOut,
                                              AString& passwordOut) const;
         
+        static AString fileSizeToStandardUnits(const int64_t numberOfBytes);
+        
     private:
         FileInformation(const FileInformation&);
 
