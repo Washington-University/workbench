@@ -4745,27 +4745,22 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                 case CiftiMappingType::BRAIN_MODELS:
                 {
                     const CiftiBrainModelsMap& bmm = ciftiXML.getBrainModelsMap(alongType);
-                    
-                    const std::vector<StructureEnum::Enum> surfaceStructures = bmm.getSurfaceStructureList();
-                    for (std::vector<StructureEnum::Enum>::const_iterator surfaceIter = surfaceStructures.begin();
-                         surfaceIter != surfaceStructures.end();
-                         surfaceIter++) {
-                        const StructureEnum::Enum structure = *surfaceIter;
-                        dataFileInformation.addNameAndValue(("    "
-                                                             + StructureEnum::toGuiName(structure)),
-                                                            (AString::number(bmm.getSurfaceMap(structure).size()) + " out of " + AString::number(bmm.getSurfaceNumberOfNodes(structure))
-                                                             + " vertices"));
-                    }
-                    
-                    const std::vector<StructureEnum::Enum> volumeStructures = bmm.getVolumeStructureList();
-                    for (std::vector<StructureEnum::Enum>::const_iterator volumeIter = volumeStructures.begin();
-                         volumeIter != volumeStructures.end();
-                         volumeIter++) {
-                        const StructureEnum::Enum structure = *volumeIter;
-                        dataFileInformation.addNameAndValue(("    "
-                                                             + StructureEnum::toGuiName(structure)),
-                                                            (AString::number(bmm.getVolumeStructureMap(structure).size())
-                                                             + " voxels"));
+                    std::vector<CiftiBrainModelsMap::ModelInfo> modelInfo = bmm.getModelInfo();//allows us to visit the models in the order they are in the file
+                    for (int i = 0; i < (int)modelInfo.size(); ++i)
+                    {
+                        if (modelInfo[i].m_type == CiftiBrainModelsMap::SURFACE)
+                        {
+                            dataFileInformation.addNameAndValue(("    "
+                                                                + StructureEnum::toGuiName(modelInfo[i].m_structure)),
+                                                                (AString::number(modelInfo[i].m_indexCount) + " out of " + AString::number(bmm.getSurfaceNumberOfNodes(modelInfo[i].m_structure))
+                                                                + " vertices"));
+                        } else {
+                            CaretAssert(modelInfo[i].m_type == CiftiBrainModelsMap::VOXELS);
+                            dataFileInformation.addNameAndValue(("    "
+                                                                + StructureEnum::toGuiName(modelInfo[i].m_structure)),
+                                                                (AString::number(modelInfo[i].m_indexCount)
+                                                                + " voxels"));
+                        }
                     }
                 }
                     break;
