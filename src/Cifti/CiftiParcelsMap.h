@@ -56,6 +56,7 @@ namespace caret
         std::vector<StructureEnum::Enum> getParcelSurfaceStructures() const;
         const std::vector<Parcel>& getParcels() const { return m_parcels; }
         int64_t getIndexFromNumberOrName(const QString& numberOrName) const;
+        QString getIndexName(const int64_t& index) const;
         
         CiftiParcelsMap() { m_haveVolumeSpace = false; m_ignoreVolSpace = false; }
         void addSurface(const int& numberOfNodes, const StructureEnum::Enum& structure);

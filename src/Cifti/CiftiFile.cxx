@@ -507,7 +507,7 @@ void CiftiOnDiskImpl::setColumn(const float* dataIn, const int64_t& index)
 {
     CaretAssert(m_xml.getNumberOfDimensions() == 2);//otherwise this shouldn't be called
     CaretAssert(index >= 0 && index < m_xml.getDimensionLength(CiftiXML::ALONG_ROW));
-    CaretLogFine("getColumn called on CiftiOnDiskImpl, this will be slow");//generate logging messages at a low priority
+    CaretLogFine("setColumn called on CiftiOnDiskImpl, this will be slow");//generate logging messages at a low priority
     vector<int64_t> indexSelect(2);
     indexSelect[0] = index;
     int64_t colLength = m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN);

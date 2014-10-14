@@ -75,7 +75,7 @@ OperationParameters* OperationVolumeWeightedStats::getParameters()
         "If -weight-volume is not specified, each voxel's volume is used.  " +
         "Use -subvolume to only give output for a single subvolume.  " +
         "Use -roi to consider only the data within a region.  " +
-        "Exactly one of -reduce or -percentile must be specified, and exactly one of -mean, -stdev, -percentile or -sum must be specified.\n\n" +
+        "Exactly one of -mean, -stdev, -percentile or -sum must be specified.\n\n" +
         "Using -sum without -weight-volume is equivalent to integrating with respect to volume."
     );
     return ret;

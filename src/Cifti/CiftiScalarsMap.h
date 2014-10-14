@@ -39,6 +39,7 @@ namespace caret
         PaletteColorMapping* getMapPalette(const int64_t& index) const;
         const QString& getMapName(const int64_t& index) const;
         int64_t getIndexFromNumberOrName(const QString& numberOrName) const;
+        QString getIndexName(const int64_t& index) const { return getMapName(index); }
         
         void setMapName(const int64_t& index, const QString& mapName) const;//ditto
         void setLength(const int64_t& length);

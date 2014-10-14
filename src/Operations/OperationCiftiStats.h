@@ -1,3 +1,6 @@
+#ifndef __OPERATION_CIFTI_STATS_H__
+#define __OPERATION_CIFTI_STATS_H__
+
 /*LICENSE_START*/
 /*
  *  Copyright (C) 2014  Washington University School of Medicine
@@ -18,24 +21,21 @@
  */
 /*LICENSE_END*/
 
-#include "CiftiMappingType.h"
+#include "AbstractOperation.h"
 
-using namespace caret;
+namespace caret {
+    
+    class OperationCiftiStats : public AbstractOperation
+    {
+    public:
+        static OperationParameters* getParameters();
+        static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
+        static AString getCommandSwitch();
+        static AString getShortDescription();
+    };
 
-CiftiMappingType::~CiftiMappingType()
-{//to ensure that the class's vtable gets defined in an object file
+    typedef TemplateAutoOperation<OperationCiftiStats> AutoOperationCiftiStats;
+
 }
 
-int64_t CiftiMappingType::getIndexFromNumberOrName(const QString& numberOrName) const
-{
-    bool ok = false;
-    int64_t ret = numberOrName.toLongLong(&ok) - 1;//quirk: use string "1" as the first index
-    if (!ok) return -1;
-    if (ret < 0 || ret >= getLength()) return -1;
-    return ret;
-}
-
-QString CiftiMappingType::getIndexName(const int64_t&) const
-{
-    return "";
-}
+#endif //__OPERATION_CIFTI_STATS_H__

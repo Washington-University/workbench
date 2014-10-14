@@ -137,6 +137,8 @@
 #include "OperationCiftiResampleDconnMemory.h"
 #include "OperationCiftiROIAverage.h"
 #include "OperationCiftiSeparateAll.h"
+#include "OperationCiftiStats.h"
+#include "OperationCiftiWeightedStats.h"
 #include "OperationConvertAffine.h"
 #include "OperationConvertFiberOrientations.h"
 #include "OperationConvertMatrix4ToMatrix2.h"
@@ -360,6 +362,8 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiResampleDconnMemory()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiROIAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiStats()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiWeightedStats()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertAffine()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertFiberOrientations()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertMatrix4ToMatrix2()));

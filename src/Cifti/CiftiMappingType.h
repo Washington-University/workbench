@@ -44,6 +44,7 @@ namespace caret
         virtual MappingType getType() const = 0;
         virtual int64_t getLength() const = 0;
         virtual int64_t getIndexFromNumberOrName(const QString& numberOrName) const;
+        virtual QString getIndexName(const int64_t& index) const;
         virtual bool operator==(const CiftiMappingType& rhs) const = 0;//used to check for merging mappings when writing the XML - must compare EVERYTHING that goes into the XML
         bool operator!=(const CiftiMappingType& rhs) const { return !((*this) == rhs); }
         virtual bool approximateMatch(const CiftiMappingType& rhs) const = 0;//check if things like doing index-wise math would make sense

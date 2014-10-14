@@ -36,6 +36,8 @@ OperationCiftiPalette.h
 OperationCiftiResampleDconnMemory.h
 OperationCiftiROIAverage.h
 OperationCiftiSeparateAll.h
+OperationCiftiStats.h
+OperationCiftiWeightedStats.h
 OperationConvertAffine.h
 OperationConvertFiberOrientations.h
 OperationConvertMatrix4ToMatrix2.h
@@ -111,6 +113,8 @@ OperationCiftiPalette.cxx
 OperationCiftiResampleDconnMemory.cxx
 OperationCiftiROIAverage.cxx
 OperationCiftiSeparateAll.cxx
+OperationCiftiStats.cxx
+OperationCiftiWeightedStats.cxx
 OperationConvertAffine.cxx
 OperationConvertFiberOrientations.cxx
 OperationConvertMatrix4ToMatrix2.cxx

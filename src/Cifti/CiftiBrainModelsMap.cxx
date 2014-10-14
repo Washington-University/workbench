@@ -239,6 +239,8 @@ vector<CiftiBrainModelsMap::ModelInfo> CiftiBrainModelsMap::getModelInfo() const
     {
         ret[i].m_structure = m_modelsInfo[i].m_brainStructure;
         ret[i].m_type = m_modelsInfo[i].m_type;
+        ret[i].m_indexStart = m_modelsInfo[i].m_modelStart;
+        ret[i].m_indexCount = m_modelsInfo[i].m_modelEnd - m_modelsInfo[i].m_modelStart;
     }
     return ret;
 }

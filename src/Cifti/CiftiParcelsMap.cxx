@@ -205,6 +205,12 @@ int64_t CiftiParcelsMap::getIndexFromNumberOrName(const QString& numberOrName) c
     }
 }
 
+QString CiftiParcelsMap::getIndexName(const int64_t& index) const
+{
+    CaretAssertVectorIndex(m_parcels, index);
+    return m_parcels[index].m_name;
+}
+
 const VolumeSpace& CiftiParcelsMap::getVolumeSpace() const
 {
     CaretAssert(!m_ignoreVolSpace);//this should never be set except during parsing of cifti-1

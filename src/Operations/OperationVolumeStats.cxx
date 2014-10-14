@@ -133,7 +133,7 @@ void OperationVolumeStats::useParameters(OperationParameters* myParams, Progress
     if (input->getNumberOfComponents() != 1) throw OperationException("multi-component volumes are not supported in -volume-stats");
     OptionalParameter* reduceOpt = myParams->getOptionalParameter(2);
     OptionalParameter* percentileOpt = myParams->getOptionalParameter(3);
-    if (reduceOpt->m_present == percentileOpt->m_present)//use == as logical xor
+    if (reduceOpt->m_present == percentileOpt->m_present)//use == as logical xnor
     {
         throw OperationException("you must use exactly one of -reduce or -percentile");
     }
