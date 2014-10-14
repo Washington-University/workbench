@@ -1145,15 +1145,15 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
     if ((image.size().width() <= 0)
         || (image.size().height() <= 0)) {
         imageCaptureEvent->setErrorMessage("Image capture appears to have failed (invalid size).");
-        return;
     }
-    
-    imageCaptureEvent->setImage(image);
-    
-    uint8_t backgroundColor[3];
-    this->openGL->getBackgroundColor(backgroundColor);
-    imageCaptureEvent->setBackgroundColor(backgroundColor);
-    
+    else {
+        imageCaptureEvent->setImage(image);
+        
+        uint8_t backgroundColor[3];
+        this->openGL->getBackgroundColor(backgroundColor);
+        imageCaptureEvent->setBackgroundColor(backgroundColor);
+    }
+
     BrainOpenGLShape::setImmediateModeOverride(false);
     
     this->resizeGL(oldSizeX, oldSizeY);
