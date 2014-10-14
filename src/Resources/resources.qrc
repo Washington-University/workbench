@@ -176,6 +176,7 @@
 <file>./LayersPanel/colorbar.png</file>
 <file>./LayersPanel/construction.png</file>
 <file>./LayersPanel/wrench.png</file>
+<file>./PaletteSettings/chain_link_icon.png</file>
 <file>./resources.qrc</file>
 <file>./SpecFileDialog/delete_icon.png</file>
 <file>./SpecFileDialog/load_icon.png</file>
