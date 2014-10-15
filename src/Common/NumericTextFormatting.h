@@ -37,6 +37,9 @@ namespace caret {
         static void formatValueRange(const float valuesIn[],
                                      AString formattedValuesOut[],
                                      const int32_t numberOfValues);
+        
+        static AString formatValue(const float valueIn);
+        
         static void formatValuesIndividually(const float valuesIn[],
                                              AString formattedValuesOut[],
                                              const int32_t numberOfValues);

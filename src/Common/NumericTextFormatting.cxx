@@ -353,6 +353,32 @@ NumericTextFormatting::formatValueRangeNegativeAndPositive(const float negMaxNeg
                      2);
 }
 
+/**
+ * Format the value.
+ *
+ * @param valuesn
+ *    The input values.
+ * @return 
+ *    Value formatted as text.
+ */
+AString
+NumericTextFormatting::formatValue(const float value)
+{
+    char format    = 'f';
+    int  precision = 0;
+    
+    getFormatAndPrecision(value,
+                          format,
+                          precision);
+    
+    const int FIELD_WIDTH = 0;
+    
+    AString textValue = formatNumberForDisplay(value,
+                                               format,
+                                               FIELD_WIDTH,
+                                               precision);
+    return textValue;
+}
 
 /**
  * Format each of the values.
@@ -371,20 +397,7 @@ NumericTextFormatting::formatValuesIndividually(const float valuesIn[],
                                                 const int32_t numberOfValues)
 {
     for (int32_t i = 0; i < numberOfValues; i++) {
-        char format    = 'f';
-        int  precision = 0;
-        
-        getFormatAndPrecision(valuesIn[i],
-                              format,
-                              precision);
-        
-        const int FIELD_WIDTH = 0;
-        
-        AString textValue = formatNumberForDisplay(valuesIn[i],
-                                                   format,
-                                                   FIELD_WIDTH,
-                                                   precision);
-        formattedValuesOut[i] = textValue;
+        formattedValuesOut[i] = formatValue(valuesIn[i]);
     }
 }
 
