@@ -53,6 +53,7 @@
 #include "GuiManager.h"
 #include "Histogram.h"
 #include "NodeAndVoxelColoring.h"
+#include "NumericTextFormatting.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
@@ -701,11 +702,12 @@ MapSettingsPaletteColorMappingWidget::contextMenuDisplayRequested(QContextMenuEv
 {
     if (this->paletteColorMapping != NULL) {
         if (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+            AString textValue = NumericTextFormatting::formatValue(graphX);
             CursorDisplayScoped cursor;
             cursor.showCursor(Qt::ArrowCursor);
             QMenu menu(this);
-            QAction* minThreshAction = menu.addAction("Set Minimum Threshold");
-            QAction* maxThreshAction = menu.addAction("Set Maximum Threshold");
+            QAction* minThreshAction = menu.addAction("Set Minimum Threshold to " + textValue);
+            QAction* maxThreshAction = menu.addAction("Set Maximum Threshold to " + textValue);
             QAction* selectedAction = menu.exec(event->globalPos());
             if (selectedAction == minThreshAction) {
                 this->thresholdLowSpinBox->setValue(graphX);
@@ -900,13 +902,16 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
                                           "Map this value to 1.0 in palette");
     this->paletteWidgetGroup->add(this->scaleFixedPositiveMaximumSpinBox);
     this->scaleFixedPositiveMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
-    
+
     QWidget* colorMappingWidget = new QWidget();
     QGridLayout* colorMappingLayout = new QGridLayout(colorMappingWidget);
+    colorMappingLayout->setColumnStretch(0, 0);
+    colorMappingLayout->setColumnStretch(1, 100);
+    colorMappingLayout->setColumnStretch(2, 100);
     this->setLayoutSpacingAndMargins(colorMappingLayout);
-    colorMappingLayout->addWidget(this->scaleAutoRadioButton, 0, 0);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 1);
-    colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 2);
+    colorMappingLayout->addWidget(this->scaleAutoRadioButton, 0, 0, Qt::AlignHCenter);
+    colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 1, Qt::AlignHCenter);
+    colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 2, Qt::AlignHCenter);
     colorMappingLayout->addWidget(new QLabel("Pos Max"), 1, 0, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Pos Min"), 2, 0, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Neg Min"), 3, 0, Qt::AlignRight);
@@ -919,7 +924,26 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     colorMappingLayout->addWidget(this->scaleFixedPositiveMinimumSpinBox, 2, 2);
     colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 2);
     colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 2);
-    colorMappingWidget->setFixedSize(colorMappingWidget->sizeHint());
+
+//    QWidget* colorMappingWidget = new QWidget();
+//    QGridLayout* colorMappingLayout = new QGridLayout(colorMappingWidget);
+//    this->setLayoutSpacingAndMargins(colorMappingLayout);
+//    colorMappingLayout->addWidget(this->scaleAutoRadioButton, 0, 0);
+//    colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 1);
+//    colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 2);
+//    colorMappingLayout->addWidget(new QLabel("Pos Max"), 1, 0, Qt::AlignRight);
+//    colorMappingLayout->addWidget(new QLabel("Pos Min"), 2, 0, Qt::AlignRight);
+//    colorMappingLayout->addWidget(new QLabel("Neg Min"), 3, 0, Qt::AlignRight);
+//    colorMappingLayout->addWidget(new QLabel("Neg Max"), 4, 0, Qt::AlignRight);
+//    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMaximumSpinBox, 1, 1);
+//    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMinimumSpinBox, 2, 1);
+//    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMinimumSpinBox, 3, 1);
+//    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMaximumSpinBox, 4, 1);
+//    colorMappingLayout->addWidget(this->scaleFixedPositiveMaximumSpinBox, 1, 2);
+//    colorMappingLayout->addWidget(this->scaleFixedPositiveMinimumSpinBox, 2, 2);
+//    colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 2);
+//    colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 2);
+//    colorMappingWidget->setFixedSize(colorMappingWidget->sizeHint());
 
 
     /*
