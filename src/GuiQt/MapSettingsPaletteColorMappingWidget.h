@@ -93,6 +93,7 @@ namespace caret {
 
         QWidget* createPaletteSection();
         QWidget* createThresholdSection();
+        void updateThresholdSection();
         QWidget* createHistogramSection();
         QWidget* createHistogramControlSection();
         QWidget* createDataOptionsSection();

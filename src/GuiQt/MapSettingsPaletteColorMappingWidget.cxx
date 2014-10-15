@@ -203,13 +203,15 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                 
                 float maxValue = std::numeric_limits<float>::max();
                 float minValue = -maxValue;
-                
-                bool enableSliders = true;
+                float stepMax = maxValue;
+                float stepMin = minValue;
                 
                 switch (thresholdRangeMode) {
                     case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE:
                         this->caretMappableDataFile->getDataRangeFromAllMaps(minValue,
                                                                              maxValue);
+                        stepMin = minValue;
+                        stepMax = maxValue;
                         break;
                     case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP:
                     {
@@ -217,12 +219,28 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                         if (stats != NULL) {
                             minValue = stats->getMin();
                             maxValue = stats->getMax();
+                            stepMin = minValue;
+                            stepMax = maxValue;
                         }
                     }
                         break;
                     case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_UNLIMITED:
-                        enableSliders = false;
+                        const FastStatistics* stats = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
+                        if (stats != NULL) {
+                            stepMin = stats->getMin();
+                            stepMax = stats->getMax();
+                        }
                         break;
+                }
+                
+                /*
+                 * Set the spin box step value to one percent of 
+                 * the data's range.
+                 */
+                float stepValue = 1.0;
+                const float diff = stepMax - stepMin;
+                if (diff > 0.0) {
+                    stepValue = diff / 100.0;
                 }
                 
                 this->thresholdLowSlider->setRange(minValue,
@@ -233,9 +251,8 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                                                     maxValue);
                 this->thresholdHighSpinBox->setRange(minValue,
                                                      maxValue);
-                
-                this->thresholdLowSlider->getWidget()->setEnabled(enableSliders);
-                this->thresholdHighSlider->getWidget()->setEnabled(enableSliders);
+                this->thresholdLowSpinBox->setSingleStep(stepValue);
+                this->thresholdHighSpinBox->setSingleStep(stepValue);
             }
         }
     }
@@ -1028,6 +1045,54 @@ MapSettingsPaletteColorMappingWidget::updateEditor(CaretMappableDataFile* caretM
 }
 
 /**
+ * Update the threshold section.
+ */
+void
+MapSettingsPaletteColorMappingWidget::updateThresholdSection()
+{
+    this->thresholdWidgetGroup->blockAllSignals(true);
+    
+    const int32_t numTypes = this->thresholdTypeComboBox->count();
+    for (int32_t i = 0; i < numTypes; i++) {
+        const int value = this->thresholdTypeComboBox->itemData(i).toInt();
+        if (value == static_cast<int>(this->paletteColorMapping->getThresholdType())) {
+            this->thresholdTypeComboBox->setCurrentIndex(i);
+            break;
+        }
+    }
+    
+    const bool enableThresholdControls = (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
+    this->thresholdAdjustmentWidgetGroup->setEnabled(enableThresholdControls);
+    const float lowValue = this->paletteColorMapping->getThresholdMinimum(this->paletteColorMapping->getThresholdType());
+    const float highValue = this->paletteColorMapping->getThresholdMaximum(this->paletteColorMapping->getThresholdType());
+    
+    switch (this->paletteColorMapping->getThresholdTest()) {
+        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+            this->thresholdShowOutsideRadioButton->setChecked(true);
+            break;
+        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+            this->thresholdShowInsideRadioButton->setChecked(true);
+            break;
+    }
+    
+    const PaletteThresholdRangeModeEnum::Enum thresholdRangeMode = paletteColorMapping->getThresholdRangeMode();
+    this->thresholdRangeModeComboBox->blockSignals(true);
+    this->thresholdRangeModeComboBox->setSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>(thresholdRangeMode);
+    this->thresholdRangeModeComboBox->blockSignals(false);
+    updateThresholdControlsMinimumMaximumRangeValues();
+    
+    this->thresholdLowSlider->setValue(lowValue);
+    
+    this->thresholdHighSlider->setValue(highValue);
+    
+    this->thresholdLowSpinBox->setValue(lowValue);
+    
+    this->thresholdHighSpinBox->setValue(highValue);
+    
+    this->thresholdWidgetGroup->blockAllSignals(false);
+}
+
+/**
  * This PRIVATE method updates the editor content and MUST always be used
  * when something within this class requires updating the displayed data.
  *
@@ -1054,7 +1119,6 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
     }
     
     this->paletteWidgetGroup->blockAllSignals(true);
-    this->thresholdWidgetGroup->blockAllSignals(true);
     
     const AString title =
     this->caretMappableDataFile->getFileNameNoPath()
@@ -1126,50 +1190,15 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
     
         this->interpolateColorsCheckBox->setChecked(this->paletteColorMapping->isInterpolatePaletteFlag());
         
-        const int32_t numTypes = this->thresholdTypeComboBox->count();
-        for (int32_t i = 0; i < numTypes; i++) {
-            const int value = this->thresholdTypeComboBox->itemData(i).toInt();
-            if (value == static_cast<int>(this->paletteColorMapping->getThresholdType())) {
-                this->thresholdTypeComboBox->setCurrentIndex(i);
-                break;
-            }
-        }
+        updateThresholdSection();
         
-        const bool enableThresholdControls = (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
-        this->thresholdAdjustmentWidgetGroup->setEnabled(enableThresholdControls);
-        const float lowValue = this->paletteColorMapping->getThresholdMinimum(this->paletteColorMapping->getThresholdType());
-        const float highValue = this->paletteColorMapping->getThresholdMaximum(this->paletteColorMapping->getThresholdType());        
-        
-        switch (this->paletteColorMapping->getThresholdTest()) {
-            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
-                this->thresholdShowOutsideRadioButton->setChecked(true);
-                break;
-            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
-                this->thresholdShowInsideRadioButton->setChecked(true);
-                break;
-        }
-        
-        const PaletteThresholdRangeModeEnum::Enum thresholdRangeMode = paletteColorMapping->getThresholdRangeMode();
-        this->thresholdRangeModeComboBox->blockSignals(true);
-        this->thresholdRangeModeComboBox->setSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>(thresholdRangeMode);
-        this->thresholdRangeModeComboBox->blockSignals(false);
-        updateThresholdControlsMinimumMaximumRangeValues();
-
         float minValue  = 0.0;
         float maxValue  = 0.0;
         const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
         if (statistics != NULL) {
-            minValue  = 0.0;
-            maxValue  = 0.0;
+            minValue  = statistics->getMin();
+            maxValue  = statistics->getMax();
         }
-        
-        this->thresholdLowSlider->setValue(lowValue);
-        
-        this->thresholdHighSlider->setValue(highValue);
-        
-        this->thresholdLowSpinBox->setValue(lowValue);
-        
-        this->thresholdHighSpinBox->setValue(highValue);
         
         /*
          * Set fixed spin boxes so that they increment by 1% of data.
@@ -1188,7 +1217,6 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
     this->updateHistogramPlot();
     
     this->paletteWidgetGroup->blockAllSignals(false);
-    this->thresholdWidgetGroup->blockAllSignals(false);
 }
 
 /**
