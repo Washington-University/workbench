@@ -361,7 +361,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiResampleDconnMemory()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiROIAverage()));
-    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiStats()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiWeightedStats()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertAffine()));
@@ -386,11 +385,9 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricStats()));
-    this->commandOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricWeightedStats()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationNiftiInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
-    this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapName()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapNames()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     if (OperationShowScene::isShowSceneCommandAvailable()) {
@@ -431,6 +428,10 @@ CommandOperationManager::CommandOperationManager()
 #endif // WORKBENCH_HAVE_C11X
     this->commandOperations.push_back(new CommandGiftiConvert());
     this->commandOperations.push_back(new CommandUnitTest());
+    
+    this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
+    this->deprecatedOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
+    this->deprecatedOperations.push_back(new CommandParser(new AutoOperationSetMapName()));
 }
 
 /**
@@ -444,6 +445,12 @@ CommandOperationManager::~CommandOperationManager()
         this->commandOperations[i] = NULL;
     }
     this->commandOperations.clear();
+    uint64_t numberOfDeprecated = this->deprecatedOperations.size();
+    for (uint64_t i = 0; i < numberOfDeprecated; i++) {
+        delete this->deprecatedOperations[i];
+        this->deprecatedOperations[i] = NULL;
+    }
+    this->deprecatedOperations.clear();
 }
 
 /**
@@ -461,6 +468,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
     bool preventProvenance = getGlobalOption(parameters, "-disable-provenance", 0, globalOptionArgs);//check these BEFORE we test if we have a command switch
 
     const uint64_t numberOfCommands = this->commandOperations.size();
+    const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
 
     if (parameters.hasNext() == false) {
         printHelpInfo();
@@ -479,16 +487,31 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         printVersionInfo();
     } else if (commandSwitch == "-list-commands") {
         printAllCommands();
+    } else if (commandSwitch == "-list-deprecated-commands") {
+        printDeprecatedCommands();
     } else if (commandSwitch == "-all-commands-help") {
         printAllCommandsHelpInfo(parameters.getProgramName());
     } else {
         
         CommandOperation* operation = NULL;
         
-        for (uint64_t i = 0; i < numberOfCommands; i++) {
-            if (this->commandOperations[i]->getCommandLineSwitch() == commandSwitch) {
+        for (uint64_t i = 0; i < numberOfCommands; i++)
+        {
+            if (this->commandOperations[i]->getCommandLineSwitch() == commandSwitch)
+            {
                 operation = this->commandOperations[i];
                 break;
+            }
+        }
+        if (operation == NULL)
+        {
+            for (uint64_t i = 0; i < numberOfDeprecated; i++)
+            {
+                if (this->deprecatedOperations[i]->getCommandLineSwitch() == commandSwitch)
+                {
+                    operation = this->deprecatedOperations[i];
+                    break;
+                }
             }
         }
         
@@ -550,6 +573,43 @@ CommandOperationManager::printAllCommands()
     const uint64_t numberOfCommands = this->commandOperations.size();
     for (uint64_t i = 0; i < numberOfCommands; i++) {
         CommandOperation* op = this->commandOperations[i];
+        
+        const AString cmdSwitch = op->getCommandLineSwitch();
+        const int64_t switchLength = cmdSwitch.length();
+        if (switchLength > longestSwitch) {
+            longestSwitch = switchLength;
+        }
+        
+        cmdMap.insert(make_pair(cmdSwitch,
+                                     op->getOperationShortDescription()));
+#ifndef NDEBUG
+        const AString helpInfo = op->getHelpInformation("");//TSC: generating help info takes a little processing (populating and walking an OperationParameters tree for each command)
+        if (helpInfo.isEmpty()) {//So, test the same define as for asserts and skip this check in release
+            CaretLogSevere("Command has no help info: " + cmdSwitch);
+        }
+#endif
+    }
+
+    for (map<AString, AString>::iterator iter = cmdMap.begin();
+         iter != cmdMap.end();
+         iter++) {
+        AString cmdSwitch = iter->first;
+        cmdSwitch = cmdSwitch.leftJustified(longestSwitch + 2, ' ');
+        AString description = iter->second;
+        
+        cout << qPrintable(cmdSwitch) << qPrintable(description) << endl;
+    }
+}
+
+void CommandOperationManager::printDeprecatedCommands()
+{
+    map<AString, AString> cmdMap;
+    
+    int64_t longestSwitch = 0;
+    
+    const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
+    for (uint64_t i = 0; i < numberOfDeprecated; i++) {
+        CommandOperation* op = this->deprecatedOperations[i];
         
         const AString cmdSwitch = op->getCommandLineSwitch();
         const int64_t switchLength = cmdSwitch.length();
@@ -645,15 +705,17 @@ CommandOperationManager::getCommandOperations()
 void CommandOperationManager::printHelpInfo()
 {
     printVersionInfo();
+    //guide for wrap, assuming 80 columns:                                                  |
     cout << endl << "Information options:" << endl;
-    cout << "   -help                 print this help info" << endl;
-    cout << "   -arguments-help       explain how to read the help info for subcommands" << endl;
-    cout << "   -version              print version information only" << endl;
-    cout << "   -list-commands        print all non-information (processing) subcommands" << endl;
-    cout << "   -all-commands-help    print all non-information (processing) subcommands and" << endl;
-    cout << "                            their help info - VERY LONG" << endl;
+    cout << "   -help                       show this help info" << endl;
+    cout << "   -arguments-help             explain how to read subcommand help info" << endl;
+    cout << "   -version                    show version information only" << endl;
+    cout << "   -list-commands              list all processing subcommands" << endl;
+    cout << "   -list-deprecated-commands   list deprecated subcommands" << endl;
+    cout << "   -all-commands-help          show all processing subcommands and their help" << endl;
+    cout << "                                  info - VERY LONG" << endl;
     cout << endl << "Global options (can be added to any command):" << endl;
-    cout << "   -disable-provenance   don't generate provenance info in output files" << endl;
+    cout << "   -disable-provenance         don't generate provenance info in output files" << endl;
     cout << endl;
     cout << "If the first argument is not recognized, all processing commands that start" << endl;
     cout << "   with the argument are displayed" << endl;

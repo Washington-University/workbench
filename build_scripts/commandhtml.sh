@@ -23,7 +23,7 @@ function make_basic_command_page ()
     echo '</HTML>' >> "$outPage"
 }
 
-#start page - note that this assumes a particular order of the listed info commands, change and add as needed
+#start main page - note that this assumes a particular order of the listed info commands, change and add as needed
 initialText=`$exe`
 startPage="wb_command_help.html"
 #page header
@@ -44,6 +44,10 @@ echo "$initialText" | grep -- -version >> "$outDir/$startPage"
 #-list-commands
 echo -n '<a href="'`command_to_page_name -list-commands`'">' >> "$outDir/$startPage"
 echo "$initialText" | grep -- -list-commands >> "$outDir/$startPage"
+echo -n '</a>' >> "$outDir/$startPage"
+#-list-deprecated-commands
+echo -n '<a href="'`command_to_page_name -list-deprecated-commands`'">' >> "$outDir/$startPage"
+echo "$initialText" | grep -- -list-deprecated-commands >> "$outDir/$startPage"
 echo -n '</a>' >> "$outDir/$startPage"
 #-all-commands-help - takes 2 lines!
 echo -n '<a href="'`command_to_page_name -all-commands-help`'">' >> "$outDir/$startPage"
@@ -74,7 +78,24 @@ do
     make_basic_command_page "$thisCommand"
     echo '<a href="'"`command_to_page_name $thisCommand`"'">'"${lines[$i]}"'</a>' >> "$outPage"
 done
-#end page
+
+#-list-deprecated-commands page, and its subpages
+outPage="$outDir/`command_to_page_name -list-deprecated-commands`"
+#header
+echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">' > "$outPage"
+echo '<HTML>' >> "$outPage"
+echo '<HEAD><TITLE>wb_command -list-deprecated-commands help information</TITLE></HEAD>' >> "$outPage"
+echo '<BODY><pre>' >> "$outPage"
+#body
+readarray -t lines < <($exe -list-deprecated-commands)
+for ((i = 0; i < ${#lines[@]}; ++i))
+do
+    thisCommand=`echo ${lines[$i]} | cut -f1 -d' '`
+    make_basic_command_page "$thisCommand"
+    echo '<a href="'"`command_to_page_name $thisCommand`"'">'"${lines[$i]}"'</a>' >> "$outPage"
+done
+
+#end main page
 echo '</pre></BODY>' >> "$outPage"
 echo '</HTML>' >> "$outPage"
 

@@ -59,7 +59,7 @@ OperationParameters* OperationMetricVertexSum::getParameters()
     columnOpt->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
-        AString("DEPRECATED: this command will be removed in a future release, use -metric-stats or -metric-weighted-stats.\n\n") +
+        AString("DEPRECATED: this command may be removed in a future release, use -metric-stats or -metric-weighted-stats.\n\n") +
         "For each column in <metric-in>, sum the values across all vertices, then print the sum on standard output.  " +
         "-integrate and -integrate-metric multiply each vertex value by the vertex area before doing the sum.  " +
         "Only one of -integrate and -integrate-metric may be specified.  " +

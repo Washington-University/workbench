@@ -51,7 +51,7 @@ OperationParameters* OperationSetMapName::getParameters()
     ret->addStringParameter(3, "name", "the name to set for the map");
     
     ret->setHelpText(
-        AString("DEPRECATED: this command will be removed in a future release, use -set-map-names.\n\n") +
+        AString("DEPRECATED: this command may be removed in a future release, use -set-map-names.\n\n") +
         "Sets the name of a map for metric, shape, label, volume, cifti scalar or cifti label files."
     );
     return ret;

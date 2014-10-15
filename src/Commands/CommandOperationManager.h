@@ -55,6 +55,8 @@ namespace caret {
 
         void printAllCommands();
         
+        void printDeprecatedCommands();
+        
         void printAllCommandsMatching(const AString& partialSwitch);
         
         void printAllCommandsHelpInfo(const AString& programName);
@@ -68,7 +70,7 @@ namespace caret {
         bool getGlobalOption(ProgramParameters& parameters, const AString& optionString, const int& numArgs, std::vector<AString>& arguments);
         
     private:
-        std::vector<CommandOperation*> commandOperations;
+        std::vector<CommandOperation*> commandOperations, deprecatedOperations;
         
         static CommandOperationManager* singletonCommandOperationManager;
     };

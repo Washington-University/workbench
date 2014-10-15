@@ -67,7 +67,7 @@ OperationParameters* OperationCiftiSeparateAll::getParameters()
     dirOpt->addStringParameter(1, "direction", "which direction to separate into components, ROW or COLUMN");
     
     ret->setHelpText(
-        AString("DEPRECATED: this command will be removed in a future release, use -cifti-separate.\n\n") +
+        AString("DEPRECATED: this command may be removed in a future release, use -cifti-separate.\n\n") +
         "All volume components are put together into one volume, the boundaries between volume components are not output by this command.  " +
         "The COLUMN direction (default) is usually what you want, ROW will only work for dconn.  " +
         "Using this command with -volume will usually take (much) more memory than the cifti file, since it must create the whole volume, rather than just the included voxels."
