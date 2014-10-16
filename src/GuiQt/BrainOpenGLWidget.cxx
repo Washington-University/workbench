@@ -44,6 +44,7 @@
 #include "CaretPreferences.h"
 #include "CursorManager.h"
 #include "DummyFontTextRenderer.h"
+#include "EventImageCapture.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
 #include "EventBrowserWindowContentGet.h"
@@ -1111,6 +1112,11 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
     switch (imageCaptureMethod) {
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_GRAB_FRAME_BUFFER:
         {
+            /*
+             * Grab frame buffer seems to have a bug in that it grabs
+             * the previous buffer on Mac so grab the frame buffer twice
+             */
+            grabFrameBuffer();
             image = grabFrameBuffer();
             
             /*

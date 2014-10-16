@@ -29,9 +29,7 @@
 
 #include <stdint.h>
 #include "BrainConstants.h"
-#include "EventImageCapture.h"
 #include "EventListenerInterface.h"
-#include "ImageCaptureMethodEnum.h"
 
 class QMouseEvent;
 
@@ -42,6 +40,7 @@ namespace caret {
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
+    class EventImageCapture;
     class SelectionManager;
     class Model;
     class MouseEvent;
