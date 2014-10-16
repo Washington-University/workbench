@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <vector>
 
@@ -243,14 +244,29 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                     stepValue = diff / 100.0;
                 }
                 
-                this->thresholdLowSlider->setRange(minValue,
-                                                   maxValue);
-                this->thresholdHighSlider->setRange(minValue,
-                                                    maxValue);
-                this->thresholdLowSpinBox->setRange(minValue,
-                                                    maxValue);
-                this->thresholdHighSpinBox->setRange(minValue,
-                                                     maxValue);
+                float lowMin = minValue;
+                float lowMax = maxValue;
+                float highMin = minValue;
+                float highMax = maxValue;
+                
+                if (this->paletteColorMapping->isThresholdNegMinPosMaxLinked()) {
+                    const float absMax = std::max(std::fabs(minValue),
+                                                  std::fabs(maxValue));
+                    
+                    lowMin = -absMax;
+                    lowMax = 0.0;
+                    highMin = 0.0;
+                    highMax = absMax;
+                }
+                
+                this->thresholdLowSlider->setRange(lowMin,
+                                                   lowMax);
+                this->thresholdLowSpinBox->setRange(lowMin,
+                                                    lowMax);
+                this->thresholdHighSlider->setRange(highMin,
+                                                    highMax);
+                this->thresholdHighSpinBox->setRange(highMin,
+                                                     highMax);
                 this->thresholdLowSpinBox->setSingleStep(stepValue);
                 this->thresholdHighSpinBox->setSingleStep(stepValue);
             }
@@ -273,101 +289,45 @@ MapSettingsPaletteColorMappingWidget::applyAndUpdate()
 }
 
 /**
- * Called when low value spin box changed.
+ * Called when low value slider or spin box changed.
  * @param thresholdLow
  *    New value.
  */
 void 
-MapSettingsPaletteColorMappingWidget::thresholdLowSpinBoxValueChanged(double thresholdLow)
+MapSettingsPaletteColorMappingWidget::thresholdLowSliderOrSpinBoxValueChanged(double thresholdLow)
 {
-    float thresholdHigh = this->thresholdHighSpinBox->value();
-    if (thresholdLow > thresholdHigh) {
-        thresholdHigh = thresholdLow;
+    const PaletteThresholdTypeEnum::Enum threshType = this->paletteColorMapping->getThresholdType();
+    float thresholdHigh = this->paletteColorMapping->getThresholdMaximum(threshType);
+    if (this->paletteColorMapping->isThresholdNegMinPosMaxLinked()) {
+        thresholdHigh = -thresholdLow;
     }
-    
-    /*
-     * Update OTHER threshold controls with new value.
-     */
-    this->thresholdHighSpinBox->blockSignals(true);
-    this->thresholdHighSpinBox->setValue(thresholdHigh);
-    this->thresholdHighSpinBox->blockSignals(false);
-    
-    this->thresholdHighSlider->blockSignals(true);
-    this->thresholdHighSlider->setValue(thresholdHigh);
-    this->thresholdHighSlider->blockSignals(false);
-    
-//    this->thresholdLowSpinBox->blockSignals(true);
-//    this->thresholdLowSpinBox->setValue(thresholdLow);
-//    this->thresholdLowSpinBox->blockSignals(false);
-    
-    this->thresholdLowSlider->blockSignals(true);
-    this->thresholdLowSlider->setValue(thresholdLow);
-    this->thresholdLowSlider->blockSignals(false);
-    
-    this->applySelections();
+    else {
+        if (thresholdLow > thresholdHigh) {
+            thresholdHigh = thresholdLow;
+        }
+    }
+    updateAfterThresholdValuesChanged(thresholdLow,
+                                      thresholdHigh);
 }
 
 /**
- * Called when high value spin box changed.
- * @param thresholdHigh
- *    New value.
+ * Update after a threshold value is changed.
+ *
+ * @param lowThreshold
+ *    New value for low threshold.
+ * @param highThreshold
+ *    New value for high threshold.
  */
-void 
-MapSettingsPaletteColorMappingWidget::thresholdHighSpinBoxValueChanged(double thresholdHigh)
+void
+MapSettingsPaletteColorMappingWidget::updateAfterThresholdValuesChanged(const float lowThreshold,
+                                                                        const float highThreshold)
 {
-    float thresholdLow = this->thresholdLowSpinBox->value();
-    if (thresholdHigh < thresholdLow) {
-        thresholdLow = thresholdHigh;
-    }
-    //    this->thresholdHighSpinBox->blockSignals(true);
-    //    this->thresholdHighSpinBox->setValue(thresholdHigh);
-    //    this->thresholdHighSpinBox->blockSignals(false);
-    
-    this->thresholdHighSlider->blockSignals(true);
-    this->thresholdHighSlider->setValue(thresholdHigh);
-    this->thresholdHighSlider->blockSignals(false);
-    
-    this->thresholdLowSpinBox->blockSignals(true);
-    this->thresholdLowSpinBox->setValue(thresholdLow);
-    this->thresholdLowSpinBox->blockSignals(false);
-    
-    this->thresholdLowSlider->blockSignals(true);
-    this->thresholdLowSlider->setValue(thresholdLow);
-    this->thresholdLowSlider->blockSignals(false);
-    
-    this->applySelections();
-}
-
-/**
- * Called when low value slider changed.
- * @param thresholdLow
- *    New value.
- */
-void 
-MapSettingsPaletteColorMappingWidget::thresholdLowSliderValueChanged(double thresholdLow)
-{
-    float thresholdHigh = this->thresholdHighSpinBox->value();
-    if (thresholdLow > thresholdHigh) {
-        thresholdHigh = thresholdLow;
-    }
-    
-    this->thresholdHighSpinBox->blockSignals(true);
-    this->thresholdHighSpinBox->setValue(thresholdHigh);
-    this->thresholdHighSpinBox->blockSignals(false);
-    
-    this->thresholdHighSlider->blockSignals(true);
-    this->thresholdHighSlider->setValue(thresholdHigh);
-    this->thresholdHighSlider->blockSignals(false);
-    
-    this->thresholdLowSpinBox->blockSignals(true);
-    this->thresholdLowSpinBox->setValue(thresholdLow);
-    this->thresholdLowSpinBox->blockSignals(false);
-    
-//    this->thresholdLowSlider->blockSignals(true);
-//    this->thresholdLowSlider->setValue(thresholdLow);
-//    this->thresholdLowSlider->blockSignals(false);
-    
-    this->applySelections();
+    const PaletteThresholdTypeEnum::Enum threshType = this->paletteColorMapping->getThresholdType();
+    this->paletteColorMapping->setThresholdMinimum(threshType, lowThreshold);
+    this->paletteColorMapping->setThresholdMaximum(threshType, highThreshold);
+    updateThresholdSection();
+    updateHistogramPlot();
+    updateColoringAndGraphics();
 }
 
 /**
@@ -376,30 +336,81 @@ MapSettingsPaletteColorMappingWidget::thresholdLowSliderValueChanged(double thre
  *    New value.
  */
 void 
-MapSettingsPaletteColorMappingWidget::thresholdHighSliderValueChanged(double thresholdHigh)
+MapSettingsPaletteColorMappingWidget::thresholdHighSliderOrSpinBoxValueChanged(double thresholdHigh)
 {
-    float thresholdLow = this->thresholdLowSpinBox->value();
-    if (thresholdHigh < thresholdLow) {
-        thresholdLow = thresholdHigh;
+    const PaletteThresholdTypeEnum::Enum threshType = this->paletteColorMapping->getThresholdType();
+    float thresholdLow = this->paletteColorMapping->getThresholdMinimum(threshType);
+    if (this->paletteColorMapping->isThresholdNegMinPosMaxLinked()) {
+        thresholdLow = -thresholdHigh;
     }
-    
-    this->thresholdHighSpinBox->blockSignals(true);
-    this->thresholdHighSpinBox->setValue(thresholdHigh);
-    this->thresholdHighSpinBox->blockSignals(false);
-    
-//    this->thresholdHighSlider->blockSignals(true);
-//    this->thresholdHighSlider->setValue(thresholdHigh);
-//    this->thresholdHighSlider->blockSignals(false);
-    
-    this->thresholdLowSpinBox->blockSignals(true);
-    this->thresholdLowSpinBox->setValue(thresholdLow);
-    this->thresholdLowSpinBox->blockSignals(false);
-    
-    this->thresholdLowSlider->blockSignals(true);
-    this->thresholdLowSlider->setValue(thresholdLow);
-    this->thresholdLowSlider->blockSignals(false);
-    
-    this->applySelections();
+    else {
+        if (thresholdHigh < thresholdLow) {
+            thresholdLow = thresholdHigh;
+        }
+    }
+    updateAfterThresholdValuesChanged(thresholdLow,
+                                      thresholdHigh);    
+}
+
+/**
+ * Called when the threshold link check box is toggled.
+ *
+ * @param checked
+ *    Checked status of the checkbox.
+ */
+void
+MapSettingsPaletteColorMappingWidget::thresholdLinkCheckBoxToggled(bool checked)
+{
+    if (this->paletteColorMapping != NULL) {
+        this->paletteColorMapping->setThresholdNegMinPosMaxLinked(checked);
+        
+        const PaletteThresholdTypeEnum::Enum threshType = this->paletteColorMapping->getThresholdType();
+        float lowValue = this->paletteColorMapping->getThresholdMinimum(threshType);
+        float highValue = this->paletteColorMapping->getThresholdMaximum(threshType);
+        
+        if (checked) {
+            if (highValue > 0.0) {
+                lowValue = -highValue;
+            }
+            else if (lowValue < 0.0) {
+                highValue = -lowValue;
+            }
+            else {
+                highValue =  1.0;
+                lowValue  = -1.0;
+            }
+        }
+        
+        updateAfterThresholdValuesChanged(lowValue,
+                                          highValue);
+//        /*
+//         * Note: When linked is made "true", the palette color mapping
+//         * may update the threshold values so we need to update the
+//         * editor GUI.
+//         */
+//        updateThresholdControlsMinimumMaximumRangeValues();
+//        updateThresholdSection();
+//        updateHistogramPlot();
+//        updateColoringAndGraphics();
+    }
+}
+
+/**
+ * Update coloring and graphics
+ */
+void
+MapSettingsPaletteColorMappingWidget::updateColoringAndGraphics()
+{
+    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+    if (this->applyAllMapsCheckBox->isChecked()) {
+        this->caretMappableDataFile->updateScalarColoringForAllMaps(paletteFile);
+    }
+    else {
+        this->caretMappableDataFile->updateScalarColoringForMap(this->mapFileIndex,
+                                                                paletteFile);
+    }
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -410,6 +421,9 @@ MapSettingsPaletteColorMappingWidget::thresholdHighSliderValueChanged(double thr
 QWidget* 
 MapSettingsPaletteColorMappingWidget::createThresholdSection()
 {
+    /*
+     * Threshold types on/off
+     */
     QLabel* thresholdTypeLabel = new QLabel("Type");
     std::vector<PaletteThresholdTypeEnum::Enum> thresholdTypes;
     PaletteThresholdTypeEnum::getAllEnums(thresholdTypes);
@@ -435,7 +449,41 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                                       "   Map:  Range is from all values in selected map.\n"
                                       "   Unlimited: Range is +/- infinity.");
     this->thresholdRangeModeComboBox->getWidget()->setToolTip(WuQtUtilities::createWordWrappedToolTipText(rangeModeToolTip));
-                                      
+    
+    /*
+     * Linking of low/high thresholds
+     */
+    QPixmap chainLinkPixmap;
+    const bool chainLinkPixmapValid = WuQtUtilities::loadPixmap(":/PaletteSettings/chain_link_icon.png",
+                                                                chainLinkPixmap);
+    
+    
+    const AString linkToolTipText("Link Low and High Thresholds.\n"
+                                  "Low is retricted to be negative.\n"
+                                  "High is restricted to be positive\n"
+                                  "Low = -High");
+    this->thresholdLinkCheckBox = new QCheckBox("");
+    QObject::connect(this->thresholdLinkCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(thresholdLinkCheckBoxToggled(bool)));
+    this->thresholdLinkCheckBox->setToolTip(linkToolTipText);
+    this->thresholdWidgetGroup->add(this->thresholdLinkCheckBox);
+    
+    QLabel* linkLabel = new QLabel();
+    if (chainLinkPixmapValid) {
+        linkLabel->setPixmap(chainLinkPixmap);
+    }
+    else {
+        linkLabel->setText("Link");
+    }
+    linkLabel->setToolTip(linkToolTipText);
+    
+    QVBoxLayout* linkLayout = new QVBoxLayout();
+    linkLayout->addWidget(this->thresholdLinkCheckBox);
+    linkLayout->addWidget(linkLabel);
+    
+    /*
+     * Sliders and Spin Boxes for adjustment
+     */
     QLabel* thresholdLowLabel = new QLabel("Low");
     QLabel* thresholdHighLabel = new QLabel("High");
     const float thresholdMinimum = -std::numeric_limits<float>::max();
@@ -448,7 +496,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                                           "Adjust the low threshold value");
     this->thresholdWidgetGroup->add(this->thresholdLowSlider);
     QObject::connect(this->thresholdLowSlider, SIGNAL(valueChanged(double)),
-                     this, SLOT(thresholdLowSliderValueChanged(double)));
+                     this, SLOT(thresholdLowSliderOrSpinBoxValueChanged(double)));
     this->thresholdHighSlider = new WuQDoubleSlider(Qt::Horizontal,
                                                     this);
     this->thresholdHighSlider->setRange(thresholdMinimum, thresholdMaximum);
@@ -456,7 +504,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                                           "Adjust the high threshold value");
     this->thresholdWidgetGroup->add(this->thresholdHighSlider);
     QObject::connect(this->thresholdHighSlider, SIGNAL(valueChanged(double)),
-                     this, SLOT(thresholdHighSliderValueChanged(double)));
+                     this, SLOT(thresholdHighSliderOrSpinBoxValueChanged(double)));
     
     const int spinBoxWidth = 80.0;
     this->thresholdLowSpinBox =
@@ -465,7 +513,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                                                                    1.0,
                                                                    3,
                                                                    this,
-                                                                   SLOT(thresholdLowSpinBoxValueChanged(double)));
+                                                                   SLOT(thresholdLowSliderOrSpinBoxValueChanged(double)));
+    this->thresholdLowSpinBox->setAccelerated(true);
     WuQtUtilities::setToolTipAndStatusTip(this->thresholdLowSpinBox,
                                           "Adjust the low threshold value");
     this->thresholdWidgetGroup->add(this->thresholdLowSpinBox);
@@ -477,7 +526,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                                                                    1.0,
                                                                    3,
                                                                    this,
-                                                                   SLOT(thresholdHighSpinBoxValueChanged(double)));
+                                                                   SLOT(thresholdHighSliderOrSpinBoxValueChanged(double)));
     WuQtUtilities::setToolTipAndStatusTip(this->thresholdHighSpinBox,
                                           "Adjust the high threshold value");
     this->thresholdWidgetGroup->add(this->thresholdHighSpinBox);
@@ -506,16 +555,18 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QGridLayout* thresholdAdjustmentLayout = new QGridLayout(thresholdAdjustmentWidget);
     this->setLayoutSpacingAndMargins(thresholdAdjustmentLayout);
     thresholdAdjustmentLayout->setColumnStretch(0, 0);
-    thresholdAdjustmentLayout->setColumnStretch(1, 100);
-    thresholdAdjustmentLayout->setColumnStretch(2, 0);
-    thresholdAdjustmentLayout->addWidget(thresholdHighLabel, 0, 0);
-    thresholdAdjustmentLayout->addWidget(this->thresholdHighSlider->getWidget(), 0, 1);
-    thresholdAdjustmentLayout->addWidget(this->thresholdHighSpinBox, 0, 2);
-    thresholdAdjustmentLayout->addWidget(thresholdLowLabel, 1, 0);
-    thresholdAdjustmentLayout->addWidget(this->thresholdLowSlider->getWidget(), 1, 1);
-    thresholdAdjustmentLayout->addWidget(this->thresholdLowSpinBox, 1, 2);
-    thresholdAdjustmentLayout->addWidget(this->thresholdShowInsideRadioButton, 2, 0, 1, 3, Qt::AlignLeft);
-    thresholdAdjustmentLayout->addWidget(this->thresholdShowOutsideRadioButton, 3, 0, 1, 3, Qt::AlignLeft);
+    thresholdAdjustmentLayout->setColumnStretch(1, 0);
+    thresholdAdjustmentLayout->setColumnStretch(2, 100);
+    thresholdAdjustmentLayout->setColumnStretch(3, 0);
+    thresholdAdjustmentLayout->addLayout(linkLayout, 0, 0, 2, 1, Qt::AlignCenter);
+    thresholdAdjustmentLayout->addWidget(thresholdHighLabel, 0, 1);
+    thresholdAdjustmentLayout->addWidget(this->thresholdHighSlider->getWidget(), 0, 2);
+    thresholdAdjustmentLayout->addWidget(this->thresholdHighSpinBox, 0, 3);
+    thresholdAdjustmentLayout->addWidget(thresholdLowLabel, 1, 1);
+    thresholdAdjustmentLayout->addWidget(this->thresholdLowSlider->getWidget(), 1, 2);
+    thresholdAdjustmentLayout->addWidget(this->thresholdLowSpinBox, 1, 3);
+    thresholdAdjustmentLayout->addWidget(this->thresholdShowInsideRadioButton, 2, 0, 1, 4, Qt::AlignLeft);
+    thresholdAdjustmentLayout->addWidget(this->thresholdShowOutsideRadioButton, 3, 0, 1, 4, Qt::AlignLeft);
     thresholdAdjustmentWidget->setFixedHeight(thresholdAdjustmentWidget->sizeHint().height());
     
     QWidget* topWidget = new QWidget();
@@ -536,6 +587,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     thresholdGroupBox->setFixedHeight(thresholdGroupBox->sizeHint().height());
     
     this->thresholdAdjustmentWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->thresholdAdjustmentWidgetGroup->add(this->thresholdLinkCheckBox);
     this->thresholdAdjustmentWidgetGroup->add(thresholdLowLabel);
     this->thresholdAdjustmentWidgetGroup->add(thresholdHighLabel);
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdLowSlider);
@@ -718,19 +770,45 @@ MapSettingsPaletteColorMappingWidget::contextMenuDisplayRequested(QContextMenuEv
                                                                   float /*graphY*/)
 {
     if (this->paletteColorMapping != NULL) {
-        if (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
-            AString textValue = NumericTextFormatting::formatValue(graphX);
+        const PaletteThresholdTypeEnum::Enum threshType = this->paletteColorMapping->getThresholdType();
+        if (threshType != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+            const float absValue = std::fabs(graphX);
+            AString textValue = NumericTextFormatting::formatValue(absValue);
             CursorDisplayScoped cursor;
             cursor.showCursor(Qt::ArrowCursor);
             QMenu menu(this);
-            QAction* minThreshAction = menu.addAction("Set Minimum Threshold to " + textValue);
-            QAction* maxThreshAction = menu.addAction("Set Maximum Threshold to " + textValue);
-            QAction* selectedAction = menu.exec(event->globalPos());
-            if (selectedAction == minThreshAction) {
-                this->thresholdLowSpinBox->setValue(graphX);
+            
+            QAction* linkedAction = NULL;
+            QAction* minThreshAction = NULL;
+            QAction* maxThreshAction = NULL;
+            if (this->paletteColorMapping->isThresholdNegMinPosMaxLinked()) {
+                linkedAction = menu.addAction("Set Thresholds to -"
+                                              + textValue
+                                              + " and " + textValue);
             }
-            else if (selectedAction == maxThreshAction) {
-                this->thresholdHighSpinBox->setValue(graphX);
+            else {
+                minThreshAction = menu.addAction("Set Minimum Threshold to " + textValue);
+                maxThreshAction = menu.addAction("Set Maximum Threshold to " + textValue);
+            }
+            
+            QAction* selectedAction = menu.exec(event->globalPos());
+            if (selectedAction != NULL) {
+                float minThresh = this->paletteColorMapping->getThresholdMinimum(threshType);
+                float maxThresh = this->paletteColorMapping->getThresholdMaximum(threshType);
+                
+                if (selectedAction == linkedAction) {
+                    minThresh = -absValue;
+                    maxThresh =  absValue;
+                }
+                else if (selectedAction == minThreshAction) {
+                    minThresh = graphX;
+                }
+                else if (selectedAction == maxThreshAction) {
+                    maxThresh = graphX;
+                }
+                
+                updateAfterThresholdValuesChanged(minThresh,
+                                                  maxThresh);
             }
         }
     }
@@ -1088,6 +1166,8 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
     this->thresholdLowSpinBox->setValue(lowValue);
     
     this->thresholdHighSpinBox->setValue(highValue);
+    
+    this->thresholdLinkCheckBox->setChecked(this->paletteColorMapping->isThresholdNegMinPosMaxLinked());
     
     this->thresholdWidgetGroup->blockAllSignals(false);
 }
@@ -1684,18 +1764,17 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     
     this->updateHistogramPlot();
     
-    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+//    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+//    
+//    if (assignToAllMaps) {
+//        this->caretMappableDataFile->updateScalarColoringForAllMaps(paletteFile);
+//    }
+//    else {
+//        this->caretMappableDataFile->updateScalarColoringForMap(this->mapFileIndex,
+//                                                             paletteFile);
+//    }
     
-    if (assignToAllMaps) {
-        this->caretMappableDataFile->updateScalarColoringForAllMaps(paletteFile);
-    }
-    else {
-        this->caretMappableDataFile->updateScalarColoringForMap(this->mapFileIndex,
-                                                             paletteFile);
-    }
-    
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    updateColoringAndGraphics();
 }
 
 /**
@@ -1819,8 +1898,7 @@ MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
             }
         }
         
-        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        updateColoringAndGraphics();
     }
 }
 

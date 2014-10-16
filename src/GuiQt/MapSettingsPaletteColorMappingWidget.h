@@ -66,12 +66,12 @@ namespace caret {
         MapSettingsPaletteColorMappingWidget& operator=(const MapSettingsPaletteColorMappingWidget&);
         
     private slots:
-        void thresholdLowSpinBoxValueChanged(double);
-        void thresholdHighSpinBoxValueChanged(double);
-        void thresholdLowSliderValueChanged(double);
-        void thresholdHighSliderValueChanged(double);
+        void thresholdLowSliderOrSpinBoxValueChanged(double);
+        void thresholdHighSliderOrSpinBoxValueChanged(double);
         void thresholdTypeChanged(int);
         void thresholdRangeModeChanged();
+        void thresholdLinkCheckBoxToggled(bool);
+        
         
         void histogramControlChanged();
         void histogramResetViewButtonClicked();
@@ -98,7 +98,12 @@ namespace caret {
         QWidget* createHistogramControlSection();
         QWidget* createDataOptionsSection();
         
+        void updateAfterThresholdValuesChanged(const float lowThreshold,
+                                               const float highThreshold);
+        
         void updateHistogramPlot();
+        
+        void updateColoringAndGraphics();
         
         void updateThresholdControlsMinimumMaximumRangeValues();
         
@@ -148,6 +153,8 @@ namespace caret {
         
         EnumComboBoxTemplate* thresholdRangeModeComboBox;
         
+        QCheckBox* thresholdLinkCheckBox;
+
         //QwtPlot* thresholdPlot;
         WuQwtPlot* thresholdPlot;
         

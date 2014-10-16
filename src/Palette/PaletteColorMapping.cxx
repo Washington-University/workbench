@@ -123,6 +123,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->thresholdDataName = pcm.thresholdDataName;
     this->thresholdShowFailureInGreen = pcm.thresholdShowFailureInGreen;
     this->thresholdRangeMode = pcm.thresholdRangeMode;
+    this->thresholdNegMinPosMaxLinked = pcm.thresholdNegMinPosMaxLinked;
     
     this->clearModified();
 }
@@ -161,7 +162,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->thresholdMappedAverageAreaMaximum == pcm.thresholdMappedAverageAreaMaximum)
         && (this->thresholdDataName == pcm.thresholdDataName)
         && (this->thresholdShowFailureInGreen == pcm.thresholdShowFailureInGreen)
-        && (this->thresholdRangeMode == pcm.thresholdRangeMode)) {
+        && (this->thresholdRangeMode == pcm.thresholdRangeMode)
+        && (this->thresholdNegMinPosMaxLinked == pcm.thresholdNegMinPosMaxLinked)) {
         return true;
     }
     
@@ -197,6 +199,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdDataName = "";
     this->thresholdShowFailureInGreen = false;
     this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
+    this->thresholdNegMinPosMaxLinked = false;
     this->modifiedFlag = false;
 }
 
@@ -296,6 +299,9 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_RANGE_MODE,
                                      PaletteThresholdRangeModeEnum::toName(this->thresholdRangeMode));
+    
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NEG_MIN_POS_MAX_LINKED,
+                                     this->thresholdNegMinPosMaxLinked);
     
     xmlWriter.writeEndElement();
 }
@@ -1362,6 +1368,40 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
         zeroValueTextOut = textCenterPos;
     }
     maximumValueTextOut = minMaxValueText[3];
+}
+
+/**
+ * @return True if thresholding is linked meaning
+ * that the high threshold is restricted to a positive value
+ * the low threshold = -high.
+ *
+ * This is just a status and it is up to the user of this class
+ * to properly set the threshold values.
+ */
+bool
+PaletteColorMapping::isThresholdNegMinPosMaxLinked() const
+{
+    return this->thresholdNegMinPosMaxLinked;
+}
+
+/**
+ * Set thresholding is linked meaning
+ * that the high threshold is restricted to a positive value
+ * the low threshold = -high.
+ *
+ * This is just a status and it is up to the user of this class
+ * to properly set the threshold values.
+ *
+ * @param linked
+ *    New status of low/high linked thresholding.
+ */
+void
+PaletteColorMapping::setThresholdNegMinPosMaxLinked(const bool linked)
+{
+    if (this->thresholdNegMinPosMaxLinked != linked) {
+        this->thresholdNegMinPosMaxLinked = linked;
+        setModified();
+    }
 }
 
 

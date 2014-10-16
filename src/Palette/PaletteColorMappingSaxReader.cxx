@@ -276,6 +276,9 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                                                + this->elementText);
                }
            }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NEG_MIN_POS_MAX_LINKED) {
+               this->paletteColorMapping->setThresholdNegMinPosMaxLinked(toBool(this->elementText));
+           }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING) {
                /* Top level tag, nothing to do */
            }

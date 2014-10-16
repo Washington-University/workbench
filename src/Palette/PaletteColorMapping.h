@@ -188,6 +188,10 @@ namespace caret {
         
         void setShowThresholdFailureInGreen(const bool showInGreenFlag);
         
+        bool isThresholdNegMinPosMaxLinked() const;
+        
+        void setThresholdNegMinPosMaxLinked(const bool linked);
+        
         void setModified();
         
         void clearModified();
@@ -254,6 +258,8 @@ namespace caret {
         AString thresholdDataName;
         
         bool thresholdShowFailureInGreen;
+        
+        bool thresholdNegMinPosMaxLinked;
         
         /**Tracks modification, DO NOT copy */
         bool modifiedFlag;
