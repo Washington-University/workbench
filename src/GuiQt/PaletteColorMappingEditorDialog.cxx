@@ -82,6 +82,8 @@ PaletteColorMappingEditorDialog::PaletteColorMappingEditorDialog(QWidget* parent
     setCentralWidget(w,
                      WuQDialog::SCROLL_AREA_NEVER);
     
+    disableAutoDefaultForAllPushButtons();
+    
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_DATA_FILE_DELETE);
 }
 

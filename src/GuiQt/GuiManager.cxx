@@ -1950,9 +1950,23 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
+     * Close Overlay and palette editor windows since the files
+     * displayed in them may become invalid
+     */
+    for (std::set<OverlaySettingsEditorDialog*>::iterator overlayEditorIter = m_overlaySettingsEditors.begin();
+         overlayEditorIter != m_overlaySettingsEditors.end();
+         overlayEditorIter++) {
+        OverlaySettingsEditorDialog* med = *overlayEditorIter;
+        med->close();
+    }
+    if (m_paletteColorMappingEditor != NULL) {
+        m_paletteColorMappingEditor->close();
+    }
+    
+    /*
      * Update the windows
      */
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
     
     /*
