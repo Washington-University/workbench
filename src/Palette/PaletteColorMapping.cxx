@@ -827,13 +827,16 @@ PaletteColorMapping::setThresholdMinimum(const PaletteThresholdTypeEnum::Enum th
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-            this->thresholdNormalMinimum = thresholdMinimum;
+            setThresholdNormalMinimum(thresholdMinimum);
+            //this->thresholdNormalMinimum = thresholdMinimum;
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-            this->thresholdMappedMinimum = thresholdMinimum;
+            setThresholdMappedMinimum(thresholdMinimum);
+            //this->thresholdMappedMinimum = thresholdMinimum;
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-            this->thresholdMappedAverageAreaMinimum = thresholdMinimum;
+            setThresholdMappedAverageAreaMinimum(thresholdMinimum);
+            //this->thresholdMappedAverageAreaMinimum = thresholdMinimum;
             break;            
     }
 }
@@ -854,13 +857,16 @@ PaletteColorMapping::setThresholdMaximum(const PaletteThresholdTypeEnum::Enum th
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-            this->thresholdNormalMaximum = thresholdMaximum;
+            setThresholdNormalMaximum(thresholdMaximum);
+            //this->thresholdNormalMaximum = thresholdMaximum;
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-            this->thresholdMappedMaximum = thresholdMaximum;
+            setThresholdMappedMaximum(thresholdMaximum);
+            //this->thresholdMappedMaximum = thresholdMaximum;
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-            this->thresholdMappedAverageAreaMaximum = thresholdMaximum;
+            setThresholdMappedAverageAreaMaximum(thresholdMaximum);
+            //this->thresholdMappedAverageAreaMaximum = thresholdMaximum;
             break;            
     }
 }
@@ -1147,7 +1153,10 @@ PaletteColorMapping::isShowThresholdFailureInGreen() const
 void
 PaletteColorMapping::setShowThresholdFailureInGreen(const bool showInGreenFlag)
 {
-    this->thresholdShowFailureInGreen = showInGreenFlag;
+    if (this->thresholdShowFailureInGreen != showInGreenFlag) {
+        this->thresholdShowFailureInGreen = showInGreenFlag;
+        setModified();
+    }
 }
 
 /**
