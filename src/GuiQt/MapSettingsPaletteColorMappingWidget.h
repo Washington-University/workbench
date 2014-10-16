@@ -66,8 +66,10 @@ namespace caret {
         MapSettingsPaletteColorMappingWidget& operator=(const MapSettingsPaletteColorMappingWidget&);
         
     private slots:
-        void thresholdLowSliderOrSpinBoxValueChanged(double);
-        void thresholdHighSliderOrSpinBoxValueChanged(double);
+        void thresholdLowSpinBoxValueChanged(double);
+        void thresholdHighSpinBoxValueChanged(double);
+        void thresholdLowSliderValueChanged(double);
+        void thresholdHighSliderValueChanged(double);
         void thresholdTypeChanged(int);
         void thresholdRangeModeChanged();
         void thresholdLinkCheckBoxToggled(bool);
@@ -147,6 +149,8 @@ namespace caret {
         
         QDoubleSpinBox* thresholdLowSpinBox;
         QDoubleSpinBox* thresholdHighSpinBox;
+        bool allowUpdateOfThresholdLowSpinBox;
+        bool allowUpdateOfThresholdHighSpinBox;
         
         QRadioButton* thresholdShowInsideRadioButton;
         QRadioButton* thresholdShowOutsideRadioButton;
