@@ -957,6 +957,8 @@ void OverlayViewController::menuReloadFileTriggered()
                                        reloadEvent.getErrorMessage());
             }
             
+            updateOverlaySettingsEditor();
+            
             updateUserInterfaceAndGraphicsWindow();
         }
     }
