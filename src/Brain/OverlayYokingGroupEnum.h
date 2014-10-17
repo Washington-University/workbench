@@ -85,8 +85,13 @@ public:
     static void setSelectedMapIndex( const Enum enumValue,
                                        const int32_t mapIndex);
     
+    static bool isEnabled(const Enum enumValue);
+    
+    static void setEnabled(const Enum enumValue,
+                           const bool enabled);
+    
 private:
-    OverlayYokingGroupEnum(const Enum enumValue, 
+    OverlayYokingGroupEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
@@ -118,6 +123,9 @@ private:
     
     /** Index of the selected map */
     int32_t mapIndex;
+    
+    /** Enabled status of the overlay */
+    bool enabledStatus;
 };
 
 #ifdef __OVERLAY_YOKING_GROUP_ENUM_DECLARE__

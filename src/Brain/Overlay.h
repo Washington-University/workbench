@@ -123,7 +123,7 @@ namespace caret {
         float m_opacity;
         
         /** enabled status */
-        bool m_enabled;
+        mutable bool m_enabled;
         
         /** yoking status */
         OverlayYokingGroupEnum::Enum m_yokingGroup;

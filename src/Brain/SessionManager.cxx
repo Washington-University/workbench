@@ -47,6 +47,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
+#include "ScenePrimitiveArray.h"
 #include "OverlayYokingGroupEnum.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
@@ -409,17 +410,27 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
     const int32_t numOverlayYokingGroups = static_cast<int32_t>(overlayYokingGroups.size());
     if (numOverlayYokingGroups > 0) {
         std::vector<int32_t> overlayMapSelections(numOverlayYokingGroups, 1);
+        
+        bool overlayMapEnabled[numOverlayYokingGroups];
+        for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
+            overlayMapEnabled[i] = false;
+        }
+        
         for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
             const OverlayYokingGroupEnum::Enum enumValue = overlayYokingGroups[i];
             if (enumValue != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
                 const int32_t groupIndex = OverlayYokingGroupEnum::toIntegerCode(enumValue);
                 const int32_t mapIndex   = OverlayYokingGroupEnum::getSelectedMapIndex(enumValue);
                 overlayMapSelections[groupIndex] = mapIndex;
+                overlayMapEnabled[groupIndex] = OverlayYokingGroupEnum::isEnabled(enumValue);
             }
         }
         
         sceneClass->addIntegerArray("OverlayYokingGroupArray",
                                     &overlayMapSelections[0],
+                                    numOverlayYokingGroups);
+        sceneClass->addBooleanArray("OverlayYokingEnabledArray",
+                                    &overlayMapEnabled[0],
                                     numOverlayYokingGroups);
     }
     
@@ -535,6 +546,33 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                 }
             }
         }
+        
+        
+        const ScenePrimitiveArray* overlayEnabledArray = sceneClass->getPrimitiveArray("OverlayYokingEnabledArray");
+        if (overlayEnabledArray != NULL) {
+            for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
+                bool isValid = false;
+                const OverlayYokingGroupEnum::Enum enumValue = OverlayYokingGroupEnum::fromIntegerCode(i,
+                                                                                                       &isValid);
+                if (enumValue != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+                    /*
+                     * Enabled status was added on 10/17/2014.
+                     * Previous to this data, there was no enabled status and
+                     * we will assume enabled status was on.
+                     */
+                    bool enabledStatus = true;   
+                    if (isValid) {
+                        if (overlayEnabledArray != NULL) {
+                            if (i < overlayEnabledArray->getNumberOfArrayElements()) {
+                                enabledStatus = overlayEnabledArray->booleanValue(i);
+                            }
+                        }
+                    }
+                    OverlayYokingGroupEnum::setEnabled(enumValue, enabledStatus);
+                }
+            }
+        }
+        
     }
     
     /*

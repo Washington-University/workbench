@@ -55,6 +55,7 @@ OverlayYokingGroupEnum::OverlayYokingGroupEnum(const Enum enumValue,
     this->guiName = guiName;
     
     this->mapIndex = 0;
+    this->enabledStatus = false;
 }
 
 /**
@@ -415,3 +416,42 @@ OverlayYokingGroupEnum::setSelectedMapIndex(const Enum enumValue,
     enumInstance->mapIndex = mapIndex;
 }
 
+
+/**
+ * @return The enabled status associated with the given value.
+ *
+ * @param enumValue
+ *     Value for which map index is requested.
+ */
+bool
+OverlayYokingGroupEnum::isEnabled(const Enum enumValue)
+{
+    CaretAssertMessage(enumValue != OVERLAY_YOKING_GROUP_OFF,
+                       "Never should be called with OVERLAY_YOKING_GROUP_OFF");
+    
+    if (initializedFlag == false) initialize();
+    
+    OverlayYokingGroupEnum* enumInstance = findData(enumValue);
+    return enumInstance->enabledStatus;
+}
+
+/**
+ * Set the enabled status for the given enum value.
+ *
+ * @param enumValue
+ *     Value for which map index is requested.
+ * @param enabled
+ *     New value for enabled status.
+ */
+void
+OverlayYokingGroupEnum::setEnabled(const Enum enumValue,
+                                    const bool enabled)
+{
+    CaretAssertMessage(enumValue != OVERLAY_YOKING_GROUP_OFF,
+                       "Never should be called with OVERLAY_YOKING_GROUP_OFF");
+    
+    if (initializedFlag == false) initialize();
+    
+    OverlayYokingGroupEnum* enumInstance = findData(enumValue);
+    enumInstance->enabledStatus = enabled;
+}

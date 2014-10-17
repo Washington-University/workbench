@@ -224,6 +224,9 @@ Overlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
 bool 
 Overlay::isEnabled() const
 {
+    if (m_yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+        m_enabled = OverlayYokingGroupEnum::isEnabled(m_yokingGroup);
+    }
     return m_enabled;
 }
 
@@ -236,6 +239,11 @@ void
 Overlay::setEnabled(const bool enabled)
 {
     m_enabled = enabled;
+    
+    if (m_yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+        OverlayYokingGroupEnum::setEnabled(m_yokingGroup,
+                                           enabled);
+    }
 }
 
 /**

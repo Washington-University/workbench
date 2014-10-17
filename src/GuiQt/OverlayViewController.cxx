@@ -471,6 +471,8 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
     }
     overlay->setEnabled(checked);
     
+    this->updateUserInterfaceIfYoked();
+
     this->updateGraphicsWindow();
 }
 
@@ -520,6 +522,7 @@ OverlayViewController::validateYokingSelection(const OverlayYokingGroupEnum::Enu
         int32_t selectedMapIndex;
         overlay->getSelectionData(selectedFile,
                                   selectedMapIndex);
+        const bool enabledStatus = overlay->isEnabled();
         if ((selectedFile != NULL)
             && (selectedMapIndex >= 0)) {
             /*
@@ -562,6 +565,8 @@ OverlayViewController::validateYokingSelection(const OverlayYokingGroupEnum::Enu
                 if (numOverlaysYoked <= 0) {
                     OverlayYokingGroupEnum::setSelectedMapIndex(yokingGroup,
                                                                 selectedMapIndex);
+                    OverlayYokingGroupEnum::setEnabled(yokingGroup,
+                                                       enabledStatus);
                 }
             }
         }
