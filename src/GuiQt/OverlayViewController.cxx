@@ -82,6 +82,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
   m_overlayIndex(overlayIndex)
 {
     this->overlay = NULL;
+    m_constructionReloadFileAction = NULL;
     
     int minComboBoxWidth = 200;
     int maxComboBoxWidth = 100000; //400;
@@ -188,11 +189,11 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     if (constructionIconValid) {
         this->constructionAction->setIcon(constructionIcon);
     }
-    QToolButton* constructionToolButton = new QToolButton();
-    QMenu* constructionMenu = createConstructionMenu(constructionToolButton);
+    m_constructionToolButton = new QToolButton();
+    QMenu* constructionMenu = createConstructionMenu(m_constructionToolButton);
     this->constructionAction->setMenu(constructionMenu);
-    constructionToolButton->setDefaultAction(this->constructionAction);
-    constructionToolButton->setPopupMode(QToolButton::InstantPopup);
+    m_constructionToolButton->setDefaultAction(this->constructionAction);
+    m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
     
     /*
      * Yoking Group
@@ -224,7 +225,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          Qt::AlignHCenter);
         this->gridLayoutGroup->addWidget(colorBarToolButton,
                                          row, 2);
-        this->gridLayoutGroup->addWidget(constructionToolButton,
+        this->gridLayoutGroup->addWidget(m_constructionToolButton,
                                          row, 3);
         this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
                                          row, 4);
@@ -255,7 +256,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          row, 1);
         this->gridLayoutGroup->addWidget(colorBarToolButton,
                                          row, 2);
-        this->gridLayoutGroup->addWidget(constructionToolButton,
+        this->gridLayoutGroup->addWidget(m_constructionToolButton,
                                          row, 3);
         this->gridLayoutGroup->addWidget(fileLabel,
                                          row, 4);
@@ -797,6 +798,8 @@ QMenu*
 OverlayViewController::createConstructionMenu(QWidget* parent)
 {
     QMenu* menu = new QMenu(parent);
+    QObject::connect(menu, SIGNAL(aboutToShow()),
+                     this, SLOT(menuConstructionAboutToShow()));
     
     menu->addAction("Add Overlay Above", 
                     this, 
@@ -822,8 +825,42 @@ OverlayViewController::createConstructionMenu(QWidget* parent)
                     this, 
                     SLOT(menuRemoveOverlayTriggered()));
     
+    menu->addSeparator();
+    
+    m_constructionReloadFileAction = menu->addAction("Reload Selected File",
+                                                     this,
+                                                     SLOT(menuReloadFileTriggered()));
+    
     return menu;
     
+}
+
+/**
+ * Called when construction menu is about to be displayed.
+ */
+void
+OverlayViewController::menuConstructionAboutToShow()
+{
+    if (this->overlay != NULL) {
+        CaretMappableDataFile* caretDataFile = NULL;
+        int32_t mapIndex = -1;
+        this->overlay->getSelectionData(caretDataFile,
+                                        mapIndex);
+        
+        QString menuText = "Reload Selected File";
+        if (caretDataFile != NULL) {
+            if (caretDataFile->isModified()) {
+                QString suffix = " (MODIFIED)";
+                if (caretDataFile->isModifiedPaletteColorMapping()) {
+                    if ( ! caretDataFile->isModifiedExcludingPaletteColorMapping()) {
+                        suffix = " (MODIFIED PALETTE)";
+                    }
+                }
+                menuText += suffix;
+            }
+        }
+        m_constructionReloadFileAction->setText(menuText);
+    }
 }
 
 /**
@@ -870,3 +907,59 @@ OverlayViewController::menuMoveOverlayUpTriggered()
 {
     emit requestMoveOverlayUp(m_overlayIndex);
 }
+
+#include "GuiManager.h"
+#include "EventDataFileReload.h"
+#include "UsernamePasswordWidget.h"
+
+/**
+ * Reload the file in the overlay.
+ */
+void OverlayViewController::menuReloadFileTriggered()
+{
+    if (this->overlay != NULL) {
+        CaretMappableDataFile* caretDataFile = NULL;
+        int32_t mapIndex = -1;
+        this->overlay->getSelectionData(caretDataFile,
+                                        mapIndex);
+        
+        if (caretDataFile != NULL) {
+            AString username;
+            AString password;
+            
+            if (DataFile::isFileOnNetwork(caretDataFile->getFileName())) {
+                const QString msg("This file is on the network.  "
+                                  "If accessing the file requires a username and "
+                                  "password, enter it here.  Otherwise, remove any "
+                                  "text from the username and password fields.");
+                
+                
+                if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(m_constructionToolButton,
+                                                                           "Username and Password",
+                                                                           msg,
+                                                                           username,
+                                                                           password)) {
+                    /* nothing */
+                }
+                else {
+                    return;
+                }
+            }
+            
+            EventDataFileReload reloadEvent(GuiManager::get()->getBrain(),
+                                            caretDataFile);
+            reloadEvent.setUsernameAndPassword(username,
+                                               password);
+            EventManager::get()->sendEvent(reloadEvent.getPointer());
+            
+            if (reloadEvent.isError()) {
+                WuQMessageBox::errorOk(m_constructionToolButton,
+                                       reloadEvent.getErrorMessage());
+            }
+            
+            updateUserInterfaceAndGraphicsWindow();
+        }
+    }
+}
+
+

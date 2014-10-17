@@ -97,6 +97,10 @@ namespace caret {
         
         void menuMoveOverlayUpTriggered();        
         
+        void menuReloadFileTriggered();
+        
+        void menuConstructionAboutToShow();
+        
     private:
         OverlayViewController(const OverlayViewController&);
 
@@ -130,6 +134,8 @@ namespace caret {
         
         QDoubleSpinBox* opacityDoubleSpinBox;
         
+        QToolButton* m_constructionToolButton;
+        
         QAction* constructionAction;
 
         QAction* colorBarAction;
@@ -137,6 +143,8 @@ namespace caret {
         QAction* settingsAction;
         
         EnumComboBoxTemplate* m_yokingGroupComboBox;
+        
+        QAction* m_constructionReloadFileAction;
         
         WuQGridLayoutGroup* gridLayoutGroup;
         
