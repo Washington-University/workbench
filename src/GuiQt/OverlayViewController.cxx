@@ -37,15 +37,18 @@
 
 #include "CaretMappableDataFile.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventOverlayYokingGroupGet.h"
+#include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
+#include "EventOverlayYokingGroupGet.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FilePathNamePrefixCompactor.h"
+#include "GuiManager.h"
 #include "Overlay.h"
+#include "UsernamePasswordWidget.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -53,8 +56,6 @@
 #include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
-
-
     
 /**
  * \class caret::OverlayViewController 
@@ -912,10 +913,6 @@ OverlayViewController::menuMoveOverlayUpTriggered()
 {
     emit requestMoveOverlayUp(m_overlayIndex);
 }
-
-#include "GuiManager.h"
-#include "EventDataFileReload.h"
-#include "UsernamePasswordWidget.h"
 
 /**
  * Reload the file in the overlay.
