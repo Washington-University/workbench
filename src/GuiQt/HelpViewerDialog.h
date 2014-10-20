@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <QListWidgetItem>
 #include <QTextBrowser>
 #include <QTreeWidgetItem>
 
@@ -28,6 +29,7 @@
 
 class QFileInfo;
 class QLineEdit;
+class QListWidget;
 class QSplitter;
 class QToolButton;
 class QTreeWidget;
@@ -37,6 +39,7 @@ class QUrl;
 namespace caret {
 
     class CommandOperation;
+    class HelpSearchListItem;
     class HelpTreeWidgetItem;
     
     class HelpViewerDialog : public WuQDialogNonModal {
@@ -70,6 +73,8 @@ namespace caret {
         
         void topicCollapseAllTriggered();
         
+        void topicSearchListWidgetItemClicked(QListWidgetItem*);
+        
     private:
         enum TreeItemType {
             TREE_ITEM_NONE,
@@ -80,6 +85,12 @@ namespace caret {
         HelpViewerDialog(const HelpViewerDialog&);
 
         HelpViewerDialog& operator=(const HelpViewerDialog&);
+        
+        QWidget* createTableOfContentsWidget();
+        
+        QWidget* createIndexSearchWidget();
+        
+        QWidget* createHelpViewerWidget();
         
         void loadHelpTopicsIntoIndexTree();
         
@@ -93,8 +104,12 @@ namespace caret {
                                  QTreeWidgetItem* item,
                                  const AString& itemName);
                                
-        QTreeWidgetItem* loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
+        HelpTreeWidgetItem* loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
                                                 const QFileInfo& dirInfo);
+        
+        void addToAllItems(HelpTreeWidgetItem* helpItem);
+        
+        void loadSearchListWidget();
         
         /// the help browser
         QTextBrowser* m_helpBrowser;
@@ -108,11 +123,16 @@ namespace caret {
         /// line edit for searching topics
         QLineEdit* m_topicSearchLineEdit;
         
+        QListWidget* m_topicSearchListWidget;
+        
         /// tracks first mouse click in search topic line edit
         bool m_topicSearchLineEditFirstMouseClick;
         
-        /// All help pages
-        std::vector<HelpTreeWidgetItem*> m_allHelpWidgetItems;
+        /// All help pages in tree widget
+        std::vector<HelpTreeWidgetItem*> m_allHelpTreeWidgetItems;
+        
+        /// All items in search list widget
+        std::vector<HelpSearchListItem*> m_allHelpSearchListWidgetItems;
         
         // ADD_NEW_MEMBERS_HERE
         
@@ -159,6 +179,9 @@ namespace caret {
                                                    const AString& itemText,
                                                    const AString& helpPageURL);
         
+        static HelpTreeWidgetItem* newInstanceEmptyItem(QTreeWidgetItem* parent,
+                                                        const AString& itemText);
+        
     private:
         HelpTreeWidgetItem(QTreeWidgetItem* parent,
                            const TreeItemType treeItemType,
@@ -180,6 +203,18 @@ namespace caret {
         const AString m_helpPageURL;
         
         const AString m_helpText;
+    };
+    
+    class HelpSearchListItem : public QListWidgetItem {
+    public:
+        HelpSearchListItem(HelpTreeWidgetItem* matchingTreeWidgetItem);
+        
+        ~HelpSearchListItem();
+        
+        static bool sortAlphabetically(const HelpSearchListItem* h1,
+                                       const HelpSearchListItem* h2);
+        
+        HelpTreeWidgetItem* m_matchingTreeWidgetItem;
     };
     
 #ifdef __HELP_VIEWER_DIALOG_DECLARE__

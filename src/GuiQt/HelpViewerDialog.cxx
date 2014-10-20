@@ -31,10 +31,12 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QTextBrowser>
 #include <QSplitter>
+#include <QTabWidget>
 #include <QTextStream>
 #include <QToolBar>
 #include <QToolButton>
@@ -77,6 +79,59 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     m_topicSearchLineEditFirstMouseClick = true;
     setApplyButtonText("");
     
+    QTabWidget* indexSearchTabWidget = new QTabWidget();
+    indexSearchTabWidget->addTab(createTableOfContentsWidget(),
+                                 "Table of Contents");
+    indexSearchTabWidget->addTab(createIndexSearchWidget(),
+                                 "Search");
+    
+    /*
+     * Need some space above the tab widget
+     */
+    QWidget* indexSearchWidget = new QWidget();
+    QVBoxLayout* indexSearchLayout = new QVBoxLayout(indexSearchWidget);
+    indexSearchLayout->addWidget(indexSearchTabWidget);
+    
+    /*
+     * Create the splitter and add the widgets to the splitter
+     */
+    m_splitter = new QSplitter;
+    m_splitter->setOrientation(Qt::Horizontal);
+    m_splitter->addWidget(indexSearchWidget);
+    m_splitter->addWidget(createHelpViewerWidget());
+    QList<int> sizeList;
+    sizeList << 225 << 375;
+    m_splitter->setSizes(sizeList);
+    
+    setCentralWidget(m_splitter,
+                     WuQDialog::SCROLL_AREA_NEVER);
+
+    loadHelpTopicsIntoIndexTree();
+    
+    loadSearchListWidget();
+}
+
+/**
+ * Destructor.
+ */
+HelpViewerDialog::~HelpViewerDialog()
+{
+}
+
+/**
+ * Update the content of the dialog.
+ */
+void
+HelpViewerDialog::updateDialog()
+{
+}
+
+/**
+ * @return Create and return the table of contents widget.
+ */
+QWidget*
+HelpViewerDialog::createTableOfContentsWidget()
+{
     /*
      * Create the tree widget for the help topics
      */
@@ -85,10 +140,59 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     m_topicIndexTreeWidget->setColumnHidden(0, false);
     m_topicIndexTreeWidget->headerItem()->setHidden(true);
     QObject::connect(m_topicIndexTreeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem*,
-                                                                QTreeWidgetItem*)),
+                                                                       QTreeWidgetItem*)),
                      this, SLOT(topicIndexTreeItemChanged(QTreeWidgetItem*,
-                                                           QTreeWidgetItem*)));
+                                                          QTreeWidgetItem*)));
+    
+    /*
+     * Collapse All button
+     */
+    QAction* collapseAllAction = WuQtUtilities::createAction("Collapse All",
+                                                             "",
+                                                             this,
+                                                             this,
+                                                             SLOT(topicCollapseAllTriggered()));
+    QToolButton* collapseAllToolButton = new QToolButton;
+    collapseAllToolButton->setDefaultAction(collapseAllAction);
+    
+    /*
+     * Expand All button
+     */
+    QAction* expandAllAction = WuQtUtilities::createAction("Expand All",
+                                                           "",
+                                                           this,
+                                                           this,
+                                                           SLOT(topicExpandAllTriggered()));
+    QToolButton* expandAllToolButton = new QToolButton;
+    expandAllToolButton->setDefaultAction(expandAllAction);
+    
+    /*
+     * Layout for collapse/expand all buttons
+     */
+    QHBoxLayout* collapseExpandLayout = new QHBoxLayout;
+    collapseExpandLayout->addStretch();
+    collapseExpandLayout->addWidget(collapseAllToolButton);
+    collapseExpandLayout->addWidget(expandAllToolButton);
+    collapseExpandLayout->addStretch();
+    
+    /*
+     * Layout for search line edit and topics
+     */
+    QWidget* topicWidgets = new QWidget();
+    QVBoxLayout* topicLayout = new QVBoxLayout(topicWidgets);
+    WuQtUtilities::setLayoutMargins(topicLayout, 0);
+    topicLayout->addLayout(collapseExpandLayout);
+    topicLayout->addWidget(m_topicIndexTreeWidget);
+    
+    return topicWidgets;
+}
 
+/**
+ * @return Create and return the search widget.
+ */
+QWidget*
+HelpViewerDialog::createIndexSearchWidget()
+{
     /*
      * Search line edit and list widget
      */
@@ -109,27 +213,32 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
                      this, SLOT(topicSearchLineEditCursorPositionChanged(int,int)));
     
     /*
-     * Collapse All button
+     * List widget containing matched topics
      */
-    QAction* collapseAllAction = WuQtUtilities::createAction("Collapse All",
-                                                           "",
-                                                           this,
-                                                           this,
-                                                           SLOT(topicCollapseAllTriggered()));
-    QToolButton* collapseAllToolButton = new QToolButton;
-    collapseAllToolButton->setDefaultAction(collapseAllAction);
+    m_topicSearchListWidget = new QListWidget();
+    m_topicSearchListWidget->setSortingEnabled(false);
+    QObject::connect(m_topicSearchListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
+                     this, SLOT(topicSearchListWidgetItemClicked(QListWidgetItem*)));
     
     /*
-     * Expand All button
+     * Layout for search line edit and topics
      */
-    QAction* expandAllAction = WuQtUtilities::createAction("Expand All",
-                                                           "",
-                                                           this,
-                                                           this,
-                                                           SLOT(topicExpandAllTriggered()));
-    QToolButton* expandAllToolButton = new QToolButton;
-    expandAllToolButton->setDefaultAction(expandAllAction);
+    QWidget* searchWidgets = new QWidget();
+    QVBoxLayout* searchLayout = new QVBoxLayout(searchWidgets);
+    WuQtUtilities::setLayoutSpacingAndMargins(searchLayout, 4, 2);
+    searchLayout->addWidget(m_topicSearchLineEdit);
+    searchLayout->addWidget(m_topicSearchListWidget);
     
+    return searchWidgets;
+}
+
+/**
+ * @return Create and return the help viewer widget.
+ */
+QWidget*
+HelpViewerDialog::createHelpViewerWidget()
+{
+    /*   DISPLAY HELP SECTION */
     
     /*
      * create the back toolbar button
@@ -202,55 +311,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     helpBrowserLayout->addLayout(toolButtonLayout);
     helpBrowserLayout->addWidget(m_helpBrowser);
     
-    /*
-     * Layout for collapse/expand all buttons
-     */
-    QHBoxLayout* collapseExpandLayout = new QHBoxLayout;
-    collapseExpandLayout->addStretch();
-    collapseExpandLayout->addWidget(collapseAllToolButton);
-    collapseExpandLayout->addStretch();
-    collapseExpandLayout->addWidget(expandAllToolButton);
-    collapseExpandLayout->addStretch();
-    
-    /*
-     * Layout for search line edit and topics
-     */
-    QWidget* topicWidgets = new QWidget();
-    QVBoxLayout* topicLayout = new QVBoxLayout(topicWidgets);
-    topicLayout->addWidget(m_topicSearchLineEdit);
-    topicLayout->addLayout(collapseExpandLayout);
-    topicLayout->addWidget(m_topicIndexTreeWidget);
-
-    /*
-     * Create the splitter and add the widgets to the splitter
-     */
-    m_splitter = new QSplitter;
-    m_splitter->setOrientation(Qt::Horizontal);
-    m_splitter->addWidget(topicWidgets);
-    m_splitter->addWidget(helpBrowserWidgets);
-    QList<int> sizeList;
-    sizeList << 225 << 375;
-    m_splitter->setSizes(sizeList);
-    
-    setCentralWidget(m_splitter,
-                     WuQDialog::SCROLL_AREA_NEVER);
-
-    loadHelpTopicsIntoIndexTree();
-}
-
-/**
- * Destructor.
- */
-HelpViewerDialog::~HelpViewerDialog()
-{
-}
-
-/**
- * Update the content of the dialog.
- */
-void
-HelpViewerDialog::updateDialog()
-{
+    return helpBrowserWidgets;
 }
 
 /**
@@ -509,7 +570,7 @@ HelpViewerDialog::showHelpPageWithName(const AString& helpPageName)
  * @return
  *    Tree widget item that was created.
  */
-QTreeWidgetItem*
+HelpTreeWidgetItem*
 HelpViewerDialog::loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
                                                      const QFileInfo& dirInfo)
 {
@@ -543,7 +604,7 @@ HelpViewerDialog::loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
      * Create a tree widget item for this directory
      * that may have a help page.
      */
-    QTreeWidgetItem* treeItem = NULL;
+    HelpTreeWidgetItem* treeItem = NULL;
     if ( ! dirHtmlPageName.isEmpty()) {
         treeItem = createHelpTreeWidgetItemForHelpPage(parent,
                                                        dirInfo.baseName(),
@@ -552,8 +613,10 @@ HelpViewerDialog::loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
     else {
         AString text = dirInfo.baseName();
         text = text.replace('_', ' ');
-        treeItem = new QTreeWidgetItem(parent);
-        treeItem->setText(0, text);
+        treeItem = HelpTreeWidgetItem::newInstanceEmptyItem(parent,
+                                                            text);
+//        new HelpTreeWidgetItem(parent);
+//        treeItem->setText(0, text);
     }
     
     /*
@@ -608,7 +671,7 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
     while (subDirIter.hasNext()) {
         const QFileInfo subDirInfo = subDirIter.next();
         
-        QTreeWidgetItem* item = loadWorkbenchHelpInfoFromDirectory(workbenchItem,
+        HelpTreeWidgetItem* item = loadWorkbenchHelpInfoFromDirectory(workbenchItem,
                                                                    subDirInfo);
         
         /*
@@ -625,46 +688,6 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
         }
     }
     
-//    if (resourceHelpDirectory.exists()) {
-//        QStringList htmlFileFilter;
-//        htmlFileFilter << "*";
-//        //htmlFileFilter << "*.htm" << "*.html";
-//        QDirIterator dirIter(":/HelpFiles",
-//                             htmlFileFilter,
-//                             QDir::NoFilter,
-//                             QDirIterator::Subdirectories);
-//        
-//        while (dirIter.hasNext()) {
-//            dirIter.next();
-//            const QFileInfo fileInfo = dirIter.fileInfo();
-//            const QString name       = fileInfo.baseName();
-//            const QString filePath   = fileInfo.filePath();
-//            
-//            if (filePath.endsWith(".htm")
-//                || filePath.endsWith(".html")) {
-//                if (name.contains("Menu",
-//                                  Qt::CaseInsensitive)) {
-//                    QTreeWidgetItem* item = createHelpTreeWidgetItemForHelpPage(NULL,
-//                                                                                name,
-//                                                                                filePath);
-//                }
-//            }
-//        }
-////        otherItem->sortChildren(0,
-////                                Qt::AscendingOrder);
-//        
-//    }
-//    else {
-//        CaretLogSevere("Resource directory "
-//                       + resourceHelpDirectory.absolutePath()
-//                       + " not found.");
-//    }
-//    
-//    
-////    m_topicIndexTreeWidget->setItemExpanded(menuItem,
-////                                            true);
-//    m_topicIndexTreeWidget->setItemExpanded(workbenchItem,
-//                                            true);
     
     /*
      * Load commands
@@ -701,7 +724,12 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
             HelpTreeWidgetItem* item = HelpTreeWidgetItem::newInstanceForCommandOperation(wbCommandItem,
                                                                                           op);
             item->setFont(0, commandFont);
-            m_allHelpWidgetItems.push_back(item);
+            
+            addToAllItems(item);
+//            m_allHelpWidgetItems.push_back(item);
+//            
+//            HelpSearchListItem* searchItem = new HelpSearchListItem(item);
+//            m_topicSearchListWidget->addItem(searchItem);
         }
     }
 
@@ -774,7 +802,7 @@ HelpViewerDialog::createHelpTreeWidgetItemForHelpPage(QTreeWidgetItem* parent,
                                                                                   itemText,
                                                                                   helpPageURL);
     
-    m_allHelpWidgetItems.push_back(helpItem);
+    addToAllItems(helpItem);
     
     return helpItem;
 }
@@ -811,6 +839,96 @@ HelpViewerDialog::topicIndexTreeItemChanged(QTreeWidgetItem* currentItem,
 }
 
 /**
+ * Add the help item to all items and to the search list widget.
+ *
+ * @helpItem
+ *     Help item to add.
+ */
+void
+HelpViewerDialog::addToAllItems(HelpTreeWidgetItem* helpItem)
+{
+    m_allHelpTreeWidgetItems.push_back(helpItem);
+}
+
+/**
+ * Load the search list widget.  List all Workbench items in alphabetical
+ * order followed by all commands in alphabetical order.
+ */
+void
+HelpViewerDialog::loadSearchListWidget()
+{
+    std::vector<HelpSearchListItem*> commandItems;
+    std::vector<HelpSearchListItem*> workbenchItems;
+    
+    for (std::vector<HelpTreeWidgetItem*>::iterator allIter = m_allHelpTreeWidgetItems.begin();
+         allIter != m_allHelpTreeWidgetItems.end();
+         allIter++) {
+        HelpTreeWidgetItem* treeItem = *allIter;
+        
+        switch (treeItem->m_treeItemType) {
+            case HelpTreeWidgetItem::TREE_ITEM_NONE:
+                /*
+                 * Do not allow in search
+                 */
+                continue;
+                break;
+            case HelpTreeWidgetItem::TREE_ITEM_HELP_PAGE_URL:
+                break;
+            case HelpTreeWidgetItem::TREE_ITEM_HELP_TEXT:
+                break;
+        }
+        
+        HelpSearchListItem* searchItem = new HelpSearchListItem(treeItem);
+        m_allHelpSearchListWidgetItems.push_back(searchItem);
+        
+        if (treeItem->text(0).startsWith("-")) {
+            commandItems.push_back(searchItem);
+        }
+        else {
+            workbenchItems.push_back(searchItem);
+        }
+    }
+    
+    std::sort(commandItems.begin(),
+              commandItems.end(),
+              HelpSearchListItem::sortAlphabetically);
+    
+    std::sort(workbenchItems.begin(),
+              workbenchItems.end(),
+              HelpSearchListItem::sortAlphabetically);
+    
+    for (std::vector<HelpSearchListItem*>::iterator wbIter = workbenchItems.begin();
+         wbIter != workbenchItems.end();
+         wbIter++) {
+        m_topicSearchListWidget->addItem(*wbIter);
+    }
+    for (std::vector<HelpSearchListItem*>::iterator cmdIter = commandItems.begin();
+         cmdIter != commandItems.end();
+         cmdIter++) {
+        m_topicSearchListWidget->addItem(*cmdIter);
+    }
+}
+
+/**
+ * Called when an item in the search list widget is clicked.
+ *
+ * @param item
+ *    The selected item
+ */
+void
+HelpViewerDialog::topicSearchListWidgetItemClicked(QListWidgetItem* item)
+{
+    HelpSearchListItem* searchItem = dynamic_cast<HelpSearchListItem*>(item);
+    if (searchItem != NULL) {
+        HelpTreeWidgetItem* helpItem = searchItem->m_matchingTreeWidgetItem;
+        if (helpItem != NULL) {
+            displayHelpTextForHelpTreeWidgetItem(helpItem);
+        }
+    }
+}
+
+
+/**
  * Display the help information for the given help item.
  *
  * @param helpItem
@@ -845,27 +963,52 @@ HelpViewerDialog::topicSearchLineEditStartSearch()
         }
     }
     
-    for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
-         iter != m_allHelpWidgetItems.end();
+    for (std::vector<HelpSearchListItem*>::iterator iter = m_allHelpSearchListWidgetItems.begin();
+         iter != m_allHelpSearchListWidgetItems.end();
          iter++) {
-        HelpTreeWidgetItem* helpItem = *iter;
+        HelpSearchListItem* helpListItem = *iter;
+        CaretAssert(helpListItem);
+        HelpTreeWidgetItem* helpTreeItem = helpListItem->m_matchingTreeWidgetItem;
+        CaretAssert(helpTreeItem);
         
         bool showItemFlag = true;
         if (haveSearchTextFlag) {
             showItemFlag = false;
             
             if (haveWildcardSearchFlag) {
-                if (regEx.exactMatch(helpItem->m_helpText)) {
+                if (regEx.exactMatch(helpTreeItem->m_helpText)) {
                     showItemFlag = true;
                 }
             }
-            else if (helpItem->m_helpText.contains(searchText,
-                                                      Qt::CaseInsensitive)) {
+            else if (helpTreeItem->m_helpText.contains(searchText,
+                                                   Qt::CaseInsensitive)) {
                 showItemFlag = true;
             }
         }
-        helpItem->setHidden( ! showItemFlag);
+        helpListItem->setHidden( ! showItemFlag);
     }
+    
+//    for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpTreeWidgetItems.begin();
+//         iter != m_allHelpTreeWidgetItems.end();
+//         iter++) {
+//        HelpTreeWidgetItem* helpItem = *iter;
+//        
+//        bool showItemFlag = true;
+//        if (haveSearchTextFlag) {
+//            showItemFlag = false;
+//            
+//            if (haveWildcardSearchFlag) {
+//                if (regEx.exactMatch(helpItem->m_helpText)) {
+//                    showItemFlag = true;
+//                }
+//            }
+//            else if (helpItem->m_helpText.contains(searchText,
+//                                                      Qt::CaseInsensitive)) {
+//                showItemFlag = true;
+//            }
+//        }
+//        helpItem->setHidden( ! showItemFlag);
+//    }
 }
 
 /**
@@ -957,8 +1100,8 @@ HelpTextBrowser::loadResource(int type, const QUrl& url)
     
     QVariant result;
     
-        for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_parentHelpViewerDialog->m_allHelpWidgetItems.begin();
-             iter != m_parentHelpViewerDialog->m_allHelpWidgetItems.end();
+        for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_parentHelpViewerDialog->m_allHelpTreeWidgetItems.begin();
+             iter != m_parentHelpViewerDialog->m_allHelpTreeWidgetItems.end();
              iter++) {
             HelpTreeWidgetItem* treeItem = *iter;
             if (treeItem->m_helpPageURL == urlText) {
@@ -1127,6 +1270,27 @@ HelpTreeWidgetItem::newInstanceForHtmlHelpPage(QTreeWidgetItem* parent,
 }
 
 /**
+ * Constructor for item with parent but only a name.
+ *
+ * @param parent
+ *    Parent for item in index.
+ * @param itemText
+ *    Text for the item shown in the topic index.
+ */
+HelpTreeWidgetItem*
+HelpTreeWidgetItem::newInstanceEmptyItem(QTreeWidgetItem* parent,
+                                         const AString& itemText)
+{
+    HelpTreeWidgetItem* item = new HelpTreeWidgetItem(parent,
+                                                      TREE_ITEM_NONE,
+                                                     itemText,
+                                                      "",
+                                                      "");
+    return item;
+}
+
+
+/**
  * Constructor for item with parent
  *
  * @param parent
@@ -1183,5 +1347,48 @@ m_helpText(helpText)
 HelpTreeWidgetItem::~HelpTreeWidgetItem()
 {
     
+}
+
+// ========================================================================= //
+
+/**
+ * Constructs a list widget item for use during search operation
+ *
+ * @param matchingTreeWidgetItem
+ *    The matching tree widget item that contains the help information.
+ */
+HelpSearchListItem::HelpSearchListItem(HelpTreeWidgetItem* matchingTreeWidgetItem)
+{
+    CaretAssert(matchingTreeWidgetItem);
+    m_matchingTreeWidgetItem = matchingTreeWidgetItem;
+    setText(m_matchingTreeWidgetItem->text(0));
+}
+
+/**
+ * Destructor.
+ */
+HelpSearchListItem::~HelpSearchListItem()
+{
+    
+}
+
+/**
+ * Sort the two "pointed to" items alphabetically.
+ *
+ * @param h1
+ *    First item.
+ * @param h2
+ *    Second item.
+ * @return
+ *    True if h1 is alphabetically before h2.
+ */
+bool
+HelpSearchListItem::sortAlphabetically(const HelpSearchListItem* h1,
+                               const HelpSearchListItem* h2)
+{
+    CaretAssert(h1);
+    CaretAssert(h2);
+    
+    return (h1->m_matchingTreeWidgetItem->text(0) < h2->m_matchingTreeWidgetItem->text(0));
 }
 
