@@ -472,6 +472,34 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
     }
     overlay->setEnabled(checked);
     
+    if (overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+        /*
+         * Need to change the enabled status for any other overlays that are
+         * yoked to the SAME Yoking Group AND contains the SAME data file.
+         */
+        CaretMappableDataFile* myFile = NULL;
+        int32_t myIndex = -1;
+        this->overlay->getSelectionData(myFile,
+                                        myIndex);
+        
+        EventOverlayYokingGroupGet yokedOverlaysEvent(overlay->getYokingGroup());
+        EventManager::get()->sendEvent(yokedOverlaysEvent.getPointer());
+        
+        const int32_t numOverlaysYoked = yokedOverlaysEvent.getNumberOfYokedOverlays();
+        for (int32_t i = 0; i < numOverlaysYoked; i++) {
+            Overlay* yokedOverlay = yokedOverlaysEvent.getYokedOverlay(i);
+            CaretAssert(yokedOverlay);
+            CaretMappableDataFile* otherMapFile = NULL;
+            int32_t otherMapIndex = -1;
+            yokedOverlay->getSelectionData(otherMapFile,
+                                           otherMapIndex);
+            
+            if (myFile == otherMapFile) {
+                yokedOverlay->setEnabled(checked);
+            }
+        }
+    }
+    
     this->updateUserInterfaceIfYoked();
 
     this->updateGraphicsWindow();
