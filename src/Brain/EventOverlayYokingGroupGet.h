@@ -92,6 +92,10 @@ namespace caret {
         
         const OverlayYokingGroupEnum::Enum m_yokingGroup;
 
+        std::vector<int32_t> m_validTabIndices;
+        
+        bool m_addingFirstYokedOverlayFlag;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

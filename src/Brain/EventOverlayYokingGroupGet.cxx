@@ -25,6 +25,8 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "EventBrowserTabGetAll.h"
+#include "EventManager.h"
 #include "EventTypeEnum.h"
 #include "Overlay.h"
 
@@ -46,7 +48,8 @@ using namespace caret;
  */
 EventOverlayYokingGroupGet::EventOverlayYokingGroupGet(const OverlayYokingGroupEnum::Enum yokingGroup)
 : Event(EventTypeEnum::EVENT_OVERLAY_GET_YOKED),
-m_yokingGroup(yokingGroup)
+m_yokingGroup(yokingGroup),
+m_addingFirstYokedOverlayFlag(true)
 {
     
 }
@@ -87,19 +90,39 @@ EventOverlayYokingGroupGet::addYokedOverlay(const AString& modelName,
     CaretAssert(overlay);
     
     if (overlay->getYokingGroup() == m_yokingGroup) {
-        CaretMappableDataFile* selectedDataFile = NULL;
-        int32_t selectedMapIndex;
-        overlay->getSelectionData(selectedDataFile,
-                                  selectedMapIndex);
-        if (selectedDataFile != NULL) {
-            YokedOverlayInfo yoi;
-            yoi.m_modelName = modelName;
-            yoi.m_tabIndex = tabIndex;
-            yoi.m_overlay = overlay;
-            yoi.m_overlayFile = selectedDataFile;
-            yoi.m_overlayFileName = selectedDataFile->getFileNameNoPath();
-            yoi.m_overlayFileNumberOfMaps = selectedDataFile->getNumberOfMaps();
-            m_yokedOverlays.push_back(yoi);
+        if (m_addingFirstYokedOverlayFlag) {
+            m_addingFirstYokedOverlayFlag = false;
+            
+            EventBrowserTabGetAll allTabsEvent;
+            EventManager::get()->sendEvent(allTabsEvent.getPointer());
+            
+            m_validTabIndices = allTabsEvent.getBrowserTabIndices();
+            
+        }
+        
+        /*
+         * Overlay are not always (and subject to change) members of 
+         * a browser tab so we need to exclude any overlays that
+         * represent an invalid browser tab.
+         */
+        if (std::find(m_validTabIndices.begin(),
+                      m_validTabIndices.end(),
+                      tabIndex) != m_validTabIndices.end()) {
+            CaretMappableDataFile* selectedDataFile = NULL;
+            int32_t selectedMapIndex;
+            overlay->getSelectionData(selectedDataFile,
+                                      selectedMapIndex);
+            
+            if (selectedDataFile != NULL) {
+                YokedOverlayInfo yoi;
+                yoi.m_modelName = modelName;
+                yoi.m_tabIndex = tabIndex;
+                yoi.m_overlay = overlay;
+                yoi.m_overlayFile = selectedDataFile;
+                yoi.m_overlayFileName = selectedDataFile->getFileNameNoPath();
+                yoi.m_overlayFileNumberOfMaps = selectedDataFile->getNumberOfMaps();
+                m_yokedOverlays.push_back(yoi);
+            }
         }
     }
 }
