@@ -411,7 +411,7 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
     if (numOverlayYokingGroups > 0) {
         std::vector<int32_t> overlayMapSelections(numOverlayYokingGroups, 1);
         
-        bool overlayMapEnabled[numOverlayYokingGroups];
+        CaretArray<bool> overlayMapEnabled(numOverlayYokingGroups);
         for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
             overlayMapEnabled[i] = false;
         }
