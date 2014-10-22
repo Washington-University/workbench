@@ -196,15 +196,22 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     m_constructionToolButton->setDefaultAction(this->constructionAction);
     m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
     
+    const AString yokeToolTip =
+    ("Select a yoking group.\n"
+     "\n"
+     "When files with more than one map are yoked,\n"
+     "the seleted maps are synchronized by map index.\n"
+     "\n"
+     "If the SAME FILE is in yoked in multiple overlays,\n"
+     "the overlay enabled statuses are synchronized.\n");
+    
     /*
      * Yoking Group
      */
     m_yokingGroupComboBox = new EnumComboBoxTemplate(this);
     m_yokingGroupComboBox->setup<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
-    m_yokingGroupComboBox->getWidget()->setStatusTip("Select a yoking group (synchronized map selections)");
-    m_yokingGroupComboBox->getWidget()->setToolTip(("Select a yoking group (synchronized map selections).\n"
-                                                    "Overlays yoked to a yoking group all maintain\n"
-                                                    "the same selected map index."));
+    m_yokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
+    m_yokingGroupComboBox->getWidget()->setToolTip(yokeToolTip);
 #ifdef CARET_OS_MACOSX
     m_yokingGroupComboBox->getComboBox()->setFixedWidth(m_yokingGroupComboBox->getComboBox()->sizeHint().width() - 20);
 #endif // CARET_OS_MACOSX
@@ -766,6 +773,20 @@ OverlayViewController::updateViewController(Overlay* overlay)
                        || dataIsMappedWithPalette);
     }
     
+    /**
+     * Yoking is enabled when either:
+     * (1) The file maps to both surface and volumes
+     * (2) The file has multiple maps.
+     */
+    bool haveYoking = false;
+    if (selectedFile->isSurfaceMappable()
+         && selectedFile->isVolumeMappable()) {
+        haveYoking = true;
+    }
+    if (haveMultipleMaps) {
+        haveYoking = true;
+    }
+    
     /*
      * Make sure items are enabled at the appropriate time
      */
@@ -775,7 +796,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
     this->enabledCheckBox->setEnabled(haveFile);
     this->constructionAction->setEnabled(true);
     this->opacityDoubleSpinBox->setEnabled(haveOpacity);
-    this->m_yokingGroupComboBox->getWidget()->setEnabled(haveMultipleMaps);
+    this->m_yokingGroupComboBox->getWidget()->setEnabled(haveYoking);
     this->colorBarAction->setEnabled(dataIsMappedWithPalette);
     this->settingsAction->setEnabled(true);
 }

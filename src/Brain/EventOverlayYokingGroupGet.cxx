@@ -274,7 +274,7 @@ EventOverlayYokingGroupGet::getYokedOverlay(const int32_t indx)
  *    File for testing compatibility.
  * @param messageOut
  *    If there are incompatibilities, this message will describe the issues.
- * @return true if compatable, false otherwise.
+ * @return true if compatible, false otherwise.
  */
 bool
 EventOverlayYokingGroupGet::validateCompatibility(CaretMappableDataFile* overlayFile,
@@ -284,41 +284,40 @@ EventOverlayYokingGroupGet::validateCompatibility(CaretMappableDataFile* overlay
     
     CaretAssert(overlayFile);
     
-    const int32_t numItems = getNumberOfYokedOverlays();
-    if (numItems == 0) {
+    const int32_t numYokedOverlays = getNumberOfYokedOverlays();
+    if (numYokedOverlays == 0) {
         return true;
     }
     
+    const int32_t overlayNumberOfMaps = overlayFile->getNumberOfMaps();
+    
     /*
-     * Get the yoked files and get counts of maps in the files.  
-     * Use a set since a file may be in more than one overlay.
+     * Find any yoked files that contain a different number of maps
      */
-    std::set<CaretMappableDataFile*> yokedFiles;
-    std::set<int32_t> mapCounts;
-    yokedFiles.insert(overlayFile);
-    mapCounts.insert(overlayFile->getNumberOfMaps());
-    for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
+    std::vector<int32_t> misMatchItemIndices;
+    for (int32_t itemIndex = 0; itemIndex < numYokedOverlays; itemIndex++) {
         const YokedOverlayInfo& yoi = m_yokedOverlays[itemIndex];
-        yokedFiles.insert(yoi.m_overlayFile);
-        mapCounts.insert(yoi.m_overlayFile->getNumberOfMaps());
+        if (yoi.m_overlayFileNumberOfMaps != overlayNumberOfMaps) {
+            misMatchItemIndices.push_back(itemIndex);
+        }
     }
     
-    /*
-     * All files contain the same number of maps?
-     */
-    if (mapCounts.size() <= 1) {
+    const int32_t numMisMatchedFiles = static_cast<int32_t>(misMatchItemIndices.size());
+    if (numMisMatchedFiles <= 0) {
         return true;
     }
-
+    
     /*
      * Generate message about incompatible number of maps.
      */
     messageOut = "Incompatible number of maps for yoking:\n";
-//    messageOut.appendWithNewLine(QString::number(overlayFile->getNumberOfMaps())
-//                                 + " maps in "
-//                                 + overlayFile->getFileNameNoPath());
-    for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
-        const YokedOverlayInfo& yoi = m_yokedOverlays[itemIndex];
+    messageOut.appendWithNewLine(QString::number(overlayFile->getNumberOfMaps())
+                                 + " maps in "
+                                 + overlayFile->getFileNameNoPath());
+    messageOut.appendWithNewLine("");
+    for (int32_t i = 0; i < numMisMatchedFiles; i++) {
+        const int32_t fileIndex = misMatchItemIndices[i];
+        const YokedOverlayInfo& yoi = m_yokedOverlays[fileIndex];
         messageOut.appendWithNewLine(AString::number(yoi.m_overlayFileNumberOfMaps)
                                      + " maps in "
                                      + yoi.m_overlayFileName
