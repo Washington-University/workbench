@@ -147,7 +147,7 @@ void ZFileImpl::open(const QString& filename, const CaretBinaryFile::OpenMode& o
 {
     close();//don't need to, but just because
     m_fileName = filename;
-    const char* mode;
+    const char* mode = NULL;
     switch (opmode)//we only support a limited number of combinations, and the string modes are quirky
     {
         case CaretBinaryFile::READ:
@@ -221,7 +221,7 @@ void ZFileImpl::seek(const int64_t& position)
 
 int64_t ZFileImpl::pos()
 {
-    if (m_zfile == NULL) throw DataFileException("seek called on unopened ZFileImpl");//shouldn't happen
+    if (m_zfile == NULL) throw DataFileException("pos called on unopened ZFileImpl");//shouldn't happen
 #if !defined(CARET_OS_MACOSX) && ZLIB_VERNUM > 0x1232
     return gztell64(m_zfile);
 #else
@@ -250,7 +250,7 @@ void ZFileImpl::write(const void* dataIn, const int64_t& count)
 
 ZFileImpl::~ZFileImpl()
 {
-    try//throwing throught a default destructor (in CaretPointer) makes gcc abort on some versions, so just issue a warning and continue
+    try//throwing from a destructor is a bad idea
     {
         close();
     } catch (CaretException& e) {//handles DataFileException, should be the only culprit
