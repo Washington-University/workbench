@@ -100,7 +100,7 @@ namespace caret {
 
         QWidget* createBrainordinateChartWidget();
         
-        QWidget* createMatrixChartWidget();
+        QWidget* createMatrixChartWidget(const Qt::Orientation orientation);
         
         void updateSelectionViewController();
         

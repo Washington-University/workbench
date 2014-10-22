@@ -81,7 +81,7 @@ static const char* BRAINORDINATE_FILE_POINTER_PROPERTY_NAME = "brainordinateFile
 /**
  * Constructor.
  */
-ChartSelectionViewController::ChartSelectionViewController(const Qt::Orientation /*orientation*/,
+ChartSelectionViewController::ChartSelectionViewController(const Qt::Orientation orientation,
                                                            const int32_t browserWindowIndex,
                                                            QWidget* parent)
 : QWidget(parent),
@@ -91,7 +91,7 @@ m_browserWindowIndex(browserWindowIndex)
     
     m_brainordinateChartWidget = createBrainordinateChartWidget();
     
-    m_matrixChartWidget = createMatrixChartWidget();
+    m_matrixChartWidget = createMatrixChartWidget(orientation);
     
     m_stackedWidget = new QStackedWidget();
     m_stackedWidget->addWidget(m_brainordinateChartWidget);
@@ -270,8 +270,7 @@ ChartSelectionViewController::createBrainordinateChartWidget()
      * exclusive.  The "Select" column title is over both the checkbox
      * and radio button columns.
      */
-    QWidget* widget = new QWidget();
-    m_brainordinateGridLayout = new QGridLayout(widget);
+    m_brainordinateGridLayout = new QGridLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(m_brainordinateGridLayout, 4, 2);
     m_brainordinateGridLayout->setColumnStretch(COLUMN_CHECKBOX, 0);
     m_brainordinateGridLayout->setColumnStretch(COLUMN_LINE_EDIT, 100);
@@ -286,6 +285,12 @@ ChartSelectionViewController::createBrainordinateChartWidget()
     m_signalMapperBrainordinateFileEnableCheckBox = new QSignalMapper(this);
     QObject::connect(m_signalMapperBrainordinateFileEnableCheckBox, SIGNAL(mapped(int)),
                      this, SLOT(brainordinateSelectionCheckBoxClicked(int)));
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+    layout->addLayout(m_brainordinateGridLayout);
+    layout->addStretch();
     
     return widget;
 }
@@ -534,7 +539,7 @@ ChartSelectionViewController::matrixSettingsActionTriggered()
  * @return The matrix chart widget.
  */
 QWidget*
-ChartSelectionViewController::createMatrixChartWidget()
+ChartSelectionViewController::createMatrixChartWidget(const Qt::Orientation orientation)
 {
     /*
      * ColorBar Tool Button
@@ -598,36 +603,80 @@ ChartSelectionViewController::createMatrixChartWidget()
     fileYokeGroupBox->setFlat(true);
     fileYokeGroupBox->setAlignment(Qt::AlignHCenter);
     QGridLayout* fileYokeLayout = new QGridLayout(fileYokeGroupBox);
-    WuQtUtilities::setLayoutSpacingAndMargins(fileYokeLayout, 2, 0);
-    fileYokeLayout->setColumnStretch(0, 0);
-    fileYokeLayout->setColumnStretch(1, 0);
-    fileYokeLayout->setColumnStretch(2, 0);
-    fileYokeLayout->setColumnStretch(3, 0);
-    fileYokeLayout->setColumnStretch(4, 100);
     
-    fileYokeLayout->addWidget(loadDimensionLabel,
-                              0, 0,
-                              Qt::AlignHCenter);
-    fileYokeLayout->addWidget(settingsLabel,
-                              0, 1,
-                              1, 2,
-                              Qt::AlignHCenter);
-    fileYokeLayout->addWidget(yokeLabel,
-                              0, 3,
-                              Qt::AlignHCenter);
-    fileYokeLayout->addWidget(fileLabel,
-                              0, 4,
-                              Qt::AlignHCenter);
-    fileYokeLayout->addWidget(m_matrixLoadByColumnRowComboBox->getWidget(),
-                              1, 0);
-    fileYokeLayout->addWidget(settingsToolButton,
-                              1, 1);
-    fileYokeLayout->addWidget(colorBarToolButton,
-                              1, 2);
-    fileYokeLayout->addWidget(m_matrixYokingGroupComboBox->getWidget(),
-                              1, 3);
-    fileYokeLayout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
-                              1, 4);
+    switch (orientation) {
+        case Qt::Horizontal:
+        {
+            WuQtUtilities::setLayoutSpacingAndMargins(fileYokeLayout, 2, 0);
+            fileYokeLayout->setColumnStretch(0, 0);
+            fileYokeLayout->setColumnStretch(1, 0);
+            fileYokeLayout->setColumnStretch(2, 0);
+            fileYokeLayout->setColumnStretch(3, 0);
+            fileYokeLayout->setColumnStretch(4, 100);
+            
+            fileYokeLayout->addWidget(loadDimensionLabel,
+                                      0, 0,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(settingsLabel,
+                                      0, 1,
+                                      1, 2,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(yokeLabel,
+                                      0, 3,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(fileLabel,
+                                      0, 4,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(m_matrixLoadByColumnRowComboBox->getWidget(),
+                                      1, 0);
+            fileYokeLayout->addWidget(settingsToolButton,
+                                      1, 1);
+            fileYokeLayout->addWidget(colorBarToolButton,
+                                      1, 2);
+            fileYokeLayout->addWidget(m_matrixYokingGroupComboBox->getWidget(),
+                                      1, 3);
+            fileYokeLayout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
+                                      1, 4);
+        }
+            break;
+        case Qt::Vertical:
+        {
+            WuQtUtilities::setLayoutSpacingAndMargins(fileYokeLayout, 2, 0);
+            fileYokeLayout->setColumnStretch(0, 0);
+            fileYokeLayout->setColumnStretch(1, 0);
+            fileYokeLayout->setColumnStretch(2, 0);
+            fileYokeLayout->setColumnStretch(3, 0);
+            fileYokeLayout->setColumnStretch(4, 100);
+            
+            fileYokeLayout->addWidget(loadDimensionLabel,
+                                      0, 0,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(settingsLabel,
+                                      0, 1,
+                                      1, 2,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(yokeLabel,
+                                      0, 3,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(m_matrixLoadByColumnRowComboBox->getWidget(),
+                                      1, 0);
+            fileYokeLayout->addWidget(settingsToolButton,
+                                      1, 1);
+            fileYokeLayout->addWidget(colorBarToolButton,
+                                      1, 2);
+            fileYokeLayout->addWidget(m_matrixYokingGroupComboBox->getWidget(),
+                                      1, 3);
+            fileYokeLayout->addWidget(fileLabel,
+                                      2, 0, 1, 4,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
+                                      3, 0, 1, 4);
+        }
+            break;
+        default:
+            CaretAssert(0);
+            break;
+    }
     
     m_parcelReorderingEnabledCheckBox = new QCheckBox("");
     QObject::connect(m_parcelReorderingEnabledCheckBox, SIGNAL(clicked(bool)),
@@ -642,6 +691,7 @@ ChartSelectionViewController::createMatrixChartWidget()
     QLabel* parcelCheckBoxLabel = new QLabel("On");
     QLabel* parcelFileLabel = new QLabel("Parcel Label File");
     QLabel* parcelFileMapLabel = new QLabel("Map");
+    QLabel* parcelFileMapIndexLabel = new QLabel("Index");
     QWidget* mapFileComboBox = NULL;
     QWidget* mapIndexSpinBox = NULL;
     QWidget* mapNameComboBox = NULL;
@@ -652,18 +702,42 @@ ChartSelectionViewController::createMatrixChartWidget()
     m_parcelRemappingGroupBox->setFlat(true);
     m_parcelRemappingGroupBox->setAlignment(Qt::AlignHCenter);
     QGridLayout* parcelMapFileLayout = new QGridLayout(m_parcelRemappingGroupBox);
-    WuQtUtilities::setLayoutSpacingAndMargins(parcelMapFileLayout, 2, 0);
-    parcelMapFileLayout->setColumnStretch(0,   0);
-    parcelMapFileLayout->setColumnStretch(1, 100);
-    parcelMapFileLayout->setColumnStretch(2,   0);
-    parcelMapFileLayout->setColumnStretch(3, 100);
-    parcelMapFileLayout->addWidget(parcelCheckBoxLabel, 0, 0, Qt::AlignHCenter);
-    parcelMapFileLayout->addWidget(parcelFileLabel, 0, 1, Qt::AlignHCenter);
-    parcelMapFileLayout->addWidget(parcelFileMapLabel, 0, 2, 1, 2, Qt::AlignHCenter);
-    parcelMapFileLayout->addWidget(m_parcelReorderingEnabledCheckBox, 1,0);
-    parcelMapFileLayout->addWidget(mapFileComboBox, 1, 1);
-    parcelMapFileLayout->addWidget(mapIndexSpinBox, 1, 2);
-    parcelMapFileLayout->addWidget(mapNameComboBox, 1, 3);
+    switch (orientation) {
+        case Qt::Horizontal:
+        {
+            WuQtUtilities::setLayoutSpacingAndMargins(parcelMapFileLayout, 2, 0);
+            parcelMapFileLayout->setColumnStretch(0,   0);
+            parcelMapFileLayout->setColumnStretch(1, 100);
+            parcelMapFileLayout->setColumnStretch(2,   0);
+            parcelMapFileLayout->setColumnStretch(3, 100);
+            parcelMapFileLayout->addWidget(parcelCheckBoxLabel, 0, 0, Qt::AlignHCenter);
+            parcelMapFileLayout->addWidget(parcelFileLabel, 0, 1, Qt::AlignHCenter);
+            parcelMapFileLayout->addWidget(parcelFileMapLabel, 0, 2, 1, 2, Qt::AlignHCenter);
+            parcelMapFileLayout->addWidget(m_parcelReorderingEnabledCheckBox, 1,0);
+            parcelMapFileLayout->addWidget(mapFileComboBox, 1, 1);
+            parcelMapFileLayout->addWidget(mapIndexSpinBox, 1, 2);
+            parcelMapFileLayout->addWidget(mapNameComboBox, 1, 3);
+        }
+            break;
+        case Qt::Vertical:
+        {
+            WuQtUtilities::setLayoutSpacingAndMargins(parcelMapFileLayout, 2, 0);
+            parcelMapFileLayout->setColumnStretch(0,   0);
+            parcelMapFileLayout->setColumnStretch(1, 100);
+            parcelMapFileLayout->addWidget(parcelCheckBoxLabel, 0, 0, Qt::AlignHCenter);
+            parcelMapFileLayout->addWidget(parcelFileLabel, 0, 1, Qt::AlignHCenter);
+            parcelMapFileLayout->addWidget(m_parcelReorderingEnabledCheckBox, 1,0, Qt::AlignHCenter);
+            parcelMapFileLayout->addWidget(mapFileComboBox, 1, 1);
+            parcelMapFileLayout->addWidget(parcelFileMapIndexLabel, 2, 0, Qt::AlignHCenter);
+            parcelMapFileLayout->addWidget(parcelFileMapLabel, 2, 1, Qt::AlignHCenter);
+            parcelMapFileLayout->addWidget(mapIndexSpinBox, 3, 0);
+            parcelMapFileLayout->addWidget(mapNameComboBox, 3, 1);
+        }
+            break;
+        default:
+            CaretAssert(0);
+    }
+
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
