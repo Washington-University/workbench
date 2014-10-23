@@ -67,6 +67,7 @@
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
 #include "UserInputModeView.h"
+#include "UserInputModeVolumeEdit.h"
 
 
 using namespace caret;
@@ -118,6 +119,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
                                                                    windowIndex);
     this->userInputFociModeProcessor = new UserInputModeFoci(windowIndex);
+    this->userInputVolumeEditModeProcessor = new UserInputModeVolumeEdit(windowIndex);
     this->userInputViewModeProcessor = new UserInputModeView();
     this->selectedUserInputProcessor = this->userInputViewModeProcessor;
     this->selectedUserInputProcessor->initialize();
@@ -150,6 +152,7 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     delete this->userInputViewModeProcessor;
     delete this->userInputBordersModeProcessor;
     delete this->userInputFociModeProcessor;
+    delete this->userInputVolumeEditModeProcessor;
     this->selectedUserInputProcessor = NULL; // DO NOT DELETE since it does not own the object to which it points
     
     delete this->borderBeingDrawn;
@@ -1048,6 +1051,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                         break;
                     case UserInputReceiverInterface::FOCI:
                         newUserInputProcessor = this->userInputFociModeProcessor;
+                        break;
+                    case UserInputReceiverInterface::VOLUME_EDIT:
+                        newUserInputProcessor = this->userInputVolumeEditModeProcessor;
                         break;
                     case UserInputReceiverInterface::VIEW:
                         newUserInputProcessor = this->userInputViewModeProcessor;

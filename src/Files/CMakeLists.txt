@@ -108,6 +108,7 @@ SurfaceResamplingMethodEnum.h
 SurfaceTypeEnum.h
 TextFile.h
 TopologyHelper.h
+VolumeEditingModeEnum.h
 VolumeFile.h
 VolumeFileVoxelColorizer.h
 VolumePaddingHelper.h
@@ -204,6 +205,7 @@ SurfaceResamplingMethodEnum.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
 TopologyHelper.cxx
+VolumeEditingModeEnum.cxx
 VolumeFile.cxx
 VolumeFileVoxelColorizer.cxx
 VolumePaddingHelper.cxx

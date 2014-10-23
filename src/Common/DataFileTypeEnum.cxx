@@ -653,6 +653,38 @@ DataFileTypeEnum::toFileExtension(const Enum enumValue)
     return ext;
 }
 
+/***
+ * Does the filename have a valid extension for the given file type?
+ *
+ * @param filename
+ *    Name of file that may not have the correct file extension.
+ * @param enumValue
+ *    The data file type.
+ * @return
+ *    True if the filename has a valid extension, else false.
+ */
+bool
+DataFileTypeEnum::isValidFileExtension(const AString& filename,
+                                       const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    
+    /*
+     * See if filename ends with any of the available extensions for the
+     * given data file type.
+     */
+    for (std::vector<AString>::const_iterator iter = enumInstance->fileExtensions.begin();
+         iter != enumInstance->fileExtensions.end();
+         iter++) {
+        const AString ext = ("." + *iter);
+        if (filename.endsWith(ext)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
 
 /**
  * For the filename, match its extension to a DataFileType enumerated type.

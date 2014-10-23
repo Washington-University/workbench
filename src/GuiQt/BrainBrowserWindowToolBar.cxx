@@ -2157,6 +2157,16 @@ BrainBrowserWindowToolBar::createModeWidget()
     inputModeFociToolButton->setDefaultAction(this->modeInputModeFociAction);
     
     /*
+     * Volume Edit
+     */
+    this->modeInputVolumeEditAction = WuQtUtilities::createAction("Volume",
+                                                                  "Edit volume voxels",
+                                                                  this);
+    this->modeInputVolumeEditAction->setCheckable(true);
+    QToolButton* inputModeVolumeEditButton = new QToolButton();
+    inputModeVolumeEditButton->setDefaultAction(this->modeInputVolumeEditAction);
+    
+    /*
      * View Mode
      */
     this->modeInputModeViewAction = WuQtUtilities::createAction("View",
@@ -2177,7 +2187,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     
     WuQtUtilities::matchWidgetWidths(inputModeBordersToolButton,
                                      inputModeFociToolButton,
-                                     inputModeViewToolButton);
+                                     inputModeViewToolButton,
+                                     inputModeVolumeEditButton);
     /*
      * Layout for input modes
      */
@@ -2187,11 +2198,13 @@ BrainBrowserWindowToolBar::createModeWidget()
     inputModeLayout->addWidget(inputModeBordersToolButton, 0, Qt::AlignHCenter);
     inputModeLayout->addWidget(inputModeFociToolButton, 0, Qt::AlignHCenter);
     inputModeLayout->addWidget(inputModeViewToolButton, 0, Qt::AlignHCenter);
+    inputModeLayout->addWidget(inputModeVolumeEditButton, 0, Qt::AlignHCenter);
     
     this->modeInputModeActionGroup = new QActionGroup(this);
     this->modeInputModeActionGroup->addAction(this->modeInputModeBordersAction);
     this->modeInputModeActionGroup->addAction(this->modeInputModeFociAction);
     this->modeInputModeActionGroup->addAction(this->modeInputModeViewAction);
+    this->modeInputModeActionGroup->addAction(this->modeInputVolumeEditAction);
     QObject::connect(this->modeInputModeActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(modeInputModeActionTriggered(QAction*)));
     this->modeInputModeActionGroup->setExclusive(true);
@@ -2249,6 +2262,9 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
     else if (action == this->modeInputModeFociAction) {
         inputMode = UserInputReceiverInterface::FOCI;
     }
+    else if (action == this->modeInputVolumeEditAction) {
+        inputMode = UserInputReceiverInterface::VOLUME_EDIT;
+    }
     else if (action == this->modeInputModeViewAction) {
         inputMode = UserInputReceiverInterface::VIEW;
     }
@@ -2291,6 +2307,9 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
             break;
         case UserInputReceiverInterface::FOCI:
             this->modeInputModeFociAction->setChecked(true);
+            break;
+        case UserInputReceiverInterface::VOLUME_EDIT:
+            this->modeInputVolumeEditAction->setChecked(true);
             break;
         case UserInputReceiverInterface::VIEW:
             this->modeInputModeViewAction->setChecked(true);

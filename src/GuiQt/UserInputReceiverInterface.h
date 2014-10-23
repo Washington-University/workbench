@@ -52,7 +52,9 @@ namespace caret {
             /** Foci Operations */
             FOCI,
             /** Viewing Operations */
-            VIEW
+            VIEW,
+            /** Volume Edit Operations */
+            VOLUME_EDIT
         };
         
         /**

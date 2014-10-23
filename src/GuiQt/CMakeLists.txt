@@ -109,7 +109,9 @@ SurfaceSelectionViewController.h
 TileTabsConfigurationDialog.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
+UserInputModeVolumeEditWidget.h
 UsernamePasswordWidget.h
+VolumeFileCreateDialog.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
@@ -252,9 +254,12 @@ UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
 UserInputModeFoci.h
 UserInputModeView.h
+UserInputModeVolumeEdit.h
+UserInputModeVolumeEditWidget.h
 UserInputReceiverInterface.h
 UsernamePasswordWidget.h
 ViewModeEnum.h
+VolumeFileCreateDialog.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
@@ -389,8 +394,11 @@ UserInputModeBordersWidget.cxx
 UserInputModeFoci.cxx
 UserInputModeFociWidget.cxx
 UserInputModeView.cxx
+UserInputModeVolumeEdit.cxx
+UserInputModeVolumeEditWidget.cxx
 UsernamePasswordWidget.cxx
 ViewModeEnum.cxx
+VolumeFileCreateDialog.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx
 VolumeSurfaceOutlineSetViewController.cxx
 VolumeSurfaceOutlineViewController.cxx
