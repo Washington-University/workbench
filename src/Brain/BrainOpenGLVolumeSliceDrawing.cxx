@@ -1910,21 +1910,21 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
                 CaretAssert(0);
                 break;
             case VolumeSliceViewPlaneEnum::AXIAL:
-                startCoordinate[2] = m_browserTabContent->getSliceCoordinateAxial();
+                startCoordinate[2] = selectedSliceCoordinate; //m_browserTabContent->getSliceCoordinateAxial();
                 rowStep[1] = voxelStepY;
                 columnStep[0] = voxelStepX;
                 numberOfRows    = dimJ;
                 numberOfColumns = dimI;
                 break;
             case VolumeSliceViewPlaneEnum::CORONAL:
-                startCoordinate[1] = m_browserTabContent->getSliceCoordinateCoronal();
+                startCoordinate[1] = selectedSliceCoordinate; //m_browserTabContent->getSliceCoordinateCoronal();
                 rowStep[2] = voxelStepZ;
                 columnStep[0] = voxelStepX;
                 numberOfRows    = dimK;
                 numberOfColumns = dimI;
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                startCoordinate[0] = m_browserTabContent->getSliceCoordinateParasagittal();
+                startCoordinate[0] = selectedSliceCoordinate; //m_browserTabContent->getSliceCoordinateParasagittal();
                 rowStep[2] = voxelStepZ;
                 columnStep[1] = voxelStepY;
                 numberOfRows    = dimK;
@@ -2100,25 +2100,25 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
         /*
          * Determine index of slice being viewed for the volume
          */
-        float coordinateOnSlice[3] = {
-            firstVoxelXYZ[0],
-            firstVoxelXYZ[1],
-            firstVoxelXYZ[2]
-        };
         switch (sliceViewPlane) {
             case VolumeSliceViewPlaneEnum::ALL:
                 CaretAssert(0);
                 break;
             case VolumeSliceViewPlaneEnum::AXIAL:
-                coordinateOnSlice[2] = selectedSliceCoordinate;
+                firstVoxelXYZ[2] = selectedSliceCoordinate;
                 break;
             case VolumeSliceViewPlaneEnum::CORONAL:
-                coordinateOnSlice[1] = selectedSliceCoordinate;
+                firstVoxelXYZ[1] = selectedSliceCoordinate;
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                coordinateOnSlice[0] = selectedSliceCoordinate;
+                firstVoxelXYZ[0] = selectedSliceCoordinate;
                 break;
         }
+        float coordinateOnSlice[3] = {
+            firstVoxelXYZ[0],
+            firstVoxelXYZ[1],
+            firstVoxelXYZ[2]
+        };
         
         int64_t sliceIndicesForCoordinateOnSlice[3];
         volumeFile->enclosingVoxel(coordinateOnSlice[0],
@@ -2260,21 +2260,21 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
                 CaretAssert(0);
                 break;
             case VolumeSliceViewPlaneEnum::AXIAL:
-                startCoordinate[2] = m_browserTabContent->getSliceCoordinateAxial();
+//                startCoordinate[2] = m_browserTabContent->getSliceCoordinateAxial();
                 rowStep[1] = voxelStepY;
                 columnStep[0] = voxelStepX;
                 numberOfRows    = numVoxelsJ;
                 numberOfColumns = numVoxelsI;
                 break;
             case VolumeSliceViewPlaneEnum::CORONAL:
-                startCoordinate[1] = m_browserTabContent->getSliceCoordinateCoronal();
+//                startCoordinate[1] = m_browserTabContent->getSliceCoordinateCoronal();
                 rowStep[2] = voxelStepZ;
                 columnStep[0] = voxelStepX;
                 numberOfRows    = numVoxelsK;
                 numberOfColumns = numVoxelsI;
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                startCoordinate[0] = m_browserTabContent->getSliceCoordinateParasagittal();
+//                startCoordinate[0] = m_browserTabContent->getSliceCoordinateParasagittal();
                 rowStep[2] = voxelStepZ;
                 columnStep[1] = voxelStepY;
                 numberOfRows    = numVoxelsK;
