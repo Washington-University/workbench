@@ -55,10 +55,10 @@ static int runCommand(int argc, char* argv[]) {
         commandManager->runCommand(parameters);
         
     } catch (CaretException& e) {
-        cerr << "While running '" << caret_global_commandLine << "':\nERROR: " << e.whatString().toStdString() << endl;
+        cerr << "\nWhile running '" << caret_global_commandLine << "':\n\nERROR: " << e.whatString().toStdString() << endl << endl;
         ret = -1;
     } catch (bad_alloc& e) {//if we stop using a handler for new
-        cerr << "While running '" << caret_global_commandLine << "':\nERROR: " << e.what() << endl;
+        cerr << "\nWhile running '" << caret_global_commandLine << "':\n\nERROR: " << e.what() << endl;
         cerr << endl
         << "OUT OF MEMORY" << endl
         << endl
@@ -71,10 +71,10 @@ static int runCommand(int argc, char* argv[]) {
         << endl;
         ret = -1;
     } catch (exception& e) {
-        cerr << "While running '" << caret_global_commandLine << "':\nERROR: " << e.what() << endl;
+        cerr << "\nWhile running '" << caret_global_commandLine << "':\n\nERROR: " << e.what() << endl << endl;
         ret = -1;
     } catch (...) {
-        cerr << "While running '" << caret_global_commandLine << "':\nERROR: caught unknown exception type, rethrowing" << endl;
+        cerr << "\nWhile running '" << caret_global_commandLine << "':\n\nERROR: caught unknown exception type, rethrowing..." << endl << endl;
         if (commandManager != NULL) {
             CommandOperationManager::deleteCommandOperationManager();
         }
