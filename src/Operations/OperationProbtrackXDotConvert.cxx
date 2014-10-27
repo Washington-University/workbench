@@ -403,6 +403,10 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
             }
         }
     }
+    if (labelMap.empty())
+    {
+        throw OperationException("label volume doesn't contain any structure labels");
+    }
     voxelLists.resize(count);
     inputIndices.resize(count);
     voxelIndexType vi, vj, vk;
@@ -422,15 +426,18 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
         }
         int myKey = (int)floor(myLabelVol->getValue(vi, vj, vk) + 0.5f);
         map<int, StructureEnum::Enum>::const_iterator myIter = labelMap.find(myKey);
-        if (myIter != labelMap.end())
+        if (myIter == labelMap.end())
         {
-            int myListIndex = componentMap[myIter->second];//will always exist
-            voxelLists[myListIndex].push_back(vi);
-            voxelLists[myListIndex].push_back(vj);
-            voxelLists[myListIndex].push_back(vk);
-            inputIndices[myListIndex].push_back(count);
-            ++count;
+            throw OperationException("voxel index in list file did not match a structure: " + AString::number(vi) + ", " +
+                                                                                              AString::number(vj) + ", " +
+                                                                                              AString::number(vk));
         }
+        int myListIndex = componentMap[myIter->second];//will always exist
+        voxelLists[myListIndex].push_back(vi);
+        voxelLists[myListIndex].push_back(vj);
+        voxelLists[myListIndex].push_back(vk);
+        inputIndices[myListIndex].push_back(count);
+        ++count;
     }
     vector<int64_t> forwardMap;
     for (map<StructureEnum::Enum, int>::const_iterator iter = componentMap.begin(); iter != componentMap.end(); ++iter)
