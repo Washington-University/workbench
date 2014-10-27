@@ -110,6 +110,8 @@ TextFile.h
 TopologyHelper.h
 VolumeEditingModeEnum.h
 VolumeFile.h
+VolumeFileEditorDelegate.h
+VolumeFileMemento.h
 VolumeFileVoxelColorizer.h
 VolumePaddingHelper.h
 VolumeSpline.h
@@ -207,6 +209,8 @@ TextFile.cxx
 TopologyHelper.cxx
 VolumeEditingModeEnum.cxx
 VolumeFile.cxx
+VolumeFileEditorDelegate.cxx
+VolumeFileMemento.cxx
 VolumeFileVoxelColorizer.cxx
 VolumePaddingHelper.cxx
 VolumeSpline.cxx

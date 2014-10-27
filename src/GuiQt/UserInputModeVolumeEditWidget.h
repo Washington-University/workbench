@@ -28,6 +28,8 @@
 #include "VolumeEditingModeEnum.h"
 
 class QActionGroup;
+class QDoubleSpinBox;
+class QSpinBox;
 class QToolButton;
 
 namespace caret {
@@ -46,6 +48,10 @@ namespace caret {
         virtual ~UserInputModeVolumeEditWidget();
         
         void updateWidget();
+        
+        void getEditingParameters(VolumeEditingModeEnum::Enum& editingModeOut,
+                                  int32_t brushSizesOut[3],
+                                  float& valueOut) const;
         
         VolumeEditingModeEnum::Enum getEditingMode() const;
         
@@ -88,6 +94,14 @@ namespace caret {
         QActionGroup* m_volumeEditModeActionGroup;
         
         QToolButton* m_newFileToolButton;
+        
+        QSpinBox* m_xBrushSizeSpinBox;
+        
+        QSpinBox* m_yBrushSizeSpinBox;
+        
+        QSpinBox* m_zBrushSizeSpinBox;
+        
+        QDoubleSpinBox* m_voxelValueSpinBox;
         
         // ADD_NEW_MEMBERS_HERE
 

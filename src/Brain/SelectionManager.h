@@ -38,6 +38,7 @@ namespace caret {
     class SelectionItemSurfaceNodeIdentificationSymbol;
     class SelectionItemSurfaceTriangle;
     class SelectionItemVoxel;
+    class SelectionItemVoxelEditing;
     class IdentificationTextGenerator;
     class Surface;
     
@@ -80,6 +81,10 @@ namespace caret {
         
         SelectionItemVoxel* getVoxelIdentification();
         
+        SelectionItemVoxelEditing* getVoxelEditingIdentification();
+        
+        const SelectionItemVoxelEditing* getVoxelEditingIdentification() const;
+        
         SelectionItemChartDataSeries* getChartDataSeriesIdentification();
         
         const SelectionItemChartDataSeries* getChartDataSeriesIdentification() const;
@@ -103,6 +108,8 @@ namespace caret {
         const SelectionItem* getLastSelectedItem() const;
         
         void setLastSelectedItem(const SelectionItem* lastItem);
+        
+        void setAllSelectionsEnabled(const bool status);
         
     private:
         SelectionManager(const SelectionManager&);
@@ -148,6 +155,8 @@ namespace caret {
         IdentificationTextGenerator* m_idTextGenerator;
         
         SelectionItemVoxel* m_voxelIdentification;
+        
+        SelectionItemVoxelEditing* m_voxelEditingIdentification;
         
         /** Last selected item DOES NOT GET PUT IN m_allSelectionItems */
         SelectionItem* m_lastSelectedItem;

@@ -139,6 +139,7 @@ SelectionItemSurfaceNode.h
 SelectionItemSurfaceNodeIdentificationSymbol.h
 SelectionItemSurfaceTriangle.h
 SelectionItemVoxel.h
+SelectionItemVoxelEditing.h
 SelectionManager.h
 SessionManager.h
 Surface.h
@@ -253,6 +254,7 @@ SelectionItemSurfaceNode.cxx
 SelectionItemSurfaceNodeIdentificationSymbol.cxx
 SelectionItemSurfaceTriangle.cxx
 SelectionItemVoxel.cxx
+SelectionItemVoxelEditing.cxx
 SelectionManager.cxx
 SessionManager.cxx
 Surface.cxx

@@ -41,6 +41,7 @@
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemVoxel.h"
+#include "SelectionItemVoxelEditing.h"
 #include "IdentificationTextGenerator.h"
 #include "Surface.h"
 
@@ -70,6 +71,7 @@ SelectionManager::SelectionManager()
     m_surfaceNodeIdentificationSymbol = new SelectionItemSurfaceNodeIdentificationSymbol();
     m_surfaceTriangleIdentification = new SelectionItemSurfaceTriangle();
     m_voxelIdentification = new SelectionItemVoxel();
+    m_voxelEditingIdentification= new SelectionItemVoxelEditing();
     
     m_allSelectionItems.push_back(m_surfaceBorderIdentification);
     m_allSelectionItems.push_back(m_chartDataSeriesIdentification);
@@ -80,6 +82,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_surfaceNodeIdentificationSymbol);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
     m_allSelectionItems.push_back(m_voxelIdentification);
+    m_allSelectionItems.push_back(m_voxelEditingIdentification);
     m_allSelectionItems.push_back(m_volumeFocusIdentification);
     
     m_surfaceSelectedItems.push_back(m_surfaceNodeIdentification);
@@ -89,6 +92,7 @@ SelectionManager::SelectionManager()
     m_layeredSelectedItems.push_back(m_surfaceFocusIdentification);
     
     m_volumeSelectedItems.push_back(m_voxelIdentification);
+    m_volumeSelectedItems.push_back(m_voxelEditingIdentification);
     m_volumeSelectedItems.push_back(m_volumeFocusIdentification);
     
     m_idTextGenerator = new IdentificationTextGenerator();
@@ -125,6 +129,8 @@ SelectionManager::~SelectionManager()
     m_surfaceTriangleIdentification = NULL;
     delete m_voxelIdentification;
     m_voxelIdentification = NULL;
+    delete m_voxelEditingIdentification;
+    m_voxelEditingIdentification = NULL;
     delete m_volumeFocusIdentification;
     m_volumeFocusIdentification = NULL;
     delete m_idTextGenerator;
@@ -328,7 +334,6 @@ SelectionManager::clearOtherSelectedItems(SelectionItem* selectedItem)
             item->reset();
         }
     }
-    
 }
 
 /**
@@ -358,6 +363,23 @@ SelectionManager::getMinimumDepthFromMultipleSelections(std::vector<SelectionIte
     }
     
     return minDepthItem;
+}
+
+/**
+ * Set the enabled status for all selection items.
+ *
+ * @param status
+ *    New status for ALL selection items.
+ */
+void
+SelectionManager::setAllSelectionsEnabled(const bool status)
+{
+    for (std::vector<SelectionItem*>::iterator iter = m_allSelectionItems.begin();
+         iter != m_allSelectionItems.end();
+         iter++) {
+        SelectionItem* item = *iter;
+        item->setEnabledForSelection(status);
+    }
 }
 
 /**
@@ -458,6 +480,24 @@ SelectionItemVoxel*
 SelectionManager::getVoxelIdentification()
 {
     return m_voxelIdentification;
+}
+
+/**
+ * @return Identification for voxel editing.
+ */
+const SelectionItemVoxelEditing*
+SelectionManager::getVoxelEditingIdentification() const
+{
+    return m_voxelEditingIdentification;
+}
+
+/**
+ * @return Identification for voxel editing.
+ */
+SelectionItemVoxelEditing*
+SelectionManager::getVoxelEditingIdentification()
+{
+    return m_voxelEditingIdentification;
 }
 
 /**

@@ -298,6 +298,7 @@ namespace caret {
                                       uint8_t rgbaForColorIdentificationOut[4]);
         
         bool getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                  const float selectedSliceCoordinate,
                                                   const VolumeMappableInterface* volumeFile,
                                                   int64_t culledFirstVoxelIJKOut[3],
                                                   int64_t culledLastVoxelIJKOut[3],

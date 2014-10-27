@@ -138,29 +138,29 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     
     QLabel* brushSizeLabel = new QLabel("Brush Size:");
     const int maxBrushSize = 999;
-    QSpinBox* xBrushSizeSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                                maxBrushSize,
-                                                                                1,
-                                                                                this,
-                                                                                SLOT(xBrushSizeValueChanged(int)));
-    QSpinBox* yBrushSizeSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                                maxBrushSize,
-                                                                                1,
-                                                                                this,
-                                                                                SLOT(yBrushSizeValueChanged(int)));
-    QSpinBox* zBrushSizeSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                                maxBrushSize,
-                                                                                1,
-                                                                                this,
-                                                                                SLOT(zBrushSizeValueChanged(int)));
-
+    m_xBrushSizeSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
+                                                                        maxBrushSize,
+                                                                        1,
+                                                                        this,
+                                                                        SLOT(xBrushSizeValueChanged(int)));
+    m_yBrushSizeSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
+                                                                        maxBrushSize,
+                                                                        1,
+                                                                        this,
+                                                                        SLOT(yBrushSizeValueChanged(int)));
+    m_zBrushSizeSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
+                                                                        maxBrushSize,
+                                                                        1,
+                                                                        this,
+                                                                        SLOT(zBrushSizeValueChanged(int)));
+    
     QLabel* voxelValueLabel = new QLabel("Value:");
-    QDoubleSpinBox* voxelValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1000.0,
-                                                                                                       1000.0,
-                                                                                                       1.0, 1,
-                                                                                                       this,
-                                                                                                       SLOT(voxelValueChanged(double)));
-    voxelValueSpinBox->setValue(1.0);
+    m_voxelValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1000.0,
+                                                                                         1000.0,
+                                                                                         1.0, 1,
+                                                                                         this,
+                                                                                         SLOT(voxelValueChanged(double)));
+    m_voxelValueSpinBox->setValue(1.0);
 
     
     const int SPACE = 10;
@@ -177,12 +177,12 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     layout->addWidget(resetToolButton);
     layout->addSpacing(SPACE);
     layout->addWidget(brushSizeLabel);
-    layout->addWidget(xBrushSizeSpinBox);
-    layout->addWidget(yBrushSizeSpinBox);
-    layout->addWidget(zBrushSizeSpinBox);
+    layout->addWidget(m_xBrushSizeSpinBox);
+    layout->addWidget(m_yBrushSizeSpinBox);
+    layout->addWidget(m_zBrushSizeSpinBox);
     layout->addSpacing(SPACE);
     layout->addWidget(voxelValueLabel);
-    layout->addWidget(voxelValueSpinBox);
+    layout->addWidget(m_voxelValueSpinBox);
     layout->addStretch();
     
     return widget;
@@ -241,6 +241,29 @@ UserInputModeVolumeEditWidget::createModeToolBar()
     
     return widget;
 }
+
+/**
+ * Get the editing parameters from the toolbar.
+ *
+ * @param editingModeOut
+ *     Output containing the selected editing mode.
+ * @param brushSizeOut
+ *     Brush IJK/XYZ sizes.
+ * @param valueOut
+ *     Value assigned to modified voxels.
+ */
+void
+UserInputModeVolumeEditWidget::getEditingParameters(VolumeEditingModeEnum::Enum& editingModeOut,
+                                                    int32_t brushSizesOut[3],
+                                                    float& valueOut) const
+{
+    editingModeOut   = getEditingMode();
+    brushSizesOut[0] = m_xBrushSizeSpinBox->value();
+    brushSizesOut[1] = m_yBrushSizeSpinBox->value();
+    brushSizesOut[2] = m_zBrushSizeSpinBox->value();
+    valueOut         = m_voxelValueSpinBox->value();
+}
+
 
 /**
  * @return The volume editing mode.

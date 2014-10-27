@@ -50,6 +50,7 @@ namespace caret {
     class UserInputModeView;
     class UserInputModeVolumeEdit;
     class UserInputReceiverInterface;
+    class VolumeFile;
     
     class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface {
         Q_OBJECT
@@ -67,6 +68,10 @@ namespace caret {
         SelectionManager* performIdentification(const int x,
                                                      const int y,
                                                      const bool applySelectionBackgroundFiltering);
+        
+        SelectionManager* performIdentificationVoxelEditing(VolumeFile* editingVolumeFile,
+                                                            const int x,
+                                                            const int y);
         
         void performProjection(const int x,
                                const int y,

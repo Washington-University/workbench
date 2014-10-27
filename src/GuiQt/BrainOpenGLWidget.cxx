@@ -61,6 +61,7 @@
 #include "MouseEvent.h"
 #include "SelectionManager.h"
 #include "SelectionItemSurfaceNode.h"
+#include "SelectionItemVoxelEditing.h"
 #include "SessionManager.h"
 #include "Surface.h"
 #include "TileTabsConfiguration.h"
@@ -834,7 +835,7 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
 }
 
 /**
- * Perform identification.
+ * Perform identification on all items EXCEPT voxel editing.
  *
  * @param x
  *    X-coordinate for identification.
@@ -861,6 +862,8 @@ BrainOpenGLWidget::performIdentification(const int x,
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
+    idManager->setAllSelectionsEnabled(true);
+    idManager->getVoxelEditingIdentification()->setEnabledForSelection(false);
     
     if (idViewport != NULL) {
         /*
@@ -879,7 +882,52 @@ BrainOpenGLWidget::performIdentification(const int x,
     return idManager;
 }
 
-void 
+/**
+ * Perform identification on all items EXCEPT voxel editing.
+ *
+ * @param editingVolumeFile
+ *    Volume file that is being edited.
+ * @param x
+ *    X-coordinate for identification.
+ * @param y
+ *    Y-coordinate for identification.
+ * @return
+ *    SelectionManager providing identification information.
+ */
+SelectionManager*
+BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFile,
+                                                     const int x,
+                                                     const int y)
+{
+    BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+    
+    this->makeCurrent();
+    CaretLogFine("Performing selection");
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+    idManager->reset();
+    idManager->setAllSelectionsEnabled(false);
+    SelectionItemVoxelEditing* idVoxelEdit = idManager->getVoxelEditingIdentification();
+    idVoxelEdit->setEnabledForSelection(true);
+    idVoxelEdit->setVolumeFileForEditing(editingVolumeFile);
+    
+    if (idViewport != NULL) {
+        /*
+         * ID coordinate needs to be relative to the viewport
+         *
+         int vp[4];
+         idViewport->getViewport(vp);
+         const int idX = x - vp[0];
+         const int idY = y - vp[1];
+         */
+        this->openGL->selectModel(idViewport,
+                                  x,
+                                  y,
+                                  true);
+    }
+    return idManager;
+}
+
+void
 BrainOpenGLWidget::performProjection(const int x,
                                      const int y,
                                      SurfaceProjectedItem& projectionOut)
