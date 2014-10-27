@@ -61,11 +61,13 @@ OperationParameters* AlgorithmSurfaceDistortion::getParameters()
     ret->createOptionalParameter(6, "-edge-method", "calculate distortion of edge lengths rather than areas");
     
     ret->setHelpText(
-        AString("This command, when not using -caret5-method, is equivalent to using -surface-vertex-areas on each surface, ") +
+        AString("This command, when not using -caret5-method or -edge-method, is equivalent to using -surface-vertex-areas on each surface, ") +
         "smoothing both output metrics with the GEO_GAUSS_EQUAL method on the surface they came from if -smooth is specified, and then using the formula " +
         "'ln(distorted/reference)/ln(2)' on the smoothed results.\n\n" +
         "When using -caret5-method, it uses the surface distortion method from caret5, which takes the base 2 log of the ratio of tile areas, " +
-        "then averages those results at each vertex, and then smooths the result on the reference surface."
+        "then averages those results at each vertex, and then smooths the result on the reference surface.\n\n" +
+        "When using -edge-method, the -smooth option is ignored, and the output at each vertex is the average of 'abs(ln(refEdge/distortEdge)/ln(2))' over all edges " +
+        "connected to the vertex."
     );
     return ret;
 }
