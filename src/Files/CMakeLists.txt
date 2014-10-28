@@ -111,8 +111,8 @@ TopologyHelper.h
 VolumeEditingModeEnum.h
 VolumeFile.h
 VolumeFileEditorDelegate.h
-VolumeFileMemento.h
 VolumeFileVoxelColorizer.h
+VolumeMapUndoCommand.h
 VolumePaddingHelper.h
 VolumeSpline.h
 VtkFileExporter.h
@@ -210,8 +210,8 @@ TopologyHelper.cxx
 VolumeEditingModeEnum.cxx
 VolumeFile.cxx
 VolumeFileEditorDelegate.cxx
-VolumeFileMemento.cxx
 VolumeFileVoxelColorizer.cxx
+VolumeMapUndoCommand.cxx
 VolumePaddingHelper.cxx
 VolumeSpline.cxx
 VtkFileExporter.cxx

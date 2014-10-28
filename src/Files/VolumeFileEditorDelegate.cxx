@@ -25,8 +25,9 @@
 
 #include "CaretAssert.h"
 #include "CaretPointer.h"
+#include "CaretUndoStack.h"
 #include "VolumeFile.h"
-#include "VolumeFileMemento.h"
+#include "VolumeMapUndoCommand.h"
 #include "VoxelIJK.h"
 
 using namespace caret;
@@ -50,6 +51,12 @@ VolumeFileEditorDelegate::VolumeFileEditorDelegate(VolumeFile* volumeFile)
 m_volumeFile(volumeFile)
 {
     CaretAssert(volumeFile);
+
+    m_volumeDimensions[0] = 0;
+    m_volumeDimensions[1] = 0;
+    m_volumeDimensions[2] = 0;
+    
+    m_locked = true;
 }
 
 /**
@@ -57,10 +64,17 @@ m_volumeFile(volumeFile)
  */
 VolumeFileEditorDelegate::~VolumeFileEditorDelegate()
 {
-    for (std::vector<UndoStackForMap*>::iterator mapIter = m_volumeMapUndoStacks.begin();
+    /*
+     * The undo stacks are only created when needed so some
+     * entries may be NULL
+     */
+    for (std::vector<CaretUndoStack*>::iterator mapIter = m_volumeMapUndoStacks.begin();
          mapIter != m_volumeMapUndoStacks.end();
          mapIter++) {
-        delete *mapIter;
+        CaretUndoStack* undoStack = *mapIter;
+        if (undoStack != NULL) {
+            delete undoStack;
+        }
     }
     
     m_volumeMapUndoStacks.clear();
@@ -84,7 +98,7 @@ VolumeFileEditorDelegate::~VolumeFileEditorDelegate()
  * @param errorMessageOut
  *     Will contain error information.
  * @return
- *     True if there was an error, else false.
+ *     True if successful, else false and errorMessageOut will be set.
  */
 bool
 VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
@@ -95,6 +109,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                                   const float voxelValue,
                                                   AString& errorMessageOut)
 {
+    errorMessageOut.clear();
+    
     CaretAssert(m_volumeFile);
     int64_t dimTime = 0;
     int64_t dimNumMaps = 0;
@@ -103,9 +119,20 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                 m_volumeDimensions[2],
                                 dimTime,
                                 dimNumMaps);
-
-    bool result = false;
-    errorMessageOut.clear();
+    
+    if ((mapIndex < 0)
+        || (mapIndex >= dimNumMaps)) {
+        errorMessageOut = ("Invalid map index="
+                           + AString::number(mapIndex)
+                           + ", number of maps="
+                           + AString::number(dimNumMaps));
+        return false;
+    }
+    
+    if (isLocked()) {
+        errorMessageOut = "Volume is locked to prevent editing";
+        return false;
+    }
     
     int64_t iHalf = brushSize[0] / 2;
     int64_t jHalf = brushSize[1] / 2;
@@ -124,6 +151,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
         voxelIJK[2] + kHalf
     };
     clampVoxelIndices(ijkMax);
+    
+    bool result = false;
     
     switch (mode) {
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON:
@@ -208,6 +237,28 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
 }
 
 /**
+ * @return Is the volume file locked (does not allow editing)?
+ */
+bool
+VolumeFileEditorDelegate::isLocked() const
+{
+    return m_locked;
+}
+
+/**
+ * Set the volume file's lock status (does not allow editing)
+ *
+ * @param locked
+ *     New locked status.
+ */
+void
+VolumeFileEditorDelegate::setLocked(const bool locked)
+{
+    m_locked = locked;
+}
+
+
+/**
  * Adjust the voxel indices so that they are within the volume.
  *
  * @param ijk
@@ -273,9 +324,9 @@ VolumeFileEditorDelegate::clampVoxelIndices(int64_t& i, int64_t& j, int64_t& k) 
  */
 void
 VolumeFileEditorDelegate::addToMapUndoStacks(const int32_t mapIndex,
-                                             VolumeFileMemento* modifiedVoxels)
+                                             VolumeMapUndoCommand* modifiedVoxels)
 {
-    if (modifiedVoxels->isEmpty()) {
+    if (modifiedVoxels->count() <= 0) {
         delete modifiedVoxels;
         return;
     }
@@ -284,14 +335,14 @@ VolumeFileEditorDelegate::addToMapUndoStacks(const int32_t mapIndex,
                                  NULL);
     
     CaretAssertVectorIndex(m_volumeMapUndoStacks, mapIndex);
-    UndoStackForMap* undoStack = m_volumeMapUndoStacks[mapIndex];
+    CaretUndoStack* undoStack = m_volumeMapUndoStacks[mapIndex];
     
     if (undoStack == NULL) {
-        undoStack = new UndoStackForMap();
+        undoStack = new CaretUndoStack();
         m_volumeMapUndoStacks[mapIndex] = undoStack;
     }
     
-    undoStack->addModifiedVoxels(modifiedVoxels);
+    undoStack->push(modifiedVoxels);
 }
 
 /**
@@ -303,7 +354,12 @@ VolumeFileEditorDelegate::addToMapUndoStacks(const int32_t mapIndex,
 void
 VolumeFileEditorDelegate::undo(const int64_t mapIndex)
 {
-    
+    if (mapIndex < static_cast<int32_t>(m_volumeMapUndoStacks.size())) {
+        CaretUndoStack* undoStack = m_volumeMapUndoStacks[mapIndex];
+        if (undoStack != NULL) {
+            undoStack->undo();
+        }
+    }
 }
 
 /**
@@ -315,7 +371,12 @@ VolumeFileEditorDelegate::undo(const int64_t mapIndex)
 void
 VolumeFileEditorDelegate::redo(const int64_t mapIndex)
 {
-    
+    if (mapIndex < static_cast<int32_t>(m_volumeMapUndoStacks.size())) {
+        CaretUndoStack* undoStack = m_volumeMapUndoStacks[mapIndex];
+        if (undoStack != NULL) {
+            undoStack->redo();
+        }
+    }
 }
 
 
@@ -365,15 +426,16 @@ VolumeFileEditorDelegate::performTurnOnOrOff(const VolumeEditingModeEnum::Enum m
             break;
     }
     
-    CaretPointer<VolumeFileMemento> modifiedVoxels;
-    modifiedVoxels.grabNew(new VolumeFileMemento(m_volumeFile,
+    CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
+    modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
                                                  mapIndex));
     for (int64_t i = minIJK[0]; i <= maxIJK[0]; i++) {
         for (int64_t j = minIJK[1]; j <= maxIJK[1]; j++) {
             for (int64_t k = minIJK[2]; k <= maxIJK[2]; k++) {
                 const int64_t ijk[3] = { i, j, k };
-                modifiedVoxels->addVoxel(ijk, m_volumeFile->getValue(ijk,
-                                                                     mapIndex));
+                modifiedVoxels->addVoxelUndoRedo(ijk,
+                                                 voxelValue,
+                                                 m_volumeFile->getValue(ijk, mapIndex));
                 m_volumeFile->setValue(voxelValue,
                                        ijk,
                                        mapIndex);
@@ -459,9 +521,9 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
     
     const int64_t STRUCTURE_ELEMENT_SIZE = 1;
     
-    CaretPointer<VolumeFileMemento> modifiedVoxels;
-    modifiedVoxels.grabNew(new VolumeFileMemento(m_volumeFile,
-                                                 mapIndex));
+    CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
+    modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
+                                                    mapIndex));
     
     /*
      * Check each voxel in the desired region
@@ -612,7 +674,10 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
                          * we do not want to modify the volume until after all voxels
                          * under structuring element have been checked.
                          */
-                        modifiedVoxels->addVoxel(ijk, value);
+                        modifiedVoxels->addVoxelUndoRedo(ijk,
+                                                         value,
+                                                         m_volumeFile->getValue(ijk,
+                                                                                mapIndex));
                     }
                 }
             }
@@ -620,16 +685,9 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
     }
     
     /*
-     * Now that all of the voxels have been examined
-     * set the voxels that need to be changed.
+     * Calling 'redo' will apply the changes to the volume file.
      */
-    const int64_t numModVoxels = modifiedVoxels->getNumberOfModifiedVoxels();
-    for (int64_t m = 0; m < numModVoxels; m++) {
-        const VolumeFileMemento::VoxelModification* vm = modifiedVoxels->getModifiedVoxel(m);
-        m_volumeFile->setValue(voxelValue,
-                               vm->m_ijk,
-                               mapIndex);
-    }
+    modifiedVoxels->redo();
     
     addToMapUndoStacks(mapIndex,
                        modifiedVoxels.releasePointer());
@@ -868,11 +926,9 @@ VolumeFileEditorDelegate::performFloodFillAndRemoveConnected(const VolumeEditing
             break;
     }
     
-    CaretPointer<VolumeFileMemento> modifiedVoxels;
-    modifiedVoxels.grabNew(new VolumeFileMemento(m_volumeFile,
-                                                 mapIndex));
-    
-
+    CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
+    modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
+                                                    mapIndex));
     
     /*
      * Initialize to the staring voxel
@@ -920,13 +976,12 @@ VolumeFileEditorDelegate::performFloodFillAndRemoveConnected(const VolumeEditing
                 /*
                  * Update the voxels value
                  */
-                if (modifiedVoxels != NULL) {
-                    modifiedVoxels->addVoxel(ijk,
-                                             m_volumeFile->getValue(ijk, mapIndex));
-                }
-                m_volumeFile->getValue(ijk,
-                                       mapIndex,
-                                       voxelValue);
+                modifiedVoxels->addVoxelUndoRedo(ijk,
+                                                 voxelValue,
+                                                 m_volumeFile->getValue(ijk, mapIndex));
+                m_volumeFile->setValue(voxelValue,
+                                       ijk,
+                                       mapIndex);
                 
                 /*
                  * Determine neighboring voxels

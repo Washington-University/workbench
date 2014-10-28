@@ -54,6 +54,8 @@ CaretPointer.h
 CaretPointLocator.h
 CaretPreferences.h
 CaretTemporaryFile.h
+CaretUndoCommand.h
+CaretUndoStack.h
 CubicSpline.h
 DataCompressZLib.h
 DataFile.h
@@ -134,6 +136,8 @@ CaretObjectTracksModification.cxx
 CaretPointLocator.cxx
 CaretPreferences.cxx
 CaretTemporaryFile.cxx
+CaretUndoCommand.cxx
+CaretUndoStack.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx
 DataFile.cxx

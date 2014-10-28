@@ -28,8 +28,9 @@
 
 namespace caret {
 
+    class CaretUndoStack;
     class VolumeFile;
-    class VolumeFileMemento;
+    class VolumeMapUndoCommand;
     
     class VolumeFileEditorDelegate : public CaretObject {
         
@@ -49,6 +50,10 @@ namespace caret {
         void undo(const int64_t mapIndex);
         
         void redo(const int64_t mapIndex);
+        
+        bool isLocked() const;
+        
+        void setLocked(const bool locked);
         
         // ADD_NEW_METHODS_HERE
 
@@ -124,37 +129,25 @@ namespace caret {
         void clampVoxelIndices(int64_t& i, int64_t& j, int64_t& k) const;
         
         void addToMapUndoStacks(const int32_t mapIndex,
-                                VolumeFileMemento* modifiedVoxels);
+                                VolumeMapUndoCommand* modifiedVoxels);
         
         VolumeFile* m_volumeFile;
-        
-        class UndoStackForMap {
-        public:
-            UndoStackForMap();
-            
-            ~UndoStackForMap();
-            
-            void addModifiedVoxels(VolumeFileMemento* modifiedVoxels);
-
-            bool hasUndo() const;
-            
-            bool hasRedo() const;
-            
-            std::vector<VolumeFileMemento*> m_undoStack;
-            
-            int32_t m_undoStackIndex;
-        };
         
         /** 
          * Holds modifications for undo/redo operations.
          * Index into vector is the map index.
          */
-        std::vector<UndoStackForMap*> m_volumeMapUndoStacks;
+        std::vector<CaretUndoStack*> m_volumeMapUndoStacks;
         
         /**
          * IJK dimensions of the volume.
          */
         int64_t m_volumeDimensions[3];
+        
+        /**
+         * A "lock" to prevent volume editing
+         */
+        bool m_locked;
         
         // ADD_NEW_MEMBERS_HERE
 
