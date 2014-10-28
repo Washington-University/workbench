@@ -96,7 +96,7 @@ namespace caret {
         AString convertToHtmlPageWithCssFontHeight(const int fontHeight) const;
         
         int32_t indexOfAnyChar(const AString& str,
-                               const int from) const;
+                               int from = 0) const;
         
         int32_t indexNotOf(const QChar& ch) const;
         

@@ -64,12 +64,7 @@ int main(int argc, char** argv)
     srand(time(NULL));
     {
         QCoreApplication myApp(argc, argv);
-        caret_global_commandLine = argv[0];
-        for (int i = 1; i < argc; ++i)
-        {
-            caret_global_commandLine += " ";
-            caret_global_commandLine += argv[i];
-        }
+        caret_global_commandLine_init(argc, argv);
         SessionManager::createSessionManager();
         vector<TestInterface*> mytests;
         mytests.push_back(new CiftiFileTest("ciftifile"));

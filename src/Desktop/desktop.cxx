@@ -261,14 +261,14 @@ main(int argc, char* argv[])
         /*
         * Parameters for the program.
         */
-        ProgramParameters* parameters = new ProgramParameters(argc, argv);
-        caret_global_commandLine = AString(argv[0]) + " " + parameters->getAllParametersInString();
+        ProgramParameters parameters(argc, argv);
+        caret_global_commandLine_init(parameters);
 
         //begin parsing command line
         ProgramState myState;
         FileInformation progInfo(argv[0]);
         AString progName = progInfo.getFileName();
-        parseCommandLine(progName, parameters, myState);
+        parseCommandLine(progName, &parameters, myState);
         
         /*
         * Log the command parameters.
@@ -594,8 +594,6 @@ main(int argc, char* argv[])
         SessionManager::deleteSessionManager();
         
         CaretHttpManager::deleteHttpManager();
-        
-        delete parameters;
     }
     /*
      * See if any objects were not deleted.

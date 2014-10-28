@@ -19,5 +19,55 @@
 /*LICENSE_END*/
 
 #include "CaretCommandLine.h"
+#include "ProgramParameters.h"
 
-caret::AString caret::caret_global_commandLine;
+using namespace caret;
+
+AString caret::caret_global_commandLine;
+
+namespace
+{//private namespace
+    void add_parameter(const AString& param)
+    {
+        if (caret_global_commandLine.size() != 0)
+        {
+            caret_global_commandLine += " ";
+        }
+        if (param.indexOfAnyChar(" $();&<>\"`*?{|") != -1)//check for things that the shell is likely to treat specially EXCEPT for ' itself - assume bash for now, but ignore some more specialized cases
+        {//NOTE: not checking for \ or replacing with \\, because it is rare except in windows native paths where it will wreak havok to double it
+            if (param.indexOf('\'') != -1)//oh joy, ' also
+            {//we COULD check if it is safe to use "", but "" and non-CDATA xml text don't look nice (we avoid CDATA in CIFTI because the matlab GIFTI toolbox at least used to choke on it after conversion)
+                AString replaced = param;
+                replaced.replace('\'', "'\\''");//that is '\''
+                caret_global_commandLine += "'" + replaced + "'";
+            } else {
+                caret_global_commandLine += "'" + param + "'";
+            }
+        } else {
+            if (param.indexOf('\'') != -1)//has ' but no other problems, doesn't need quoting
+            {
+                AString replaced = param;
+                replaced.replace('\'', "\\'");//that is \'
+                caret_global_commandLine += replaced;
+            } else {
+                caret_global_commandLine += param;
+            }
+        }
+    }
+}
+
+void caret::caret_global_commandLine_init(const ProgramParameters& params)
+{
+    int32_t numParams = params.getNumberOfParameters();
+    caret_global_commandLine = "";
+    add_parameter(params.getProgramName());
+    for (int32_t i = 0; i < numParams; ++i)
+    {
+        add_parameter(params.getParameter(i));
+    }
+}
+
+void caret::caret_global_commandLine_init(const int& argc, const char *const * argv)
+{
+    caret_global_commandLine_init(ProgramParameters(argc, argv));
+}

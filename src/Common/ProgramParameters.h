@@ -39,7 +39,7 @@ namespace caret {
 class ProgramParameters : public CaretObject {
 
 public:
-    ProgramParameters(int argc, char* argv[]);
+    ProgramParameters(int argc, const char *const argv[]);
 
     ProgramParameters();
 

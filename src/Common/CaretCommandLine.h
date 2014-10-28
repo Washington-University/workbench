@@ -25,7 +25,13 @@
 
 namespace caret {
     
+    class ProgramParameters;
+    
     extern AString caret_global_commandLine;
+    
+    void caret_global_commandLine_init(const ProgramParameters& params);
+    
+    void caret_global_commandLine_init(const int& argc, const char *const * argv);
     
 }
 

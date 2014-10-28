@@ -621,10 +621,15 @@ AString::replaceHtmlSpecialCharactersWithEscapeCharacters() const
  */
 int32_t
 AString::indexOfAnyChar(const AString& str,
-                        const int from) const
+                        int from) const
 {
     const AString& s = *this;
     const int len = s.length();
+    if (from < 0)//use the same "from" logic as Qt
+    {
+        from += len;//-2 starts at second to last character
+        if (from < 0) from = 0;//can't start before the beginning
+    }
     const int len2 = str.length();
     for (int i = from; i < len; i++) {
         for (int j = 0; j < len2; j++) {

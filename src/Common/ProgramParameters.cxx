@@ -32,7 +32,7 @@ using namespace caret;
  * @param argv
  *    Array containing the parameters.
  */
-ProgramParameters::ProgramParameters(int argc, char* argv[])
+ProgramParameters::ProgramParameters(int argc, const char *const argv[])
     : CaretObject()
 {
     this->initializeMembersProgramParameters();
