@@ -69,5 +69,6 @@ void caret::caret_global_commandLine_init(const ProgramParameters& params)
 
 void caret::caret_global_commandLine_init(const int& argc, const char *const * argv)
 {
-    caret_global_commandLine_init(ProgramParameters(argc, argv));
+    ProgramParameters params(argc, argv);
+    caret_global_commandLine_init(params);
 }
