@@ -129,6 +129,15 @@ UserInputModeView::finish()
 }
 
 /**
+ * Called to update the input receiver for various events.
+ */
+void
+UserInputModeView::update()
+{
+    
+}
+
+/**
  * @return The cursor for display in the OpenGL widget.
  */
 CursorEnum::Enum

@@ -49,11 +49,14 @@ namespace caret {
         
         void undo(const int64_t mapIndex);
         
+        void reset(const int64_t mapIndex);
+        
         void redo(const int64_t mapIndex);
         
-        bool isLocked() const;
+        bool isLocked(const int64_t mapIndex) const;
         
-        void setLocked(const bool locked);
+        void setLocked(const int64_t mapIndex,
+                       const bool locked);
         
         // ADD_NEW_METHODS_HERE
 
@@ -132,6 +135,8 @@ namespace caret {
                                 VolumeMapUndoCommand* modifiedVoxels);
         
         VolumeFile* m_volumeFile;
+
+        void updateIfVolumeFileChangedNumberOfMaps();
         
         /** 
          * Holds modifications for undo/redo operations.
@@ -145,9 +150,9 @@ namespace caret {
         int64_t m_volumeDimensions[3];
         
         /**
-         * A "lock" to prevent volume editing
+         * A "lock" to prevent editing of a volume's map.
          */
-        bool m_locked;
+        std::vector<bool> m_volumeMapEditingLocked;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -33,10 +33,15 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventDataFileAdd.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
+#include "GiftiLabel.h"
+#include "GiftiLabelTableEditor.h"
 #include "GuiManager.h"
+#include "VolumeFile.h"
+#include "VolumeFileEditorDelegate.h"
 #include "VolumeFileCreateDialog.h"
 #include "WuQFactory.h"
 #include "WuQtUtilities.h"
@@ -89,7 +94,61 @@ UserInputModeVolumeEditWidget::~UserInputModeVolumeEditWidget()
 void
 UserInputModeVolumeEditWidget::updateWidget()
 {
+    bool isValid = false;
     
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        CaretAssertToDoWarning();
+//        m_lockAction->setChecked(volumeEditInfo.m_volumeFileEditorDelegate->isLocked(volumeEditInfo.m_mapIndex));
+        
+        if (volumeEditInfo.m_volumeFile != NULL) {
+            if (volumeEditInfo.m_volumeFile->isMappedWithLabelTable()) {
+                m_voxelLabelValueToolButton->setVisible(true);
+                m_voxelFloatValueSpinBox->setVisible(false);
+
+                AString buttonText = m_voxelLabelValueAction->text();
+                GiftiLabelTable* labelTable = volumeEditInfo.m_volumeFile->getMapLabelTable(volumeEditInfo.m_mapIndex);
+                if (labelTable != NULL) {
+                    GiftiLabel* label = labelTable->getLabel(buttonText);
+                    
+                    /*
+                     * Is there a label in the label table whose name
+                     * matches the name in the button's actoin?
+                     */
+                    if (label == NULL) {
+                        /*
+                         * Find the first label that is not the unassigned
+                         * label
+                         */
+                        const std::set<int32_t> keys = labelTable->getKeys();
+                        for (std::set<int32_t>::iterator iter = keys.begin();
+                             iter != keys.end();
+                             iter++) {
+                            const int32_t key = *iter;
+                            if (key != labelTable->getUnassignedLabelKey()) {
+                                GiftiLabel* keyLabel = labelTable->getLabel(key);
+                                if (keyLabel != NULL) {
+                                    buttonText = keyLabel->getName();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                m_voxelLabelValueAction->setText(buttonText);
+                
+                isValid = true;
+            }
+            else if (volumeEditInfo.m_volumeFile->isMappedWithPalette()) {
+                m_voxelLabelValueToolButton->setVisible(false);
+                m_voxelFloatValueSpinBox->setVisible(true);
+                isValid = true;
+            }
+        }
+    }
+    
+    this->setEnabled(isValid);
 }
 
 /**
@@ -107,11 +166,13 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                     this, SLOT(newFileActionTriggered())));
     
     
+    m_lockAction = WuQtUtilities::createAction("Lock",
+                                               "Lock/unlock volume file to disallow/allow editing",
+                                               this,
+                                               this, SLOT(lockFileActionTriggered()));
+    m_lockAction->setCheckable(true);
     QToolButton* lockFileToolButton = new QToolButton();
-    lockFileToolButton->setDefaultAction(WuQtUtilities::createAction("Lock",
-                                                                    "Lock/unlock volume file to disallow/allow editing",
-                                                                    this,
-                                                                    this, SLOT(lockFileActionTriggered())));
+    lockFileToolButton->setDefaultAction(m_lockAction);
     
     
     QLabel* editLabel = new QLabel("Edit:");
@@ -154,14 +215,20 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                         this,
                                                                         SLOT(zBrushSizeValueChanged(int)));
     
-    QLabel* voxelValueLabel = new QLabel("Value:");
-    m_voxelValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1000.0,
+    m_voxelValueLabel = new QLabel("Value:");
+    m_voxelFloatValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1000.0,
                                                                                          1000.0,
                                                                                          1.0, 1,
                                                                                          this,
                                                                                          SLOT(voxelValueChanged(double)));
-    m_voxelValueSpinBox->setValue(1.0);
+    m_voxelFloatValueSpinBox->setValue(1.0);
 
+    m_voxelLabelValueAction = WuQtUtilities::createAction("XXX",
+                                                          "Choose Label for Voxels",
+                                                          this,
+                                                          this, SLOT(labelValueActionTriggered()));
+    m_voxelLabelValueToolButton = new QToolButton();
+    m_voxelLabelValueToolButton->setDefaultAction(m_voxelLabelValueAction);
     
     const int SPACE = 10;
     QWidget* widget = new QWidget();
@@ -181,8 +248,9 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     layout->addWidget(m_yBrushSizeSpinBox);
     layout->addWidget(m_zBrushSizeSpinBox);
     layout->addSpacing(SPACE);
-    layout->addWidget(voxelValueLabel);
-    layout->addWidget(m_voxelValueSpinBox);
+    layout->addWidget(m_voxelValueLabel);
+    layout->addWidget(m_voxelFloatValueSpinBox);
+    layout->addWidget(m_voxelLabelValueToolButton);
     layout->addStretch();
     
     return widget;
@@ -261,7 +329,7 @@ UserInputModeVolumeEditWidget::getEditingParameters(VolumeEditingModeEnum::Enum&
     brushSizesOut[0] = m_xBrushSizeSpinBox->value();
     brushSizesOut[1] = m_yBrushSizeSpinBox->value();
     brushSizesOut[2] = m_zBrushSizeSpinBox->value();
-    valueOut         = m_voxelValueSpinBox->value();
+    valueOut         = m_voxelFloatValueSpinBox->value();
 }
 
 
@@ -308,7 +376,11 @@ UserInputModeVolumeEditWidget::newFileActionTriggered()
 void
 UserInputModeVolumeEditWidget::lockFileActionTriggered()
 {
-    
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        volumeEditInfo.m_volumeFileEditorDelegate->setLocked(volumeEditInfo.m_mapIndex,
+                                                             m_lockAction->isChecked());
+    }
 }
 
 /**
@@ -317,7 +389,11 @@ UserInputModeVolumeEditWidget::lockFileActionTriggered()
 void
 UserInputModeVolumeEditWidget::undoActionTriggered()
 {
-    
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        volumeEditInfo.m_volumeFileEditorDelegate->undo(volumeEditInfo.m_mapIndex);
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
+    }
 }
 
 /**
@@ -326,7 +402,11 @@ UserInputModeVolumeEditWidget::undoActionTriggered()
 void
 UserInputModeVolumeEditWidget::redoActionTriggered()
 {
-    
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        volumeEditInfo.m_volumeFileEditorDelegate->redo(volumeEditInfo.m_mapIndex);
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
+    }
 }
 
 /**
@@ -335,7 +415,11 @@ UserInputModeVolumeEditWidget::redoActionTriggered()
 void
 UserInputModeVolumeEditWidget::resetActionTriggered()
 {
-    
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        volumeEditInfo.m_volumeFileEditorDelegate->reset(volumeEditInfo.m_mapIndex);
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
+    }
 }
 
 /**
@@ -373,6 +457,33 @@ UserInputModeVolumeEditWidget::voxelValueChanged(double)
 {
     
 }
+
+/**
+ * Called when voxel label value action is triggered.
+ */
+void
+UserInputModeVolumeEditWidget::labelValueActionTriggered()
+{
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        if (volumeEditInfo.m_volumeFile != NULL) {
+            GiftiLabelTableEditor lte(volumeEditInfo.m_volumeFile,
+                                      volumeEditInfo.m_mapIndex,
+                                      "Select Label",
+                                      GiftiLabelTableEditor::OPTION_NONE,
+                                      m_voxelLabelValueToolButton);
+            const AString defaultLabelName = m_voxelLabelValueAction->text();
+            if ( ! defaultLabelName.isEmpty()) {
+                lte.selectLabelWithName(defaultLabelName);
+            }
+            if (lte.exec() == GiftiLabelTableEditor::Accepted) {
+                const AString selectedName = lte.getLastSelectedLabelName();
+                m_voxelLabelValueAction->setText(selectedName);
+            }
+        }
+    }
+}
+
 
 /**
  * Called when an editing mode is selected.

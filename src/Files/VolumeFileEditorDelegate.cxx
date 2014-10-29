@@ -56,7 +56,7 @@ m_volumeFile(volumeFile)
     m_volumeDimensions[1] = 0;
     m_volumeDimensions[2] = 0;
     
-    m_locked = true;
+    updateIfVolumeFileChangedNumberOfMaps();
 }
 
 /**
@@ -129,7 +129,7 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
         return false;
     }
     
-    if (isLocked()) {
+    if (isLocked(mapIndex)) {
         errorMessageOut = "Volume is locked to prevent editing";
         return false;
     }
@@ -238,23 +238,43 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
 
 /**
  * @return Is the volume file locked (does not allow editing)?
+ *
+ * @param mapIndex
+ *    Index of map that is tested for locked.
  */
 bool
-VolumeFileEditorDelegate::isLocked() const
+VolumeFileEditorDelegate::isLocked(const int64_t mapIndex) const
 {
-    return m_locked;
+    CaretAssertVectorIndex(m_volumeMapEditingLocked, mapIndex);
+    return m_volumeMapEditingLocked[mapIndex];
 }
 
 /**
- * Set the volume file's lock status (does not allow editing)
+ * Set the volume file's lock status (does not allow editing).
+ * 
+ * If the locked status transitions to 'locked',
+ * then CLEAR THE UNDO STACK since by locking,
+ * the user is satisfied with changes made to the volume.
  *
+ *
+ * @param mapIndex
+ *    Index of map that has lock status set.
  * @param locked
  *     New locked status.
  */
 void
-VolumeFileEditorDelegate::setLocked(const bool locked)
+VolumeFileEditorDelegate::setLocked(const int64_t mapIndex,
+                                    const bool locked)
 {
-    m_locked = locked;
+    CaretAssertVectorIndex(m_volumeMapEditingLocked, mapIndex);
+    if (locked != m_volumeMapEditingLocked[mapIndex]) {
+        m_volumeMapEditingLocked[mapIndex] = locked;
+        
+        if (m_volumeMapEditingLocked[mapIndex]) {
+            CaretAssertVectorIndex(m_volumeMapUndoStacks, mapIndex);
+            m_volumeMapUndoStacks[mapIndex]->clear();
+        }
+    }
 }
 
 
@@ -331,18 +351,29 @@ VolumeFileEditorDelegate::addToMapUndoStacks(const int32_t mapIndex,
         return;
     }
     
-    m_volumeMapUndoStacks.resize(mapIndex,
-                                 NULL);
-    
     CaretAssertVectorIndex(m_volumeMapUndoStacks, mapIndex);
-    CaretUndoStack* undoStack = m_volumeMapUndoStacks[mapIndex];
+    m_volumeMapUndoStacks[mapIndex]->push(modifiedVoxels);
+}
+
+/**
+ * Update in case number of maps in volume file has changed.
+ */
+void
+VolumeFileEditorDelegate::updateIfVolumeFileChangedNumberOfMaps()
+{
+    const int32_t oldNumMaps = static_cast<int32_t>(m_volumeMapUndoStacks.size());
+    const int32_t numMaps = m_volumeFile->getNumberOfMaps();
+    const int32_t numMapsToAdd = numMaps - oldNumMaps;
     
-    if (undoStack == NULL) {
-        undoStack = new CaretUndoStack();
-        m_volumeMapUndoStacks[mapIndex] = undoStack;
+    if (numMapsToAdd > 0) {
+        for (int32_t i = 0; i < numMapsToAdd; i++) {
+            m_volumeMapUndoStacks.push_back(new CaretUndoStack());
+            m_volumeMapEditingLocked.push_back(true);
+        }
     }
     
-    undoStack->push(modifiedVoxels);
+    CaretAssert(static_cast<int32_t>(m_volumeMapUndoStacks.size()) == numMaps);
+    CaretAssert(static_cast<int32_t>(m_volumeMapEditingLocked.size()) == numMaps);
 }
 
 /**
@@ -354,13 +385,26 @@ VolumeFileEditorDelegate::addToMapUndoStacks(const int32_t mapIndex,
 void
 VolumeFileEditorDelegate::undo(const int64_t mapIndex)
 {
-    if (mapIndex < static_cast<int32_t>(m_volumeMapUndoStacks.size())) {
-        CaretUndoStack* undoStack = m_volumeMapUndoStacks[mapIndex];
-        if (undoStack != NULL) {
-            undoStack->undo();
-        }
-    }
+    CaretAssertVectorIndex(m_volumeMapUndoStacks, mapIndex);
+    m_volumeMapUndoStacks[mapIndex]->undo();
 }
+
+/**
+ * Reset all voxel editing since last lock.
+ *
+ * Note that when the lock status transitions to lock, 
+ * the undo stack is cleared.
+ *
+ * @param mapIndex
+ *     Index of map that has last voxel operation 'undone'.
+ */
+void
+VolumeFileEditorDelegate::reset(const int64_t mapIndex)
+{
+    CaretAssertVectorIndex(m_volumeMapUndoStacks, mapIndex);
+    m_volumeMapUndoStacks[mapIndex]->undoAll();
+}
+
 
 /**
  * Redo the last voxel editing operation for the given map index.
@@ -371,12 +415,8 @@ VolumeFileEditorDelegate::undo(const int64_t mapIndex)
 void
 VolumeFileEditorDelegate::redo(const int64_t mapIndex)
 {
-    if (mapIndex < static_cast<int32_t>(m_volumeMapUndoStacks.size())) {
-        CaretUndoStack* undoStack = m_volumeMapUndoStacks[mapIndex];
-        if (undoStack != NULL) {
-            undoStack->redo();
-        }
-    }
+    CaretAssertVectorIndex(m_volumeMapUndoStacks, mapIndex);
+    m_volumeMapUndoStacks[mapIndex]->redo();
 }
 
 

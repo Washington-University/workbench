@@ -27,8 +27,10 @@
 #include "UserInputModeVolumeEdit.h"
 #include "VolumeEditingModeEnum.h"
 
+class QAction;
 class QActionGroup;
 class QDoubleSpinBox;
+class QLabel;
 class QSpinBox;
 class QToolButton;
 
@@ -76,6 +78,8 @@ namespace caret {
         
         void voxelValueChanged(double);
         
+        void labelValueActionTriggered();
+        
         void editingModeActionTriggered(QAction*);
         
     private:
@@ -86,6 +90,8 @@ namespace caret {
         QWidget* createSelectionToolBar();
         
         QWidget* createModeToolBar();
+        
+        QAction* m_lockAction;
         
         UserInputModeVolumeEdit* m_inputModeVolumeEdit;
         
@@ -101,7 +107,13 @@ namespace caret {
         
         QSpinBox* m_zBrushSizeSpinBox;
         
-        QDoubleSpinBox* m_voxelValueSpinBox;
+        QLabel* m_voxelValueLabel;
+        
+        QAction* m_voxelLabelValueAction;
+        
+        QToolButton* m_voxelLabelValueToolButton;
+        
+        QDoubleSpinBox* m_voxelFloatValueSpinBox;
         
         // ADD_NEW_MEMBERS_HERE
 

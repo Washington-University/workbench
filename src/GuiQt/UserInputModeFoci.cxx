@@ -151,6 +151,15 @@ UserInputModeFoci::finish()
 }
 
 /**
+ * Called to update the input receiver for various events.
+ */
+void
+UserInputModeFoci::update()
+{
+    
+}
+
+/**
  * @return A widget for display at the bottom of the
  * Browser Window Toolbar when this mode is active.
  * If no user-interface controls are needed, return NULL.

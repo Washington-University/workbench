@@ -392,4 +392,16 @@ CaretUndoStack::undoCommand(CaretUndoCommand* cmd)
     cmd->undo();
 }
 
+/**
+ * Undo ALL changes.
+ */
+void
+CaretUndoStack::undoAll()
+{
+    while (canUndo()) {
+        undo();
+    }
+}
+
+
 

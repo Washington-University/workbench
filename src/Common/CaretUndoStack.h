@@ -102,6 +102,8 @@ namespace caret {
         
         void undo();
         
+        void undoAll();
+        
         void setUndoLimit(const int32_t undoLimit);
         
         // ADD_NEW_METHODS_HERE

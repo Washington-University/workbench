@@ -130,6 +130,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -1127,6 +1128,12 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             captureImage(imageCaptureEvent);
             imageCaptureEvent->setEventProcessed();
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* guiUpdateEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(guiUpdateEvent);
+        
+        this->selectedUserInputProcessor->update();
     }
     else {
         

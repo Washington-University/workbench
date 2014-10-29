@@ -61,6 +61,8 @@ namespace caret {
         
         virtual void finish();
 
+        virtual void update();
+        
         Mode getMode() const;
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);

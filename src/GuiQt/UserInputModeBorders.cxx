@@ -189,6 +189,15 @@ UserInputModeBorders::finish()
 }
 
 /**
+  * Called to update the input receiver for various events.
+  */
+void
+UserInputModeBorders::update()
+{
+    
+}
+
+/**
  * Update after borders changed.
  */
 void 

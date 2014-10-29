@@ -28,13 +28,20 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventBrowserWindowContentGet.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MouseEvent.h"
+#include "Overlay.h"
+#include "OverlaySet.h"
 #include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
 #include "UserInputModeVolumeEditWidget.h"
 #include "VolumeFile.h"
+#include "VolumeFileEditorDelegate.h"
+#include "VolumeSliceViewPlaneEnum.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -86,6 +93,16 @@ UserInputModeVolumeEdit::finish()
 }
 
 /**
+ * Called to update the input receiver for various events.
+ */
+void
+UserInputModeVolumeEdit::update()
+{
+    m_inputModeVolumeEditWidget->updateWidget();
+}
+
+
+/**
  * @return A widget for display at the bottom of the
  * Browser Window Toolbar when this mode is active.
  * If no user-interface controls are needed, return NULL.
@@ -121,8 +138,8 @@ UserInputModeVolumeEdit::mouseLeftClick(const MouseEvent& mouseEvent)
         return;
     }
     
-    VolumeFile* volumeFile = getVolumeFile();
-    if (volumeFile == NULL) {
+    VolumeEditInfo volumeEditInfo;
+    if ( ! getVolumeEditInfo(volumeEditInfo)) {
         return;
     }
     
@@ -132,8 +149,8 @@ UserInputModeVolumeEdit::mouseLeftClick(const MouseEvent& mouseEvent)
     
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     SelectionItemVoxelEditing* idEditVoxel = idManager->getVoxelEditingIdentification();
-    idEditVoxel->setVolumeFileForEditing(volumeFile);
-    idManager = openGLWidget->performIdentificationVoxelEditing(volumeFile,
+    idEditVoxel->setVolumeFileForEditing(volumeEditInfo.m_volumeFile);
+    idManager = openGLWidget->performIdentificationVoxelEditing(volumeEditInfo.m_volumeFile,
                                                                 mouseX,
                                                                 mouseY);
     if (idEditVoxel->isValid()) {
@@ -151,10 +168,32 @@ UserInputModeVolumeEdit::mouseLeftClick(const MouseEvent& mouseEvent)
             m_inputModeVolumeEditWidget->getEditingParameters(editMode,
                                                               brushSizes,
                                                               voxelValue);
+            const int64_t brushSizesInt64[3] = {
+                brushSizes[0],
+                brushSizes[1],
+                brushSizes[2]
+            };
+            
+            VolumeFileEditorDelegate* editor = volumeEditInfo.m_volumeFileEditorDelegate;
+            CaretAssert(editor);
+            
+            VolumeSliceViewPlaneEnum::Enum slicePlane = volumeEditInfo.m_sliceViewPlane;
+            
+            AString errorMessage;
+            if ( ! editor->performEditingOperation(volumeEditInfo.m_mapIndex,
+                                                   editMode,
+                                                   slicePlane,
+                                                   ijk,
+                                                   brushSizesInt64,
+                                                   voxelValue,
+                                                   errorMessage)) {
+                WuQMessageBox::errorOk(m_inputModeVolumeEditWidget,
+                                       errorMessage);
+            }
         }
     }
     
-    getVolumeFile();
+    updateGraphicsAfterEditing();
 }
 
 /**
@@ -188,17 +227,22 @@ UserInputModeVolumeEdit::getCursor() const
     return cursor;
 }
 
-#include "Overlay.h"
-#include "OverlaySet.h"
-
 /**
- * @return The volume being edited which is the top most volume file in
- * the enabled overlays.  May be NULL if no volume files in overlays (could
- * have CIFTI with volume data).
+ * Get information about volume data being edited.
+ *
+ * @param volumeEditInfo
+ *    Loaded with editing information upon sucess.
+ * @return
+ *    True if volumeEditInfo is valid, else false.
  */
-VolumeFile*
-UserInputModeVolumeEdit::getVolumeFile()
+bool
+UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
 {
+    volumeEditInfo.m_volumeFile     = NULL;
+    volumeEditInfo.m_mapIndex       = -1;
+    volumeEditInfo.m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
+    volumeEditInfo.m_modelVolume    = NULL;
+    
     EventBrowserWindowContentGet windowEvent(m_windowIndex);
     EventManager::get()->sendEvent(windowEvent.getPointer());
     
@@ -217,14 +261,30 @@ UserInputModeVolumeEdit::getVolumeFile()
                 if (mapFile != NULL) {
                     VolumeFile* vf = dynamic_cast<VolumeFile*>(mapFile);
                     if (vf != NULL) {
-                        return vf;
+                        volumeEditInfo.m_volumeFile     = vf;
+                        volumeEditInfo.m_mapIndex       = mapIndex;
+                        volumeEditInfo.m_sliceViewPlane = tabContent->getSliceViewPlane();
+                        volumeEditInfo.m_modelVolume    = modelVolume;
+                        volumeEditInfo.m_volumeFileEditorDelegate = NULL;
+                        return true;
                     }
                 }
             }
         }
     }
     
-    return NULL;
+    return false;
 }
+
+
+/**
+ * Update graphics after editing.
+ */
+void
+UserInputModeVolumeEdit::updateGraphicsAfterEditing()
+{
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 
 

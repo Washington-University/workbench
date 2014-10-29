@@ -23,17 +23,27 @@
 
 
 #include "UserInputModeView.h"
-
+#include "VolumeSliceViewPlaneEnum.h"
 
 namespace caret {
 
+    class ModelVolume;
     class VolumeFile;
+    class VolumeFileEditorDelegate;
     
     class UserInputModeVolumeEditWidget;
     
     class UserInputModeVolumeEdit : public UserInputModeView {
         
     public:
+        struct VolumeEditInfo {
+            ModelVolume* m_modelVolume;
+            VolumeFile* m_volumeFile;
+            int32_t m_mapIndex;
+            VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
+            VolumeFileEditorDelegate* m_volumeFileEditorDelegate;
+        };
+        
         UserInputModeVolumeEdit(const int32_t windowIndex);
         
         virtual ~UserInputModeVolumeEdit();
@@ -44,13 +54,15 @@ namespace caret {
         
         virtual void finish();
         
+        virtual void update();
+        
         virtual QWidget* getWidgetForToolBar();
         
         virtual CursorEnum::Enum getCursor() const;
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
-        VolumeFile* getVolumeFile();
+        bool getVolumeEditInfo(VolumeEditInfo& volumeEditInfo);
         
         // ADD_NEW_METHODS_HERE
 
@@ -59,9 +71,13 @@ namespace caret {
 
         UserInputModeVolumeEdit& operator=(const UserInputModeVolumeEdit&);
         
+        void updateGraphicsAfterEditing();
+        
         const int32_t m_windowIndex;
         
         UserInputModeVolumeEditWidget* m_inputModeVolumeEditWidget;
+        
+        friend class UserInputModeVolumeEditWidget;
         
         // ADD_NEW_MEMBERS_HERE
 
