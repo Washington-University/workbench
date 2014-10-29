@@ -108,7 +108,7 @@ namespace caret {
 
         void updateUserInterfaceAndGraphicsWindow();
         
-        void updateUserInterfaceIfYoked();
+        void updateUserInterface();
         
         void updateGraphicsWindow();
         

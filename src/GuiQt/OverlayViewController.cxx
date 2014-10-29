@@ -425,7 +425,7 @@ OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
     }
     mapNameComboBox->blockSignals(false);
     
-    this->updateUserInterfaceIfYoked();
+    this->updateUserInterface();
     this->updateGraphicsWindow();
     
     updateOverlaySettingsEditor();
@@ -460,7 +460,7 @@ OverlayViewController::mapNameComboBoxSelected(int indx)
     m_mapIndexSpinBox->setValue(indx + 1);
     m_mapIndexSpinBox->blockSignals(false);
     
-    this->updateUserInterfaceIfYoked();
+    this->updateUserInterface();
     this->updateGraphicsWindow();
     
     updateOverlaySettingsEditor();
@@ -507,7 +507,7 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
         }
     }
     
-    this->updateUserInterfaceIfYoked();
+    this->updateUserInterface();
 
     this->updateGraphicsWindow();
 }
@@ -807,14 +807,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
 void 
 OverlayViewController::updateUserInterfaceAndGraphicsWindow()
 {
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    if (this->overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    }
-    else {
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
-    }
-    
+    updateUserInterface();
     updateGraphicsWindow();
 }
 
@@ -822,10 +815,13 @@ OverlayViewController::updateUserInterfaceAndGraphicsWindow()
  * Update graphics and GUI after selections made
  */
 void
-OverlayViewController::updateUserInterfaceIfYoked()
+OverlayViewController::updateUserInterface()
 {
     if (this->overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
+    else {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
     }
 }
 
