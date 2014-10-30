@@ -39,8 +39,8 @@ using namespace caret;
  * \brief Delegate for performing editing operations on a volume file's voxels.
  * \ingroup Files
  *
- * Perform editing operations on a volume file including undo, redo, and
- * reset the operations that were previously performed.
+ * Perform interactive editing operations in a GUI on a volume file 
+ * including the ability to undo, redo, and reset the editing operations.
  */
 
 /**
@@ -64,6 +64,15 @@ m_volumeFile(volumeFile)
  */
 VolumeFileEditorDelegate::~VolumeFileEditorDelegate()
 {
+    clear();
+}
+
+/**
+ * Clear the instance.
+ */
+void
+VolumeFileEditorDelegate::clear()
+{
     /*
      * The undo stacks are only created when needed so some
      * entries may be NULL
@@ -72,12 +81,15 @@ VolumeFileEditorDelegate::~VolumeFileEditorDelegate()
          mapIter != m_volumeMapUndoStacks.end();
          mapIter++) {
         CaretUndoStack* undoStack = *mapIter;
-        if (undoStack != NULL) {
-            delete undoStack;
-        }
+        delete undoStack;
     }
     
     m_volumeMapUndoStacks.clear();
+    
+    m_volumeDimensions[0] = 0;
+    m_volumeDimensions[1] = 0;
+    m_volumeDimensions[2] = 0;
+    m_volumeMapEditingLocked.clear();
 }
 
 /**
@@ -93,8 +105,10 @@ VolumeFileEditorDelegate::~VolumeFileEditorDelegate()
  *     Indices of voxel selected by the user.
  * @param brushSize
  *     Size of brush used by some operations.
- * @param voxelValue
- *     Value that is assigned by the operation.
+ * @param voxelValueOn
+ *     Value that is assigned by a "turn on" operation.
+ * @param voxelValueOff
+ *     Value that is assigned by a "turn off" operation.
  * @param errorMessageOut
  *     Will contain error information.
  * @return
@@ -106,7 +120,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                                   const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                   const int64_t voxelIJK[3],
                                                   const int64_t brushSize[3],
-                                                  const float voxelValue,
+                                                  const float voxelValueOn,
+                                                  const float voxelValueOff,
                                                   AString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -133,6 +148,7 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
         errorMessageOut = "Volume is locked to prevent editing";
         return false;
     }
+    
     
     int64_t iHalf = brushSize[0] / 2;
     int64_t jHalf = brushSize[1] / 2;
@@ -161,7 +177,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                    slicePlane,
                                    ijkMin,
                                    ijkMax,
-                                   voxelValue,
+                                   voxelValueOn,
+                                        voxelValueOff,
                                    errorMessageOut);
             break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF:
@@ -170,25 +187,28 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                         slicePlane,
                                         ijkMin,
                                         ijkMax,
-                                        voxelValue,
+                                        voxelValueOn,
+                                        voxelValueOff,
                                         errorMessageOut);
             break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_DILATE:
             result = performDilateOrErode(VolumeEditingModeEnum::VOLUME_EDITING_MODE_DILATE,
                                    mapIndex,
                                    slicePlane,
-                                   voxelIJK,
-                                   brushSize,
-                                   voxelValue,
+                                          ijkMin,
+                                          ijkMax,
+                                          voxelValueOn,
+                                          voxelValueOff,
                                    errorMessageOut);
             break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ERODE:
             result = performDilateOrErode(VolumeEditingModeEnum::VOLUME_EDITING_MODE_ERODE,
                                           mapIndex,
                                           slicePlane,
-                                          voxelIJK,
-                                          brushSize,
-                                          voxelValue,
+                                          ijkMin,
+                                          ijkMax,
+                                          voxelValueOn,
+                                          voxelValueOff,
                                           errorMessageOut);
             break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_2D:
@@ -196,7 +216,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                         slicePlane,
                                         voxelIJK,
                                         brushSize,
-                                        voxelValue,
+                                        voxelValueOn,
+                                        voxelValueOff,
                                         errorMessageOut);
             break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_3D:
@@ -204,7 +225,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                         slicePlane,
                                         voxelIJK,
                                         brushSize,
-                                        voxelValue,
+                                        voxelValueOn,
+                                        voxelValueOff,
                                         errorMessageOut);
             break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D:
@@ -212,7 +234,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                               slicePlane,
                                               voxelIJK,
                                               brushSize,
-                                              voxelValue,
+                                              voxelValueOn,
+                                              voxelValueOff,
                                               errorMessageOut);
             break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D:
@@ -220,7 +243,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                               slicePlane,
                                               voxelIJK,
                                               brushSize,
-                                              voxelValue,
+                                              voxelValueOn,
+                                              voxelValueOff,
                                               errorMessageOut);
             break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_RETAIN_CONNECTED_3D:
@@ -228,7 +252,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                               slicePlane,
                                               voxelIJK,
                                               brushSize,
-                                              voxelValue,
+                                              voxelValueOn,
+                                              voxelValueOff,
                                               errorMessageOut);
             break;
     }
@@ -433,8 +458,10 @@ VolumeFileEditorDelegate::redo(const int64_t mapIndex)
  *     Inclusive minimum voxel indices that are affected by this operation.
  * @param maxIJK
  *     Inclusive maximum voxel indices that are affected by this operation.
- * @param voxelValue
- *     Value that is assigned by the operation.
+ * @param voxelValueOn
+ *     Value that is assigned by a "turn on" operation.
+ * @param voxelValueOff
+ *     Value that is assigned by a "turn off" operation.
  * @param errorMessageOut
  *     Will contain error information.
  * @return
@@ -446,12 +473,17 @@ VolumeFileEditorDelegate::performTurnOnOrOff(const VolumeEditingModeEnum::Enum m
                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                         const int64_t minIJK[3],
                                         const int64_t maxIJK[3],
-                                        const float voxelValue,
+                                             const float voxelValueOn,
+                                             const float voxelValueOff,
                                         AString& errorMessageOut)
 {
+    float redoVoxelValue = 0.0;
     switch (mode){
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF:
+            redoVoxelValue = voxelValueOff;
+            break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON:
+            redoVoxelValue = voxelValueOn;
             break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_DILATE:
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ERODE:
@@ -473,10 +505,10 @@ VolumeFileEditorDelegate::performTurnOnOrOff(const VolumeEditingModeEnum::Enum m
         for (int64_t j = minIJK[1]; j <= maxIJK[1]; j++) {
             for (int64_t k = minIJK[2]; k <= maxIJK[2]; k++) {
                 const int64_t ijk[3] = { i, j, k };
-                modifiedVoxels->addVoxelUndoRedo(ijk,
-                                                 voxelValue,
+                modifiedVoxels->addVoxelRedoUndo(ijk,
+                                                 redoVoxelValue,
                                                  m_volumeFile->getValue(ijk, mapIndex));
-                m_volumeFile->setValue(voxelValue,
+                m_volumeFile->setValue(redoVoxelValue,
                                        ijk,
                                        mapIndex);
             }
@@ -486,7 +518,7 @@ VolumeFileEditorDelegate::performTurnOnOrOff(const VolumeEditingModeEnum::Enum m
     addToMapUndoStacks(mapIndex,
                        modifiedVoxels.releasePointer());
     
-    return false;
+    return true;
 }
 
 /**
@@ -499,12 +531,14 @@ VolumeFileEditorDelegate::performTurnOnOrOff(const VolumeEditingModeEnum::Enum m
  *     Index of map (brick) within the volume that is being edited.
  * @param slicePlane
  *     The selected slice plane.
- * @param voxelIJK
- *     Indices of voxel selected by the user.
- * @param brushSize
- *     Size of brush used by some operations.
- * @param voxelValue
- *     Value that is assigned by the operation.
+ * @param minIJK
+ *     Inclusive minimum voxel indices that are affected by this operation.
+ * @param maxIJK
+ *     Inclusive maximum voxel indices that are affected by this operation.
+ * @param voxelValueOn
+ *     Value that is assigned by a "turn on" operation.
+ * @param voxelValueOff
+ *     Value that is assigned by a "turn off" operation.
  * @param errorMessageOut
  *     Will contain error information.
  * @return
@@ -514,29 +548,12 @@ bool
 VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum mode,
                                         const int64_t mapIndex,
                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                        const int64_t voxelIJK[3],
-                                        const int64_t brushSize[3],
-                                        const float voxelValue,
+                                               const int64_t minIJK[3],
+                                               const int64_t maxIJK[3],
+                                               const float voxelValueOn,
+                                               const float voxelValueOff,
                                         AString& errorMessageOut)
 {
-    /*
-     * Set the voxel range AND limit the voxel
-     * indices to valid indices.
-     */
-    int64_t ijkMin[3] = {
-        voxelIJK[0] - brushSize[0],
-        voxelIJK[1] - brushSize[1],
-        voxelIJK[2] - brushSize[2],
-    };
-    clampVoxelIndices(ijkMin);
-    
-    int64_t ijkMax[3] = {
-        voxelIJK[0] + brushSize[0],
-        voxelIJK[1] + brushSize[1],
-        voxelIJK[2] + brushSize[2],
-    };
-    clampVoxelIndices(ijkMax);
-    
     bool dilateFlag = false;
     
     switch (mode){
@@ -568,14 +585,10 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
     /*
      * Check each voxel in the desired region
      */
-    for (int64_t i = ijkMin[0]; i <= ijkMax[0]; i++) {
-        for (int64_t j = ijkMin[1]; j <= ijkMax[1]; j++) {
-            for (int64_t k = ijkMin[2]; k <= ijkMax[2]; k++) {
+    for (int64_t i = minIJK[0]; i <= maxIJK[0]; i++) {
+        for (int64_t j = minIJK[1]; j <= maxIJK[1]; j++) {
+            for (int64_t k = minIJK[2]; k <= maxIJK[2]; k++) {
                 
-                /*
-                 * Make sure the voxel is in the volume since we
-                 * may be near the edge of the volume
-                 */
                 const int64_t ijk[3] = { i, j, k };
                 
                 /*
@@ -586,19 +599,19 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
                 bool voxelMatches = false;
                 
                 /*
-                 * If eroding, look for "ON" voxels
+                 * If eroding, look for "NOT OFF" voxels
                  */
                 if (! dilateFlag) {
-                    if (value != 0.0) {
+                    if (value != voxelValueOff) {
                         voxelMatches = true;
                     }
                 }
                 
                 /*
-                 * If dilating, look for "OFF" boxels
+                 * If dilating, look for "OFF" voxels
                  */
                 if (dilateFlag) {
-                    if (value == 0.0) {
+                    if (value == voxelValueOff) {
                         voxelMatches = true;
                     }
                 }
@@ -627,26 +640,26 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
                             iMax += STRUCTURE_ELEMENT_SIZE;
                             jMin -= STRUCTURE_ELEMENT_SIZE;
                             jMax += STRUCTURE_ELEMENT_SIZE;
-                            if (brushSize[2] > 1) {
-                                kMin -= STRUCTURE_ELEMENT_SIZE;
-                                kMax += STRUCTURE_ELEMENT_SIZE;
-                            }
+//                            if (brushSize[2] > 1) {
+//                                kMin -= STRUCTURE_ELEMENT_SIZE;
+//                                kMax += STRUCTURE_ELEMENT_SIZE;
+//                            }
                             break;
                         case VolumeSliceViewPlaneEnum::CORONAL:
                             iMin -= STRUCTURE_ELEMENT_SIZE;
                             iMax += STRUCTURE_ELEMENT_SIZE;
-                            if (brushSize[1] > 1) {
-                                jMin -= STRUCTURE_ELEMENT_SIZE;
-                                jMax += STRUCTURE_ELEMENT_SIZE;
-                            }
+//                            if (brushSize[1] > 1) {
+//                                jMin -= STRUCTURE_ELEMENT_SIZE;
+//                                jMax += STRUCTURE_ELEMENT_SIZE;
+//                            }
                             kMin -= STRUCTURE_ELEMENT_SIZE;
                             kMax += STRUCTURE_ELEMENT_SIZE;
                             break;
                         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                            if (brushSize[0] > 1) {
-                                iMin -= STRUCTURE_ELEMENT_SIZE;
-                                iMax += STRUCTURE_ELEMENT_SIZE;
-                            }
+//                            if (brushSize[0] > 1) {
+//                                iMin -= STRUCTURE_ELEMENT_SIZE;
+//                                iMax += STRUCTURE_ELEMENT_SIZE;
+//                            }
                             jMin -= STRUCTURE_ELEMENT_SIZE;
                             jMax += STRUCTURE_ELEMENT_SIZE;
                             kMin -= STRUCTURE_ELEMENT_SIZE;
@@ -660,7 +673,7 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
                     /*
                      * Check all voxels "under" the structuring element
                      */
-                    bool setVoxelFlag = false;
+                    bool foundVoxelFlag = false;
                     for (int64_t ii = iMin; ii <= iMax; ii++) {
                         for (int64_t jj = jMin; jj <= jMax; jj++) {
                             for (int64_t kk = kMin; kk <= kMax; kk++) {
@@ -677,12 +690,12 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
                                     float value = m_volumeFile->getValue(iijjkk);
                                     
                                     /*
-                                     * If dilating, look for voxels that are "ON"
+                                     * If dilating, look for voxels that are "NOT OFF"
                                      * under the structuring element
                                      */
                                     if (dilateFlag) {
-                                        if (value != 0.0) {
-                                            setVoxelFlag = true;
+                                        if (value != voxelValueOff) {
+                                            foundVoxelFlag = true;
                                             break;
                                         }
                                     }
@@ -692,32 +705,40 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
                                      * under the structuring element
                                      */
                                     if ( ! dilateFlag) {
-                                        if (value == 0.0) {
-                                            setVoxelFlag = true;
+                                        if (value == voxelValueOff) {
+                                            foundVoxelFlag = true;
                                             break;
                                         }
                                     }
                                 }
                             }
+                            if (foundVoxelFlag) {
+                                break;
+                            }
                         }
-                        if (setVoxelFlag) {
+                        if (foundVoxelFlag) {
                             break;
                         }
                     }
-                    if (setVoxelFlag) {
-                        break;
-                    }
                     
-                    if (setVoxelFlag) {
+                    if (foundVoxelFlag) {
                         /*
                          * For now, just note which voxels need to be set since
                          * we do not want to modify the volume until after all voxels
                          * under structuring element have been checked.
                          */
-                        modifiedVoxels->addVoxelUndoRedo(ijk,
-                                                         value,
-                                                         m_volumeFile->getValue(ijk,
-                                                                                mapIndex));
+                        if (dilateFlag) {
+                            modifiedVoxels->addVoxelRedoUndo(ijk,
+                                                             voxelValueOn,
+                                                             m_volumeFile->getValue(ijk,
+                                                                                    mapIndex));
+                        }
+                        else {
+                            modifiedVoxels->addVoxelRedoUndo(ijk,
+                                                             voxelValueOff,
+                                                             m_volumeFile->getValue(ijk,
+                                                                                    mapIndex));
+                        }
                     }
                 }
             }
@@ -747,8 +768,10 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
  *     Indices of voxel selected by the user.
  * @param brushSize
  *     Size of brush used by some operations.
- * @param voxelValue
- *     Value that is assigned by the operation.
+ * @param voxelValueOn
+ *     Value that is assigned by a "turn on" operation.
+ * @param voxelValueOff
+ *     Value that is assigned by a "turn off" operation.
  * @param errorMessageOut
  *     Will contain error information.
  * @return
@@ -759,7 +782,8 @@ VolumeFileEditorDelegate::performFloodFill2D(const int64_t mapIndex,
                                              const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                              const int64_t voxelIJK[3],
                                              const int64_t brushSize[3],
-                                             const float voxelValue,
+                                             const float voxelValueOn,
+                                             const float voxelValueOff,
                                              AString& errorMessageOut)
 {
     return performFloodFillAndRemoveConnected(VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_2D,
@@ -767,7 +791,8 @@ VolumeFileEditorDelegate::performFloodFill2D(const int64_t mapIndex,
                                               slicePlane,
                                               voxelIJK,
                                               brushSize,
-                                              voxelValue,
+                                              voxelValueOn,
+                                              voxelValueOff,
                                               errorMessageOut);
 }
 
@@ -783,8 +808,10 @@ VolumeFileEditorDelegate::performFloodFill2D(const int64_t mapIndex,
  *     Indices of voxel selected by the user.
  * @param brushSize
  *     Size of brush used by some operations.
- * @param voxelValue
- *     Value that is assigned by the operation.
+ * @param voxelValueOn
+ *     Value that is assigned by a "turn on" operation.
+ * @param voxelValueOff
+ *     Value that is assigned by a "turn off" operation.
  * @param errorMessageOut
  *     Will contain error information.
  * @return
@@ -795,7 +822,8 @@ VolumeFileEditorDelegate::performFloodFill3D(const int64_t mapIndex,
                                              const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                              const int64_t voxelIJK[3],
                                              const int64_t brushSize[3],
-                                             const float voxelValue,
+                                             const float voxelValueOn,
+                                             const float voxelValueOff,
                                              AString& errorMessageOut)
 {
     return performFloodFillAndRemoveConnected(VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_3D,
@@ -803,7 +831,8 @@ VolumeFileEditorDelegate::performFloodFill3D(const int64_t mapIndex,
                                               slicePlane,
                                               voxelIJK,
                                               brushSize,
-                                              voxelValue,
+                                              voxelValueOn,
+                                              voxelValueOff,
                                               errorMessageOut);
 }
 
@@ -819,8 +848,10 @@ VolumeFileEditorDelegate::performFloodFill3D(const int64_t mapIndex,
  *     Indices of voxel selected by the user.
  * @param brushSize
  *     Size of brush used by some operations.
- * @param voxelValue
- *     Value that is assigned by the operation.
+ * @param voxelValueOn
+ *     Value that is assigned by a "turn on" operation.
+ * @param voxelValueOff
+ *     Value that is assigned by a "turn off" operation.
  * @param errorMessageOut
  *     Will contain error information.
  * @return
@@ -831,7 +862,8 @@ VolumeFileEditorDelegate::performRemoveConnected2D(const int64_t mapIndex,
                                                    const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                    const int64_t voxelIJK[3],
                                                    const int64_t brushSize[3],
-                                                   const float voxelValue,
+                                                   const float voxelValueOn,
+                                                   const float voxelValueOff,
                                                    AString& errorMessageOut)
 {
     return performFloodFillAndRemoveConnected(VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D,
@@ -839,7 +871,8 @@ VolumeFileEditorDelegate::performRemoveConnected2D(const int64_t mapIndex,
                                               slicePlane,
                                               voxelIJK,
                                               brushSize,
-                                              voxelValue,
+                                              voxelValueOn,
+                                              voxelValueOff,
                                               errorMessageOut);
 }
 
@@ -855,8 +888,10 @@ VolumeFileEditorDelegate::performRemoveConnected2D(const int64_t mapIndex,
  *     Indices of voxel selected by the user.
  * @param brushSize
  *     Size of brush used by some operations.
- * @param voxelValue
- *     Value that is assigned by the operation.
+ * @param voxelValueOn
+ *     Value that is assigned by a "turn on" operation.
+ * @param voxelValueOff
+ *     Value that is assigned by a "turn off" operation.
  * @param errorMessageOut
  *     Will contain error information.
  * @return
@@ -867,7 +902,8 @@ VolumeFileEditorDelegate::performRemoveConnected3D(const int64_t mapIndex,
                                                    const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                    const int64_t voxelIJK[3],
                                                    const int64_t brushSize[3],
-                                                   const float voxelValue,
+                                                   const float voxelValueOn,
+                                                   const float voxelValueOff,
                                                    AString& errorMessageOut)
 {
     return performFloodFillAndRemoveConnected(VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D,
@@ -875,7 +911,8 @@ VolumeFileEditorDelegate::performRemoveConnected3D(const int64_t mapIndex,
                                               slicePlane,
                                               voxelIJK,
                                               brushSize,
-                                              voxelValue,
+                                              voxelValueOn,
+                                              voxelValueOff,
                                               errorMessageOut);
 }
 
@@ -891,8 +928,10 @@ VolumeFileEditorDelegate::performRemoveConnected3D(const int64_t mapIndex,
  *     Indices of voxel selected by the user.
  * @param brushSize
  *     Size of brush used by some operations.
- * @param voxelValue
- *     Value that is assigned by the operation.
+ * @param voxelValueOn
+ *     Value that is assigned by a "turn on" operation.
+ * @param voxelValueOff
+ *     Value that is assigned by a "turn off" operation.
  * @param errorMessageOut
  *     Will contain error information.
  * @return
@@ -903,7 +942,8 @@ VolumeFileEditorDelegate::performRetainConnected3D(const int64_t mapIndex,
                                                    const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                    const int64_t voxelIJK[3],
                                                    const int64_t brushSize[3],
-                                                   const float voxelValue,
+                                                   const float voxelValueOn,
+                                                   const float voxelValueOff,
                                                    AString& errorMessageOut)
 {
     errorMessageOut = "Retain connected 3D not yet implemented.";
@@ -924,8 +964,10 @@ VolumeFileEditorDelegate::performRetainConnected3D(const int64_t mapIndex,
  *     Indices of voxel selected by the user.
  * @param brushSize
  *     Size of brush used by some operations.
- * @param voxelValue
- *     Value that is assigned by the operation.
+ * @param voxelValueOn
+ *     Value that is assigned by a "turn on" operation.
+ * @param voxelValueOff
+ *     Value that is assigned by a "turn off" operation.
  * @param errorMessageOut
  *     Will contain error information.
  * @return
@@ -937,7 +979,8 @@ VolumeFileEditorDelegate::performFloodFillAndRemoveConnected(const VolumeEditing
                                                              const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                              const int64_t voxelIJK[3],
                                                              const int64_t brushSize[3],
-                                                             const float voxelValue,
+                                                             const float voxelValueOn,
+                                                             const float voxelValueOff,
                                                              AString& errorMessageOut)
 {
     bool fillingFlag = false;
@@ -1016,10 +1059,10 @@ VolumeFileEditorDelegate::performFloodFillAndRemoveConnected(const VolumeEditing
                 /*
                  * Update the voxels value
                  */
-                modifiedVoxels->addVoxelUndoRedo(ijk,
-                                                 voxelValue,
+                modifiedVoxels->addVoxelRedoUndo(ijk,
+                                                 voxelValueOff,
                                                  m_volumeFile->getValue(ijk, mapIndex));
-                m_volumeFile->setValue(voxelValue,
+                m_volumeFile->setValue(voxelValueOff,
                                        ijk,
                                        mapIndex);
                 

@@ -98,8 +98,7 @@ UserInputModeVolumeEditWidget::updateWidget()
     
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
-        CaretAssertToDoWarning();
-//        m_lockAction->setChecked(volumeEditInfo.m_volumeFileEditorDelegate->isLocked(volumeEditInfo.m_mapIndex));
+        m_lockAction->setChecked(volumeEditInfo.m_volumeFileEditorDelegate->isLocked(volumeEditInfo.m_mapIndex));
         
         if (volumeEditInfo.m_volumeFile != NULL) {
             if (volumeEditInfo.m_volumeFile->isMappedWithLabelTable()) {
@@ -317,19 +316,23 @@ UserInputModeVolumeEditWidget::createModeToolBar()
  *     Output containing the selected editing mode.
  * @param brushSizeOut
  *     Brush IJK/XYZ sizes.
- * @param valueOut
- *     Value assigned to modified voxels.
+ * @param floatValueOut
+ *     Float value for palette mapped volume files.
+ * @param labelNameOut
+ *     Label name for label mapped volume files.
  */
 void
 UserInputModeVolumeEditWidget::getEditingParameters(VolumeEditingModeEnum::Enum& editingModeOut,
                                                     int32_t brushSizesOut[3],
-                                                    float& valueOut) const
+                                                    float& floatValueOut,
+                                                    AString& labelNameOut) const
 {
     editingModeOut   = getEditingMode();
     brushSizesOut[0] = m_xBrushSizeSpinBox->value();
     brushSizesOut[1] = m_yBrushSizeSpinBox->value();
     brushSizesOut[2] = m_zBrushSizeSpinBox->value();
-    valueOut         = m_voxelFloatValueSpinBox->value();
+    floatValueOut    = m_voxelFloatValueSpinBox->value();
+    labelNameOut     = m_voxelLabelValueAction->text();
 }
 
 
@@ -392,7 +395,8 @@ UserInputModeVolumeEditWidget::undoActionTriggered()
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
         volumeEditInfo.m_volumeFileEditorDelegate->undo(volumeEditInfo.m_mapIndex);
-        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
+                                                          volumeEditInfo.m_mapIndex);
     }
 }
 
@@ -405,7 +409,8 @@ UserInputModeVolumeEditWidget::redoActionTriggered()
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
         volumeEditInfo.m_volumeFileEditorDelegate->redo(volumeEditInfo.m_mapIndex);
-        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
+                                                          volumeEditInfo.m_mapIndex);
     }
 }
 
@@ -418,7 +423,8 @@ UserInputModeVolumeEditWidget::resetActionTriggered()
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
         volumeEditInfo.m_volumeFileEditorDelegate->reset(volumeEditInfo.m_mapIndex);
-        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
+                                                          volumeEditInfo.m_mapIndex);
     }
 }
 

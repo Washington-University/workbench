@@ -39,6 +39,7 @@
 #include "Palette.h"
 #include "SceneClass.h"
 #include "VolumeFile.h"
+#include "VolumeFileEditorDelegate.h"
 #include "VolumeFileVoxelColorizer.h"
 #include "VolumeSpline.h"
 
@@ -80,6 +81,7 @@ VolumeFile::VolumeFile()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
+    m_volumeFileEditorDelegate.grabNew(NULL);
     validateMembers();
 }
 
@@ -92,6 +94,7 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
+    m_volumeFileEditorDelegate.grabNew(NULL);
     validateMembers();
     setType(whatType);
 }
@@ -105,6 +108,7 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
+    m_volumeFileEditorDelegate.grabNew(NULL);
     validateMembers();
     setType(whatType);
 }
@@ -190,6 +194,8 @@ VolumeFile::clear()
     
     m_dataRangeValid = false;
     VolumeBase::clear();
+    
+    m_volumeFileEditorDelegate->clear();
 }
 
 void VolumeFile::readFile(const AString& filename)
@@ -198,6 +204,7 @@ void VolumeFile::readFile(const AString& filename)
     timer.start();
     
     clear();
+    
     {
         /*
          * CaretTemporaryFile must be outside of the "if" statment block of code.
@@ -267,6 +274,8 @@ void VolumeFile::readFile(const AString& filename)
         clearModified();
     }
     
+    m_volumeFileEditorDelegate->updateIfVolumeFileChangedNumberOfMaps();
+    
     /*
      * This will update the map name/label hierarchy
      */
@@ -330,6 +339,9 @@ VolumeFile::writeFile(const AString& filename)
         myIO.writeData(getFrame(getBrickIndexFromNonSpatialIndexes(*myiter)), 3, *myiter);//NOTE: does not deal with multi-component volumes
     }
     m_header.grabNew(new NiftiHeader(outHeader));//update header to last written version, end nifti-specific code
+    
+    m_volumeFileEditorDelegate->clear();
+    m_volumeFileEditorDelegate->updateIfVolumeFileChangedNumberOfMaps();
 }
 
 float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
@@ -649,6 +661,9 @@ void VolumeFile::validateMembers()
     }
     m_classNameHierarchy->clear();
     m_forceUpdateOfGroupAndNameHierarchy = true;
+    
+    m_volumeFileEditorDelegate.grabNew(new VolumeFileEditorDelegate(this));
+    m_volumeFileEditorDelegate->updateIfVolumeFileChangedNumberOfMaps();
 }
 
 /**
@@ -1451,6 +1466,17 @@ VolumeFile::getGroupAndNameHierarchyModel() const
     m_forceUpdateOfGroupAndNameHierarchy = false;
     
     return m_classNameHierarchy;
+}
+
+/**
+ * @return The volume file editor delegate used for interactive
+ * editing of a volume's voxels.
+ */
+VolumeFileEditorDelegate*
+VolumeFile::getVolumeFileEditorDelegate()
+{
+    CaretAssert(m_volumeFileEditorDelegate);
+    return m_volumeFileEditorDelegate;
 }
 
 /**

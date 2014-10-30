@@ -64,6 +64,15 @@ SelectionItemVoxelEditing::getVolumeFileForEditing() const
 }
 
 /**
+ * @return Volume file that is being edited.
+ */
+VolumeFile*
+SelectionItemVoxelEditing::getVolumeFileForEditing()
+{
+    return m_volumeFileForEditing;
+}
+
+/**
  * Set the volume file that is being edited.
  *
  * @param volumeFile

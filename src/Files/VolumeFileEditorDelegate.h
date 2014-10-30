@@ -39,12 +39,17 @@ namespace caret {
         
         virtual ~VolumeFileEditorDelegate();
         
+        void clear();
+        
+        void updateIfVolumeFileChangedNumberOfMaps();
+        
         bool performEditingOperation(const int64_t mapIndex,
                                      const VolumeEditingModeEnum::Enum mode,
                                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                      const int64_t voxelIJK[3],
                                      const int64_t brushSize[3],
-                                     const float voxelValue,
+                                     const float voxelValueOn,
+                                     const float voxelValueOff,
                                      AString& errorMessageOut);
         
         void undo(const int64_t mapIndex);
@@ -70,50 +75,57 @@ namespace caret {
                            const VolumeSliceViewPlaneEnum::Enum slicePlane,
                            const int64_t minIJK[3],
                            const int64_t maxIJK[3],
-                           const float voxelValue,
+                           const float voxelValueOn,
+                                const float voxelValueOff,
                            AString& errorMessageOut);
         
         bool performDilateOrErode(const VolumeEditingModeEnum::Enum mode,
                            const int64_t mapIndex,
                            const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                           const int64_t voxelIJK[3],
-                           const int64_t brushSize[3],
-                           const float voxelValue,
+                                  const int64_t minIJK[3],
+                                  const int64_t maxIJK[3],
+                                  const float voxelValueOn,
+                                  const float voxelValueOff,
                            AString& errorMessageOut);
         
         bool performFloodFill2D(const int64_t mapIndex,
                                 const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                 const int64_t voxelIJK[3],
                                 const int64_t brushSize[3],
-                                const float voxelValue,
+                                const float voxelValueOn,
+                                const float voxelValueOff,
                                 AString& errorMessageOut);
         
         bool performFloodFill3D(const int64_t mapIndex,
                                 const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                 const int64_t voxelIJK[3],
                                 const int64_t brushSize[3],
-                                const float voxelValue,
+                                const float voxelValueOn,
+                                const float voxelValueOff,
                                 AString& errorMessageOut);
         
         bool performRemoveConnected2D(const int64_t mapIndex,
                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const int64_t voxelIJK[3],
                                       const int64_t brushSize[3],
-                                      const float voxelValue,
+                                      const float voxelValueOn,
+                                      const float voxelValueOff,
                                       AString& errorMessageOut);
         
         bool performRemoveConnected3D(const int64_t mapIndex,
                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const int64_t voxelIJK[3],
                                       const int64_t brushSize[3],
-                                      const float voxelValue,
+                                      const float voxelValueOn,
+                                      const float voxelValueOff,
                                       AString& errorMessageOut);
         
         bool performRetainConnected3D(const int64_t mapIndex,
                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const int64_t voxelIJK[3],
                                       const int64_t brushSize[3],
-                                      const float voxelValue,
+                                      const float voxelValueOn,
+                                      const float voxelValueOff,
                                       AString& errorMessageOut);
         
         bool performFloodFillAndRemoveConnected(const VolumeEditingModeEnum::Enum mode,
@@ -121,7 +133,8 @@ namespace caret {
                                                 const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                 const int64_t voxelIJK[3],
                                                 const int64_t brushSize[3],
-                                                const float voxelValue,
+                                                const float voxelValueOn,
+                                                const float voxelValueOff,
                                                 AString& errorMessageOut);
         
         int64_t clampDimensionIndex(const int64_t maxDim,
@@ -136,8 +149,6 @@ namespace caret {
         
         VolumeFile* m_volumeFile;
 
-        void updateIfVolumeFileChangedNumberOfMaps();
-        
         /** 
          * Holds modifications for undo/redo operations.
          * Index into vector is the map index.

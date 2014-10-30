@@ -53,7 +53,8 @@ namespace caret {
         
         void getEditingParameters(VolumeEditingModeEnum::Enum& editingModeOut,
                                   int32_t brushSizesOut[3],
-                                  float& valueOut) const;
+                                  float& floatValueOut,
+                                  AString& labelNameOut) const;
         
         VolumeEditingModeEnum::Enum getEditingMode() const;
         

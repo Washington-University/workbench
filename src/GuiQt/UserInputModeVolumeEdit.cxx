@@ -31,6 +31,8 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
+#include "GiftiLabel.h"
+#include "GiftiLabelTable.h"
 #include "GuiManager.h"
 #include "MouseEvent.h"
 #include "Overlay.h"
@@ -153,48 +155,100 @@ UserInputModeVolumeEdit::mouseLeftClick(const MouseEvent& mouseEvent)
     idManager = openGLWidget->performIdentificationVoxelEditing(volumeEditInfo.m_volumeFile,
                                                                 mouseX,
                                                                 mouseY);
-    if (idEditVoxel->isValid()) {
-        const VolumeFile* vf = dynamic_cast<const VolumeFile*>(idEditVoxel->getVolumeFile());
-        if (vf != NULL) {
-            std::cout << "Selected " << qPrintable(vf->getFileNameNoPath()) << std::endl;
+    if ((volumeEditInfo.m_volumeFile == idEditVoxel->getVolumeFile())
+        && idEditVoxel->isValid()) {
+        std::cout << "Selected " << qPrintable(volumeEditInfo.m_volumeFile->getFileNameNoPath()) << std::endl;
+        
+        int64_t ijk[3];
+        idEditVoxel->getVoxelIJK(ijk);
+        
+        std::cout << "   Voxel: " << qPrintable(AString::fromNumbers(ijk, 3, ",")) << std::endl;
+        VolumeEditingModeEnum::Enum editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON;
+        int32_t brushSizes[3] = { 0, 0, 0 };
+        float paletteMappedValue = 0;
+        AString labelMappedName;
+        m_inputModeVolumeEditWidget->getEditingParameters(editMode,
+                                                          brushSizes,
+                                                          paletteMappedValue,
+                                                          labelMappedName);
+        const int64_t brushSizesInt64[3] = {
+            brushSizes[0],
+            brushSizes[1],
+            brushSizes[2]
+        };
+        
+        VolumeFileEditorDelegate* editor = volumeEditInfo.m_volumeFileEditorDelegate;
+        CaretAssert(editor);
+        
+        VolumeSliceViewPlaneEnum::Enum slicePlane = volumeEditInfo.m_sliceViewPlane;
+        
+        bool successFlag = true;
+        AString errorMessage;
+        
+        float voxelValueOn = paletteMappedValue;
+        float voxelValueOff = 0.0;
+        
+        if (volumeEditInfo.m_volumeFile->isMappedWithLabelTable()) {
+            const GiftiLabelTable* labelTable = volumeEditInfo.m_volumeFile->getMapLabelTable(volumeEditInfo.m_mapIndex);
+            const GiftiLabel* label = labelTable->getLabel(labelMappedName);
+            if (label != NULL) {
+                voxelValueOn = label->getKey();
+            }
+            else {
+                errorMessage = ("Label name "
+                                + labelMappedName
+                                + " is not in label table.");
+                successFlag = false;
+            }
             
-            int64_t ijk[3];
-            idEditVoxel->getVoxelIJK(ijk);
-            
-            std::cout << "   Voxel: " << qPrintable(AString::fromNumbers(ijk, 3, ",")) << std::endl;
-            VolumeEditingModeEnum::Enum editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON;
-            int32_t brushSizes[3] = { 0, 0, 0 };
-            float voxelValue = 0;
-            m_inputModeVolumeEditWidget->getEditingParameters(editMode,
-                                                              brushSizes,
-                                                              voxelValue);
-            const int64_t brushSizesInt64[3] = {
-                brushSizes[0],
-                brushSizes[1],
-                brushSizes[2]
-            };
-            
-            VolumeFileEditorDelegate* editor = volumeEditInfo.m_volumeFileEditorDelegate;
-            CaretAssert(editor);
-            
-            VolumeSliceViewPlaneEnum::Enum slicePlane = volumeEditInfo.m_sliceViewPlane;
-            
-            AString errorMessage;
-            if ( ! editor->performEditingOperation(volumeEditInfo.m_mapIndex,
-                                                   editMode,
-                                                   slicePlane,
-                                                   ijk,
-                                                   brushSizesInt64,
-                                                   voxelValue,
-                                                   errorMessage)) {
-                WuQMessageBox::errorOk(m_inputModeVolumeEditWidget,
-                                       errorMessage);
+            const GiftiLabel* unassignedLabel = labelTable->getLabel(labelTable->getUnassignedLabelKey());
+            if (unassignedLabel != NULL) {
+                voxelValueOff = unassignedLabel->getKey();
             }
         }
+        
+        if (successFlag) {
+            successFlag = editor->performEditingOperation(volumeEditInfo.m_mapIndex,
+                                                          editMode,
+                                                          slicePlane,
+                                                          ijk,
+                                                          brushSizesInt64,
+                                                          voxelValueOn,
+                                                          voxelValueOff,
+                                                          errorMessage);
+        }
+        
+        if ( ! successFlag) {
+            WuQMessageBox::errorOk(m_inputModeVolumeEditWidget,
+                                   errorMessage);
+        }
+        
+        updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
+                                   volumeEditInfo.m_mapIndex);
     }
-    
-    updateGraphicsAfterEditing();
 }
+
+/**
+ * Update the graphics after editing.
+ *
+ * @param volumeFile
+ *    Volume file that needs coloring update.
+ * @param mapIndex
+ *    Index of the map.
+ */
+void
+UserInputModeVolumeEdit::updateGraphicsAfterEditing(VolumeFile* volumeFile,
+                                                    const int32_t mapIndex)
+{
+    CaretAssert(volumeFile);
+    CaretAssert((mapIndex >= 0) && (mapIndex < volumeFile->getNumberOfMaps()));
+
+    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+    volumeFile->updateScalarColoringForMap(mapIndex,
+                                           paletteFile);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 
 /**
  * @return The cursor for display in the OpenGL widget.
@@ -265,7 +319,7 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
                         volumeEditInfo.m_mapIndex       = mapIndex;
                         volumeEditInfo.m_sliceViewPlane = tabContent->getSliceViewPlane();
                         volumeEditInfo.m_modelVolume    = modelVolume;
-                        volumeEditInfo.m_volumeFileEditorDelegate = NULL;
+                        volumeEditInfo.m_volumeFileEditorDelegate = vf->getVolumeFileEditorDelegate();
                         return true;
                     }
                 }
@@ -275,16 +329,4 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
     
     return false;
 }
-
-
-/**
- * Update graphics after editing.
- */
-void
-UserInputModeVolumeEdit::updateGraphicsAfterEditing()
-{
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-
 

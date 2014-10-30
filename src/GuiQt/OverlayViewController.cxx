@@ -779,12 +779,14 @@ OverlayViewController::updateViewController(Overlay* overlay)
      * (2) The file has multiple maps.
      */
     bool haveYoking = false;
-    if (selectedFile->isSurfaceMappable()
-         && selectedFile->isVolumeMappable()) {
-        haveYoking = true;
-    }
-    if (haveMultipleMaps) {
-        haveYoking = true;
+    if (haveFile) {
+        if (selectedFile->isSurfaceMappable()
+            && selectedFile->isVolumeMappable()) {
+            haveYoking = true;
+        }
+        if (haveMultipleMaps) {
+            haveYoking = true;
+        }
     }
     
     /*

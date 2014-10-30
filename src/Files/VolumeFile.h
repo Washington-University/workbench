@@ -38,6 +38,7 @@
 namespace caret {
     
     class GroupAndNameHierarchyModel;
+    class VolumeFileEditorDelegate;
     class VolumeFileVoxelColorizer;
     class VolumeSpline;
     
@@ -93,6 +94,8 @@ namespace caret {
         
         /** force an update of the class and name hierarchy */
         mutable bool m_forceUpdateOfGroupAndNameHierarchy;
+        
+        CaretPointer<VolumeFileEditorDelegate> m_volumeFileEditorDelegate;
         
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
@@ -284,6 +287,8 @@ namespace caret {
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
         const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
+        
+        VolumeFileEditorDelegate* getVolumeFileEditorDelegate();
         
         virtual bool isBrainordinateChartingEnabled(const int32_t tabIndex) const;
         

@@ -105,7 +105,7 @@ VolumeMapUndoCommand::count() const
 
 
 /**
- * Add the undo and redo values for a voxel.
+ * Add the redo and undo values for a voxel.
  * 
  * @param ijk
  *     The voxel's indices.
@@ -115,7 +115,7 @@ VolumeMapUndoCommand::count() const
  *     Value for undo operation.
  */
 void
-VolumeMapUndoCommand::addVoxelUndoRedo(const int64_t ijk[3],
+VolumeMapUndoCommand::addVoxelRedoUndo(const int64_t ijk[3],
                                        const float redoValue,
                                        const float undoValue)
 {

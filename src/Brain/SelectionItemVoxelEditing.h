@@ -39,6 +39,8 @@ namespace caret {
         
         const VolumeFile* getVolumeFileForEditing() const;
         
+        VolumeFile* getVolumeFileForEditing();
+        
         void setVolumeFileForEditing(VolumeFile* volumeFile);
         
         virtual void reset();

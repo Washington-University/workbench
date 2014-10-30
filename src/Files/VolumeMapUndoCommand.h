@@ -44,7 +44,7 @@ namespace caret {
         
         int32_t count() const;
         
-        void addVoxelUndoRedo(const int64_t ijk[3],
+        void addVoxelRedoUndo(const int64_t ijk[3],
                               const float redoValue,
                               const float undoValue);
         

@@ -64,14 +64,15 @@ namespace caret {
         
         bool getVolumeEditInfo(VolumeEditInfo& volumeEditInfo);
         
+        void updateGraphicsAfterEditing(VolumeFile* volumeFile,
+                                        const int32_t mapIndex);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
         UserInputModeVolumeEdit(const UserInputModeVolumeEdit&);
 
         UserInputModeVolumeEdit& operator=(const UserInputModeVolumeEdit&);
-        
-        void updateGraphicsAfterEditing();
         
         const int32_t m_windowIndex;
         
