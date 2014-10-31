@@ -114,47 +114,47 @@ VolumeEditingModeEnum::initialize()
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_ON,
                                              "VOLUME_EDITING_MODE_ON",
                                              "On",
-                                             "Turn voxels on"));
+                                             "Turn voxels on at mouse click"));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_OFF,
                                              "VOLUME_EDITING_MODE_OFF",
                                              "Off",
-                                             "Turn voxels off"));
+                                             "Turn voxels off at mouse click"));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_DILATE,
                                              "VOLUME_EDITING_MODE_DILATE",
                                              "Dilate",
-                                             "Dilate voxels"));
+                                             "Dilate voxels at mouse click"));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_ERODE,
                                              "VOLUME_EDITING_MODE_ERODE",
                                              "Erode",
-                                             "Erode voxels"));
+                                             "Erode voxels at mouse click"));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_FLOOD_FILL_2D,
                                              "VOLUME_EDITING_MODE_FLOOD_FILL_2D",
                                              "Fill 2D",
-                                             "Fill closed region (2D)"));
+                                             "Fill closed region (2D) at mouse click"));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_FLOOD_FILL_3D,
                                              "VOLUME_EDITING_MODE_FLOOD_FILL_3D",
                                              "Fill 3D",
-                                             "Fill closed region (3D)"));
+                                             "Fill closed region (3D) at mouse click"));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D,
                                              "VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D",
                                              "Remove 2D",
-                                             "Remove connected region (2D)"));
+                                             "Remove connected region (2D) at mouse click"));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D,
                                              "VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D",
                                              "Remove 3D",
-                                             "Remove connected region (3D)"));
+                                             "Remove connected region (3D) at mouse click"));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_RETAIN_CONNECTED_3D,
                                              "VOLUME_EDITING_MODE_RETAIN_CONNECTED_3D",
                                              "Retain 3D",
-                                             "Remove voxel not connected to region (3D)"));
+                                             "Remove voxel not connected to region (3D) at mouse click"));
     
 }
 

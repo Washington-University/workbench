@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
+
 #define __VOLUME_FILE_EDITOR_DELEGATE_DECLARE__
 #include "VolumeFileEditorDelegate.h"
 #undef __VOLUME_FILE_EDITOR_DELEGATE_DECLARE__
@@ -599,10 +601,10 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
                 bool voxelMatches = false;
                 
                 /*
-                 * If eroding, look for "NOT OFF" voxels
+                 * If eroding, look for voxels with "turn on" value
                  */
                 if (! dilateFlag) {
-                    if (value != voxelValueOff) {
+                    if (value == voxelValueOn) {
                         voxelMatches = true;
                     }
                 }
@@ -690,11 +692,12 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
                                     float value = m_volumeFile->getValue(iijjkk);
                                     
                                     /*
-                                     * If dilating, look for voxels that are "NOT OFF"
-                                     * under the structuring element
+                                     * If dilating, look for voxels that are the
+                                     * turn on value under the structuring 
+                                     * element.
                                      */
                                     if (dilateFlag) {
-                                        if (value != voxelValueOff) {
+                                        if (value == voxelValueOn) {
                                             foundVoxelFlag = true;
                                             break;
                                         }
@@ -705,7 +708,7 @@ VolumeFileEditorDelegate::performDilateOrErode(const VolumeEditingModeEnum::Enum
                                      * under the structuring element
                                      */
                                     if ( ! dilateFlag) {
-                                        if (value == voxelValueOff) {
+                                        if (value != voxelValueOn) {
                                             foundVoxelFlag = true;
                                             break;
                                         }
@@ -946,8 +949,120 @@ VolumeFileEditorDelegate::performRetainConnected3D(const int64_t mapIndex,
                                                    const float voxelValueOff,
                                                    AString& errorMessageOut)
 {
-    errorMessageOut = "Retain connected 3D not yet implemented.";
-    return false;
+    if (m_volumeFile->getValue(voxelIJK, mapIndex) == voxelValueOff) {
+        errorMessageOut = "Voxel value is zero or the unassigned.";
+        return false;
+    }
+    
+    
+    CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
+    modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
+                                                    mapIndex));
+    
+
+    /*
+     * Tracks visited voxels
+     */
+    const int64_t numVoxels = (m_volumeDimensions[0] * m_volumeDimensions[1] * m_volumeDimensions[2]);
+    std::vector<bool> visitedVoxelFlags(numVoxels, false);
+    
+    /*
+     * Tracks voxels that are connected
+     */
+    std::vector<bool> connectedVoxelFlags(numVoxels, false);
+    
+    /*
+     * Initialize to the staring voxel
+     */
+    std::stack<VoxelIJK> st;
+    st.push(VoxelIJK(voxelIJK));
+    
+    /*
+     * While there are voxels to process
+     */
+    while (st.empty() == false) {
+        /*
+         * Get the next voxel to process
+         */
+        const VoxelIJK v = st.top();
+        st.pop();
+        
+        const int64_t visitedFlagsOffset = (v.m_ijk[0]
+                                       + (v.m_ijk[1] * (m_volumeDimensions[0]))
+                                       + (v.m_ijk[2] * m_volumeDimensions[0] * m_volumeDimensions[1]));
+        CaretAssertVectorIndex(visitedVoxelFlags, visitedFlagsOffset);
+        if (visitedVoxelFlags[visitedFlagsOffset]) {
+            continue;
+        }
+        visitedVoxelFlags[visitedFlagsOffset] = true;
+        
+        if (m_volumeFile->getValue(v.m_ijk, mapIndex) == voxelValueOff) {
+            continue;
+        }
+        
+        connectedVoxelFlags[visitedFlagsOffset] = true;
+        
+        int64_t ijkMin[3] = {
+            v.m_ijk[0] - 1,
+            v.m_ijk[1] - 1,
+            v.m_ijk[2] - 1
+        };
+        clampVoxelIndices(ijkMin);
+        
+        int64_t ijkMax[3] = {
+            v.m_ijk[0] + 1,
+            v.m_ijk[1] + 1,
+            v.m_ijk[2] + 1
+        };
+        clampVoxelIndices(ijkMax);
+        
+        /*
+         * Add neighbors to search
+         */
+        for (int64_t i = ijkMin[0]; i <= ijkMax[0]; i++) {
+            for (int64_t j = ijkMin[1]; j <= ijkMax[1]; j++) {
+                for (int64_t k = ijkMin[2]; k <= ijkMax[2]; k++) {
+                        const int64_t flagsOffset = (i
+                                                     + (j * (m_volumeDimensions[0]))
+                                                     + (k * m_volumeDimensions[0] * m_volumeDimensions[1]));
+                        if (visitedVoxelFlags[flagsOffset]) {
+                            continue;
+                        }
+                        
+                        if (m_volumeFile->getValue(i, j, k, mapIndex) != voxelValueOff) {
+                            st.push(VoxelIJK(i, j, k));
+                        }
+                }
+                
+            }
+        }
+    }
+    
+    /*
+     * Turn off not connected voxels
+     */
+    for (int64_t i = 0; i < m_volumeDimensions[0]; i++) {
+        for (int64_t j = 0; j < m_volumeDimensions[1]; j++) {
+            for (int64_t k = 0; k < m_volumeDimensions[2]; k++) {
+                const int64_t flagsOffset = (i
+                                             + (j * (m_volumeDimensions[0]))
+                                             + (k * m_volumeDimensions[0] * m_volumeDimensions[1]));
+                if ( ! connectedVoxelFlags[flagsOffset]) {
+                    modifiedVoxels->addVoxelRedoUndo(i, j, k,
+                                                     voxelValueOff,
+                                                     m_volumeFile->getValue(i, j, k, mapIndex));
+                    
+                    m_volumeFile->setValue(voxelValueOff,
+                                           i, j, k, mapIndex);
+                }
+            }
+        }
+    }
+
+    addToMapUndoStacks(mapIndex,
+                       modifiedVoxels.releasePointer());
+
+    return true;
 }
 
 /**
@@ -1013,6 +1128,11 @@ VolumeFileEditorDelegate::performFloodFillAndRemoveConnected(const VolumeEditing
     modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
                                                     mapIndex));
     
+    float newVoxelValue = voxelValueOff;
+    if (fillingFlag) {
+        newVoxelValue = voxelValueOn;
+    }
+    
     /*
      * Initialize to the staring voxel
      */
@@ -1046,10 +1166,10 @@ VolumeFileEditorDelegate::performFloodFillAndRemoveConnected(const VolumeEditing
              */
             bool matchingVoxel = false;
             if (fillingFlag) {
-                matchingVoxel = (currentValue == 0.0);
+                matchingVoxel = (currentValue == voxelValueOff);
             }
             else {
-                matchingVoxel = (currentValue != 0.0);
+                matchingVoxel = (currentValue == voxelValueOn);
             }
             
             /*
@@ -1060,12 +1180,12 @@ VolumeFileEditorDelegate::performFloodFillAndRemoveConnected(const VolumeEditing
                  * Update the voxels value
                  */
                 modifiedVoxels->addVoxelRedoUndo(ijk,
-                                                 voxelValueOff,
+                                                 newVoxelValue,
                                                  m_volumeFile->getValue(ijk, mapIndex));
-                m_volumeFile->setValue(voxelValueOff,
+                m_volumeFile->setValue(newVoxelValue,
                                        ijk,
                                        mapIndex);
-                
+
                 /*
                  * Determine neighboring voxels
                  */
@@ -1125,7 +1245,7 @@ VolumeFileEditorDelegate::performFloodFillAndRemoveConnected(const VolumeEditing
             }
         }
     }
-    
+
     addToMapUndoStacks(mapIndex,
                        modifiedVoxels.releasePointer());
     

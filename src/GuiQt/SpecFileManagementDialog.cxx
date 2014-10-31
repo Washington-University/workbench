@@ -1748,6 +1748,8 @@ SpecFileManagementDialog::okButtonClickedManageAndSaveFiles()
             break;
     }
     
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    
     return allowDialogToClose;
 }
 

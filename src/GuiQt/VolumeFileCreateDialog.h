@@ -97,6 +97,8 @@ namespace caret {
         
         VolumeFile* m_volumeFile;
 
+        static int32_t s_fileNameCounter;
+        
         static PreviousVolumeSettings s_previousVolumeSettings;
 
         static bool s_previousVolumeSettingsValid;
@@ -106,6 +108,7 @@ namespace caret {
     };
     
 #ifdef __VOLUME_FILE_CREATE_DIALOG_DECLARE__
+    int32_t VolumeFileCreateDialog::s_fileNameCounter = 1;
     VolumeFileCreateDialog::PreviousVolumeSettings VolumeFileCreateDialog::s_previousVolumeSettings;
     bool VolumeFileCreateDialog::s_previousVolumeSettingsValid = false;
 #endif // __VOLUME_FILE_CREATE_DIALOG_DECLARE__

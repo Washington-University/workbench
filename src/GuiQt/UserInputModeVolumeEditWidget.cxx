@@ -366,6 +366,10 @@ UserInputModeVolumeEditWidget::newFileActionTriggered()
     VolumeFileCreateDialog newVolumeDialog(m_newFileToolButton);
     if (newVolumeDialog.exec() == VolumeFileCreateDialog::Accepted) {
         VolumeFile* vf = newVolumeDialog.getVolumeFile();
+        for (int32_t i = 0; i < vf->getNumberOfMaps(); i++) {
+            vf->getVolumeFileEditorDelegate()->setLocked(i,
+                                                       false);
+        }
         
         EventDataFileAdd addFileEvent(vf);
         EventManager::get()->sendEvent(addFileEvent.getPointer());

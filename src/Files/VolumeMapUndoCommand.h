@@ -48,6 +48,12 @@ namespace caret {
                               const float redoValue,
                               const float undoValue);
         
+        void addVoxelRedoUndo(const int64_t i,
+                              const int64_t j,
+                              const int64_t k,
+                              const float redoValue,
+                              const float undoValue);
+        
         // ADD_NEW_METHODS_HERE
 
     private:

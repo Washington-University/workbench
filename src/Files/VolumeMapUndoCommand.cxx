@@ -124,6 +124,30 @@ VolumeMapUndoCommand::addVoxelRedoUndo(const int64_t ijk[3],
                                                undoValue));
 }
 
+/**
+ * Add the redo and undo values for a voxel.
+ *
+ * @param i
+ *     The voxel's "i" index.
+ * @param j
+ *     The voxel's "j" index.
+ * @param k
+ *     The voxel's "k" index.
+ * @param redoValue
+ *     Value for redo operation.
+ * @param undoValue
+ *     Value for undo operation.
+ */
+void
+VolumeMapUndoCommand::addVoxelRedoUndo(const int64_t i,
+                                       const int64_t j,
+                                       const int64_t k,
+                                       const float redoValue,
+                                       const float undoValue)
+{
+    const int64_t ijk[3] = { i, j, k };
+    addVoxelRedoUndo(ijk, redoValue, undoValue);
+}
 /* ------------------------------------------------------------------ */
 /**
  * Constructor.

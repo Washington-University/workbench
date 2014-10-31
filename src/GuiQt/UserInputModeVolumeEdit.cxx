@@ -157,12 +157,9 @@ UserInputModeVolumeEdit::mouseLeftClick(const MouseEvent& mouseEvent)
                                                                 mouseY);
     if ((volumeEditInfo.m_volumeFile == idEditVoxel->getVolumeFile())
         && idEditVoxel->isValid()) {
-        std::cout << "Selected " << qPrintable(volumeEditInfo.m_volumeFile->getFileNameNoPath()) << std::endl;
-        
         int64_t ijk[3];
         idEditVoxel->getVoxelIJK(ijk);
         
-        std::cout << "   Voxel: " << qPrintable(AString::fromNumbers(ijk, 3, ",")) << std::endl;
         VolumeEditingModeEnum::Enum editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON;
         int32_t brushSizes[3] = { 0, 0, 0 };
         float paletteMappedValue = 0;

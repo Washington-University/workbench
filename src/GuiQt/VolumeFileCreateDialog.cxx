@@ -94,8 +94,14 @@ VolumeFileCreateDialog::addMapToVolumeFileWidget()
 QWidget*
 VolumeFileCreateDialog::createNewVolumeFileWidget()
 {
+    const AString defaultFileName = ("File_"
+                                     + AString::number(s_fileNameCounter)
+                                     + ".nii.gz");
+    s_fileNameCounter++;
+    
     QLabel* newFileNameLabel = new QLabel("Name:");
     m_newFileNameLineEdit = new QLineEdit();
+    m_newFileNameLineEdit->setText(defaultFileName);
     QPushButton* newFileNamePushButton = new QPushButton("Select...");
     QObject::connect(newFileNamePushButton, SIGNAL(clicked()),
                      this, SLOT(newFileNamePushButtonClicked()));
@@ -223,6 +229,8 @@ VolumeFileCreateDialog::createNewVolumeFileWidget()
         m_newOriginZSpinBox->setValue(m[2][3]);
     }
     
+    m_newFileNameLineEdit->selectAll();
+    
     return widget;
 }
 
@@ -254,36 +262,61 @@ VolumeFileCreateDialog::newFileNamePushButtonClicked()
 void
 VolumeFileCreateDialog::okButtonClicked()
 {
-    const AString filename = m_newFileNameLineEdit->text().trimmed();
+    AString filename = m_newFileNameLineEdit->text().trimmed();
     if (filename.isEmpty()) {
         WuQMessageBox::errorOk(this, "Filename is empty.");
         return;
     }
+    
     if (! DataFileTypeEnum::isValidFileExtension(filename,
                                                DataFileTypeEnum::VOLUME)) {
         AString validExtensions;
         const std::vector<AString> allExts = DataFileTypeEnum::getAllFileExtensions(DataFileTypeEnum::VOLUME);
+        const int32_t numExts = static_cast<int32_t>(allExts.size());
         
-        AString allExtsString;
-        for (std::vector<AString>::const_iterator iter = allExts.begin();
-             iter != allExts.end();
-             iter++) {
-            allExtsString += (*iter + " ");
+        WuQDataEntryDialog ded("Invalid Volume File Extension",
+                               m_newFileNameLineEdit);
+        ded.setTextAtTop("Filename extension is invalid.  Choose one "
+                         "of the extensions below and press OK.  Otherwise, "
+                         "press Cancel to change the name of the file.",
+                         true);
+        
+        std::vector<QRadioButton*> extButtons;
+        for (int32_t i = 0; i < numExts; i++) {
+            QRadioButton* rb = ded.addRadioButton("." + allExts[i]);
+            if (allExts[i] == "nii.gz") {
+                rb->setChecked(true);
+            }
+            extButtons.push_back(rb);
         }
-        WuQMessageBox::errorOk(this,
-                               ("Filename must end with "
-                                + allExtsString));
-        return;
+        
+        bool extValid = false;
+        if (ded.exec() == WuQDataEntryDialog::Accepted) {
+            for (int32_t i = 0; i < numExts; i++) {
+                QRadioButton* rb = extButtons[i];
+                if (rb->isChecked()) {
+                    filename += rb->text();
+                    extValid = true;
+                    break;
+                }
+            }
+            
+        }
+        
+        if ( ! extValid) {
+            return;
+        }
     }
-    
+
     const int typeIndex = m_newFileTypeComboBox->currentIndex();
     const SubvolumeAttributes::VolumeType volumeType = static_cast<SubvolumeAttributes::VolumeType>(m_newFileTypeComboBox->itemData(typeIndex).toInt());
     
+    const int32_t numMaps = m_newFileNumberOfMapsSpinBox->value();
     std::vector<int64_t> dimensions;
     dimensions.push_back(m_newDimXSpinBox->value());
     dimensions.push_back(m_newDimYSpinBox->value());
     dimensions.push_back(m_newDimZSpinBox->value());
-    dimensions.push_back(m_newFileNumberOfMapsSpinBox->value());
+    dimensions.push_back(numMaps);
     
     const float xOrigin = m_newOriginXSpinBox->value();
     const float yOrigin = m_newOriginYSpinBox->value();
@@ -331,6 +364,31 @@ VolumeFileCreateDialog::okButtonClicked()
     s_previousVolumeSettings.m_indexToSpace = indexToSpace;
     s_previousVolumeSettings.m_volumeType = volumeType;
     s_previousVolumeSettingsValid = true;
+    
+    float defaultValue = 0.0;
+    if (numMaps > 0) {
+        switch (volumeType) {
+            case SubvolumeAttributes::ANATOMY:
+                break;
+            case SubvolumeAttributes::FUNCTIONAL:
+                break;
+            case SubvolumeAttributes::LABEL:
+                defaultValue = m_volumeFile->getMapLabelTable(0)->getUnassignedLabelKey();
+                break;
+            case SubvolumeAttributes::RGB:
+                CaretAssert(0);
+                break;
+            case SubvolumeAttributes::SEGMENTATION:
+                break;
+            case SubvolumeAttributes::UNKNOWN:
+                CaretAssert(0);
+                break;
+            case SubvolumeAttributes::VECTOR:
+                CaretAssert(0);
+                break;
+        }
+    }
+    m_volumeFile->setValueAllVoxels(defaultValue);
     
     WuQDialog::okButtonClicked();
 }
