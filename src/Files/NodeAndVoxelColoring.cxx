@@ -598,41 +598,44 @@ NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(const 
         const GiftiLabel* gl = labelTable->getLabel(labelKey);
         if (gl != NULL) {
             const GroupAndNameHierarchyItem* item = gl->getGroupNameSelectionItem();
+            bool colorDataFlag = false;
             if (item != NULL) {
-                bool colorDataFlag = false;
                 if (tabIndex == NodeAndVoxelColoring::INVALID_TAB_INDEX) {
                     colorDataFlag = true;
                 }
                 else if (item->isSelected(displayGroup, tabIndex)) {
                     colorDataFlag = true;
                 }
-                
-                if (colorDataFlag) {
-                    gl->getColor(labelRGBA);
-                    if (labelRGBA[3] > 0.0) {
-                        const int64_t i4 = i * 4;
-                        
-                        switch (colorDataType) {
-                            case COLOR_TYPE_FLOAT:
-                                CaretAssertArrayIndex(rgbaFloat, numberOfIndices * 4, i*4+3);
-                                rgbaFloat[i*4] = labelRGBA[0];
-                                rgbaFloat[i*4+1] = labelRGBA[1];
-                                rgbaFloat[i*4+2] = labelRGBA[2];
-                                rgbaFloat[i*4+3] = labelRGBA[3];
-                                break;
-                            case COLOR_TYPE_UNSIGNED_BTYE:
-                                CaretAssertArrayIndex(rgbaUnsignedByte, numberOfIndices * 4, i*4+3);
-                                rgbaUnsignedByte[i4]   = labelRGBA[0] * 255.0;
-                                rgbaUnsignedByte[i4+1] = labelRGBA[1] * 255.0;
-                                rgbaUnsignedByte[i4+2] = labelRGBA[2] * 255.0;
-                                if (labelRGBA[3] > 0.0) {
-                                    rgbaUnsignedByte[i4+3] = labelRGBA[3] * 255.0;
-                                }
-                                else {
-                                    rgbaUnsignedByte[i4+3] = 0;
-                                }
-                                break;
-                        }
+            }
+            else {
+                colorDataFlag = true;
+            }
+            
+            if (colorDataFlag) {
+                gl->getColor(labelRGBA);
+                if (labelRGBA[3] > 0.0) {
+                    const int64_t i4 = i * 4;
+                    
+                    switch (colorDataType) {
+                        case COLOR_TYPE_FLOAT:
+                            CaretAssertArrayIndex(rgbaFloat, numberOfIndices * 4, i*4+3);
+                            rgbaFloat[i*4] = labelRGBA[0];
+                            rgbaFloat[i*4+1] = labelRGBA[1];
+                            rgbaFloat[i*4+2] = labelRGBA[2];
+                            rgbaFloat[i*4+3] = labelRGBA[3];
+                            break;
+                        case COLOR_TYPE_UNSIGNED_BTYE:
+                            CaretAssertArrayIndex(rgbaUnsignedByte, numberOfIndices * 4, i*4+3);
+                            rgbaUnsignedByte[i4]   = labelRGBA[0] * 255.0;
+                            rgbaUnsignedByte[i4+1] = labelRGBA[1] * 255.0;
+                            rgbaUnsignedByte[i4+2] = labelRGBA[2] * 255.0;
+                            if (labelRGBA[3] > 0.0) {
+                                rgbaUnsignedByte[i4+3] = labelRGBA[3] * 255.0;
+                            }
+                            else {
+                                rgbaUnsignedByte[i4+3] = 0;
+                            }
+                            break;
                     }
                 }
             }
