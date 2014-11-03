@@ -509,8 +509,8 @@ UserInputModeVolumeEditWidget::editingModeActionTriggered(QAction* action)
     const int modeInt = action->data().toInt();
     
     bool validFlag = false;
-    const VolumeEditingModeEnum::Enum editMode = VolumeEditingModeEnum::fromIntegerCode(modeInt,
-                                                                                        &validFlag);
+    (void)VolumeEditingModeEnum::fromIntegerCode(modeInt,
+                                                 &validFlag);
     CaretAssert(validFlag);
 }
 

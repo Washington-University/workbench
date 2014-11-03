@@ -66,75 +66,76 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        class EditInfo {
+        public:
+            EditInfo(const int32_t mapIndex,
+                     const VolumeEditingModeEnum::Enum mode,
+                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                     const int64_t voxelIJK[3],
+                     const int64_t ijkMin[3],
+                     const int64_t ijkMax[3],
+                     const int64_t brushSize[3],
+                     const float voxelValueOn,
+                     const float voxelValueOff)
+            : m_mapIndex(mapIndex),
+            m_mode(mode),
+            m_slicePlane(slicePlane),
+            m_voxelValueOn(voxelValueOn),
+            m_voxelValueOff(voxelValueOff) {
+                m_voxelIJK[0] = voxelIJK[0];
+                m_voxelIJK[1] = voxelIJK[1];
+                m_voxelIJK[2] = voxelIJK[2];
+                
+                m_brushSize[0] = brushSize[0];
+                m_brushSize[1] = brushSize[1];
+                m_brushSize[2] = brushSize[2];
+                
+                m_ijkMin[0] = ijkMin[0];
+                m_ijkMin[1] = ijkMin[1];
+                m_ijkMin[2] = ijkMin[2];
+                
+                m_ijkMax[0] = ijkMax[0];
+                m_ijkMax[1] = ijkMax[1];
+                m_ijkMax[2] = ijkMax[2];
+            }
+            
+            const int32_t m_mapIndex;
+            const VolumeEditingModeEnum::Enum m_mode;
+            const VolumeSliceViewPlaneEnum::Enum m_slicePlane;
+            int64_t m_voxelIJK[3];
+            int64_t m_ijkMin[3];
+            int64_t m_ijkMax[3];
+            int64_t m_brushSize[3];
+            const float m_voxelValueOn;
+            const float m_voxelValueOff;
+        };
+        
         VolumeFileEditorDelegate(const VolumeFileEditorDelegate&);
 
         VolumeFileEditorDelegate& operator=(const VolumeFileEditorDelegate&);
         
-        bool performTurnOnOrOff(const VolumeEditingModeEnum::Enum mode,
-                                const int64_t mapIndex,
-                           const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                           const int64_t minIJK[3],
-                           const int64_t maxIJK[3],
-                           const float voxelValueOn,
-                                const float voxelValueOff,
+        bool performTurnOnOrOff(const EditInfo& editInfo,
                            AString& errorMessageOut);
         
-        bool performDilateOrErode(const VolumeEditingModeEnum::Enum mode,
-                           const int64_t mapIndex,
-                           const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                  const int64_t minIJK[3],
-                                  const int64_t maxIJK[3],
-                                  const float voxelValueOn,
-                                  const float voxelValueOff,
+        bool performDilateOrErode(const EditInfo& editInfo,
                            AString& errorMessageOut);
         
-        bool performFloodFill2D(const int64_t mapIndex,
-                                const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                const int64_t voxelIJK[3],
-                                const int64_t brushSize[3],
-                                const float voxelValueOn,
-                                const float voxelValueOff,
+        bool performFloodFill2D(const EditInfo& editInfo,
                                 AString& errorMessageOut);
         
-        bool performFloodFill3D(const int64_t mapIndex,
-                                const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                const int64_t voxelIJK[3],
-                                const int64_t brushSize[3],
-                                const float voxelValueOn,
-                                const float voxelValueOff,
+        bool performFloodFill3D(const EditInfo& editInfo,
                                 AString& errorMessageOut);
         
-        bool performRemoveConnected2D(const int64_t mapIndex,
-                                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                      const int64_t voxelIJK[3],
-                                      const int64_t brushSize[3],
-                                      const float voxelValueOn,
-                                      const float voxelValueOff,
+        bool performRemoveConnected2D(const EditInfo& editInfo,
                                       AString& errorMessageOut);
         
-        bool performRemoveConnected3D(const int64_t mapIndex,
-                                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                      const int64_t voxelIJK[3],
-                                      const int64_t brushSize[3],
-                                      const float voxelValueOn,
-                                      const float voxelValueOff,
+        bool performRemoveConnected3D(const EditInfo& editInfo,
                                       AString& errorMessageOut);
         
-        bool performRetainConnected3D(const int64_t mapIndex,
-                                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                      const int64_t voxelIJK[3],
-                                      const int64_t brushSize[3],
-                                      const float voxelValueOn,
-                                      const float voxelValueOff,
+        bool performRetainConnected3D(const EditInfo& editInfo,
                                       AString& errorMessageOut);
         
-        bool performFloodFillAndRemoveConnected(const VolumeEditingModeEnum::Enum mode,
-                                                const int64_t mapIndex,
-                                                const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                                const int64_t voxelIJK[3],
-                                                const int64_t brushSize[3],
-                                                const float voxelValueOn,
-                                                const float voxelValueOff,
+        bool performFloodFillAndRemoveConnected(const EditInfo& editInfo,
                                                 AString& errorMessageOut);
         
         int64_t clampDimensionIndex(const int64_t maxDim,
