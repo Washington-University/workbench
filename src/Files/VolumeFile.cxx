@@ -1280,6 +1280,10 @@ VolumeFile::clearVoxelColoringForMap(const int64_t mapIndex)
     CaretAssert(m_voxelColorizer);
     
     m_voxelColorizer->clearVoxelColoringForMap(mapIndex);
+    
+    if (isMappedWithLabelTable()) {
+        m_forceUpdateOfGroupAndNameHierarchy = true;
+    }
 }
 
 /**

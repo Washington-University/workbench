@@ -463,6 +463,10 @@ GiftiLabelTableEditor::colorEditorColorChanged(const float* rgba)
             m_borderFile->invalidateAllAssignedColors();
         }
         else if (m_caretMappableDataFile != NULL) {
+            VolumeFile* volumeFile = dynamic_cast<VolumeFile*>(m_caretMappableDataFile);
+            if (volumeFile != NULL) {
+                volumeFile->clearVoxelColoringForMap(m_caretMappableDataFileMapIndex);
+            }
             GroupAndNameHierarchyItem* item = gl->getGroupNameSelectionItem();
             if (item != NULL) {
                 item->setIconColorRGBA(rgba);
@@ -617,23 +621,28 @@ GiftiLabelTableEditor::newButtonClicked()
         }
     }
     
-    float red   = 0.0;
-    float green = 0.0;
-    float blue  = 0.0;
-    float alpha = 1.0;
+    float rgba[4] = {
+        0.0,
+        0.0,
+        0.0,
+        1.0
+    };
     m_giftiLableTable->addLabel(name,
-                                    red,
-                                    green,
-                                    blue,
-                                    alpha);
+                                    rgba[0],
+                                    rgba[1],
+                                    rgba[2],
+                                    rgba[3]);
     
     loadLabels(name, false);
     
-    m_labelNameLineEdit->selectAll();
 //    m_labelNameLineEdit->grabKeyboard();
 //    m_labelNameLineEdit->grabMouse();
-    m_labelNameLineEdit->setFocus();
     listWidgetLabelSelected(-1);
+    m_labelNameLineEdit->setFocus();
+    m_labelNameLineEdit->selectAll();
+    
+    
+    colorEditorColorChanged(rgba);
 }
 
 /**

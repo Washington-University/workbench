@@ -240,6 +240,7 @@ UserInputModeVolumeEdit::updateGraphicsAfterEditing(VolumeFile* volumeFile,
     CaretAssert(volumeFile);
     CaretAssert((mapIndex >= 0) && (mapIndex < volumeFile->getNumberOfMaps()));
 
+    volumeFile->clearVoxelColoringForMap(mapIndex);
     PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
     volumeFile->updateScalarColoringForMap(mapIndex,
                                            paletteFile);
