@@ -75,6 +75,8 @@
 
 using namespace caret;
 
+/* The QSlider uses integer for min/max so use max-int / 4  (approximately) */
+static const int32_t BIG_NUMBER = 500000000;
 
     
 /**
@@ -202,7 +204,7 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                 const PaletteThresholdRangeModeEnum::Enum thresholdRangeMode = paletteColorMapping->getThresholdRangeMode();
                 this->thresholdRangeModeComboBox->setSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>(thresholdRangeMode);
                 
-                float maxValue = std::numeric_limits<float>::max();
+                float maxValue = BIG_NUMBER;
                 float minValue = -maxValue;
                 float stepMax = maxValue;
                 float stepMin = minValue;
@@ -226,11 +228,25 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                     }
                         break;
                     case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_UNLIMITED:
-                        const FastStatistics* stats = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
-                        if (stats != NULL) {
-                            stepMin = stats->getMin();
-                            stepMax = stats->getMax();
+                    {
+                        /*
+                         * For unlimited range, use twice the maximum value in the file
+                         * Using very large values can cause problems with some
+                         * Qt widgets.
+                         */
+                        float allMapMinValue = 0.0;
+                        float allMapMaxValue = 0.0;
+                        this->caretMappableDataFile->getDataRangeFromAllMaps(allMapMinValue,
+                                                                             allMapMaxValue);
+                        if (allMapMaxValue > allMapMinValue) {
+                            const float absMax = std::max(std::fabs(allMapMaxValue),
+                                                          std::fabs(allMapMinValue));
+                            minValue = -absMax * 2.0;
+                            maxValue =  absMax * 2.0;
                         }
+                        stepMin = minValue;
+                        stepMax = maxValue;
+                    }
                         break;
                 }
                 
@@ -570,8 +586,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
      */
     QLabel* thresholdLowLabel = new QLabel("Low");
     QLabel* thresholdHighLabel = new QLabel("High");
-    const float thresholdMinimum = -std::numeric_limits<float>::max();
-    const float thresholdMaximum =  std::numeric_limits<float>::max();
+    const float thresholdMinimum = -BIG_NUMBER;
+    const float thresholdMaximum =  BIG_NUMBER;
     
     this->thresholdLowSlider = new WuQDoubleSlider(Qt::Horizontal,
                                                    this);
@@ -1031,7 +1047,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
      * Fixed mapping
      */
     this->scaleFixedNegativeMaximumSpinBox =
-    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-std::numeric_limits<float>::max(),
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-BIG_NUMBER,
                                                                    0.0,
                                                                    1.0,
                                                                    3,
@@ -1044,7 +1060,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     this->scaleFixedNegativeMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     
     this->scaleFixedNegativeMinimumSpinBox =
-    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-std::numeric_limits<float>::max(),
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-BIG_NUMBER,
                                                                    0.0,
                                                                    1.0,
                                                                    3,
@@ -1058,7 +1074,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     
     this->scaleFixedPositiveMinimumSpinBox =
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
-                                                                   std::numeric_limits<float>::max(),
+                                                                   BIG_NUMBER,
                                                                    1.0,
                                                                    3,
                                                                    this,
@@ -1071,7 +1087,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     
     this->scaleFixedPositiveMaximumSpinBox =
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
-                                                                   std::numeric_limits<float>::max(),
+                                                                   BIG_NUMBER,
                                                                    1.0,
                                                                    3,
                                                                    this,
@@ -1410,11 +1426,9 @@ MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statist
         matchFlag = true;
         switch (this->paletteColorMapping->getScaleMode()) {
             case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-                //mostPos  = std::numeric_limits<float>::max();
                 mostPos  = statisticsForAll->getMax();
                 leastPos = 0.0;
                 leastNeg = 0.0;
-                //mostNeg  = -std::numeric_limits<float>::max();
                 mostNeg  = statisticsForAll->getMin();
                 break;
             case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
