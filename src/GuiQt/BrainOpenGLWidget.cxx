@@ -1175,9 +1175,11 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         {
             /*
              * Grab frame buffer seems to have a bug in that it grabs
-             * the previous buffer on Mac so grab the frame buffer twice
+             * the previous buffer on Mac so repaint to ensure frame
+             * buffer is updated.  (repaint() updates immediately,
+             * update() is a scheduled update).
              */
-            grabFrameBuffer();
+            repaint();
             image = grabFrameBuffer();
             
             /*
