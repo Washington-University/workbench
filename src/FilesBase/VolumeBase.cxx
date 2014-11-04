@@ -63,55 +63,39 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     }
     m_origDims = dimensionsIn;//save the original dimensions
     int numDims = (int)dimensionsIn.size();
-    m_dimensions[3] = 1;
+    int64_t storeDims[5];
+    storeDims[3] = 1;
     for (int i = 0; i < max(3, numDims); ++i)
     {
         if (i > 2)
         {
-            m_dimensions[3] *= dimensionsIn[i];
+            storeDims[3] *= dimensionsIn[i];
         } else {
             if (i < numDims)
             {
-                m_dimensions[i] = dimensionsIn[i];
+                storeDims[i] = dimensionsIn[i];
             } else {
-                m_dimensions[i] = 1;
+                storeDims[i] = 1;
             }
         }
     }
-    m_volSpace.setSpace(m_dimensions, indexToSpace);
-    if (m_dimensions[0] == 1 && m_dimensions[1] == 1 && m_dimensions[2] == 1 && m_dimensions[3] > 10000)
+    m_volSpace.setSpace(storeDims, indexToSpace);
+    if (storeDims[0] == 1 && storeDims[1] == 1 && storeDims[2] == 1 && storeDims[3] > 10000)
     {
         throw DataFileException("this file doesn't appear to be a volume file");
     }
-    m_dimensions[4] = numComponents;
-    m_dataSize = m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3] * m_dimensions[4];
-    if (m_dataSize > 0)
-    {
-        m_data = new float[m_dataSize];
-        setupIndexing();
-    }
+    storeDims[4] = numComponents;
+    m_storage.reinitialize(storeDims);
 }
 
 void VolumeBase::setVolumeSpace(const vector<vector<float> >& indexToSpace)
 {
-    m_volSpace.setSpace(m_dimensions, indexToSpace);
+    m_volSpace.setSpace(getDimensionsPtr(), indexToSpace);
     setModifiedVolumeBase();
 }
 
 VolumeBase::VolumeBase()
 {
-    m_data = NULL;
-    m_dataSize = 0;
-    m_indexRef = NULL;
-    m_jMult = NULL;
-    m_kMult = NULL;
-    m_bMult = NULL;
-    m_cMult = NULL;
-    m_dimensions[0] = 0;
-    m_dimensions[1] = 0;
-    m_dimensions[2] = 0;
-    m_dimensions[3] = 0;
-    m_dimensions[4] = 0;
     m_origDims.push_back(0);//give original dimensions 3 elements, just because
     m_origDims.push_back(0);
     m_origDims.push_back(0);
@@ -120,39 +104,13 @@ VolumeBase::VolumeBase()
 
 VolumeBase::VolumeBase(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
 {
-    m_data = NULL;
-    m_dataSize = 0;
-    m_indexRef = NULL;
-    m_jMult = NULL;
-    m_kMult = NULL;
-    m_bMult = NULL;
-    m_cMult = NULL;
-    try
-    {
-        reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
-    } catch (...) {
-        clear();
-        throw;
-    }
+    reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
     m_ModifiedFlag = true;
 }
 
 VolumeBase::VolumeBase(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
-    m_data = NULL;
-    m_dataSize = 0;
-    m_indexRef = NULL;
-    m_jMult = NULL;
-    m_kMult = NULL;
-    m_bMult = NULL;
-    m_cMult = NULL;
-    try
-    {
-        reinitialize(dimensionsIn, indexToSpace, numComponents);
-    } catch (...) {
-        clear();
-        throw;
-    }
+    reinitialize(dimensionsIn, indexToSpace, numComponents);
     m_ModifiedFlag = true;
 }
 
@@ -187,55 +145,52 @@ void VolumeBase::reorient(const VolumeSpace::OrientTypes newOrient[3])
         flip[i] = curReverseNeg[newOrient[i] & 3] != ((newOrient[i] & 4) != 0);
         fetchFrom[i] = curReverse[newOrient[i] & 3];
     }
-    int64_t rowSize = m_dimensions[0];
-    int64_t sliceSize = rowSize * m_dimensions[1];
-    int64_t frameSize = sliceSize * m_dimensions[2];
+    const int64_t* dims = getDimensionsPtr();
+    int64_t rowSize = dims[0];
+    int64_t sliceSize = rowSize * dims[1];
+    int64_t frameSize = sliceSize * dims[2];
     vector<float> scratchFrame(frameSize);
-    for (int c = 0; c < m_dimensions[4]; ++c)
+    int64_t newDims[5] = {dims[fetchFrom[0]], dims[fetchFrom[1]], dims[fetchFrom[2]], dims[3], dims[4]};
+    VolumeStorage newStorage(newDims);
+    for (int c = 0; c < dims[4]; ++c)
     {
-        for (int b = 0; b < m_dimensions[3]; ++b)
+        for (int b = 0; b < dims[3]; ++b)
         {
-            float* frameBase = m_data + getIndex(0, 0, 0, b, c);
-            for (int64_t i = 0; i < frameSize; ++i)
-            {
-                scratchFrame[i] = frameBase[i];
-            }
-            int64_t indices[3], oldIndices[3];
-            int64_t newInd = 0;
-            for (indices[2] = 0; indices[2] < m_dimensions[fetchFrom[2]]; ++indices[2])
+            const float* oldFrame = m_storage.getFrame(b, c);
+            int64_t newIndices[3], oldIndices[3];
+            for (newIndices[2] = 0; newIndices[2] < newDims[2]; ++newIndices[2])
             {
                 if (flip[2])
                 {
-                    oldIndices[fetchFrom[2]] = m_dimensions[fetchFrom[2]] - indices[2] - 1;
+                    oldIndices[fetchFrom[2]] = newDims[2] - newIndices[2] - 1;
                 } else {
-                    oldIndices[fetchFrom[2]] = indices[2];
+                    oldIndices[fetchFrom[2]] = newIndices[2];
                 }
-                for (indices[1] = 0; indices[1] < m_dimensions[fetchFrom[1]]; ++indices[1])
+                for (newIndices[1] = 0; newIndices[1] < newDims[1]; ++newIndices[1])
                 {
                     if (flip[1])
                     {
-                        oldIndices[fetchFrom[1]] = m_dimensions[fetchFrom[1]] - indices[1] - 1;
+                        oldIndices[fetchFrom[1]] = newDims[1] - newIndices[1] - 1;
                     } else {
-                        oldIndices[fetchFrom[1]] = indices[1];
+                        oldIndices[fetchFrom[1]] = newIndices[1];
                     }
-                    for (indices[0] = 0; indices[0] < m_dimensions[fetchFrom[0]]; ++indices[0])
+                    for (newIndices[0] = 0; newIndices[0] < newDims[0]; ++newIndices[0])
                     {
                         if (flip[0])
                         {
-                            oldIndices[fetchFrom[0]] = m_dimensions[fetchFrom[0]] - indices[0] - 1;
+                            oldIndices[fetchFrom[0]] = newDims[0] - newIndices[0] - 1;
                         } else {
-                            oldIndices[fetchFrom[0]] = indices[0];
+                            oldIndices[fetchFrom[0]] = newIndices[0];
                         }
-                        int64_t origInd = getIndex(oldIndices);
-                        frameBase[newInd] = scratchFrame[origInd];
-                        ++newInd;
+                        scratchFrame[newStorage.getIndex(newIndices, 0, 0)] = oldFrame[getIndex(oldIndices)];
                     }
                 }
             }
+            newStorage.setFrame(scratchFrame.data(), b, c);
         }
     }
     const vector<vector<float> >& oldSform = m_volSpace.getSform();
-    vector<vector<float> > indexToSpace = oldSform;//reorder and flip the sform
+    vector<vector<float> > indexToSpace = oldSform;//reorder and flip the sform - this might belong in VolumeSpace
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 3; ++j)
@@ -243,19 +198,17 @@ void VolumeBase::reorient(const VolumeSpace::OrientTypes newOrient[3])
             if (flip[j])
             {
                 indexToSpace[i][j] = -oldSform[i][fetchFrom[j]];
-                indexToSpace[i][3] += oldSform[i][fetchFrom[j]] * (m_dimensions[fetchFrom[j]] - 1);
+                indexToSpace[i][3] += oldSform[i][fetchFrom[j]] * (newDims[j] - 1);
             } else {
                 indexToSpace[i][j] = oldSform[i][fetchFrom[j]];
             }
         }
     }//and now generate the inverse for spaceToIndex
-    int64_t newDims[3] = {m_dimensions[fetchFrom[0]], m_dimensions[fetchFrom[1]], m_dimensions[fetchFrom[2]]};
     m_volSpace.setSpace(newDims, indexToSpace);
-    m_origDims[0] = (m_dimensions[0] = newDims[0]);//update m_origDims too
-    m_origDims[1] = (m_dimensions[1] = newDims[1]);
-    m_origDims[2] = (m_dimensions[2] = newDims[2]);
-    freeIndexing();//make new indexing
-    setupIndexing();
+    m_origDims[0] = newDims[0];//update m_origDims too
+    m_origDims[1] = newDims[1];
+    m_origDims[2] = newDims[2];
+    m_storage.swap(newStorage);
 }
 
 void VolumeBase::enclosingVoxel(const float* coordIn, int64_t* indexOut) const
@@ -282,28 +235,6 @@ void VolumeBase::enclosingVoxel(const float& coordIn1, const float& coordIn2, co
     indexOut3 = (int64_t)floor(0.5f + tempInd3);
 }
 
-void VolumeBase::getDimensions(vector<int64_t>& dimOut) const
-{
-    dimOut.resize(5);
-    getDimensions(dimOut[0], dimOut[1], dimOut[2], dimOut[3], dimOut[4]);
-}
-
-void VolumeBase::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimBricksOut, int64_t& numComponents) const
-{
-    dimOut1 = m_dimensions[0];
-    dimOut2 = m_dimensions[1];
-    dimOut3 = m_dimensions[2];
-    dimBricksOut = m_dimensions[3];
-    numComponents = m_dimensions[4];
-}
-
-vector<int64_t> VolumeBase::getDimensions() const
-{
-    vector<int64_t> ret;
-    getDimensions(ret);
-    return ret;
-}
-
 int64_t VolumeBase::getBrickIndexFromNonSpatialIndexes(const vector<int64_t>& extraInds) const
 {
     CaretAssert(extraInds.size() == m_origDims.size() - 3);
@@ -316,13 +247,13 @@ int64_t VolumeBase::getBrickIndexFromNonSpatialIndexes(const vector<int64_t>& ex
         CaretAssert(extraInds[i] >= 0 && extraInds[i] < m_origDims[i + 3]);
         ret = ret * m_origDims[i + 3] + extraInds[i];//factored polynomial form
     }
-    CaretAssert(ret < m_dimensions[3]);//otherwise, m_dimensions[3] and m_origDims don't match
+    CaretAssert(ret < getDimensionsPtr()[3]);//otherwise, dimensions[3] and m_origDims don't match
     return ret;
 }
 
 vector<int64_t> VolumeBase::getNonSpatialIndexesFromBrickIndex(const int64_t& brickIndex) const
 {
-    CaretAssert(brickIndex >= 0 && brickIndex < m_dimensions[3]);
+    CaretAssert(brickIndex >= 0 && brickIndex < getDimensionsPtr()[3]);
     vector<int64_t> ret;
     int extraDims = (int)m_origDims.size() - 3;
     if (extraDims <= 0) return ret;//empty vector if there are no extra-spatial dimensions, so we don't call resize(0), even though it should be safe
@@ -395,96 +326,14 @@ void VolumeBase::spaceToIndex(const float& coordIn1, const float& coordIn2, cons
 
 void VolumeBase::clear()
 {
-    if (m_data != NULL)
-    {
-        delete[] m_data;
-        m_data = NULL;
-    }
-    m_dataSize = 0;
-    freeIndexing();
+    m_storage.clear();
     m_origDims.clear();
     m_origDims.resize(3, 0);//give original dimensions 3 elements, just because
     m_extensions.clear();
 }
 
-void VolumeBase::freeIndexing()
-{
-    if (m_indexRef != NULL)
-    {//assume the entire thing exists
-        delete[] m_indexRef[0];//they were actually allocated as only 2 flat arrays
-        delete[] m_indexRef;
-        m_indexRef = NULL;
-    }
-    if (m_jMult != NULL) delete[] m_jMult;
-    if (m_kMult != NULL) delete[] m_kMult;
-    if (m_bMult != NULL) delete[] m_bMult;
-    if (m_cMult != NULL) delete[] m_cMult;
-    m_jMult = NULL;
-    m_kMult = NULL;
-    m_bMult = NULL;
-    m_cMult = NULL;
-}
-
-void VolumeBase::setupIndexing()
-{//must have valid m_dimensions and m_data before calling this, and already have the previous indexing freed
-    int64_t dim43 = m_dimensions[4] * m_dimensions[3];//sizes for the reverse indexing lookup arrays
-    int64_t dim01 = m_dimensions[0] * m_dimensions[1];//size of an xy slice
-    int64_t dim012 = dim01 * m_dimensions[2];//size of a frame
-    int64_t dim0123 = dim012 * m_dimensions[3];//*/ //size of a timeseries (single component)
-    m_cMult = new int64_t[m_dimensions[4]];//these aren't the size of the lookup arrays because we can do the math manually and take less memory (and cache space)
-    m_bMult = new int64_t[m_dimensions[3]];//it is fastest (due to cache size) to do part lookups, then part math
-    m_kMult = new int64_t[m_dimensions[2]];//m_iMult doesn't exist because the first index isn't multiplied by anthing, so can be added directly
-    m_jMult = new int64_t[m_dimensions[1]];
-    for (int64_t i = 0; i < m_dimensions[1]; ++i)
-    {
-        m_jMult[i] = i * m_dimensions[0];
-    }
-    for (int64_t i = 0; i < m_dimensions[2]; ++i)
-    {
-        m_kMult[i] = i * dim01;
-    }
-    for (int64_t i = 0; i < m_dimensions[3]; ++i)
-    {
-        m_bMult[i] = i * dim012;
-    }
-    for (int64_t i = 0; i < m_dimensions[4]; ++i)
-    {
-        m_cMult[i] = i * dim0123;
-    }
-    if ((dim012 < (int64_t)(8 * sizeof(float*) / sizeof(float))) && ((dim43 * sizeof(float*)) > (32<<20)))
-    {//if the final dimensions are small enough that the added memory usage of the last level would be more than 12.5%, and the last level would take more than 32MB of memory
-        m_indexRef = NULL;//don't use memory indexing, use the precalculated multiples
-    } else {//among other things, this prevents VolumeBase from exploding if you accidentally load a cifti instead of an actual volume
-        //
-        //EXPLANATION TIME
-        //
-        //Apologies for the oddity below, it is highly obtuse due to the effort of avoiding a large number of multiplies
-        //what it actually does is set up m_indexRef to be an array of references into m_indexRef[0], with a skip size equal to dim[3], and each m_indexRef[i] indexes into m_data with a skip of dim[2] * dim[1] * dim[0]
-        //what this accomplishes is that the lookup m_indexRef[component][brick][i + j * dim[0] + k * dim[0] * dim[1]] will be the data value at the index (i, j, k, brick, component)
-        //however, it uses the lookup tables generated above instead of multiplies, meaning that it does no multiplies at all
-        //this allows getVoxel and setVoxel to be faster than a standard index calculating flat array scheme, and actually makes it faster to get a value from the array at an index
-        //as long as the dimensions of a frame are large, it takes relatively little memory to accomplish, compared to the data of the entire volume
-        //
-        m_indexRef = new float**[m_dimensions[4]];//do dimensions in reverse order, since dim[0] moves by one float at a time
-        m_indexRef[0] = new float*[dim43];//this way, you can use m_indexRef[c][t][z][y][x] to get the value with only lookups
-        int64_t cbase = 0;
-        int64_t bbase = 0;
-        for (int64_t c = 0; c < m_dimensions[4]; ++c)
-        {
-            m_indexRef[c] = m_indexRef[0] + cbase;//pointer math, redundant for [0], but [0][1], etc needs to get set, so it is easier to loop including 0
-            for (int64_t b = 0; b < m_dimensions[3]; ++b)
-            {
-                m_indexRef[c][b] = m_data + bbase;
-                bbase += dim012;
-            }
-            cbase += m_dimensions[3];
-        }
-    }
-}
-
 VolumeBase::~VolumeBase()
 {
-    clear();
 }
 
 /**
@@ -496,36 +345,104 @@ VolumeBase::~VolumeBase()
 bool
 VolumeBase::isEmpty() const
 {
-    return (m_dimensions[0] <= 0);
+    return (getDimensionsPtr()[0] <= 0);
 }
 
-const float* VolumeBase::getFrame(const int64_t brickIndex, const int64_t component) const
+VolumeBase::VolumeStorage::VolumeStorage()
 {
-    int64_t startIndex = getIndex(0, 0, 0, brickIndex, component);
-    return m_data + startIndex;
-}
-
-void VolumeBase::setFrame(const float* frameIn, const int64_t brickIndex, const int64_t component)
-{
-    int64_t startIndex = getIndex(0, 0, 0, brickIndex, component);
-    int64_t endIndex = startIndex + m_dimensions[0] * m_dimensions[1] * m_dimensions[2];
-    int64_t inIndex = 0;//could use memcpy, but this is more obvious and should get optimized
-    for (int64_t myIndex = startIndex; myIndex < endIndex; ++myIndex)
+    for (int i = 0; i < 5; ++i)
     {
-        m_data[myIndex] = frameIn[inIndex];
-        ++inIndex;
+        m_dimensions[i] = 0;
+        m_mult[i] = 0;
     }
-    setModifiedVolumeBase();
 }
 
-void 
-VolumeBase::setValueAllVoxels(const float value)
+void VolumeBase::VolumeStorage::reinitialize(int64_t dims[5])
 {
-    for (int64_t i = 0; i < m_dataSize; i++) {
+    for (int i = 0; i < 5; ++i)
+    {
+        CaretAssert(dims[i] > 0);//stop the debugger in the right place
+        if (dims[i] < 1) throw DataFileException("VolumeStorage dimensions must be positive");//release shouldn't allow it either, though
+        m_dimensions[i] = dims[i];
+    }
+    m_mult[0] = m_dimensions[0];
+    for (int i = 1; i < 5; ++i)
+    {
+        m_mult[i] = m_mult[i - 1] * m_dimensions[i];
+    }
+    m_data.resize(m_mult[4]);
+}
+
+VolumeBase::VolumeStorage::VolumeStorage(int64_t dims[5])
+{
+    reinitialize(dims);
+}
+
+const float* VolumeBase::VolumeStorage::getFrame(const int64_t brickIndex, const int64_t component) const
+{
+    return m_data.data() + brickIndex * m_mult[2] + component * m_mult[3];//NOTE: do not use [4]
+}
+
+void VolumeBase::VolumeStorage::setFrame(const float* frameIn, const int64_t brickIndex, const int64_t component)
+{
+    int64_t start = brickIndex * m_mult[2] + component * m_mult[3];
+    for (int64_t i = 0; i < m_mult[2]; ++i)
+    {
+        m_data[i + start] = frameIn[i];
+    }
+}
+
+void VolumeBase::VolumeStorage::setValueAllVoxels(const float value)
+{
+    for (int64_t i = 0; i < m_mult[4]; ++i)
+    {
         m_data[i] = value;
     }
-    setModifiedVolumeBase();
-    //std::fill(m_data, (m_data + m_dataSize), value);
+}
+
+void VolumeBase::VolumeStorage::swap(VolumeStorage& rhs)
+{
+    m_data.swap(rhs.m_data);
+    for (int i = 0; i < 5; ++i)
+    {
+        std::swap(m_dimensions[i], rhs.m_dimensions[i]);
+        std::swap(m_mult[i], rhs.m_mult[i]);
+    }
+}
+
+void VolumeBase::VolumeStorage::getDimensions(vector<int64_t>& dimOut) const
+{
+    dimOut.resize(5);
+    for (int i = 0; i < 5; ++i)
+    {
+        dimOut[i] = m_dimensions[i];
+    }
+}
+
+void VolumeBase::VolumeStorage::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const
+{
+    dimOut1 = m_dimensions[0];
+    dimOut2 = m_dimensions[1];
+    dimOut3 = m_dimensions[2];
+    dimTimeOut = m_dimensions[3];
+    numComponents = m_dimensions[4];
+}
+
+vector<int64_t> VolumeBase::VolumeStorage::getDimensions() const
+{
+    vector<int64_t> ret;
+    getDimensions(ret);
+    return ret;
+}
+
+void VolumeBase::VolumeStorage::clear()
+{
+    m_data.clear();
+    for (int i = 0; i < 5; ++i)
+    {
+        m_dimensions[i] = 0;
+        m_mult[i] = 0;
+    }
 }
 
 /**

@@ -71,7 +71,7 @@ namespace caret {
         bool m_brickStatisticsValid;//so that setModified() doesn't do something slow
         
         /** Performs coloring of voxels.  Will be NULL if coloring is disabled. */
-        VolumeFileVoxelColorizer* m_voxelColorizer;
+        CaretPointer<VolumeFileVoxelColorizer> m_voxelColorizer;
         
         mutable CaretMutex m_splineMutex;
         
@@ -90,7 +90,7 @@ namespace caret {
         mutable float m_dataRangeMaximum;
         
         /** Holds class and name hierarchy used for display selection */
-        mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
+        mutable CaretPointer<GroupAndNameHierarchyModel> m_classNameHierarchy;
         
         /** force an update of the class and name hierarchy */
         mutable bool m_forceUpdateOfGroupAndNameHierarchy;
@@ -195,7 +195,7 @@ namespace caret {
         
         bool isVolumeMappable() const { return true; }
         
-        int32_t getNumberOfMaps() const { return m_dimensions[3]; }
+        int32_t getNumberOfMaps() const { return getDimensionsPtr()[3]; }
         
         AString getMapName(const int32_t mapIndex) const;
         

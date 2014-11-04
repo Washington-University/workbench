@@ -54,22 +54,93 @@ namespace caret {
     
     class VolumeBase : public VolumeMappableInterface
     {
-    protected:
-        VolumeSpace m_volSpace;
-        float* m_data;
-        int64_t m_dataSize;
-        int64_t m_dimensions[5];//store internally as 4d+component
-        std::vector<int64_t> m_origDims;//but keep track of the original dimensions
-        float*** m_indexRef;//some magic to avoid multiply during getVoxel/setVoxel
-        int64_t* m_jMult;//some magic for fast getIndex/getValue/setValue
-        int64_t* m_kMult;
-        int64_t* m_bMult;
-        int64_t* m_cMult;
+        class VolumeStorage
+        {
+            std::vector<float> m_data;
+            int64_t m_dimensions[5];//store internally as 4d+component
+            int64_t m_mult[5];//precalculated multipliers for getIndex/getValue/setValue - NOTE: [0] is for index[1], [4] is the entire size of the data
+            VolumeStorage(const VolumeStorage& rhs);//deny copy, assignment for now
+            VolumeStorage& operator=(const VolumeStorage& rhs);
+        public:
+            VolumeStorage();
+            VolumeStorage(int64_t dims[5]);
+            void reinitialize(int64_t dims[5]);
+            void clear();
+            
+            void getDimensions(std::vector<int64_t>& dimOut) const;//NOTE: always returns a vector of 5 elements
+            void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const;
+            std::vector<int64_t> getDimensions() const;
+            const int64_t* getDimensionsPtr() const { return m_dimensions; }
+            inline const int64_t& getNumberOfComponents() const {
+                return m_dimensions[4];
+            }
+
+            void swap(VolumeStorage& rhs);
+            
+            ///get a value at three indexes and optionally timepoint
+            inline const float& getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component) const
+            {
+                CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
+                return m_data[getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component)];
+            }
+            inline const float& getValue(const int64_t indexIn[3], const int64_t brickIndex, const int64_t component) const
+            {
+                return getValue(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+            }
+            
+            ///gets index into data array for three indexes plus time index
+            inline int64_t getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component) const
+            {
+                CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));
+                return indexIn1 + m_mult[0] * indexIn2 + m_mult[1] * indexIn3 + m_mult[2] * brickIndex + m_mult[3] * component;
+            }
+            inline int64_t getIndex(const int64_t indexIn[3], const int64_t brickIndex, const int64_t component) const
+            {
+                return getIndex(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+            }
+            
+            ///checks if an index is within array dimensions
+            inline bool indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component) const
+            {//inlined so that getValue and setValue can get optimized out entirely
+                if (indexIn1 < 0 || indexIn1 >= m_dimensions[0]) return false;
+                if (indexIn2 < 0 || indexIn2 >= m_dimensions[1]) return false;
+                if (indexIn3 < 0 || indexIn3 >= m_dimensions[2]) return false;
+                if (brickIndex < 0 || brickIndex >= m_dimensions[3]) return false;
+                if (component < 0 || component >= m_dimensions[4]) return false;
+                return true;
+            }
+            inline bool indexValid(const int64_t indexIn[3], const int64_t brickIndex, const int64_t component) const
+            {
+                return indexValid(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+            }
+            
+            ///set a value at an index triplet and optionally timepoint
+            inline void setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component)
+            {
+                CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
+                m_data[getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component)] = valueIn;
+            }
+            inline void setValue(const float& valueIn, const int64_t indexIn[3], const int64_t brickIndex, const int64_t component)
+            {
+                setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+            }
+            
+            /// set every voxel to the given value
+            void setValueAllVoxels(const float value);
+            
+            ///get a frame (const)
+            const float* getFrame(const int64_t brickIndex = 0, const int64_t component = 0) const;
+            
+            ///set a frame
+            void setFrame(const float* frameIn, const int64_t brickIndex = 0, const int64_t component = 0);
+        };
         
-        void freeIndexing();
-        void setupIndexing();//sets up the magic
+        VolumeStorage m_storage;
+        VolumeSpace m_volSpace;
+        std::vector<int64_t> m_origDims;//keep track of the original dimensions
         bool m_ModifiedFlag;
         
+    protected:
         VolumeBase();
         VolumeBase(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
         //convenience method for unsigned
@@ -101,7 +172,7 @@ namespace caret {
         }
         
         inline const int64_t& getNumberOfComponents() const {
-            return m_dimensions[4];
+            return m_storage.getNumberOfComponents();
         }
         
         ///translates extraspatial indices into a (flat) brick index
@@ -161,19 +232,13 @@ namespace caret {
         ///get a value at an index triplet and optionally timepoint
         inline const float& getValue(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0) const
         {
-            return getValue(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+            return m_storage.getValue(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
         }
         
         ///get a value at three indexes and optionally timepoint
         inline const float& getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const
         {
-            CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
-            if (m_indexRef != NULL)
-            {
-                return m_indexRef[component][brickIndex][indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3]];
-            } else {
-                return m_data[getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component)];
-            }
+            return m_storage.getValue(indexIn1, indexIn2, indexIn3, brickIndex, component);
         }
 
         /**
@@ -191,7 +256,7 @@ namespace caret {
          * @return
          *    Value of voxel containing the given coordinate.
          */
-        virtual inline float getVoxelValue(const float* coordinateIn,
+        inline float getVoxelValue(const float* coordinateIn,
                                     bool* validOut = NULL,
                                     const int64_t mapIndex = 0,
                                     const int64_t component = 0) const
@@ -223,7 +288,7 @@ namespace caret {
          * @return
          *    Value of voxel containing the given coordinate.
          */
-        virtual inline float getVoxelValue(const float coordinateX,
+        inline float getVoxelValue(const float coordinateX,
                                     const float coordinateY,
                                     const float coordinateZ,
                                     bool* validOut = NULL,
@@ -256,72 +321,59 @@ namespace caret {
         }
         
         ///get a frame (const)
-        const float* getFrame(const int64_t brickIndex = 0, const int64_t component = 0) const;
+        const float* getFrame(const int64_t brickIndex = 0, const int64_t component = 0) const { return m_storage.getFrame(brickIndex, component); }
         
         ///set a value at an index triplet and optionally timepoint
         inline void setValue(const float& valueIn, const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0)
         {
-            setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+            m_storage.setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+            setModifiedVolumeBase();
         }
         
         ///set a value at an index triplet and optionally timepoint
         inline void setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0)
         {
-            CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
-            if (m_indexRef != NULL)
-            {
-                m_indexRef[component][brickIndex][indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3]] = valueIn;
-            } else {
-                m_data[getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component)] = valueIn;
-            }
+            m_storage.setValue(valueIn, indexIn1, indexIn2, indexIn3, brickIndex, component);
             setModifiedVolumeBase();
         }
         
         /// set every voxel to the given value
-        void setValueAllVoxels(const float value);
+        void setValueAllVoxels(const float value) { m_storage.setValueAllVoxels(value); }
         
         ///set a frame
-        void setFrame(const float* frameIn, const int64_t brickIndex = 0, const int64_t component = 0);
+        void setFrame(const float* frameIn, const int64_t brickIndex = 0, const int64_t component = 0) { m_storage.setFrame(frameIn, brickIndex, component); }
 
         ///gets dimensions as a vector of 5 integers, 3 spatial, time, components
-        void getDimensions(std::vector<int64_t>& dimOut) const;
+        void getDimensions(std::vector<int64_t>& dimOut) const { m_storage.getDimensions(dimOut); }
         ///gets dimensions
-        void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const;
+        void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const
+        {
+            m_storage.getDimensions(dimOut1, dimOut2, dimOut3, dimTimeOut, numComponents);
+        }
         ///gets dimensions
-        std::vector<int64_t> getDimensions() const;
+        std::vector<int64_t> getDimensions() const { return m_storage.getDimensions(); }
+        const int64_t* getDimensionsPtr() const { return m_storage.getDimensionsPtr(); }
 
         ///gets index into data array for three indexes plus time index
         inline int64_t getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const
         {
-            CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));
-            if (m_indexRef != NULL)
-            {
-                //TRICK: use pointer math and the indexing arrays to get the index if it is set up
-                return (m_indexRef[component][brickIndex] + indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3]) - m_data;
-            } else {//otherwise, calculate via precalculated multiply arrays
-                return indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3] + m_bMult[brickIndex] + m_cMult[component];
-            }
+            return m_storage.getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component);
         }
         
         inline int64_t getIndex(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0) const
         {
-            return getIndex(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+            return m_storage.getIndex(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
         }
 
         inline bool indexValid(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0) const
         {
-            return indexValid(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+            return m_storage.indexValid(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
         }
 
         ///checks if an index is within array dimensions
         inline bool indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const
         {//inlined so that getValue and setValue can get optimized out entirely
-            if (indexIn1 < 0 || indexIn1 >= m_dimensions[0]) return false;
-            if (indexIn2 < 0 || indexIn2 >= m_dimensions[1]) return false;
-            if (indexIn3 < 0 || indexIn3 >= m_dimensions[2]) return false;
-            if (brickIndex < 0 || brickIndex >= m_dimensions[3]) return false;
-            if (component < 0 || component >= m_dimensions[4]) return false;
-            return true;
+            return m_storage.indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component);
         }
 
         void setModifiedVolumeBase();//virtual because we need the functions that change voxels in this class to call the setModified in VolumeFile if it really is a VolumeFile (which it always is)

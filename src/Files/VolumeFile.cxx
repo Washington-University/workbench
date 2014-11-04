@@ -75,9 +75,7 @@ VolumeFile::setVoxelColoringEnabled(const bool enabled)
 VolumeFile::VolumeFile()
 : VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
-    m_classNameHierarchy = NULL;
     m_forceUpdateOfGroupAndNameHierarchy = true;
-    m_voxelColorizer = NULL;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
@@ -88,9 +86,7 @@ VolumeFile::VolumeFile()
 VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
-    m_classNameHierarchy = NULL;
     m_forceUpdateOfGroupAndNameHierarchy = true;
-    m_voxelColorizer = NULL;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
@@ -102,9 +98,7 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
-    m_classNameHierarchy = NULL;
     m_forceUpdateOfGroupAndNameHierarchy = true;
-    m_voxelColorizer = NULL;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
@@ -115,6 +109,7 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
 
 void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 {
+    clear();
     VolumeBase::reinitialize(dimensionsIn, indexToSpace, numComponents);
     validateMembers();
     setType(whatType);
@@ -122,6 +117,7 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
 
 void VolumeFile::reinitialize(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 {
+    clear();
     VolumeBase::reinitialize(dimensionsIn, indexToSpace, numComponents);
     validateMembers();
     setType(whatType);
@@ -173,16 +169,8 @@ void
 VolumeFile::clear()
 {
     CaretMappableDataFile::clear();
-    
-    if (m_voxelColorizer != NULL) {
-        delete m_voxelColorizer;
-        m_voxelColorizer = NULL;
-    }
-    
-    if (m_classNameHierarchy != NULL) {
-        delete m_classNameHierarchy;
-        m_classNameHierarchy = NULL;
-    }
+    m_voxelColorizer.grabNew(NULL);
+    m_classNameHierarchy.grabNew(NULL);
     m_forceUpdateOfGroupAndNameHierarchy = true;
     
     m_caretVolExt.clear();
@@ -313,8 +301,8 @@ VolumeFile::writeFile(const AString& filename)
         outHeader = *((NiftiHeader*)m_header.getPointer());
     }
     outHeader.clearDataScaling();
-    outHeader.setSForm(m_volSpace.getSform());
-    outHeader.setDimensions(m_origDims);
+    outHeader.setSForm(getVolumeSpace().getSform());
+    outHeader.setDimensions(getOriginalDimensions());
     outHeader.setDataType(NIFTI_TYPE_FLOAT32);
     outHeader.m_extensions.clear();
     for (int64_t i = 0; i < (int64_t)m_extensions.size(); ++i)
@@ -351,6 +339,7 @@ float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool
 
 float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
 {
+    const int64_t* dimensions = getDimensionsPtr();
     switch (interp)
     {
         case CUBIC:
@@ -368,7 +357,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                 if (validOut != NULL) *validOut = false;
                 return INVALID_INTERP_VALUE;//check for valid coord before deconvolving the frame
             }
-            int64_t whichFrame = component * m_dimensions[3] + brickIndex;
+            int64_t whichFrame = component * dimensions[3] + brickIndex;
             validateSpline(brickIndex, component);
             if (validOut != NULL) *validOut = true;
             return m_frameSplines[whichFrame].sample(indexSpace);
@@ -428,9 +417,10 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
 
 void VolumeFile::validateSpline(const int64_t brickIndex, const int64_t component) const
 {
-    CaretAssert(brickIndex >= 0 && brickIndex < m_dimensions[3]);//function is public, so check inputs
-    CaretAssert(component >= 0 && component < m_dimensions[4]);
-    int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
+    const int64_t* dimensions = getDimensionsPtr();
+    CaretAssert(brickIndex >= 0 && brickIndex < dimensions[3]);//function is public, so check inputs
+    CaretAssert(component >= 0 && component < dimensions[4]);
+    int64_t numFrames = dimensions[3] * dimensions[4], whichFrame = component * dimensions[3] + brickIndex;
     if (!m_splinesValid)
     {
         CaretMutexLocker locked(&m_splineMutex);//prevent concurrent modify access to spline state
@@ -448,7 +438,7 @@ void VolumeFile::validateSpline(const int64_t brickIndex, const int64_t componen
         CaretMutexLocker locked(&m_splineMutex);//prevent concurrent modify access to spline state
         if (!m_frameSplineValid[whichFrame])//double check
         {
-            m_frameSplines[whichFrame] = VolumeSpline(getFrame(brickIndex, component), m_dimensions);
+            m_frameSplines[whichFrame] = VolumeSpline(getFrame(brickIndex, component), dimensions);
             if (m_frameSplines[whichFrame].ignoredNonNumeric())
             {
                 CaretLogWarning("ignored non-numeric input value when calculating cubic splines in volume '" + getFileName() + "', frame #" + AString::number(brickIndex + 1));
@@ -460,9 +450,10 @@ void VolumeFile::validateSpline(const int64_t brickIndex, const int64_t componen
 
 void VolumeFile::freeSpline(const int64_t brickIndex, const int64_t component) const
 {
-    CaretAssert(brickIndex >= 0 && brickIndex < m_dimensions[3]);//function is public, so check inputs
-    CaretAssert(component >= 0 && component < m_dimensions[4]);
-    int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
+    const int64_t* dimensions = getDimensionsPtr();
+    CaretAssert(brickIndex >= 0 && brickIndex < dimensions[3]);//function is public, so check inputs
+    CaretAssert(component >= 0 && component < dimensions[4]);
+    int64_t numFrames = dimensions[3] * dimensions[4], whichFrame = component * dimensions[3] + brickIndex;
     if (!m_splinesValid)
     {
         CaretMutexLocker locked(&m_splineMutex);//prevent concurrent modify access to spline state
@@ -489,17 +480,17 @@ void VolumeFile::freeSpline(const int64_t brickIndex, const int64_t component) c
 
 bool VolumeFile::matchesVolumeSpace(const VolumeFile* right) const
 {
-    return m_volSpace.matches(right->m_volSpace);
+    return getVolumeSpace().matches(right->getVolumeSpace());
 }
 
 bool VolumeFile::matchesVolumeSpace(const VolumeSpace& otherSpace) const
 {
-    return m_volSpace.matches(otherSpace);
+    return getVolumeSpace().matches(otherSpace);
 }
 
 bool VolumeFile::matchesVolumeSpace(const int64_t dims[3], const vector<vector<float> >& sform) const
 {
-    return m_volSpace.matches(VolumeSpace(dims, sform));
+    return getVolumeSpace().matches(VolumeSpace(dims, sform));
 }
 
 void VolumeFile::parseExtensions()
@@ -593,12 +584,12 @@ void VolumeFile::updateCaretExtension()
 void VolumeFile::validateMembers()
 {
     m_dataRangeValid = false;
-    m_frameSplineValid = vector<bool>(m_dimensions[3] * m_dimensions[4], false);
-    m_frameSplines = vector<VolumeSpline>(m_dimensions[3] * m_dimensions[4]);//release any previous spline memory
+    const int64_t* dimensions = getDimensionsPtr();
+    m_frameSplineValid = vector<bool>(dimensions[3] * dimensions[4], false);
+    m_frameSplines = vector<VolumeSpline>(dimensions[3] * dimensions[4]);//release any previous spline memory
     m_splinesValid = true;//this now indicates only if they need to all be recalculated - the frame vectors will always have the correct length
     int numMaps = getNumberOfMaps();
-    m_brickAttributes.clear();//invalidate brick attributes first
-    m_brickAttributes.resize(numMaps);//before resizing
+    m_brickAttributes.resize(numMaps);//only resize, if this was called from reinitialize, it has called clear() beforehand
     m_brickStatisticsValid = true;
     int curAttribNum = (int)m_caretVolExt.m_attributes.size();
     if (curAttribNum != numMaps)
@@ -651,13 +642,13 @@ void VolumeFile::validateMembers()
      * Will handle colorization of voxel data.
      */
     if (m_voxelColorizer != NULL) {
-        delete m_voxelColorizer;
+        m_voxelColorizer.grabNew(NULL);
     }
     if (s_voxelColoringEnabled) {
-        m_voxelColorizer = new VolumeFileVoxelColorizer(this);
+        m_voxelColorizer.grabNew(new VolumeFileVoxelColorizer(this));
     }
     if (m_classNameHierarchy == NULL) {
-        m_classNameHierarchy = new GroupAndNameHierarchyModel();
+        m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel());
     }
     m_classNameHierarchy->clear();
     m_forceUpdateOfGroupAndNameHierarchy = true;
@@ -824,9 +815,10 @@ const FastStatistics* VolumeFile::getMapFastStatistics(const int32_t mapIndex)
 {
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
     checkStatisticsValid();
+    const int64_t* dimensions = getDimensionsPtr();
     if (m_brickAttributes[mapIndex].m_fastStatistics == NULL)
     {
-        m_brickAttributes[mapIndex].m_fastStatistics.grabNew(new FastStatistics(getFrame(mapIndex), m_dimensions[0] * m_dimensions[1] * m_dimensions[2]));
+        m_brickAttributes[mapIndex].m_fastStatistics.grabNew(new FastStatistics(getFrame(mapIndex), dimensions[0] * dimensions[1] * dimensions[2]));
     }
     return m_brickAttributes[mapIndex].m_fastStatistics;
 }
@@ -835,9 +827,10 @@ const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex)
 {
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
     checkStatisticsValid();
+    const int64_t* dimensions = getDimensionsPtr();
     if (m_brickAttributes[mapIndex].m_histogram == NULL)
     {
-        m_brickAttributes[mapIndex].m_histogram.grabNew(new Histogram(100, getFrame(mapIndex), m_dimensions[0] * m_dimensions[1] * m_dimensions[2]));
+        m_brickAttributes[mapIndex].m_histogram.grabNew(new Histogram(100, getFrame(mapIndex), dimensions[0] * dimensions[1] * dimensions[2]));
     }
     return m_brickAttributes[mapIndex].m_histogram;
 }
@@ -855,8 +848,9 @@ const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex,
     {
         m_brickAttributes[mapIndex].m_histogramLimitedValues.grabNew(new Histogram(100));
     }
+    const int64_t* dimensions = getDimensionsPtr();
     m_brickAttributes[mapIndex].m_histogramLimitedValues->update(getFrame(mapIndex), 
-                                                    m_dimensions[0] * m_dimensions[1] * m_dimensions[2],
+                                                    dimensions[0] * dimensions[1] * dimensions[2],
                                                     mostPositiveValueInclusive,
                                                     leastPositiveValueInclusive,
                                                     leastNegativeValueInclusive,
@@ -989,13 +983,14 @@ VolumeFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
     boundingBoxOut.resetForUpdate();
     
     float coordinates[3];
+    const int64_t* dimensions = getDimensionsPtr();
     for (int i = 0; i < 2; ++i)//if the volume isn't plumb, we need to test all corners, so just always test all corners
     {
         for (int j = 0; j < 2; ++j)
         {
             for (int k = 0; k < 2; ++k)
             {
-                this->indexToSpace(i * m_dimensions[0] - 0.5f, j * m_dimensions[1] - 0.5f, k * m_dimensions[2] - 0.5f, coordinates);//accounts for extra half voxel on each side of each center
+                this->indexToSpace(i * dimensions[0] - 0.5f, j * dimensions[1] - 0.5f, k * dimensions[2] - 0.5f, coordinates);//accounts for extra half voxel on each side of each center
                 boundingBoxOut.update(coordinates);
             }
         }
@@ -1338,7 +1333,7 @@ VolumeFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
     /*
      * No data?
      */
-    if (m_dataSize <= 0) {
+    if (isEmpty()) {
         dataRangeMaximumOut = std::numeric_limits<float>::max();
         dataRangeMinimumOut = -dataRangeMaximumOut;
         return false;
@@ -1359,12 +1354,15 @@ VolumeFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
     m_dataRangeMaximum = -std::numeric_limits<float>::max();
     m_dataRangeMinimum = std::numeric_limits<float>::max();
     
+    const int64_t* dimensions = getDimensionsPtr();
+    int64_t m_dataSize = dimensions[0] * dimensions[1] * dimensions[2] * dimensions[3] * dimensions[4];
+    const float* data = getFrame();//HACK: use first frame knowing all data is contiguous after it
     for (int64_t i = 0; i < m_dataSize; i++) {
-        if (m_data[i] > m_dataRangeMaximum) {
-            m_dataRangeMaximum = m_data[i];
+        if (data[i] > m_dataRangeMaximum) {
+            m_dataRangeMaximum = data[i];
         }
-        if (m_data[i] < m_dataRangeMinimum) {
-            m_dataRangeMinimum = m_data[i];
+        if (data[i] < m_dataRangeMinimum) {
+            m_dataRangeMinimum = data[i];
         }
     }
     
