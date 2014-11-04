@@ -37,6 +37,8 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
+#include "CiftiMappableDataFile.h"
+#include "CaretVolumeExtension.h"
 #include "GuiManager.h"
 #include "VolumeFile.h"
 #include "WuQDataEntryDialog.h"
@@ -389,6 +391,7 @@ VolumeFileCreateDialog::okButtonClicked()
         }
     }
     m_volumeFile->setValueAllVoxels(defaultValue);
+    m_volumeFile->updateScalarColoringForAllMaps(GuiManager::get()->getBrain()->getPaletteFile());
     
     WuQDialog::okButtonClicked();
 }
@@ -400,18 +403,32 @@ void
 VolumeFileCreateDialog::loadVolumeParametersFromFilePushButtonClicked()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    const int32_t numberOfVolumeFiles = brain->getNumberOfVolumeFiles();
-    if (numberOfVolumeFiles <= 0) {
+    
+    std::vector<CaretMappableDataFile*> allMappableFiles;
+    brain->getAllMappableDataFiles(allMappableFiles);
+    
+    std::vector<CaretMappableDataFile*> volumeMappableFiles;
+    for (std::vector<CaretMappableDataFile*>::iterator allIter = allMappableFiles.begin();
+         allIter != allMappableFiles.end();
+         allIter++) {
+        CaretMappableDataFile* mapFile = *allIter;
+        if (mapFile->isVolumeMappable()) {
+            volumeMappableFiles.push_back(mapFile);
+        }
+    }
+    
+    const int32_t numberOfVolumeMappableFiles = static_cast<int32_t>(volumeMappableFiles.size());
+    if (numberOfVolumeMappableFiles <= 0) {
         WuQMessageBox::errorOk(m_paramFromFilePushButton,
-                               "No volume files are loaded.");
+                               "No volume mappable files are loaded.");
     }
     
     std::vector<QRadioButton*> volumeRadioButtons;
-    WuQDataEntryDialog dialog("Select Volume File For Parameters",
+    WuQDataEntryDialog dialog("Select File For Volume Parameters",
                               m_paramFromFilePushButton);
-    for (int32_t i = 0; i < numberOfVolumeFiles; i++) {
-        VolumeFile* vf = brain->getVolumeFile(i);
-        QRadioButton* rb = dialog.addRadioButton(vf->getFileNameNoPath());
+    for (int32_t i = 0; i < numberOfVolumeMappableFiles; i++) {
+        CaretAssertVectorIndex(volumeMappableFiles, i);
+        QRadioButton* rb = dialog.addRadioButton(volumeMappableFiles[i]->getFileNameNoPath());
         volumeRadioButtons.push_back(rb);
         if (i == 0) {
             rb->setChecked(true);
@@ -420,32 +437,87 @@ VolumeFileCreateDialog::loadVolumeParametersFromFilePushButtonClicked()
     
     
     if (dialog.exec() == WuQDataEntryDialog::Accepted) {
-        for (int32_t i = 0; i < numberOfVolumeFiles; i++) {
+        for (int32_t i = 0; i < numberOfVolumeMappableFiles; i++) {
+            CaretAssertVectorIndex(volumeRadioButtons, i);
             if (volumeRadioButtons[i]->isChecked()) {
-                VolumeFile* vf = brain->getVolumeFile(i);
+                CaretAssertVectorIndex(volumeMappableFiles, i);
+                CaretMappableDataFile* volMapFile = volumeMappableFiles[i];
+                
+                CiftiMappableDataFile* ciftiFile  = dynamic_cast<CiftiMappableDataFile*>(volMapFile);
+                VolumeFile*            volumeFile = dynamic_cast<VolumeFile*>(volMapFile);
+                
+                
+                
+                int64_t dimensions[5] = { 0, 0, 0, 0, 0 };
+                float origin[3]       = { 0.0, 0.0, 0.0 };
+                float spacing[3]      = { 0.0, 0.0, 0.0 };
+                
+                int32_t numberOfMaps = 1;
+                SubvolumeAttributes::VolumeType volumeType = SubvolumeAttributes::FUNCTIONAL;
+                
+                if (ciftiFile != NULL) {
+                    int64_t dimI, dimJ, dimK, dimTime, dimComponents;
+                    ciftiFile->getDimensions(dimI, dimJ, dimK, dimTime, dimComponents);
+                    
+                    dimensions[0] = dimI;
+                    dimensions[1] = dimJ;
+                    dimensions[2] = dimK;
+                    
+                    ciftiFile->indexToSpace(0, 0, 0, origin);
+                    
+                    float oneOneOneVoxelXYZ[3];
+                    ciftiFile->indexToSpace(1, 1, 1, oneOneOneVoxelXYZ);
+                    
+                    spacing[0] = oneOneOneVoxelXYZ[0] - origin[0];
+                    spacing[1] = oneOneOneVoxelXYZ[1] - origin[1];
+                    spacing[2] = oneOneOneVoxelXYZ[2] - origin[2];
+                    
+                    numberOfMaps = volMapFile->getNumberOfMaps();
+                    if (volMapFile->isMappedWithLabelTable()) {
+                        volumeType = SubvolumeAttributes::LABEL;
+                    }
+                    else if (volMapFile->isMappedWithPalette()) {
+                        volumeType = SubvolumeAttributes::FUNCTIONAL;
+                    }
+                }
+                else if (volumeFile != NULL) {
+                    const VolumeSpace volumeSpace = volumeFile->getVolumeSpace();
+                    
+                    const int64_t* dimArray = volumeSpace.getDims();
+                    dimensions[0] = dimArray[0];
+                    dimensions[1] = dimArray[1];
+                    dimensions[2] = dimArray[2];
+                    
+                    VolumeSpace::OrientTypes orientation[3];
+                    volumeSpace.getOrientAndSpacingForPlumb(orientation,
+                                                            spacing,
+                                                            origin);
+                    
+                    numberOfMaps = volumeFile->getNumberOfMaps();
+                    volumeType   = volumeFile->getType();
+                }
+                else {
+                    AString msg = ("Program Error: "
+                                   + volMapFile->getFileNameNoPath()
+                                   + " is volume mappable but neither a volume nor a CIFTI file.");
+                    WuQMessageBox::errorOk(m_paramFromFilePushButton,
+                                           msg);
+                    return;
+                }
                 
                 const bool includeTypeAndNumberOfMapsFlag = false;
                 if (includeTypeAndNumberOfMapsFlag) {
-                    const int typeIndex = m_newFileTypeComboBox->findData(static_cast<int>(vf->getType()));
+                    const int typeIndex = m_newFileTypeComboBox->findData(static_cast<int>(volumeType));
                     if (typeIndex >= 0) {
                         m_newFileTypeComboBox->setCurrentIndex(typeIndex);
                     }
-                    m_newFileNumberOfMapsSpinBox->setValue(vf->getNumberOfMaps());
+                    m_newFileNumberOfMapsSpinBox->setValue(numberOfMaps);
                 }
                 
-                const VolumeSpace volumeSpace = vf->getVolumeSpace();
-                
-                const int64_t* dimensions = volumeSpace.getDims();
                 m_newDimXSpinBox->setValue(dimensions[0]);
                 m_newDimYSpinBox->setValue(dimensions[1]);
                 m_newDimZSpinBox->setValue(dimensions[2]);
                 
-                VolumeSpace::OrientTypes orientation[3];
-                float spacing[3];
-                float origin[3];
-                volumeSpace.getOrientAndSpacingForPlumb(orientation,
-                                                        spacing,
-                                                        origin);
                 
                 m_newOriginXSpinBox->setValue(origin[0]);
                 m_newOriginYSpinBox->setValue(origin[1]);

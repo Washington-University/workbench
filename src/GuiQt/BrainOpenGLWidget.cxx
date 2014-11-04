@@ -126,6 +126,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->selectedUserInputProcessor->initialize();
     this->mousePressX = -10000;
     this->mousePressY = -10000;
+    this->mouseNewDraggingStartedFlag = false;
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
@@ -637,7 +638,8 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
                           0,
                           delta,
                           0,
-                          0);
+                          0,
+                          this->mouseNewDraggingStartedFlag);
     this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
     
     we->accept();
@@ -699,6 +701,12 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
                               button,
                               keyModifiers,
                               false);
+    
+    /*
+     * When the mouse is dragged, a mouse input receiver may want to
+     * know that a new dragging has started.
+     */
+    this->mouseNewDraggingStartedFlag = true;
     
     this->isMousePressedNearToolBox = false;
     
@@ -790,7 +798,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                   dx,
                                   dy,
                                   this->mousePressX,
-                                  this->mousePressY);
+                                  this->mousePressY,
+                                  this->mouseNewDraggingStartedFlag);
             
             if (keyModifiers == Qt::NoButton) {
                 this->selectedUserInputProcessor->mouseLeftClick(mouseEvent);
@@ -1006,7 +1015,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                       dx,
                                       dy,
                                       this->mousePressX,
-                                      this->mousePressY);
+                                      this->mousePressY,
+                                      this->mouseNewDraggingStartedFlag);
 
                 if (keyModifiers == Qt::NoButton) {
                     this->selectedUserInputProcessor->mouseLeftDrag(mouseEvent);
@@ -1020,6 +1030,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                 else if (keyModifiers == Qt::AltModifier) {
                     this->selectedUserInputProcessor->mouseLeftDragWithAlt(mouseEvent);
                 }
+                
+                this->mouseNewDraggingStartedFlag = false;
             }
             
             this->lastMouseX = mouseX;

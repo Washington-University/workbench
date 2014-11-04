@@ -51,6 +51,8 @@ using namespace caret;
  *    X-coordinate of mouse when button was pressed
  * @param mousePressY
  *    Y-coordinate of mouse when button was pressed
+ * @param firstDraggingFlag
+ *    Should be true the first time in in a mouse dragging operation.
  */
 MouseEvent::MouseEvent(BrainOpenGLViewportContent* viewportContent,
                        BrainOpenGLWidget* openGLWidget,
@@ -60,7 +62,8 @@ MouseEvent::MouseEvent(BrainOpenGLViewportContent* viewportContent,
                        const int32_t dx,
                        const int32_t dy,
                        const int32_t mousePressX,
-                       const int32_t mousePressY)
+                       const int32_t mousePressY,
+                       const bool firstDraggingFlag)
 : CaretObject()
 {
     initializeMembersMouseEvent();
@@ -74,6 +77,7 @@ MouseEvent::MouseEvent(BrainOpenGLViewportContent* viewportContent,
     m_dy = dy;
     m_pressX = mousePressX;
     m_pressY = mousePressY;
+    m_firstDraggingFlag = firstDraggingFlag;
 }
 
 /**
@@ -225,4 +229,21 @@ int32_t
 MouseEvent::getWheelRotation() const
 {
     return m_wheelRotation;
+}
+
+/**
+ * @return Is this the first in a sequence of mouse dragging?
+ *
+ * A mouse drag is the sequence:
+ * (1) User presses the mouse
+ * (2) One or more calls are made to the input receivers mouseLeftDrag() method
+ * (3) User releases the mouse ending the dragging.
+ *
+ * This method returns true for the first call made to mouseLeftDrag() in
+ * step 2 and false in all other calls to mouseLeftDrag().
+ */
+bool
+MouseEvent::isFirstDragging() const
+{
+    return m_firstDraggingFlag;
 }

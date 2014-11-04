@@ -28,6 +28,7 @@
 namespace caret {
 
     class ModelVolume;
+    class Overlay;
     class VolumeFile;
     class VolumeFileEditorDelegate;
     
@@ -36,11 +37,24 @@ namespace caret {
     class UserInputModeVolumeEdit : public UserInputModeView {
         
     public:
+        /**
+         * Contains information regarding the volume file that is
+         * being edited.
+         */
         struct VolumeEditInfo {
+            /** The top-most overlay in the tab */
+            Overlay* m_topOverlay;
+            /** The overlay containing the volume file */
+            Overlay* m_volumeOverlay;
+            /** Model volume containing the volume file */
             ModelVolume* m_modelVolume;
+            /** The volume file being edited */
             VolumeFile* m_volumeFile;
+            /** Index of the map in the volume file being edited */
             int32_t m_mapIndex;
+            /** The current slice view plane */
             VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
+            /** The volume's editor delegate */
             VolumeFileEditorDelegate* m_volumeFileEditorDelegate;
         };
         
@@ -61,6 +75,8 @@ namespace caret {
         virtual CursorEnum::Enum getCursor() const;
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDrag(const MouseEvent& mouseEvent);
         
         bool getVolumeEditInfo(VolumeEditInfo& volumeEditInfo);
         

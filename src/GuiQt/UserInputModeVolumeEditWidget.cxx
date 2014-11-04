@@ -40,6 +40,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTableEditor.h"
 #include "GuiManager.h"
+#include "Overlay.h"
 #include "VolumeFile.h"
 #include "VolumeFileEditorDelegate.h"
 #include "VolumeFileCreateDialog.h"
@@ -116,6 +117,15 @@ UserInputModeVolumeEditWidget::updateWidget()
                      */
                     if (label == NULL) {
                         /*
+                         * Default to the unassigned label
+                         */
+                        const int32_t unassignedKey = labelTable->getUnassignedLabelKey();
+                        GiftiLabel* unassignedLabel = labelTable->getLabel(unassignedKey);
+                        if (unassignedLabel != NULL) {
+                            buttonText = unassignedLabel->getName();
+                        }
+                        
+                        /*
                          * Find the first label that is not the unassigned
                          * label
                          */
@@ -124,7 +134,7 @@ UserInputModeVolumeEditWidget::updateWidget()
                              iter != keys.end();
                              iter++) {
                             const int32_t key = *iter;
-                            if (key != labelTable->getUnassignedLabelKey()) {
+                            if (key != unassignedKey) {
                                 GiftiLabel* keyLabel = labelTable->getLabel(key);
                                 if (keyLabel != NULL) {
                                     buttonText = keyLabel->getName();
@@ -160,7 +170,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     
     m_newFileToolButton = new QToolButton();
     m_newFileToolButton->setDefaultAction(WuQtUtilities::createAction("New",
-                                                                    "Create a new volume file",
+                                                                    "Create a new volume file that will become the top-most overlay",
                                                                     this,
                                                                     this, SLOT(newFileActionTriggered())));
     
@@ -366,14 +376,33 @@ UserInputModeVolumeEditWidget::newFileActionTriggered()
     VolumeFileCreateDialog newVolumeDialog(m_newFileToolButton);
     if (newVolumeDialog.exec() == VolumeFileCreateDialog::Accepted) {
         VolumeFile* vf = newVolumeDialog.getVolumeFile();
-        for (int32_t i = 0; i < vf->getNumberOfMaps(); i++) {
-            vf->getVolumeFileEditorDelegate()->setLocked(i,
-                                                       false);
+        if (vf != NULL) {
+            for (int32_t i = 0; i < vf->getNumberOfMaps(); i++) {
+                vf->setMapName(i,
+                               ("Editing (" + AString::number(i + 1) + ")"));
+                vf->getVolumeFileEditorDelegate()->setLocked(i,
+                                                             false);
+            }
+            
+            EventDataFileAdd addFileEvent(vf);
+            EventManager::get()->sendEvent(addFileEvent.getPointer());
+            
+            const int32_t mapIndex = 0;
+            
+            UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+            m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo);
+            if (volumeEditInfo.m_topOverlay != NULL) {
+                volumeEditInfo.m_topOverlay->setSelectionData(vf,
+                                                              mapIndex);
+                volumeEditInfo.m_topOverlay->setEnabled(true);
+                volumeEditInfo.m_topOverlay->setYokingGroup(OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF);
+                m_inputModeVolumeEdit->updateGraphicsAfterEditing(vf,
+                                                                  mapIndex);
+            }
+            
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+            //updateWidget();
         }
-        
-        EventDataFileAdd addFileEvent(vf);
-        EventManager::get()->sendEvent(addFileEvent.getPointer());
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
 }
 

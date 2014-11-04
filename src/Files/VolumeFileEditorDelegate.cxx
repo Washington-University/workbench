@@ -133,13 +133,13 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
     errorMessageOut.clear();
     
     CaretAssert(m_volumeFile);
-    int64_t dimTime = 0;
+    int64_t dimNumComponents = 0;
     int64_t dimNumMaps = 0;
     m_volumeFile->getDimensions(m_volumeDimensions[0],
                                 m_volumeDimensions[1],
                                 m_volumeDimensions[2],
-                                dimTime,
-                                dimNumMaps);
+                                dimNumMaps,
+                                dimNumComponents);
     
     if ((mapIndex < 0)
         || (mapIndex >= dimNumMaps)) {

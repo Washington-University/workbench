@@ -137,6 +137,8 @@ namespace caret {
         int32_t mouseMovementMinimumY;
         int32_t mouseMovementMaximumY;
         
+        bool mouseNewDraggingStartedFlag;
+        
         static const int32_t MOUSE_MOVEMENT_TOLERANCE;
         
         int mousePressX;

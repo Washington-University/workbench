@@ -25,6 +25,7 @@
 
 #include "Brain.h"
 #include "BrainOpenGLWidget.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventBrowserWindowContentGet.h"
@@ -226,6 +227,19 @@ UserInputModeVolumeEdit::mouseLeftClick(const MouseEvent& mouseEvent)
 }
 
 /**
+ * Process a mouse left drag with no keys down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeVolumeEdit::mouseLeftDrag(const MouseEvent& mouseEvent)
+{
+    mouseLeftClick(mouseEvent);
+}
+
+
+/**
  * Update the graphics after editing.
  *
  * @param volumeFile
@@ -246,7 +260,6 @@ UserInputModeVolumeEdit::updateGraphicsAfterEditing(VolumeFile* volumeFile,
                                            paletteFile);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
-
 
 /**
  * @return The cursor for display in the OpenGL widget.
@@ -285,11 +298,14 @@ UserInputModeVolumeEdit::getCursor() const
  * @param volumeEditInfo
  *    Loaded with editing information upon sucess.
  * @return
- *    True if volumeEditInfo is valid, else false.
+ *    True if all ofvolumeEditInfo is valid, else false.  Even
+ *    if false the overlay and model volume MAY be valid (non-NULL).
  */
 bool
 UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
 {
+    volumeEditInfo.m_topOverlay     = NULL;
+    volumeEditInfo.m_volumeOverlay  = NULL;
     volumeEditInfo.m_volumeFile     = NULL;
     volumeEditInfo.m_mapIndex       = -1;
     volumeEditInfo.m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
@@ -302,10 +318,16 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
     if (tabContent != NULL) {
         ModelVolume* modelVolume = tabContent->getDisplayedVolumeModel();
         if (modelVolume != NULL) {
+            volumeEditInfo.m_modelVolume = modelVolume;
             OverlaySet* overlaySet = tabContent->getOverlaySet();
             const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
             for (int32_t i = 0; i < numOverlays; i++) {
                 Overlay* overlay = overlaySet->getOverlay(i);
+                
+                if (i == 0) {
+                    volumeEditInfo.m_topOverlay = overlay;
+                }
+                
                 CaretMappableDataFile* mapFile = NULL;
                 int32_t mapIndex;
                 overlay->getSelectionData(mapFile,
@@ -313,10 +335,10 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
                 if (mapFile != NULL) {
                     VolumeFile* vf = dynamic_cast<VolumeFile*>(mapFile);
                     if (vf != NULL) {
+                        volumeEditInfo.m_volumeOverlay  = overlay;
                         volumeEditInfo.m_volumeFile     = vf;
                         volumeEditInfo.m_mapIndex       = mapIndex;
                         volumeEditInfo.m_sliceViewPlane = tabContent->getSliceViewPlane();
-                        volumeEditInfo.m_modelVolume    = modelVolume;
                         volumeEditInfo.m_volumeFileEditorDelegate = vf->getVolumeFileEditorDelegate();
                         return true;
                     }

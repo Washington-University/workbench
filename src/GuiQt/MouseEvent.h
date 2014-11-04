@@ -46,7 +46,8 @@ namespace caret {
                    const int32_t dx,
                    const int32_t dy,
                    const int32_t mousePressX,
-                   const int32_t mousePressY);
+                   const int32_t mousePressY,
+                   const bool firstDraggingFlag);
         
         virtual ~MouseEvent();
         
@@ -80,6 +81,8 @@ namespace caret {
         
         int32_t getWheelRotation() const;
         
+        bool isFirstDragging() const;
+        
     private:
         BrainOpenGLViewportContent* m_viewportContent;
         
@@ -100,6 +103,8 @@ namespace caret {
         int32_t m_pressY;
         
         int32_t m_wheelRotation;
+        
+        bool m_firstDraggingFlag;
     };
     
 } // namespace
