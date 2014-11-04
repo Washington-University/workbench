@@ -309,7 +309,7 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
     volumeEditInfo.m_volumeFile     = NULL;
     volumeEditInfo.m_mapIndex       = -1;
     volumeEditInfo.m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
-    volumeEditInfo.m_modelVolume    = NULL;
+//    volumeEditInfo.m_modelVolume    = NULL;
     
     EventBrowserWindowContentGet windowEvent(m_windowIndex);
     EventManager::get()->sendEvent(windowEvent.getPointer());
@@ -317,8 +317,9 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
     BrowserTabContent* tabContent = windowEvent.getSelectedBrowserTabContent();
     if (tabContent != NULL) {
         ModelVolume* modelVolume = tabContent->getDisplayedVolumeModel();
-        if (modelVolume != NULL) {
-            volumeEditInfo.m_modelVolume = modelVolume;
+        ModelWholeBrain* modelWholeBrain = tabContent->getDisplayedWholeBrainModel();
+        if ((modelVolume != NULL)
+            || (modelWholeBrain != NULL)) {
             OverlaySet* overlaySet = tabContent->getOverlaySet();
             const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
             for (int32_t i = 0; i < numOverlays; i++) {

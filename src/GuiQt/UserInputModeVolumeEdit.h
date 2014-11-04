@@ -47,7 +47,7 @@ namespace caret {
             /** The overlay containing the volume file */
             Overlay* m_volumeOverlay;
             /** Model volume containing the volume file */
-            ModelVolume* m_modelVolume;
+            //ModelVolume* m_modelVolume;
             /** The volume file being edited */
             VolumeFile* m_volumeFile;
             /** Index of the map in the volume file being edited */
