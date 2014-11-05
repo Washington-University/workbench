@@ -324,24 +324,25 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
             const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
             for (int32_t i = 0; i < numOverlays; i++) {
                 Overlay* overlay = overlaySet->getOverlay(i);
-                
                 if (i == 0) {
                     volumeEditInfo.m_topOverlay = overlay;
                 }
                 
-                CaretMappableDataFile* mapFile = NULL;
-                int32_t mapIndex;
-                overlay->getSelectionData(mapFile,
-                                          mapIndex);
-                if (mapFile != NULL) {
-                    VolumeFile* vf = dynamic_cast<VolumeFile*>(mapFile);
-                    if (vf != NULL) {
-                        volumeEditInfo.m_volumeOverlay  = overlay;
-                        volumeEditInfo.m_volumeFile     = vf;
-                        volumeEditInfo.m_mapIndex       = mapIndex;
-                        volumeEditInfo.m_sliceViewPlane = tabContent->getSliceViewPlane();
-                        volumeEditInfo.m_volumeFileEditorDelegate = vf->getVolumeFileEditorDelegate();
-                        return true;
+                if (overlay->isEnabled()) {
+                    CaretMappableDataFile* mapFile = NULL;
+                    int32_t mapIndex;
+                    overlay->getSelectionData(mapFile,
+                                              mapIndex);
+                    if (mapFile != NULL) {
+                        VolumeFile* vf = dynamic_cast<VolumeFile*>(mapFile);
+                        if (vf != NULL) {
+                            volumeEditInfo.m_volumeOverlay  = overlay;
+                            volumeEditInfo.m_volumeFile     = vf;
+                            volumeEditInfo.m_mapIndex       = mapIndex;
+                            volumeEditInfo.m_sliceViewPlane = tabContent->getSliceViewPlane();
+                            volumeEditInfo.m_volumeFileEditorDelegate = vf->getVolumeFileEditorDelegate();
+                            return true;
+                        }
                     }
                 }
             }

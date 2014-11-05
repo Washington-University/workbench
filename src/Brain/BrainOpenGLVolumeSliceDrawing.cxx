@@ -792,6 +792,33 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                                               Matrix4x4& transformationMatrix,
                                               const Plane& plane)
 {
+    /*
+     * When performing voxel identification for editing voxels,
+     * we need to draw EVERY voxel since the user may click
+     * regions where the voxels are "off".
+     */
+    float voxelEditingValue = 1.0;
+    VolumeFile* voxelEditingVolumeFile = NULL;
+    bool volumeEditingDrawAllVoxelsFlag = false;
+    if (m_identificationModeFlag) {
+        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+        if (voxelEditID->isEnabledForSelection()) {
+            voxelEditingVolumeFile = voxelEditID->getVolumeFileForEditing();
+            if (voxelEditingVolumeFile != NULL) {
+                volumeEditingDrawAllVoxelsFlag = true;
+                if (voxelEditingVolumeFile->isMappedWithLabelTable()) {
+                    if (voxelEditingVolumeFile->getNumberOfMaps() > 0) {
+                        voxelEditingValue = voxelEditingVolumeFile->getMapLabelTable(0)->getUnassignedLabelKey();
+                    }
+                }
+            }
+//            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
+//            if (vf == voxelEditID->getVolumeFileForEditing()) {
+//                volumeEditingDrawAllVoxelsFlag = true;
+//            }
+        }
+    }
+    
     const bool obliqueSliceModeThreeDimFlag = false;
     
     float m[16];
@@ -1342,7 +1369,7 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                     if (useInterpolatedVoxel
                         && isPaletteMappedVolumeFile) {
                         value = volumeFile->interpolateValue(voxelCenter,
-                                                             VolumeFile::CUBIC,
+                                                             VolumeFile::TRILINEAR, //VolumeFile::CUBIC,
                                                              &valueValidFlag,
                                                              vdi.mapIndex);
                     }
@@ -1361,6 +1388,20 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                         value = volInter->getVoxelValue(voxelCenter,
                                                         &valueValidFlag,
                                                         vdi.mapIndex);
+                    }
+                    
+                    /*
+                     * Need to draw all voxels when editing
+                     */
+                    if (volumeEditingDrawAllVoxelsFlag) {
+                        if (! valueValidFlag) {
+                            if (volumeFile != NULL) {
+                                if (volumeFile == voxelEditingVolumeFile) {
+                                    value = voxelEditingValue;
+                                    valueValidFlag = true;
+                                }
+                            }
+                        }
                     }
                     
                     if (valueValidFlag) {
@@ -1448,12 +1489,24 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
             
             VolumeMappableInterface* volume = volumeSlices[i].m_volumeMappableInterface;
             CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(volume);
+            VolumeFile* volumeFile = volumeSlices[i].m_volumeFile;
+            
             CaretAssert(mappableFile);
             const int32_t mapIndex = volumeSlices[i].m_mapIndex;
             const float* values = &volumeSlices[i].m_values[0];
             uint8_t* rgba = &volumeSlices[i].m_rgba[0];
             
-            if (mappableFile->isMappedWithPalette()) {
+            if (volumeEditingDrawAllVoxelsFlag
+                && (volumeFile == voxelEditingVolumeFile)) {
+                for (int64_t i = 0; i < numValues; i++) {
+                    const int64_t i4 = i * 4;
+                    rgba[i4] = 255;
+                    rgba[i4+1] = 255;
+                    rgba[i4+2] = 255;
+                    rgba[i4+3] = 255;
+                }
+            }
+            else if (mappableFile->isMappedWithPalette()) {
                 const PaletteColorMapping* paletteColorMapping = mappableFile->getMapPaletteColorMapping(mapIndex);
                 const AString paletteName = paletteColorMapping->getSelectedPaletteName();
                 const Palette* palette = m_paletteFile->getPaletteByName(paletteName);
