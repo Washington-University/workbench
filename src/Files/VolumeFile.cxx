@@ -663,8 +663,8 @@ void VolumeFile::validateMembers()
 void
 VolumeFile::setModified()
 {
-    DataFile::setModified();//do we need to do both of these?
-    setModifiedVolumeBase();
+    DataFile::setModified();
+    VolumeBase::setModified();
     m_brickStatisticsValid = false;
     m_splinesValid = false;
 }

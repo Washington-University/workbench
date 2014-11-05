@@ -91,7 +91,7 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
 void VolumeBase::setVolumeSpace(const vector<vector<float> >& indexToSpace)
 {
     m_volSpace.setSpace(getDimensionsPtr(), indexToSpace);
-    setModifiedVolumeBase();
+    setModified();
 }
 
 VolumeBase::VolumeBase()
@@ -209,6 +209,7 @@ void VolumeBase::reorient(const VolumeSpace::OrientTypes newOrient[3])
     m_origDims[1] = newDims[1];
     m_origDims[2] = newDims[2];
     m_storage.swap(newStorage);
+    setModified();
 }
 
 void VolumeBase::enclosingVoxel(const float* coordIn, int64_t* indexOut) const
@@ -470,7 +471,7 @@ VolumeBase::clearModifiedVolumeBase()
  * Set this instance's status to modified.
  */
 void 
-VolumeBase::setModifiedVolumeBase()
+VolumeBase::setModified()
 { 
     m_ModifiedFlag = true;
 }

@@ -327,21 +327,21 @@ namespace caret {
         inline void setValue(const float& valueIn, const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0)
         {
             m_storage.setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
-            setModifiedVolumeBase();
+            setModified();
         }
         
         ///set a value at an index triplet and optionally timepoint
         inline void setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0)
         {
             m_storage.setValue(valueIn, indexIn1, indexIn2, indexIn3, brickIndex, component);
-            setModifiedVolumeBase();
+            setModified();
         }
         
         /// set every voxel to the given value
-        void setValueAllVoxels(const float value) { m_storage.setValueAllVoxels(value); }
+        void setValueAllVoxels(const float value) { m_storage.setValueAllVoxels(value); setModified(); }
         
         ///set a frame
-        void setFrame(const float* frameIn, const int64_t brickIndex = 0, const int64_t component = 0) { m_storage.setFrame(frameIn, brickIndex, component); }
+        void setFrame(const float* frameIn, const int64_t brickIndex = 0, const int64_t component = 0) { m_storage.setFrame(frameIn, brickIndex, component); setModified(); }
 
         ///gets dimensions as a vector of 5 integers, 3 spatial, time, components
         void getDimensions(std::vector<int64_t>& dimOut) const { m_storage.getDimensions(dimOut); }
@@ -376,7 +376,7 @@ namespace caret {
             return m_storage.indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component);
         }
 
-        void setModifiedVolumeBase();//virtual because we need the functions that change voxels in this class to call the setModified in VolumeFile if it really is a VolumeFile (which it always is)
+        virtual void setModified();//virtual because we need the functions that change voxels in this class to call the setModified in VolumeFile if it really is a VolumeFile (which it always is)
         void clearModifiedVolumeBase();
         bool isModifiedVolumeBase() const;
         
