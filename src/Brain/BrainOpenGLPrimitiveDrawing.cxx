@@ -447,3 +447,93 @@ BrainOpenGLPrimitiveDrawing::drawQuadsVertexBuffers(const std::vector<float>& co
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
 }
 
+/**
+ * Draw quads strips
+ *
+ * @param coordinates
+ *    Coordinates of the quads.
+ * @param normals
+ *    Normal vectors for the quads.
+ * @param rgbaColors
+ *    RGBA colors for the quads.
+ * @param stripOffsetsAndLengths
+ *    Each pair is the offset and length of one strip.  Both the offset and length
+ *    are in the number of coordinates.  Each coordinate consists of one XYZ triplet,
+ *    one normal triplet, and quad of RGBA color components.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawQuadStrips(const std::vector<float>& coordinates,
+                           const std::vector<float>& normals,
+                           const std::vector<uint8_t>& rgbaColors,
+                           const std::vector<std::pair<int64_t, int64_t> >& stripOffsetsAndLengths)
+{
+    drawQuadStripsVertexArrays(coordinates,
+                               normals,
+                               rgbaColors,
+                               stripOffsetsAndLengths);
+}
+
+/**
+ * Draw quads strips
+ *
+ * @param coordinates
+ *    Coordinates of the quads.
+ * @param normals
+ *    Normal vectors for the quads.
+ * @param rgbaColors
+ *    RGBA colors for the quads.
+ * @param stripOffsetsAndLengths
+ *    Each pair is the offset and length of one strip.  Both the offset and length
+ *    are in the number of coordinates.  Each coordinate consists of one XYZ triplet,
+ *    one normal triplet, and quad of RGBA color components.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawQuadStripsVertexArrays(const std::vector<float>& coordinates,
+                                       const std::vector<float>& normals,
+                                       const std::vector<uint8_t>& rgbaColors,
+                                       const std::vector<std::pair<int64_t, int64_t> >& stripOffsetsAndLengths)
+{
+    
+    const int64_t numStrips = static_cast<int64_t>(stripOffsetsAndLengths.size());
+    if (numStrips <= 0) {
+        return;
+    }
+    
+    glVertexPointer(3,
+                    GL_FLOAT,
+                    0,
+                    reinterpret_cast<const GLvoid*>(&coordinates[0]));
+    glColorPointer(4,
+                   GL_UNSIGNED_BYTE,
+                   0,
+                   reinterpret_cast<const GLvoid*>(&rgbaColors[0]));
+    glNormalPointer(GL_FLOAT,
+                    0,
+                    reinterpret_cast<const GLvoid*>(&normals[0]));
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    
+    for (int64_t iStrip = 0; iStrip < numStrips; iStrip++) {
+        CaretAssertVectorIndex(stripOffsetsAndLengths, iStrip);
+        const int64_t stripOffset = stripOffsetsAndLengths[iStrip].first;
+        const int64_t stripLength = stripOffsetsAndLengths[iStrip].second;
+        
+//        const int64_t offset3 = stripOffset * 3;
+//        const int64_t offset4 = stripOffset * 4;
+        
+        CaretAssertVectorIndex(coordinates, (stripOffset + stripLength) * 3);
+        CaretAssertVectorIndex(normals, (stripOffset + stripLength) * 3);
+        CaretAssertVectorIndex(rgbaColors, (stripOffset + stripLength) * 4);
+        
+        glDrawArrays(GL_QUAD_STRIP,
+                     stripOffset,
+                     stripLength);
+        
+    }
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+}
+

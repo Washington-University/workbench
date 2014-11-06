@@ -3816,6 +3816,14 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
     const int64_t numVoxelsInSlice = numberOfColumns * numberOfRows;
     
     /*
+     * Cannot use strips unless alpha blending is enabled
+     * since we normally skip voxels with zero alpha
+     */
+    const bool drawWithQuadStripsFlag = false;
+    std::vector<std::pair<int64_t, int64_t> > quadStripOffsetsAndLengths;
+    int64_t quadStripOffset = 0;
+    
+    /*
      * Allocate for quadrilateral drawing
      */
     const int64_t numQuadCoords = numVoxelsInSlice * 12;
@@ -3841,6 +3849,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
      * Draw each row
      */
     for (int64_t jRow = 0; jRow < numberOfRows; jRow++) {
+        const bool lastRowFlag = (jRow == (numberOfRows - 1));
+        
         /*
          * Coordinates on left side of row
          */
@@ -3977,35 +3987,79 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
                     addVoxelToIdentification(volumeIndex, mapIndex, voxelI, voxelJ, voxelK, rgba);
                 }
                 
-                /*
-                 * Add voxel to quadrilaterals
-                 */
-                voxelQuadCoordinates.push_back(voxelBottomLeft[0]);
-                voxelQuadCoordinates.push_back(voxelBottomLeft[1]);
-                voxelQuadCoordinates.push_back(voxelBottomLeft[2]);
-                
-                voxelQuadCoordinates.push_back(voxelBottomRight[0]);
-                voxelQuadCoordinates.push_back(voxelBottomRight[1]);
-                voxelQuadCoordinates.push_back(voxelBottomRight[2]);
-                
-                voxelQuadCoordinates.push_back(voxelTopRight[0]);
-                voxelQuadCoordinates.push_back(voxelTopRight[1]);
-                voxelQuadCoordinates.push_back(voxelTopRight[2]);
-                
-                voxelQuadCoordinates.push_back(voxelTopLeft[0]);
-                voxelQuadCoordinates.push_back(voxelTopLeft[1]);
-                voxelQuadCoordinates.push_back(voxelTopLeft[2]);
-                
-                
-                for (int32_t iNormalAndColor = 0; iNormalAndColor < 4; iNormalAndColor++) {
-                    voxelQuadRgba.push_back(rgba[0]);
-                    voxelQuadRgba.push_back(rgba[1]);
-                    voxelQuadRgba.push_back(rgba[2]);
-                    voxelQuadRgba.push_back(rgba[3]);
+                if (drawWithQuadStripsFlag) {
+                    /*
+                     * Add voxel to quadrilaterals
+                     */
+                    voxelQuadCoordinates.push_back(voxelBottomLeft[0]);
+                    voxelQuadCoordinates.push_back(voxelBottomLeft[1]);
+                    voxelQuadCoordinates.push_back(voxelBottomLeft[2]);
                     
-                    voxelQuadNormals.push_back(sliceNormalVector[0]);
-                    voxelQuadNormals.push_back(sliceNormalVector[1]);
-                    voxelQuadNormals.push_back(sliceNormalVector[2]);
+                    voxelQuadCoordinates.push_back(voxelBottomRight[0]);
+                    voxelQuadCoordinates.push_back(voxelBottomRight[1]);
+                    voxelQuadCoordinates.push_back(voxelBottomRight[2]);
+                    
+                    if (lastRowFlag) {
+                        voxelQuadCoordinates.push_back(voxelTopLeft[0]);
+                        voxelQuadCoordinates.push_back(voxelTopLeft[1]);
+                        voxelQuadCoordinates.push_back(voxelTopLeft[2]);
+
+                        voxelQuadCoordinates.push_back(voxelTopRight[0]);
+                        voxelQuadCoordinates.push_back(voxelTopRight[1]);
+                        voxelQuadCoordinates.push_back(voxelTopRight[2]);
+                        
+                    }
+                    
+                    const int32_t numNormalColor = (lastRowFlag ? 4 : 2);
+                    for (int32_t iNormalAndColor = 0; iNormalAndColor < numNormalColor; iNormalAndColor++) {
+                        voxelQuadRgba.push_back(rgba[0]);
+                        voxelQuadRgba.push_back(rgba[1]);
+                        voxelQuadRgba.push_back(rgba[2]);
+                        voxelQuadRgba.push_back(rgba[3]);
+                        
+                        voxelQuadNormals.push_back(sliceNormalVector[0]);
+                        voxelQuadNormals.push_back(sliceNormalVector[1]);
+                        voxelQuadNormals.push_back(sliceNormalVector[2]);
+                    }
+
+                    const int64_t numCoords = static_cast<int64_t>(voxelQuadCoordinates.size() / 3);
+                    const int64_t quadStripLength = numCoords - quadStripOffset;
+                    
+                    quadStripOffsetsAndLengths.push_back(std::make_pair(quadStripOffset,
+                                                                        quadStripLength));
+                    quadStripOffset = numCoords;
+                }
+                else {
+                    /*
+                     * Add voxel to quadrilaterals
+                     */
+                    voxelQuadCoordinates.push_back(voxelBottomLeft[0]);
+                    voxelQuadCoordinates.push_back(voxelBottomLeft[1]);
+                    voxelQuadCoordinates.push_back(voxelBottomLeft[2]);
+                    
+                    voxelQuadCoordinates.push_back(voxelBottomRight[0]);
+                    voxelQuadCoordinates.push_back(voxelBottomRight[1]);
+                    voxelQuadCoordinates.push_back(voxelBottomRight[2]);
+                    
+                    voxelQuadCoordinates.push_back(voxelTopRight[0]);
+                    voxelQuadCoordinates.push_back(voxelTopRight[1]);
+                    voxelQuadCoordinates.push_back(voxelTopRight[2]);
+                    
+                    voxelQuadCoordinates.push_back(voxelTopLeft[0]);
+                    voxelQuadCoordinates.push_back(voxelTopLeft[1]);
+                    voxelQuadCoordinates.push_back(voxelTopLeft[2]);
+                    
+                    
+                    for (int32_t iNormalAndColor = 0; iNormalAndColor < 4; iNormalAndColor++) {
+                        voxelQuadRgba.push_back(rgba[0]);
+                        voxelQuadRgba.push_back(rgba[1]);
+                        voxelQuadRgba.push_back(rgba[2]);
+                        voxelQuadRgba.push_back(rgba[3]);
+                        
+                        voxelQuadNormals.push_back(sliceNormalVector[0]);
+                        voxelQuadNormals.push_back(sliceNormalVector[1]);
+                        voxelQuadNormals.push_back(sliceNormalVector[2]);
+                    }
                 }
             }
         }
