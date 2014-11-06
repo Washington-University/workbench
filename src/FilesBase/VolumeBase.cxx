@@ -92,6 +92,11 @@ void VolumeBase::addSubvolumes(const int64_t& numToAdd)
 {
     CaretAssert(numToAdd > 0);
     vector<int64_t> olddims = getDimensions();//use the already flattened dimensions to start, as the non-spatial dimensions must be flattened to add an arbitrary number of maps
+    CaretAssert(olddims[3] > 0);//can't add volumes when we have no dimensions, stop the debugger here
+    if (olddims[3] < 1)
+    {
+        throw DataFileException("cannot call addSubvolumes on an uninitialized VolumeFile");//release shouldn't allow it either
+    }
     vector<int64_t> newdims = olddims;
     newdims[3] += numToAdd;//add to the non
     VolumeStorage newStorage(newdims.data());
