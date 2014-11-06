@@ -231,6 +231,7 @@ void VolumeFile::readFile(const AString& filename)
         }
         while (myDims.size() < 3) myDims.push_back(1);//pretend we have 3 dimensions in header, always, things that use getOriginalDimensions assume this (because "VolumeFile")
         reinitialize(myDims, inHeader.getSForm(), numComponents);
+        setFileName(filename);  // must be donw after reinitialize() since it calls clear() which clears the name of the file
         int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
         if (numComponents != 1)
         {
