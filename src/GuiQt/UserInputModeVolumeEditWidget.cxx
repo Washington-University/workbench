@@ -154,6 +154,37 @@ UserInputModeVolumeEditWidget::updateWidget()
                 m_voxelFloatValueSpinBox->setVisible(true);
                 isValid = true;
             }
+            
+            QList<QAction*> modeActions = m_volumeEditModeActionGroup->actions();
+            const int32_t numModeActions = modeActions.size();
+            for (int32_t i = 0; i < numModeActions; i++) {
+                QAction* action = modeActions.at(i);
+                
+                const int modeInt = action->data().toInt();
+                
+                bool validFlag = false;
+                VolumeEditingModeEnum::Enum mode = VolumeEditingModeEnum::fromIntegerCode(modeInt,
+                                                                                          &validFlag);
+                CaretAssert(validFlag);
+
+                const bool orthogonalFlag = (volumeEditInfo.m_sliceProjectionType
+                                             == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
+                switch (mode) {
+                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON:
+                        break;
+                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF:
+                        break;
+                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_DILATE:
+                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ERODE:
+                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_2D:
+                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_3D:
+                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D:
+                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D:
+                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_RETAIN_CONNECTED_3D:
+                        action->setEnabled(orthogonalFlag);
+                        break;
+                }
+            }
         }
     }
     

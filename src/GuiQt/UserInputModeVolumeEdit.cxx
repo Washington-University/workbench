@@ -309,6 +309,7 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
     volumeEditInfo.m_volumeFile     = NULL;
     volumeEditInfo.m_mapIndex       = -1;
     volumeEditInfo.m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
+    volumeEditInfo.m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
 //    volumeEditInfo.m_modelVolume    = NULL;
     
     EventBrowserWindowContentGet windowEvent(m_windowIndex);
@@ -340,6 +341,7 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
                             volumeEditInfo.m_volumeFile     = vf;
                             volumeEditInfo.m_mapIndex       = mapIndex;
                             volumeEditInfo.m_sliceViewPlane = tabContent->getSliceViewPlane();
+                            volumeEditInfo.m_sliceProjectionType = tabContent->getSliceProjectionType();
                             volumeEditInfo.m_volumeFileEditorDelegate = vf->getVolumeFileEditorDelegate();
                             return true;
                         }

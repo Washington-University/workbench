@@ -24,6 +24,7 @@
 
 #include "UserInputModeView.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "VolumeSliceProjectionTypeEnum.h"
 
 namespace caret {
 
@@ -54,6 +55,8 @@ namespace caret {
             int32_t m_mapIndex;
             /** The current slice view plane */
             VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
+            /** Slice projection type (orthogonal/oblique) */
+            VolumeSliceProjectionTypeEnum::Enum m_sliceProjectionType;
             /** The volume's editor delegate */
             VolumeFileEditorDelegate* m_volumeFileEditorDelegate;
         };

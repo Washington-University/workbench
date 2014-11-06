@@ -578,6 +578,7 @@ BrainBrowserWindowToolBarSliceSelection::volumeSliceProjectionTypeEnumComboBoxIt
     btc->setSliceProjectionType(sliceProjectionType);
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
+    this->updateUserInterface();
 }
 
 /**
