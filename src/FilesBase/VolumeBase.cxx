@@ -88,6 +88,26 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     m_storage.reinitialize(storeDims);
 }
 
+void VolumeBase::addSubvolumes(const int64_t& numToAdd)
+{
+    CaretAssert(numToAdd > 0);
+    vector<int64_t> olddims = getDimensions();//use the already flattened dimensions to start, as the non-spatial dimensions must be flattened to add an arbitrary number of maps
+    vector<int64_t> newdims = olddims;
+    newdims[3] += numToAdd;//add to the non
+    VolumeStorage newStorage(newdims.data());
+    newdims.resize(4);//drop the number of components from the dimensions array
+    m_origDims = newdims;//and reset our original dimensions
+    for (int64_t c = 0; c < olddims[4]; ++c)
+    {
+        for (int64_t b = 0; b < olddims[3]; ++b)
+        {
+            newStorage.setFrame(m_storage.getFrame(b, c), b, c);
+        }
+    }
+    m_storage.swap(newStorage);
+    setModified();//NOTE: will invalidate splines, can be made more efficient for certain cases when merging Base and File
+}
+
 void VolumeBase::setVolumeSpace(const vector<vector<float> >& indexToSpace)
 {
     m_volSpace.setSpace(getDimensionsPtr(), indexToSpace);

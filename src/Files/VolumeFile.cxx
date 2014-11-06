@@ -123,6 +123,12 @@ void VolumeFile::reinitialize(const vector<uint64_t>& dimensionsIn, const vector
     setType(whatType);
 }
 
+void VolumeFile::addSubvolumes(const int64_t& numToAdd)
+{
+    VolumeBase::addSubvolumes(numToAdd);
+    validateMembers();
+}
+
 SubvolumeAttributes::VolumeType VolumeFile::getType() const
 {
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, 0);
