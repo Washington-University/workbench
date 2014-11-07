@@ -87,6 +87,8 @@ namespace caret {
         void labelValueActionTriggered();
         
         void editingModeActionTriggered(QAction*);
+                                              
+        void addMapsActionTriggered();
         
     private:
         UserInputModeVolumeEditWidget(const UserInputModeVolumeEditWidget&);
@@ -121,6 +123,8 @@ namespace caret {
         
         QDoubleSpinBox* m_voxelFloatValueSpinBox;
         
+        QToolButton* m_addMapsToolButton;
+                                              
         // ADD_NEW_MEMBERS_HERE
 
     };

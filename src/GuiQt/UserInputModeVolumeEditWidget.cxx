@@ -27,6 +27,7 @@
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QSpinBox>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -45,7 +46,9 @@
 #include "VolumeFile.h"
 #include "VolumeFileEditorDelegate.h"
 #include "VolumeFileCreateDialog.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
+#include "WuQMessageBox.h"
 #include "WuQSpinBoxOddValue.h"
 #include "WuQtUtilities.h"
 
@@ -178,6 +181,11 @@ UserInputModeVolumeEditWidget::updateWidget()
                 m_voxelFloatValueSpinBox->setVisible(true);
                 isValid = true;
             }
+            else {
+                CaretAssert(0);
+            }
+            
+            m_addMapsToolButton->defaultAction()->setEnabled(isValid);
             
             const bool orthogonalFlag = (volumeEditInfo.m_sliceProjectionType
                                          == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
@@ -225,6 +233,12 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                     this,
                                                                     this, SLOT(newFileActionTriggered())));
     
+    m_addMapsToolButton = new QToolButton();
+    m_addMapsToolButton->setDefaultAction(WuQtUtilities::createAction("Add",
+                                                                      ("Add maps to the selected volume file.\n"
+                                                                       "First new map will become the top-most overlay."),
+                                                                      this,
+                                                                      this, SLOT(addMapsActionTriggered())));
     
     m_lockAction = WuQtUtilities::createAction("Lock",
                                                "Lock/unlock volume file to disallow/allow editing",
@@ -302,6 +316,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->addWidget(volumeLabel);
     layout->addWidget(m_newFileToolButton);
+    layout->addWidget(m_addMapsToolButton);
     layout->addWidget(lockFileToolButton);
     layout->addSpacing(SPACE);
     layout->addWidget(editLabel);
@@ -462,6 +477,51 @@ UserInputModeVolumeEditWidget::newFileActionTriggered()
         }
     }
 }
+
+/**
+ * Called when the add maps action is triggered.
+ */
+void
+UserInputModeVolumeEditWidget::addMapsActionTriggered()
+{
+//    if (m_lockAction->isChecked()) {
+//        WuQMessageBox::errorOk(m_addMapsToolButton,
+//                               "Volume must be unlocked (Press \"Lock\" in toolbar) to allow adding maps.");
+//        return;
+//    }
+    
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        VolumeFile* vf = volumeEditInfo.m_volumeFile;
+        
+        WuQDataEntryDialog ded("Add Map to Volume File",
+                               m_addMapsToolButton);
+        const int32_t newMapIndex = vf->getNumberOfMaps();
+        QLineEdit* nameLineEdit = ded.addLineEditWidget("Map Name");
+        nameLineEdit->setText("Editing (" + AString::number(newMapIndex + 1) + ")");
+        
+        if (ded.exec() == WuQDataEntryDialog::Accepted) {
+            /*
+             * Add map, set the map name,
+             * set the selected map to the new map,
+             * update graphics, update user interface.
+             */
+            vf->addSubvolumes(1);
+            vf->setMapName(newMapIndex,
+                           nameLineEdit->text().trimmed());
+            vf->getVolumeFileEditorDelegate()->setLocked(newMapIndex,
+                                                         false);
+            
+            volumeEditInfo.m_volumeOverlay->setSelectionData(vf,
+                                                             newMapIndex);
+            m_inputModeVolumeEdit->updateGraphicsAfterEditing(vf,
+                                                              newMapIndex);
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+            updateWidget();
+        }
+    }
+}
+
 
 /**
  * Called when lock button is clicked.
