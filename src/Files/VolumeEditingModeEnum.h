@@ -78,6 +78,8 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static bool isObliqueEditingAllowed(const Enum enumValue);
+    
 private:
     VolumeEditingModeEnum(const Enum enumValue, 
                           const AString& name,

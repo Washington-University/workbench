@@ -24,6 +24,7 @@
 
 #include <QWidget>
 
+#include "EventListenerInterface.h"
 #include "UserInputModeVolumeEdit.h"
 #include "VolumeEditingModeEnum.h"
 
@@ -37,8 +38,10 @@ class QToolButton;
 namespace caret {
 
     class UserInputModeVolumeEdit;
+    class WuQSpinBoxOddValue;
     
-    class UserInputModeVolumeEditWidget : public QWidget {
+    class UserInputModeVolumeEditWidget : public QWidget,
+                                          public EventListenerInterface {
         
         Q_OBJECT
 
@@ -49,6 +52,8 @@ namespace caret {
         
         virtual ~UserInputModeVolumeEditWidget();
         
+        void receiveEvent(Event* event);
+                                              
         void updateWidget();
         
         void getEditingParameters(VolumeEditingModeEnum::Enum& editingModeOut,
@@ -102,11 +107,11 @@ namespace caret {
         
         QToolButton* m_newFileToolButton;
         
-        QSpinBox* m_xBrushSizeSpinBox;
+        WuQSpinBoxOddValue* m_xBrushSizeSpinBox;
         
-        QSpinBox* m_yBrushSizeSpinBox;
+        WuQSpinBoxOddValue* m_yBrushSizeSpinBox;
         
-        QSpinBox* m_zBrushSizeSpinBox;
+        WuQSpinBoxOddValue* m_zBrushSizeSpinBox;
         
         QLabel* m_voxelValueLabel;
         

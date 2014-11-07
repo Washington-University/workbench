@@ -36,6 +36,7 @@
 #include "CaretLogger.h"
 #include "EventDataFileAdd.h"
 #include "EventManager.h"
+#include "EventUpdateVolumeEditingToolBar.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTableEditor.h"
@@ -45,6 +46,7 @@
 #include "VolumeFileEditorDelegate.h"
 #include "VolumeFileCreateDialog.h"
 #include "WuQFactory.h"
+#include "WuQSpinBoxOddValue.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -70,6 +72,7 @@ UserInputModeVolumeEditWidget::UserInputModeVolumeEditWidget(UserInputModeVolume
                                                              const int32_t windowIndex,
                                                              QWidget* parent)
 : QWidget(parent),
+  EventListenerInterface(),
 m_inputModeVolumeEdit(inputModeVolumeEdit),
 m_windowIndex(windowIndex)
 {
@@ -80,6 +83,8 @@ m_windowIndex(windowIndex)
     layout->addWidget(createSelectionToolBar());
     layout->addWidget(createModeToolBar());
     setSizePolicy(sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR);
 }
 
 /**
@@ -87,7 +92,26 @@ m_windowIndex(windowIndex)
  */
 UserInputModeVolumeEditWidget::~UserInputModeVolumeEditWidget()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
+
+/**
+ * Receive an event
+ *
+ * @param event
+ *    The event.
+ */
+void
+UserInputModeVolumeEditWidget::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR) {
+        EventUpdateVolumeEditingToolBar* editVolEvent = dynamic_cast<EventUpdateVolumeEditingToolBar*>(event);
+        CaretAssert(editVolEvent);
+        
+        updateWidget();
+    }
+}
+
 
 /**
  * Update the widget.
@@ -155,6 +179,9 @@ UserInputModeVolumeEditWidget::updateWidget()
                 isValid = true;
             }
             
+            const bool orthogonalFlag = (volumeEditInfo.m_sliceProjectionType
+                                         == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
+            
             QList<QAction*> modeActions = m_volumeEditModeActionGroup->actions();
             const int32_t numModeActions = modeActions.size();
             for (int32_t i = 0; i < numModeActions; i++) {
@@ -167,23 +194,16 @@ UserInputModeVolumeEditWidget::updateWidget()
                                                                                           &validFlag);
                 CaretAssert(validFlag);
 
-                const bool orthogonalFlag = (volumeEditInfo.m_sliceProjectionType
-                                             == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
-                switch (mode) {
-                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON:
-                        break;
-                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF:
-                        break;
-                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_DILATE:
-                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ERODE:
-                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_2D:
-                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_3D:
-                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D:
-                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D:
-                    case VolumeEditingModeEnum::VOLUME_EDITING_MODE_RETAIN_CONNECTED_3D:
-                        action->setEnabled(orthogonalFlag);
-                        break;
+                bool modeEnabledFlag = false;
+                
+                if (orthogonalFlag) {
+                    modeEnabledFlag = true;
                 }
+                else {
+                    modeEnabledFlag = VolumeEditingModeEnum::isObliqueEditingAllowed(mode);
+                }
+                
+                action->setEnabled(modeEnabledFlag);
             }
         }
     }
@@ -236,24 +256,30 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                     "Reset all edting of the volume",
                                                                     this,
                                                                     this, SLOT(resetActionTriggered())));
-    
+
     QLabel* brushSizeLabel = new QLabel("Brush Size:");
-    const int maxBrushSize = 999;
-    m_xBrushSizeSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                        maxBrushSize,
-                                                                        1,
-                                                                        this,
-                                                                        SLOT(xBrushSizeValueChanged(int)));
-    m_yBrushSizeSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                        maxBrushSize,
-                                                                        1,
-                                                                        this,
-                                                                        SLOT(yBrushSizeValueChanged(int)));
-    m_zBrushSizeSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                        maxBrushSize,
-                                                                        1,
-                                                                        this,
-                                                                        SLOT(zBrushSizeValueChanged(int)));
+    const int MIN_BRUSH_SIZE = 1;
+    const int MAX_BRUSH_SIZE = 999;
+    m_xBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
+    m_xBrushSizeSpinBox->setRange(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
+    QObject::connect(m_xBrushSizeSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(xBrushSizeValueChanged(int)));
+    m_xBrushSizeSpinBox->getWidget()->setToolTip("Parasagittal brush size (voxels).\n"
+                                                 "Must be an odd value.");
+    
+    m_yBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
+    m_yBrushSizeSpinBox->setRange(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
+    QObject::connect(m_xBrushSizeSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(yBrushSizeValueChanged(int)));
+    m_yBrushSizeSpinBox->getWidget()->setToolTip("Coronal brush size (voxels).\n"
+                                                 "Must be an odd value.");
+    
+    m_zBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
+    m_zBrushSizeSpinBox->setRange(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
+    QObject::connect(m_xBrushSizeSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(zBrushSizeValueChanged(int)));
+    m_zBrushSizeSpinBox->getWidget()->setToolTip("Axial brush size (voxels).\n"
+                                                 "Must be an odd value.");
     
     m_voxelValueLabel = new QLabel("Value:");
     m_voxelFloatValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1000.0,
@@ -284,9 +310,9 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     layout->addWidget(resetToolButton);
     layout->addSpacing(SPACE);
     layout->addWidget(brushSizeLabel);
-    layout->addWidget(m_xBrushSizeSpinBox);
-    layout->addWidget(m_yBrushSizeSpinBox);
-    layout->addWidget(m_zBrushSizeSpinBox);
+    layout->addWidget(m_xBrushSizeSpinBox->getWidget());
+    layout->addWidget(m_yBrushSizeSpinBox->getWidget());
+    layout->addWidget(m_zBrushSizeSpinBox->getWidget());
     layout->addSpacing(SPACE);
     layout->addWidget(m_voxelValueLabel);
     layout->addWidget(m_voxelFloatValueSpinBox);
