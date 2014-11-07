@@ -1369,7 +1369,7 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                     if (useInterpolatedVoxel
                         && isPaletteMappedVolumeFile) {
                         value = volumeFile->interpolateValue(voxelCenter,
-                                                             VolumeFile::TRILINEAR, //VolumeFile::CUBIC,
+                                                             VolumeFile::CUBIC,
                                                              &valueValidFlag,
                                                              vdi.mapIndex);
                     }
