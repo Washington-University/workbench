@@ -26,6 +26,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -116,21 +117,47 @@ VolumeFileCreateDialog::createNewVolumeFileWidget()
                                    SubvolumeAttributes::LABEL);
     
     QLabel* newFileNumberOfMapsLabel = new QLabel("Maps:");
-    m_newFileNumberOfMapsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(1, 1000, 1);
+    m_newFileNumberOfMapsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(1, s_maximumNumberOfMaps, 1);
     m_newFileNumberOfMapsSpinBox->setFixedWidth(50);
+    QObject::connect(m_newFileNumberOfMapsSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(numberOfMapsSpinBoxValueChanged(int)));
     
-    QGridLayout* nameTypeLayout = new QGridLayout();
+    for (int32_t iMap = 0; iMap < s_maximumNumberOfMaps; iMap++) {
+        const AString mapNumText("Map " + AString::number(iMap + 1) + " ");
+        QLabel* label = new QLabel(mapNumText
+                                   + "Name");
+        m_mapNameLabels.push_back(label);
+        
+        QLineEdit* lineEdit = new QLineEdit();
+        lineEdit->setText(mapNumText);
+        m_mapNameLineEdits.push_back(lineEdit);
+    }
+
+    QGroupBox* fileGroupBox = new QGroupBox("File");
+    QGridLayout* nameTypeLayout = new QGridLayout(fileGroupBox);
+    int nameTypeRow = 0;
     nameTypeLayout->setColumnStretch(0, 0);
     nameTypeLayout->setColumnStretch(1, 0);
     nameTypeLayout->setColumnStretch(2, 100);
     nameTypeLayout->setColumnStretch(3, 0);
-    nameTypeLayout->addWidget(newFileNameLabel,      0, 0);
-    nameTypeLayout->addWidget(m_newFileNameLineEdit, 0, 1, 1, 2);
-    nameTypeLayout->addWidget(newFileNamePushButton, 0, 4);
-    nameTypeLayout->addWidget(newFileTypeLabel,      1, 0);
-    nameTypeLayout->addWidget(m_newFileTypeComboBox, 1, 1);
-    nameTypeLayout->addWidget(newFileNumberOfMapsLabel,     2, 0);
-    nameTypeLayout->addWidget(m_newFileNumberOfMapsSpinBox, 2, 1, Qt::AlignLeft);
+    nameTypeLayout->addWidget(newFileNameLabel,      nameTypeRow, 0);
+    nameTypeLayout->addWidget(m_newFileNameLineEdit, nameTypeRow, 1, 1, 2);
+    nameTypeLayout->addWidget(newFileNamePushButton, nameTypeRow, 4);
+    nameTypeRow++;
+    nameTypeLayout->addWidget(newFileTypeLabel,      nameTypeRow, 0);
+    nameTypeLayout->addWidget(m_newFileTypeComboBox, nameTypeRow, 1);
+    nameTypeRow++;
+    nameTypeLayout->addWidget(newFileNumberOfMapsLabel,     nameTypeRow, 0);
+    nameTypeLayout->addWidget(m_newFileNumberOfMapsSpinBox, nameTypeRow, 1, Qt::AlignLeft);
+    nameTypeRow++;
+    for (int32_t iMap = 0; iMap < s_maximumNumberOfMaps; iMap++) {
+        CaretAssertVectorIndex(m_mapNameLabels, iMap);
+        CaretAssertVectorIndex(m_mapNameLineEdits, iMap);
+        
+        nameTypeLayout->addWidget(m_mapNameLabels[iMap], nameTypeRow, 0);
+        nameTypeLayout->addWidget(m_mapNameLineEdits[iMap], nameTypeRow, 1, 1, 2);
+        nameTypeRow++;
+    }
     
     const int SPIN_BOX_WIDTH = 80;
     
@@ -177,38 +204,40 @@ VolumeFileCreateDialog::createNewVolumeFileWidget()
     const int COL_Y = COL_X + 1;
     const int COL_Z = COL_Y + 1;
     const int COL_LOAD = COL_Z + 1;
-    QGridLayout* paramsLayout = new QGridLayout();
     
-    int row = 0;
-    paramsLayout->addWidget(xLabel, row, COL_X, Qt::AlignHCenter);
-    paramsLayout->addWidget(yLabel, row, COL_Y, Qt::AlignHCenter);
-    paramsLayout->addWidget(zLabel, row, COL_Z, Qt::AlignHCenter);
-    paramsLayout->addWidget(loadFromLabel, row, COL_LOAD, Qt::AlignHCenter);
-    row++;
+    QGroupBox* paramGroupBox = new QGroupBox("Voxels");
+    QGridLayout* paramsLayout = new QGridLayout(paramGroupBox);
     
-    paramsLayout->addWidget(dimensionsLabel, row, COL_LABEL);
-    paramsLayout->addWidget(m_newDimXSpinBox, row, COL_X);
-    paramsLayout->addWidget(m_newDimYSpinBox, row, COL_Y);
-    paramsLayout->addWidget(m_newDimZSpinBox, row, COL_Z);
-    paramsLayout->addWidget(m_paramFromFilePushButton, row, COL_LOAD);
-    row++;
+    int paramsRow = 0;
+    paramsLayout->addWidget(xLabel, paramsRow, COL_X, Qt::AlignHCenter);
+    paramsLayout->addWidget(yLabel, paramsRow, COL_Y, Qt::AlignHCenter);
+    paramsLayout->addWidget(zLabel, paramsRow, COL_Z, Qt::AlignHCenter);
+    paramsLayout->addWidget(loadFromLabel, paramsRow, COL_LOAD, Qt::AlignHCenter);
+    paramsRow++;
     
-    paramsLayout->addWidget(originLabel, row, COL_LABEL);
-    paramsLayout->addWidget(m_newOriginXSpinBox, row, COL_X);
-    paramsLayout->addWidget(m_newOriginYSpinBox, row, COL_Y);
-    paramsLayout->addWidget(m_newOriginZSpinBox, row, COL_Z);
-    row++;
+    paramsLayout->addWidget(dimensionsLabel, paramsRow, COL_LABEL);
+    paramsLayout->addWidget(m_newDimXSpinBox, paramsRow, COL_X);
+    paramsLayout->addWidget(m_newDimYSpinBox, paramsRow, COL_Y);
+    paramsLayout->addWidget(m_newDimZSpinBox, paramsRow, COL_Z);
+    paramsLayout->addWidget(m_paramFromFilePushButton, paramsRow, COL_LOAD);
+    paramsRow++;
     
-    paramsLayout->addWidget(spacingLabel, row, COL_LABEL);
-    paramsLayout->addWidget(m_newSpacingXSpinBox, row, COL_X);
-    paramsLayout->addWidget(m_newSpacingYSpinBox, row, COL_Y);
-    paramsLayout->addWidget(m_newSpacingZSpinBox, row, COL_Z);
-    row++;
+    paramsLayout->addWidget(originLabel, paramsRow, COL_LABEL);
+    paramsLayout->addWidget(m_newOriginXSpinBox, paramsRow, COL_X);
+    paramsLayout->addWidget(m_newOriginYSpinBox, paramsRow, COL_Y);
+    paramsLayout->addWidget(m_newOriginZSpinBox, paramsRow, COL_Z);
+    paramsRow++;
+    
+    paramsLayout->addWidget(spacingLabel, paramsRow, COL_LABEL);
+    paramsLayout->addWidget(m_newSpacingXSpinBox, paramsRow, COL_X);
+    paramsLayout->addWidget(m_newSpacingYSpinBox, paramsRow, COL_Y);
+    paramsLayout->addWidget(m_newSpacingZSpinBox, paramsRow, COL_Z);
+    paramsRow++;
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addLayout(nameTypeLayout);
-    layout->addLayout(paramsLayout);
+    layout->addWidget(fileGroupBox);
+    layout->addWidget(paramGroupBox);
     
     if (s_previousVolumeSettingsValid) {
         m_newDimXSpinBox->setValue(s_previousVolumeSettings.m_dimensions[0]);
@@ -232,6 +261,8 @@ VolumeFileCreateDialog::createNewVolumeFileWidget()
     }
     
     m_newFileNameLineEdit->selectAll();
+    
+    numberOfMapsSpinBoxValueChanged(m_newFileNumberOfMapsSpinBox->value());
     
     return widget;
 }
@@ -257,6 +288,27 @@ VolumeFileCreateDialog::newFileNamePushButtonClicked()
         m_newFileNameLineEdit->setText(filename);
     }
 }
+
+/**
+ * Called when the number of maps is changed.
+ *
+ * @param value
+ *    New value for number of maps.
+ */
+void
+VolumeFileCreateDialog::numberOfMapsSpinBoxValueChanged(int value)
+{
+    for (int32_t iMap = 0; iMap < s_maximumNumberOfMaps; iMap++) {
+        CaretAssertVectorIndex(m_mapNameLabels, iMap);
+        CaretAssertVectorIndex(m_mapNameLineEdits, iMap);
+        
+        const bool enabledFlag = (iMap < value);
+        
+        m_mapNameLabels[iMap]->setEnabled(enabledFlag);
+        m_mapNameLineEdits[iMap]->setEnabled(enabledFlag);
+    }
+}
+
 
 /**
  * Gets called when the ok button is clicked.
@@ -392,6 +444,12 @@ VolumeFileCreateDialog::okButtonClicked()
     }
     m_volumeFile->setValueAllVoxels(defaultValue);
     m_volumeFile->updateScalarColoringForAllMaps(GuiManager::get()->getBrain()->getPaletteFile());
+    
+    for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+        CaretAssertVectorIndex(m_mapNameLineEdits, iMap);
+        m_volumeFile->setMapName(iMap,
+                                 m_mapNameLineEdits[iMap]->text().trimmed());
+    }
     
     WuQDialog::okButtonClicked();
 }

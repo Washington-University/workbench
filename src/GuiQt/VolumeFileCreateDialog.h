@@ -27,6 +27,7 @@
 
 class QComboBox;
 class QDoubleSpinBox;
+class QLabel;
 class QLineEdit;
 class QPushButton;
 class QSpinBox;
@@ -50,6 +51,8 @@ namespace caret {
         void newFileNamePushButtonClicked();
         
         void loadVolumeParametersFromFilePushButtonClicked();
+        
+        void numberOfMapsSpinBoxValueChanged(int);
         
     protected:
         virtual void okButtonClicked();
@@ -75,6 +78,10 @@ namespace caret {
         
         QSpinBox* m_newFileNumberOfMapsSpinBox;
         
+        std::vector<QLabel*> m_mapNameLabels;
+        
+        std::vector<QLineEdit*> m_mapNameLineEdits;
+        
         QSpinBox* m_newDimXSpinBox;
         
         QSpinBox* m_newDimYSpinBox;
@@ -97,6 +104,8 @@ namespace caret {
         
         VolumeFile* m_volumeFile;
 
+        static int32_t s_maximumNumberOfMaps;
+        
         static int32_t s_fileNameCounter;
         
         static PreviousVolumeSettings s_previousVolumeSettings;
@@ -108,6 +117,7 @@ namespace caret {
     };
     
 #ifdef __VOLUME_FILE_CREATE_DIALOG_DECLARE__
+    int32_t VolumeFileCreateDialog::s_maximumNumberOfMaps = 5;
     int32_t VolumeFileCreateDialog::s_fileNameCounter = 1;
     VolumeFileCreateDialog::PreviousVolumeSettings VolumeFileCreateDialog::s_previousVolumeSettings;
     bool VolumeFileCreateDialog::s_previousVolumeSettingsValid = false;

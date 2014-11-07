@@ -450,8 +450,6 @@ UserInputModeVolumeEditWidget::newFileActionTriggered()
         VolumeFile* vf = newVolumeDialog.getVolumeFile();
         if (vf != NULL) {
             for (int32_t i = 0; i < vf->getNumberOfMaps(); i++) {
-                vf->setMapName(i,
-                               ("Editing (" + AString::number(i + 1) + ")"));
                 vf->getVolumeFileEditorDelegate()->setLocked(i,
                                                              false);
             }
