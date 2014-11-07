@@ -134,6 +134,14 @@ namespace caret {
         virtual void mouseLeftDragWithCtrl(const MouseEvent& /*mouseEvent*/) { }
         
         /**
+         * Process a mouse left drag with ctrl and shift keys down event.
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseLeftDragWithCtrlShift(const MouseEvent& /*mouseEvent*/) { }
+        
+        /**
          * Process a mouse left drag with shift key down event.
          *
          * @param mouseEvent

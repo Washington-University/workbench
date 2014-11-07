@@ -79,8 +79,8 @@ namespace caret {
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
-        virtual void mouseLeftDrag(const MouseEvent& mouseEvent);
-        
+        virtual void mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent);
+
         bool getVolumeEditInfo(VolumeEditInfo& volumeEditInfo);
         
         void updateGraphicsAfterEditing(VolumeFile* volumeFile,
@@ -92,6 +92,8 @@ namespace caret {
         UserInputModeVolumeEdit(const UserInputModeVolumeEdit&);
 
         UserInputModeVolumeEdit& operator=(const UserInputModeVolumeEdit&);
+        
+        void processEditCommandFromMouse(const MouseEvent& mouseEvent);
         
         const int32_t m_windowIndex;
         

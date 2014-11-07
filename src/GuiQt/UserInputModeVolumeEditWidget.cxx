@@ -351,7 +351,7 @@ UserInputModeVolumeEditWidget::createModeToolBar()
         
         const int     modeInt  = VolumeEditingModeEnum::toIntegerCode(mode);
         const AString modeName = VolumeEditingModeEnum::toGuiName(mode);
-        const AString toolTip  = VolumeEditingModeEnum::toToolTip(mode);
+        const AString toolTip  = WuQtUtilities::createWordWrappedToolTipText(VolumeEditingModeEnum::toToolTip(mode));
         
         QAction* action = new QAction(modeName,
                                       this);

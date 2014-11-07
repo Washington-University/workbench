@@ -471,13 +471,13 @@ UserInputModeBorders::mouseLeftClickWithShift(const MouseEvent& /*mouseEvent*/)
 }
 
 /**
- * Process a mouse left drag with Alt key event.
+ * Process a mouse left drag with ctrl and shift keys down event.
  *
  * @param mouseEvent
  *     Mouse event information.
  */
 void
-UserInputModeBorders::mouseLeftDragWithAlt(const MouseEvent& mouseEvent)
+UserInputModeBorders::mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent)
 {
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     const int mouseX = mouseEvent.getX();
@@ -494,8 +494,5 @@ UserInputModeBorders::mouseLeftDragWithAlt(const MouseEvent& mouseEvent)
             break;
         case MODE_ROI:
             break;
-    }    
+    }
 }
-
-
-

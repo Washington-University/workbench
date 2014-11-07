@@ -667,7 +667,7 @@ BrainOpenGLWidget::checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
     if (isMouseMoving) {
         if (button == Qt::NoButton) {
             if (mouseButtons == Qt::MiddleButton) {
-                if (keyModifiers == Qt::NoButton) {
+                if (keyModifiers == Qt::NoModifier) {
                     mouseButtons = Qt::LeftButton;
                     button = Qt::NoButton;
                     keyModifiers = Qt::ShiftModifier;
@@ -677,7 +677,7 @@ BrainOpenGLWidget::checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
     }
     else {
         if (button == Qt::MiddleButton) {
-            if (keyModifiers == Qt::NoButton) {
+            if (keyModifiers == Qt::NoModifier) {
                 button = Qt::LeftButton;
                 keyModifiers = Qt::ShiftModifier;
             }
@@ -801,7 +801,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                   this->mousePressY,
                                   this->mouseNewDraggingStartedFlag);
             
-            if (keyModifiers == Qt::NoButton) {
+            if (keyModifiers == Qt::NoModifier) {
                 this->selectedUserInputProcessor->mouseLeftClick(mouseEvent);
             }
             else if (keyModifiers == Qt::ShiftModifier) {
@@ -1018,7 +1018,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                       this->mousePressY,
                                       this->mouseNewDraggingStartedFlag);
 
-                if (keyModifiers == Qt::NoButton) {
+                if (keyModifiers == Qt::NoModifier) {
                     this->selectedUserInputProcessor->mouseLeftDrag(mouseEvent);
                 }
                 else if (keyModifiers == Qt::ControlModifier) {
@@ -1029,6 +1029,10 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                 }
                 else if (keyModifiers == Qt::AltModifier) {
                     this->selectedUserInputProcessor->mouseLeftDragWithAlt(mouseEvent);
+                }
+                else if (keyModifiers == (Qt::ShiftModifier
+                                          | Qt::ControlModifier)) {
+                    this->selectedUserInputProcessor->mouseLeftDragWithCtrlShift(mouseEvent);
                 }
                 
                 this->mouseNewDraggingStartedFlag = false;

@@ -69,7 +69,7 @@ namespace caret {
         
         virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent);
         
-        virtual void mouseLeftDragWithAlt(const MouseEvent& mouseEvent);
+        virtual void mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent);
         
         virtual QWidget* getWidgetForToolBar();
         

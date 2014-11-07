@@ -129,13 +129,13 @@ UserInputModeVolumeEdit::getUserInputMode() const
 }
 
 /**
- * Process a mouse left click event.
+ * Process a mouse event for editing the voxels.
  *
  * @param mouseEvent
  *     Mouse event information.
  */
 void
-UserInputModeVolumeEdit::mouseLeftClick(const MouseEvent& mouseEvent)
+UserInputModeVolumeEdit::processEditCommandFromMouse(const MouseEvent& mouseEvent)
 {
     if (mouseEvent.getViewportContent() == NULL) {
         return;
@@ -227,17 +227,28 @@ UserInputModeVolumeEdit::mouseLeftClick(const MouseEvent& mouseEvent)
 }
 
 /**
- * Process a mouse left drag with no keys down event.
+ * Process a mouse left click event.
  *
  * @param mouseEvent
  *     Mouse event information.
  */
 void
-UserInputModeVolumeEdit::mouseLeftDrag(const MouseEvent& mouseEvent)
+UserInputModeVolumeEdit::mouseLeftClick(const MouseEvent& mouseEvent)
 {
-    mouseLeftClick(mouseEvent);
+    processEditCommandFromMouse(mouseEvent);
 }
 
+/**
+ * Process a mouse left drag with ctrl and shift keys down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeVolumeEdit::mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent)
+{
+    processEditCommandFromMouse(mouseEvent);
+}
 
 /**
  * Update the graphics after editing.

@@ -114,12 +114,16 @@ VolumeEditingModeEnum::initialize()
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_ON,
                                              "VOLUME_EDITING_MODE_ON",
                                              "On",
-                                             "Turn voxels on at mouse click"));
+                                             "Turn voxels on at mouse click.  Or move the mouse with the left "
+                                             "mouse button down while holding down the CTRL (Apple key on Mac) "
+                                             "and SHIFT keys."));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_OFF,
                                              "VOLUME_EDITING_MODE_OFF",
                                              "Off",
-                                             "Turn voxels off at mouse click"));
+                                             "Turn voxels off at mouse click.   Or move the mouse with the left "
+                                             "mouse button down while holding down the CTRL (Apple key on Mac) "
+                                             "and SHIFT keys."));
     
     enumData.push_back(VolumeEditingModeEnum(VOLUME_EDITING_MODE_DILATE,
                                              "VOLUME_EDITING_MODE_DILATE",

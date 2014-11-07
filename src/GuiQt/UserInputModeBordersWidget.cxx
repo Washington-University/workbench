@@ -238,7 +238,7 @@ QWidget*
 UserInputModeBordersWidget::createDrawOperationWidget()
 {
     const AString drawToolTipText = ("To draw a new border segment either click the mouse "
-                                 "to discretely add border points or hold down the Alt/Option key "
+                                 "to discretely add border points or hold down the CTRL (Apple key on Mac) and SHIFT keys "
                                  "and move the mouse with the left mouse button down to continuously "
                                      "add points. "
                                  "When the border is complete, either press the Finish button "
@@ -268,8 +268,8 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     eraseToolButton->setDefaultAction(eraseAction);
     
     const AString extendToolTipText = ("To extend a border, move the mouse ANY point in the border and "
-                                       "either click the mouse to discretely add points or hold down the Alt/Option "
-                                       "key and move the mouse with the left mouse button down to continuously add points. "
+                                       "either click the mouse to discretely add points or hold down the CTRL (Apple key on Mac) and SHIFT keys "
+                                       "and move the mouse with the left mouse button down to continuously add points. "
                                        "Press the Finish button or hold down the Shift key and click the "
                                        "mouse add the extension to the border."
                                        "\n\n"
@@ -287,7 +287,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     
     const AString replaceToolTipText = ("To replace a section of a border, move the mouse to the "
                                         "start of the section that is being replaced.  Either click "
-                                        "the mouse to discretely add points in the new section or hold down the Alt/Option key "
+                                        "the mouse to discretely add points in the new section or hold down the CTRL (Apple key on Mac) and SHIFT keys "
                                         "and move the mouse with the left mouse button down to continuously add points. "
                                         "Press the Finish button or hold down the Shift key and click the "
                                         "mouse to conclude replacing the section in the border."
