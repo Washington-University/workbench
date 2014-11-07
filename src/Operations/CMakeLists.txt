@@ -77,6 +77,7 @@ OperationSurfaceFlipNormals.h
 OperationSurfaceGeodesicDistance.h
 OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
+OperationSurfaceNormals.h
 OperationSurfaceVertexAreas.h
 OperationVolumeCapturePlane.h
 OperationVolumeCopyExtensions.h
@@ -154,6 +155,7 @@ OperationSurfaceFlipNormals.cxx
 OperationSurfaceGeodesicDistance.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx
+OperationSurfaceNormals.cxx
 OperationSurfaceVertexAreas.cxx
 OperationVolumeCapturePlane.cxx
 OperationVolumeCopyExtensions.cxx

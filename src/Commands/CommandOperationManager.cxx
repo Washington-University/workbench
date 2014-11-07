@@ -178,6 +178,7 @@
 #include "OperationSurfaceGeodesicDistance.h"
 #include "OperationSurfaceGeodesicROIs.h"
 #include "OperationSurfaceInformation.h"
+#include "OperationSurfaceNormals.h"
 #include "OperationSurfaceVertexAreas.h"
 #include "OperationVolumeCapturePlane.h"
 #include "OperationVolumeCopyExtensions.h"
@@ -403,6 +404,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicDistance()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceNormals()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceVertexAreas()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCapturePlane()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCopyExtensions()));
