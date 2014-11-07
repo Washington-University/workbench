@@ -1148,6 +1148,7 @@ BrainOpenGLWidget::receiveEvent(Event* event)
     else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* guiUpdateEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(guiUpdateEvent);
+        guiUpdateEvent->setEventProcessed();
         
         this->selectedUserInputProcessor->update();
     }

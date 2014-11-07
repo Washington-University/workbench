@@ -110,6 +110,7 @@ UserInputModeVolumeEditWidget::receiveEvent(Event* event)
     if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR) {
         EventUpdateVolumeEditingToolBar* editVolEvent = dynamic_cast<EventUpdateVolumeEditingToolBar*>(event);
         CaretAssert(editVolEvent);
+        editVolEvent->setEventProcessed();
         
         updateWidget();
     }
