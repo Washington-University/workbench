@@ -64,6 +64,48 @@ VolumeFileCreateDialog::VolumeFileCreateDialog(QWidget* parent)
 : WuQDialogModal("Create Volume",
                  parent)
 {
+    if ( ! s_previousVolumeSettingsValid) {
+        s_previousVolumeSettings.m_dimensions.clear();
+        s_previousVolumeSettings.m_dimensions.push_back(182);
+        s_previousVolumeSettings.m_dimensions.push_back(218);
+        s_previousVolumeSettings.m_dimensions.push_back(182);
+        s_previousVolumeSettings.m_dimensions.push_back(1);
+        
+        std::vector<float> row1;
+        row1.push_back(-1);
+        row1.push_back(0);
+        row1.push_back(0);
+        row1.push_back(90);
+
+        std::vector<float> row2;
+        row2.push_back(0);
+        row2.push_back(1);
+        row2.push_back(0);
+        row2.push_back(-126);
+
+        std::vector<float> row3;
+        row3.push_back(0);
+        row3.push_back(0);
+        row3.push_back(1);
+        row3.push_back(-72);
+
+        std::vector<float> row4;
+        row4.push_back(0);
+        row4.push_back(0);
+        row4.push_back(0);
+        row4.push_back(1);
+        
+        s_previousVolumeSettings.m_indexToSpace.clear();
+        s_previousVolumeSettings.m_indexToSpace.push_back(row1);
+        s_previousVolumeSettings.m_indexToSpace.push_back(row2);
+        s_previousVolumeSettings.m_indexToSpace.push_back(row3);
+        s_previousVolumeSettings.m_indexToSpace.push_back(row4);
+        
+        s_previousVolumeSettings.m_volumeType = SubvolumeAttributes::FUNCTIONAL;
+        
+        s_previousVolumeSettingsValid = true;
+    }
+    
     m_volumeFile = NULL;
     
     QWidget* widget = new QWidget();
