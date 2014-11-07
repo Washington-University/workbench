@@ -128,6 +128,7 @@ WuQListWidget.h
 WuQMessageBox.h
 WuQwtPlot.h
 WuQSpinBoxGroup.h
+WuQSpinBoxOddValue.h
 WuQTabWidget.h
 WuQTimedMessageDisplay.h
 WuQTreeWidget.h
@@ -201,6 +202,7 @@ EventOperatingSystemRequestOpenDataFile.h
 EventOverlaySettingsEditorDialogRequest.h
 EventPaletteColorMappingEditorDialogRequest.h
 EventUpdateInformationWindows.h
+EventUpdateVolumeEditingToolBar.h
 EventUpdateYokedWindows.h
 EventUserInterfaceUpdate.h
 FiberOrientationSelectionViewController.h
@@ -277,6 +279,7 @@ WuQListWidget.h
 WuQMessageBox.h
 WuQwtPlot.h
 WuQSpinBoxGroup.h
+WuQSpinBoxOddValue.h
 WuQTabWidget.h
 WuQTimedMessageDisplay.h
 WuQTreeWidget.h
@@ -341,6 +344,7 @@ EventOperatingSystemRequestOpenDataFile.cxx
 EventOverlaySettingsEditorDialogRequest.cxx
 EventPaletteColorMappingEditorDialogRequest.cxx
 EventUpdateInformationWindows.cxx
+EventUpdateVolumeEditingToolBar.cxx
 EventUpdateYokedWindows.cxx
 EventUserInterfaceUpdate.cxx
 FiberOrientationSelectionViewController.cxx
@@ -416,6 +420,7 @@ WuQListWidget.cxx
 WuQMessageBox.cxx
 WuQwtPlot.cxx
 WuQSpinBoxGroup.cxx
+WuQSpinBoxOddValue.cxx
 WuQTabWidget.cxx
 WuQTimedMessageDisplay.cxx
 WuQTreeWidget.cxx
