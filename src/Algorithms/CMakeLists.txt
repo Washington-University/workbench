@@ -73,6 +73,7 @@ AlgorithmMetricROIsFromExtrema.h
 AlgorithmMetricROIsToBorder.h
 AlgorithmMetricSmoothing.h
 AlgorithmMetricTFCE.h
+AlgorithmMetricVectorTowardROI.h
 AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
 AlgorithmSurfaceAffineRegression.h
@@ -170,6 +171,7 @@ AlgorithmMetricROIsFromExtrema.cxx
 AlgorithmMetricROIsToBorder.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmMetricTFCE.cxx
+AlgorithmMetricVectorTowardROI.cxx
 AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx
 AlgorithmSurfaceAffineRegression.cxx

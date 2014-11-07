@@ -77,6 +77,7 @@ namespace caret {
         void alltoall(float** out, int32_t** parents, bool smooth);//must be fully allocated
         void dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth);//partial surface
         int32_t closest(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smooth);//just closest node
+        int32_t closest(const int32_t& root, const char* roi, bool smooth);//just closest node
         void aStar(const int32_t root, const int32_t endpoint, bool smooth);//faster method for path
         float linePenalty(const Vector3D& pos, const Vector3D& linep1, const Vector3D& linep2, const bool& segment);
         float lineHeuristic(const Vector3D& pos, const Vector3D& linep1, const Vector3D& linep2, const float& remainEucl, const bool& segment);
@@ -118,6 +119,7 @@ namespace caret {
         
         ///get just the closest node in the region and max distance given, returns -1 if no such node found - roi value of 0 means not in region, anything else is in region
         int32_t getClosestNodeInRoi(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smoothflag = true);
+        int32_t getClosestNodeInRoi(const int32_t& root, const char* roi, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag);
     };
 
 } //namespace caret
