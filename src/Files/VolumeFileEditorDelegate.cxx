@@ -214,7 +214,7 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                                        errorMessageOut);
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                    result = performTurnOnOrOffOblique(editInfo,
+                    result = performTurnOnOrOffOrthogonal(editInfo,
                                                        errorMessageOut);
                     break;
             }
@@ -531,15 +531,66 @@ VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
             break;
     }
     
+    float voxelDiffXYZ[3];
+    
     float voxelXYZ[3];
-    m_volumeFile->indexToSpace(editInfo.m_voxelIJK, voxelXYZ);
+    m_volumeFile->indexToSpace(editInfo.m_voxelIJK,
+                               voxelXYZ);
+    
+    const int64_t planeVoxelsDI = (editInfo.m_ijkMax[0] - editInfo.m_ijkMin[0]) / 2 ;
+    const int64_t planeVoxelsDJ = (editInfo.m_ijkMax[1] - editInfo.m_ijkMin[1]) / 2 ;
+    const int64_t planeVoxelsDK = (editInfo.m_ijkMax[2] - editInfo.m_ijkMin[2]) / 2 ;
+    
     CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
     modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
                                                     editInfo.m_mapIndex));
-    for (int64_t i = editInfo.m_ijkMin[0]; i <= editInfo.m_ijkMax[0]; i++) {
-        for (int64_t j = editInfo.m_ijkMin[1]; j <= editInfo.m_ijkMax[1]; j++) {
-            for (int64_t k = editInfo.m_ijkMin[2]; k <= editInfo.m_ijkMax[2]; k++) {
-                const int64_t ijk[3] = { i, j, k };
+//    const float planeZ = voxelXYZ[2];
+//    for (int64_t i = -planeVoxelsDI; i <= planeVoxelsDI; i++) {
+//        const float planeX = voxelXYZ[0] + i * editInfo.m_voxelDiffXYZ[0];
+//        for (int64_t j = -planeVoxelsDJ; j <= planeVoxelsDJ; j++) {
+//            const float planeY = voxelXYZ[1] + j * editInfo.m_voxelDiffXYZ[1];
+//            const float xyz[3] = { planeX, planeY, planeZ };
+//            float ijkFloat[3];
+//            m_volumeFile->spaceToIndex(xyz, ijkFloat);
+//            int64_t ijk[3] = { ijkFloat[0], ijkFloat[1], ijkFloat[2] };
+//            modifiedVoxels->addVoxelRedoUndo(ijk,
+//                                             redoVoxelValue,
+//                                             m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
+//            m_volumeFile->setValue(redoVoxelValue,
+//                                   ijk,
+//                                   editInfo.m_mapIndex);
+//        }
+//    }
+    
+    const int64_t halfBrushI = editInfo.m_brushSize[0] / 2;
+    const int64_t halfBrushJ = editInfo.m_brushSize[1] / 2;
+    const int64_t halfBrushK = editInfo.m_brushSize[2] / 2;
+    
+    VolumeSpace::OrientTypes orient[3];
+    float spacing[3];
+    float origin[3];
+    m_volumeFile->getVolumeSpace().getOrientAndSpacingForPlumb(orient,
+                                                               spacing,
+                                                               origin);
+    for (int64_t k = -halfBrushK; k <= halfBrushK; k++) {
+        for (int64_t i = -halfBrushI; i <= halfBrushI; i++) {
+            for (int64_t j = -halfBrushJ; j <= halfBrushJ; j++) {
+                float localXYZ[3] = {
+                    i * spacing[0],
+                    j * spacing[1],
+                    k * spacing[2]
+                };
+                editInfo.m_obliqueRotationMatrix.multiplyPoint3(localXYZ);
+                
+                float brushXYZ[3] = {
+                    voxelXYZ[0] + localXYZ[0],
+                    voxelXYZ[1] + localXYZ[1],
+                    voxelXYZ[2] + localXYZ[2]
+                };
+                
+                float ijkFloat[3];
+                m_volumeFile->spaceToIndex(brushXYZ, ijkFloat);
+                int64_t ijk[3] = { ijkFloat[0], ijkFloat[1], ijkFloat[2] };
                 modifiedVoxels->addVoxelRedoUndo(ijk,
                                                  redoVoxelValue,
                                                  m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
@@ -549,6 +600,26 @@ VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
             }
         }
     }
+    
+//    for (int64_t k = -planeVoxelsDZ; k <= planeVoxelsDZ; ++k) {
+//        
+//    }
+//    CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
+//    modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
+//                                                    editInfo.m_mapIndex));
+//    for (int64_t i = editInfo.m_ijkMin[0]; i <= editInfo.m_ijkMax[0]; i++) {
+//        for (int64_t j = editInfo.m_ijkMin[1]; j <= editInfo.m_ijkMax[1]; j++) {
+//            for (int64_t k = editInfo.m_ijkMin[2]; k <= editInfo.m_ijkMax[2]; k++) {
+//                const int64_t ijk[3] = { i, j, k };
+//                modifiedVoxels->addVoxelRedoUndo(ijk,
+//                                                 redoVoxelValue,
+//                                                 m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
+//                m_volumeFile->setValue(redoVoxelValue,
+//                                       ijk,
+//                                       editInfo.m_mapIndex);
+//            }
+//        }
+//    }
     
     addToMapUndoStacks(editInfo.m_mapIndex,
                        modifiedVoxels.releasePointer());
