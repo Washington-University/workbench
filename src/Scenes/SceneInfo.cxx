@@ -161,10 +161,10 @@ SceneInfo::writeSceneInfo(XmlWriter& xmlWriter,
     xmlWriter.writeStartElement(SceneXmlElements::SCENE_INFO_TAG,
                                   attributes);
     
-    xmlWriter.writeElementCharacters(SceneXmlElements::SCENE_INFO_NAME_TAG,
+    xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_NAME_TAG,
                                      m_sceneName);
     
-    xmlWriter.writeElementCharacters(SceneXmlElements::SCENE_INFO_DESCRIPTION_TAG,
+    xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_DESCRIPTION_TAG,
                                        m_sceneDescription);
     
     writeSceneInfoImage(xmlWriter,
