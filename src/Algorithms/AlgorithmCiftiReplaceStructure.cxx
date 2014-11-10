@@ -69,6 +69,8 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
     OptionalParameter* volumeAllOpt = ret->createOptionalParameter(6, "-volume-all", "replace the data in all volume components");
     volumeAllOpt->addVolumeParameter(1, "volume", "the input volume");
     volumeAllOpt->createOptionalParameter(2, "-from-cropped", "the input is cropped to the size of the data");
+    
+    ret->createOptionalParameter(7, "-discard-unused-labels", "when operating on a dlabel file, drop any unused label keys from the label table");
 
     AString helpText = AString("You must specify at least one of -metric, -label, -volume, or -volume-all for this command to do anything.  ") +
         "Input volumes must line up with the output of -cifti-separate.  " +
@@ -98,6 +100,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
+    bool discardUnusedLabels = myParams->getOptionalParameter(7)->m_present;
     const vector<ParameterComponent*>& labelInst = *(myParams->getRepeatableParameterInstances(3));
     for (int i = 0; i < (int)labelInst.size(); ++i)
     {
@@ -109,7 +112,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
             throw AlgorithmException("unrecognized structure name");
         }
         LabelFile* labelIn = labelInst[i]->getLabel(2);
-        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, labelIn);
+        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, labelIn, discardUnusedLabels);
     }
     const vector<ParameterComponent*>& metricInst = *(myParams->getRepeatableParameterInstances(4));
     for (int i = 0; i < (int)metricInst.size(); ++i)
@@ -136,14 +139,14 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         }
         VolumeFile* volIn = volumeInst[i]->getVolume(2);
         bool fromCropVol = volumeInst[i]->getOptionalParameter(3)->m_present;
-        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, volIn, fromCropVol);
+        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, volIn, fromCropVol, discardUnusedLabels);
     }
     OptionalParameter* volumeAllOpt = myParams->getOptionalParameter(6);
     if (volumeAllOpt->m_present)
     {
         VolumeFile* volIn = volumeAllOpt->getVolume(1);
         bool fromCropVol = volumeAllOpt->getOptionalParameter(2)->m_present;
-        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, volIn, fromCropVol);
+        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, volIn, fromCropVol, discardUnusedLabels);
     }
     myCifti.writeFile(ciftiName);//and write the modified file
 }
@@ -207,7 +210,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
 }
 
 AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                                               const StructureEnum::Enum& myStruct, const LabelFile* labelIn) : AbstractAlgorithm(myProgObj)
+                                                               const StructureEnum::Enum& myStruct, const LabelFile* labelIn, const bool& discardUnusedLabels) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
@@ -286,9 +289,12 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             }
             ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
         }
-        for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
+        if (discardUnusedLabels)
         {
-            myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(usedArray[i]);
+            for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
+            {
+                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(usedArray[i]);
+            }
         }
     } else {
         if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("unsupported cifti direction");
@@ -344,14 +350,17 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                 rowScratch[myMap[j].m_ciftiIndex] = tempKey;
                 used.insert(tempKey);
             }
-            myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
+            if (discardUnusedLabels)
+            {
+                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
+            }
             ciftiInOut->setRow(rowScratch, i);
         }
     }
 }
 
 AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                                               const StructureEnum::Enum& myStruct, const VolumeFile* volIn, const bool& fromCropped) : AbstractAlgorithm(myProgObj)
+                                                               const StructureEnum::Enum& myStruct, const VolumeFile* volIn, const bool& fromCropped, const bool& discardUnusedLabels) : AbstractAlgorithm(myProgObj)
 {
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
     if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported in cifti replace structure");
@@ -450,9 +459,12 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                 }
                 ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
             }
-            for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
+            if (discardUnusedLabels)
             {
-                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(usedArray[i]);
+                for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
+                {
+                    myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(usedArray[i]);
+                }
             }
         } else {
             for (int64_t i = 0; i < numVoxels; ++i)
@@ -511,7 +523,10 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                     rowScratch[myMap[j].m_ciftiIndex] = tempKey;
                     used.insert(tempKey);
                 }
-                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
+                if (discardUnusedLabels)
+                {
+                    myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
+                }
                 ciftiInOut->setRow(rowScratch, i);
             }
         } else {
@@ -530,7 +545,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
 }
 
 AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                                               const VolumeFile* volIn, const bool& fromCropped): AbstractAlgorithm(myProgObj)
+                                                               const VolumeFile* volIn, const bool& fromCropped, const bool& discardUnusedLabels): AbstractAlgorithm(myProgObj)
 {
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
@@ -629,9 +644,12 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                 }
                 ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
             }
-            for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
+            if (discardUnusedLabels)
             {
-                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(usedArray[i]);
+                for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
+                {
+                    myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(usedArray[i]);
+                }
             }
         } else {
             for (int64_t i = 0; i < numVoxels; ++i)
@@ -690,7 +708,10 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                     rowScratch[myMap[j].m_ciftiIndex] = tempKey;
                     used.insert(tempKey);
                 }
-                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
+                if (discardUnusedLabels)
+                {
+                    myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
+                }
                 ciftiInOut->setRow(rowScratch, i);
             }
         } else {

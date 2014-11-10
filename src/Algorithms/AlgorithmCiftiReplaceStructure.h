@@ -36,11 +36,11 @@ namespace caret {
         AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
                                        const StructureEnum::Enum& myStruct, const MetricFile* metricIn);
         AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                       const StructureEnum::Enum& myStruct, const LabelFile* labelIn);
+                                       const StructureEnum::Enum& myStruct, const LabelFile* labelIn, const bool& discardUnusedLabels = false);
         AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                       const StructureEnum::Enum& myStruct, const VolumeFile* volIn, const bool& fromCropped = true);
+                                       const StructureEnum::Enum& myStruct, const VolumeFile* volIn, const bool& fromCropped, const bool& discardUnusedLabels = false);
         AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                       const VolumeFile* volIn, const bool& fromCropped = true);
+                                       const VolumeFile* volIn, const bool& fromCropped, const bool& discardUnusedLabels = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
