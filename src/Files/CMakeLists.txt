@@ -114,6 +114,7 @@ VolumeFileEditorDelegate.h
 VolumeFileVoxelColorizer.h
 VolumeMapUndoCommand.h
 VolumePaddingHelper.h
+VolumeSliceProjectionTypeEnum.h
 VolumeSpline.h
 VtkFileExporter.h
 WarpfieldFile.h
@@ -213,6 +214,7 @@ VolumeFileEditorDelegate.cxx
 VolumeFileVoxelColorizer.cxx
 VolumeMapUndoCommand.cxx
 VolumePaddingHelper.cxx
+VolumeSliceProjectionTypeEnum.cxx
 VolumeSpline.cxx
 VtkFileExporter.cxx
 WarpfieldFile.cxx

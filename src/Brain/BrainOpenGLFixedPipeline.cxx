@@ -3056,47 +3056,13 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
     VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
     VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
     
-//    if (USE_OLD_VOLUME_SLICE_DRAWING_FLAG) {
-//        VolumeSliceViewModeEnum::Enum sliceViewMode = VolumeSliceViewModeEnum::ORTHOGONAL;
-//        
-//        switch (sliceProjectionType) {
-//            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//                switch (sliceDrawingType) {
-//                    case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
-//                        sliceViewMode = VolumeSliceViewModeEnum::OBLIQUE;
-//                        break;
-//                    case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
-//                        sliceViewMode = VolumeSliceViewModeEnum::OBLIQUE;
-//                        break;
-//                }
-//                break;
-//            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//                switch (sliceDrawingType) {
-//                    case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
-//                        sliceViewMode = VolumeSliceViewModeEnum::MONTAGE;
-//                        break;
-//                    case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
-//                        sliceViewMode = VolumeSliceViewModeEnum::ORTHOGONAL;
-//                        break;
-//                }
-//                break;
-//        }
-//        OLD_BrainOpenGLVolumeSliceDrawing oldVolumeSliceDrawing;
-//        oldVolumeSliceDrawing.draw(this,
-//                                browserTabContent,
-//                                volumeDrawInfo,
-//                                sliceViewMode,
-//                                viewport);
-//    }
-//    else {
-        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-        volumeSliceDrawing.draw(this,
-                                   browserTabContent,
-                                   volumeDrawInfo,
-                                   sliceDrawingType,
-                                   sliceProjectionType,
-                                   viewport);
-//    }
+    BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+    volumeSliceDrawing.draw(this,
+                            browserTabContent,
+                            volumeDrawInfo,
+                            sliceDrawingType,
+                            sliceProjectionType,
+                            viewport);
 }
 
 
@@ -4493,34 +4459,13 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
             VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
             VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
             
-//            if (USE_OLD_VOLUME_SLICE_DRAWING_FLAG) {
-//                VolumeSliceViewModeEnum::Enum sliceViewMode = VolumeSliceViewModeEnum::ORTHOGONAL;
-//                
-//                switch (sliceProjectionType) {
-//                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//                        sliceViewMode = VolumeSliceViewModeEnum::OBLIQUE;
-//                        break;
-//                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//                        sliceViewMode = VolumeSliceViewModeEnum::ORTHOGONAL;
-//                        break;
-//                }
-//
-//                OLD_BrainOpenGLVolumeSliceDrawing oldVolumeSliceDrawing;
-//                oldVolumeSliceDrawing.draw(this,
-//                                           browserTabContent,
-//                                           volumeDrawInfo,
-//                                           sliceViewMode,
-//                                           viewport);
-//            }
-//            else {
-                BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-                volumeSliceDrawing.draw(this,
-                                        browserTabContent,
-                                        volumeDrawInfo,
-                                        sliceDrawingType,
-                                        sliceProjectionType,
-                                        viewport);
-//            }
+            BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+            volumeSliceDrawing.draw(this,
+                                    browserTabContent,
+                                    volumeDrawInfo,
+                                    sliceDrawingType,
+                                    sliceProjectionType,
+                                    viewport);
         }
     }
     

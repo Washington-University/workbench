@@ -157,9 +157,7 @@ ViewingTransformations.h
 ViewingTransformationsCerebellum.h
 ViewingTransformationsVolume.h
 VolumeSliceDrawingTypeEnum.h
-VolumeSliceProjectionTypeEnum.h
 VolumeSliceSettings.h
-VolumeSliceViewModeEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
 VolumeSurfaceOutlineModel.h
 VolumeSurfaceOutlineSetModel.h
@@ -272,9 +270,7 @@ ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
 ViewingTransformationsVolume.cxx
 VolumeSliceDrawingTypeEnum.cxx
-VolumeSliceProjectionTypeEnum.cxx
 VolumeSliceSettings.cxx
-VolumeSliceViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
 VolumeSurfaceOutlineModel.cxx
 VolumeSurfaceOutlineSetModel.cxx
