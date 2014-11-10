@@ -178,13 +178,19 @@ UserInputModeVolumeEdit::processEditCommandFromMouse(const MouseEvent& mouseEven
         VolumeFileEditorDelegate* editor = volumeEditInfo.m_volumeFileEditorDelegate;
         CaretAssert(editor);
         
-        VolumeSliceViewPlaneEnum::Enum slicePlane = volumeEditInfo.m_sliceViewPlane;
+        const VolumeSliceViewPlaneEnum::Enum slicePlane = volumeEditInfo.m_sliceViewPlane;
+        
+        const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = volumeEditInfo.m_sliceProjectionType;
+        const Matrix4x4 obliqueRotationMatrix = volumeEditInfo.m_obliqueRotationMatrix;
         
         bool successFlag = true;
         AString errorMessage;
         
         float voxelValueOn = paletteMappedValue;
         float voxelValueOff = 0.0;
+        
+        float voxelDiffXYZ[3];
+        idEditVoxel->getVoxelDiffXYZ(voxelDiffXYZ);
         
         if (volumeEditInfo.m_volumeFile->isMappedWithLabelTable()) {
             const GiftiLabelTable* labelTable = volumeEditInfo.m_volumeFile->getMapLabelTable(volumeEditInfo.m_mapIndex);
@@ -209,6 +215,9 @@ UserInputModeVolumeEdit::processEditCommandFromMouse(const MouseEvent& mouseEven
             successFlag = editor->performEditingOperation(volumeEditInfo.m_mapIndex,
                                                           editMode,
                                                           slicePlane,
+                                                          sliceProjectionType,
+                                                          obliqueRotationMatrix,
+                                                          voxelDiffXYZ,
                                                           ijk,
                                                           brushSizesInt64,
                                                           voxelValueOn,
@@ -321,6 +330,7 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
     volumeEditInfo.m_mapIndex       = -1;
     volumeEditInfo.m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
     volumeEditInfo.m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
+    volumeEditInfo.m_obliqueRotationMatrix.identity();
 //    volumeEditInfo.m_modelVolume    = NULL;
     
     EventBrowserWindowContentGet windowEvent(m_windowIndex);
@@ -354,6 +364,7 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
                             volumeEditInfo.m_sliceViewPlane = tabContent->getSliceViewPlane();
                             volumeEditInfo.m_sliceProjectionType = tabContent->getSliceProjectionType();
                             volumeEditInfo.m_volumeFileEditorDelegate = vf->getVolumeFileEditorDelegate();
+                            volumeEditInfo.m_obliqueRotationMatrix = tabContent->getObliqueVolumeRotationMatrix();
                             return true;
                         }
                     }

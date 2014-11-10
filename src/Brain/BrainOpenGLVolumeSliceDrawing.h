@@ -136,33 +136,14 @@ namespace caret {
          */
         class VoxelToDraw {
         public:
-            /**
-             * Create a voxel for drawing.
-             *
-             * @param center
-             *    Center of voxel.
-             * @param leftBottom
-             *    Left bottom coordinate of voxel.
-             * @param rightBottom
-             *    Right bottom coordinate of voxel.
-             * @param rightTop
-             *    Right top coordinate of voxel.
-             * @param leftTop
-             *    Left top coordinate of voxel.
-             */
             VoxelToDraw(const float center[3],
                         const double leftBottom[3],
                         const double rightBottom[3],
                         const double rightTop[3],
                         const double leftTop[3]);
-            /**
-             * Add a value from a volume slice.
-             *
-             * @param sliceIndex
-             *    Index of the slice.
-             * @param sliceOffset
-             *    Offset of value in the slice.
-             */
+            
+            void getDiffXYZ(float dxyzOut[3]) const;
+            
             void addVolumeValue(const int64_t sliceIndex,
                                 const int64_t sliceOffset);
             
@@ -295,6 +276,7 @@ namespace caret {
                                       const int32_t voxelI,
                                       const int32_t voxelJ,
                                       const int32_t voxelK,
+                                      const float voxelDiffXYZ[3],
                                       uint8_t rgbaForColorIdentificationOut[4]);
         
         bool getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -346,7 +328,7 @@ namespace caret {
     };
     
 #ifdef __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
-const int32_t BrainOpenGLVolumeSliceDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 5;
+const int32_t BrainOpenGLVolumeSliceDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 8;
 #endif // __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
 
 } // namespace

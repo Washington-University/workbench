@@ -94,4 +94,35 @@ SelectionItemVoxelEditing::reset()
     m_volumeFileForEditing = NULL;
 }
 
+/**
+ * Set the voxel diff XYZ (bottom left to top right
+ * of screen drawing).
+ * 
+ * @param voxelDiffXYZ
+ *    Difference from voxel bottom left to top right on screen.
+ */
+void
+SelectionItemVoxelEditing::setVoxelDiffXYZ(const float voxelDiffXYZ[3])
+{
+    m_voxelDiffXYZ[0] = voxelDiffXYZ[0];
+    m_voxelDiffXYZ[1] = voxelDiffXYZ[1];
+    m_voxelDiffXYZ[2] = voxelDiffXYZ[2];
+}
+
+/**
+ * Get the voxel diff XYZ (bottom left to top right
+ * of screen drawing).
+ *
+ * @param voxelDiffXYZ
+ *    Difference from voxel bottom left to top right on screen.
+ */
+void
+SelectionItemVoxelEditing::getVoxelDiffXYZ(float voxelDiffXYZ[3]) const
+{
+    voxelDiffXYZ[0] = m_voxelDiffXYZ[0];
+    voxelDiffXYZ[1] = m_voxelDiffXYZ[1];
+    voxelDiffXYZ[2] = m_voxelDiffXYZ[2];
+}
+
+
 

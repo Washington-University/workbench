@@ -1601,7 +1601,15 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                                            voxelI, voxelJ, voxelK);
                     
                     if (volMap->indexValid(voxelI, voxelJ, voxelK)) {
-                        addVoxelToIdentification(sliceIndex, volumeSlices[sliceIndex].m_mapIndex, voxelI, voxelJ, voxelK, voxelRGBA);
+                        float diffXYZ[3];
+                        vtd->getDiffXYZ(diffXYZ);
+                        addVoxelToIdentification(sliceIndex,
+                                                 volumeSlices[sliceIndex].m_mapIndex,
+                                                 voxelI,
+                                                 voxelJ,
+                                                 voxelK,
+                                                 diffXYZ,
+                                                 voxelRGBA);
                     }
                 }
             }
@@ -3984,7 +3992,18 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
 //                            voxelK = jRow;
 //                            break;
 //                    }
-                    addVoxelToIdentification(volumeIndex, mapIndex, voxelI, voxelJ, voxelK, rgba);
+                    const float voxelDiffXYZ[3] = {
+                        voxelTopRight[0] - voxelBottomLeft[0],
+                        voxelTopRight[1] - voxelBottomLeft[1],
+                        voxelTopRight[2] - voxelBottomLeft[2],
+                    };
+                    addVoxelToIdentification(volumeIndex,
+                                             mapIndex,
+                                             voxelI,
+                                             voxelJ,
+                                             voxelK,
+                                             voxelDiffXYZ,
+                                             rgba);
                 }
                 
                 if (drawWithQuadStripsFlag) {
@@ -4115,6 +4134,8 @@ BrainOpenGLVolumeSliceDrawing::resetIdentification()
  *    Voxel Index J
  * @param voxelK
  *    Voxel Index K
+ * @param voxelDiffXYZ
+ *    Change in XYZ from voxel bottom left to top right
  * @param rgbaForColorIdentificationOut
  *    Encoded identification in RGBA color OUTPUT
  */
@@ -4124,6 +4145,7 @@ BrainOpenGLVolumeSliceDrawing::addVoxelToIdentification(const int32_t volumeInde
                                                         const int32_t voxelI,
                                                         const int32_t voxelJ,
                                                         const int32_t voxelK,
+                                                        const float voxelDiffXYZ[3],
                                                         uint8_t rgbaForColorIdentificationOut[4])
 {
     const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_VOXEL;
@@ -4134,6 +4156,13 @@ BrainOpenGLVolumeSliceDrawing::addVoxelToIdentification(const int32_t volumeInde
     rgbaForColorIdentificationOut[3] = 255;
     
     /*
+     * ID stack requires integers to 
+     * use an integer pointer to the float values
+     */
+    CaretAssert(sizeof(float) == sizeof(int32_t));
+    const int32_t* intPointerDiffXYZ = (int32_t*)voxelDiffXYZ;
+    
+    /*
      * If these items change, need to update reset and
      * processing of identification.
      */
@@ -4142,6 +4171,9 @@ BrainOpenGLVolumeSliceDrawing::addVoxelToIdentification(const int32_t volumeInde
     m_identificationIndices.push_back(voxelI);
     m_identificationIndices.push_back(voxelJ);
     m_identificationIndices.push_back(voxelK);
+    m_identificationIndices.push_back(intPointerDiffXYZ[0]);
+    m_identificationIndices.push_back(intPointerDiffXYZ[1]);
+    m_identificationIndices.push_back(intPointerDiffXYZ[2]);
 }
 
 /**
@@ -4167,6 +4199,8 @@ BrainOpenGLVolumeSliceDrawing::processIdentification()
             m_identificationIndices[idIndex + 3],
             m_identificationIndices[idIndex + 4]
         };
+        
+        const float* floatDiffXYZ = (float*)&m_identificationIndices[idIndex + 5];
         
         SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
         if (voxelID->isEnabledForSelection()) {
@@ -4194,6 +4228,7 @@ BrainOpenGLVolumeSliceDrawing::processIdentification()
                                                         vf,
                                                         voxelIndices,
                                                         depth);
+                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
                     
                     float voxelCoordinates[3];
                     vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
@@ -4201,7 +4236,11 @@ BrainOpenGLVolumeSliceDrawing::processIdentification()
                     
                     m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
                                                                      voxelCoordinates);
-                    CaretLogFinest("Selected Voxel Editing (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
+                    CaretLogFinest("Selected Voxel Editing (3D): Indices ("
+                                   + AString::fromNumbers(voxelIndices, 3, ",")
+                                   + ") Diff XYZ ("
+                                   + AString::fromNumbers(floatDiffXYZ, 3, ",")
+                                   + ")");
                 }
             }
         }
@@ -4672,6 +4711,20 @@ BrainOpenGLVolumeSliceDrawing::VoxelToDraw::VoxelToDraw(const float center[3],
     const int64_t numSlices = 5;
     m_sliceIndices.reserve(numSlices);
     m_sliceOffsets.reserve(numSlices);
+}
+
+/**
+ * Get the change in XYZ for the voxel ([top right] minus [bottom left])
+ *
+ * @param dxyzOut
+ *     Change in XYZ from bottom left to top right
+ */
+void
+BrainOpenGLVolumeSliceDrawing::VoxelToDraw::getDiffXYZ(float dxyzOut[3]) const
+{
+    dxyzOut[0] = m_coordinates[6] - m_coordinates[0];
+    dxyzOut[1] = m_coordinates[7] - m_coordinates[1];
+    dxyzOut[2] = m_coordinates[8] - m_coordinates[2];
 }
 
 /**

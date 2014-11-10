@@ -43,6 +43,10 @@ namespace caret {
         
         void setVolumeFileForEditing(VolumeFile* volumeFile);
         
+        void setVoxelDiffXYZ(const float voxelDiffXYZ[3]);
+        
+        void getVoxelDiffXYZ(float voxelDiffXYZ[3]) const;
+        
         virtual void reset();
         
         // ADD_NEW_METHODS_HERE
@@ -53,6 +57,8 @@ namespace caret {
         SelectionItemVoxelEditing& operator=(const SelectionItemVoxelEditing&);
         
         VolumeFile* m_volumeFileForEditing;
+        
+        float m_voxelDiffXYZ[3];
         
         // ADD_NEW_MEMBERS_HERE
 

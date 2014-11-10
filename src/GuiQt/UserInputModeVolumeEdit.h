@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "Matrix4x4.h"
 #include "UserInputModeView.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
@@ -45,20 +45,30 @@ namespace caret {
         struct VolumeEditInfo {
             /** The top-most overlay in the tab */
             Overlay* m_topOverlay;
+            
             /** The overlay containing the volume file */
             Overlay* m_volumeOverlay;
+            
             /** Model volume containing the volume file */
             //ModelVolume* m_modelVolume;
+            
             /** The volume file being edited */
             VolumeFile* m_volumeFile;
+            
             /** Index of the map in the volume file being edited */
             int32_t m_mapIndex;
+            
             /** The current slice view plane */
             VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
+            
             /** Slice projection type (orthogonal/oblique) */
             VolumeSliceProjectionTypeEnum::Enum m_sliceProjectionType;
+            
             /** The volume's editor delegate */
             VolumeFileEditorDelegate* m_volumeFileEditorDelegate;
+            
+            /** The oblique projection rotation matrix */
+            Matrix4x4 m_obliqueRotationMatrix;
         };
         
         UserInputModeVolumeEdit(const int32_t windowIndex);

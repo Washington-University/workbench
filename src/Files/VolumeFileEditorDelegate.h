@@ -22,7 +22,9 @@
 /*LICENSE_END*/
 
 #include "CaretObject.h"
+#include "Matrix4x4.h"
 #include "VolumeEditingModeEnum.h"
+#include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
 
@@ -46,6 +48,9 @@ namespace caret {
         bool performEditingOperation(const int64_t mapIndex,
                                      const VolumeEditingModeEnum::Enum mode,
                                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                     const Matrix4x4& obliqueRotationMatrix,
+                                     const float voxelDiffXYZ[3],
                                      const int64_t voxelIJK[3],
                                      const int64_t brushSize[3],
                                      const float voxelValueOn,
@@ -71,6 +76,9 @@ namespace caret {
             EditInfo(const int32_t mapIndex,
                      const VolumeEditingModeEnum::Enum mode,
                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                     const Matrix4x4& obliqueRotationMatrix,
+                     const float voxelDiffXYZ[3],
                      const int64_t voxelIJK[3],
                      const int64_t ijkMin[3],
                      const int64_t ijkMax[3],
@@ -80,8 +88,14 @@ namespace caret {
             : m_mapIndex(mapIndex),
             m_mode(mode),
             m_slicePlane(slicePlane),
+            m_sliceProjectionType(sliceProjectionType),
+            m_obliqueRotationMatrix(obliqueRotationMatrix),
             m_voxelValueOn(voxelValueOn),
             m_voxelValueOff(voxelValueOff) {
+                m_voxelDiffXYZ[0] = voxelDiffXYZ[0];
+                m_voxelDiffXYZ[1] = voxelDiffXYZ[1];
+                m_voxelDiffXYZ[2] = voxelDiffXYZ[2];
+                
                 m_voxelIJK[0] = voxelIJK[0];
                 m_voxelIJK[1] = voxelIJK[1];
                 m_voxelIJK[2] = voxelIJK[2];
@@ -102,6 +116,9 @@ namespace caret {
             const int32_t m_mapIndex;
             const VolumeEditingModeEnum::Enum m_mode;
             const VolumeSliceViewPlaneEnum::Enum m_slicePlane;
+            const VolumeSliceProjectionTypeEnum::Enum m_sliceProjectionType;
+            const Matrix4x4 m_obliqueRotationMatrix;
+            float m_voxelDiffXYZ[3];
             int64_t m_voxelIJK[3];
             int64_t m_ijkMin[3];
             int64_t m_ijkMax[3];
@@ -114,8 +131,11 @@ namespace caret {
 
         VolumeFileEditorDelegate& operator=(const VolumeFileEditorDelegate&);
         
-        bool performTurnOnOrOff(const EditInfo& editInfo,
-                           AString& errorMessageOut);
+        bool performTurnOnOrOffOblique(const EditInfo& editInfo,
+                                          AString& errorMessageOut);
+        
+        bool performTurnOnOrOffOrthogonal(const EditInfo& editInfo,
+                                          AString& errorMessageOut);
         
         bool performDilateOrErode(const EditInfo& editInfo,
                            AString& errorMessageOut);
