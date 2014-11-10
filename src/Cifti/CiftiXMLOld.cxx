@@ -2171,10 +2171,15 @@ PaletteColorMapping* CiftiXMLOld::getMapPalette(const int& direction, const int&
 bool CiftiXMLOld::operator==(const caret::CiftiXMLOld& rhs) const
 {
     if (this == &rhs) return true;//compare pointers to skip checking object against itself
+    if (m_root.m_matrices.size() != 1 || m_root.m_matrices[0].m_matrixIndicesMap.size() != 2)
+    {
+        throw DataFileException("old CIFTI XML implementation only supports single-matrix, 2D cifti");
+    }
     if (m_root.m_matrices.size() != rhs.m_root.m_matrices.size()) return false;
+    if (m_root.m_matrices[0].m_matrixIndicesMap.size() != rhs.m_root.m_matrices[0].m_matrixIndicesMap.size()) return false;
     if (!matchesVolumeSpace(rhs)) return false;
     if (!matchesForColumns(rhs)) return false;
-    if (m_root.m_matrices.size() > 1) return matchesForRows(rhs);
+    if (!matchesForRows(rhs)) return false;
     return true;
 }
 

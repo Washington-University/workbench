@@ -104,14 +104,15 @@ AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const ve
         throw AlgorithmException("number of weights doesn't match number of input cifti files");
     }
     CaretAssert(ciftiList[0] != NULL);
-    CiftiXMLOld baseXML = ciftiList[0]->getCiftiXMLOld();
-    int numRows = baseXML.getNumberOfRows(), rowSize = baseXML.getNumberOfColumns(), numFiles = (int)ciftiList.size();
+    CiftiXML baseXML = ciftiList[0]->getCiftiXML();
+    if (baseXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti average currently only supports 2D files");
+    int numRows = baseXML.getDimensionLength(CiftiXML::ALONG_COLUMN), rowSize = baseXML.getDimensionLength(CiftiXML::ALONG_ROW), numFiles = (int)ciftiList.size();
     for (int i = 1; i < numFiles; ++i)
     {
         CaretAssert(ciftiList[i] != NULL);
-        if (baseXML != ciftiList[i]->getCiftiXMLOld())
+        if (!baseXML.approximateMatch(ciftiList[i]->getCiftiXML()))//requires at least length to match, often more restrictive
         {
-            throw AlgorithmException("cifti files do not match");
+            throw AlgorithmException("cifti file '" + ciftiList[i]->getFileName() + "' does not match earlier inputs");
         }
     }
     ciftiOut->setCiftiXML(baseXML);
@@ -176,12 +177,13 @@ AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const ve
         throw AlgorithmException("number of weights doesn't match number of input cifti files");
     }
     CaretAssert(ciftiList[0] != NULL);
-    CiftiXMLOld baseXML = ciftiList[0]->getCiftiXMLOld();
-    int numRows = baseXML.getNumberOfRows(), rowSize = baseXML.getNumberOfColumns(), numFiles = (int)ciftiList.size();
+    CiftiXML baseXML = ciftiList[0]->getCiftiXML();
+    if (baseXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti average currently only supports 2D files");
+    int numRows = baseXML.getDimensionLength(CiftiXML::ALONG_COLUMN), rowSize = baseXML.getDimensionLength(CiftiXML::ALONG_ROW), numFiles = (int)ciftiList.size();
     for (int i = 1; i < numFiles; ++i)
     {
         CaretAssert(ciftiList[i] != NULL);
-        if (baseXML != ciftiList[i]->getCiftiXMLOld())
+        if (!baseXML.approximateMatch(ciftiList[i]->getCiftiXML()))
         {
             throw AlgorithmException("cifti files do not match");
         }

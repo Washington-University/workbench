@@ -92,6 +92,7 @@ namespace caret
         CiftiXML& operator=(const CiftiXML& rhs);
         bool operator==(const CiftiXML& rhs) const;
         bool operator!=(const CiftiXML& rhs) const { return !((*this) == rhs); }
+        bool approximateMatch(const CiftiXML& rhs) const;
     private:
         std::vector<CaretPointer<CiftiMappingType> > m_indexMaps;
         CiftiVersion m_parsedVersion;

@@ -79,6 +79,20 @@ bool CiftiXML::operator==(const CiftiXML& rhs) const
     return true;
 }
 
+bool CiftiXML::approximateMatch(const CiftiXML& rhs) const
+{
+    int numDims = getNumberOfDimensions();
+    if (rhs.getNumberOfDimensions() != numDims) return false;
+    for (int i = 0; i < numDims; ++i)
+    {
+        const CiftiMappingType* left = getMap(i), *right = rhs.getMap(i);
+        if (left == NULL && right == NULL) continue;
+        if (left == NULL || right == NULL) return false;//only one NULL, due to above test
+        if (!left->approximateMatch(*right)) return false;//finally can dereference them
+    }
+    return true;
+}
+
 const CiftiMappingType* CiftiXML::getMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
@@ -674,6 +688,7 @@ QByteArray CiftiXML::writeXMLToQByteArray(const CiftiVersion& writingVersion) co
     xml.setAutoFormatting(true);
     xml.writeStartDocument();
     writeXML(xml, writingVersion);
+    xml.writeEndDocument();
     return ret;
 }
 
@@ -684,6 +699,7 @@ QString CiftiXML::writeXMLToString(const CiftiVersion& writingVersion) const
     xml.setAutoFormatting(true);
     xml.writeStartDocument();
     writeXML(xml, writingVersion);
+    xml.writeEndDocument();
     return ret;
 }
 
@@ -701,7 +717,7 @@ void CiftiXML::writeXML(QXmlStreamWriter& xml, const CiftiVersion& writingVersio
     } else if (writingVersion == CiftiVersion(2, 0)) {
         writeMatrix2(xml);
     } else {
-        throw CaretException("unknown Cifti Version: '" + writingVersion.toString());
+        throw CaretException("unknown Cifti writing version: '" + writingVersion.toString());
     }
     xml.writeEndElement();
 }
