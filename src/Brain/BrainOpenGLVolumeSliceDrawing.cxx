@@ -3824,14 +3824,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
     const int64_t numVoxelsInSlice = numberOfColumns * numberOfRows;
     
     /*
-     * Cannot use strips unless alpha blending is enabled
-     * since we normally skip voxels with zero alpha
-     */
-    const bool drawWithQuadStripsFlag = false;
-    std::vector<std::pair<int64_t, int64_t> > quadStripOffsetsAndLengths;
-    int64_t quadStripOffset = 0;
-    
-    /*
      * Allocate for quadrilateral drawing
      */
     const int64_t numQuadCoords = numVoxelsInSlice * 12;
@@ -4006,6 +3998,290 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
                                              rgba);
                 }
                 
+                /*
+                 * Add voxel to quadrilaterals
+                 */
+                voxelQuadCoordinates.push_back(voxelBottomLeft[0]);
+                voxelQuadCoordinates.push_back(voxelBottomLeft[1]);
+                voxelQuadCoordinates.push_back(voxelBottomLeft[2]);
+                
+                voxelQuadCoordinates.push_back(voxelBottomRight[0]);
+                voxelQuadCoordinates.push_back(voxelBottomRight[1]);
+                voxelQuadCoordinates.push_back(voxelBottomRight[2]);
+                
+                voxelQuadCoordinates.push_back(voxelTopRight[0]);
+                voxelQuadCoordinates.push_back(voxelTopRight[1]);
+                voxelQuadCoordinates.push_back(voxelTopRight[2]);
+                
+                voxelQuadCoordinates.push_back(voxelTopLeft[0]);
+                voxelQuadCoordinates.push_back(voxelTopLeft[1]);
+                voxelQuadCoordinates.push_back(voxelTopLeft[2]);
+                
+                
+                for (int32_t iNormalAndColor = 0; iNormalAndColor < 4; iNormalAndColor++) {
+                    voxelQuadRgba.push_back(rgba[0]);
+                    voxelQuadRgba.push_back(rgba[1]);
+                    voxelQuadRgba.push_back(rgba[2]);
+                    voxelQuadRgba.push_back(rgba[3]);
+                    
+                    voxelQuadNormals.push_back(sliceNormalVector[0]);
+                    voxelQuadNormals.push_back(sliceNormalVector[1]);
+                    voxelQuadNormals.push_back(sliceNormalVector[2]);
+                }
+            }
+        }
+    }
+    
+    /*
+     * Draw the voxels.
+     */
+    if (voxelQuadCoordinates.empty() == false) {
+        BrainOpenGLPrimitiveDrawing::drawQuads(voxelQuadCoordinates,
+                                               voxelQuadNormals,
+                                               voxelQuadRgba);
+    }
+}
+
+/**
+ * Draw the voxels in an orthogonal slice using quad strips
+ *
+ * @param sliceNormalVector
+ *    Normal vector of the slice plane.
+ * @param coordinate
+ *    Coordinate of first voxel in the slice (bottom left as begin viewed)
+ * @param rowStep
+ *    Three-dimensional step to next row.
+ * @param columnStep
+ *    Three-dimensional step to next column.
+ * @param numberOfColumns
+ *    Number of columns in the slice.
+ * @param numberOfRows
+ *    Number of rows in the slice.
+ * @param sliceRGBA
+ *    RGBA coloring for voxels in the slice.
+ * @param volumeInterface
+ *    Index of the volume being drawn.
+ * @param volumeIndex
+ *    Selected map in the volume being drawn.
+ * @param mapIndex
+ *    Selected map in the volume being drawn.
+ * @param sliceOpacity
+ *    Opacity from the overlay.
+ */
+void
+BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsQuadStrips(const float sliceNormalVector[3],
+                                                         const float coordinate[3],
+                                                         const float rowStep[3],
+                                                         const float columnStep[3],
+                                                         const int64_t numberOfColumns,
+                                                         const int64_t numberOfRows,
+                                                         const std::vector<uint8_t>& sliceRGBA,
+                                                         const VolumeMappableInterface* volumeInterface,
+                                                         const int32_t volumeIndex,
+                                                         const int32_t mapIndex,
+                                                         const uint8_t sliceOpacity)
+{
+    /*
+     * When performing voxel identification for editing voxels,
+     * we need to draw EVERY voxel since the user may click
+     * regions where the voxels are "off".
+     */
+    bool volumeEditingDrawAllVoxelsFlag = false;
+    if (m_identificationModeFlag) {
+        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+        if (voxelEditID->isEnabledForSelection()) {
+            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
+            if (vf == voxelEditID->getVolumeFileForEditing()) {
+                volumeEditingDrawAllVoxelsFlag = true;
+            }
+        }
+    }
+    
+    const int64_t numVoxelsInSlice = numberOfColumns * numberOfRows;
+    
+    /*
+     * Cannot use strips unless alpha blending is enabled
+     * since we normally skip voxels with zero alpha
+     */
+    const bool drawWithQuadStripsFlag = false;
+    std::vector<std::pair<int64_t, int64_t> > quadStripOffsetsAndLengths;
+    int64_t quadStripOffset = 0;
+    
+    /*
+     * Allocate for quadrilateral drawing
+     */
+    const int64_t numQuadCoords = numVoxelsInSlice * 12;
+    const int64_t numQuadRgba   = numVoxelsInSlice * 16;
+    std::vector<float> voxelQuadCoordinates;
+    std::vector<float> voxelQuadNormals;
+    std::vector<uint8_t> voxelQuadRgba;
+    voxelQuadCoordinates.reserve(numQuadCoords);
+    voxelQuadNormals.reserve(numQuadCoords);
+    voxelQuadRgba.reserve(numQuadRgba);
+    
+    /*
+     * Step to next row or column voxel
+     */
+    const float rowStepX = rowStep[0];
+    const float rowStepY = rowStep[1];
+    const float rowStepZ = rowStep[2];
+    const float columnStepX = columnStep[0];
+    const float columnStepY = columnStep[1];
+    const float columnStepZ = columnStep[2];
+    
+    /*
+     * Draw each row
+     */
+    for (int64_t jRow = 0; jRow < numberOfRows; jRow++) {
+        const bool lastRowFlag = (jRow == (numberOfRows - 1));
+        
+        /*
+         * Coordinates on left side of row
+         */
+        float rowBottomLeft[3] = {
+            coordinate[0] + (jRow * rowStepX),
+            coordinate[1] + (jRow * rowStepY),
+            coordinate[2] + (jRow * rowStepZ)
+        };
+        float rowTopLeft[3] = {
+            rowBottomLeft[0] + rowStepX,
+            rowBottomLeft[1] + rowStepY,
+            rowBottomLeft[2] + rowStepZ
+        };
+        
+        /*
+         * Draw each voxel in its column
+         */
+        for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
+            
+            /*
+             * Offset of voxel in coloring.
+             */
+            const int64_t sliceRgbaOffset = (4 * (iCol
+                                                  + (numberOfColumns * jRow)));
+            const int64_t alphaOffset = sliceRgbaOffset + 3;
+            
+            uint8_t rgba[4] = {
+                0,
+                0,
+                0,
+                0
+            };
+            
+            /*
+             * Negative alpha means do not display
+             */
+            CaretAssertVectorIndex(sliceRGBA, alphaOffset);
+            if (sliceRGBA[alphaOffset] <= 0) {
+                if (volumeIndex == 0) {
+                    /*
+                     * For first drawn volume, use an alpha of 255 so
+                     * so that black is drawn
+                     */
+                    rgba[3] = 255;
+                    
+                    /*
+                     * OVERRIDES BLACK VOXEL ABOVE (255)
+                     * For first drawn volume, use an alpha of zero so
+                     * that the background shows through
+                     */
+                    rgba[3] = 0; //255;
+                }
+            }
+            else {
+                /*
+                 * Use overlay's opacity
+                 */
+                rgba[0] = sliceRGBA[sliceRgbaOffset];
+                rgba[1] = sliceRGBA[sliceRgbaOffset + 1];
+                rgba[2] = sliceRGBA[sliceRgbaOffset + 2];
+                rgba[3] = sliceOpacity;
+            }
+            
+            /*
+             * Set coordinates of voxel corners
+             */
+            float voxelBottomLeft[3] = {
+                rowBottomLeft[0] + (iCol * columnStepX),
+                rowBottomLeft[1] + (iCol * columnStepY),
+                rowBottomLeft[2] + (iCol * columnStepZ)
+            };
+            float voxelBottomRight[3] = {
+                voxelBottomLeft[0] + columnStepX,
+                voxelBottomLeft[1] + columnStepY,
+                voxelBottomLeft[2] + columnStepZ
+            };
+            float voxelTopLeft[3] = {
+                rowTopLeft[0] + (iCol * columnStepX),
+                rowTopLeft[1] + (iCol * columnStepY),
+                rowTopLeft[2] + (iCol * columnStepZ)
+            };
+            float voxelTopRight[3] = {
+                voxelTopLeft[0] + columnStepX,
+                voxelTopLeft[1] + columnStepY,
+                voxelTopLeft[2] + columnStepZ
+            };
+            
+            /*
+             * Need to draw ALL voxels if performing
+             * identificaiton for voxel editing.
+             */
+            if (volumeEditingDrawAllVoxelsFlag) {
+                rgba[3] = 255;
+            }
+            
+            /*
+             * Draw voxel based upon opacity
+             */
+            if (rgba[3] > 0) {
+                if (m_identificationModeFlag) {
+                    /*
+                     * Add info about voxel for identication.
+                     */
+                    int64_t voxelI = 0;
+                    int64_t voxelJ = 0;
+                    int64_t voxelK = 0;
+                    
+                    const float voxelCenterX = (voxelBottomLeft[0] + voxelTopRight[0]) / 2.0;
+                    const float voxelCenterY = (voxelBottomLeft[1] + voxelTopRight[1]) / 2.0;
+                    const float voxelCenterZ = (voxelBottomLeft[2] + voxelTopRight[2]) / 2.0;
+                    volumeInterface->enclosingVoxel(voxelCenterX, voxelCenterY, voxelCenterZ,
+                                                    voxelI, voxelJ, voxelK);
+                    
+                    //                    switch (sliceViewPlane) {
+                    //                        case VolumeSliceViewPlaneEnum::ALL:
+                    //                            CaretAssert(0);
+                    //                            break;
+                    //                        case VolumeSliceViewPlaneEnum::AXIAL:
+                    //                            voxelI = iCol;
+                    //                            voxelJ = jRow;
+                    //                            voxelK = selectedSliceIndices[2];
+                    //                            break;
+                    //                        case VolumeSliceViewPlaneEnum::CORONAL:
+                    //                            voxelI = iCol;
+                    //                            voxelJ = selectedSliceIndices[1];
+                    //                            voxelK = jRow;
+                    //                            break;
+                    //                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    //                            voxelI = selectedSliceIndices[0];
+                    //                            voxelJ = iCol;
+                    //                            voxelK = jRow;
+                    //                            break;
+                    //                    }
+                    const float voxelDiffXYZ[3] = {
+                        voxelTopRight[0] - voxelBottomLeft[0],
+                        voxelTopRight[1] - voxelBottomLeft[1],
+                        voxelTopRight[2] - voxelBottomLeft[2],
+                    };
+                    addVoxelToIdentification(volumeIndex,
+                                             mapIndex,
+                                             voxelI,
+                                             voxelJ,
+                                             voxelK,
+                                             voxelDiffXYZ,
+                                             rgba);
+                }
+                
                 if (drawWithQuadStripsFlag) {
                     /*
                      * Add voxel to quadrilaterals
@@ -4022,7 +4298,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
                         voxelQuadCoordinates.push_back(voxelTopLeft[0]);
                         voxelQuadCoordinates.push_back(voxelTopLeft[1]);
                         voxelQuadCoordinates.push_back(voxelTopLeft[2]);
-
+                        
                         voxelQuadCoordinates.push_back(voxelTopRight[0]);
                         voxelQuadCoordinates.push_back(voxelTopRight[1]);
                         voxelQuadCoordinates.push_back(voxelTopRight[2]);
@@ -4040,7 +4316,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
                         voxelQuadNormals.push_back(sliceNormalVector[1]);
                         voxelQuadNormals.push_back(sliceNormalVector[2]);
                     }
-
+                    
                     const int64_t numCoords = static_cast<int64_t>(voxelQuadCoordinates.size() / 3);
                     const int64_t quadStripLength = numCoords - quadStripOffset;
                     
@@ -4093,7 +4369,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
                                                voxelQuadRgba);
     }
 }
-
 
 /**
  * Reset for volume identification.
