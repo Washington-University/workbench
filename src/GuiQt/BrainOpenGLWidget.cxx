@@ -1106,21 +1106,21 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                 inputModeEvent->setUserInputProcessor(this->selectedUserInputProcessor);
             }
             else if (inputModeEvent->isSetUserInputMode()) {
-                UserInputReceiverInterface* newUserInputProcessor = NULL;
+                UserInputModeAbstract* newUserInputProcessor = NULL;
                 switch (inputModeEvent->getUserInputMode()) {
-                    case UserInputReceiverInterface::INVALID:
+                    case UserInputModeAbstract::INVALID:
                         CaretAssertMessage(0, "INVALID is NOT allowed for user input mode");
                         break;
-                    case UserInputReceiverInterface::BORDERS:
+                    case UserInputModeAbstract::BORDERS:
                         newUserInputProcessor = this->userInputBordersModeProcessor;
                         break;
-                    case UserInputReceiverInterface::FOCI:
+                    case UserInputModeAbstract::FOCI:
                         newUserInputProcessor = this->userInputFociModeProcessor;
                         break;
-                    case UserInputReceiverInterface::VOLUME_EDIT:
+                    case UserInputModeAbstract::VOLUME_EDIT:
                         newUserInputProcessor = this->userInputVolumeEditModeProcessor;
                         break;
-                    case UserInputReceiverInterface::VIEW:
+                    case UserInputModeAbstract::VIEW:
                         newUserInputProcessor = this->userInputViewModeProcessor;
                         break;
                 }

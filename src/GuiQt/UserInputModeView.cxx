@@ -52,10 +52,23 @@ using namespace caret;
  * Constructor.
  */
 UserInputModeView::UserInputModeView()
-: CaretObject()
+: UserInputModeAbstract(UserInputModeAbstract::VIEW)
 {
     
 }
+
+/**
+ * Constructor for subclasses.
+ *
+ * @param inputMode
+ *    Subclass' input mode.
+ */
+UserInputModeView::UserInputModeView(const UserInputMode inputMode)
+: UserInputModeAbstract(inputMode)
+{
+    
+}
+
 
 /**
  * Destructor.
@@ -63,15 +76,6 @@ UserInputModeView::UserInputModeView()
 UserInputModeView::~UserInputModeView()
 {
     
-}
-
-/**
- * @return The input mode enumerated type.
- */
-UserInputModeView::UserInputMode 
-UserInputModeView::getUserInputMode() const
-{
-    return UserInputReceiverInterface::VIEW;
 }
 
 /**
@@ -145,17 +149,6 @@ UserInputModeView::getCursor() const
 {
     
     return CursorEnum::CURSOR_DEFAULT;
-}
-
-/**
- * @return A widget for display at the bottom of the
- * Browser Window Toolbar when this mode is active.
- * View mode has no widget so this returns NULL.
- */
-QWidget* 
-UserInputModeView::getWidgetForToolBar()
-{
-    return NULL;
 }
 
 /**

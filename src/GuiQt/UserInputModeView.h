@@ -23,18 +23,16 @@
 
 
 #include "CaretObject.h"
-#include "UserInputReceiverInterface.h"
+#include "UserInputModeAbstract.h"
 
 namespace caret {
 
-    class UserInputModeView : public CaretObject, public UserInputReceiverInterface {
+    class UserInputModeView : public UserInputModeAbstract {
         
     public:
         UserInputModeView();
         
         virtual ~UserInputModeView();
-        
-        virtual UserInputMode getUserInputMode() const;
         
         virtual void initialize();
         
@@ -43,8 +41,6 @@ namespace caret {
         virtual void update();
         
         virtual CursorEnum::Enum getCursor() const;
-        
-        virtual QWidget* getWidgetForToolBar();
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
@@ -58,6 +54,9 @@ namespace caret {
         
         virtual void mouseLeftDragWithShift(const MouseEvent& mouseEvent);
 
+    protected:
+        UserInputModeView(const UserInputMode inputMode);
+        
     private:
         UserInputModeView(const UserInputModeView&);
 

@@ -49,7 +49,7 @@ namespace caret {
     class UserInputModeFoci;
     class UserInputModeView;
     class UserInputModeVolumeEdit;
-    class UserInputReceiverInterface;
+    class UserInputModeAbstract;
     class VolumeFile;
     
     class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface {
@@ -151,7 +151,7 @@ namespace caret {
         
         BrainOpenGLTextRenderInterface* textRenderer;
         
-        UserInputReceiverInterface* selectedUserInputProcessor;
+        UserInputModeAbstract* selectedUserInputProcessor;
         UserInputModeView* userInputViewModeProcessor;
         UserInputModeBorders* userInputBordersModeProcessor;
         UserInputModeFoci* userInputFociModeProcessor;

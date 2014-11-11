@@ -23,7 +23,7 @@
 
 
 #include "Event.h"
-#include "UserInputReceiverInterface.h"
+#include "UserInputModeAbstract.h"
 
 namespace caret {
 
@@ -32,7 +32,7 @@ namespace caret {
         
     public:
         EventGetOrSetUserInputModeProcessor(const int32_t windowIndex,
-                                            const UserInputReceiverInterface::UserInputMode userInputMode);
+                                            const UserInputModeAbstract::UserInputMode userInputMode);
         
         EventGetOrSetUserInputModeProcessor(const int32_t windowIndex);
         
@@ -44,11 +44,11 @@ namespace caret {
         
         int32_t getWindowIndex() const;
 
-        UserInputReceiverInterface::UserInputMode getUserInputMode() const;
+        UserInputModeAbstract::UserInputMode getUserInputMode() const;
 
-        void setUserInputProcessor(UserInputReceiverInterface* userInputProcessor);
+        void setUserInputProcessor(UserInputModeAbstract* userInputProcessor);
         
-        UserInputReceiverInterface* getUserInputProcessor();
+        UserInputModeAbstract* getUserInputProcessor();
         
     private:
         enum MODE_GET_OR_SET {
@@ -61,10 +61,10 @@ namespace caret {
         EventGetOrSetUserInputModeProcessor& operator=(const EventGetOrSetUserInputModeProcessor&);
         
         /** Is set when GETTING input mode */
-        UserInputReceiverInterface* userInputProcessor;
+        UserInputModeAbstract* userInputProcessor;
         
         /** Requested input mode for SETTING and set when GETTING*/
-        UserInputReceiverInterface::UserInputMode userInputMode;
+        UserInputModeAbstract::UserInputMode userInputMode;
         
         /** index of window for update */
         int32_t windowIndex;

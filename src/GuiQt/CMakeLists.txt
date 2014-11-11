@@ -251,6 +251,7 @@ StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 TileTabsConfigurationDialog.h
+UserInputModeAbstract.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
@@ -258,7 +259,6 @@ UserInputModeFoci.h
 UserInputModeView.h
 UserInputModeVolumeEdit.h
 UserInputModeVolumeEditWidget.h
-UserInputReceiverInterface.h
 UsernamePasswordWidget.h
 ViewModeEnum.h
 VolumeFileCreateDialog.h
@@ -393,6 +393,7 @@ StructureSurfaceSelectionControl.cxx
 SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
 TileTabsConfigurationDialog.cxx
+UserInputModeAbstract.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx
 UserInputModeFoci.cxx

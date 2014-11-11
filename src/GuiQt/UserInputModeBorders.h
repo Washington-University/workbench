@@ -55,8 +55,6 @@ namespace caret {
         
         virtual ~UserInputModeBorders();
         
-        virtual UserInputMode getUserInputMode() const;
-        
         virtual void initialize();
         
         virtual void finish();
@@ -70,8 +68,6 @@ namespace caret {
         virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent);
         
         virtual void mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent);
-        
-        virtual QWidget* getWidgetForToolBar();
         
         virtual CursorEnum::Enum getCursor() const;
 

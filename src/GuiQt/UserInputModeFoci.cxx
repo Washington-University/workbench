@@ -61,13 +61,14 @@ using namespace caret;
  * Constructor.
  */
 UserInputModeFoci::UserInputModeFoci(const int32_t windowIndex)
-: UserInputModeView(),
+: UserInputModeView(UserInputModeAbstract::FOCI),
   m_windowIndex(windowIndex)
 {
     m_inputModeFociWidget = new UserInputModeFociWidget(this,
                                                         windowIndex);
     m_mode = MODE_CREATE;
     m_editOperation = EDIT_OPERATION_PROPERTIES;
+    setWidgetForToolBar(m_inputModeFociWidget);
 }
 
 /**
@@ -76,15 +77,6 @@ UserInputModeFoci::UserInputModeFoci(const int32_t windowIndex)
 UserInputModeFoci::~UserInputModeFoci()
 {
     
-}
-
-/**
- * @return The input mode enumerated type.
- */
-UserInputModeFoci::UserInputMode
-UserInputModeFoci::getUserInputMode() const
-{
-    return UserInputReceiverInterface::FOCI;
 }
 
 /**
@@ -157,19 +149,6 @@ void
 UserInputModeFoci::update()
 {
     
-}
-
-/**
- * @return A widget for display at the bottom of the
- * Browser Window Toolbar when this mode is active.
- * If no user-interface controls are needed, return NULL.
- * The toolbar will take ownership of the widget and
- * delete it so derived class MUST NOT delete the widget.
- */
-QWidget*
-UserInputModeFoci::getWidgetForToolBar()
-{
-    return this->m_inputModeFociWidget;
 }
 
 /**

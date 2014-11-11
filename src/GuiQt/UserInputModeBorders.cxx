@@ -72,7 +72,7 @@ using namespace caret;
  */
 UserInputModeBorders::UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
                                            const int32_t windowIndex)
-: UserInputModeView()
+: UserInputModeView(UserInputModeAbstract::BORDERS)
 {
     this->borderBeingDrawnByOpenGL = borderBeingDrawnByOpenGL;
     this->windowIndex = windowIndex;
@@ -80,6 +80,7 @@ UserInputModeBorders::UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
     this->drawOperation = DRAW_OPERATION_CREATE;
     this->editOperation = EDIT_OPERATION_PROPERTIES;
     this->borderToolsWidget = new UserInputModeBordersWidget(this);
+    setWidgetForToolBar(this->borderToolsWidget);
 }
 
 /**
@@ -88,15 +89,6 @@ UserInputModeBorders::UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
 UserInputModeBorders::~UserInputModeBorders()
 {
     
-}
-
-/**
- * @return The input mode enumerated type.
- */
-UserInputModeBorders::UserInputMode 
-UserInputModeBorders::getUserInputMode() const
-{
-    return UserInputReceiverInterface::BORDERS;
 }
 
 /**
@@ -208,19 +200,6 @@ UserInputModeBorders::updateAfterBordersChanged()
      */
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().addBorder().getPointer());
-}
-
-/**
- * @return A widget for display at the bottom of the
- * Browser Window Toolbar when this mode is active.
- * If no user-interface controls are needed, return NULL.
- * The toolbar will take ownership of the widget and
- * delete it so derived class MUST NOT delete the widget.
- */
-QWidget* 
-UserInputModeBorders::getWidgetForToolBar()
-{
-    return this->borderToolsWidget;
 }
 
 /**

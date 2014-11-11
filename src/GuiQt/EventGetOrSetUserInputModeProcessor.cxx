@@ -36,7 +36,7 @@ using namespace caret;
  *    The requested input mode.
  */
 EventGetOrSetUserInputModeProcessor::EventGetOrSetUserInputModeProcessor(const int32_t windowIndex,
-                                                                         const UserInputReceiverInterface::UserInputMode userInputMode)
+                                                                         const UserInputModeAbstract::UserInputMode userInputMode)
 : Event(EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE)
 {
     this->userInputProcessor = NULL;
@@ -55,7 +55,7 @@ EventGetOrSetUserInputModeProcessor::EventGetOrSetUserInputModeProcessor(const i
 : Event(EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE)
 {
     this->userInputProcessor = NULL;
-    this->userInputMode = UserInputReceiverInterface::INVALID;
+    this->userInputMode = UserInputModeAbstract::INVALID;
     this->windowIndex   = windowIndex;
     this->modeGetOrSet  = GET;
 }
@@ -79,7 +79,7 @@ EventGetOrSetUserInputModeProcessor::getWindowIndex() const
 /**
  * @return The requested input mode.
  */
-UserInputReceiverInterface::UserInputMode 
+UserInputModeAbstract::UserInputMode 
 EventGetOrSetUserInputModeProcessor::getUserInputMode() const
 {
     return this->userInputMode; 
@@ -91,7 +91,7 @@ EventGetOrSetUserInputModeProcessor::getUserInputMode() const
  *    Value of current input processor.
  */
 void 
-EventGetOrSetUserInputModeProcessor::setUserInputProcessor(UserInputReceiverInterface* userInputProcessor)
+EventGetOrSetUserInputModeProcessor::setUserInputProcessor(UserInputModeAbstract* userInputProcessor)
 {
     this->userInputProcessor = userInputProcessor;
     this->userInputMode      = this->userInputProcessor->getUserInputMode();
@@ -100,7 +100,7 @@ EventGetOrSetUserInputModeProcessor::setUserInputProcessor(UserInputReceiverInte
 /**
  * @return The user input processor valid only when GETTING.
  */
-UserInputReceiverInterface* 
+UserInputModeAbstract* 
 EventGetOrSetUserInputModeProcessor::getUserInputProcessor()
 {
     return this->userInputProcessor;

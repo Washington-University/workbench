@@ -100,7 +100,7 @@
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
 #include "StructureSurfaceSelectionControl.h"
-#include "UserInputReceiverInterface.h"
+#include "UserInputModeAbstract.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSurfaceOutlineSetModel.h"
@@ -2239,10 +2239,10 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
         return;
     }
 
-    UserInputReceiverInterface::UserInputMode inputMode = UserInputReceiverInterface::INVALID;
+    UserInputModeAbstract::UserInputMode inputMode = UserInputModeAbstract::INVALID;
     
     if (action == this->modeInputModeBordersAction) {
-        inputMode = UserInputReceiverInterface::BORDERS;
+        inputMode = UserInputModeAbstract::BORDERS;
         
         /*
          * If borders are not displayed, display them
@@ -2260,13 +2260,13 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
         }
     }
     else if (action == this->modeInputModeFociAction) {
-        inputMode = UserInputReceiverInterface::FOCI;
+        inputMode = UserInputModeAbstract::FOCI;
     }
     else if (action == this->modeInputVolumeEditAction) {
-        inputMode = UserInputReceiverInterface::VOLUME_EDIT;
+        inputMode = UserInputModeAbstract::VOLUME_EDIT;
     }
     else if (action == this->modeInputModeViewAction) {
-        inputMode = UserInputReceiverInterface::VIEW;
+        inputMode = UserInputModeAbstract::VIEW;
     }
     else {
         CaretAssertMessage(0, "Tools input mode action is invalid, new action added???");
@@ -2299,19 +2299,19 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
     EventManager::get()->sendEvent(getInputModeEvent.getPointer());
 
     switch (getInputModeEvent.getUserInputMode()) {
-        case UserInputReceiverInterface::INVALID:
+        case UserInputModeAbstract::INVALID:
             /* may get here when program is exiting and widgets are being destroyed */
             break;
-        case UserInputReceiverInterface::BORDERS:
+        case UserInputModeAbstract::BORDERS:
             this->modeInputModeBordersAction->setChecked(true);
             break;
-        case UserInputReceiverInterface::FOCI:
+        case UserInputModeAbstract::FOCI:
             this->modeInputModeFociAction->setChecked(true);
             break;
-        case UserInputReceiverInterface::VOLUME_EDIT:
+        case UserInputModeAbstract::VOLUME_EDIT:
             this->modeInputVolumeEditAction->setChecked(true);
             break;
-        case UserInputReceiverInterface::VIEW:
+        case UserInputModeAbstract::VIEW:
             this->modeInputModeViewAction->setChecked(true);
             break;
     }
@@ -2329,7 +2329,7 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
     EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
     EventManager::get()->sendEvent(getInputModeEvent.getPointer());
     
-    UserInputReceiverInterface* userInputProcessor = getInputModeEvent.getUserInputProcessor();
+    UserInputModeAbstract* userInputProcessor = getInputModeEvent.getUserInputProcessor();
     QWidget* userInputWidget = userInputProcessor->getWidgetForToolBar();
     
     /*
@@ -2338,8 +2338,31 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
      */
     if (this->userInputControlsWidgetActiveInputWidget != NULL) {
         if (userInputWidget != this->userInputControlsWidgetActiveInputWidget) {
+            /*
+             * Remove the current input widget:
+             * (1) Set its visibility to false
+             * (2) Remove the widget from the toolbar's layout
+             * (3) Set its parent to NULL.
+             *
+             * Why is the parent set to NULL?
+             * 
+             * When a widget is put into a layout, the widget is put into
+             * a QWidgetItem (subclass of QLayoutItem).  
+             *
+             * QLayout::removeWidget() will delete the QWidgetItem but
+             * it does not reset the parent for the widget that was in
+             * QWidgetItem.  So the user will need to delete the widget
+             * unless it is placed into a layout.
+             *
+             * After removing the widget, set the widget's parent to NULL.
+             * As a result, when the input receiver (owner of the widget) 
+             * is deleted, it can examine the parent, and, if the parent
+             * is NULL, it can delete the widget preventing a memory link
+             * and a possible crash.
+             */
             this->userInputControlsWidgetActiveInputWidget->setVisible(false);
             this->userInputControlsWidgetLayout->removeWidget(this->userInputControlsWidgetActiveInputWidget);
+            this->userInputControlsWidgetActiveInputWidget->setParent(NULL);
             this->userInputControlsWidgetActiveInputWidget = NULL;
         }
     }

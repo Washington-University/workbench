@@ -62,11 +62,12 @@ using namespace caret;
  * Index of window using this volume editor input handler.
  */
 UserInputModeVolumeEdit::UserInputModeVolumeEdit(const int32_t windowIndex)
-: UserInputModeView(),
+: UserInputModeView(UserInputModeAbstract::VOLUME_EDIT),
 m_windowIndex(windowIndex)
 {
     m_inputModeVolumeEditWidget = new UserInputModeVolumeEditWidget(this,
                                                                     windowIndex);
+    setWidgetForToolBar(m_inputModeVolumeEditWidget);
 }
 
 /**
@@ -102,30 +103,6 @@ void
 UserInputModeVolumeEdit::update()
 {
     m_inputModeVolumeEditWidget->updateWidget();
-}
-
-
-/**
- * @return A widget for display at the bottom of the
- * Browser Window Toolbar when this mode is active.
- * If no user-interface controls are needed, return NULL.
- * The toolbar will take ownership of the widget and
- * delete it so derived class MUST NOT delete the widget.
- */
-QWidget*
-UserInputModeVolumeEdit::getWidgetForToolBar()
-{
-    return m_inputModeVolumeEditWidget;
-}
-
-/**
- * @return The input mode enumerated type.
- */
-UserInputModeVolumeEdit::UserInputMode
-UserInputModeVolumeEdit::getUserInputMode() const
-{
-    
-    return UserInputReceiverInterface::VOLUME_EDIT;
 }
 
 /**
