@@ -166,9 +166,10 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     LevelProgress myProgress(myProgObj);
     int numCifti = (int)ciftiList.size();
     if (numCifti < 1) throw AlgorithmException("no cifti files specified to average");
-    const CiftiXMLOld& baseXML = ciftiList[0]->getCiftiXMLOld();
-    if (baseXML.getMappingType(CiftiXMLOld::ALONG_COLUMN) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw AlgorithmException("inputs must have brain models along columns");
-    int rowSize = baseXML.getNumberOfColumns();
+    const CiftiXML& baseXML = ciftiList[0]->getCiftiXML();
+    if (baseXML.getNumberOfDimensions() != 2) throw AlgorithmException("this operation currently only supports 2D cifti");
+    if (baseXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("inputs must have brain models along columns");
+    int rowSize = baseXML.getDimensionLength(CiftiXML::ALONG_ROW);
     bool first = true;
     const CaretMappableDataFile* nameFile = NULL;
     int numMaps = -1;
@@ -234,10 +235,8 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     if (first) throw AlgorithmException("no roi files provided");
     for (int i = 0; i < numCifti; ++i)
     {
-        const CiftiXMLOld& thisXML = ciftiList[i]->getCiftiXMLOld();
-        if (!thisXML.matchesForRows(baseXML)) throw AlgorithmException("cifti rows do not match between #1 and #" + AString::number(i + 1));
-        if (thisXML.getNumberOfColumns() != rowSize) throw AlgorithmException("ERROR: row size doesn't match, but CiftiXML matchesForRows() returned true!");
-        if (!thisXML.matchesForColumns(baseXML)) throw AlgorithmException("cifti columns do not match between #1 and #" + AString::number(i + 1));
+        const CiftiXML& thisXML = ciftiList[i]->getCiftiXML();
+        if (!thisXML.approximateMatch(baseXML)) throw AlgorithmException("cifti files do not match between #1 and #" + AString::number(i + 1));
     }
     if (leftROI != NULL)
     {
@@ -276,13 +275,16 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
             processVolumeComponent(accum, denom, ciftiList[i], volROI);
         }
     }
-    CiftiXMLOld newXml = baseXML;
-    newXml.applyRowMapToColumns();
-    newXml.resetRowsToScalars(numMaps);
+    CiftiXML newXml;
+    newXml.setNumberOfDimensions(2);
+    newXml.setMap(CiftiXML::ALONG_COLUMN, *(baseXML.getMap(CiftiXML::ALONG_ROW)));
+    CiftiScalarsMap rowMap;
+    rowMap.setLength(numMaps);
     for (int i = 0; i < numMaps; ++i)
     {
-        newXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, nameFile->getMapName(i));
+        rowMap.setMapName(i, nameFile->getMapName(i));
     }
+    newXml.setMap(CiftiXML::ALONG_ROW, rowMap);
     ciftiOut->setCiftiXML(newXml);
     vector<float> outRow(numMaps);
     for (int j = 0; j < numMaps; ++j)
@@ -306,15 +308,17 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     LevelProgress myProgress(myProgObj);
     int numCifti = (int)ciftiList.size();
     if (numCifti < 1) throw AlgorithmException("no cifti files specified to average");
-    const CiftiXMLOld& baseXML = ciftiList[0]->getCiftiXMLOld(), roiXML = ciftiROI->getCiftiXMLOld();
-    if (!baseXML.matchesForColumns(roiXML)) throw AlgorithmException("cifti roi mapping along columns doesn't match input cifti");
-    if (baseXML.getMappingType(CiftiXMLOld::ALONG_COLUMN) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw AlgorithmException("inputs must have brain models along columns");
-    int rowSize = baseXML.getNumberOfColumns();
+    const CiftiXML& baseXML = ciftiList[0]->getCiftiXML(), roiXML = ciftiROI->getCiftiXML();
+    if (baseXML.getNumberOfDimensions() != 2 || roiXML.getNumberOfDimensions() != 2) throw AlgorithmException("this operation currently only supports 2D cifti");
+    if (baseXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("inputs must have brain models along columns");
+    const CiftiBrainModelsMap& baseBrainModels = baseXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (baseBrainModels != *(roiXML.getMap(CiftiXML::ALONG_COLUMN))) throw AlgorithmException("cifti roi mapping along columns doesn't match input cifti");
+    int rowSize = baseXML.getDimensionLength(CiftiXML::ALONG_ROW);
     vector<float> leftAreaData, rightAreaData, cerebAreaData;
     float* leftAreaPointer = NULL, *rightAreaPointer = NULL, *cerebAreaPointer = NULL;
     if (leftAreaSurf != NULL)
     {
-        if (baseXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, StructureEnum::CORTEX_LEFT) != leftAreaSurf->getNumberOfNodes())
+        if (baseBrainModels.getSurfaceNumberOfNodes(StructureEnum::CORTEX_LEFT) != leftAreaSurf->getNumberOfNodes())
         {
             throw AlgorithmException("left area surface and left cortex cifti structure have different number of nodes");
         }
@@ -323,7 +327,7 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     }
     if (rightAreaSurf != NULL)
     {
-        if (baseXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, StructureEnum::CORTEX_RIGHT) != rightAreaSurf->getNumberOfNodes())
+        if (baseBrainModels.getSurfaceNumberOfNodes(StructureEnum::CORTEX_RIGHT) != rightAreaSurf->getNumberOfNodes())
         {
             throw AlgorithmException("right area surface and right cortex cifti structure have different number of nodes");
         }
@@ -332,7 +336,7 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     }
     if (cerebAreaSurf != NULL)
     {
-        if (baseXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, StructureEnum::CEREBELLUM) != cerebAreaSurf->getNumberOfNodes())
+        if (baseBrainModels.getSurfaceNumberOfNodes(StructureEnum::CEREBELLUM) != cerebAreaSurf->getNumberOfNodes())
         {
             throw AlgorithmException("cerebellum area surface and cerebellum cortex cifti structure have different number of nodes");
         }
@@ -341,25 +345,27 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     }
     for (int i = 1; i < numCifti; ++i)
     {
-        const CiftiXMLOld& thisXML = ciftiList[i]->getCiftiXMLOld();
-        if (!thisXML.matchesForRows(baseXML)) throw AlgorithmException("cifti rows do not match between roi and #" + AString::number(i + 1));
-        if (thisXML.getNumberOfColumns() != rowSize) throw AlgorithmException("ERROR: row size doesn't match, but CiftiXML matchesForRows() returned true!");
-        if (!thisXML.matchesForColumns(baseXML)) throw AlgorithmException("cifti columns do not match between roi and #" + AString::number(i + 1));
+        const CiftiXML& thisXML = ciftiList[i]->getCiftiXML();
+        if (!thisXML.approximateMatch(baseXML)) throw AlgorithmException("cifti files do not match between #1 and #" + AString::number(i + 1));
     }
-    int numMaps = roiXML.getNumberOfColumns();
+    int numMaps = roiXML.getDimensionLength(CiftiXML::ALONG_ROW);
     vector<vector<double> > accum(numMaps, vector<double>(rowSize, 0.0));
     vector<double> denom(numMaps, 0.0);
     for (int i = 0; i < numCifti; ++i)
     {
         processCifti(accum, denom, ciftiList[i], ciftiROI, leftAreaPointer, rightAreaPointer, cerebAreaPointer);
     }
-    CiftiXMLOld newXml = baseXML;
-    newXml.applyRowMapToColumns();
-    newXml.resetRowsToScalars(numMaps);
+    CiftiXML newXml;
+    newXml.setNumberOfDimensions(2);
+    newXml.setMap(CiftiXML::ALONG_COLUMN, *(baseXML.getMap(CiftiXML::ALONG_ROW)));
+    CiftiScalarsMap rowMap;
+    rowMap.setLength(numMaps);
+    const CiftiMappingType& nameMap = *(roiXML.getMap(CiftiXML::ALONG_ROW));
     for (int i = 0; i < numMaps; ++i)
     {
-        newXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, roiXML.getMapName(CiftiXMLOld::ALONG_COLUMN, i));
+        rowMap.setMapName(i, nameMap.getIndexName(i));
     }
+    newXml.setMap(CiftiXML::ALONG_ROW, rowMap);
     ciftiOut->setCiftiXML(newXml);
     vector<float> outRow(numMaps);
     for (int j = 0; j < numMaps; ++j)
@@ -378,13 +384,15 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
 
 void AlgorithmCiftiAverageDenseROI::verifySurfaceComponent(const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi)
 {
-    const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
-    if (!myXml.hasColumnSurfaceData(myStruct))
+    const CiftiXML& myXml = myCifti->getCiftiXML();
+    CaretAssert(myXml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS);//should be checked in the algorithm constructor
+    const CiftiBrainModelsMap& brainModelsMap = myXml.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (!brainModelsMap.hasSurfaceData(myStruct))
     {
         CaretLogWarning("cifti files are missing structure " + StructureEnum::toName(myStruct));
         return;
     }
-    if (myRoi->getNumberOfNodes() != myXml.getColumnSurfaceNumberOfNodes(myStruct))
+    if (myRoi->getNumberOfNodes() != brainModelsMap.getSurfaceNumberOfNodes(myStruct))
     {
         throw AlgorithmException("cifti number of vertices does not match roi for structure " + StructureEnum::toName(myStruct));
     }
@@ -392,17 +400,18 @@ void AlgorithmCiftiAverageDenseROI::verifySurfaceComponent(const CiftiFile* myCi
 
 void AlgorithmCiftiAverageDenseROI::processSurfaceComponent(vector<vector<double> >& accum, vector<double>& denom, const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi, const float* myAreas)
 {
-    const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
-    if (!myXml.hasColumnSurfaceData(myStruct))
+    const CiftiXML& myXml = myCifti->getCiftiXML();
+    CaretAssert(myXml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS);//should be checked in the algorithm constructor
+    const CiftiBrainModelsMap& brainModelsMap = myXml.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (!brainModelsMap.hasSurfaceData(myStruct))
     {
         return;
     }
-    if (myRoi->getNumberOfNodes() != myXml.getColumnSurfaceNumberOfNodes(myStruct)) throw AlgorithmException("cifti number of vertices does not match roi");
-    int rowSize = myXml.getNumberOfColumns();
+    if (myRoi->getNumberOfNodes() != brainModelsMap.getSurfaceNumberOfNodes(myStruct)) throw AlgorithmException("cifti number of vertices does not match roi");
+    int rowSize = myXml.getDimensionLength(CiftiXML::ALONG_ROW);
     vector<float> rowScratch(rowSize);
     CaretAssert(rowScratch.size() == accum[0].size());
-    vector<CiftiSurfaceMap> myMap;
-    myXml.getSurfaceMapForColumns(myMap, myStruct);
+    vector<CiftiBrainModelsMap::SurfaceMap> myMap = brainModelsMap.getSurfaceMap(myStruct);
     int mapSize = (int)myMap.size();
     int numMaps = myRoi->getNumberOfMaps();
     if (myAreas == NULL)
@@ -458,32 +467,22 @@ void AlgorithmCiftiAverageDenseROI::processSurfaceComponent(vector<vector<double
 
 void AlgorithmCiftiAverageDenseROI::verifyVolumeComponent(const CiftiFile* myCifti, const VolumeFile* volROI)
 {
-    const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
-    int64_t dims[3];
-    vector<vector<float> > sform;
-    myXml.getVolumeDimsAndSForm(dims, sform);
-    if (!volROI->matchesVolumeSpace(dims, sform)) throw AlgorithmException("cifti files don't match the ROI volume's space");
-    vector<CiftiVolumeMap> myMap;
-    myXml.getVolumeMapForColumns(myMap);
-    int mapSize = (int)myMap.size();
-    for (int i = 0; i < mapSize; ++i)
-    {
-        if (!volROI->indexValid(myMap[i].m_ijk)) throw AlgorithmException("cifti files list invalid voxels");
-    }
+    const CiftiXML& myXml = myCifti->getCiftiXML();
+    CaretAssert(myXml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS);//should be checked in the algorithm constructor
+    const CiftiBrainModelsMap& brainModelsMap = myXml.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (!volROI->matchesVolumeSpace(brainModelsMap.getVolumeSpace())) throw AlgorithmException("cifti files don't match the ROI volume's space");
 }
 
 void AlgorithmCiftiAverageDenseROI::processVolumeComponent(vector<vector<double> >& accum, vector<double>& denom, const CiftiFile* myCifti, const VolumeFile* volROI)
 {
-    const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
-    int64_t dims[3];
-    vector<vector<float> > sform;
-    myXml.getVolumeDimsAndSForm(dims, sform);
-    if (!volROI->matchesVolumeSpace(dims, sform)) throw AlgorithmException("cifti file doesn't match the ROI volume's space");
-    int rowSize = myXml.getNumberOfColumns();
+    const CiftiXML& myXml = myCifti->getCiftiXML();
+    CaretAssert(myXml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS);//should be checked in the algorithm constructor
+    const CiftiBrainModelsMap& brainModelsMap = myXml.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (!volROI->matchesVolumeSpace(brainModelsMap.getVolumeSpace())) throw AlgorithmException("cifti files don't match the ROI volume's space");
+    int rowSize = myXml.getDimensionLength(CiftiXML::ALONG_ROW);
     vector<float> rowScratch(rowSize);
     CaretAssert(rowScratch.size() == accum[0].size());
-    vector<CiftiVolumeMap> myMap;
-    myXml.getVolumeMapForColumns(myMap);
+    vector<CiftiBrainModelsMap::VolumeMap> myMap = brainModelsMap.getFullVolumeMap();
     int mapSize = (int)myMap.size();
     int numMaps = volROI->getNumberOfMaps();
     for (int i = 0; i < mapSize; ++i)
@@ -513,10 +512,11 @@ void AlgorithmCiftiAverageDenseROI::processVolumeComponent(vector<vector<double>
 void AlgorithmCiftiAverageDenseROI::processCifti(vector<vector<double> >& accum, vector<double>& denom, const CiftiFile* myCifti, const CiftiFile* ciftiROI,
                                                  const float* leftAreas, const float* rightAreas, const float* cerebAreas)
 {
-    const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();//same along columns for data and roi, we already checked
-    int rowSize = myXml.getNumberOfColumns();
-    vector<StructureEnum::Enum> surfList, volList;
-    myXml.getStructureLists(CiftiXMLOld::ALONG_COLUMN, surfList, volList);//not going to use the volume list
+    const CiftiXML& myXml = myCifti->getCiftiXML();//same along columns for data and roi, we already checked
+    CaretAssert(myXml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS);//should be checked in the algorithm constructor
+    const CiftiBrainModelsMap& brainModelsMap = myXml.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    int rowSize = myXml.getDimensionLength(CiftiXML::ALONG_ROW);
+    vector<StructureEnum::Enum> surfList = brainModelsMap.getSurfaceStructureList();
     int numMaps = ciftiROI->getNumberOfColumns();
     vector<float> dataScratch(rowSize), roiScratch(numMaps);
     for (int s = 0; s < (int)surfList.size(); ++s)
@@ -536,8 +536,7 @@ void AlgorithmCiftiAverageDenseROI::processCifti(vector<vector<double> >& accum,
             default:
                 throw AlgorithmException("found unexpected surface structure in cifti files: " + StructureEnum::toName(surfList[s]));
         }
-        vector<CiftiSurfaceMap> myMap;
-        myXml.getSurfaceMap(CiftiXMLOld::ALONG_COLUMN, myMap, surfList[s]);
+        vector<CiftiBrainModelsMap::SurfaceMap> myMap = brainModelsMap.getSurfaceMap(surfList[s]);
         int mapSize = (int)myMap.size();
         if (myAreas != NULL)
         {
@@ -590,8 +589,7 @@ void AlgorithmCiftiAverageDenseROI::processCifti(vector<vector<double> >& accum,
             }
         }
     }
-    vector<CiftiVolumeMap> myMap;
-    myXml.getVolumeMap(CiftiXMLOld::ALONG_COLUMN, myMap);//again, we know columns match between ROI and data
+    vector<CiftiBrainModelsMap::VolumeMap> myMap = brainModelsMap.getFullVolumeMap();//again, we know columns match between ROI and data
     int mapSize = (int)myMap.size();
     for (int i = 0; i < mapSize; ++i)
     {
@@ -624,6 +622,5 @@ float AlgorithmCiftiAverageDenseROI::getAlgorithmInternalWeight()
 
 float AlgorithmCiftiAverageDenseROI::getSubAlgorithmWeight()
 {
-    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;
 }
