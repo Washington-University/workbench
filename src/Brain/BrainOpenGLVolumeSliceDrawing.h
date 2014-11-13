@@ -265,7 +265,19 @@ namespace caret {
                                        const int32_t mapIndex,
                                        const uint8_t sliceOpacity);
         
-        void drawOrthogonalSliceVoxelsQuadStrips(const float sliceNormalVector[3],
+        void drawOrthogonalSliceVoxelsSingleQuads(const float sliceNormalVector[3],
+                                       const float coordinate[3],
+                                       const float rowStep[3],
+                                       const float columnStep[3],
+                                       const int64_t numberOfColumns,
+                                       const int64_t numberOfRows,
+                                       const std::vector<uint8_t>& sliceRGBA,
+                                       const VolumeMappableInterface* volumeInterface,
+                                       const int32_t volumeIndex,
+                                       const int32_t mapIndex,
+                                       const uint8_t sliceOpacity);
+        
+        void drawOrthogonalSliceVoxelsQuadIndicesAndStrips(const float sliceNormalVector[3],
                                        const float coordinate[3],
                                        const float rowStep[3],
                                        const float columnStep[3],

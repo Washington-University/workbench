@@ -100,6 +100,8 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
         case FLAG_VOLUME_CULLING:
             this->flagStatus = true;
             break;
+        case FLAG_VOLUME_QUADS:
+            break;
     }
 }
 
@@ -128,6 +130,10 @@ DeveloperFlagsEnum::initialize()
     enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_CULLING, 
                                     "FLAG_VOLUME_CULLING", 
                                     "Volume Culling Enabled"));
+    
+    enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_QUADS,
+                                          "FLAG_VOLUME_QUADS",
+                                          "Volume Quad Drawing"));
     
 }
 

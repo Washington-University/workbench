@@ -35,10 +35,15 @@ namespace caret {
                        const std::vector<float>& normals,
                        const std::vector<uint8_t>& rgbaColors);
         
+        static void drawQuadIndices(const std::vector<float>& coordinates,
+                                    const std::vector<float>& normals,
+                                    const std::vector<uint8_t>& rgbaColors,
+                                    const std::vector<uint32_t>& quadIndices);
+        
         static void drawQuadStrips(const std::vector<float>& coordinates,
                                    const std::vector<float>& normals,
                                    const std::vector<uint8_t>& rgbaColors,
-                                   const std::vector<std::pair<int64_t, int64_t> >& stripOffsetsAndLengths);
+                                   const std::vector<uint32_t>& quadStripIndices);
         
     private:
         BrainOpenGLPrimitiveDrawing();
@@ -63,14 +68,19 @@ namespace caret {
         
         static void drawQuadStripsVertexArrays(const std::vector<float>& coordinates,
                                    const std::vector<float>& normals,
-                                   const std::vector<uint8_t>& rgbaColors,
-                                   const std::vector<std::pair<int64_t, int64_t> >& stripOffsetsAndLengths);
+                                               const std::vector<uint8_t>& rgbaColors,
+                                               const std::vector<uint32_t>& quadStripIndices);
         
         static void drawQuadsVertexBuffers(const std::vector<float>& coordinates,
                                     const std::vector<float>& normals,
                                            const std::vector<uint8_t>& rgbaColors,
                                            const int64_t coordinateOffset,
                                            const int64_t coordinateCount);
+        
+        static void drawQuadIndicesVertexArrays(const std::vector<float>& coordinates,
+                                    const std::vector<float>& normals,
+                                    const std::vector<uint8_t>& rgbaColors,
+                                    const std::vector<uint32_t>& quadIndices);
         
     };
     

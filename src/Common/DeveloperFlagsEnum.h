@@ -38,7 +38,9 @@ public:
         /** */
         FLAG_PARCEL_REORDERING,
         /** */
-        FLAG_VOLUME_CULLING
+        FLAG_VOLUME_CULLING,
+        /** */
+        FLAG_VOLUME_QUADS
     };
 
 
