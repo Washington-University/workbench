@@ -32,7 +32,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricRemoveIslands(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, MetricFile* myMetricOut);
+        AlgorithmMetricRemoveIslands(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric,
+                                     MetricFile* myMetricOut, const MetricFile* corrAreaMetric = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
