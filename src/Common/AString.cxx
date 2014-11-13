@@ -42,6 +42,53 @@ std::ostream& operator << (std::ostream &lhs, const AString &rhs)
  *   by the separator.
  */
 AString
+AString::fromNumbers(const std::vector<int8_t>& v, const AString& separator)
+{
+    AString s;
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(v[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const std::vector<uint8_t>& v, const AString& separator)
+{
+    AString s;
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(v[i]);
+    }
+    return s;
+}
+
+
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
+AString
 AString::fromNumbers(const std::vector<int32_t>& v, const AString& separator)
 {
     AString s;
@@ -194,6 +241,61 @@ AString::fromNumbers(const float* array, const int64_t numberOfElements, const A
     }
     return s;
 }
+
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const int8_t* array,
+                     const int64_t numberOfElements,
+                     const AString& separator)
+{
+    AString s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(array[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const uint8_t* array,
+                     const int64_t numberOfElements,
+                     const AString& separator)
+{
+    AString s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(array[i]);
+    }
+    return s;
+}
+
 
 /**
  * Convert an array of values into a string.

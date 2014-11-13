@@ -110,6 +110,8 @@ namespace caret {
         bool toBool() const;
                 
         //I may move these outside the class since they don't require access to the class's internals
+        static AString fromNumbers(const std::vector<uint8_t>& v, const AString& separator);
+        static AString fromNumbers(const std::vector<int8_t>& v, const AString& separator);
         static AString fromNumbers(const std::vector<int32_t>& v, const AString& separator);
         static AString fromNumbers(const std::vector<uint32_t>& v, const AString& separator);
         static AString fromNumbers(const std::vector<int64_t>& v, const AString& separator);
@@ -117,6 +119,8 @@ namespace caret {
         static AString fromNumbers(const std::vector<float>& v, const AString& separator);
         static AString fromNumbers(const std::vector<double>& v, const AString& separator);
         static AString fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator);
+        static AString fromNumbers(const uint8_t* array,const int64_t numberOfElements, const AString& separator);
+        static AString fromNumbers(const int8_t* array,const int64_t numberOfElements, const AString& separator);
         static AString fromNumbers(const int32_t* array,const int64_t numberOfElements, const AString& separator);
         static AString fromNumbers(const int64_t* array,const int64_t numberOfElements, const AString& separator);
         static AString fromNumbers(const double* array, const int64_t numberOfElements, const AString& separator);
