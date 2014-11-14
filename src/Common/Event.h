@@ -71,6 +71,8 @@ namespace caret {
         
         /** Number of times event was processed. */
         int32_t eventProcessedCount;
+        
+        friend class EventManager;
     };
 
 } // namespace

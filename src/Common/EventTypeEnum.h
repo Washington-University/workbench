@@ -56,6 +56,8 @@ public:
         EVENT_BROWSER_WINDOW_CREATE_TABS,
         /** Issued after a browser window's graphicshave been redrawn */
         EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN,
+        /** Issued when displayed browser window menu's may change */
+        EVENT_BROWSER_WINDOW_MENUS_UPDATE,
         /** Create a new browser window */
         EVENT_BROWSER_WINDOW_NEW,
         /** Get CaretMappable data files */

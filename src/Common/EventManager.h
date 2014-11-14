@@ -87,6 +87,8 @@ namespace caret {
         
         void sendEvent(Event* event);
         
+        void sendSimpleEvent(const EventTypeEnum::Enum eventType);
+        
         void blockEvent(const EventTypeEnum::Enum eventToBlock,
                         const bool blockStatus);
         

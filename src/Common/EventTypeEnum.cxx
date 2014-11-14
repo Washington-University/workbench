@@ -101,6 +101,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN",
                                      "A Browser Window's graphics have been redrawn"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_MENUS_UPDATE,
+                                     "EVENT_BROWSER_WINDOW_MENUS_UPDATE",
+                                     "Update the browser windows menus"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_NEW,
                                      "EVENT_BROWSER_WINDOW_NEW", 
                                      "Create a new browser window"));

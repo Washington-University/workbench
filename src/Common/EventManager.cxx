@@ -423,11 +423,97 @@ EventManager::sendEvent(Event* event)
 }
 
 /**
+ * Send a "simple" event.  A simple event is one for which there is no
+ * specialized subclass of "Event".  This method try to prevent sending
+ * a "non-simple" event and it will need to be updated if an event
+ * either has a specialized subclass added or removed.
+ *
+ * @param eventType
+ *    Event type that is sent.
+ */
+void
+EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
+{
+    
+    switch (eventType) {
+        case EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE:
+        {
+            sendEvent(Event(eventType).getPointer());
+        }
+            break;
+        case EventTypeEnum::EVENT_INVALID:
+        case EventTypeEnum::EVENT_COUNT:
+        {
+            const AString msg(EventTypeEnum::toName(eventType)
+                              + " should never be sent as an event.");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+        }
+            return;
+            break;
+        case EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET_ALL:
+        case EventTypeEnum::EVENT_BROWSER_TAB_DELETE:
+        case EventTypeEnum::EVENT_BROWSER_TAB_GET:
+        case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL:
+        case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED:
+        case EventTypeEnum::EVENT_BROWSER_TAB_NEW:
+        case EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET:
+        case EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS:
+        case EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN:
+        case EventTypeEnum::EVENT_BROWSER_WINDOW_NEW:
+        case EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET:
+        case EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS:
+        case EventTypeEnum::EVENT_CHART_MATRIX_YOKING_VALIDATION:
+        case EventTypeEnum::EVENT_DATA_FILE_ADD:
+        case EventTypeEnum::EVENT_DATA_FILE_DELETE:
+        case EventTypeEnum::EVENT_DATA_FILE_READ:
+        case EventTypeEnum::EVENT_DATA_FILE_RELOAD:
+        case EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES:
+        case EventTypeEnum::EVENT_GET_NODE_DATA_FILES:
+        case EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE:
+        case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS:
+        case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW:
+        case EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY:
+        case EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION:
+        case EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL:
+        case EventTypeEnum::EVENT_IMAGE_CAPTURE:
+        case EventTypeEnum::EVENT_MODEL_ADD:
+        case EventTypeEnum::EVENT_MODEL_DELETE:
+        case EventTypeEnum::EVENT_MODEL_GET_ALL:
+        case EventTypeEnum::EVENT_MODEL_SURFACE_GET:
+        case EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS:
+        case EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE:
+        case EventTypeEnum::EVENT_OVERLAY_GET_YOKED:
+        case EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW:
+        case EventTypeEnum::EVENT_OVERLAY_VALIDATE:
+        case EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW:
+        case EventTypeEnum::EVENT_PALETTE_GET_BY_NAME:
+        case EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES:
+        case EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE:
+        case EventTypeEnum::EVENT_SURFACES_GET:
+        case EventTypeEnum::EVENT_TOOLBOX_SELECTION_DISPLAY:
+        case EventTypeEnum::EVENT_USER_INTERFACE_UPDATE:
+        case EventTypeEnum::EVENT_PROGRESS_UPDATE:
+        case EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS:
+        case EventTypeEnum::EVENT_UPDATE_YOKED_WINDOWS:
+        case EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR:
+        {
+            const AString msg(EventTypeEnum::toName(eventType)
+                              + " has an special subclass of class Event and should never be sent as an event.");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+        }
+            break;
+    }
+}
+
+
+/**
  * Block an event.  A counter is used to track blocking of each
  * event type.  Each time a request is made to block an event type,
  * the counter is incremented for that event type.  When a request
  * is made to un-block the event, the counter is decremented.  This
- * allows multiple requests for blocking an event to come from 
+ * allows multiple requests for blocking an event to come from
  * different sections of the source code.  Thus, anytime the
  * blocking counter is greater than zero for an event, the event
  * is blocked.
