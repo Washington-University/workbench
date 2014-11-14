@@ -59,7 +59,6 @@ m_widgetForToolBar(NULL)
  */
 UserInputModeAbstract::~UserInputModeAbstract()
 {
-    std::cout << "Deleting input mode: " << (int)getUserInputMode() << std::endl;
     /*
      * If the widget does not have a parent, then it is not 
      * displayed (owned by another QWidget class) and must
