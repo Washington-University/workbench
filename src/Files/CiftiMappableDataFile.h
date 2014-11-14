@@ -273,7 +273,7 @@ namespace caret {
         
         virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const;
         
-        virtual void getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
+        virtual int64_t getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
                                                  const int32_t mapIndex,
                                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                  const int64_t sliceIndex,
@@ -281,7 +281,7 @@ namespace caret {
                                                  const int32_t tabIndex,
                                                  uint8_t* rgbaOut) const;
         
-        virtual void getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
+        virtual int64_t getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
                                                     const int32_t mapIndex,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,

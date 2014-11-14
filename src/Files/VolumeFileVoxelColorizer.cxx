@@ -234,8 +234,10 @@ VolumeFileVoxelColorizer::invalidateColoring()
  *    Index of selected tab.
  * @param rgbaOut
  *    RGBA color components out.
+ * @return
+ *    Number of voxels with alpha greater than zero
  */
-void
+int64_t
 VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                       const int64_t sliceIndex,
@@ -283,6 +285,8 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
         CaretAssert(labelTable);
     }
     
+    int64_t validVoxelCount = 0;
+    
     /*
      * Output RGBA values for slice
      */
@@ -320,11 +324,16 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                     }
                 }
                 
+                if (alpha > 0.0) {
+                    ++validVoxelCount;
+                }
                 rgbaOut[rgbaOutIndex+3] = alpha;
                 rgbaOutIndex += 4;
             }
         }
     }
+    
+    return validVoxelCount;
 }
 
 /**
@@ -350,8 +359,10 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *    Index of selected tab.
  * @param rgbaOut
  *    RGBA color components out.
+ * @return
+ *    Number of voxels with alpha greater than zero
  */
-void
+int64_t
 VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                          const int64_t sliceIndex,
@@ -404,6 +415,8 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
     if (m_volumeFile->isMappedWithLabelTable()) {
         CaretAssert(labelTable);
     }
+    
+    int64_t validVoxelCount = 0;
     
     {
         int64_t rgbaOutIndex = 0;
@@ -460,6 +473,9 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                         }
                     }
                     
+                    if (alpha > 0.0) {
+                        ++validVoxelCount;
+                    }
                     rgbaOut[rgbaOutIndex+3] = alpha;
                     rgbaOutIndex += 4;
                     
@@ -487,51 +503,8 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
             }
         }
     }
-//    /*
-//     * Output RGBA values for slice
-//     */
-//    int64_t rgbaOutIndex = 0;
-//    for (int64_t k = kStart; k <= kEnd; k++) {
-//        for (int64_t j = jStart; j <= jEnd; j++) {
-//            for (int64_t i = iStart; i <= iEnd; i++) {
-//                /*
-//                 * Zero indices are
-//                 */
-//                const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(i, j, k);
-//                CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
-//                rgbaOut[rgbaOutIndex]   = mapRGBA[rgbaOffset];
-//                rgbaOut[rgbaOutIndex+1] = mapRGBA[rgbaOffset+1];
-//                rgbaOut[rgbaOutIndex+2] = mapRGBA[rgbaOffset+2];
-//                uint8_t alpha = mapRGBA[rgbaOffset+3];
-//                
-//                if (alpha > 0) {
-//                    if (labelTable != NULL) {
-//                        /*
-//                         * For label data, verify that the label is displayed.
-//                         * If NOT displayed, zero out the alpha value to
-//                         * prevent display of the data.
-//                         */
-//                        const int32_t dataValue = static_cast<int32_t>(m_volumeFile->getValue(i,
-//                                                                                              j,
-//                                                                                              k,
-//                                                                                              mapIndex));
-//                        const GiftiLabel* label = labelTable->getLabel(dataValue);
-//                        if (label != NULL) {
-//                            const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-//                            if (item != NULL) {
-//                                if (item->isSelected(displayGroup, tabIndex) == false) {
-//                                    alpha = 0;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//                
-//                rgbaOut[rgbaOutIndex+3] = alpha;
-//                rgbaOutIndex += 4;
-//            }
-//        }
-//    }    
+    
+    return validVoxelCount;
 }
 
 /**

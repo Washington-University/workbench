@@ -1891,7 +1891,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
         /*
          * Get colors for all voxels in the slice.
          */
-        volumeFile->getVoxelColorsForSliceInMap(m_brain->getPaletteFile(),
+        const int64_t validVoxelCount =
+           volumeFile->getVoxelColorsForSliceInMap(m_brain->getPaletteFile(),
                                                 mapIndex,
                                                 sliceViewPlane,
                                                 sliceIndexForDrawing,
@@ -2030,6 +2031,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
                                   numberOfColumns,
                                   numberOfRows,
                                   sliceVoxelsRgbaVector,
+                                  validVoxelCount,
                                   volumeFile,
                                   iVol,
                                   mapIndex,
@@ -2200,7 +2202,9 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
             numVoxelsJ,
             numVoxelsK
         };
-        volumeFile->getVoxelColorsForSubSliceInMap(m_brain->getPaletteFile(),
+        
+        const int64_t validVoxelCount =
+           volumeFile->getVoxelColorsForSubSliceInMap(m_brain->getPaletteFile(),
                                                    mapIndex,
                                                    sliceViewPlane,
                                                    sliceIndexForDrawing,
@@ -2234,7 +2238,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
                     ydim = numVoxelsK;
                     break;
             }
-            
             NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
                                                                     labelDrawingType,
                                                                     outlineColor,
@@ -2326,6 +2329,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
                                   numberOfColumns,
                                   numberOfRows,
                                   sliceVoxelsRgbaVector,
+                                  validVoxelCount,
                                   volumeFile,
                                   iVol,
                                   mapIndex,
@@ -3783,6 +3787,8 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
  *    Number of rows in the slice.
  * @param sliceRGBA
  *    RGBA coloring for voxels in the slice.
+ * @param validVoxelCount
+ *    Number of voxels with valid coloring
  * @param volumeInterface
  *    Index of the volume being drawn.
  * @param volumeIndex
@@ -3800,12 +3806,59 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
                                                          const int64_t numberOfColumns,
                                                          const int64_t numberOfRows,
                                                          const std::vector<uint8_t>& sliceRGBA,
+                                                         const int64_t validVoxelCount,
                                                          const VolumeMappableInterface* volumeInterface,
                                                          const int32_t volumeIndex,
                                                          const int32_t mapIndex,
                                                          const uint8_t sliceOpacity)
 {
+    /*
+     * There are two ways to draw the voxels.
+     *
+     * Quad Indices: This method submits each vertex (coordinate, normal, rgba)
+     * one time BUT it submits EVERY vertex in the slice.  Note that the vertex
+     * is shared by four voxels (except along an edge).  For each valid voxel, 
+     * it submits the indices of the voxel's four vertices.  This method is
+     * efficient when many voxels are drawn since each vertex is submitted to
+     * OpenGL one time and is shared by up to four voxels.  However, when
+     * only a few voxels are drawn, many unused vertices are submitted.
+     *
+     * Single Quads: For each voxel, this method submits the four vertices
+     * (coordinate, normal, rgba) for each voxel drawn.  Even though adjacent
+     * voxels share vertices, the vertices are submitted for each voxel.  When
+     * only a small number of voxels in the slice are drawn, this method is 
+     * efficient since only the needed vertex data is submitted.  However,
+     * when many voxels are drawn, many vertices are duplicated making the
+     * drawing inefficient.
+     *
+     * So, estimate the bytes that are passed to OpenGL for each drawing
+     * mode and choose the drawing mode that requires the smallest number
+     * of bytes.
+     */
+    bool drawWithQuadIndicesFlag = false;
     if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_QUADS)) {
+        /*
+         * Each vertex requires 28 bytes
+         *   (3 float xyz, 3 float normal xyz + 4 bytes color).
+         *
+         * Single quads uses four vertices per quad.
+         * 
+         * Index quads requires four 4-byte ints for the quad's indices.
+         */
+        const int64_t bytesPerVertex = 28;
+        const int64_t totalVertexBytes = ((numberOfColumns + 1)
+                                          * (numberOfRows + 1)
+                                          * bytesPerVertex);
+        const int64_t singleQuadBytes = (validVoxelCount * bytesPerVertex * 4);
+        const int64_t indexQuadBytes = (totalVertexBytes
+                                        + (16 * validVoxelCount));
+        
+        if (indexQuadBytes < singleQuadBytes) {
+            drawWithQuadIndicesFlag = true;
+        }
+    }
+    
+    if (drawWithQuadIndicesFlag) {
         drawOrthogonalSliceVoxelsQuadIndicesAndStrips(sliceNormalVector,
                                                       coordinate,
                                                       rowStep,

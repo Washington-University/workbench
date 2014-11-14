@@ -1069,8 +1069,10 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
  *    Index of selected tab.
  * @param rgbaOut
  *    Contains colors upon exit.
+ * @return
+ *    Number of voxels with alpha greater than zero
  */
-void
+int64_t
 VolumeFile::getVoxelColorsForSliceInMap(const PaletteFile* /*paletteFile*/,
                                         const int32_t mapIndex,
                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
@@ -1080,12 +1082,12 @@ VolumeFile::getVoxelColorsForSliceInMap(const PaletteFile* /*paletteFile*/,
                                  uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
-        return;
+        return 0;
     }
     
     CaretAssert(m_voxelColorizer);
     
-    m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
+    return m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
                                                   slicePlane,
                                                   sliceIndex,
                                                   displayGroup,
@@ -1117,8 +1119,10 @@ VolumeFile::getVoxelColorsForSliceInMap(const PaletteFile* /*paletteFile*/,
   * @param rgbaOut
   *    Output containing the rgba values (must have been allocated
   *    by caller to sufficient count of elements in the slice).
+ * @return
+ *    Number of voxels with alpha greater than zero
   */
-void
+int64_t
 VolumeFile::getVoxelColorsForSubSliceInMap(const PaletteFile* /*paletteFile*/,
                                            const int32_t mapIndex,
                                            const VolumeSliceViewPlaneEnum::Enum slicePlane,
@@ -1131,12 +1135,12 @@ VolumeFile::getVoxelColorsForSubSliceInMap(const PaletteFile* /*paletteFile*/,
                                            uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
-        return;
+        return 0;
     }
     
     CaretAssert(m_voxelColorizer);
     
-    m_voxelColorizer->getVoxelColorsForSubSliceInMap(mapIndex,
+    return m_voxelColorizer->getVoxelColorsForSubSliceInMap(mapIndex,
                                                      slicePlane,
                                                      sliceIndex,
                                                      firstCornerVoxelIndex,

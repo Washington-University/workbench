@@ -48,14 +48,14 @@ namespace caret {
                                      const VolumeFile* thresholdVolume,
                                      const int32_t thresholdVolumeMapIndex);
         
-        void getVoxelColorsForSliceInMap(const int32_t mapIndex,
+        int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
                                          const DisplayGroupEnum::Enum displayGroup,
                                          const int32_t tabIndex,
                                          uint8_t* rgbaOut) const;
         
-        void getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
+        int64_t getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                             const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                             const int64_t sliceIndex,
                                             const int64_t firstCornerVoxelIndex[3],

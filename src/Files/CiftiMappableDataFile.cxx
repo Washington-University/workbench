@@ -2200,8 +2200,10 @@ CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) con
  * @param rgbaOut
  *    Output containing the rgba values (must have been allocated
  *    by caller to sufficient count of elements in the slice).
+ * @return
+ *    Number of voxels with alpha greater than zero
  */
-void
+int64_t
 CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
                                                       const int32_t mapIndex,
                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
@@ -2215,7 +2217,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
     CaretAssertMessage((sliceIndex >= 0),
                        "Slice index is invalid.");
     if (sliceIndex < 0) {
-        return;
+        return 0;
     }
     
     if (isMapColoringValid(mapIndex) == false) {
@@ -2237,27 +2239,27 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
             voxelCount = dimI * dimJ;
             CaretAssert((sliceIndex < dimK));
             if (sliceIndex >= dimK) {
-                return;
+                return 0;
             }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             voxelCount = dimI * dimK;
             CaretAssert((sliceIndex < dimJ));
             if (sliceIndex >= dimJ) {
-                return;
+                return 0;
             }
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             voxelCount = dimJ * dimK;
             CaretAssert((sliceIndex < dimI));
             if (sliceIndex >= dimI) {
-                return;
+                return 0;
             }
             break;
     }
     
     if (voxelCount <= 0) {
-        return;
+        return 0;
     }
     const int64_t componentCount = voxelCount * 4;
     
@@ -2276,7 +2278,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
      * matrix type file (user clicking brainordinate).
      */
     if (mapRgbaCount <= 0) {
-        return;
+        return 0;
     }
     
     const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
@@ -2292,6 +2294,8 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
     if (isMappedWithLabelTable()) {
         CaretAssert(labelTable);
     }
+    
+    int64_t validVoxelCount = 0;
     
     /*
      * Set the rgba components for the slice.
@@ -2345,6 +2349,9 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                             
                         }
                         
+                        if (alpha > 0.0) {
+                            ++validVoxelCount;
+                        }
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
@@ -2395,6 +2402,9 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                             
                         }
                         
+                        if (alpha > 0.0) {
+                            ++validVoxelCount;
+                        }
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
@@ -2445,12 +2455,17 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                             
                         }
                         
+                        if (alpha > 0.0) {
+                            ++validVoxelCount;
+                        }
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
             }
             break;
     }
+    
+    return validVoxelCount;
 }
 
 /**
@@ -2477,8 +2492,10 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
  * @param rgbaOut
  *    Output containing the rgba values (must have been allocated
  *    by caller to sufficient count of elements in the slice).
+ * @return
+ *    Number of voxels with alpha greater than zero
  */
-void
+int64_t
 CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
                                                       const int32_t mapIndex,
                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
@@ -2495,7 +2512,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
     CaretAssertMessage((sliceIndex >= 0),
                        "Slice index is invalid.");
     if (sliceIndex < 0) {
-        return;
+        return 0;
     }
     
     if (isMapColoringValid(mapIndex) == false) {
@@ -2529,27 +2546,27 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
             voxelCount = voxelCountI * voxelCountJ;
             CaretAssert((sliceIndex < dimK));
             if (sliceIndex >= dimK) {
-                return;
+                return 0;
             }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             voxelCount = voxelCountI * voxelCountK;
             CaretAssert((sliceIndex < dimJ));
             if (sliceIndex >= dimJ) {
-                return;
+                return 0;
             }
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             voxelCount = voxelCountJ * voxelCountK;
             CaretAssert((sliceIndex < dimI));
             if (sliceIndex >= dimI) {
-                return;
+                return 0;
             }
             break;
     }
     
     if (voxelCount <= 0) {
-        return;
+        return 0;
     }
     const int64_t componentCount = voxelCount * 4;
     
@@ -2568,7 +2585,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
      * matrix type file (user clicking brainordinate).
      */
     if (mapRgbaCount <= 0) {
-        return;
+        return 0;
     }
     
     const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
@@ -2591,6 +2608,8 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
     const int64_t kStep = ((kEnd < kStart) ? -1 : 1);
     const int64_t jStep = ((jEnd < jStart) ? -1 : 1);
     const int64_t iStep = ((iEnd < iStart) ? -1 : 1);
+    
+    int64_t validVoxelCount = 0;
     
     /*
      * Set the rgba components for the slice.
@@ -2651,6 +2670,9 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
                             
                         }
                         
+                        if (alpha > 0.0) {
+                            ++validVoxelCount;
+                        }
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                     
@@ -2673,54 +2695,6 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
             }
 
         }
-//            for (int64_t j = jStart; j <= jEnd; j++) {
-//                for (int64_t i = iStart; i <= iEnd; i++) {
-//                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
-//                                                                                           j,
-//                                                                                           sliceIndex);
-//                    if (dataOffset >= 0) {
-//                        const int64_t dataOffset4 = dataOffset * 4;
-//                        CaretAssert(dataOffset4 < mapRgbaCount);
-//                        
-//                        const int64_t rgbaOffset = (((j - jStart) * voxelCountI) + (i - iStart)) * 4;
-//                        CaretAssert(rgbaOffset < componentCount);
-//                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
-//                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
-//                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
-//                        /*
-//                         * A negative value for alpha indicates "do not draw".
-//                         * Since unsigned bytes do not have negative values,
-//                         * change the value to zero (which indicates "transparent").
-//                         */
-//                        float alpha = mapRGBA[dataOffset4+3];
-//                        if (alpha < 0.0) {
-//                            alpha = 0.0;
-//                        }
-//                        
-//                        if (alpha > 0.0) {
-//                            if (labelTable != NULL) {
-//                                /*
-//                                 * For label data, verify that the label is displayed.
-//                                 * If NOT displayed, zero out the alpha value to
-//                                 * prevent display of the data.
-//                                 */
-//                                const int32_t dataValue = dataValues[dataOffset];
-//                                const GiftiLabel* label = labelTable->getLabel(dataValue);
-//                                if (label != NULL) {
-//                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-//                                    CaretAssert(item);
-//                                    if (item->isSelected(displayGroup, tabIndex) == false) {
-//                                        alpha = 0.0;
-//                                    }
-//                                }
-//                            }
-//                            
-//                        }
-//                        
-//                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
-//                    }
-//                }
-//            }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
         {
@@ -2774,6 +2748,10 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
                             }
                             
                         }
+                        
+                        if (alpha > 0.0) {
+                            ++validVoxelCount;
+                        }
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                     
@@ -2796,54 +2774,6 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
                 }
             }
         }
-//            for (int64_t k = kStart; k <= kEnd; k++) {
-//                for (int64_t i = iStart; i <= iEnd; i++) {
-//                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
-//                                                                                           sliceIndex,
-//                                                                                           k);
-//                    if (dataOffset >= 0) {
-//                        const int64_t dataOffset4 = dataOffset * 4;
-//                        CaretAssert(dataOffset4 < mapRgbaCount);
-//                        
-//                        const int64_t rgbaOffset = (((k - kStart) * voxelCountI) + (i - iStart)) * 4;
-//                        CaretAssert(rgbaOffset < componentCount);
-//                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
-//                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
-//                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
-//                        /*
-//                         * A negative value for alpha indicates "do not draw".
-//                         * Since unsigned bytes do not have negative values,
-//                         * change the value to zero (which indicates "transparent").
-//                         */
-//                        float alpha = mapRGBA[dataOffset4+3];
-//                        if (alpha < 0.0) {
-//                            alpha = 0.0;
-//                        }
-//                        
-//                        if (alpha > 0.0) {
-//                            if (labelTable != NULL) {
-//                                /*
-//                                 * For label data, verify that the label is displayed.
-//                                 * If NOT displayed, zero out the alpha value to
-//                                 * prevent display of the data.
-//                                 */
-//                                const int32_t dataValue = dataValues[dataOffset];
-//                                const GiftiLabel* label = labelTable->getLabel(dataValue);
-//                                if (label != NULL) {
-//                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-//                                    CaretAssert(item);
-//                                    if (item->isSelected(displayGroup, tabIndex) == false) {
-//                                        alpha = 0.0;
-//                                    }
-//                                }
-//                            }
-//                            
-//                        }
-//                        
-//                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
-//                    }
-//                }
-//            }
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
         {
@@ -2899,6 +2829,9 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
                             
                         }
                         
+                        if (alpha > 0.0) {
+                            ++validVoxelCount;
+                        }
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                     
@@ -2964,12 +2897,17 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
                             
                         }
                         
+                        if (alpha > 0.0) {
+                            ++validVoxelCount;
+                        }
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
             }
             break;
     }
+    
+    return validVoxelCount;
 }
 
 /**
