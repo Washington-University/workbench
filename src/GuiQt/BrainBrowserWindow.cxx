@@ -114,6 +114,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                        Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
 {
+    m_developMenuAction = NULL;
+    
     if (BrainBrowserWindow::s_firstWindowFlag) {
         BrainBrowserWindow::s_firstWindowFlag = false;
     }
@@ -225,15 +227,37 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     m_defaultWindowComponentStatus.isFeaturesToolBoxDisplayed = m_featuresToolBoxAction->isChecked();
     m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = m_overlayToolBoxAction->isChecked();
     m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
 }
 /**
  * Destructor.
  */
 BrainBrowserWindow::~BrainBrowserWindow()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     delete m_defaultTileTabsConfiguration;
     delete m_sceneTileTabsConfiguration;
     delete m_sceneAssistant;
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+BrainBrowserWindow::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE) {
+        const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        if (m_developMenuAction != NULL) {
+            m_developMenuAction->setVisible(prefs->isDevelopMenuEnabled());
+            event->setEventProcessed();
+        }
+    }
 }
 
 /**
@@ -699,10 +723,9 @@ BrainBrowserWindow::createMenus()
         menubar->addMenu(connectMenu);
     }
     
-    if (prefs->isDevelopMenuEnabled()) {
-        QMenu* developMenu = createMenuDevelop();
-        menubar->addMenu(developMenu);
-    }
+    QMenu* developMenu = createMenuDevelop();
+    m_developMenuAction = menubar->addMenu(developMenu);
+    m_developMenuAction->setVisible(prefs->isDevelopMenuEnabled());
     
     menubar->addMenu(createMenuWindow());
     menubar->addMenu(createMenuHelp());

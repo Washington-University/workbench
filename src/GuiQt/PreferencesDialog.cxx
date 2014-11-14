@@ -929,11 +929,7 @@ PreferencesDialog::miscDevelopMenuEnabledComboBoxChanged(bool value)
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setDevelopMenuEnabled(value);
     
-    const AString msg = ("The Develop menu will "
-                         + QString((value ? "appear" : " not appear"))
-                         + " in newly opened windows.");
-    WuQMessageBox::informationOk(m_miscDevelopMenuEnabledComboBox->getWidget(),
-                                 msg);
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
 }
 
 /**

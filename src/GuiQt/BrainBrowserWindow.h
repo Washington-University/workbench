@@ -30,6 +30,7 @@
 #include "AString.h"
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
+#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 class QAction;
@@ -52,11 +53,13 @@ namespace caret {
      * brain models.  It may contain multiple tabs
      * with each tab displaying brain models.
      */ 
-    class BrainBrowserWindow : public QMainWindow, public SceneableInterface  {
+    class BrainBrowserWindow : public QMainWindow, public EventListenerInterface, public SceneableInterface  {
         Q_OBJECT
         
     public:
         virtual ~BrainBrowserWindow();
+        
+        virtual void receiveEvent(Event* event);
         
         BrowserTabContent* getBrowserTabContent();
 
@@ -323,6 +326,7 @@ namespace caret {
         QAction* m_helpHcpFeatureRequestAction;
         QAction* m_helpWorkbenchBugReportAction;
         
+        QAction* m_developMenuAction;
         QActionGroup* m_developerFlagsActionGroup;
         QAction* m_developerGraphicsTimingAction;
         QAction* m_developerExportVtkFileAction;
