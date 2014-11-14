@@ -4118,9 +4118,10 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsSingleQuads(const float 
  * Draw the voxels in an orthogonal slice using quad indices or strips.
  * 
  * Each vertex (coordinate, its normal vector, and its color) is sent to OpenGL
- * one time.  Index arrays are used to specify the vertices when drawing.
+ * one time.  Index arrays are used to specify the vertices when drawing the
+ * quads.
  * 
- * This is efficented when many voxels are drawn but may be inefficent
+ * This is efficient when many voxels are drawn but may be inefficent
  * when only a few voxels are drawn.
  *
  * @param sliceNormalVector
@@ -4250,10 +4251,18 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsQuadIndicesAndStrips(con
             voxelQuadNormals.push_back(sliceNormalVector[1]);
             voxelQuadNormals.push_back(sliceNormalVector[2]);
             
+            uint8_t rgba[4] = {
+                0,
+                0,
+                0,
+                0
+            };
+            
             /*
              * With FLAT shading:
              *    Quads: Uses top left coordinate for quad coloring
              *    Quad Strip: Uses top right coordinate for quad coloring
+             * So, the color is only set for this coordinate
              */
             int64_t iColRGBA = iCol;
             int64_t jRowRGBA = jRow;
@@ -4263,55 +4272,50 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsQuadIndicesAndStrips(con
                         iColRGBA = numberOfColumns - 1;
                     }
                     jRowRGBA = jRow - 1;
-                    if (jRowRGBA < 0) {
-                        jRowRGBA = 0;
-                    }
+//                    if (jRowRGBA < 0) {
+//                        jRowRGBA = 0;
+//                    }
                     break;
                 case DRAW_QUAD_STRIPS:
                     iColRGBA = iCol - 1;
-                    if (iColRGBA < 0) {
-                        iColRGBA = 0;
-                    }
+//                    if (iColRGBA < 0) {
+//                        iColRGBA = 0;
+//                    }
                     jRowRGBA = jRow - 1;
-                    if (jRowRGBA < 0) {
-                        jRowRGBA = 0;
-                    }
+//                    if (jRowRGBA < 0) {
+//                        jRowRGBA = 0;
+//                    }
                     break;
             }
-            
-            const int64_t voxelOffset = (iColRGBA
-                                         + (numberOfColumns * jRowRGBA));
-            if (debugFlag) {
-                std::cout << "col=" << iCol << " row=" << jRow << " voxel-offset=" << voxelOffset << std::endl;
-            }
-            
-            /*
-             * Offset of voxel in coloring.
-             * Note that colors are stored in rows
-             */
-            int64_t sliceRgbaOffset = (4 * (iColRGBA
-                                            + (numberOfColumns * jRowRGBA)));
-            
-            uint8_t rgba[4] = {
-                0,
-                0,
-                0,
-                0
-            };
-            
-            /*
-             * An alpha greater than zero means the voxel is displayed
-             */
-            const int64_t alphaOffset = sliceRgbaOffset + 3;
-            CaretAssertVectorIndex(sliceRGBA, alphaOffset);
-            if (sliceRGBA[alphaOffset] > 0) {
+            if ((iColRGBA >= 0)
+                && (jRowRGBA >= 0)) {
+                const int64_t voxelOffset = (iColRGBA
+                                             + (numberOfColumns * jRowRGBA));
+                if (debugFlag) {
+                    std::cout << "col=" << iCol << " row=" << jRow << " voxel-offset=" << voxelOffset << std::endl;
+                }
+                
                 /*
-                 * Use overlay's opacity for the voxel
+                 * Offset of voxel in coloring.
+                 * Note that colors are stored in rows
                  */
-                rgba[0] = sliceRGBA[sliceRgbaOffset];
-                rgba[1] = sliceRGBA[sliceRgbaOffset + 1];
-                rgba[2] = sliceRGBA[sliceRgbaOffset + 2];
-                rgba[3] = sliceOpacity;
+                int64_t sliceRgbaOffset = (4 * (iColRGBA
+                                                + (numberOfColumns * jRowRGBA)));
+                
+                /*
+                 * An alpha greater than zero means the voxel is displayed
+                 */
+                const int64_t alphaOffset = sliceRgbaOffset + 3;
+                CaretAssertVectorIndex(sliceRGBA, alphaOffset);
+                if (sliceRGBA[alphaOffset] > 0) {
+                    /*
+                     * Use overlay's opacity for the voxel
+                     */
+                    rgba[0] = sliceRGBA[sliceRgbaOffset];
+                    rgba[1] = sliceRGBA[sliceRgbaOffset + 1];
+                    rgba[2] = sliceRGBA[sliceRgbaOffset + 2];
+                    rgba[3] = sliceOpacity;
+                }
             }
             
             /*
@@ -4378,6 +4382,9 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsQuadIndicesAndStrips(con
         }
     }
 
+    /*
+     * Setup indices into coordinates/normals/coloring to draw the quads
+     */
     switch (drawType) {
         case DRAW_QUADS:
         {
