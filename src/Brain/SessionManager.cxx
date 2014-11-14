@@ -593,7 +593,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
-    CaretLogInfo("Time to restore brain was "
+    CaretLogFine("Time to restore brain was "
                  + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds");
     timer.reset();
@@ -635,7 +635,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_browserTabs[tabIndex] = tab;
     }
     
-    CaretLogInfo("Time to restore browser tab content was "
+    CaretLogFine("Time to restore browser tab content was "
                  + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds");
     timer.reset();

@@ -2040,7 +2040,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             }
         }
         
-        CaretLogInfo("Time to restore browser windows was "
+        CaretLogFine("Time to restore browser windows was "
                      + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                      + " seconds");
         timer.reset();
@@ -2098,7 +2098,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                               surfPropClass);
         }
         
-        CaretLogInfo("Time to restore information/property windows was "
+        CaretLogFine("Time to restore information/property windows was "
                      + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                      + " seconds");
         timer.reset();
@@ -2126,14 +2126,14 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     EventManager::get()->sendEvent(progressEvent.getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 
-    CaretLogInfo("Time to update graphics in all windows was "
+    CaretLogFine("Time to update graphics in all windows was "
                  + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds");
     timer.reset();
 
     const int64_t totalNumberOfEvents = (EventManager::get()->getEventIssuedCounter()
                                          - eventCountAtStart);
-    CaretLogInfo("Time to restore scene was "
+    CaretLogFine("Time to restore scene was "
                  + QString::number(sceneRestoreTimer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds with "
                  + AString::number(totalNumberOfEvents)
