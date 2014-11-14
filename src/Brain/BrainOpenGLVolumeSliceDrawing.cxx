@@ -3974,8 +3974,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsSingleQuads(const float 
      * Draw each row
      */
     for (int64_t jRow = 0; jRow < numberOfRows; jRow++) {
-        const bool lastRowFlag = (jRow == (numberOfRows - 1));
-        
         /*
          * Coordinates on left side of row
          */

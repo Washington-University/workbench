@@ -531,15 +531,15 @@ VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
             break;
     }
     
-    float voxelDiffXYZ[3];
+//    float voxelDiffXYZ[3];
     
     float voxelXYZ[3];
     m_volumeFile->indexToSpace(editInfo.m_voxelIJK,
                                voxelXYZ);
     
-    const int64_t planeVoxelsDI = (editInfo.m_ijkMax[0] - editInfo.m_ijkMin[0]) / 2 ;
-    const int64_t planeVoxelsDJ = (editInfo.m_ijkMax[1] - editInfo.m_ijkMin[1]) / 2 ;
-    const int64_t planeVoxelsDK = (editInfo.m_ijkMax[2] - editInfo.m_ijkMin[2]) / 2 ;
+//    const int64_t planeVoxelsDI = (editInfo.m_ijkMax[0] - editInfo.m_ijkMin[0]) / 2 ;
+//    const int64_t planeVoxelsDJ = (editInfo.m_ijkMax[1] - editInfo.m_ijkMin[1]) / 2 ;
+//    const int64_t planeVoxelsDK = (editInfo.m_ijkMax[2] - editInfo.m_ijkMin[2]) / 2 ;
     
     CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
     modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
