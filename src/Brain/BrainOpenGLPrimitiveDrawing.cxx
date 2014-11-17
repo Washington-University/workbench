@@ -253,8 +253,6 @@ BrainOpenGLPrimitiveDrawing::drawQuadsVertexArrays(const std::vector<float>& coo
                                                    const int64_t coordinateOffset,
                                                    const int64_t coordinateCount)
 {
-    const uint64_t numCoords  = coordinates.size() / 3;
-    
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -324,8 +322,6 @@ BrainOpenGLPrimitiveDrawing::drawQuadsVertexBuffers(const std::vector<float>& co
                                                     const int64_t coordinateOffset,
                                                     const int64_t coordinateCount)
 {
-    const uint64_t numCoords  = coordinates.size() / 3;
-    
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
         /*
          * Put vertices (coordinates) into its buffer.
@@ -421,8 +417,8 @@ BrainOpenGLPrimitiveDrawing::drawQuadsVertexBuffers(const std::vector<float>& co
          * Draw the triangle strips.
          */
         glDrawArrays(GL_QUADS,
-                     0,
-                     numCoords);
+                     coordinateOffset,
+                     coordinateCount);
         //        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
         //                     quadsBufferID);
         //        glDrawElements(GL_TRIANGLE_STRIP,
