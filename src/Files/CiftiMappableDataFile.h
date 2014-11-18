@@ -484,7 +484,8 @@ namespace caret {
             void updateForChangeInMapData();
             
             void updateColoring(const std::vector<float>& data,
-                                const PaletteFile* paletteFile);
+                                const PaletteFile* paletteFile,
+                                const FastStatistics* fastStatistics);
             
             bool isFastStatisticsValid() const;
             

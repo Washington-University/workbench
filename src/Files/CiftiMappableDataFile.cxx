@@ -1831,7 +1831,8 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
     if (isMappedWithPalette()
         || isMappedWithLabelTable()) {
         m_mapContent[mapIndex]->updateColoring(data,
-                                               paletteFile);
+                                               paletteFile,
+                                               getMapFastStatistics(mapIndex));
     }
     else {
         CaretAssert(0);
@@ -5991,10 +5992,19 @@ CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const std::vecto
  *    Data contained in the map.
  * @param paletteFile
  *    File containing the palettes.
+ * @param fastStatistics
+ *    Fast statistics used for palette coloring.  While map content contains
+ *    a fast statistics member, it is calculated on the data within the map.
+ *    However, some files need the statistics calculated on the entire file
+ *    so that a particular data value from one map is colored exactly the 
+ *    same as the particular data value in another map (the user may have
+ *    a min/max coloring selected and the two maps may a have different
+ *    min/max values).
  */
 void
 CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data,
-                                                  const PaletteFile* paletteFile)
+                                                  const PaletteFile* paletteFile,
+                                                  const FastStatistics* fastStatistics)
 {
     if (data.empty()) {
         return;
@@ -6025,10 +6035,7 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
         const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
         const Palette* palette = paletteFile->getPaletteByName(paletteName);
         if (palette != NULL) {
-            if ( ! isFastStatisticsValid()) {
-                updateFastStatistics(data);
-            }
-            NodeAndVoxelColoring::colorScalarsWithPalette(m_fastStatistics,
+            NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
                                                           m_paletteColorMapping,
                                                           palette,
                                                           &data[0],
@@ -6049,12 +6056,5 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
     }
     
     m_rgbaValid = true;
-    
-//    CaretLogFine("Connectivity Data Average/Min/Max: "
-//                 + QString::number(m_fastStatistics->getMean())
-//                 + " "
-//                 + QString::number(m_fastStatistics->getMostNegativeValue())
-//                 + " "
-//                 + QString::number(m_fastStatistics->getMostPositiveValue()));
 }
 
