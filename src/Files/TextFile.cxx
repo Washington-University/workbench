@@ -81,9 +81,8 @@ TextFile::readFile(const AString& filename)
     
     QFile file(filename);
     if (file.open(QFile::ReadOnly) == false) {
-        throw DataFileException("Unable to open \""
-                                + filename
-                                + " for reading.");
+        throw DataFileException(filename,
+                                "Unable to open for reading.");
     }
 
     QTextStream textStream(&file);
@@ -112,9 +111,8 @@ TextFile::writeFile(const AString& filename)
     
     QFile file(filename);
     if (file.open(QFile::WriteOnly) == false) {
-        throw DataFileException("Unable to open \""
-                                + filename
-                                + " for writing.");
+        throw DataFileException(filename,
+                                "Unable to open for writing.");
     }
     
     QTextStream textStream(&file);

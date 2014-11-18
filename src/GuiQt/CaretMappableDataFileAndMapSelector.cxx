@@ -502,12 +502,14 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
             BrainStructure* brainStructure = GuiManager::get()->getBrain()->getBrainStructure(structure,
                                                                                               false);
             if (brainStructure == NULL) {
-                throw DataFileException("Invalid brain structure (not loaded): "
+                throw DataFileException(newFileName,
+                                        "Invalid brain structure (not loaded): "
                                         + StructureEnum::toGuiName(structure));
             }
             const int32_t numberOfNodes = brainStructure->getNumberOfNodes();
             if (numberOfNodes <= 0) {
-                throw DataFileException("Invalid number of nodes (0) in brain structure: "
+                throw DataFileException(newFileName,
+                                        "Invalid number of nodes (0) in brain structure: "
                                         + StructureEnum::toGuiName(structure));
             }
 

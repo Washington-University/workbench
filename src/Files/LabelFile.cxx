@@ -153,7 +153,8 @@ LabelFile::validateDataArraysAfterReading()
     const int32_t numberOfDataArrays = this->giftiFile->getNumberOfDataArrays();
     for (int32_t i = 0; i < numberOfDataArrays; i++) {
         int32_t* tempPointer = this->giftiFile->getDataArray(i)->getDataPointerInt();
-        if (tempPointer == NULL) throw DataFileException("found non-integer data array in label file '" + getFileName() + "'");
+        if (tempPointer == NULL) throw DataFileException(getFileName(),
+                                                         "found non-integer data array in label file.");
         this->columnDataPointers.push_back(tempPointer);
     }
     
@@ -454,16 +455,14 @@ LabelFile::addMaps(const int32_t numberOfNodes,
                        const int32_t numberOfMaps)
 {
     if (numberOfNodes <= 0) {
-        throw DataFileException("When adding maps to "
-                                + this->getFileNameNoPath()
-                                + " the number of nodes must be greater than zero");
+        throw DataFileException(getFileName(),
+                                "When adding maps the number of nodes must be greater than zero");
     }
     
     if (this->getNumberOfNodes() > 0) {
         if (numberOfNodes != this->getNumberOfNodes()) {
-            throw DataFileException("When adding maps to "
-                                    + this->getFileNameNoPath()
-                                    + " the requested number of nodes is "
+            throw DataFileException(getFileName(),
+                                    "When adding maps the requested number of nodes is "
                                     + AString::number(numberOfNodes)
                                     + " but the file contains "
                                     + AString::number(this->getNumberOfNodes())
@@ -472,7 +471,8 @@ LabelFile::addMaps(const int32_t numberOfNodes,
     }
     
     if (numberOfMaps <= 0) {
-        throw DataFileException("When adding maps, the number of maps must be greater than zero.");
+        throw DataFileException(getFileName(),
+                                "When adding maps, the number of maps must be greater than zero.");
     }
     
     const int32_t unassignedKey = this->getLabelTable()->getUnassignedLabelKey();

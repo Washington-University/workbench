@@ -372,7 +372,7 @@ BorderFile::setStructure(const StructureEnum::Enum structure)
 {
     if (m_structure == StructureEnum::ALL && m_borders.size() != 0)
     {//not really sure what this should do, so throw an error for now
-        throw DataFileException("attempt to set structure on multi-structure border file");
+        throw DataFileException(getFileName(), "attempt to set structure on multi-structure border file");
     }
     int numBorders = (int)m_borders.size();
     for (int i = 0; i < numBorders; ++i)
@@ -438,14 +438,14 @@ void BorderFile::setNumberOfNodes(const int32_t& numNodes)
 {
     if (numNodes < 1)
     {
-        throw DataFileException("attempt to set non-positive number of vertices on border file");
+        throw DataFileException(getFileName(), "attempt to set non-positive number of vertices on border file");
     }
     int numBorders = (int)m_borders.size();
     for (int i = 0; i < numBorders; ++i)
     {
         if (!m_borders[i]->verifyForSurfaceNumberOfNodes(numNodes))
         {
-            throw DataFileException("cannot set border file number of vertices less than the vertices used by its borders");
+            throw DataFileException(getFileName(), "cannot set border file number of vertices less than the vertices used by its borders");
         }
     }
     m_numNodes = numNodes;//even if we are currently multi-structure, remember the number of nodes that was set
@@ -859,7 +859,7 @@ BorderFile::addBorder(Border* border)
     if (numPoints == 0)
     {
         delete border;//keep our word and handle deleting the argument
-        throw DataFileException("attempt to add border with zero points");
+        throw DataFileException(getFileName(), "attempt to add border with zero points");
     }//NOTE: Border itself makes sure all points are on one structure, and have barycentric projections
     if (m_borders.empty())//TSC: i'm not actually sure if we want border files to automatically set their structure from the borders
     {
@@ -875,7 +875,7 @@ BorderFile::addBorder(Border* border)
         if (!border->verifyForSurfaceNumberOfNodes(m_numNodes))
         {
             delete border;
-            throw DataFileException("attempt to add border that has too large vertex indices for surface");
+            throw DataFileException(getFileName(), "attempt to add border that has too large vertex indices for surface");
         }
     }
     m_borders.push_back(border);
@@ -1241,10 +1241,12 @@ BorderFile::readFile(const AString& filename)
 {
     clear();
     checkFileReadability(filename);
+    setFileName(filename);
     
     {
         QFile inFile(filename);
-        if (!inFile.open(QIODevice::ReadOnly)) throw DataFileException("failed to open file " + filename + " for reading");
+        if (!inFile.open(QIODevice::ReadOnly)) throw DataFileException(filename,
+                                                                       "failed to open file for reading");
         QXmlStreamReader myReader(&inFile);
         readXML(myReader);
     }
@@ -1332,15 +1334,13 @@ void BorderFile::writeFile(const AString& filename, const int& version)
 {
     if ( ! isSingleStructure()) {
         throw DataFileException(filename,
-                                "Writing multi-structure border files is no longer supported ("
-                                + getFileNameNoPath()
-                                + ").  "
+                                "Writing multi-structure border files is no longer supported.  "
                                 "Any existing multi-structure border files should be split into single-structure border files.  "
                                 "This can be done on the command line using -file-convert with the -border-version-convert option, "
                                 "or in the gui, using a selection in the Data menu.");
     }
     
-    if (!canWriteAsVersion(version)) throw DataFileException("cannot write border file as version '" + AString::number(version) + "'");
+    if (!canWriteAsVersion(version)) throw DataFileException(filename, "cannot write border file as version '" + AString::number(version) + "'");
     checkFileWritability(filename);
     
     setFileName(filename);
@@ -1350,7 +1350,8 @@ void BorderFile::writeFile(const AString& filename, const int& version)
         case 3:
         {
             QFile myFile(filename);
-            if (!myFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) throw DataFileException("could not open " + filename + " for writing");
+            if (!myFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) throw DataFileException(filename,
+                                                                                                  "could not open for writing");
             QXmlStreamWriter myXML(&myFile);
             myXML.setAutoFormatting(true);
             writeVersion3(myXML);
@@ -1558,10 +1559,13 @@ void BorderFile::readXML(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                if (xml.name() != "BorderFile") throw DataFileException("unexpected root element: " + xml.name().toString());
-                if (haveRoot) throw DataFileException("multiple BorderFile elements in one file");
+                if (xml.name() != "BorderFile") throw DataFileException(getFileName(),
+                                                                        "unexpected root element: " + xml.name().toString());
+                if (haveRoot) throw DataFileException(getFileName(),
+                                                      "multiple BorderFile elements in one file");
                 QXmlStreamAttributes myAttrs = xml.attributes();
-                if (!myAttrs.hasAttribute("Version")) throw DataFileException("missing required attribute Version of element BorderFile");
+                if (!myAttrs.hasAttribute("Version")) throw DataFileException(getFileName(),
+                                                                              "missing required attribute Version of element BorderFile");
                 QStringRef versionStr = myAttrs.value("Version");
                 if (versionStr == "1" || versionStr == "1.0")
                 {
@@ -1569,7 +1573,8 @@ void BorderFile::readXML(QXmlStreamReader& xml)
                 } else if (versionStr == "3") {
                     parseBorderFile3(xml);
                 } else {
-                    throw DataFileException("unrecognized border file version: " + versionStr.toString());
+                    throw DataFileException(getFileName(),
+                                            "unrecognized border file version: " + versionStr.toString());
                 }
                 haveRoot = true;
                 break;
@@ -1579,8 +1584,10 @@ void BorderFile::readXML(QXmlStreamReader& xml)
         }
         xml.readNext();
     }
-    if (xml.hasError()) throw DataFileException("XML parsing error in root of border file: " + xml.errorString());
-    if (!haveRoot) throw DataFileException("BorderFile root element not found");
+    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                "XML parsing error in root of border file: " + xml.errorString());
+    if (!haveRoot) throw DataFileException(getFileName(),
+                                           "BorderFile root element not found");
     clearModified();
 }
 
@@ -1599,36 +1606,50 @@ void BorderFile::parseBorderFile1(QXmlStreamReader& xml)
                 if (name == "MetaData")
                 {
                     m_metadata->readBorderFileXML1(xml);
-                    if (xml.hasError()) throw DataFileException("XML parsing error in MetaData: " + xml.errorString());
+                    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                                "XML parsing error in MetaData: " + xml.errorString());
                 } else if (name == "BorderClassColorTable") {
-                    if (haveSingleTable) throw DataFileException("file has both single-table and split-table coloring information");
-                    if (haveClassTable) throw DataFileException("file has multiple BorderClassColorTable elements");
+                    if (haveSingleTable) throw DataFileException(getFileName(),
+                                                                 "file has both single-table and split-table coloring information");
+                    if (haveClassTable) throw DataFileException(getFileName(),
+                                                                "file has multiple BorderClassColorTable elements");
                     if (!xml.readNextStartElement())
                     {
-                        if (xml.hasError()) throw DataFileException("XML parsing error in BorderClassColorTable: " + xml.errorString());
-                        throw DataFileException("empty BorderClassColorTable found");
+                        if (xml.hasError()) throw DataFileException(getFileName(),
+                                                                    "XML parsing error in BorderClassColorTable: " + xml.errorString());
+                        throw DataFileException(getFileName(),
+                                                "empty BorderClassColorTable found");
                     }
                     m_classColorTable->readFromQXmlStreamReader(xml);
                     xml.readNextStartElement();//find the end element of BorderClassColorTable
-                    if (xml.hasError()) throw DataFileException("XML parsing error in BorderClassColorTable: " + xml.errorString());
+                    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                                "XML parsing error in BorderClassColorTable: " + xml.errorString());
                     haveClassTable = true;
                 } else if (name == "BorderNameColorTable") {
-                    if (haveSingleTable) throw DataFileException("file has both single-table and split-table coloring information");
-                    if (haveNameTable) throw DataFileException("file has multiple BorderNameColorTable elements");
+                    if (haveSingleTable) throw DataFileException(getFileName(),
+                                                                 "file has both single-table and split-table coloring information");
+                    if (haveNameTable) throw DataFileException(getFileName(),
+                                                               "file has multiple BorderNameColorTable elements");
                     if (!xml.readNextStartElement())
                     {
-                        if (xml.hasError()) throw DataFileException("XML parsing error in BorderNameColorTable: " + xml.errorString());
-                        throw DataFileException("empty BorderNameColorTable found");
+                        if (xml.hasError()) throw DataFileException(getFileName(),
+                                                                    "XML parsing error in BorderNameColorTable: " + xml.errorString());
+                        throw DataFileException(getFileName(),
+                                                "empty BorderNameColorTable found");
                     }
                     m_nameColorTable->readFromQXmlStreamReader(xml);
                     xml.readNextStartElement();//find the end element of BorderNameColorTable
-                    if (xml.hasError()) throw DataFileException("XML parsing error in BorderNameColorTable: " + xml.errorString());
+                    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                                "XML parsing error in BorderNameColorTable: " + xml.errorString());
                     haveNameTable = true;
                 } else if (name == "LabelTable") {
-                    if (haveNameTable || haveClassTable) throw DataFileException("file has both single-table and split-table coloring information");
-                    if (haveSingleTable) throw DataFileException("file has multiple LabelTable elements");
+                    if (haveNameTable || haveClassTable) throw DataFileException(getFileName(),
+                                                                                 "file has both single-table and split-table coloring information");
+                    if (haveSingleTable) throw DataFileException(getFileName(),
+                                                                 "file has multiple LabelTable elements");
                     singleTable.readFromQXmlStreamReader(xml);
-                    if (xml.hasError()) throw DataFileException("XML parsing error in LabelTable: " + xml.errorString());
+                    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                                "XML parsing error in LabelTable: " + xml.errorString());
                     createNameAndClassColorTables(&singleTable);
                     haveSingleTable = true;
                 } else if (name == "Border") {
@@ -1636,7 +1657,8 @@ void BorderFile::parseBorderFile1(QXmlStreamReader& xml)
                     toParse->readXML1(xml);
                     addBorder(toParse.releasePointer());
                 } else {
-                    throw DataFileException("unexpected element in BorderFile: " + name.toString());
+                    throw DataFileException(getFileName(),
+                                            "unexpected element in BorderFile: " + name.toString());
                 }
                 break;
             }
@@ -1644,11 +1666,13 @@ void BorderFile::parseBorderFile1(QXmlStreamReader& xml)
                 break;
         }
     }
-    if (xml.hasError()) throw DataFileException("XML parsing error in BorderFile: " + xml.errorString());
+    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                "XML parsing error in BorderFile: " + xml.errorString());
     CaretAssert(xml.isEndElement() && xml.name() == "BorderFile");
     if (!haveSingleTable && (!haveClassTable || !haveNameTable))
     {
-        throw DataFileException("border file is missing a required color table");
+        throw DataFileException(getFileName(),
+                                "border file is missing a required color table");
     }
 }
 
@@ -1657,14 +1681,19 @@ void BorderFile::parseBorderFile3(QXmlStreamReader& xml)
     CaretAssert(xml.isStartElement() && xml.name() == "BorderFile");
     QXmlStreamAttributes myAttrs = xml.attributes();
     bool ok = false;
-    if (!myAttrs.hasAttribute("Structure")) throw DataFileException("BorderFile is missing required attribute Structure");
+    if (!myAttrs.hasAttribute("Structure")) throw DataFileException(getFileName(),
+                                                                    "BorderFile is missing required attribute Structure");
     StructureEnum::Enum myStructure = StructureEnum::fromName(myAttrs.value("Structure").toString(), &ok);
-    if (!ok) throw DataFileException("unrecognized structure: " + myAttrs.value("Structure").toString());
+    if (!ok) throw DataFileException(getFileName(),
+                                     "unrecognized structure: " + myAttrs.value("Structure").toString());
     setStructure(myStructure);
-    if (!myAttrs.hasAttribute("SurfaceNumberOfVertices")) throw DataFileException("BorderFile is missing required attribute SurfaceNumberOfVertices");
+    if (!myAttrs.hasAttribute("SurfaceNumberOfVertices")) throw DataFileException(getFileName(),
+                                                                                  "BorderFile is missing required attribute SurfaceNumberOfVertices");
     int myNumNodes = myAttrs.value("SurfaceNumberOfVertices").toString().toInt(&ok);
-    if (!ok) throw DataFileException("non-integer number of vertices: " + myAttrs.value("SurfaceNumberOfVertices").toString());
-    if (myNumNodes < 1) throw DataFileException("number of vertices too small: ");
+    if (!ok) throw DataFileException(getFileName(),
+                                     "non-integer number of vertices: " + myAttrs.value("SurfaceNumberOfVertices").toString());
+    if (myNumNodes < 1) throw DataFileException(getFileName(),
+                                                "number of vertices too small: ");
     setNumberOfNodes(myNumNodes);
     bool haveFileMD = false, haveBorderMDNames = false;
     set<AString> classNames;
@@ -1675,29 +1704,36 @@ void BorderFile::parseBorderFile3(QXmlStreamReader& xml)
             QStringRef name = xml.name();
             if (name == "MetaData")
             {
-                if (haveFileMD) throw DataFileException("file has multiple MetaData elements");
+                if (haveFileMD) throw DataFileException(getFileName(),
+                                                        "file has multiple MetaData elements");
                 m_metadata->readBorderFileXML3(xml);
-                if (xml.hasError()) throw DataFileException("XML parsing error in MetaData: " + xml.errorString());
+                if (xml.hasError()) throw DataFileException(getFileName(),
+                                                            "XML parsing error in MetaData: " + xml.errorString());
                 haveFileMD = true;
             } else if (name == "BorderMetaDataNames") {
-                if (haveBorderMDNames) throw DataFileException("file has multiple BorderMetaDataNames elements");
+                if (haveBorderMDNames) throw DataFileException(getFileName(),
+                                                               "file has multiple BorderMetaDataNames elements");
                 parseBorderMDNames3(xml);
                 haveBorderMDNames = true;
             } else if (name == "Class") {
                 AString className = parseClass3(xml);
-                if (!classNames.insert(className).second) throw DataFileException("multiple classes using same name: " + className);
+                if (!classNames.insert(className).second) throw DataFileException(getFileName(),
+                                                                                  "multiple classes using same name: " + className);
             } else {
-                throw DataFileException("unexpected element in BorderFile: " + name.toString());
+                throw DataFileException(getFileName(),
+                                        "unexpected element in BorderFile: " + name.toString());
             }
         }
     }
-    if (xml.hasError()) throw DataFileException("XML parsing error in BorderFile: " + xml.errorString());
+    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                "XML parsing error in BorderFile: " + xml.errorString());
     CaretAssert(xml.isEndElement() && xml.name() == "BorderFile");
     for (map<pair<AString, AString>, vector<AString> >::const_iterator iter = m_borderMDValues.begin(); iter != m_borderMDValues.end(); ++iter)
     {//someone could put the BorderMetaDataNames after a class, so check at the very end
         if (iter->second.size() != m_borderMDKeys.size())
         {
-            throw DataFileException("wrong number of border metadata values for border " + iter->first.first + ", class " + iter->first.second);
+            throw DataFileException(getFileName(),
+                                    "wrong number of border metadata values for border " + iter->first.first + ", class " + iter->first.second);
         }
     }
 }
@@ -1713,16 +1749,20 @@ void BorderFile::parseBorderMDNames3(QXmlStreamReader& xml)
             if (name == "Name")
             {
                 QString mdName = xml.readElementText();//errors on unexpected element
-                if (xml.hasError()) throw DataFileException("XML parsing error in Name: " + xml.errorString());
+                if (xml.hasError()) throw DataFileException(getFileName(),
+                                                            "XML parsing error in Name: " + xml.errorString());
                 int checkIndex = getIndexForBorderMetadataKey(mdName);
-                if (checkIndex != -1) throw DataFileException("duplicate border metadata name: " + mdName);
+                if (checkIndex != -1) throw DataFileException(getFileName(),
+                                                              "duplicate border metadata name: " + mdName);
                 m_borderMDKeys.push_back(mdName);//NOTE: do NOT use addBorderMetadataKey, as if there are borders with metadata before this, it will mess things up
             } else {
-                throw DataFileException("unexpected element in BorderMetaDataNames: " + name.toString());
+                throw DataFileException(getFileName(),
+                                        "unexpected element in BorderMetaDataNames: " + name.toString());
             }
         }
     }
-    if (xml.hasError()) throw DataFileException("XML parsing error in BorderMetaDataNames: " + xml.errorString());
+    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                "XML parsing error in BorderMetaDataNames: " + xml.errorString());
     CaretAssert(xml.isEndElement() && xml.name() == "BorderMetaDataNames");
 }
 
@@ -1730,10 +1770,12 @@ AString BorderFile::parseClass3(QXmlStreamReader& xml)
 {
     CaretAssert(xml.isStartElement() && xml.name() == "Class");
     QXmlStreamAttributes myAttrs = xml.attributes();
-    if (!myAttrs.hasAttribute("Name")) throw DataFileException("Class is missing required attribute Name");
+    if (!myAttrs.hasAttribute("Name")) throw DataFileException(getFileName(),
+                                                               "Class is missing required attribute Name");
     AString className = myAttrs.value("Name").toString();
     float colorRGB[3];
-    colorAttribHelper3(xml, colorRGB);
+    colorAttribHelper3(getFileName(),
+                       xml, colorRGB);
     m_classColorTable->addLabel(className, colorRGB[0], colorRGB[1], colorRGB[2]);
     set<AString> borderNames;
     for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
@@ -1744,15 +1786,19 @@ AString BorderFile::parseClass3(QXmlStreamReader& xml)
             if (name == "Border")
             {
                 AString borderName = parseBorder3(xml, className);
-                if (!borderNames.insert(borderName).second) throw DataFileException("multiple borders in one class using same name: " + borderName);
+                if (!borderNames.insert(borderName).second) throw DataFileException(getFileName(),
+                                                                                    "multiple borders in one class using same name: " + borderName);
             } else {
-                throw DataFileException("unexpected element in Class: " + name.toString());
+                throw DataFileException(getFileName(),
+                                        "unexpected element in Class: " + name.toString());
             }
         }
     }
-    if (xml.hasError()) throw DataFileException("XML parsing error in Class: " + xml.errorString());
+    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                "XML parsing error in Class: " + xml.errorString());
     CaretAssert(xml.isEndElement() && xml.name() == "Class");
-    if (borderNames.size() == 0) throw DataFileException("Class " + className + " has no Border elements");
+    if (borderNames.size() == 0) throw DataFileException(getFileName(),
+                                                         "Class " + className + " has no Border elements");
     return className;
 }
 
@@ -1762,10 +1808,12 @@ AString BorderFile::parseBorder3(QXmlStreamReader& xml, const AString& className
     bool haveMDValues = false;
     int numBorderParts = 0;
     QXmlStreamAttributes myAttrs = xml.attributes();
-    if (!myAttrs.hasAttribute("Name")) throw DataFileException("Class is missing required attribute Name");
+    if (!myAttrs.hasAttribute("Name")) throw DataFileException(getFileName(),
+                                                               "Class is missing required attribute Name");
     AString borderName = myAttrs.value("Name").toString();
     float colorRGB[3];
-    colorAttribHelper3(xml, colorRGB);
+    colorAttribHelper3(getFileName(),
+                       xml, colorRGB);
     m_nameColorTable->addLabel(borderName, colorRGB[0], colorRGB[1], colorRGB[2]);
     for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
     {
@@ -1779,40 +1827,54 @@ AString BorderFile::parseBorder3(QXmlStreamReader& xml, const AString& className
                 thisBorder->setStructure(getStructure());
                 thisBorder->setClassName(className);
                 thisBorder->setName(borderName);
-                if (!thisBorder->verifyForSurfaceNumberOfNodes(getNumberOfNodes())) throw DataFileException("BorderPart uses node numbers larger than are valid for its surface");
+                if (!thisBorder->verifyForSurfaceNumberOfNodes(getNumberOfNodes())) throw DataFileException(getFileName(),
+                                                                                                            "BorderPart uses node numbers larger than are valid for its surface");
                 addBorder(thisBorder.releasePointer());
                 ++numBorderParts;
             } else if (name == "BorderMetaDataValues") {
-                if (haveMDValues) throw DataFileException("Border has multiple BorderMetaDataValues elements");
-                m_borderMDValues[make_pair(borderName, className)] = parseBorderMDValues3(xml);
+                if (haveMDValues) throw DataFileException(getFileName(),
+                                                          "Border has multiple BorderMetaDataValues elements");
+                m_borderMDValues[make_pair(borderName, className)] = parseBorderMDValues3(getFileName(),
+                                                                                          xml);
                 haveMDValues = true;
             } else {
-                throw DataFileException("unexpected element in Border: " + name.toString());
+                throw DataFileException(getFileName(),
+                                        "unexpected element in Border: " + name.toString());
             }
         }
     }
-    if (xml.hasError()) throw DataFileException("XML parsing error in Border: " + xml.errorString());
+    if (xml.hasError()) throw DataFileException(getFileName(),
+                                                "XML parsing error in Border: " + xml.errorString());
     CaretAssert(xml.isEndElement() && xml.name() == "Border");
-    if (numBorderParts == 0) throw DataFileException("Border has no BorderPart elements");
+    if (numBorderParts == 0) throw DataFileException(getFileName(),
+                                                     "Border has no BorderPart elements");
     return borderName;
 }
 
-void BorderFile::colorAttribHelper3(QXmlStreamReader& xml, float rgbOut[3])
+void BorderFile::colorAttribHelper3(const AString& filename,
+                                    QXmlStreamReader& xml, float rgbOut[3])
 {
     QXmlStreamAttributes myAttrs = xml.attributes();
     bool ok = false;
-    if (!myAttrs.hasAttribute("Red")) throw DataFileException(xml.name().toString() + " element missing required attribute Red");
+    if (!myAttrs.hasAttribute("Red")) throw DataFileException(filename,
+                                                              xml.name().toString() + " element missing required attribute Red");
     rgbOut[0] = myAttrs.value("Red").toString().toFloat(&ok);
-    if (!ok) throw DataFileException("non-numeric Red attribute of " + xml.name().toString() + ": " + myAttrs.value("Red").toString());
-    if (!myAttrs.hasAttribute("Green")) throw DataFileException(xml.name().toString() + " element missing required attribute Green");
+    if (!ok) throw DataFileException(filename,
+                                     "non-numeric Red attribute of " + xml.name().toString() + ": " + myAttrs.value("Red").toString());
+    if (!myAttrs.hasAttribute("Green")) throw DataFileException(filename,
+                                                                xml.name().toString() + " element missing required attribute Green");
     rgbOut[1] = myAttrs.value("Green").toString().toFloat(&ok);
-    if (!ok) throw DataFileException("non-numeric Green attribute of " + xml.name().toString() + ": " + myAttrs.value("Green").toString());
-    if (!myAttrs.hasAttribute("Blue")) throw DataFileException(xml.name().toString() + " element missing required attribute Blue");
+    if (!ok) throw DataFileException(filename,
+                                     "non-numeric Green attribute of " + xml.name().toString() + ": " + myAttrs.value("Green").toString());
+    if (!myAttrs.hasAttribute("Blue")) throw DataFileException(filename,
+                                                               xml.name().toString() + " element missing required attribute Blue");
     rgbOut[2] = myAttrs.value("Blue").toString().toFloat(&ok);
-    if (!ok) throw DataFileException("non-numeric Blue attribute of " + xml.name().toString() + ": " + myAttrs.value("Blue").toString());
+    if (!ok) throw DataFileException(filename,
+                                     "non-numeric Blue attribute of " + xml.name().toString() + ": " + myAttrs.value("Blue").toString());
 }
 
-vector<AString> BorderFile::parseBorderMDValues3(QXmlStreamReader& xml)
+vector<AString> BorderFile::parseBorderMDValues3(const AString& filename,
+                                                 QXmlStreamReader& xml)
 {
     CaretAssert(xml.isStartElement() && xml.name() == "BorderMetaDataValues");
     vector<AString> ret;
@@ -1824,13 +1886,16 @@ vector<AString> BorderFile::parseBorderMDValues3(QXmlStreamReader& xml)
             if (name == "Value")
             {
                 ret.push_back(xml.readElementText());//errors on unexpected element
-                if (xml.hasError()) throw DataFileException("XML parsing error in BorderMetaDataValues: " + xml.errorString());
+                if (xml.hasError()) throw DataFileException(filename,
+                                                            "XML parsing error in BorderMetaDataValues: " + xml.errorString());
             } else {
-                throw DataFileException("unexpected element in BorderMetaDataValues: " + name.toString());
+                throw DataFileException(filename,
+                                        "unexpected element in BorderMetaDataValues: " + name.toString());
             }
         }
     }
-    if (xml.hasError()) throw DataFileException("XML parsing error in BorderMetaDataValues: " + xml.errorString());
+    if (xml.hasError()) throw DataFileException(filename,
+                                                "XML parsing error in BorderMetaDataValues: " + xml.errorString());
     CaretAssert(xml.isEndElement() && xml.name() == "BorderMetaDataValues");
     return ret;
 }
@@ -1953,17 +2018,16 @@ BorderFile::exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
     AString errorMessage;
     
     if (getNumberOfBorders() <= 0) {
-        errorMessage.appendWithNewLine("This border file "
-                                       + getFileNameNoPath()
-                                       + " contains zero borders.");
+        errorMessage.appendWithNewLine("This border file contains zero borders.");
     }
     if (outputCaret5FilesPrefix.isEmpty()) {
         errorMessage.appendWithNewLine("Caret5 output file prefix is empty.");
     }
     
     if ( ! errorMessage.isEmpty()) {
-        throw DataFileException(errorMessage);
-    }    
+        throw DataFileException(getFileName(),
+                                errorMessage);
+    }
 
     /*
      * In Caret7, each border contains a Structure attribute and a Caret7
@@ -2214,7 +2278,8 @@ BorderFile::exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
     }
     
     if ( ! errorMessage.isEmpty()) {
-        throw DataFileException(errorMessage);
+        throw DataFileException(getFileName(),
+                                errorMessage);
     }
     
 }

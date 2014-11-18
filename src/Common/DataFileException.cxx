@@ -69,6 +69,7 @@ DataFileException::DataFileException(const AString& s)
  * path of the file, a newline, and the description of the 
  * exception.
  *
+ * @param  dataFileName  Name of the data file that caused exception.
  * @param  s  Description of the exception.
  *
  */
@@ -78,20 +79,24 @@ DataFileException::DataFileException(const AString& dataFileName,
 {
     this->initializeMembersDataFileException();
     
-    FileInformation fileInfo(dataFileName);
-    const AString pathName = fileInfo.getPathName();
-    
     AString msg;
-    msg.appendWithNewLine(fileInfo.getFileName());
-    if ( ! pathName.isEmpty()) {
-        if (pathName != ".") {
-            msg.appendWithNewLine("(" + pathName + ")");
+    if ( ! dataFileName.isEmpty()) {
+        FileInformation fileInfo(dataFileName);
+        const AString pathName = fileInfo.getPathName();
+        
+        msg.appendWithNewLine(fileInfo.getFileName());
+        if ( ! pathName.isEmpty()) {
+            if (pathName != ".") {
+                msg.appendWithNewLine("(" + pathName + ")");
+            }
         }
     }
+
     if ( ! s.isEmpty()) {
         msg.appendWithNewLine(" ");
         msg.appendWithNewLine(s);
     }
+
     this->setExceptionDescription(msg);
 }
 

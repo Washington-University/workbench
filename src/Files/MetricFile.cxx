@@ -127,11 +127,13 @@ MetricFile::validateDataArraysAfterReading()
         } else {
             if (numDims != 2)
             {
-                throw DataFileException("Invalid number of dimensions in metric file '" + getFileName() + "': " + AString::number(numDims));
+                throw DataFileException(getFileName(),
+                                        "Invalid number of dimensions in metric file: " + AString::number(numDims));
             }
             if (numberOfDataArrays != 1)
             {
-                throw DataFileException("Two dimensional data arrays are not allowed in metric files with multiple data arrays");
+                throw DataFileException(getFileName(),
+                                        "Two dimensional data arrays are not allowed in metric files with multiple data arrays");
             }
             std::vector<int64_t> newdims = dims;
             newdims[1] = 1;
@@ -299,16 +301,14 @@ MetricFile::addMaps(const int32_t numberOfNodes,
                        const int32_t numberOfMaps)
 {
     if (numberOfNodes <= 0) {
-        throw DataFileException("When adding maps to "
-                                + this->getFileNameNoPath()
-                                + " the number of nodes must be greater than zero");
+        throw DataFileException(getFileName(),
+                                "When adding maps the number of nodes must be greater than zero");
     }
     
     if (this->getNumberOfNodes() > 0) {
         if (numberOfNodes != this->getNumberOfNodes()) {
-            throw DataFileException("When adding maps to "
-                                    + this->getFileNameNoPath()
-                                    + " the requested number of nodes is "
+            throw DataFileException(getFileName(),
+                                    "When adding maps the requested number of nodes is "
                                     + AString::number(numberOfNodes)
                                     + " but the file contains "
                                     + AString::number(this->getNumberOfNodes())
@@ -317,7 +317,8 @@ MetricFile::addMaps(const int32_t numberOfNodes,
     }
     
     if (numberOfMaps <= 0) {
-        throw DataFileException("When adding maps, the number of maps must be greater than zero.");
+        throw DataFileException(getFileName(),
+                                "When adding maps, the number of maps must be greater than zero.");
     }
     
     if ((this->getNumberOfNodes() > 0) 

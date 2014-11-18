@@ -299,7 +299,8 @@ VolumeFile::writeFile(const AString& filename)
     
     if (getNumberOfComponents() != 1)
     {
-        throw DataFileException("writing multi-component volumes is not currently supported");//its a hassle, and uncommon, and there is only one 3-component type, restricted to 0-255
+        throw DataFileException(filename,
+                                "writing multi-component volumes is not currently supported");//its a hassle, and uncommon, and there is only one 3-component type, restricted to 0-255
     }
     updateCaretExtension();
     NiftiHeader outHeader;//begin nifti-specific code

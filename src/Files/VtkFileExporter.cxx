@@ -61,7 +61,8 @@ VtkFileExporter::writeSurfaces(const std::vector<SurfaceFile*>& surfaceFiles,
     try {
         const int32_t numberOfSurfaceFiles = static_cast<int32_t>(surfaceFiles.size());
         if (numberOfSurfaceFiles <= 0) {
-            throw DataFileException("No surfaces provided for export to VTK.");
+            throw DataFileException(vtkFileName,
+                                    "No surfaces provided for export to VTK.");
         }
         
         CaretAssert(surfaceFiles.size() == surfaceFilesColoring.size());
@@ -90,10 +91,12 @@ VtkFileExporter::writeSurfaces(const std::vector<SurfaceFile*>& surfaceFiles,
         }
         
         if (totalNodes <= 0) {
-            throw DataFileException("Surfaces contain no nodes");
+            throw DataFileException(vtkFileName,
+                                    "Surfaces contain no nodes");
         }
         if (totalNodes <= 0) {
-            throw DataFileException("Surfaces contain no triangles");
+            throw DataFileException(vtkFileName,
+                                    "Surfaces contain no triangles");
         }
         
         /*

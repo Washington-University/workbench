@@ -708,7 +708,8 @@ CiftiFiberTrajectoryFile::writeFile(const AString& filename)
 {
     switch (m_fiberTrajectoryFileType) {
         case FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE:
-            throw DataFileException("Writing of Cifti Trajectory Files that load by brainordinate is not supported.");
+            throw DataFileException(filename,
+                                    "Writing of Cifti Trajectory Files that load by brainordinate is not supported.");
             break;
         case FIBER_TRAJECTORY_LOAD_SINGLE_ROW:
             writeLoadedDataToFile(filename);
@@ -916,17 +917,18 @@ void
 CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile()
 {
     if (m_sparseFile == NULL) {
-        throw DataFileException("No data has been loaded.");
+        throw DataFileException(getFileName(),
+                                "No data has been loaded.");
     }
     if (m_matchingFiberOrientationFile == NULL) {
-        throw DataFileException("No fiber orientation file is assigned.");
+        throw DataFileException(getFileName(),
+                                "No fiber orientation file is assigned.");
     }
     
     const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
     const CiftiXML* orientXML = m_matchingFiberOrientationFile->getCiftiXML();
     if (*(trajXML.getMap(CiftiXML::ALONG_ROW)) != *(orientXML->getMap(CiftiXML::ALONG_COLUMN))) {
-        QString msg = (getFileNameNoPath()
-                       + " rows="
+        QString msg = ("Row to Columns do not match: rows="
                        + QString::number(trajXML.getDimensionLength(CiftiXML::ALONG_COLUMN))
                        + " cols="
                        + QString::number(trajXML.getDimensionLength(CiftiXML::ALONG_ROW))
@@ -936,8 +938,8 @@ CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile()
                        + QString::number(orientXML->getDimensionLength(CiftiXML::ALONG_COLUMN))
                        + " cols="
                        + QString::number(orientXML->getDimensionLength(CiftiXML::ALONG_ROW)));
-        throw DataFileException("Row to Columns do not match: "
-                                + msg);
+        throw DataFileException(getFileName(),
+                                msg);
     }
 }
 
@@ -1439,7 +1441,8 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex)
                                                       -1);
     }
     else {
-        throw DataFileException("Row "
+        throw DataFileException(getFileName(),
+                                "Row "
                                 + AString::number(rowIndex)
                                 + " is invalid or contains no data.");
     }

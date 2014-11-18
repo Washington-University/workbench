@@ -2777,7 +2777,7 @@ Brain::addReadOrReloadConnectivityDataSeriesFile(const FileModeAddReadReload fil
 PaletteFile*
 Brain::addReadOrReloadPaletteFile(const FileModeAddReadReload fileMode,
                        CaretDataFile* /*caretDataFile*/,
-                       const AString& /*filename*/)
+                       const AString& filename)
 {
     bool addFlag  = false;
     bool readFlag = false;
@@ -2802,7 +2802,8 @@ Brain::addReadOrReloadPaletteFile(const FileModeAddReadReload fileMode,
         
     }
     
-    throw DataFileException("Reading not implemented for: palette");
+    throw DataFileException(filename,
+                            "Reading not implemented for: palette");
     
     return NULL;
 }
@@ -3767,10 +3768,12 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     LabelFile* file = dynamic_cast<LabelFile*>(caretDataFile);
                     CaretAssert(file);
                     if (structure == StructureEnum::INVALID) {
-                        throw DataFileException("Structure in label file is INVALID.");
+                        throw DataFileException(file->getFileName(),
+                                                "Structure in label file is INVALID.");
                     }
                     if (brainStructure == NULL) {
-                        throw DataFileException("Must load surface(s) with matching structure prior to label files");
+                        throw DataFileException(file->getFileName(),
+                                                "Must load surface(s) with matching structure prior to label files");
                     }
                     brainStructure->addLabelFile(file,
                                                  true);
@@ -3781,10 +3784,12 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     MetricFile* file = dynamic_cast<MetricFile*>(caretDataFile);
                     CaretAssert(file);
                     if (structure == StructureEnum::INVALID) {
-                        throw DataFileException("Structure in metric file is INVALID.");
+                        throw DataFileException(file->getFileName(),
+                                                "Structure in metric file is INVALID.");
                     }
                     if (brainStructure == NULL) {
-                        throw DataFileException("Must load surface(s) with matching structure prior to metric files");
+                        throw DataFileException(file->getFileName(),
+                                                "Must load surface(s) with matching structure prior to metric files");
                     }
                     brainStructure->addMetricFile(file,
                                                  true);
@@ -3792,7 +3797,8 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     break;
                 case DataFileTypeEnum::PALETTE:
                 {
-                    throw DataFileException("Adding palette files not supported at this time.");
+                    throw DataFileException(caretDataFile->getFileName(),
+                                            "Adding palette files not supported at this time.");
                 }
                     break;
                 case DataFileTypeEnum::RGBA:
@@ -3800,10 +3806,12 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     RgbaFile* file = dynamic_cast<RgbaFile*>(caretDataFile);
                     CaretAssert(file);
                     if (structure == StructureEnum::INVALID) {
-                        throw DataFileException("Structure in rgba file is INVALID.");
+                        throw DataFileException(file->getFileName(),
+                                                "Structure in rgba file is INVALID.");
                     }
                     if (brainStructure == NULL) {
-                        throw DataFileException("Must load surface(s) with matching structure prior to label files");
+                        throw DataFileException(file->getFileName(),
+                                                "Must load surface(s) with matching structure prior to label files");
                     }
                     brainStructure->addRgbaFile(file,
                                                  true);
@@ -3818,16 +3826,19 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     break;
                 case DataFileTypeEnum::SPECIFICATION:
                     CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
-                    throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
+                    throw DataFileException(caretDataFile->getFileName(),
+                                            "PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
                     break;
                 case DataFileTypeEnum::SURFACE:
                 {
                     Surface* file = dynamic_cast<Surface*>(caretDataFile);
                     if (structure == StructureEnum::INVALID) {
-                        throw DataFileException("Structure in surface file is INVALID.");
+                        throw DataFileException(file->getFileName(),
+                                                "Structure in surface file is INVALID.");
                     }
                     if (file == NULL) {
-                        throw DataFileException("Cannot add SurfaceFile but can add a Surface.");
+                        throw DataFileException(file->getFileName(),
+                                                "Cannot add SurfaceFile but can add a Surface.");
                     }
                     if (brainStructure == NULL) {
                         brainStructure = getBrainStructure(structure,
@@ -3839,7 +3850,8 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                 }
                     break;
                 case DataFileTypeEnum::UNKNOWN:
-                    throw DataFileException("Unable to read files of type");
+                    throw DataFileException(caretDataFile->getFileName(),
+                                            "Unable to read files of type UNKNOWN.  Filename extension may be invalid.");
                     break;
                 case DataFileTypeEnum::VOLUME:
                 {
@@ -4508,7 +4520,8 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 break;
             case DataFileTypeEnum::SPECIFICATION:
                 CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
-                throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
+                throw DataFileException(dataFileName,
+                                        "PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
                 break;
             case DataFileTypeEnum::SURFACE:
                 caretDataFileRead  = addReadOrReloadSurfaceFile(fileMode,
@@ -4518,7 +4531,8 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                                     markDataFileAsModified);
                 break;
             case DataFileTypeEnum::UNKNOWN:
-                throw DataFileException("Unable to read files of type");
+                throw DataFileException(dataFileName,
+                                        "Unable to read files of type UNKNOWN.  May have invalid filename extenson.");
                 break;
             case DataFileTypeEnum::VOLUME:
                 caretDataFileRead  = addReadOrReloadVolumeFile(fileMode,
@@ -5107,8 +5121,8 @@ Brain::updateFileNameForWriting(const AString& filename)
      * If file is on network, leave it unchanged
      */
     if (DataFile::isFileOnNetwork(filename)) {
-        throw DataFileException("Cannot write file on network: " 
-                                + filename);
+        throw DataFileException(filename,
+                                "Cannot write file on network.");
     }
     
     FileInformation fileInfo(filename);

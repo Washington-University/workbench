@@ -94,7 +94,8 @@ CaretDataFileHelper::readAnyCaretDataFile(const AString& filename, const bool& p
     
     if (( ! isValid)
         || (dataFileType == DataFileTypeEnum::UNKNOWN)) {
-        throw DataFileException("Filename extension does not match any supported data file.");
+        throw DataFileException(filename,
+                                "Filename extension does not match any supported data file.");
     }
     
     CaretDataFile* caretDataFile = NULL;

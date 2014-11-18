@@ -213,21 +213,18 @@ DataFile::checkFileReadability(const AString& filename)
     
     FileInformation fileInfo(filename);
     if (fileInfo.exists() == false) {
-        throw DataFileException("File named \""
-                                + filename
-                                + "\" does not exist.");
+        throw DataFileException(getFileName(),
+                                "File does not exist.");
     }
     
     if (fileInfo.isDirectory()) {
-        throw DataFileException("File named \""
-                                + filename
-                                + "\" is a directory, not a file.");
+        throw DataFileException(getFileName(),
+                                "Filename is a directory, not a file.");
     }
     
     if (fileInfo.isReadable() == false) {
-        throw DataFileException("File named \""
-                                + filename
-                                + "\" is not readable due its permissions.");
+        throw DataFileException(getFileName(),
+                                "File is not readable due its permissions.");
     }
 }
 
@@ -254,16 +251,14 @@ DataFile::checkFileWritability(const AString& filename)
     FileInformation fileInfo(filename);
     if (fileInfo.exists()) {
         if (fileInfo.isDirectory()) {
-            throw DataFileException("File named \""
-                                    + filename
-                                    + "\" is a directory, not a file.");
+            throw DataFileException(getFileName(),
+                                    "Filename is a directory, not a file.");
         }
         
         
         if (fileInfo.isWritable() == false) {
-            throw DataFileException("File named \""
-                                    + filename
-                                    + "\" exists is not writable due its permissions.");
+            throw DataFileException(getFileName(),
+                                    "File name exists is not writable due its permissions.");
         }
     }
 }

@@ -660,33 +660,6 @@ ImageFile::insertImage(const QImage& otherImage,
                            *m_image,
                            x,
                            y);
-    /*
-     if (x < 0) {
-     throw DataFileException("X position is less than zero.");
-     }
-     if (y < 0) {
-     throw DataFileException("Y position is less than zero.");
-     }
-     
-     const int otherWidth = otherImage.width();
-     const int otherHeight = otherImage.height();
-     
-     const int myWidth = image->width();
-     const int myHeight = image->height();
-     
-     if ((otherWidth + x) > myWidth) {
-     throw DataFileException("This image is not large enough to insert other image.");
-     }
-     if ((otherHeight + y) > myHeight) {
-     throw DataFileException("This image is not large enough to insert other image.");
-     }
-     
-     for (int i = 0; i < otherWidth; i++) {
-     for (int j = 0; j < otherHeight; j++) {
-     image->setPixel(x + i, y + j, otherImage.pixel(i, j));
-     }
-     }
-     */
     this->setModified();
 }
 
@@ -1076,7 +1049,8 @@ ImageFile::getImageInByteArray(QByteArray& byteArrayOut,
     if (m_image != NULL) {
         QBuffer buffer(&byteArrayOut);
         if ( ! buffer.open(QIODevice::WriteOnly)) {
-            throw DataFileException("PROGRAM ERROR: Unable to open byte array for output of image.");
+            throw DataFileException(getFileName(),
+                                    "PROGRAM ERROR: Unable to open byte array for output of image.");
         }
         
         bool successFlag = false;
@@ -1089,7 +1063,8 @@ ImageFile::getImageInByteArray(QByteArray& byteArrayOut,
         }
         
         if ( ! successFlag) {
-            throw DataFileException("Failed to write image to byte array.  "
+            throw DataFileException(getFileName(),
+                                    "Failed to write image to byte array.  "
                                     + buffer.errorString());
         }
     }
@@ -1117,7 +1092,8 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
     }
     
     if ( ! successFlag) {
-        throw DataFileException("Failed to create image from byte array.");
+        throw DataFileException(getFileName(),
+                                "Failed to create image from byte array.");
     }
 }
 

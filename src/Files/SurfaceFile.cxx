@@ -163,7 +163,8 @@ SurfaceFile::validateDataArraysAfterReading()
     
     int numDataArrays = this->giftiFile->getNumberOfDataArrays();
     if (numDataArrays != 2) {
-        throw DataFileException("Number of data arrays MUST be two in a SurfaceFile.");
+        throw DataFileException(getFileName(),
+                                "Number of data arrays MUST be two in a SurfaceFile.");
     }
     
     /*

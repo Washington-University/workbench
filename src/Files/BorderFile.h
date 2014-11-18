@@ -208,9 +208,11 @@ namespace caret {
         
         AString parseBorder3(QXmlStreamReader& xml, const AString& className);
         
-        static void colorAttribHelper3(QXmlStreamReader& xml, float rgbOut[3]);
+        static void colorAttribHelper3(const AString& filename,
+                                       QXmlStreamReader& xml, float rgbOut[3]);
         
-        static std::vector<AString> parseBorderMDValues3(QXmlStreamReader& xml);
+        static std::vector<AString> parseBorderMDValues3(const AString& filename,
+                                                         QXmlStreamReader& xml);
         
         GiftiMetaData* m_metadata;
         

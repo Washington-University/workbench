@@ -267,9 +267,8 @@ void
 GiftiTypeFile::addMaps(const int32_t /*numberOfNodes*/,
                        const int32_t /*numberOfMaps*/)
 {
-    throw DataFileException("This file, "
-                            + this->getFileNameNoPath()
-                            + " does not support adding additional maps");
+    throw DataFileException(getFileName(),
+                            "This file does not support adding additional maps");
 }
 
 /**

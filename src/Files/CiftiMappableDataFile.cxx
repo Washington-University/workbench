@@ -3099,7 +3099,8 @@ CiftiMappableDataFile::getBrainordinateFromRowIndex(const int64_t rowIndex,
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
     if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) {
-        throw DataFileException("File does not have brainordinate data for rows.");
+        throw DataFileException(getFileName(),
+                                "File does not have brainordinate data for rows.");
         return;
     }
     
@@ -3107,7 +3108,8 @@ CiftiMappableDataFile::getBrainordinateFromRowIndex(const int64_t rowIndex,
     
     if ((rowIndex < 0)
         || (rowIndex >= m_ciftiFile->getNumberOfRows())) {
-        throw DataFileException("Row index "
+        throw DataFileException(getFileName(),
+                                "Row index "
                                 + AString::number(rowIndex)
                                 + " is invalid.  Number of rows is "
                                 + AString::number(m_ciftiFile->getNumberOfRows()));

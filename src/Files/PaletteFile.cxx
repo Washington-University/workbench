@@ -359,12 +359,13 @@ PaletteFile::assignColorsToPalette(Palette& p)
  *    If the file was not successfully read.
  */
 void 
-PaletteFile::readFile(const AString& /*filename*/)
+PaletteFile::readFile(const AString& filename)
 {
     clear();
 //    checkFileReadability(filename);
     
-    throw DataFileException("Reading of PaletteFile not implemented.");
+    throw DataFileException(filename,
+                            "Reading of PaletteFile not implemented.");
 }
 
 /**
@@ -376,11 +377,12 @@ PaletteFile::readFile(const AString& /*filename*/)
  *    If the file was not successfully written.
  */
 void 
-PaletteFile::writeFile(const AString& /*filename*/)
+PaletteFile::writeFile(const AString& filename)
 {
 //    checkFileWritability(filename);
     
-    throw DataFileException("Reading of PaletteFile not implemented.");
+    throw DataFileException(filename,
+                            "Reading of PaletteFile not implemented.");
 }
 
 /**
