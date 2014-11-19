@@ -69,7 +69,7 @@ MapSettingsLabelsWidget::MapSettingsLabelsWidget(QWidget* parent)
     QObject::connect(m_outlineColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(applySelections()));
     
-    m_drawMedialWallFilledCheckBox = new QCheckBox("Draw Medial Wall Filled");
+    m_drawMedialWallFilledCheckBox = new QCheckBox("Draw Surface Medial Wall Filled");
     QObject::connect(m_drawMedialWallFilledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(applySelections()));
     
