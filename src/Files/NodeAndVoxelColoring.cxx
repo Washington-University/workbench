@@ -727,28 +727,6 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
                                                         const int64_t xdim,
                                                         const int64_t ydim)
 {
-    //    switch (labelDrawingType) {
-    //        case LabelDrawingTypeEnum::DRAW_FILLED_LABEL_COLOR:
-    //            break;
-    //        case LabelDrawingTypeEnum::DRAW_FILLED_BLACK_OUTLINE:
-    //            break;
-    //        case LabelDrawingTypeEnum::DRAW_FILLED_WHITE_OUTLINE:
-    //            break;
-    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
-    //            break;
-    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_BLACK:
-    //            break;
-    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_WHITE:
-    //            break;
-    //    }
-    //    bool isOutlineMode = false;
-    //    switch (labelDrawingType) {
-    //        case LabelDrawingTypeEnum::DRAW_FILLED:
-    //            break;
-    //        case LabelDrawingTypeEnum::DRAW_OUTLINE:
-    //            isOutlineMode = true;
-    //            break;
-    //    }
     /*
      * Copy the rgba colors
      */

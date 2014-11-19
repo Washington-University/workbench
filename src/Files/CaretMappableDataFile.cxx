@@ -32,6 +32,7 @@
 #include "FastStatistics.h"
 #include "GiftiLabelTable.h"
 #include "Histogram.h"
+#include "LabelDrawingProperties.h"
 #include "PaletteColorMapping.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -48,7 +49,7 @@ using namespace caret;
 CaretMappableDataFile::CaretMappableDataFile(const DataFileTypeEnum::Enum dataFileType)
 : CaretDataFile(dataFileType)
 {
-    
+    m_labelDrawingProperties.grabNew(new LabelDrawingProperties());
 }
 
 /**
@@ -292,6 +293,10 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     CaretDataFile::saveFileDataToScene(sceneAttributes,
                                                sceneClass);
     
+
+    sceneClass->addClass(m_labelDrawingProperties->saveToScene(sceneAttributes,
+                                                               "m_labelDrawingProperties"));
+    
     if (isMappedWithPalette()) {
         if (sceneAttributes->isModifiedPaletteSettingsSavedToScene()) {
             std::vector<SceneClass*> pcmClassVector;
@@ -359,6 +364,9 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
 {
     CaretDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
+    
+    m_labelDrawingProperties->restoreFromScene(sceneAttributes,
+                                               sceneClass->getClass("m_labelDrawingProperties"));
     
     if (isMappedWithPalette()) {
         const int32_t numMaps = getNumberOfMaps();
@@ -888,5 +896,26 @@ CaretMappableDataFile::helpGetSupportedBrainordinateChartDataTypes(std::vector<C
             break;
     }
 }
+
+/**
+ * @return The label drawing properties for this file.  A valid pointer
+ * will always be returned even if the file does not provide label data.
+ */
+LabelDrawingProperties*
+CaretMappableDataFile::getLabelDrawingProperties()
+{
+    return m_labelDrawingProperties;
+}
+
+/**
+ * @return The label drawing properties for this file.  A valid pointer
+ * will always be returned even if the file does not provide label data.
+ */
+const LabelDrawingProperties*
+CaretMappableDataFile::getLabelDrawingProperties() const
+{
+    return m_labelDrawingProperties;
+}
+
 
 

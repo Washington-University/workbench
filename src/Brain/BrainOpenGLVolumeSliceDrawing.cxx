@@ -43,6 +43,7 @@
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationWithColor.h"
+#include "LabelDrawingProperties.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "ModelVolume.h"
@@ -1453,31 +1454,6 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
     const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-//    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-//                                                                                                browserTabIndex);
-    
-//    switch (labelDrawingType) {
-//        case LabelDrawingTypeEnum::DRAW_FILLED_LABEL_COLOR:
-//            break;
-//        case LabelDrawingTypeEnum::DRAW_FILLED_BLACK_OUTLINE:
-//            break;
-//        case LabelDrawingTypeEnum::DRAW_FILLED_WHITE_OUTLINE:
-//            break;
-//        case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
-//            break;
-//        case LabelDrawingTypeEnum::DRAW_OUTLINE_BLACK:
-//            break;
-//        case LabelDrawingTypeEnum::DRAW_OUTLINE_WHITE:
-//            break;
-//    }
-//    bool isOutlineMode = false;
-//    switch (labelDrawingType) {
-//        case LabelDrawingTypeEnum::DRAW_FILLED:
-//            break;
-//        case LabelDrawingTypeEnum::DRAW_OUTLINE:
-//            isOutlineMode = true;
-//            break;
-//    }
     
     /*
      * Color voxel values
@@ -1718,10 +1694,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
     const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
     const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-                                                                                                browserTabIndex);
-    const CaretColorEnum::Enum outlineColor = displayPropertiesLabels->getOutlineColor(displayGroup,
-                                                                                       browserTabIndex);
     //    switch (labelDrawingType) {
     //        case LabelDrawingTypeEnum::DRAW_FILLED_LABEL_COLOR:
     //            break;
@@ -1924,6 +1896,16 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
                     break;
             }
             
+            LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
+            CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+            const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeFile);
+            if (mapFile != NULL) {
+                if (mapFile->isMappedWithLabelTable()) {
+                    const LabelDrawingProperties* props = mapFile->getLabelDrawingProperties();
+                    labelDrawingType = props->getDrawingType();
+                    outlineColor     = props->getOutlineColor();
+                }
+            }
             NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
                                                                     labelDrawingType,
                                                                     outlineColor,
@@ -2062,10 +2044,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
     const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
     const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-                                                                                                browserTabIndex);
-    const CaretColorEnum::Enum outlineColor = displayPropertiesLabels->getOutlineColor(displayGroup,
-                                                                                       browserTabIndex);
     /*
      * Enable alpha blending so voxels that are not drawn from higher layers
      * allow voxels from lower layers to be seen.
@@ -2237,6 +2215,17 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
                     xdim = numVoxelsJ;
                     ydim = numVoxelsK;
                     break;
+            }
+            
+            LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
+            CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+            const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeFile);
+            if (mapFile != NULL) {
+                if (mapFile->isMappedWithLabelTable()) {
+                    const LabelDrawingProperties* props = mapFile->getLabelDrawingProperties();
+                    labelDrawingType = props->getDrawingType();
+                    outlineColor     = props->getOutlineColor();
+                }
             }
             NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
                                                                     labelDrawingType,

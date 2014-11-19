@@ -84,20 +84,11 @@ LabelSelectionViewController::LabelSelectionViewController(const int32_t browser
     groupLayout->addWidget(m_labelsDisplayGroupComboBox->getWidget());
     groupLayout->addStretch(); 
     
-    QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
-    
-    m_tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
-                                               this);
-    m_tabWidget->addTab(attributesWidget, 
-                      "Attributes");
-    m_tabWidget->addTab(selectionWidget, 
-                      "Selection");
-    m_tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(groupLayout);
-    layout->addWidget(m_tabWidget->getWidget(), 0, Qt::AlignLeft);
+    layout->addWidget(selectionWidget, 0, Qt::AlignLeft);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -122,76 +113,6 @@ LabelSelectionViewController::createSelectionWidget()
     m_labelClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
     
     return m_labelClassNameHierarchyViewController;
-}
-
-/**
- * @return The attributes widget.
- */
-QWidget* 
-LabelSelectionViewController::createAttributesWidget()
-{
-    QLabel* drawAsLabel = new QLabel("Draw as: ");
-    m_labelDrawingTypeComboBox = new EnumComboBoxTemplate(this);
-    QObject::connect(m_labelDrawingTypeComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(processAttributesChanges()));
-    m_labelDrawingTypeComboBox->setup<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>();
-    
-    QLabel* outlineLabel = new QLabel("Outline Color");
-    m_labelOutlineColorComboBox = new EnumComboBoxTemplate(this);
-    m_labelOutlineColorComboBox->setup<CaretColorEnum, CaretColorEnum::Enum>();
-    QObject::connect(m_labelOutlineColorComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(processAttributesChanges()));
-    
-    QWidget* gridWidget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(gridWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 8, 2);
-    int row = gridLayout->rowCount();
-    gridLayout->addWidget(drawAsLabel, row, 0);
-    gridLayout->addWidget(m_labelDrawingTypeComboBox->getWidget(), row, 1);
-    row++;
-    gridLayout->addWidget(outlineLabel, row, 0);
-    gridLayout->addWidget(m_labelOutlineColorComboBox->getWidget(), row, 1);
-    row++;
-    gridWidget->setSizePolicy(QSizePolicy::Fixed,
-                              QSizePolicy::Fixed);
-    
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(gridWidget);
-    layout->addStretch();
-        
-    return widget;
-}
-
-/**
- * Called when a widget on the attributes page has 
- * its value changed.
- */
-void 
-LabelSelectionViewController::processAttributesChanges()
-{
-    DisplayPropertiesLabels* dpl = GuiManager::get()->getBrain()->getDisplayPropertiesLabels();
-    const LabelDrawingTypeEnum::Enum labelDrawingType = m_labelDrawingTypeComboBox->getSelectedItem<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>();
-    const CaretColorEnum::Enum outlineColor = m_labelOutlineColorComboBox->getSelectedItem<CaretColorEnum, CaretColorEnum::Enum>();
-
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-    if (browserTabContent == NULL) {
-        return;
-    }
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    const DisplayGroupEnum::Enum displayGroup = dpl->getDisplayGroupForTab(browserTabIndex);
-
-    dpl->setDrawingType(displayGroup,
-                        browserTabIndex,
-                        labelDrawingType);
-    dpl->setOutlineColor(displayGroup,
-                         browserTabIndex,
-                         outlineColor);
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    
-    processLabelSelectionChanges();
 }
 
 /**
@@ -247,10 +168,6 @@ LabelSelectionViewController::updateLabelViewController()
     
     m_labelsDisplayGroupComboBox->setSelectedDisplayGroup(dpb->getDisplayGroupForTab(browserTabIndex));
     
-    m_labelDrawingTypeComboBox->setSelectedItem<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>(dpb->getDrawingType(displayGroup,
-                                                                    browserTabIndex));
-    m_labelOutlineColorComboBox->setSelectedItem<CaretColorEnum,CaretColorEnum::Enum>(dpb->getOutlineColor(displayGroup, browserTabIndex));
-
     /*
      * Get all of label files.
      */
@@ -381,14 +298,12 @@ LabelSelectionViewController::receiveEvent(Event* event)
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-LabelSelectionViewController::saveToScene(const SceneAttributes* sceneAttributes,
+LabelSelectionViewController::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                            const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "LabelSelectionViewController",
                                             1);
-    sceneClass->addClass(m_tabWidget->saveToScene(sceneAttributes,
-                                                  "m_tabWidget"));
     
     return sceneClass;
 }
@@ -406,15 +321,12 @@ LabelSelectionViewController::saveToScene(const SceneAttributes* sceneAttributes
  *     saved and should be restored.
  */
 void
-LabelSelectionViewController::restoreFromScene(const SceneAttributes* sceneAttributes,
+LabelSelectionViewController::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
                                                 const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
         return;
     }
-    
-    m_tabWidget->restoreFromScene(sceneAttributes,
-                                  sceneClass->getClass("m_tabWidget"));
 }
 
 

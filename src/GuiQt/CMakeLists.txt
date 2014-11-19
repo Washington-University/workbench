@@ -82,6 +82,7 @@ InformationDisplayPropertiesDialog.h
 LabelSelectionViewController.h
 MacApplication.h
 MapSettingsFiberTrajectoryWidget.h
+MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MapSettingsParcelsWidget.h
@@ -224,6 +225,7 @@ InformationDisplayPropertiesDialog.h
 LabelSelectionViewController.h
 MacApplication.h
 MapSettingsFiberTrajectoryWidget.h
+MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MapSettingsParcelsWidget.h
@@ -366,6 +368,7 @@ InformationDisplayPropertiesDialog.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx
 MapSettingsFiberTrajectoryWidget.cxx
+MapSettingsLabelsWidget.cxx
 MapSettingsLayerWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
 MapSettingsParcelsWidget.cxx

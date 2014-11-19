@@ -167,6 +167,8 @@ namespace caret {
                                     const DisplayGroupEnum::Enum displayGroup,
                                     const int32_t browserTabIndex,
                                     const std::vector<float>& labelIndices,
+                                    const float medialWallLabelKey,
+                                    const bool drawMedialWallFilledFlag,
                                     float* rgbv);
     };
     

@@ -42,6 +42,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabelTableEditor.h"
 #include "MapSettingsFiberTrajectoryWidget.h"
+#include "MapSettingsLabelsWidget.h"
 #include "MapSettingsLayerWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
 #include "MapSettingsParcelsWidget.h"
@@ -94,7 +95,7 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
     
     QWidget* windowOptionsWidget = this->createWindowOptionsSection();
     
-    m_labelsWidget = createLabelsSection();
+    m_labelsWidget = new MapSettingsLabelsWidget();
     
     m_tabWidget = new QTabWidget();
     m_labelsWidgetTabIndex = m_tabWidget->addTab(m_labelsWidget,
@@ -266,6 +267,7 @@ OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
                      * Update label editor
                      */
                     isLabelsValid = true;
+                    m_labelsWidget->updateContent(overlay);
                 }
             }
             

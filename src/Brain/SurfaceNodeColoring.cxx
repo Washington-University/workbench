@@ -46,6 +46,7 @@
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "LabelFile.h"
+#include "LabelDrawingProperties.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -524,7 +525,7 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
 bool 
 SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
                                          const int32_t browserTabIndex,
-                                         const BrainStructure* brainStructure,
+                                         const BrainStructure* /*brainStructure*/,
                                          const Surface* surface,
                                          const LabelFile* labelFile,
                                          const int32_t displayColumn,
@@ -557,19 +558,11 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
 //        }
 //    }
     
-    const DisplayPropertiesLabels* dpl = brainStructure->getBrain()->getDisplayPropertiesLabels();
+    const LabelDrawingProperties* props = labelFile->getLabelDrawingProperties();
+    LabelDrawingTypeEnum::Enum labelDrawingType = props->getDrawingType();
+    CaretColorEnum::Enum outlineColor = props->getOutlineColor();
     
-    DisplayGroupEnum::Enum displayGroup = dpl->getDisplayGroupForTab(browserTabIndex);
-    LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
-    CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
-    if (displayPropertiesLabels != NULL) {
-        displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-        labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-                                           browserTabIndex);
-        outlineColor = displayPropertiesLabels->getOutlineColor(displayGroup,
-                                                                browserTabIndex);
-    }
-    
+    const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
     
     const GroupAndNameHierarchyModel* classNameModel = labelFile->getGroupAndNameHierarchyModel();
     if (classNameModel->isSelected(displayGroup, browserTabIndex) == false) {
@@ -597,6 +590,18 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
     for (int32_t i = 0; i < numberOfNodes; i++) {
         labelKeys.push_back(labelFile->getLabelKey(i, displayColumn));
     }
+    
+    bool drawMedialWallFilledFlag = props->isDrawMedialWallFilled();
+    float medialWallLabelKey = -1;
+    if (drawMedialWallFilledFlag) {
+        const GiftiLabel* medialWallLabel = labelTable->getLabel("MEDIAL.WALL");
+        if (medialWallLabel != NULL) {
+            medialWallLabelKey = medialWallLabel->getKey();
+        }
+        else {
+            drawMedialWallFilledFlag = false;
+        }
+    }
     assignLabelTableColors(labelTable,
                            labelDrawingType,
                            outlineColor,
@@ -604,6 +609,8 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
                            displayGroup,
                            browserTabIndex,
                            labelKeys,
+                           medialWallLabelKey,
+                           drawMedialWallFilledFlag,
                            rgbv);
     
     
@@ -716,6 +723,10 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
  *    Index of browser tab.
  * @param labelIndices
  *    Indices of labels for each node.
+ * @param medialWallLabelKey
+ *    Index of the medial wall label key
+ * @param drawMedialWallFilledFlag
+ *    True if medial wall is always filled
  * @param rgbv
  *    RGB coloring. (4 per node).
  *
@@ -728,6 +739,8 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
                                             const DisplayGroupEnum::Enum displayGroup,
                                             const int32_t browserTabIndex,
                                             const std::vector<float>& labelIndices,
+                                            const float medialWallLabelKey,
+                                            const bool drawMedialWallFilledFlag,
                                             float* rgbv)
 {
     const int32_t numberOfIndices = static_cast<int32_t>(labelIndices.size());
@@ -788,33 +801,46 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
             }
         }
         
-        switch (labelDrawingType) {
-            case LabelDrawingTypeEnum::DRAW_FILLED:
-                break;
-            case LabelDrawingTypeEnum::DRAW_FILLED_WITH_OUTLINE_COLOR:
-                if (isLabelBoundaryNode) {
-                    nodeRGBA[0] = outlineRGBA[0];
-                    nodeRGBA[1] = outlineRGBA[1];
-                    nodeRGBA[2] = outlineRGBA[2];
-                    nodeRGBA[3] = outlineRGBA[3];
-                }
-                break;
-            case LabelDrawingTypeEnum::DRAW_OUTLINE_COLOR:
-                if (isLabelBoundaryNode) {
-                    nodeRGBA[0] = outlineRGBA[0];
-                    nodeRGBA[1] = outlineRGBA[1];
-                    nodeRGBA[2] = outlineRGBA[2];
-                    nodeRGBA[3] = outlineRGBA[3];
-                }
-                else {
-                    nodeRGBA[3] = 0.0;
-                }
-                break;
-            case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
-                if ( ! isLabelBoundaryNode) {
-                    nodeRGBA[3] = 0.0;
-                }
-                break;
+        /*
+         * User may request that medial wall is always filled
+         * and never receives outlining
+         */
+        bool doOutlineFlag = true;
+        if (drawMedialWallFilledFlag) {
+            if (labelKey == medialWallLabelKey) {
+                doOutlineFlag = false;
+            }
+        }
+        
+        if (doOutlineFlag) {
+            switch (labelDrawingType) {
+                case LabelDrawingTypeEnum::DRAW_FILLED:
+                    break;
+                case LabelDrawingTypeEnum::DRAW_FILLED_WITH_OUTLINE_COLOR:
+                    if (isLabelBoundaryNode) {
+                        nodeRGBA[0] = outlineRGBA[0];
+                        nodeRGBA[1] = outlineRGBA[1];
+                        nodeRGBA[2] = outlineRGBA[2];
+                        nodeRGBA[3] = outlineRGBA[3];
+                    }
+                    break;
+                case LabelDrawingTypeEnum::DRAW_OUTLINE_COLOR:
+                    if (isLabelBoundaryNode) {
+                        nodeRGBA[0] = outlineRGBA[0];
+                        nodeRGBA[1] = outlineRGBA[1];
+                        nodeRGBA[2] = outlineRGBA[2];
+                        nodeRGBA[3] = outlineRGBA[3];
+                    }
+                    else {
+                        nodeRGBA[3] = 0.0;
+                    }
+                    break;
+                case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
+                    if ( ! isLabelBoundaryNode) {
+                        nodeRGBA[3] = 0.0;
+                    }
+                    break;
+            }
         }
         
         const int32_t i4 = i * 4;
@@ -1114,10 +1140,9 @@ SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels
     }
     
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-                                                               browserTabIndex);
-    const CaretColorEnum::Enum outlineColor = displayPropertiesLabels->getOutlineColor(displayGroup,
-                                                                                       browserTabIndex);
+    const LabelDrawingProperties* props = ciftiLabelFile->getLabelDrawingProperties();
+    LabelDrawingTypeEnum::Enum labelDrawingType = props->getDrawingType();
+    CaretColorEnum::Enum outlineColor = props->getOutlineColor();
     
     /*
      * Invalidate all coloring.
@@ -1162,6 +1187,17 @@ SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels
     GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
     CaretAssert(labelTable);
     
+    bool drawMedialWallFilledFlag = props->isDrawMedialWallFilled();
+    float medialWallLabelKey = -1;
+    if (drawMedialWallFilledFlag) {
+        const GiftiLabel* medialWallLabel = labelTable->getLabel("MEDIAL.WALL");
+        if (medialWallLabel != NULL) {
+            medialWallLabelKey = medialWallLabel->getKey();
+        }
+        else {
+            drawMedialWallFilledFlag = false;
+        }
+    }
     assignLabelTableColors(labelTable,
                            labelDrawingType,
                            outlineColor,
@@ -1169,6 +1205,8 @@ SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels
                            displayGroup,
                            browserTabIndex,
                            dataValues,
+                           medialWallLabelKey,
+                           drawMedialWallFilledFlag,
                            rgbv);
     
 //    for (int32_t iNode = 0; iNode < numberOfNodes; iNode++) {
@@ -1260,10 +1298,9 @@ SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabel
     }
     
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-                                                                                                browserTabIndex);
-    const CaretColorEnum::Enum outlineColor = displayPropertiesLabels->getOutlineColor(displayGroup,
-                                                                                       browserTabIndex);
+    const LabelDrawingProperties* props = ciftiParcelLabelFile->getLabelDrawingProperties();
+    LabelDrawingTypeEnum::Enum labelDrawingType = props->getDrawingType();
+    CaretColorEnum::Enum outlineColor = props->getOutlineColor();
     
     /*
      * Invalidate all coloring.
@@ -1308,6 +1345,18 @@ SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabel
     GiftiLabelTable* labelTable = ciftiParcelLabelFile->getMapLabelTable(mapIndex);
     CaretAssert(labelTable);
     
+    bool drawMedialWallFilledFlag = props->isDrawMedialWallFilled();
+    float medialWallLabelKey = -1;
+    if (drawMedialWallFilledFlag) {
+        const GiftiLabel* medialWallLabel = labelTable->getLabel("MEDIAL.WALL");
+        if (medialWallLabel != NULL) {
+            medialWallLabelKey = medialWallLabel->getKey();
+        }
+        else {
+            drawMedialWallFilledFlag = false;
+        }
+    }
+    
     assignLabelTableColors(labelTable,
                            labelDrawingType,
                            outlineColor,
@@ -1315,6 +1364,8 @@ SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabel
                            displayGroup,
                            browserTabIndex,
                            dataValues,
+                           medialWallLabelKey,
+                           drawMedialWallFilledFlag,
                            rgbv);
     return true;
 }

@@ -24,14 +24,10 @@
 #include <stdint.h>
 #include <set>
 
-#include <QComboBox>
-#include <QDoubleSpinBox>
 #include <QWidget>
 
 #include "DisplayGroupEnum.h"
-#include "EnumComboBoxTemplate.h"
 #include "EventListenerInterface.h"
-#include "LabelDrawingTypeEnum.h"
 #include "SceneableInterface.h"
 
 class QCheckBox;
@@ -40,9 +36,6 @@ namespace caret {
 
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
-    class WuQTabWidget;
-    
-
     
     class LabelSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
         
@@ -69,8 +62,6 @@ namespace caret {
         
         void labelDisplayGroupSelected(const DisplayGroupEnum::Enum);
         
-        void processAttributesChanges();
-        
     private:
         LabelSelectionViewController(const LabelSelectionViewController&);
 
@@ -82,8 +73,6 @@ namespace caret {
         
         QWidget* createSelectionWidget();
         
-        QWidget* createAttributesWidget();
-        
         int32_t m_browserWindowIndex;
         
         GroupAndNameHierarchyViewController* m_labelClassNameHierarchyViewController;
@@ -93,18 +82,6 @@ namespace caret {
         QCheckBox* m_labelsContralateralCheckBox;
         
         DisplayGroupEnumComboBox* m_labelsDisplayGroupComboBox;
-
-        EnumComboBoxTemplate* m_labelDrawingTypeComboBox;
-        
-        EnumComboBoxTemplate* m_labelOutlineColorComboBox;
-        
-        QComboBox* m_drawTypeComboBox;
-        
-        QDoubleSpinBox* m_lineWidthSpinBox;
-        
-        QDoubleSpinBox* m_pointSizeSpinBox;
-        
-        WuQTabWidget* m_tabWidget;
         
         static std::set<LabelSelectionViewController*> allLabelSelectionViewControllers;
     };

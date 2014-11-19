@@ -24,6 +24,7 @@
 
 #include "CaretDataFile.h"
 #include "ChartDataTypeEnum.h"
+#include "CaretPointer.h"
 #include "NiftiEnums.h"
 
 namespace caret {
@@ -33,6 +34,7 @@ namespace caret {
     class GiftiMetaData;
     class GiftiLabelTable;
     class Histogram;
+    class LabelDrawingProperties;
     class PaletteColorMapping;
     class PaletteFile;
     
@@ -352,6 +354,10 @@ namespace caret {
         /* documented in cxx file. */
         bool isModified() const;
         
+        LabelDrawingProperties* getLabelDrawingProperties();
+        
+        const LabelDrawingProperties* getLabelDrawingProperties() const;
+        
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);
 
@@ -370,8 +376,11 @@ namespace caret {
     private:
         
         void copyCaretMappableDataFile(const CaretMappableDataFile&);
+        
+        CaretPointer<LabelDrawingProperties> m_labelDrawingProperties;
+
     };
-    
+
 #ifdef __CARET_MAPPABLE_DATA_FILE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __CARET_MAPPABLE_DATA_FILE_DECLARE__

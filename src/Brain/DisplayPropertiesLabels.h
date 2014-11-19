@@ -23,10 +23,8 @@
 
 
 #include "BrainConstants.h"
-#include "CaretColorEnum.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
-#include "LabelDrawingTypeEnum.h"
 
 namespace caret {
 
@@ -55,20 +53,6 @@ namespace caret {
         void setDisplayGroupForTab(const int32_t browserTabIndex,
                                    const DisplayGroupEnum::Enum  displayGroup);
         
-        LabelDrawingTypeEnum::Enum getDrawingType(const DisplayGroupEnum::Enum displayGroup,
-                                                 const int32_t tabIndex) const;
-        
-        void setDrawingType(const DisplayGroupEnum::Enum displayGroup,
-                            const int32_t tabIndex,
-                            const LabelDrawingTypeEnum::Enum drawingType);
-        
-        CaretColorEnum::Enum getOutlineColor(const DisplayGroupEnum::Enum displayGroup,
-                                                  const int32_t tabIndex) const;
-        
-        void setOutlineColor(const DisplayGroupEnum::Enum displayGroup,
-                            const int32_t tabIndex,
-                            const CaretColorEnum::Enum outlineColor);
-        
     private:
         DisplayPropertiesLabels(const DisplayPropertiesLabels&);
 
@@ -84,15 +68,6 @@ namespace caret {
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        LabelDrawingTypeEnum::Enum m_drawingTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
-        
-        LabelDrawingTypeEnum::Enum m_drawingTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-
-        CaretColorEnum::Enum m_outlineColorInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
-        
-        CaretColorEnum::Enum m_outlineColorInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-
     };
     
 #ifdef __DISPLAY_PROPERTIES_LABELS_DECLARE__
