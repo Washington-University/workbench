@@ -38,7 +38,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "GiftiLabelTableEditor.h"
 #include "LabelDrawingTypeEnum.h"
-#include "LabeldRawingProperties.h"
+#include "LabelDrawingProperties.h"
 #include "Overlay.h"
 #include "WuQtUtilities.h"
 
