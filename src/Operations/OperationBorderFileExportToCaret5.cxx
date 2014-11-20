@@ -23,6 +23,7 @@
 #include "CaretLogger.h"
 
 #include "BorderFile.h"
+#include "DataFileException.h"
 #include "FileInformation.h"
 #include "OperationBorderFileExportToCaret5.h"
 #include "OperationException.h"

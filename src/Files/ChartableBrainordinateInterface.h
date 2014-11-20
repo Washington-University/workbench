@@ -22,7 +22,6 @@
 /*LICENSE_END*/
 
 #include "ChartDataTypeEnum.h"
-#include "DataFileException.h"
 #include "StructureEnum.h"
 
 namespace caret {

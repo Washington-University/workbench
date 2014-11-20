@@ -40,6 +40,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DataFileContentInformation.h"
+#include "DataFileException.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FileAdapter.h"
 #include "FileInformation.h"
@@ -1372,7 +1373,8 @@ void BorderFile::writeFile(const AString& filename, const int& version)
             QTextStream* textStream = file.openQTextStreamForWritingFile(getFileName(),
                                                                         errorMessage);
             if (textStream == NULL) {
-                throw DataFileException(errorMessage);
+                throw DataFileException(getFileName(),
+                                        errorMessage);
             }
 
             //

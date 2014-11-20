@@ -19,6 +19,7 @@
 /*LICENSE_END*/
 
 #include "CaretLogger.h"
+#include "DataFileException.h"
 #include "GiftiLabel.h"
 #include "GiftiMetaData.h"
 #include "Palette.h"

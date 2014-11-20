@@ -22,6 +22,7 @@
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
+#include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "MathFunctions.h"

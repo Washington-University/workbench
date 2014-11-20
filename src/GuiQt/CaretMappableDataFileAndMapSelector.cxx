@@ -45,6 +45,7 @@
 #include "CaretAssert.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
+#include "DataFileException.h"
 #include "EventDataFileAdd.h"
 #include "EventManager.h"
 #include "GiftiLabel.h"
@@ -523,7 +524,8 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                                                                                  numberOfNodes,
                                                                                  errorMessage);
                     if (ciftiMappableDataFile == NULL) {
-                        throw DataFileException(errorMessage);
+                        throw DataFileException(mapFileName,
+                                                errorMessage);
                     }
                     
                     CaretAssert(dynamic_cast<CiftiBrainordinateLabelFile*>(ciftiMappableDataFile) != NULL);
@@ -535,7 +537,8 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                         EventManager::get()->sendEvent(EventDataFileAdd(ciftiMappableDataFile).getPointer());
                     }
                     else {
-                        throw DataFileException(errorMessage);
+                        throw DataFileException(mapFileName,
+                                                errorMessage);
                     }
                 }
                     break;
@@ -548,7 +551,8 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                                                                         numberOfNodes,
                                                                         errorMessage);
                     if (ciftiMappableDataFile == NULL) {
-                        throw DataFileException(errorMessage);
+                        throw DataFileException(mapFileName,
+                                                errorMessage);
                     }
                     
                     CaretAssert(dynamic_cast<CiftiBrainordinateScalarFile*>(ciftiMappableDataFile) != NULL);
@@ -560,7 +564,8 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                         EventManager::get()->sendEvent(EventDataFileAdd(ciftiMappableDataFile).getPointer());
                     }
                     else {
-                        throw DataFileException(errorMessage);
+                        throw DataFileException(mapFileName,
+                                                errorMessage);
                     }
                 }
                     break;

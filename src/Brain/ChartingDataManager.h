@@ -23,7 +23,6 @@
 
 
 #include "CaretObject.h"
-#include "DataFileException.h"
 
 namespace caret {
 

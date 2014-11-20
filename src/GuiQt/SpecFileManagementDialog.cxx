@@ -49,6 +49,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
+#include "DataFileException.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
 #include "EventGetDisplayedDataFiles.h"

@@ -26,6 +26,7 @@
 #include <QTemporaryFile>
 
 #include "CaretHttpManager.h"
+#include "DataFileException.h"
 
 using namespace caret;
 
@@ -154,11 +155,10 @@ CaretTemporaryFile::readFile(const AString& filename)
         CaretHttpManager::httpRequest(request,
                                       response);
         if (response.m_ok == false) {
-            QString msg = ("HTTP error retrieving: "
-                           + filename
-                           + "\nHTTP Response Code="
+            QString msg = ("HTTP error HTTP Response Code="
                            + AString::number(response.m_responseCode));
-            throw DataFileException(msg);
+            throw DataFileException(filename,
+                                    msg);
         }
         
         const int64_t numBytes = response.m_body.size();

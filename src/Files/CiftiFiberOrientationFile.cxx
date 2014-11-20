@@ -27,6 +27,7 @@
 #include "CiftiFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CaretLogger.h"
+#include "DataFileException.h"
 #include "Fiber.h"
 #include "FiberOrientation.h"
 #include "GiftiMetaData.h"

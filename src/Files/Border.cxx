@@ -35,6 +35,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPointer.h"
+#include "DataFileException.h"
 #include "GeodesicHelper.h"
 #include "MathFunctions.h"
 #include "SurfaceFile.h"

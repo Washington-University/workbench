@@ -49,6 +49,7 @@
 #include "CursorDisplayScoped.h"
 #include "CursorManager.h"
 #include "CustomViewDialog.h"
+#include "DataFileException.h"
 #include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"

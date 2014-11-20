@@ -20,6 +20,7 @@
 
 #include "CaretLogger.h"
 #include "DataFileContentInformation.h"
+#include "DataFileException.h"
 #include "FastStatistics.h"
 #include "GiftiDataArray.h"
 #include "GiftiFile.h"
@@ -310,7 +311,8 @@ GiftiTypeFile::verifyDataArraysHaveSameNumberOfRows(const int32_t minimumSecondD
                 AString message = "All data arrays (columns) in the file must have the same number of rows.";
                 message += "  The first array (column) contains " + AString::number(numberOfRows) + " rows.";
                 message += "  Array " + AString::number(i + 1) + " contains " + AString::number(arrayNumberOfRows) + " rows.";
-                DataFileException e(message);
+                DataFileException e(getFileName(),
+                                    message);
                 CaretLogThrowing(e);
                 throw e;                                     
             }
@@ -323,7 +325,8 @@ GiftiTypeFile::verifyDataArraysHaveSameNumberOfRows(const int32_t minimumSecondD
             const GiftiDataArray* gda = this->giftiFile->getDataArray(i);
             const int32_t numberOfDimensions = gda->getNumberOfDimensions();
             if (numberOfDimensions > 2) {
-                DataFileException e("Data array "
+                DataFileException e(getFileName(),
+                                    "Data array "
                                     + AString::number(i + 1)
                                     + " contains "
                                     + AString::number(numberOfDimensions)
@@ -342,7 +345,8 @@ GiftiTypeFile::verifyDataArraysHaveSameNumberOfRows(const int32_t minimumSecondD
             
             if ((secondDimension < minimumSecondDimension) 
                 || (secondDimension > maximumSecondDimension)) {
-                DataFileException e("Data array "
+                DataFileException e(getFileName(),
+                                    "Data array "
                                     + AString::number(i + 1)
                                     + " second dimension is "
                                     + AString::number(numberOfDimensions)

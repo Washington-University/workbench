@@ -590,7 +590,8 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName)
     }
     catch (CaretException& e) {
         clear();
-        throw DataFileException(e.whatString());
+        throw DataFileException(ciftiMapFileName,
+                                e.whatString());
     }
     
     setFileName(ciftiMapFileName);

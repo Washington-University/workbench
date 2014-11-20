@@ -28,6 +28,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CiftiFiberOrientationFile.h"
+#include "DataFileException.h"
 #include "FiberOrientation.h"
 #include "FileInformation.h"
 #include "EventIdentificationHighlightLocation.h"

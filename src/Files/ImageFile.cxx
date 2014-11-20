@@ -28,6 +28,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DataFileException.h"
 #include "FileInformation.h"
 #include "ImageFile.h"
 

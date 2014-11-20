@@ -23,8 +23,10 @@
 #include "VtkFileExporter.h"
 #undef __VTK_FILE_EXPORTER_DECLARE__
 
+#include "AString.h"
 #include "ByteOrderEnum.h"
 #include "CaretAssert.h"
+#include "DataFileException.h"
 #include "FileAdapter.h"
 #include "SurfaceFile.h"
 #include "XmlWriter.h"
@@ -107,7 +109,8 @@ VtkFileExporter::writeSurfaces(const std::vector<SurfaceFile*>& surfaceFiles,
         QTextStream* textStream = fileAdapter.openQTextStreamForWritingFile(vtkFileName,
                                                                             errorMessage);
         if (textStream == NULL) {
-            throw DataFileException(errorMessage);
+            throw DataFileException(vtkFileName,
+                                    errorMessage);
         }
         
         /*
@@ -412,6 +415,7 @@ VtkFileExporter::writeSurfaces(const std::vector<SurfaceFile*>& surfaceFiles,
         fileAdapter.close();
     }
     catch (const XmlException& e) {
-        throw DataFileException(e);
+        throw DataFileException(vtkFileName,
+                                e.whatString());
     }
 }

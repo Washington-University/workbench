@@ -21,16 +21,17 @@
 #include <algorithm>
 #include <limits>
 
-#include "CaretAssert.h"
-#include "CaretLogger.h"
 
 #define __BRAIN_STRUCTURE_DEFINE__
 #include "BrainStructure.h"
 #undef __BRAIN_STRUCTURE_DEFINE__
 #include "Brain.h"
 #include "BrainStructureNodeAttributes.h"
+#include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretPointLocator.h"
 #include "CaretPreferences.h"
+#include "DataFileException.h"
 #include "ElapsedTimer.h"
 #include "EventBrainStructureGetAll.h"
 #include "EventManager.h"
@@ -162,8 +163,7 @@ BrainStructure::addLabelFile(LabelFile* labelFile,
     int32_t numNodes = getNumberOfNodes();
     if (numNodes > 0) {
         if (labelFile->getNumberOfNodes() != numNodes) {
-            AString message = (labelFile->getFileNameNoPath()
-                               + " contains "
+            AString message = ("Label file contains "
                                + AString::number(labelFile->getNumberOfNodes())
                                + " vertices but the "
                                + StructureEnum::toGuiName(getStructure())
@@ -171,21 +171,21 @@ BrainStructure::addLabelFile(LabelFile* labelFile,
                                + AString::number(numNodes)
                                + " vertices.");
             
-            DataFileException e(message);
+            DataFileException e(labelFile->getFileName(),
+                                message);
             CaretLogThrowing(e);
             throw e;
         }
     }
         
     if (labelFile->getStructure() != getStructure()) {
-        AString message = ("Trying to add metric file named \""
-                           + labelFile->getFileNameNoPath()
-                           + "\" with structure \""
+        AString message = ("Trying to add label file with structure \""
                            + StructureEnum::toGuiName(labelFile->getStructure())
                            + " to BrainStructure for \""
                            + StructureEnum::toGuiName(getStructure())
                            + "\n");
-        DataFileException(e);
+        DataFileException e(labelFile->getFileName(),
+                            message);
         CaretLogThrowing(e);
         throw e;        
     }
@@ -216,8 +216,7 @@ BrainStructure::addMetricFile(MetricFile* metricFile,
     int32_t numNodes = getNumberOfNodes();
     if (numNodes > 0) {
         if (metricFile->getNumberOfNodes() != numNodes) {
-            AString message = (metricFile->getFileNameNoPath()
-                               + " contains "
+            AString message = ("Metric file contains "
                                + AString::number(metricFile->getNumberOfNodes())
                                + " vertices but the "
                                + StructureEnum::toGuiName(getStructure())
@@ -225,21 +224,21 @@ BrainStructure::addMetricFile(MetricFile* metricFile,
                                + AString::number(numNodes)
                                + " vertices.");
             
-            DataFileException e(message);
+            DataFileException e(metricFile->getFileName(),
+                                message);
             CaretLogThrowing(e);
             throw e;
         }
     }
     
     if (metricFile->getStructure() != getStructure()) {
-        AString message = ("Trying to add metric file named \""
-                           + metricFile->getFileNameNoPath()
-                           + "\" with structure \""
+        AString message = ("Trying to add metric file with structure \""
                            + StructureEnum::toGuiName(metricFile->getStructure())
                            + " to BrainStructure for \""
                            + StructureEnum::toGuiName(getStructure())
                            + "\n");
-        DataFileException(e);
+        DataFileException e(metricFile->getFileName(),
+                            message);
         CaretLogThrowing(e);
         throw e;        
     }
@@ -270,8 +269,7 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
     int32_t numNodes = getNumberOfNodes();
     if (numNodes > 0) {
         if (rgbaFile->getNumberOfNodes() != numNodes) {
-            AString message = (rgbaFile->getFileNameNoPath()
-                               + " contains "
+            AString message = ("RGBA File contains "
                                + AString::number(rgbaFile->getNumberOfNodes())
                                + " vertices but the "
                                + StructureEnum::toGuiName(getStructure())
@@ -279,7 +277,8 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
                                + AString::number(numNodes)
                                + " vertices.");
             
-            DataFileException e(message);
+            DataFileException e(rgbaFile->getFileName(),
+                                message);
             CaretLogThrowing(e);
             throw e;
         }
@@ -287,14 +286,13 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
     
     
     if (rgbaFile->getStructure() != getStructure()) {
-        AString message = ("Trying to add metric file named \""
-                           + rgbaFile->getFileNameNoPath()
-                           + "\" with structure \""
+        AString message = ("Trying to add metric file with structure \""
                            + StructureEnum::toGuiName(rgbaFile->getStructure())
                            + " to BrainStructure for \""
                            + StructureEnum::toGuiName(getStructure())
                            + "\n");
-        DataFileException(e);
+        DataFileException e(rgbaFile->getFileName(),
+                            message);
         CaretLogThrowing(e);
         throw e;        
     }
@@ -326,8 +324,7 @@ BrainStructure::addSurface(Surface* surface,
     int32_t numNodes = getNumberOfNodes();
     if (numNodes > 0) {
         if (surface->getNumberOfNodes() != numNodes) {
-            AString message = (surface->getFileNameNoPath()
-                               + "  contains "
+            AString message = ("Surface file contains "
                                + AString::number(surface->getNumberOfNodes())
                                + " vertices but the "
                                + StructureEnum::toGuiName(getStructure())
@@ -335,21 +332,21 @@ BrainStructure::addSurface(Surface* surface,
                                + AString::number(numNodes)
                                + " vertices.");
             
-            DataFileException e(message);
+            DataFileException e(surface->getFileName(),
+                                message);
             CaretLogThrowing(e);
             throw e;
         }
     }
     
     if (surface->getStructure() != getStructure()) {
-        AString message = ("Trying to add metric file named \""
-                           + surface->getFileNameNoPath()
-                           + "\" with structure \""
+        AString message = ("Trying to add metric file with structure \""
                            + StructureEnum::toGuiName(surface->getStructure())
                            + " to BrainStructure for \""
                            + StructureEnum::toGuiName(getStructure())
                            + "\n");
-        DataFileException(e);
+        DataFileException e(surface->getFileName(),
+                            message);
         CaretLogThrowing(e);
         throw e;        
     }

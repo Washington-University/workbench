@@ -28,7 +28,6 @@
 #include <QMainWindow>
 
 #include "AString.h"
-#include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"

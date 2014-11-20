@@ -21,6 +21,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "GroupAndNameHierarchyModel.h"
+#include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "GiftiLabel.h"

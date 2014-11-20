@@ -44,6 +44,7 @@
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
+#include "DataFileException.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateOneWindow.h"

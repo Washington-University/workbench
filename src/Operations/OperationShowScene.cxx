@@ -29,12 +29,13 @@
 #include <QImage>
 #include <QColor>
 
-#include "CaretAssert.h"
-#include "CaretLogger.h"
 
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLViewportContent.h"
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "DataFileException.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "FileInformation.h"

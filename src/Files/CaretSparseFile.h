@@ -26,6 +26,7 @@
 #include "stdint.h"
 #include "AString.h"
 #include "DataFile.h"
+#include "DataFileException.h"
 #include "CiftiXML.h"
 
 namespace caret {

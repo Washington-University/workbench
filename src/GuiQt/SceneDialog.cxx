@@ -50,6 +50,7 @@
 #include "CaretMappableDataFile.h"
 #include "CursorDisplayScoped.h"
 #include "CaretPreferences.h"
+#include "DataFileException.h"
 #include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventDataFileAdd.h"

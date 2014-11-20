@@ -20,6 +20,7 @@
 
 #include "DataFile.h"
 #include "DataFileContentInformation.h"
+#include "DataFileException.h"
 #include "FileInformation.h"
 
 using namespace caret;

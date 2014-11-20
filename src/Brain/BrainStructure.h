@@ -29,7 +29,6 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
-#include "DataFileException.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"

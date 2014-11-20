@@ -22,6 +22,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DataFileException.h"
 #include "GiftiXmlElements.h"
 #include "SpecFile.h"
 #include "SpecFileSaxReader.h"

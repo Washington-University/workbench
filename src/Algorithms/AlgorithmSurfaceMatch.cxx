@@ -24,6 +24,7 @@
 
 #include "AlgorithmSurfaceMatch.h"
 #include "AlgorithmException.h"
+#include "DataFileException.h"
 #include "SurfaceFile.h"
 
 using namespace caret;

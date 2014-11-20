@@ -24,7 +24,6 @@
 
 #include <AString.h>
 
-#include "DataFileException.h"
 #include "TracksModificationInterface.h"
 
 namespace caret {

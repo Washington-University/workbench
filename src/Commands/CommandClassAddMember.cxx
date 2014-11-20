@@ -23,6 +23,7 @@
 #include "CaretAssert.h"
 #include "CommandClassAddMember.h"
 #include "CommandClassCreate.h"
+#include "DataFileException.h"
 #include "FileInformation.h"
 #include "ProgramParameters.h"
 #include "TextFile.h"

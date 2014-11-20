@@ -27,6 +27,7 @@
 #include "CaretLogger.h"
 #include "CaretPointer.h"
 #include "DataFileContentInformation.h"
+#include "DataFileException.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
 #include "FileAdapter.h"
@@ -559,7 +560,8 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
         }
     }
                         
-    DataFileException e("Data File Type: " 
+    DataFileException e(getFileName(),
+                        "Data File Type: "
                         + DataFileTypeEnum::toName(dataFileType)
                         + " not allowed "
                         + " for file "
@@ -890,9 +892,7 @@ SpecFile::readFile(const AString& filenameIn)
         int lineNum = e.getLineNumber();
         int colNum  = e.getColumnNumber();
         
-        AString msg =
-        "Parse Error while reading "
-        + filename;
+        AString msg = "Parse Error while reading:";
         
         if ((lineNum >= 0) && (colNum >= 0)) {
             msg += (" line/col ("
@@ -904,7 +904,8 @@ SpecFile::readFile(const AString& filenameIn)
         
         msg += (": " + e.whatString());
         
-        DataFileException dfe(msg);
+        DataFileException dfe(filename,
+                              msg);
         CaretLogThrowing(dfe);
         throw dfe;
     }
@@ -950,7 +951,8 @@ SpecFile::readFileFromString(const AString& string)
         
         msg += (": " + e.whatString());
         
-        DataFileException dfe(msg);
+        DataFileException dfe(getFileName(),
+                              msg);
         CaretLogThrowing(dfe);
         throw dfe;
     }
@@ -990,7 +992,8 @@ SpecFile::writeFile(const AString& filename)
         QTextStream* textStream = file.openQTextStreamForWritingFile(this->getFileName(),
                                                                      errorMessage);
         if (textStream == NULL) {
-            throw DataFileException(errorMessage);
+            throw DataFileException(getFileName(),
+                                    errorMessage);
         }
 
         //
@@ -1010,10 +1013,12 @@ SpecFile::writeFile(const AString& filename)
         this->clearModified();
     }
     catch (const GiftiException& e) {
-        throw DataFileException(e);
+        throw DataFileException(getFileName(),
+                                e.whatString());
     }
     catch (const XmlException& e) {
-        throw DataFileException(e);
+        throw DataFileException(getFileName(),
+                                e.whatString());
     }
 }
 

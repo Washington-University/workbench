@@ -37,6 +37,7 @@
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
+#include "DataFileException.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventImageCapture.h"

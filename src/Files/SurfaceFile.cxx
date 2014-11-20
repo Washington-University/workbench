@@ -24,6 +24,7 @@
 #include <QThread>
 
 #include "BoundingBox.h"
+#include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
@@ -213,7 +214,8 @@ SurfaceFile::validateDataArraysAfterReading()
         " dimensions with the second dimension set to three.";
     }
     if (errorMessage.isEmpty() == false) {
-        throw DataFileException(errorMessage);
+        throw DataFileException(getFileName(),
+                                errorMessage);
     }
     
     this->computeNormals();

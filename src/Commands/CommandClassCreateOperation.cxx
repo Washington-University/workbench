@@ -24,6 +24,7 @@
 
 #include "CaretAssertion.h"
 #include "CommandClassCreateOperation.h"
+#include "DataFileException.h"
 #include "FileInformation.h"
 #include "ProgramParameters.h"
 #include "TextFile.h"

@@ -27,7 +27,6 @@
 #include "CaretObject.h"
 #include "ChartDataTypeEnum.h"
 #include "DataFileTypeEnum.h"
-#include "DataFileException.h"
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
 #include "FiberOrientationSamplesLoader.h"

@@ -30,6 +30,7 @@
 #include "ChartDataCartesian.h"
 #include "CiftiFile.h"
 #include "CiftiXML.h"
+#include "DataFileException.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 

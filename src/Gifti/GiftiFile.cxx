@@ -24,7 +24,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-
+#include "DataFileException.h"
 #include "FileInformation.h"
 #include "GiftiEncodingEnum.h"
 #define __GIFTI_FILE_MAIN__
@@ -856,8 +856,7 @@ GiftiFile::readFile(const AString& filename)
         int colNum  = e.getColumnNumber();
         
         std::ostringstream str;
-        str << "Parse Error while reading "
-        << filename.toStdString();
+        str << "Parse Error while reading ";
         if ((lineNum >= 0) && (colNum >= 0)) {
             str << " line/col ("
             << e.getLineNumber()
@@ -867,7 +866,8 @@ GiftiFile::readFile(const AString& filename)
         }
         str << ": "
             << e.whatString().toStdString();
-        throw DataFileException(AString::fromStdString(str.str()));
+        throw DataFileException(filename,
+                                AString::fromStdString(str.str()));
     }
     
     /*
@@ -929,7 +929,8 @@ GiftiFile::writeFile(const AString& filename)
         giftiFileWriter.finish();
     }
     catch (const GiftiException& e) {
-        throw DataFileException(e);
+        throw DataFileException(filename,
+                                e.whatString());
     }
     
     this->clearModified();

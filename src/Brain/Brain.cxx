@@ -805,10 +805,8 @@ Brain::addReadOrReloadSurfaceFile(const FileModeAddReadReload fileMode,
         if (caretDataFile == NULL) {
             delete surface;
         }
-        AString message = "Structure in "
-        + filename
-        + " is not valid.";
-        DataFileException e(message);
+        DataFileException e(filename,
+                            "Structure is not valid.");
         e.setErrorInvalidStructure(true);
         CaretLogThrowing(e);
         throw e;
@@ -845,7 +843,7 @@ Brain::addReadOrReloadSurfaceFile(const FileModeAddReadReload fileMode,
         AString message = "Failed to create a BrainStructure for surface with structure "
         + StructureEnum::toGuiName(structure)
         + ".";
-        DataFileException e(message);
+        DataFileException e(filename, message);
         CaretLogThrowing(e);
         throw e;
     }
@@ -959,10 +957,7 @@ Brain::addReadOrReloadLabelFile(const FileModeAddReadReload fileMode,
         if (caretDataFile == NULL) {
             delete labelFile;
         }
-        AString message = "Structure in "
-        + filename
-        + " is not valid.";
-        DataFileException e(message);
+        DataFileException e(filename, "Structure is not valid.");
         e.setErrorInvalidStructure(true);
         CaretLogThrowing(e);
         throw e;
@@ -994,7 +989,7 @@ Brain::addReadOrReloadLabelFile(const FileModeAddReadReload fileMode,
         AString message = "Must read a surface with structure "
         + StructureEnum::toGuiName(structure)
         + " before reading its label files.";
-        DataFileException e(message);
+        DataFileException e(filename, message);
         CaretLogThrowing(e);
         throw e;
     }
@@ -1108,10 +1103,7 @@ Brain::addReadOrReloadMetricFile(const FileModeAddReadReload fileMode,
         if (caretDataFile == NULL) {
             delete metricFile;
         }
-        AString message = "Structure in "
-        + filename
-        + " is not valid.";
-        DataFileException e(message);
+        DataFileException e(filename, "Structure is not valid.");
         e.setErrorInvalidStructure(true);
         CaretLogThrowing(e);
         throw e;
@@ -1143,7 +1135,7 @@ Brain::addReadOrReloadMetricFile(const FileModeAddReadReload fileMode,
         AString message = "Must read a surface with structure "
         + StructureEnum::toGuiName(structure)
         + " before reading its metric files.";
-        DataFileException e(message);
+        DataFileException e(filename, message);
         CaretLogThrowing(e);
         throw e;
     }
@@ -1258,10 +1250,7 @@ Brain::addReadOrReloadRgbaFile(const FileModeAddReadReload fileMode,
         if (caretDataFile == NULL) {
             delete rgbaFile;
         }
-        AString message = "Structure in "
-                        + filename
-                        + " is not valid.";
-        DataFileException e(message);
+        DataFileException e(filename, "Structure is not valid.");
         e.setErrorInvalidStructure(true);
         CaretLogThrowing(e);
         throw e;
@@ -1294,7 +1283,7 @@ Brain::addReadOrReloadRgbaFile(const FileModeAddReadReload fileMode,
         AString message = "Must read a surface with structure "
         + StructureEnum::toGuiName(structure)
         + " before reading its RGBA files.";
-        DataFileException e(message);
+        DataFileException e(filename, message);
         CaretLogThrowing(e);
         throw e;
     }
@@ -1625,16 +1614,15 @@ Brain::validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) 
         const int numConnNodes = ciftiMapFile->getMappingSurfaceNumberOfNodes(structure);
         if (numConnNodes > 0) {
             if (numNodes != numConnNodes) {
-                AString msg = ("The CIFTI file "
-                               + ciftiMapFile->getFileNameNoPath()
-                               + " contains "
+                AString msg = ("The CIFTI file contains "
                                + AString::number(numConnNodes)
                                + " nodes for structure "
                                + StructureEnum::toGuiName(structure)
                                + " but the corresponding surface brain structure contains "
                                + AString::number(numNodes)
                                + " nodes.");
-                throw DataFileException(msg);
+                throw DataFileException(ciftiMapFile->getFileName(),
+                                        msg);
             }
         }
     }

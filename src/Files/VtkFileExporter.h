@@ -24,12 +24,10 @@
 
 
 
+#include "AString.h"
 #include <vector>
 
-#include "DataFileException.h"
-
 namespace caret {
-
     class SurfaceFile;
     
     class VtkFileExporter {

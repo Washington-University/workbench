@@ -29,6 +29,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "DataFileException.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"

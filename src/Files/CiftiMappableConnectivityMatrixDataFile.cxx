@@ -28,6 +28,7 @@
 #include "CaretLogger.h"
 #include "ChartableMatrixInterface.h"
 #include "ConnectivityDataLoaded.h"
+#include "DataFileException.h"
 #include "EventManager.h"
 #include "EventProgressUpdate.h"
 #include "SceneClass.h"

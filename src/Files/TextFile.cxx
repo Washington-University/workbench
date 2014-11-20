@@ -22,6 +22,7 @@
 #include <QTextStream>
 
 #include "CaretLogger.h"
+#include "DataFileException.h"
 #include "TextFile.h"
 
 using namespace caret;

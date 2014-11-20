@@ -29,7 +29,6 @@
 #include <map>
 
 #include "ChartDataTypeEnum.h"
-#include "DataFileException.h"
 #include "EventListenerInterface.h"
 #include "Model.h"
 #include "StructureEnum.h"
