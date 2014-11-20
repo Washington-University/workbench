@@ -2287,14 +2287,19 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
     
     CaretAssert(m_voxelIndicesToOffset);
 
+    /*
+     * Data values are only needed when a label volume
+     * is being drawn so that we can determine if the
+     * label is displayed.
+     */
     std::vector<float> dataValues;
-    getMapData(mapIndex,
-               dataValues);
     const GiftiLabelTable* labelTable = (isMappedWithLabelTable()
                                          ? getMapLabelTable(mapIndex)
                                          : NULL);
     if (isMappedWithLabelTable()) {
         CaretAssert(labelTable);
+        getMapData(mapIndex,
+                   dataValues);
     }
     
     int64_t validVoxelCount = 0;
@@ -2338,6 +2343,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                                  * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
+                                CaretAssertVectorIndex(dataValues, dataOffset);
                                 const int32_t dataValue = dataValues[dataOffset];
                                 const GiftiLabel* label = labelTable->getLabel(dataValue);
                                 if (label != NULL) {
@@ -2391,6 +2397,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                                  * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
+                                CaretAssertVectorIndex(dataValues, dataOffset);
                                 const int32_t dataValue = dataValues[dataOffset];
                                 const GiftiLabel* label = labelTable->getLabel(dataValue);
                                 if (label != NULL) {
@@ -2444,6 +2451,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                                  * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
+                                CaretAssertVectorIndex(dataValues, dataOffset);
                                 const int32_t dataValue = dataValues[dataOffset];
                                 const GiftiLabel* label = labelTable->getLabel(dataValue);
                                 if (label != NULL) {
@@ -2594,14 +2602,19 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
     
     CaretAssert(m_voxelIndicesToOffset);
     
+    /*
+     * Data values are only needed when a label volume 
+     * is being drawn so that we can determine if the
+     * label is displayed.
+     */
     std::vector<float> dataValues;
-    getMapData(mapIndex,
-               dataValues);
     const GiftiLabelTable* labelTable = (isMappedWithLabelTable()
                                          ? getMapLabelTable(mapIndex)
                                          : NULL);
     if (isMappedWithLabelTable()) {
         CaretAssert(labelTable);
+        getMapData(mapIndex,
+                   dataValues);
     }
     
     /*
@@ -2659,6 +2672,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
                                  * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
+                                CaretAssertVectorIndex(dataValues, dataOffset);
                                 const int32_t dataValue = dataValues[dataOffset];
                                 const GiftiLabel* label = labelTable->getLabel(dataValue);
                                 if (label != NULL) {
@@ -2738,6 +2752,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
                                  * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
+                                CaretAssertVectorIndex(dataValues, dataOffset);
                                 const int32_t dataValue = dataValues[dataOffset];
                                 const GiftiLabel* label = labelTable->getLabel(dataValue);
                                 if (label != NULL) {
@@ -2818,6 +2833,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
                                  * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
+                                CaretAssertVectorIndex(dataValues, dataOffset);
                                 const int32_t dataValue = dataValues[dataOffset];
                                 const GiftiLabel* label = labelTable->getLabel(dataValue);
                                 if (label != NULL) {
@@ -2886,6 +2902,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
                                  * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
+                                CaretAssertVectorIndex(dataValues, dataOffset);
                                 const int32_t dataValue = dataValues[dataOffset];
                                 const GiftiLabel* label = labelTable->getLabel(dataValue);
                                 if (label != NULL) {
