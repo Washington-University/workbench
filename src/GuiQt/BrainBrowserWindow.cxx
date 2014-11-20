@@ -50,6 +50,7 @@
 #include "CaretFileRemoteDialog.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
+#include "DataFileException.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesVolume.h"
 #include "EventBrowserWindowNew.h"
