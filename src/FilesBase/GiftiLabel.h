@@ -118,6 +118,12 @@ namespace caret {
         
         AString getName() const;
         
+        /**
+         * @return True if the name of the label is detected
+         * to be a "medial wall" name.
+         */
+        inline bool isMedialWallName() const { return this->medialWallNameFlag; }
+        
         void setName(const AString& name);
         
         bool isSelected() const;
@@ -182,14 +188,24 @@ namespace caret {
         static inline int32_t getInvalidLabelKey() { return s_invalidLabelKey; }
         
     private:
+        void setNamePrivate(const AString& name);
+        
         /**tracks modification status (DO NOT CLONE) */
         bool modifiedFlag;
         
+        /**
+         * Name of label
+         * DO NOT set directly with assignment operation.
+         * Use setName() or setNamePrivate() so that the 
+         * medial wall name flag is updated.
+         */
         AString name;
         
         int32_t key;
         
         bool selected;
+        
+        bool medialWallNameFlag;
         
         float red;
         

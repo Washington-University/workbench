@@ -591,17 +591,7 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
         labelKeys.push_back(labelFile->getLabelKey(i, displayColumn));
     }
     
-    bool drawMedialWallFilledFlag = props->isDrawMedialWallFilled();
-    float medialWallLabelKey = -1;
-    if (drawMedialWallFilledFlag) {
-        const GiftiLabel* medialWallLabel = labelTable->getLabel("MEDIAL.WALL");
-        if (medialWallLabel != NULL) {
-            medialWallLabelKey = medialWallLabel->getKey();
-        }
-        else {
-            drawMedialWallFilledFlag = false;
-        }
-    }
+    const bool drawMedialWallFilledFlag = props->isDrawMedialWallFilled();
     assignLabelTableColors(labelTable,
                            labelDrawingType,
                            outlineColor,
@@ -609,7 +599,6 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
                            displayGroup,
                            browserTabIndex,
                            labelKeys,
-                           medialWallLabelKey,
                            drawMedialWallFilledFlag,
                            rgbv);
     
@@ -739,7 +728,6 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
                                             const DisplayGroupEnum::Enum displayGroup,
                                             const int32_t browserTabIndex,
                                             const std::vector<float>& labelIndices,
-                                            const float medialWallLabelKey,
                                             const bool drawMedialWallFilledFlag,
                                             float* rgbv)
 {
@@ -807,7 +795,7 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
          */
         bool doOutlineFlag = true;
         if (drawMedialWallFilledFlag) {
-            if (labelKey == medialWallLabelKey) {
+            if (label->isMedialWallName()) {
                 doOutlineFlag = false;
             }
         }
@@ -1187,17 +1175,7 @@ SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels
     GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
     CaretAssert(labelTable);
     
-    bool drawMedialWallFilledFlag = props->isDrawMedialWallFilled();
-    float medialWallLabelKey = -1;
-    if (drawMedialWallFilledFlag) {
-        const GiftiLabel* medialWallLabel = labelTable->getLabel("MEDIAL.WALL");
-        if (medialWallLabel != NULL) {
-            medialWallLabelKey = medialWallLabel->getKey();
-        }
-        else {
-            drawMedialWallFilledFlag = false;
-        }
-    }
+    const bool drawMedialWallFilledFlag = props->isDrawMedialWallFilled();
     assignLabelTableColors(labelTable,
                            labelDrawingType,
                            outlineColor,
@@ -1205,7 +1183,6 @@ SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels
                            displayGroup,
                            browserTabIndex,
                            dataValues,
-                           medialWallLabelKey,
                            drawMedialWallFilledFlag,
                            rgbv);
     
@@ -1345,18 +1322,7 @@ SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabel
     GiftiLabelTable* labelTable = ciftiParcelLabelFile->getMapLabelTable(mapIndex);
     CaretAssert(labelTable);
     
-    bool drawMedialWallFilledFlag = props->isDrawMedialWallFilled();
-    float medialWallLabelKey = -1;
-    if (drawMedialWallFilledFlag) {
-        const GiftiLabel* medialWallLabel = labelTable->getLabel("MEDIAL.WALL");
-        if (medialWallLabel != NULL) {
-            medialWallLabelKey = medialWallLabel->getKey();
-        }
-        else {
-            drawMedialWallFilledFlag = false;
-        }
-    }
-    
+    const bool drawMedialWallFilledFlag = props->isDrawMedialWallFilled();
     assignLabelTableColors(labelTable,
                            labelDrawingType,
                            outlineColor,
@@ -1364,7 +1330,6 @@ SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabel
                            displayGroup,
                            browserTabIndex,
                            dataValues,
-                           medialWallLabelKey,
                            drawMedialWallFilledFlag,
                            rgbv);
     return true;

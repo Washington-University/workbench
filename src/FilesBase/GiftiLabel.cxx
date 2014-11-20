@@ -42,7 +42,7 @@ GiftiLabel::GiftiLabel(
 {
     this->initializeMembersGiftiLabel();
     this->key = key;
-    this->name = name;
+    setNamePrivate(name);
 }
 
 /**
@@ -67,7 +67,7 @@ GiftiLabel::GiftiLabel(
 {
     this->initializeMembersGiftiLabel();
     this->key = key;
-    this->name = name;
+    setNamePrivate(name);
     this->red = colorClamp(red);
     this->green = colorClamp(green);
     this->blue = colorClamp(blue);
@@ -98,7 +98,7 @@ GiftiLabel::GiftiLabel(const int32_t key,
 {
     this->initializeMembersGiftiLabel();
     this->key = key;
-    this->name = name;
+    setNamePrivate(name);
     this->red = colorClamp(red);
     this->green = colorClamp(green);
     this->blue = colorClamp(blue);
@@ -130,7 +130,7 @@ GiftiLabel::GiftiLabel(
 {
     this->initializeMembersGiftiLabel();
     this->key = key;
-    this->name = name;
+    setNamePrivate(name);
     this->red = colorClamp(red);
     this->green = colorClamp(green);
     this->blue = colorClamp(blue);
@@ -153,7 +153,7 @@ GiftiLabel::GiftiLabel(
 {
     this->initializeMembersGiftiLabel();
     this->key = key;
-    this->name = name;
+    setNamePrivate(name);
     this->red = colorClamp(rgba[0]);
     this->green = colorClamp(rgba[1]);
     this->blue = colorClamp(rgba[2]);
@@ -182,7 +182,7 @@ GiftiLabel::GiftiLabel(
 {
     this->initializeMembersGiftiLabel();
     this->key = key;
-    this->name = name;
+    setNamePrivate(name);
     this->red = colorClamp(red / 255.0);
     this->green = colorClamp(green / 255.0);
     this->blue = colorClamp(blue / 255.0);
@@ -205,7 +205,7 @@ GiftiLabel::GiftiLabel(
 {
     this->initializeMembersGiftiLabel();
     this->key = key;
-    this->name = name;
+    setNamePrivate(name);
     this->red = colorClamp(rgba[0] / 255.0);
     this->green = colorClamp(rgba[1] / 255.0);
     this->blue = colorClamp(rgba[2] / 255.0);
@@ -225,12 +225,12 @@ GiftiLabel::GiftiLabel(
     this->initializeMembersGiftiLabel();
     this->key = key;
     if (this->key == 0) {
-        this->name = "???";
+        setNamePrivate("???");
     }
     else {
         std::stringstream str;
         str << "???" << this->key;
-        this->name = AString::fromStdString(str.str());
+        setNamePrivate(AString::fromStdString(str.str()));
     }
 }
 
@@ -284,7 +284,7 @@ void
 GiftiLabel::copyHelper(const GiftiLabel& gl)
 {
     this->initializeMembersGiftiLabel();
-    this->name = gl.name;
+    setNamePrivate(gl.name);
     this->key = gl.key;
     this->selected = gl.selected;
     this->red = gl.red;
@@ -305,6 +305,7 @@ void
 GiftiLabel::initializeMembersGiftiLabel() 
 {
     this->modifiedFlag = false;
+    this->medialWallNameFlag = false;
     this->name = "";
     this->key = s_invalidLabelKey;
     this->selected = true;
@@ -389,8 +390,36 @@ GiftiLabel::getName() const
 void
 GiftiLabel::setName(const AString& name)
 {
-    this->name = name;
+    setNamePrivate(name);
     this->setModified();
+}
+
+/**
+ * (1) Sets the name of the label.
+ * (2) Examines the name of the label to see if the label
+ * is a "medial wall" name which is defined as a name that
+ * contains substring "medial", followed by zero or more
+ * characters, followed by the substring "wall".
+ * (3) DOES NOT change the modfified
+ * status for this label.
+ *
+ * @param name 
+ *    New name for label.
+ */
+void
+GiftiLabel::setNamePrivate(const AString& name)
+{
+    this->name = name;
+    
+    this->medialWallNameFlag = false;
+    
+    const int32_t medialIndex = name.indexOf("medial", 0, Qt::CaseInsensitive);
+    if (medialIndex >= 0) {
+        const int32_t wallIndex = name.indexOf("wall", 6, Qt::CaseInsensitive);
+        if (wallIndex > medialIndex) {
+            this->medialWallNameFlag = true;
+        }
+    }
 }
 
 /**
