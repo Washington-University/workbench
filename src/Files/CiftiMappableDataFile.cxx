@@ -3900,7 +3900,7 @@ CiftiMappableDataFile::getSurfaceDataIndicesForMappingToBrainordinates(const Str
                                                                           std::vector<int64_t>& dataIndicesForNodes) const
 {
     CaretAssert(m_ciftiFile);
-    const CiftiXML ciftiXML = m_ciftiFile->getCiftiXML();
+    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
     switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
         case CiftiMappingType::BRAIN_MODELS:
