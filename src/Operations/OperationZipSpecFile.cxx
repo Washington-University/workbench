@@ -171,7 +171,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
      * Compress each of the files and add them to the zip file
      */
     AString errorMessage;
-    static const char *myUnits[9] = {" B", " KB", " MB", " GB", " TB", " PB", " EB", " ZB", " YB"};
+    static const char *myUnits[9] = {" B    ", " KB", " MB", " GB", " TB", " PB", " EB", " ZB", " YB"};
     for (int32_t i = 0; i < numberOfDataFiles; i++) {
         AString dataFileName = allDataFileNames[i];
         AString unzippedDataFileName = outputSubDirectory + "/" + dataFileName.mid(myBaseDir.size());//we know the string matches to the length of myBaseDir, and is cleaned, so we can just chop the right number of characters off
@@ -183,19 +183,19 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
                                    + dataFileIn.errorString();
             break;
         }
-        int64_t fileSize = (float)dataFileIn.size() * 10;//fixed point, 1 decimal place
+        float fileSize = (float)dataFileIn.size();
         int unit = 0;
-        int64_t divisor = 1;
-        while (unit < 8 && fileSize / divisor > 9998)//don't let there be 4 digits to the left of decimal point
+        while (unit < 8 && fileSize >= 1000.0f)//don't let there be 4 digits to the left of decimal point
         {
             ++unit;
-            divisor *= 1024;//don't round until we decide on a divisor
+            fileSize /= 1000.0f;//use GB and friends, not GiB
         }
-        int fixedpt = (fileSize + divisor / 2) / divisor;
-        int ipart = fixedpt / 10;
-        int fpart = fixedpt % 10;
-        cout << ipart;
-        if (unit > 0) cout << "." << fpart;
+        if (unit > 0)
+        {
+            cout << AString::number(fileSize, 'f', 2);
+        } else {
+            cout << AString::number(fileSize);
+        }
         cout << myUnits[unit] << "     \t" << unzippedDataFileName;
         cout.flush();//don't endl until it finishes
         
@@ -213,14 +213,25 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         }
         
         const qint64 BUFFER_SIZE = 1024 * 1024;
-        char buffer[BUFFER_SIZE];
+        vector<char> buffer(BUFFER_SIZE);
         
-        while (dataFileIn.QIODevice::atEnd() == false) {
-            const qint64 numRead = dataFileIn.read(buffer, BUFFER_SIZE);
+        while (dataFileIn.atEnd() == false) {
+            const qint64 numRead = dataFileIn.read(buffer.data(), BUFFER_SIZE);
+            if (numRead < 0)
+            {
+                errorMessage = "Error reading from data file";
+                break;
+            }
             if (numRead > 0) {
-                dataFileOut.write(buffer, numRead);
+                qint64 result = dataFileOut.write(buffer.data(), numRead);
+                if (result != numRead)
+                {
+                    errorMessage = "Error writing to zip file";
+                    break;
+                }
             }
         }
+        if (!errorMessage.isEmpty()) break;
         
         dataFileIn.close();
         dataFileOut.close();
