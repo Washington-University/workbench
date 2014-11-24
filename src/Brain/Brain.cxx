@@ -4615,8 +4615,8 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     if (DataFile::isFileOnNetwork(dataFileName) == false) {
         FileInformation fileInfoFullPath(dataFileName);
         if (fileInfoFullPath.exists() == false) {
-            throw DataFileException(dataFileName
-                                    + " does not exist!");
+            throw DataFileException(dataFileName,
+                                    "File does not exist!");
         }
     }
     
