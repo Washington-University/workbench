@@ -103,6 +103,9 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
         case FLAG_VOLUME_QUADS:
             this->flagStatus = true;
             break;
+        case FLAG_VOLUME_INIT_VIEW_CENTER:
+            this->flagStatus = false;
+            break;
     }
 }
 
@@ -135,7 +138,10 @@ DeveloperFlagsEnum::initialize()
     enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_QUADS,
                                           "FLAG_VOLUME_QUADS",
                                           "Volume Quad Drawing"));
-    
+
+    enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_INIT_VIEW_CENTER,
+                                          "FLAG_VOLUME_INIT_VIEW_CENTER",
+                                          "Volume View Initialization At Center"));
 }
 
 /**

@@ -3690,8 +3690,10 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
      * Set top and bottom to the min/max coordinate
      * that runs vertically on the screen
      */
-    double modelTop = 200.0;
+    double modelTop    =  200.0;
     double modelBottom = -200.0;
+    double modelLeft   = -200.0;
+    double modelRight  =  200;
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             CaretAssertMessage(0, "Should never get here");
@@ -3699,14 +3701,20 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
         case VolumeSliceViewPlaneEnum::AXIAL:
             modelTop = boundingBox.getMaxY();
             modelBottom = boundingBox.getMinY();
+            modelLeft = boundingBox.getMinX();
+            modelRight = boundingBox.getMaxX();
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             modelTop = boundingBox.getMaxZ();
             modelBottom = boundingBox.getMinZ();
+            modelLeft = boundingBox.getMinX();
+            modelRight = boundingBox.getMaxX();
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             modelTop = boundingBox.getMaxZ();
             modelBottom = boundingBox.getMinZ();
+            modelLeft = boundingBox.getMinY();
+            modelRight = boundingBox.getMaxY();
             break;
     }
     
@@ -3733,12 +3741,16 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
      * Set bounds of orthographic projection
      */
     const double halfModelY = ((modelTop - modelBottom) / 2.0);
-    const double orthoBottom = modelBottom;
-    const double orthoTop    = modelTop;
-    const double orthoRight  =  halfModelY * aspectRatio;
-    const double orthoLeft   = -halfModelY * aspectRatio;
-    const double nearDepth = -1000.0;
-    const double farDepth  =  1000.0;
+    double orthoBottom = modelBottom;
+    double orthoTop    = modelTop;
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_INIT_VIEW_CENTER)) {
+        orthoBottom = -halfModelY;
+        orthoTop    =  halfModelY;
+    }
+    const double orthoRight =  halfModelY * aspectRatio;
+    const double orthoLeft  = -halfModelY * aspectRatio;
+    const double nearDepth  = -1000.0;
+    const double farDepth   =  1000.0;
     m_orthographicBounds[0] = orthoLeft;
     m_orthographicBounds[1] = orthoRight;
     m_orthographicBounds[2] = orthoBottom;

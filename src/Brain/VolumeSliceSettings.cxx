@@ -24,6 +24,7 @@
 #undef __VOLUME_SLICE_SETTINGS_DECLARE__
 
 #include "CaretLogger.h"
+#include "DeveloperFlagsEnum.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -360,14 +361,14 @@ VolumeSliceSettings::setMontageSliceSpacing(const int32_t montageSliceSpacing)
     m_montageSliceSpacing = montageSliceSpacing;
 }
 
-/**
- * Set the selected slices to the origin.
- */
-void
-VolumeSliceSettings::setSlicesToOrigin()
-{
-    selectSlicesAtOrigin();
-}
+///**
+// * Set the selected slices to the origin.
+// */
+//void
+//VolumeSliceSettings::setSlicesToOrigin()
+//{
+//    selectSlicesAtOrigin();
+//}
 
 /**
  * Reset the slices.
@@ -402,7 +403,7 @@ VolumeSliceSettings::updateForVolumeFile(const VolumeMappableInterface* volumeFi
     
     if (m_initializedFlag == false) {
         m_initializedFlag = true;
-        selectSlicesAtOrigin();
+        selectSlicesAtOrigin(volumeFile);
     }
     
     /*
@@ -415,13 +416,37 @@ VolumeSliceSettings::updateForVolumeFile(const VolumeMappableInterface* volumeFi
 
 /**
  * Set the slice indices so that they are at the origin.
+ *
+ * @param volumeFile
+ *   File for which slice coordinates are made valid.
  */
 void
-VolumeSliceSettings::selectSlicesAtOrigin()
+VolumeSliceSettings::selectSlicesAtOrigin(const VolumeMappableInterface* volumeFile)
 {
     m_sliceCoordinateAxial        = 0.0;
     m_sliceCoordinateCoronal      = 0.0;
     m_sliceCoordinateParasagittal = 0.0;
+
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_INIT_VIEW_CENTER)) {
+        if (volumeFile != NULL) {
+            std::vector<int64_t> dims;
+            volumeFile->getDimensions(dims);
+            if (dims.size() >= 3) {
+                const int64_t middleIJK[3] = {
+                    dims[0] / 2,
+                    dims[1] / 2,
+                    dims[2] / 2
+                };
+                
+                float xyz[3];
+                volumeFile->indexToSpace(middleIJK, xyz);
+                
+                m_sliceCoordinateParasagittal = xyz[0];
+                m_sliceCoordinateCoronal      = xyz[1];
+                m_sliceCoordinateAxial        = xyz[2];
+            }
+        }
+    }
 }
 
 /**
