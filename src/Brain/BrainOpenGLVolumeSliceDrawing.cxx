@@ -4293,7 +4293,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsQuadIndicesAndStrips(con
             columnBottomCoord[2]
         };
         for (int64_t jRow = 0; jRow <= numberOfRows; jRow++) {
-            if (jRow >= 0) {
+            if (jRow > 0) {
                 rowCoord[0] += rowStepX;
                 rowCoord[1] += rowStepY;
                 rowCoord[2] += rowStepZ;
