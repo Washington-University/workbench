@@ -310,7 +310,7 @@ namespace caret {
         
         void updateForVolumeFile(const VolumeMappableInterface* volumeFile);
         
-        void selectSlicesAtOrigin(const VolumeMappableInterface* volumeFile);
+        void selectSlicesAtOrigin();
         
         void selectSlicesAtCoordinate(const float xyz[3]);
         
@@ -347,8 +347,6 @@ namespace caret {
         float getWholeBrainCerebellumSeparation() const;
         
         void setWholeBrainCerebellumSeparation(const float separation);
-        
-        VolumeMappableInterface* getUnderlayVolumeFile();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);

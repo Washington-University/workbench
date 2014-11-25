@@ -39,7 +39,6 @@
 #include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
 #include "ClippingPlaneGroup.h"
-#include "DeveloperFlagsEnum.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "GroupAndNameHierarchyName.h"
@@ -774,28 +773,6 @@ BrowserTabContent::getSurfaceModelSelector()
 {
     return m_surfaceModelSelector;
 }
-
-/**
- * @return The underlay volume.  If the model is volume or whole brain and
- * there is a volume file, it is returned.  Otherwise NULL is returned.
- */
-VolumeMappableInterface*
-BrowserTabContent::getUnderlayVolumeFile()
-{
-    VolumeMappableInterface* vmi = NULL;
-    ModelVolume* volumeModel = getDisplayedVolumeModel();
-    if (volumeModel != NULL) {
-        vmi = volumeModel->getUnderlayVolumeFile(m_tabNumber);
-    }
-    
-    ModelWholeBrain* wholeBrainModel = getDisplayedWholeBrainModel();
-    if (wholeBrainModel != NULL) {
-        vmi = wholeBrainModel->getUnderlayVolumeFile(m_tabNumber);
-    }
-    
-    return vmi;
-}
-
 
 /**
  * Get the overlay assignments for this tab.
@@ -1600,28 +1577,6 @@ BrowserTabContent::resetView()
 {
     getViewingTransformation()->resetView();
     if (isVolumeSlicesDisplayed()) {
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_INIT_VIEW_CENTER)) {
-            const VolumeMappableInterface* volumeFile = getUnderlayVolumeFile();
-            if (volumeFile != NULL) {
-                std::vector<int64_t> dims;
-                volumeFile->getDimensions(dims);
-                if (dims.size() >= 3) {
-                    const int64_t middleIJK[3] = {
-                        dims[0] / 2,
-                        dims[1] / 2,
-                        dims[2] / 2
-                    };
-                    
-                    float xyz[3];
-                    volumeFile->indexToSpace(middleIJK, xyz);
-                    
-                    getViewingTransformation()->setTranslation(-xyz[0],
-                                                               -xyz[1],
-                                                               -xyz[2]);
-                }
-            }
-        }
-        
         m_obliqueVolumeRotationMatrix->identity();
     }
     updateYokedBrowserTabs();
@@ -3132,8 +3087,7 @@ BrowserTabContent::setMontageSliceSpacing(const int32_t montageSliceSpacing)
 void
 BrowserTabContent::setSlicesToOrigin()
 {
-    const VolumeMappableInterface* volumeFile = getUnderlayVolumeFile();
-    selectSlicesAtOrigin(volumeFile);
+    selectSlicesAtOrigin();
     updateYokedBrowserTabs();
 }
 
@@ -3165,14 +3119,11 @@ BrowserTabContent::updateForVolumeFile(const VolumeMappableInterface* volumeFile
 
 /**
  * Set the slice indices so that they are at the origin.
- *
- * @param volumeFile
- *   File for which slice coordinates are made valid.
  */
 void
-BrowserTabContent::selectSlicesAtOrigin(const VolumeMappableInterface* volumeFile)
+BrowserTabContent::selectSlicesAtOrigin()
 {
-    m_volumeSliceSettings->selectSlicesAtOrigin(volumeFile);
+    m_volumeSliceSettings->selectSlicesAtOrigin();
     updateYokedBrowserTabs();
 }
 

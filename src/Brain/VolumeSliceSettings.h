@@ -75,7 +75,7 @@ namespace caret {
         
         const VolumeSliceCoordinateSelection* getSelectedVolumeSlices(VolumeMappableInterface* underlayVolumeFile) const;
         
-//        void setSlicesToOrigin();
+        void setSlicesToOrigin();
 
         float getSliceCoordinateAxial() const;
         
@@ -118,7 +118,7 @@ namespace caret {
         
         void updateForVolumeFile(const VolumeMappableInterface* volumeFile);
         
-        void selectSlicesAtOrigin(const VolumeMappableInterface* volumeFile);
+        void selectSlicesAtOrigin();
         
         void selectSlicesAtCoordinate(const float xyz[3]);
         
