@@ -6,7 +6,7 @@ PROJECT (Tests)
 #
 # Need XML from Qt
 #
-SET(QT_DONT_USE_QTGUI TRUE)
+# needed QImage and it is from GUI:   SET(QT_DONT_USE_QTGUI TRUE)
 SET(QT_USE_QTXML TRUE)
 SET(QT_USE_QTNETWORK TRUE)
 
