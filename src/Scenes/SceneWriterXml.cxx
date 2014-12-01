@@ -33,6 +33,7 @@
 #include "SceneInfo.h"
 #include "SceneObjectMapIntegerKey.h"
 #include "ScenePathName.h"
+#include "ScenePathNameArray.h"
 #include "ScenePrimitive.h"
 #include "ScenePrimitiveArray.h"
 #include "SceneXmlElements.h"
@@ -165,6 +166,26 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
         const SceneClassArray* sceneClassArray = dynamic_cast<const SceneClassArray*>(sceneObject);
         const SceneObjectMapIntegerKey* sceneMapIntegerKey = dynamic_cast<const SceneObjectMapIntegerKey*>(sceneObject);
         const ScenePathName* scenePathName = dynamic_cast<const ScenePathName*>(sceneObject);
+        const ScenePathNameArray* scenePathNameArray = dynamic_cast<const ScenePathNameArray*>(sceneObject);
+        
+        switch (sceneObject->getDataType()) {
+            case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
+                break;
+            case SceneObjectDataTypeEnum::SCENE_CLASS:
+                break;
+            case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
+                break;
+            case SceneObjectDataTypeEnum::SCENE_FLOAT:
+                break;
+            case SceneObjectDataTypeEnum::SCENE_INTEGER:
+                break;
+            case SceneObjectDataTypeEnum::SCENE_INVALID:
+                break;
+            case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
+                break;
+            case SceneObjectDataTypeEnum::SCENE_STRING:
+                break;
+        }
         if (scenePrimitive != NULL) {
             if (scenePrimitive->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
                 m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
@@ -210,6 +231,33 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
             m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
                                           attributes,
                                           path);
+        }
+        else if (scenePathNameArray != NULL) {
+            const int32_t numberOfArrayElements = scenePathNameArray->getNumberOfArrayElements();
+            attributes.addAttribute(SceneXmlElements::OBJECT_ARRAY_LENGTH_ATTRIBUTE,
+                                    numberOfArrayElements);
+            m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_ARRAY_TAG,
+                                          attributes);
+            
+            for (int32_t elementIndex = 0; elementIndex < numberOfArrayElements; elementIndex++) {
+                XmlAttributes elementAttributes;
+                elementAttributes.addAttribute(SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE,
+                                               elementIndex);
+                const ScenePathName* spn = scenePathNameArray->getScenePathNameAtIndex(elementIndex);
+                const AString path = spn->getRelativePathToSceneFile(m_sceneFileName);
+                m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG,
+                                              elementAttributes,
+                                              path);
+
+//                m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG,
+//                                              elementAttributes);
+//                m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG,
+//                                              attributes,
+//                                              path);
+//                m_xmlWriter.writeEndElement();
+            }
+            
+            m_xmlWriter.writeEndElement();
         }
         else if (sceneClassArray != NULL) {
             const int32_t numberOfArrayElements = sceneClassArray->getNumberOfArrayElements();

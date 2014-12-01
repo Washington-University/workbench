@@ -171,6 +171,8 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 break;
             case DataFileTypeEnum::LABEL:
                 break;
+            case DataFileTypeEnum::IMAGE:
+                break;
             case DataFileTypeEnum::METRIC:
                 break;
             case DataFileTypeEnum::PALETTE:

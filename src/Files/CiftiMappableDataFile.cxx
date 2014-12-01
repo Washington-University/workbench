@@ -174,6 +174,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
         case DataFileTypeEnum::FOCI:
+        case DataFileTypeEnum::IMAGE:
         case DataFileTypeEnum::LABEL:
         case DataFileTypeEnum::METRIC:
         case DataFileTypeEnum::PALETTE:
@@ -658,6 +659,7 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
         case DataFileTypeEnum::FOCI:
+        case DataFileTypeEnum::IMAGE:
         case DataFileTypeEnum::LABEL:
         case DataFileTypeEnum::METRIC:
         case DataFileTypeEnum::PALETTE:
@@ -3585,6 +3587,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             useMapData = true;
             break;
         case DataFileTypeEnum::FOCI:
+            CaretAssert(0);
+            break;
+        case DataFileTypeEnum::IMAGE:
             CaretAssert(0);
             break;
         case DataFileTypeEnum::LABEL:

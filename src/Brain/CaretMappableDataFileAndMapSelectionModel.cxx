@@ -97,6 +97,8 @@ CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionM
             break;
         case DataFileTypeEnum::FOCI:
             break;
+        case DataFileTypeEnum::IMAGE:
+            break;
         case DataFileTypeEnum::LABEL:
             isMappableFile = true;
             break;

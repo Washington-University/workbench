@@ -66,6 +66,7 @@ CaretDataFileHelper::~CaretDataFileHelper()
 #include "CiftiFiberTrajectoryFile.h"
 #include "FileInformation.h"
 #include "FociFile.h"
+#include "ImageFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "PaletteFile.h"
@@ -142,6 +143,9 @@ CaretDataFileHelper::readAnyCaretDataFile(const AString& filename, const bool& p
             break;
         case DataFileTypeEnum::FOCI:
             caretDataFile = new FociFile();
+            break;
+        case DataFileTypeEnum::IMAGE:
+            caretDataFile = new ImageFile();
             break;
         case DataFileTypeEnum::LABEL:
             caretDataFile = new LabelFile();

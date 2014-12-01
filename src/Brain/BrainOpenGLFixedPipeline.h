@@ -41,6 +41,7 @@
 
 
 class QGLWidget;
+class QImage;
 
 namespace caret {
     
@@ -60,6 +61,7 @@ namespace caret {
     class SelectionItem;
     class SelectionManager;
     class IdentificationWithColor;
+    class ImageFile;
     class Plane;
     class Surface;
     class Model;
@@ -439,6 +441,11 @@ namespace caret {
                          const PaletteColorMapping* paletteColorMapping,
                          const FastStatistics* statistics,
                          const int paletteDrawingIndex);
+        
+        void drawBackgroundImage(BrainOpenGLViewportContent* vpContent);
+        
+        void drawImage(const int viewport[4],
+                       const ImageFile* imageFile);
         
 //        float modelSizeToPixelSize(const float modelSize);
 //        

@@ -21,14 +21,15 @@
 #ifndef __IMAGE_FILE_H__
 #define __IMAGE_FILE_H__
 
-#include "DataFile.h"
+#include "CaretDataFile.h"
+#include "CaretPointer.h"
 
 class QImage;
 
 namespace caret {
     
 /// File for images
-class ImageFile : public DataFile {
+class ImageFile : public CaretDataFile {
 public:
     /**
      * Location of origin in image data.
@@ -55,6 +56,28 @@ public:
     
     void clear();
     
+    /**
+     * @return The structure for this file.
+     */
+    virtual StructureEnum::Enum getStructure() const;
+    
+    /**
+     * Set the structure for this file.
+     * @param structure
+     *   New structure for this file.
+     */
+    virtual void setStructure(const StructureEnum::Enum structure);
+    
+    /**
+     * @return Get access to the file's metadata.
+     */
+    virtual GiftiMetaData* getFileMetaData();
+    
+    /**
+     * @return Get access to unmodifiable file's metadata.
+     */
+    virtual const GiftiMetaData* getFileMetaData() const;
+    
     virtual bool compareFileForUnitTesting(const DataFile* df,
                                            const float tolerance,
                                            AString& messageOut) const;
@@ -66,6 +89,11 @@ public:
     const QImage* getAsQImage() const;
     
     void setFromQImage(const QImage& img);
+    
+    bool getImageBytesRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                           std::vector<uint8_t>& bytesRGBA,
+                           int32_t& widthOut,
+                           int32_t& heightOut) const;
     
     virtual void readFile(const AString& filename);
     
@@ -126,6 +154,8 @@ private:
                             const int positionY);
     
     QImage* m_image;
+    
+    CaretPointer<GiftiMetaData> m_fileMetaData;
 };
 
 } // namespace

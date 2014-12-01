@@ -36,6 +36,7 @@ namespace caret {
     class CiftiConnectivityMatrixViewController;
     class FiberOrientationSelectionViewController;
     class FociSelectionViewController;
+    class ImageSelectionViewController;
     class LabelSelectionViewController;
     class OverlaySetViewController;
     class VolumeSurfaceOutlineSetViewController;
@@ -89,6 +90,8 @@ namespace caret {
         
         FociSelectionViewController* m_fociSelectionViewController;
         
+        ImageSelectionViewController* m_imageSelectionViewController;
+        
         LabelSelectionViewController* m_labelSelectionViewController;
         
         VolumeSurfaceOutlineSetViewController* m_volumeSurfaceOutlineSetViewController;
@@ -110,6 +113,8 @@ namespace caret {
         int32_t m_fiberOrientationTabIndex;
         
         int32_t m_fociTabIndex;
+        
+        int32_t m_imageTabIndex;
         
         int32_t m_labelTabIndex;
         

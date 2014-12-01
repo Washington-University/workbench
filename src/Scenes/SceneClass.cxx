@@ -36,6 +36,7 @@
 #include "SceneIntegerArray.h"
 #include "SceneObjectMapIntegerKey.h"
 #include "ScenePathName.h"
+#include "ScenePathNameArray.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
 
@@ -788,6 +789,35 @@ SceneClass::getPrimitiveArray(const AString& name) const
     logMissing("Scene Primitive Array not found: " + name);
     return NULL;
 }
+
+/**
+ * Find and return the scene's child primitive array with the given name.
+ *
+ * @param name
+ *     Name of the child primitive.
+ * @return
+ *     Pointer to the primitive with the given name or NULL if
+ *     no primitive exists with the given name.
+ */
+const ScenePathNameArray*
+SceneClass::getPathNameArray(const AString& name) const
+{
+    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
+         iter++) {
+        const SceneObject* so = *iter;
+        if (so->getName() == name) {
+            const ScenePathNameArray* spa = dynamic_cast<const ScenePathNameArray*>(so);
+            if (spa != NULL) {
+                return spa;
+            }
+        }
+    }
+    
+    logMissing("Scene Path Name Array not found: " + name);
+    return NULL;
+}
+
 
 /**
  * Find and return the scene's child class with the given name.

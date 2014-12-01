@@ -77,6 +77,7 @@ DisplayProperties.h
 DisplayPropertiesBorders.h
 DisplayPropertiesFiberOrientation.h
 DisplayPropertiesFoci.h
+DisplayPropertiesImages.h
 DisplayPropertiesLabels.h
 DisplayPropertiesSurface.h
 DisplayPropertiesVolume.h
@@ -191,6 +192,7 @@ DisplayProperties.cxx
 DisplayPropertiesBorders.cxx
 DisplayPropertiesFiberOrientation.cxx
 DisplayPropertiesFoci.cxx
+DisplayPropertiesImages.cxx
 DisplayPropertiesLabels.cxx
 DisplayPropertiesSurface.cxx
 DisplayPropertiesVolume.cxx

@@ -212,7 +212,15 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "foci"));
     
-    enumData.push_back(DataFileTypeEnum(LABEL, 
+    enumData.push_back(DataFileTypeEnum(IMAGE,
+                                        "IMAGE",
+                                        "Image",
+                                        "IMAGE",
+                                        false,
+                                        "png",
+                                        "ppm"));
+    
+    enumData.push_back(DataFileTypeEnum(LABEL,
                                         "LABEL", 
                                         "Label",
                                         "LABEL",

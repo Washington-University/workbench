@@ -1836,6 +1836,9 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::FOCI:
             invalid = true;
             break;
+        case DataFileTypeEnum::IMAGE:
+            invalid = true;
+            break;
         case DataFileTypeEnum::LABEL:
             invalid = true;
             break;

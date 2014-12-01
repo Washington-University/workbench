@@ -77,6 +77,7 @@ HelpViewerDialog.h
 HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
+ImageSelectionViewController.h
 InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
 LabelSelectionViewController.h
@@ -220,6 +221,7 @@ HelpViewerDialog.h
 HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
+ImageSelectionViewController.h
 InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
 LabelSelectionViewController.h
@@ -363,6 +365,7 @@ HelpViewerDialog.cxx
 HyperLinkTextBrowser.cxx
 IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx
+ImageSelectionViewController.cxx
 InformationDisplayDialog.cxx
 InformationDisplayPropertiesDialog.cxx
 LabelSelectionViewController.cxx

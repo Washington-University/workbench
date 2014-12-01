@@ -424,6 +424,8 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                     break;
                 case DataFileTypeEnum::FOCI:
                     break;
+                case DataFileTypeEnum::IMAGE:
+                    break;
                 case DataFileTypeEnum::LABEL:
                     break;
                 case DataFileTypeEnum::METRIC:

@@ -30,6 +30,7 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
+#include "GiftiMetaData.h"
 #include "ImageFile.h"
 
 using namespace caret;
@@ -38,8 +39,10 @@ using namespace caret;
  * Constructor.
  */
 ImageFile::ImageFile()
-: DataFile()
+: CaretDataFile(DataFileTypeEnum::IMAGE)
 {
+    m_fileMetaData.grabNew(new GiftiMetaData());
+    
     m_image = new QImage();
 }
 
@@ -49,8 +52,10 @@ ImageFile::ImageFile()
  *    QImage that is copied to this image file.
  */
 ImageFile::ImageFile(const QImage& qimage)
-: DataFile()
+: CaretDataFile(DataFileTypeEnum::IMAGE)
 {
+    m_fileMetaData.grabNew(new GiftiMetaData());
+    
     m_image = new QImage(qimage);
 }
 
@@ -71,7 +76,10 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
                      const int imageWidth,
                      const int imageHeight,
                      const IMAGE_DATA_ORIGIN_LOCATION imageOrigin)
+: CaretDataFile(DataFileTypeEnum::IMAGE)
 {
+    m_fileMetaData.grabNew(new GiftiMetaData());
+    
     m_image = new QImage(imageWidth,
                              imageHeight,
                              QImage::Format_RGB32);
@@ -136,6 +144,44 @@ ImageFile::clear()
     }
     m_image = new QImage();
     this->clearModified();
+}
+
+/**
+ * @return The structure for this file.
+ */
+StructureEnum::Enum
+ImageFile::getStructure() const
+{
+    return StructureEnum::INVALID;
+}
+
+/**
+ * Set the structure for this file.
+ * @param structure
+ *   New structure for this file.
+ */
+void
+ImageFile::setStructure(const StructureEnum::Enum /*structure */)
+{
+    /* File does not support structures */
+}
+
+/**
+ * @return Get access to the file's metadata.
+ */
+GiftiMetaData*
+ImageFile::getFileMetaData()
+{
+    return m_fileMetaData;
+}
+
+/**
+ * @return Get access to unmodifiable file's metadata.
+ */
+const GiftiMetaData*
+ImageFile::getFileMetaData() const
+{
+    return m_fileMetaData;
 }
 
 /**
@@ -1032,6 +1078,77 @@ ImageFile::resizeToMaximumWidthOrHeight(const int32_t maximumWidthOrHeight)
         }
     }
 }
+
+/**
+ * Get the RGBA bytes from the image.
+ *
+ * @param bytesRGBA
+ *    The RGBA bytes in the image.
+ * @param widthOut
+ *    Width of the image.
+ * @param heightOut
+ *    Height of the image.
+ * @param imageOrigin
+ *     Location of first pixel in the image data.
+ * @return
+ *    True if the bytes, width, and height are valid, else false.
+ */
+bool
+ImageFile::getImageBytesRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                             std::vector<uint8_t>& bytesRGBA,
+                             int32_t& widthOut,
+                             int32_t& heightOut) const
+{
+    bytesRGBA.clear();
+    widthOut = 0;
+    heightOut = 0;
+    
+    if (m_image != NULL) {
+        widthOut  = m_image->width();
+        heightOut = m_image->height();
+        if ((widthOut > 0)
+            && (heightOut > 0)) {
+            
+            bytesRGBA.resize(widthOut * heightOut * 4);
+            
+            bool isOriginAtTop = false;
+            switch (imageOrigin) {
+                case IMAGE_DATA_ORIGIN_AT_BOTTOM:
+                    isOriginAtTop = false;
+                    break;
+                case IMAGE_DATA_ORIGIN_AT_TOP:
+                    isOriginAtTop = true;
+                    break;
+            }
+            
+            /*
+             * Documentation for QImage states that setPixel may be very costly
+             * and recommends using the scanLine() method to access pixel data.
+             */
+            for (int y = 0; y < heightOut; y++) {
+                const int scanLineIndex = (isOriginAtTop
+                                           ? y
+                                           : heightOut -y - 1);
+                const uchar* scanLine = m_image->scanLine(scanLineIndex);
+                QRgb* rgbScanLine = (QRgb*)scanLine;
+                
+                for (int x = 0; x < widthOut; x++) {
+                    const int32_t contentOffset = (((y * widthOut) * 4)
+                                                   + (x * 4));
+                    QRgb& rgb = rgbScanLine[x];
+                    bytesRGBA[contentOffset] = static_cast<uint8_t>(qRed(rgb));
+                    bytesRGBA[contentOffset+1] = static_cast<uint8_t>(qGreen(rgb));
+                    bytesRGBA[contentOffset+2] = static_cast<uint8_t>(qBlue(rgb));
+                    bytesRGBA[contentOffset+3] = 255;
+                }
+            }
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 
 /**
  * Essentially writes the image file to a byte array using the given format.

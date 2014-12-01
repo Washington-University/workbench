@@ -34,6 +34,7 @@
 #include "SceneIntegerArray.h"
 #include "SceneObjectMapIntegerKey.h"
 #include "ScenePathName.h"
+#include "ScenePathNameArray.h"
 #include "SceneSaxReader.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
@@ -369,8 +370,8 @@ SceneSaxReader::processObjectArrayStartTag(const XmlAttributes& attributes)
                                                 objectNumberOfElements);
             break;
         case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
-            CaretAssert(0);
-            throw XmlSaxParserException("Arrays of scene paths not supported.");
+            sceneObject = new ScenePathNameArray(objectName,
+                                                 objectNumberOfElements);
             break;
         case SceneObjectDataTypeEnum::SCENE_STRING:
             sceneObject = new SceneStringArray(objectName, 
@@ -628,8 +629,13 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                 }
                     break;
                 case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
-                    CaretAssert(0);
-                    throw XmlSaxParserException("Arrays of scene paths not supported.");
+                {
+                    ScenePathNameArray* pathNameArray = dynamic_cast<ScenePathNameArray*>(sceneArray);
+                    CaretAssert(pathNameArray);
+                    pathNameArray->setScenePathNameAtIndex(m_objectArrayBeingReadElementIndexStack.top(),
+                                                           m_sceneFileName,
+                                                           stringValue);
+                }
                     break;
                 case SceneObjectDataTypeEnum::SCENE_STRING:
                 {

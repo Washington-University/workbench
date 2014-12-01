@@ -66,6 +66,7 @@ namespace caret {
     class DisplayPropertiesBorders;
     class DisplayPropertiesFiberOrientation;
     class DisplayPropertiesFoci;
+    class DisplayPropertiesImages;
     class DisplayPropertiesLabels;
     class DisplayPropertiesSurface;
     class DisplayPropertiesVolume;
@@ -73,6 +74,7 @@ namespace caret {
     class EventDataFileReload;
     class EventSpecFileReadDataFiles;
     class IdentificationManager;
+    class ImageFile;
     class LabelFile;
     class MetricFile;
     class ModelChart;
@@ -124,6 +126,14 @@ namespace caret {
         FociFile* getFociFile(const int32_t indx);
         
         const FociFile* getFociFile(const int32_t indx) const;
+        
+        const std::vector<ImageFile*> getAllImagesFiles() const;
+        
+        int32_t getNumberOfImageFiles() const;
+        
+        ImageFile* getImageFile(const int32_t indx);
+        
+        const ImageFile* getImageFile(const int32_t indx) const;
         
         PaletteFile* getPaletteFile();
         
@@ -333,6 +343,9 @@ namespace caret {
         
         const DisplayPropertiesSurface* getDisplayPropertiesSurface() const;
         
+        DisplayPropertiesImages* getDisplayPropertiesImages();
+        
+        const DisplayPropertiesImages* getDisplayPropertiesImages() const;
         
         DisplayPropertiesLabels* getDisplayPropertiesLabels();
         
@@ -596,6 +609,10 @@ namespace caret {
                                CaretDataFile* caretDataFile,
                                const AString& filename);
         
+        ImageFile* addReadOrReloadImageFile(const FileModeAddReadReload fileMode,
+                                          CaretDataFile* caretDataFile,
+                                          const AString& filename);
+        
         PaletteFile* addReadOrReloadPaletteFile(const FileModeAddReadReload fileMode,
                                      CaretDataFile* caretDataFile,
                                      const AString& filename);
@@ -629,6 +646,8 @@ namespace caret {
         std::vector<BorderFile*> m_borderFiles;
         
         std::vector<FociFile*> m_fociFiles;
+        
+        std::vector<ImageFile*> m_imageFiles;
         
         std::vector<SceneFile*> m_sceneFiles;
         
@@ -690,6 +709,12 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesSurface* m_displayPropertiesSurface;
+
+        /**
+         * Display properties for image - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesImages* m_displayPropertiesImages;
         
         /**
          * Display properties for labels - DO NOT delete since this

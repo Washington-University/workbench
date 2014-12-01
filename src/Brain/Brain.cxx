@@ -51,6 +51,7 @@
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
+#include "DisplayPropertiesImages.h"
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
@@ -74,6 +75,7 @@
 #include "FociFile.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
+#include "ImageFile.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
 #include "ModelChart.h"
@@ -136,6 +138,9 @@ Brain::Brain()
     m_displayPropertiesFoci = new DisplayPropertiesFoci();
     m_displayProperties.push_back(m_displayPropertiesFoci);
     
+    m_displayPropertiesImages = new DisplayPropertiesImages(this);
+    m_displayProperties.push_back(m_displayPropertiesImages);
+    
     m_displayPropertiesLabels = new DisplayPropertiesLabels();
     m_displayProperties.push_back(m_displayPropertiesLabels);
     
@@ -177,6 +182,10 @@ Brain::Brain()
     m_sceneAssistant->add("displayPropertiesFoci",
                           "DisplayPropertiesFoci", 
                           m_displayPropertiesFoci);
+    
+    m_sceneAssistant->add("m_displayPropertiesImages",
+                          "DisplayPropertiesImages",
+                          m_displayPropertiesImages);
     
     m_sceneAssistant->add("m_displayPropertiesLabels",
                           "DisplayPropertiesLabels",
@@ -435,6 +444,14 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_fociFiles.clear();
     
+    for (std::vector<ImageFile*>::iterator ifi = m_imageFiles.begin();
+         ifi != m_imageFiles.end();
+         ifi++) {
+        ImageFile* img = *ifi;
+        delete img;
+    }
+    m_imageFiles.clear();
+    
     for (std::vector<CiftiBrainordinateDataSeriesFile*>::iterator cdsfi = m_connectivityDataSeriesFiles.begin();
          cdsfi != m_connectivityDataSeriesFiles.end();
          cdsfi++) {
@@ -648,6 +665,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                 break;
             case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::IMAGE:
                 break;
             case DataFileTypeEnum::LABEL:
                 break;
@@ -1592,6 +1611,84 @@ Brain::addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
     
     
     return ff;
+}
+
+/**
+ * Read a foci file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+ImageFile*
+Brain::addReadOrReloadImageFile(const FileModeAddReadReload fileMode,
+                               CaretDataFile* caretDataFile,
+                               const AString& filename)
+{
+    ImageFile* imageFile = NULL;
+    if (caretDataFile != NULL) {
+        imageFile = dynamic_cast<ImageFile*>(caretDataFile);
+        CaretAssert(imageFile);
+    }
+    else {
+        imageFile = new ImageFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                imageFile->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete imageFile;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_imageFiles,
+                                      imageFile);
+        m_imageFiles.push_back(imageFile);
+    }
+    
+    
+    return imageFile;
 }
 
 /**
@@ -3751,6 +3848,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     m_fociFiles.push_back(file);
                 }
                     break;
+                case DataFileTypeEnum::IMAGE:
+                {
+                    ImageFile* file = dynamic_cast<ImageFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_imageFiles.push_back(file);
+                }
+                    break;
                 case DataFileTypeEnum::LABEL:
                 {
                     LabelFile* file = dynamic_cast<LabelFile*>(caretDataFile);
@@ -3917,9 +4021,49 @@ Brain::getFociFile(const int32_t indx) const
 }
 
 /**
+ * @return All image files.
+ */
+const std::vector<ImageFile*>
+Brain::getAllImagesFiles() const
+{
+    return m_imageFiles;
+}
+
+/**
+ * @return Number of image files.
+ */
+int32_t
+Brain::getNumberOfImageFiles() const
+{
+    return m_imageFiles.size();
+}
+
+/**
+ * @return The image file.
+ * @param indx Index of the image file.
+ */
+ImageFile*
+Brain::getImageFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(m_imageFiles, indx);
+    return m_imageFiles[indx];
+}
+
+/**
+ * @return The image file.
+ * @param indx Index of the image file.
+ */
+const ImageFile*
+Brain::getImageFile(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_imageFiles, indx);
+    return m_imageFiles[indx];
+}
+
+/**
  * @return Number of scene files.
  */
-int32_t 
+int32_t
 Brain::getNumberOfSceneFiles() const
 {
     return m_sceneFiles.size();
@@ -4474,6 +4618,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead  = addReadOrReloadFociFile(fileMode,
                                                  caretDataFile,
                                                  dataFileName);
+                break;
+            case DataFileTypeEnum::IMAGE:
+                caretDataFileRead  = addReadOrReloadImageFile(fileMode,
+                                                             caretDataFile,
+                                                             dataFileName);
                 break;
             case DataFileTypeEnum::LABEL:
                 caretDataFileRead  = addReadOrReloadLabelFile(fileMode,
@@ -5458,6 +5607,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_fociFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_imageFiles.begin(),
+                           m_imageFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityDenseScalarFiles.begin(),
                            m_connectivityDenseScalarFiles.end());
     
@@ -5816,6 +5969,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
         return true;
     }
     
+    std::vector<ImageFile*>::iterator imageIterator = std::find(m_imageFiles.begin(),
+                                                                m_imageFiles.end(),
+                                                                caretDataFile);
+    if (imageIterator != m_imageFiles.end()) {
+        m_imageFiles.erase(imageIterator);
+        return true;
+    }
+    
     if (m_paletteFile == caretDataFile) {
         if (m_paletteFile != NULL) {
             CaretLogSevere("Cannot remove PaletteFile at this time.");
@@ -5917,6 +6078,24 @@ const DisplayPropertiesFoci*
 Brain::getDisplayPropertiesFoci() const
 {
     return m_displayPropertiesFoci;
+}
+
+/**
+ * @return The label display properties.
+ */
+DisplayPropertiesImages*
+Brain::getDisplayPropertiesImages()
+{
+    return m_displayPropertiesImages;
+}
+
+/**
+ * @return The label display properties.
+ */
+const DisplayPropertiesImages*
+Brain::getDisplayPropertiesImages() const
+{
+    return m_displayPropertiesImages;
 }
 
 /**

@@ -63,6 +63,8 @@ public:
         CONNECTIVITY_PARCEL_SERIES,
         /** Foci */
         FOCI,
+        /** Image */
+        IMAGE,
         /** Labels */
         LABEL,
         /** Metric */

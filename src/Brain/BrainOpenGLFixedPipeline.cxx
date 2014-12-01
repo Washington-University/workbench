@@ -33,6 +33,7 @@
 #include <cmath>
 
 #include <QStringList>
+#include <QImage>
 
 #include "Border.h"
 #include "BorderFile.h"
@@ -64,6 +65,7 @@
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
+#include "DisplayPropertiesImages.h"
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
@@ -83,6 +85,7 @@
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
+#include "ImageFile.h"
 #include "Matrix4x4.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
@@ -427,6 +430,8 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
                 glEnd();
             }
         }
+
+        drawBackgroundImage(vpContent);
         
 //        CaretLogFinest("Drawing Model "
 //                       + AString::number(i)
@@ -5175,6 +5180,149 @@ BrainOpenGLFixedPipeline::drawSquare(const uint8_t rgba[4],
         glVertex3f( 0.5, -0.5, 0.0);
         glEnd();
     }
+}
+
+/**
+ * Draw the user's selected image over the background
+ *
+ * vpContent
+ *    Viewport content which image is displayed.
+ */
+void
+BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpContent)
+{
+    BrowserTabContent* btc = vpContent->getBrowserTabContent();
+    if (btc == NULL) {
+        return;
+    }
+    
+    Brain* brain = vpContent->getBrain();
+    DisplayPropertiesImages* dpi = brain->getDisplayPropertiesImages();
+    const int32_t tabIndex = btc->getTabNumber();
+    const DisplayGroupEnum::Enum displayGroup = dpi->getDisplayGroupForTab(tabIndex);
+    if (dpi->isDisplayed(displayGroup,
+                         tabIndex)) {
+        int modelViewport[4];
+        vpContent->getModelViewport(modelViewport);
+        
+        ImageFile* imageFile = dpi->getSelectedImageFile(displayGroup,
+                                                               tabIndex);
+        if (imageFile != NULL) {
+            drawImage(modelViewport,
+                      imageFile);
+        }
+    }
+}
+
+/**
+ * Draw the given QImage in the given viewport.
+ *
+ * @param viewport
+ *    The viewport dimensions.
+ * @param image
+ *    The QImage that is drawn.
+ */
+void
+BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
+                                    const ImageFile* imageFile)
+{
+    int32_t imageWidth  = 0;
+    int32_t imageHeight = 0;
+    std::vector<uint8_t> imageBytesRGBA;
+    if ( ! imageFile->getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                        imageBytesRGBA,
+                                        imageWidth,
+                                        imageHeight)) {
+        return;
+    }
+        
+    const float xScale = static_cast<float>(viewport[2])
+    / static_cast<float>(imageWidth);
+    const float yScale = static_cast<float>(viewport[3])
+    / static_cast<float>(imageHeight);
+    
+    float pixelZoom = 1.0;
+    float xPos = 0.0;
+    float yPos = 0.0;
+    
+//    switch (dsi->getImagePositionMode()) {
+//        case DisplaySettingsImages::IMAGE_POSITION_MODE_CENTER_OF_WINDOW:
+//        {
+//            const float imageCenterX = image->width() * 0.5;
+//            const float imageCenterY = image->height() * 0.5;
+//            const float windowCenterX = viewport[2] * 0.5;
+//            const float windowCenterY = viewport[3] * 0.5;
+//            xPos = windowCenterX - imageCenterX;
+//            yPos = windowCenterY - imageCenterY;
+//            
+//            if (xScale < yScale) {
+//                pixelZoom = xScale;
+//            }
+//            else {
+//                pixelZoom = yScale;
+//            }
+//            xPos = windowCenterX - (imageCenterX * pixelZoom);
+//            xPos = std::max(0.0f, xPos);
+//            yPos = windowCenterY - (imageCenterY * pixelZoom);
+//            yPos = std::max(0.0f, yPos);
+//        }
+//            break;
+//        case DisplaySettingsImages::IMAGE_POSITION_MODE_SCALE_TO_WINDOW:
+//        {
+            bool centerImageX = false, centerImageY = false;
+            if (xScale < yScale) {
+                pixelZoom = xScale;
+                centerImageY = true;
+            }
+            else {
+                pixelZoom = yScale;
+                centerImageX = true;
+            }
+            
+            if (centerImageY) {
+                // center image vertically
+                const float ySize = imageHeight * pixelZoom;
+                const float margin = viewport[3] - ySize;
+                yPos = margin * 0.5;
+            }
+            if (centerImageX) {
+                // center image horizontally
+                const float xSize = imageWidth * pixelZoom;
+                const float margin = viewport[3] - xSize;
+                xPos = margin * 0.5;
+            }
+            
+//        }
+//            break;
+//    }
+    
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    const double nearClip = -1000.0;
+    const double farClip  =  1000.0;
+    glOrtho(viewport[0], viewport[2],
+            viewport[1], viewport[3],
+            nearClip, farClip);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    //
+    // Draw image near far clipping plane
+    //
+    const float imageZ = 10.0 - farClip;
+    glRasterPos3f(xPos, yPos, imageZ); //-500.0); // set Z so image behind surface
+    glPixelZoom(pixelZoom, pixelZoom);
+    
+    glDrawPixels(imageWidth, imageHeight,
+                 GL_RGBA, GL_UNSIGNED_BYTE,
+                 (GLvoid*)&imageBytesRGBA[0]);
+    
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
 }
 
 /**

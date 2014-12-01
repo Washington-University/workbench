@@ -394,6 +394,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     break;
                 case DataFileTypeEnum::FOCI:
                     break;
+                case DataFileTypeEnum::IMAGE:
+                    break;
                 case DataFileTypeEnum::LABEL:
                     isColoringValid = this->assignLabelColoring(displayPropertiesLabels,
                                                                 browserTabIndex,
