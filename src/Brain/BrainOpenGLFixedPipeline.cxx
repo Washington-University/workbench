@@ -5301,8 +5301,8 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
     glLoadIdentity();
     const double nearClip = -1000.0;
     const double farClip  =  1000.0;
-    glOrtho(viewport[0], viewport[2],
-            viewport[1], viewport[3],
+    glOrtho(0, viewport[2],
+            0, viewport[3],
             nearClip, farClip);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
