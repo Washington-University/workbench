@@ -31,6 +31,7 @@
 #include "OperationException.h"
 
 using namespace caret;
+using namespace std;
 
 /**
  * \class caret::OperationFileInformation 
@@ -71,6 +72,8 @@ OperationFileInformation::getParameters()
 
     ret->createOptionalParameter(4, "-only-number-of-maps", "suppress normal output, print the number of maps");
 
+    ret->createOptionalParameter(5, "-only-map-names", "suppress normal output, print the names of all maps");
+
     AString helpText("List information about the content of a data file.  "
                      "Only one -only option may be specified.  "
                      "The information listed when no -only option is present is dependent upon the type of data file.");
@@ -93,13 +96,19 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     
     const bool showMapInformationFlag = ! (myParams->getOptionalParameter(2)->m_present);
     
+    int countOnlys = 0;
     bool onlyTimestep = myParams->getOptionalParameter(3)->m_present;
+    if (onlyTimestep) ++countOnlys;
 
     bool onlyNumMaps = myParams->getOptionalParameter(4)->m_present;
+    if (onlyNumMaps) ++countOnlys;
     
-    if (onlyTimestep && onlyNumMaps) throw OperationException("only one -only option may be specified");
+    bool onlyMapNames = myParams->getOptionalParameter(5)->m_present;
+    if (onlyMapNames) ++countOnlys;
     
-    bool preferOnDisk = (!showMapInformationFlag || onlyNumMaps || onlyTimestep);
+    if (countOnlys > 1) throw OperationException("only one -only-* option may be specified");
+    
+    bool preferOnDisk = (!showMapInformationFlag || countOnlys != 0);
 
     CaretPointer<CaretDataFile> caretDataFile(CaretDataFileHelper::readAnyCaretDataFile(dataFileName, preferOnDisk));
     
@@ -110,7 +119,7 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
         if (mappableFile->getMapIntervalUnits() == NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN) throw OperationException("file does not support series data");
         float start, step;
         mappableFile->getMapIntervalStartAndStep(start, step);
-        std::cout << step << std::endl;
+        cout << step << endl;
     }
     if (onlyNumMaps)
     {
@@ -118,9 +127,20 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
         if (mappableFile == NULL) throw OperationException("file does not support maps");//TODO: also give error on things that it doesn't make sense on
         int numMaps = mappableFile->getNumberOfMaps();
         if (numMaps < 1) throw OperationException("file does not support maps");
-        std::cout << numMaps << std::endl;
+        cout << numMaps << endl;
     }
-    if (!onlyTimestep && !onlyNumMaps)
+    if (onlyMapNames)
+    {
+        CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
+        if (mappableFile == NULL) throw OperationException("file does not support maps");//TODO: also give error on things that it doesn't make sense on
+        int numMaps = mappableFile->getNumberOfMaps();
+        if (numMaps < 1) throw OperationException("file does not support maps");
+        for (int i = 0; i < numMaps; ++i)
+        {
+            cout << mappableFile->getMapName(i) << endl;
+        }
+    }
+    if (countOnlys == 0)
     {
         DataFileContentInformation dataFileContentInformation;
         dataFileContentInformation.setOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION,
@@ -128,7 +148,7 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
         
         caretDataFile->addToDataFileContentInformation(dataFileContentInformation);
         
-        std::cout << qPrintable(dataFileContentInformation.getInformationInString()) << std::endl;
+        cout << qPrintable(dataFileContentInformation.getInformationInString()) << endl;
     }
 }
 
