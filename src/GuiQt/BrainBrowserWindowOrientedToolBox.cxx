@@ -179,7 +179,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_imageSelectionViewController = new ImageSelectionViewController(browserWindowIndex,
                                                                           this);
         m_imageTabIndex = addToTabWidget(m_imageSelectionViewController,
-                                         "Image");
+                                         "Images");
     }
     
     if (isFeaturesToolBox) {
