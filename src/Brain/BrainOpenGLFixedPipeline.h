@@ -575,6 +575,7 @@ namespace caret {
         
         friend class BrainOpenGLChartDrawingFixedPipeline;
         friend class BrainOpenGLVolumeSliceDrawing;
+        friend class OldBrainOpenGLVolumeSliceDrawing;
     };
 
 #ifdef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H

@@ -103,6 +103,9 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
         case FLAG_VOLUME_QUADS:
             this->flagStatus = true;
             break;
+        case FLAG_VOLUME_CENTERING:
+            this->flagStatus = true;
+            break;
     }
 }
 
@@ -135,6 +138,10 @@ DeveloperFlagsEnum::initialize()
     enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_QUADS,
                                           "FLAG_VOLUME_QUADS",
                                           "Volume Quad Drawing"));
+    
+    enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_CENTERING,
+                                          "FLAG_VOLUME_CENTERING",
+                                          "Volume Centering"));
     
 }
 

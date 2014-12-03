@@ -40,7 +40,9 @@ public:
         /** */
         FLAG_VOLUME_CULLING,
         /** */
-        FLAG_VOLUME_QUADS
+        FLAG_VOLUME_QUADS,
+        /** */
+        FLAG_VOLUME_CENTERING
     };
 
 

@@ -1,7 +1,7 @@
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2014 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,13 +19,7 @@
  */
 /*LICENSE_END*/
 
-#include <algorithm>
 #include <cmath>
-#include <cstdlib>
-#include <iostream>
-#include <limits>
-
-#include "CaretOpenGLInclude.h"
 
 #define __OLD_BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
 #include "OLD_BrainOpenGLVolumeSliceDrawing.h"
@@ -37,116 +31,123 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretOpenGLInclude.h"
 #include "CaretPreferences.h"
 #include "CiftiMappableDataFile.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesLabels.h"
-#include "DisplayPropertiesVolume.h"
+#include "ElapsedTimer.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
+#include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationWithColor.h"
+#include "LabelDrawingProperties.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
-#include "Model.h"
 #include "ModelVolume.h"
+#include "ModelWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
-#include "Plane.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemVoxel.h"
+#include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
 #include "Surface.h"
 #include "VolumeFile.h"
-#include "VolumeMappableInterface.h"
-#include "VolumeSurfaceOutlineModel.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
+#include "VolumeSurfaceOutlineModel.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
 using namespace caret;
 
 static const bool debugFlag = false;
-static const bool showAxesInAllSlicesViewBottomLeftFlag = true;
-
+    
 /**
- * \class caret::OLD_BrainOpenGLVolumeSliceDrawing 
- * \brief Performs oblique volume slice drawing.
+ * \class caret::OldBrainOpenGLVolumeSliceDrawing 
+ * \brief Draws volume slices using OpenGL
  * \ingroup Brain
- *
  */
 
 /**
  * Constructor.
  */
-OLD_BrainOpenGLVolumeSliceDrawing::OLD_BrainOpenGLVolumeSliceDrawing()
+OldBrainOpenGLVolumeSliceDrawing::OldBrainOpenGLVolumeSliceDrawing()
 : CaretObject()
 {
-    m_lookAtCenter[0] = 0.0;
-    m_lookAtCenter[1] = 0.0;
-    m_lookAtCenter[2] = 0.0;
     
-    Matrix4x4 identity;
-    identity.identity();
-    identity.getMatrixForOpenGL(m_viewingMatrix);
 }
 
 /**
  * Destructor.
  */
-OLD_BrainOpenGLVolumeSliceDrawing::~OLD_BrainOpenGLVolumeSliceDrawing()
+OldBrainOpenGLVolumeSliceDrawing::~OldBrainOpenGLVolumeSliceDrawing()
 {
 }
 
 /**
- * Draw the oblique slice(s) selected in the browser content.
- *
- * Draw all slice planes for an all view.
+ * Draw Volume Slices or slices for ALL Stuctures View.
  *
  * @param fixedPipelineDrawing
- *   The fixed pipeline drawing.
+ *    The OpenGL drawing.
  * @param browserTabContent
- *   Content of the browser tab being drawn.
+ *    Content of browser tab that is to be drawn.
  * @param volumeDrawInfo
- *   Vector containing about volumes selected as overlays for drawing.
- * @param sliceViewMode
- *   Slice viewing mode.
+ *    Info on each volume layers for drawing.
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param viewport
- *   Viewport in which drawing takes place.
+ *    The viewport (region of graphics area) for drawing slices.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                        BrowserTabContent* browserTabContent,
-                                        std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                        const VolumeSliceViewModeEnum::Enum sliceViewMode,
-                                        const int viewport[4])
+OldBrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                  BrowserTabContent* browserTabContent,
+                                  std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                                  const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                  const int32_t viewport[4])
 {
     if (volumeDrawInfo.empty()) {
         return;
     }
     
-    glMatrixMode(GL_MODELVIEW);
-    
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(browserTabContent);
+    m_browserTabContent = browserTabContent;    
     
     /*
-     * Initialize class members which help reduce the number of 
+     * Initialize class members which help reduce the number of
      * parameters that are passed to methods.
      */
-    Model* model = browserTabContent->getModelForDisplay();
-    CaretAssert(model);
-    
-    m_brain = model->getBrain();
+    m_brain           = NULL;
+    m_modelVolume     = NULL;
+    m_modelWholeBrain = NULL;
+    if (m_browserTabContent->getDisplayedVolumeModel() != NULL) {
+        m_modelVolume = m_browserTabContent->getDisplayedVolumeModel();
+        m_brain = m_modelVolume->getBrain();
+    }
+    else if (m_browserTabContent->getDisplayedWholeBrainModel() != NULL) {
+        m_modelWholeBrain = m_browserTabContent->getDisplayedWholeBrainModel();
+        m_brain = m_modelWholeBrain->getBrain();
+    }
+    else {
+        CaretAssertMessage(0, "Invalid model for volume slice drawing.");
+    }
     CaretAssert(m_brain);
     
     m_fixedPipelineDrawing = fixedPipelineDrawing;
     
     m_volumeDrawInfo = volumeDrawInfo;
+    if (m_volumeDrawInfo.empty()) {
+        return;
+    }
+    m_underlayVolume = m_volumeDrawInfo[0].volumeFile;
     
-    m_browserTabContent = browserTabContent;
-    
-    m_paletteFile = browserTabContent->getModelForDisplay()->getBrain()->getPaletteFile();
+    m_paletteFile = m_browserTabContent->getModelForDisplay()->getBrain()->getPaletteFile();
     CaretAssert(m_paletteFile);
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
@@ -154,15 +155,11 @@ OLD_BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
     
     m_tabIndex = m_browserTabContent->getTabNumber();
     
-    m_sliceViewMode = sliceViewMode;
-    
-    const int32_t invalidSliceIndex = -1;
-    
     /*
      * Cifti files are slow at getting individual voxels since they
      * provide no access to individual voxels.  The reason is that
      * the data may be on a server (Dense data) and accessing a single
-     * voxel would require requesting the entire map.  So, for 
+     * voxel would require requesting the entire map.  So, for
      * each Cifti file, get the enter map.  This also, eliminate multiple
      * requests for the same map when drawing an ALL view.
      */
@@ -178,355 +175,140 @@ OLD_BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
         }
     }
     
-    if (browserTabContent->getDisplayedVolumeModel() != NULL) {
-        bool drawMontageView = false;
-        bool drawThreeSliceView = false;
-        switch (sliceViewMode) {
-            case VolumeSliceViewModeEnum::MONTAGE:
-                drawMontageView = true;
-                break;
-            case VolumeSliceViewModeEnum::OBLIQUE:
-                drawThreeSliceView = true;
-                break;
-            case VolumeSliceViewModeEnum::ORTHOGONAL:
-                break;
-        }
-        
-        if (drawMontageView) {
-            drawSliceMontage(viewport);
-        }
-        else {
-            glEnable(GL_DEPTH_TEST);
-            
-            const VolumeSliceViewPlaneEnum::Enum slicePlane = browserTabContent->getSliceViewPlane();
-            switch (slicePlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                {
-                    const int gap = 2;
-                    
-                    const int vpHalfX = viewport[2] / 2;
-                    const int vpHalfY = viewport[3] / 2;
-                    
-                    const int paraVP[4] = {
-                        viewport[0],
-                        viewport[1] + vpHalfY + gap,
-                        vpHalfX - gap,
-                        vpHalfY - gap
-                    };
-                    glPushMatrix();
-                    drawSliceForSliceView(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                             DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
-                                             invalidSliceIndex,
-                                             paraVP);
-                    glPopMatrix();
-                    
-                    
-                    const int coronalVP[4] = {
-                        viewport[0] + vpHalfX + gap,
-                        viewport[1] + vpHalfY + gap,
-                        vpHalfX - gap,
-                        vpHalfY - gap
-                    };
-                    glPushMatrix();
-                    drawSliceForSliceView(VolumeSliceViewPlaneEnum::CORONAL,
-                                             DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
-                                             invalidSliceIndex,
-                                             coronalVP);
-                    glPopMatrix();
-                    
-                    
-                    const int axialVP[4] = {
-                        viewport[0] + vpHalfX + gap,
-                        viewport[1],
-                        vpHalfX - gap,
-                        vpHalfY - gap
-                    };
-                    glPushMatrix();
-                    drawSliceForSliceView(VolumeSliceViewPlaneEnum::AXIAL,
-                                             DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
-                                             invalidSliceIndex,
-                                             axialVP);
-                    glPopMatrix();
-                    const int allVP[4] = {
-                        viewport[0],
-                        viewport[1],
-                        vpHalfX - gap,
-                        vpHalfY - gap
-                    };
-                    
-                    if (drawThreeSliceView) {
-                        if (showAxesInAllSlicesViewBottomLeftFlag) {
-                            drawOrientationAxes(allVP,
-                                                VolumeSliceViewPlaneEnum::ALL);
-                        }
-                        else {
-                            drawAllThreeSlicesForVolumeSliceView(allVP);
-                        }
-                    }
-                }
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                {
-                    glPushMatrix();
-                    drawSliceForSliceView(slicePlane,
-                                          DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
-                                          invalidSliceIndex,
-                                          viewport);
-                    glPopMatrix();
-                    
-                    if (showAxesInAllSlicesViewBottomLeftFlag) {
-                        if (sliceViewMode == VolumeSliceViewModeEnum::OBLIQUE) {
-                            glPushMatrix();
-                            
-                            /*
-                             * Draw axes in bottom right corner
-                             */
-                            const float percentage = 0.2;
-                            const int vpSmallX = viewport[2] * percentage;
-                            const int vpSmallY = viewport[3] * percentage;
-                            if ((vpSmallX > 20)
-                                && (vpSmallY > 20)) {
-                                const int smallVP[4] = {
-                                    viewport[0] + viewport[2] - vpSmallX,
-                                    viewport[1],
-                                    vpSmallX,
-                                    vpSmallY
-                                };
-                                
-                                drawOrientationAxes(smallVP,
-                                                    slicePlane);
-                            }
-                            
-                            glPopMatrix();
-                        }
-                    }
-                }
-                    break;
-            }
-        }
-    }
+    /** END SETUP OF MEMBERS IN PARENT CLASS OldBrainOpenGLVolumeSliceDrawing */
     
-    if (browserTabContent->getDisplayedWholeBrainModel() != NULL) {
-        drawSlicesForAllStructuresView(viewport);
+    
+    
+    if (browserTabContent->getDisplayedVolumeModel() != NULL) {
+        drawVolumeSliceViewPlane(sliceDrawingType,
+                                 sliceProjectionType,
+                                 browserTabContent->getSliceViewPlane(),
+                                 viewport);
     }
+    else if (browserTabContent->getDisplayedWholeBrainModel() != NULL) {
+        drawVolumeSlicesForAllStructuresView(sliceProjectionType,
+                                             viewport);
+    }    
 }
 
 /**
- * Draw an orthogonal volume slice montage
+ * Draw volume view slices for the given view plane.
+ *
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
  * @param viewport
- *    The viewport.
+ *    The viewport (region of graphics area) for drawing slices.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::drawSliceMontage(const int viewport[4])
+OldBrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                              const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                              const int32_t viewport[4])
 {
-    const int numRows = m_browserTabContent->getMontageNumberOfRows();
-    CaretAssert(numRows > 0);
-    const int numCols = m_browserTabContent->getMontageNumberOfColumns();
-    CaretAssert(numCols > 0);
-    
-    const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
-    const int montageMargin = caretPreferences->getVolumeMontageGap();
-    const int montageCoordPrecision = caretPreferences->getVolumeMontageCoordinatePrecision();
-    
-    const int totalGapX = montageMargin * (numCols - 1);
-    const int vpSizeX = (viewport[2] - totalGapX) / numCols;
-    const int totalGapY = montageMargin * (numRows - 1);
-    const int vpSizeY = (viewport[3] - totalGapY) / numRows;
-    
-    VolumeMappableInterface* underlayVolume = m_volumeDrawInfo[0].volumeFile;
-    /*
-     * Voxel sizes for underlay volume
-     */
-    float originX, originY, originZ;
-    float x1, y1, z1;
-    underlayVolume->indexToSpace(0, 0, 0, originX, originY, originZ);
-    underlayVolume->indexToSpace(1, 1, 1, x1, y1, z1);
-    float sliceThickness = 0.0;
-    float sliceOrigin    = 0.0;
-    
-    AString axisLetter = "";
-    
-    int sliceIndex = -1;
-    int maximumSliceIndex = -1;
-    int64_t dimI, dimJ, dimK, numMaps, numComponents;
-    m_volumeDrawInfo[0].volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-    const int sliceStep = m_browserTabContent->getMontageSliceSpacing();
-    const VolumeSliceViewPlaneEnum::Enum slicePlane = m_browserTabContent->getSliceViewPlane();
-    switch (slicePlane) {
+    switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
-            sliceIndex = -1;
+        {
+            const int32_t gap = 2;
+            
+            const int32_t vpHalfX = viewport[2] / 2;
+            const int32_t vpHalfY = viewport[3] / 2;
+            
+            /*
+             * Draw parasagittal slice
+             */
+            const int32_t paraVP[4] = {
+                viewport[0],
+                viewport[1] + vpHalfY + gap,
+                vpHalfX - gap,
+                vpHalfY - gap
+            };
+            glPushMatrix();
+            drawVolumeSliceViewType(sliceDrawingType,
+                                    sliceProjectionType,
+                                    VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                    paraVP);
+            glPopMatrix();
+            
+            
+            /*
+             * Draw coronal slice
+             */
+            const int32_t coronalVP[4] = {
+                viewport[0] + vpHalfX + gap,
+                viewport[1] + vpHalfY + gap,
+                vpHalfX - gap,
+                vpHalfY - gap
+            };
+            glPushMatrix();
+            drawVolumeSliceViewType(sliceDrawingType,
+                                    sliceProjectionType,
+                                    VolumeSliceViewPlaneEnum::CORONAL,
+                                    coronalVP);
+            glPopMatrix();
+            
+            
+            /*
+             * Draw axial slice
+             */
+            const int32_t axialVP[4] = {
+                viewport[0] + vpHalfX + gap,
+                viewport[1],
+                vpHalfX - gap,
+                vpHalfY - gap
+            };
+            glPushMatrix();
+            drawVolumeSliceViewType(sliceDrawingType,
+                                    sliceProjectionType,
+                                    VolumeSliceViewPlaneEnum::AXIAL,
+                                    axialVP);
+            glPopMatrix();
+            
+            /*
+             * 4th quadrant is used for axis showing orientation
+             */
+            const int32_t allVP[4] = {
+                viewport[0],
+                viewport[1],
+                vpHalfX - gap,
+                vpHalfY - gap
+            };
+            
+            switch (sliceProjectionType) {
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                    drawOrientationAxes(allVP);
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    break;
+            }
+        }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            sliceIndex = m_browserTabContent->getSliceIndexAxial(underlayVolume);
-            maximumSliceIndex = dimK;
-            sliceThickness = z1 - originZ;
-            sliceOrigin = originZ;
-            axisLetter = "Z";
-            break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            sliceIndex = m_browserTabContent->getSliceIndexCoronal(underlayVolume);
-            maximumSliceIndex = dimJ;
-            sliceThickness = y1 - originY;
-            sliceOrigin = originY;
-            axisLetter = "Y";
-            break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            sliceIndex = m_browserTabContent->getSliceIndexParasagittal(underlayVolume);
-            maximumSliceIndex = dimI;
-            sliceThickness = x1 - originX;
-            sliceOrigin = originX;
-            axisLetter = "X";
+            drawVolumeSliceViewType(sliceDrawingType,
+                          sliceProjectionType,
+                          sliceViewPlane,
+                          viewport);
             break;
-    }
-    
-    /*
-     * Foreground color for slice coordinate text
-     */
-    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    uint8_t foregroundRGB[3];
-    prefs->getColorForegroundVolumeView(foregroundRGB);
-    const bool showCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
-    
-    
-    /*
-     * Determine a slice offset to selected slices is in
-     * the center of the montage
-     */
-    const int numSlicesViewed = (numCols * numRows);
-    const int sliceOffset = ((numSlicesViewed / 2)
-                             * sliceStep);
-    
-    const bool startAtTopLeftToRight = true;
-    if (startAtTopLeftToRight) {
-        sliceIndex += sliceOffset;
-        
-        /*
-         * Find first valid slice for montage
-         */
-        while (sliceIndex >= 0) {
-            if (sliceIndex < maximumSliceIndex) {
-                break;
-            }
-            sliceIndex -= sliceStep;
-        }
-        
-        if (sliceIndex >= 0) {
-            for (int i = 0; i < numRows; i++) {
-                for (int j = 0; j < numCols; j++) {
-                    if ((sliceIndex >= 0)
-                        && (sliceIndex < maximumSliceIndex)) {
-                        const int vpX = (j * (vpSizeX + montageMargin));
-                        const int vpY = ((numRows - i - 1) * (vpSizeY + montageMargin));
-                        int vp[4] = {
-                            viewport[0] + vpX,
-                            viewport[1] + vpY,
-                            vpSizeX,
-                            vpSizeY
-                        };
-                        
-                        if ((vp[2] <= 0)
-                            || (vp[3] <= 0)) {
-                            continue;
-                        }
-                        
-                        drawSliceForSliceView(slicePlane,
-                                              DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
-                                              sliceIndex,
-                                              vp);
-                        const float sliceCoord = (sliceOrigin
-                                                  + sliceThickness * sliceIndex);
-                        if (showCoordinates) {
-                            const AString coordText = (axisLetter
-                                                       + "="
-                                                       + AString::number(sliceCoord, 'f', montageCoordPrecision)
-                                                       + "mm");
-                            glColor3ubv(foregroundRGB);
-                            m_fixedPipelineDrawing->drawTextWindowCoords((vpSizeX - 5),
-                                                                         5,
-                                                                         coordText,
-                                                                         BrainOpenGLTextRenderInterface::X_RIGHT,
-                                                                         BrainOpenGLTextRenderInterface::Y_BOTTOM,
-                                                                         BrainOpenGLTextRenderInterface::NORMAL,
-                                                                         12);
-                        }
-                    }
-                    sliceIndex -= sliceStep;
-                }
-            }
-        }
-    }
-    else {
-        sliceIndex -= sliceOffset;
-        for (int i = 0; i < numRows; i++) {
-            for (int j = 0; j < numCols; j++) {
-                if ((sliceIndex >= 0)
-                    && (sliceIndex < maximumSliceIndex)) {
-                    const int vpX = (j * (vpSizeX + montageMargin));
-                    const int vpY = (i * (vpSizeY + montageMargin));
-                    int vp[4] = {
-                        viewport[0] + vpX,
-                        viewport[1] + vpY,
-                        vpSizeX,
-                        vpSizeY
-                    };
-                    
-                    if ((vp[2] <= 0)
-                        || (vp[3] <= 0)) {
-                        continue;
-                    }
-                    
-                    drawSliceForSliceView(slicePlane,
-                                          DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
-                                          sliceIndex,
-                                          vp);
-                    const float sliceCoord = (sliceOrigin
-                                              + sliceThickness * sliceIndex);
-                    if (showCoordinates) {
-                        const AString coordText = (axisLetter
-                                                   + "="
-                                                   + AString::number(sliceCoord, 'f', 0)
-                                                   + "mm");
-                        glColor3ubv(foregroundRGB);
-                        m_fixedPipelineDrawing->drawTextWindowCoords((vpSizeX - 5),
-                                                                     5,
-                                                                     coordText,
-                                                                     BrainOpenGLTextRenderInterface::X_RIGHT,
-                                                                     BrainOpenGLTextRenderInterface::Y_BOTTOM,
-                                                                     BrainOpenGLTextRenderInterface::NORMAL,
-                                                                     12);
-                    }
-                }
-                sliceIndex += sliceStep;
-            }
-        }
-    }
-    
-    /*
-     * Draw the axes labels for the montage view
-     */
-    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-
-    if (prefs->isVolumeAxesLabelsDisplayed()) {
-        drawAxesCrosshairsOrthoAndOblique(slicePlane,
-                                          VolumeSliceViewModeEnum::ORTHOGONAL,
-                                          false,
-                                          true);
     }
 }
 
 /**
  * Draw slices for the all structures view.
  *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param viewport
  *    The viewport.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::drawSlicesForAllStructuresView(const int viewport[4])
+OldBrainOpenGLVolumeSliceDrawing::drawVolumeSlicesForAllStructuresView(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                                  const int32_t viewport[4])
 {
-    const int32_t invalidSliceIndex = -1;
-    
     m_orthographicBounds[0] = m_fixedPipelineDrawing->orthographicLeft;
     m_orthographicBounds[1] = m_fixedPipelineDrawing->orthographicRight;
     m_orthographicBounds[2] = m_fixedPipelineDrawing->orthographicBottom;
@@ -561,1072 +343,315 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawSlicesForAllStructuresView(const int view
         m_orthographicBounds[3] = newTop;
     }
     
+    const float sliceCoordinates[3] = {
+        m_browserTabContent->getSliceCoordinateParasagittal(),
+        m_browserTabContent->getSliceCoordinateCoronal(),
+        m_browserTabContent->getSliceCoordinateAxial()
+    };
+    
     if (m_browserTabContent->isSliceAxialEnabled()) {
         glPushMatrix();
-        drawSliceForSliceView(VolumeSliceViewPlaneEnum::AXIAL,
-                                 DRAW_MODE_ALL_STRUCTURES_VIEW,
-                                 invalidSliceIndex,
-                                 viewport);
+        drawVolumeSliceViewProjection(VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
+                                      sliceProjectionType,
+                                      VolumeSliceViewPlaneEnum::AXIAL,
+                                      sliceCoordinates,
+                                      viewport);
         glPopMatrix();
     }
     
     if (m_browserTabContent->isSliceCoronalEnabled()) {
         glPushMatrix();
-        drawSliceForSliceView(VolumeSliceViewPlaneEnum::CORONAL,
-                                 DRAW_MODE_ALL_STRUCTURES_VIEW,
-                                 invalidSliceIndex,
-                                 viewport);
+        drawVolumeSliceViewProjection(VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
+                                      sliceProjectionType,
+                                      VolumeSliceViewPlaneEnum::CORONAL,
+                                      sliceCoordinates,
+                                      viewport);
         glPopMatrix();
     }
     
     if (m_browserTabContent->isSliceParasagittalEnabled()) {
         glPushMatrix();
-        drawSliceForSliceView(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                 DRAW_MODE_ALL_STRUCTURES_VIEW,
-                                 invalidSliceIndex,
-                                 viewport);
+        drawVolumeSliceViewProjection(VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
+                                      sliceProjectionType,
+                                      VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                      sliceCoordinates,
+                                      viewport);
         glPopMatrix();
     }
 }
 
 /**
- * Draw volume view's three slice mode for oblique drawing.
+ * Draw single or montage volume view slices.
  *
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
  * @param viewport
- *    The viewport.
+ *    The viewport (region of graphics area) for drawing slices.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::drawAllThreeSlicesForVolumeSliceView(const int viewport[4])
+OldBrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                           const int32_t viewport[4])
 {
-    const int32_t invalidSliceIndex = -1;
+    switch (sliceDrawingType) {
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+            drawVolumeSliceViewTypeMontage(sliceDrawingType,
+                                           sliceProjectionType,
+                                 sliceViewPlane,
+                                 viewport);
+            break;
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+        {
+            const float sliceCoordinates[3] = {
+                m_browserTabContent->getSliceCoordinateParasagittal(),
+                m_browserTabContent->getSliceCoordinateCoronal(),
+                m_browserTabContent->getSliceCoordinateAxial()
+            };
+            drawVolumeSliceViewProjection(sliceDrawingType,
+                                          sliceProjectionType,
+                                sliceViewPlane,
+                                sliceCoordinates,
+                                viewport);
+        }
+            break;
+    }
     
-    glViewport(viewport[0],
-               viewport[1],
-               viewport[2],
-               viewport[3]);
-    
-    setOrthographicProjection(VolumeSliceViewPlaneEnum::ALL, viewport);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    
-    /*
-     * Need to set to an axial/all view, then draw slices
-     * Add method getIdentStuff() and processIdentStuff()
-     * Then set viewing transform and draw oblique or orthogonal
-     */
-    const double eyeX = 0;
-    const double eyeY = 0;
-    const double eyeZ = 100;
-    const double centerX = 0;
-    const double centerY = 0;
-    const double centerZ = 0;
-    const double upX = 0;
-    const double upY = 1;
-    const double upZ = 0;
-    gluLookAt(eyeX, eyeY, eyeZ,
-              centerX, centerY, centerZ,
-              upX, upY, upZ);
-    
-    const float zoom = m_browserTabContent->getScaling();
-    glScalef(zoom, zoom, zoom);
-    
-    glPushMatrix();
-    drawSliceForSliceView(VolumeSliceViewPlaneEnum::AXIAL,
-                             DRAW_MODE_VOLUME_VIEW_SLICE_3D,
-                             invalidSliceIndex,
-                             viewport);
-    glPopMatrix();
-
-
-    glPushMatrix();
-    drawSliceForSliceView(VolumeSliceViewPlaneEnum::CORONAL,
-                             DRAW_MODE_VOLUME_VIEW_SLICE_3D,
-                             invalidSliceIndex,
-                             viewport);
-    glPopMatrix();
-    
-    
-    glPushMatrix();
-    drawSliceForSliceView(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                             DRAW_MODE_VOLUME_VIEW_SLICE_3D,
-                             invalidSliceIndex,
-                             viewport);
-    glPopMatrix();
-    
-    glPopMatrix();
 }
 
 /**
- * Set the orthographic projection.
+ * Draw montage slices.
  *
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
- *    View plane that is displayed.
+ *    The plane for slice drawing.
  * @param viewport
- *    The viewport.
+ *    The viewport (region of graphics area) for drawing slices.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                             const int viewport[4])
+OldBrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                  const int32_t viewport[4])
 {
-
-    /*
-     * Determine model size in screen Y when viewed
-     */
-    BoundingBox boundingBox;
-    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
-
-    /*
-     * Set top and bottom to the min/max coordinate
-     * that runs vertically on the screen
-     */
-    double modelTop = 200.0;
-    double modelBottom = -200.0;
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            if ( ! showAxesInAllSlicesViewBottomLeftFlag) {
-                modelTop = boundingBox.getMaxY();
-                modelBottom = boundingBox.getMinY();
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            modelTop = boundingBox.getMaxY();
-            modelBottom = boundingBox.getMinY();
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            modelTop = boundingBox.getMaxZ();
-            modelBottom = boundingBox.getMinZ();
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            modelTop = boundingBox.getMaxZ();
-            modelBottom = boundingBox.getMinZ();
-            break;
-    }
+    const int32_t numRows = m_browserTabContent->getMontageNumberOfRows();
+    CaretAssert(numRows > 0);
+    const int32_t numCols = m_browserTabContent->getMontageNumberOfColumns();
+    CaretAssert(numCols > 0);
+    
+    const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
+    const int32_t montageMargin = caretPreferences->getVolumeMontageGap();
+    const int32_t montageCoordPrecision = caretPreferences->getVolumeMontageCoordinatePrecision();
+    
+    const int32_t totalGapX = montageMargin * (numCols - 1);
+    const int32_t vpSizeX = (viewport[2] - totalGapX) / numCols;
+    const int32_t totalGapY = montageMargin * (numRows - 1);
+    const int32_t vpSizeY = (viewport[3] - totalGapY) / numRows;
     
     /*
-     * Scale ratio makes region slightly larger than model
+     * Voxel sizes for underlay volume
      */
-    const double zoom = m_browserTabContent->getScaling();
-    double scaleRatio = (1.0 / 0.98);
-    if (zoom > 0.0) {
-        scaleRatio /= zoom;
-    }
-    modelTop *= scaleRatio;
-    modelBottom *= scaleRatio;
-    
-    /*
-     * Determine aspect ratio of viewport
-     */
-    const double viewportWidth = viewport[2];
-    const double viewportHeight = viewport[3];
-    const double aspectRatio = (viewportWidth
-                                / viewportHeight);
-    
-    /*
-     * Set bounds of orthographic projection
-     */
-    const double halfModelY = ((modelTop - modelBottom) / 2.0);
-    const double orthoBottom = modelBottom;
-    const double orthoTop    = modelTop;
-    const double orthoRight  =  halfModelY * aspectRatio;
-    const double orthoLeft   = -halfModelY * aspectRatio;
-    const double nearDepth = -1000.0;
-    const double farDepth  =  1000.0;
-    m_orthographicBounds[0] = orthoLeft;
-    m_orthographicBounds[1] = orthoRight;
-    m_orthographicBounds[2] = orthoBottom;
-    m_orthographicBounds[3] = orthoTop;
-    m_orthographicBounds[4] = nearDepth;
-    m_orthographicBounds[5] = farDepth;
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(m_orthographicBounds[0],
-            m_orthographicBounds[1],
-            m_orthographicBounds[2],
-            m_orthographicBounds[3],
-            m_orthographicBounds[4],
-            m_orthographicBounds[5]);
-    glMatrixMode(GL_MODELVIEW);
-    
-//    CaretLogFine("Orthographic Bounds: "
-//                   + AString::fromNumbers(m_orthographicBounds, 6, ","));
-}
-
-/**
- * Create the equation for the slice plane
- *
- * @param sliceViewPlane
- *    View plane that is displayed.
- * @param montageSliceIndex
- *    Selected montage slice index
- * @param planeOut
- *    OUTPUT plane of slice after transforms.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                        const int32_t montageSliceIndex,
-                                                        Plane& planeOut)
-{
-    float selectedSliceCoordinate[3] = {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
-    };
-    
-    /*
-     * Default the slice normal vector to an orthogonal view
-     */
-    float sliceNormalVector[3] = { 0.0, 0.0, 0.0 };
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            sliceNormalVector[2] = 1.0;
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            sliceNormalVector[1] = -1.0;
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            sliceNormalVector[0] = -1.0;
-            break;
-    }
-    
-    switch (m_sliceViewMode) {
-        case VolumeSliceViewModeEnum::MONTAGE:
-            if (montageSliceIndex >= 0) {
-                /*
-                 * Montage overrides the selected sliece coordinate in
-                 * the selected viewing axis
-                 */
-                const int64_t montIJK[3] = {
-                    montageSliceIndex,
-                    montageSliceIndex,
-                    montageSliceIndex
-                };
-                float montXYZ[3];
-                m_volumeDrawInfo[0].volumeFile->indexToSpace(montIJK, montXYZ);
-                
-                switch (sliceViewPlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        selectedSliceCoordinate[2] = montXYZ[2];
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        selectedSliceCoordinate[1] = montXYZ[1];
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        selectedSliceCoordinate[0] = montXYZ[0];
-                        break;
-                }
-            }
-            break;
-        case VolumeSliceViewModeEnum::OBLIQUE:
-        {
-            /*
-             * Transform the slice normal vector by the oblique rotation
-             * matrix so that the normal vector points out of the slice
-             */
-            const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
-            obliqueRotationMatrix.multiplyPoint3(sliceNormalVector);
-            MathFunctions::normalizeVector(sliceNormalVector);
-        }
-            break;
-        case VolumeSliceViewModeEnum::ORTHOGONAL:
-            break;
-    }
-    
-    Plane plane(sliceNormalVector,
-                selectedSliceCoordinate);
-    planeOut = plane;
-    
-//    CaretLogFine("Setting plane "
-//                   + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
-//                   + "\n   Selected Coordinate:"
-//                   + AString::number(selectedSliceCoordinate[0])
-//                   + ", "
-//                   + AString::number(selectedSliceCoordinate[1])
-//                   + ", "
-//                   + AString::number(selectedSliceCoordinate[2])
-//                   + "\n   Slice Plane: "
-//                   + plane.toString());
-    
-    m_lookAtCenter[0] = selectedSliceCoordinate[0];
-    m_lookAtCenter[1] = selectedSliceCoordinate[1];
-    m_lookAtCenter[2] = selectedSliceCoordinate[2];
-}
-
-
-/**
- * Create the oblique transformation matrix.
- *
- * @param obliqueTransformationMatrixOut
- *    OUTPUT transformation matrix for oblique viewing.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::createObliqueTransformationMatrix(Matrix4x4& obliqueTransformationMatrixOut)
-{
-    const float selectedSliceCoordinate[3] = {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
-    };
-    
-    /*
-     * Initialize the oblique transformation matrix
-     */
-    obliqueTransformationMatrixOut.identity();
-    
-    switch (m_sliceViewMode) {
-        case VolumeSliceViewModeEnum::MONTAGE:
-            break;
-        case VolumeSliceViewModeEnum::OBLIQUE:
-        {
-            /*
-             * Get the oblique rotation matrix
-             */
-            Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
-            
-            /*
-             * Create the transformation matrix
-             */
-            obliqueTransformationMatrixOut.postmultiply(obliqueRotationMatrix);
-            
-            /*
-             * Translate to selected coordinate
-             */
-            obliqueTransformationMatrixOut.translate(selectedSliceCoordinate[0],
-                                                     selectedSliceCoordinate[1],
-                                                     selectedSliceCoordinate[2]);
-        }
-            break;
-        case VolumeSliceViewModeEnum::ORTHOGONAL:
-            break;
-    }
-}
-
-/**
- * Set the volume slice viewing transformation.  This sets the position and
- * orientation of the camera.
- *
- * @param sliceViewPlane
- *    View plane that is displayed.
- * @param drawMode
- *    The drawing mode for slices.
- * @param planeOut
- *    Plane of slice after transforms (OUTPUT)
- * @param montageSliceIndex
- *    For mongtage drawing, indicates slice being drawn.
- * @param obliqueTransformationMatrixOut
- *    Output transformation matrix for oblique viewing.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                                               const Plane& plane)
-{
-    /*
-     * Initialize the modelview matrix to the identity matrix
-     * This places the camera at the origin, pointing down the
-     * negative-Z axis with the up vector set to (0,1,0 =>
-     * positive-Y is up).
-     */
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    /*
-     * Get the selected slice coordinates
-     */
-    const float selectedSlicesXYZ[3] = {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
-    };
-    
-    const float* userTranslation = m_browserTabContent->getTranslation();
-
-    /*
-     * Move the camera with the user's translation
-     */
-    float viewTranslationX = 0.0;
-    float viewTranslationY = 0.0;
-    float viewTranslationZ = 0.0;
-    
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            viewTranslationX = selectedSlicesXYZ[0] + userTranslation[0];
-            viewTranslationY = selectedSlicesXYZ[1] + userTranslation[1];
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            viewTranslationX = selectedSlicesXYZ[0] + userTranslation[0];
-            viewTranslationY = selectedSlicesXYZ[2] + userTranslation[2];
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            viewTranslationX = -(selectedSlicesXYZ[1] + userTranslation[1]);
-            viewTranslationY =   selectedSlicesXYZ[2] + userTranslation[2];
-            break;
-    }
-    
-    glTranslatef(viewTranslationX,
-                 viewTranslationY,
-                 viewTranslationZ);
-    
-
-    
-    
-    glGetDoublev(GL_MODELVIEW_MATRIX,
-                 m_viewingMatrix);
-
-    /*
-     * Since an orthographic projection is used, the camera only needs
-     * to be a little bit from the center along the plane's normal vector.
-     */
-    double planeNormal[3];
-    plane.getNormalVector(planeNormal);
-    double cameraXYZ[3] = {
-        m_lookAtCenter[0] + planeNormal[0] * 1.0,
-        m_lookAtCenter[1] + planeNormal[1] * 1.0,
-        m_lookAtCenter[2] + planeNormal[2] * 1.0,
-    };
-    
-    /*
-     * Set the up vector which indices which way is up (screen Y)
-     */
-    float up[3] = { 0.0, 0.0, 0.0 };
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            up[1] = 1.0;
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            up[2] = 1.0;
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            up[2] = 1.0;
-            break;
-    }
-    
-    /*
-     * For oblique viewing, the up vector needs to be rotated by the
-     * oblique rotation matrix.
-     */
-    if (m_sliceViewMode == VolumeSliceViewModeEnum::OBLIQUE) {
-        m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
-    }
-    
-    /*
-     * Now set the camera to look at the selected coordinate (center)
-     * with the camera offset a little bit from the center.
-     * This allows the slice's voxels to be drawn in the actual coordinates.
-     */
-    gluLookAt(cameraXYZ[0], cameraXYZ[1], cameraXYZ[2],
-              m_lookAtCenter[0], m_lookAtCenter[1], m_lookAtCenter[2],
-              up[0], up[1], up[2]);
-}
-
-/**
- * Draw surface outlines on the volume slices
- *
- * @param plane
- *   Plane of the volume slice on which surface outlines are drawn.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
-{
-    if ( ! plane.isValidPlane()) {
-        return;
-    }
-    
-//    CaretLogFine("\nSurface Outline Plane: "
-//                 + plane.toString());
-    
-    float intersectionPoint1[3];
-    float intersectionPoint2[3];
-    
-    m_fixedPipelineDrawing->enableLineAntiAliasing();
-    
-    VolumeSurfaceOutlineSetModel* outlineSet = m_browserTabContent->getVolumeSurfaceOutlineSet();
-    
-    /*
-     * Process each surface outline
-     */
-    const int32_t numberOfOutlines = outlineSet->getNumberOfDislayedVolumeSurfaceOutlines();
-    for (int io = 0;
-         io < numberOfOutlines;
-         io++) {
-        VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
-        if (outline->isDisplayed()) {
-            Surface* surface = outline->getSurface();
-            if (surface != NULL) {
-                const float thickness = outline->getThickness();
-                //const float lineWidth = m_fixedPipelineDrawing->modelSizeToPixelSize(thickness);
-                
-                int numTriangles = surface->getNumberOfTriangles();
-                
-                CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
-                int32_t colorSourceBrowserTabIndex = -1;
-                
-                VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel = outline->getColorOrTabModel();
-                VolumeSurfaceOutlineColorOrTabModel::Item* selectedColorOrTabItem = colorOrTabModel->getSelectedItem();
-                switch (selectedColorOrTabItem->getItemType()) {
-                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
-                        colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
-                        break;
-                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
-                        outlineColor = selectedColorOrTabItem->getColor();
-                        break;
-                }
-                const bool surfaceColorFlag = (colorSourceBrowserTabIndex >= 0);
-                
-                float* nodeColoringRGBA = NULL;
-                if (surfaceColorFlag) {
-                    nodeColoringRGBA = m_fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL,
-                                                                                    surface,
-                                                                                    colorSourceBrowserTabIndex);
-                }
-                
-                glColor3fv(CaretColorEnum::toRGB(outlineColor));
-                //m_fixedPipelineDrawing->setLineWidth(lineWidth);
-                m_fixedPipelineDrawing->setLineWidth(thickness);
-                
-                /*
-                 * Examine each triangle to see if it intersects the Plane
-                 * in which the slice exists.
-                 */
-                glBegin(GL_LINES);
-                for (int it = 0; it < numTriangles; it++) {
-                    const int32_t* triangleNodes = surface->getTriangle(it);
-                    const float* c1 = surface->getCoordinate(triangleNodes[0]);
-                    const float* c2 = surface->getCoordinate(triangleNodes[1]);
-                    const float* c3 = surface->getCoordinate(triangleNodes[2]);
-                    
-                    if (plane.triangleIntersectPlane(c1, c2, c3,
-                                                     intersectionPoint1,
-                                                     intersectionPoint2)) {
-                        if (surfaceColorFlag) {
-                            /*
-                             * Use coloring assigned to the first node in the triangle
-                             * but only if Alpha is valid (greater than zero).
-                             */
-                            const int64_t colorIndex = triangleNodes[0] * 4;
-                            if (nodeColoringRGBA[colorIndex + 3] > 0.0) {
-                                glColor3fv(&nodeColoringRGBA[triangleNodes[0] * 4]);
-                            }
-                            else {
-                                continue;
-                            }
-                        }
-                        
-                        /*
-                         * Draw the line where the triangle intersections the slice
-                         */
-                        glVertex3fv(intersectionPoint1);
-                        glVertex3fv(intersectionPoint2);
-                    }
-                }
-                glEnd();
-            }
-        }
-    }
-    
-    m_fixedPipelineDrawing->disableLineAntiAliasing();
-}
-
-/**
- * Draw foci on volume slice.
- *
- * @param plane
- *   Plane of the volume slice on which surface outlines are drawn.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
-{
-    SelectionItemFocusVolume* idFocus = m_brain->getSelectionManager()->getVolumeFocusIdentification();
-    
-    /*
-     * Check for a 'selection' type mode
-     */
-    bool isSelect = false;
-    switch (m_fixedPipelineDrawing->mode) {
-        case BrainOpenGLFixedPipeline::MODE_DRAWING:
-            break;
-        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (idFocus->isEnabledForSelection()) {
-                isSelect = true;
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            }
-            else {
-                return;
-            }
-            break;
-        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-            return;
-            break;
-    }
-    
-    VolumeMappableInterface* underlayVolume = m_volumeDrawInfo[0].volumeFile;
-    float minVoxelSpacing;
-    float maxVoxelSpacing;
-    if ( ! getMinMaxVoxelSpacing(underlayVolume, minVoxelSpacing, maxVoxelSpacing)) {
-        return;
-    }
-
-    const float sliceThickness = maxVoxelSpacing;
-    const float halfSliceThickness = sliceThickness * 0.5;
-    
-    
-    const DisplayPropertiesFoci* fociDisplayProperties = m_brain->getDisplayPropertiesFoci();
-    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
-    
-    if (fociDisplayProperties->isDisplayed(displayGroup,
-                                           m_fixedPipelineDrawing->windowTabIndex) == false) {
-        return;
-    }
-    const float focusDiameter = fociDisplayProperties->getFociSize(displayGroup,
-                                                                   m_fixedPipelineDrawing->windowTabIndex);
-    const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
-                                                                                                  m_fixedPipelineDrawing->windowTabIndex);
-    
-    bool drawAsSpheres = false;
-    switch (fociDisplayProperties->getDrawingType(displayGroup,
-                                                  m_fixedPipelineDrawing->windowTabIndex)) {
-        case FociDrawingTypeEnum::DRAW_AS_SPHERES:
-            drawAsSpheres = true;
-            break;
-        case FociDrawingTypeEnum::DRAW_AS_SQUARES:
-            break;
-    }
-    
-    /*
-     * Process each foci file
-     */
-    const int32_t numberOfFociFiles = m_brain->getNumberOfFociFiles();
-    for (int32_t iFile = 0; iFile < numberOfFociFiles; iFile++) {
-        FociFile* fociFile = m_brain->getFociFile(iFile);
-        
-        const GroupAndNameHierarchyModel* classAndNameSelection = fociFile->getGroupAndNameHierarchyModel();
-        if (classAndNameSelection->isSelected(displayGroup,
-                                              m_fixedPipelineDrawing->windowTabIndex) == false) {
-            continue;
-        }
-        
-        const GiftiLabelTable* classColorTable = fociFile->getClassColorTable();
-        const GiftiLabelTable* nameColorTable = fociFile->getNameColorTable();
-        
-        const int32_t numFoci = fociFile->getNumberOfFoci();
-        
-        for (int32_t j = 0; j < numFoci; j++) {
-            Focus* focus = fociFile->getFocus(j);
-            
-            const GroupAndNameHierarchyItem* groupNameItem = focus->getGroupNameSelectionItem();
-            if (groupNameItem != NULL) {
-                if (groupNameItem->isSelected(displayGroup,
-                                              m_fixedPipelineDrawing->windowTabIndex) == false) {
-                    continue;
-                }
-            }
-            
-            float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
-            switch (fociColoringType) {
-                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS:
-                    if (focus->isClassRgbaValid() == false) {
-                        const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
-                        if (colorLabel != NULL) {
-                            focus->setClassRgba(colorLabel->getColor());
-                        }
-                        else {
-                            focus->setClassRgba(rgba);
-                        }
-                    }
-                    focus->getClassRgba(rgba);
-                    break;
-                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
-                    if (focus->isNameRgbaValid() == false) {
-                        const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
-                        if (colorLabel != NULL) {
-                            focus->setNameRgba(colorLabel->getColor());
-                        }
-                        else {
-                            focus->setNameRgba(rgba);
-                        }
-                    }
-                    focus->getNameRgba(rgba);
-                    break;
-            }
-            
-            const int32_t numProjections = focus->getNumberOfProjections();
-            for (int32_t k = 0; k < numProjections; k++) {
-                const SurfaceProjectedItem* spi = focus->getProjection(k);
-                if (spi->isVolumeXYZValid()) {
-                    float xyz[3];
-                    spi->getVolumeXYZ(xyz);
-                    
-                    bool drawIt = false;
-                    if (plane.absoluteDistanceToPlane(xyz) < halfSliceThickness) {
-                        drawIt = true;
-                    }
-                    
-                    if (drawIt) {
-                        glPushMatrix();
-                        glTranslatef(xyz[0], xyz[1], xyz[2]);
-                        if (isSelect) {
-                            uint8_t idRGBA[4];
-                            m_fixedPipelineDrawing->colorIdentification->addItem(idRGBA,
-                                                               SelectionItemDataTypeEnum::FOCUS_VOLUME,
-                                                               iFile, // file index
-                                                               j, // focus index
-                                                               k);// projection index
-                            idRGBA[3] = 255;
-                            if (drawAsSpheres) {
-                                m_fixedPipelineDrawing->drawSphereWithDiameter(idRGBA,
-                                                                               focusDiameter);
-                            }
-                            else {
-                                glColor4ubv(idRGBA);
-                                drawSquare(focusDiameter);
-                            }
-                        }
-                        else {
-                            if (drawAsSpheres) {
-                                m_fixedPipelineDrawing->drawSphereWithDiameter(rgba,
-                                                                               focusDiameter);
-                            }
-                            else {
-                                glColor3fv(rgba);
-                                drawSquare(focusDiameter);
-                            }
-                        }
-                        glPopMatrix();
-                    }
-                }
-            }
-        }
-    }
-    
-    if (isSelect) {
-        int32_t fociFileIndex = -1;
-        int32_t focusIndex = -1;
-        int32_t focusProjectionIndex = -1;
-        float depth = -1.0;
-        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::FOCUS_VOLUME,
-                                         m_fixedPipelineDrawing->mouseX,
-                                         m_fixedPipelineDrawing->mouseY,
-                                         fociFileIndex,
-                                         focusIndex,
-                                         focusProjectionIndex,
-                                         depth);
-        if (fociFileIndex >= 0) {
-            if (idFocus->isOtherScreenDepthCloserToViewer(depth)) {
-                Focus* focus = m_brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
-                idFocus->setBrain(m_brain);
-                idFocus->setFocus(focus);
-                idFocus->setFociFile(m_brain->getFociFile(fociFileIndex));
-                idFocus->setFocusIndex(focusIndex);
-                idFocus->setFocusProjectionIndex(focusProjectionIndex);
-                idFocus->setVolumeFile(underlayVolume);
-                idFocus->setScreenDepth(depth);
-                float xyz[3];
-                const SurfaceProjectedItem* spi = focus->getProjection(focusProjectionIndex);
-                spi->getVolumeXYZ(xyz);
-                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(idFocus, xyz);
-                CaretLogFine("Selected Volume Focus Identification Symbol: " + QString::number(focusIndex));
-            }
-        }
-    }
-}
-
-/**
- * Get the minimum and maximum distance between adjacent voxels in all
- * slices planes.  Output spacing value are always non-negative even if
- * a right-to-left orientation.
- *
- * @param volume
- *    Volume for which min/max spacing is requested.
- * @param minSpacingOut
- *    Output minimum spacing.
- * @param maxSpacingOut
- *    Output maximum spacing.
- * @return
- *    True if min and max spacing are greater than zero.
- */
-bool
-OLD_BrainOpenGLVolumeSliceDrawing::getMinMaxVoxelSpacing(const VolumeMappableInterface* volume,
-                                                     float& minSpacingOut,
-                                                     float& maxSpacingOut) const
-{
-    CaretAssert(volume);
-    
     float originX, originY, originZ;
     float x1, y1, z1;
-    volume->indexToSpace(0, 0, 0, originX, originY, originZ);
-    volume->indexToSpace(1, 1, 1, x1, y1, z1);
-    const float dx = std::fabs(x1 - originX);
-    const float dy = std::fabs(y1 - originY);
-    const float dz = std::fabs(z1 - originZ);
+    m_underlayVolume->indexToSpace(0, 0, 0, originX, originY, originZ);
+    m_underlayVolume->indexToSpace(1, 1, 1, x1, y1, z1);
+    float sliceThickness = 0.0;
+    float sliceOrigin    = 0.0;
     
-    minSpacingOut = std::min(std::min(dx, dy), dz);
-    maxSpacingOut = std::max(std::max(dx, dy), dz);
+    AString axisLetter = "";
     
-    if ((minSpacingOut > 0.0)
-        && (maxSpacingOut > 0.0)) {
-        return true;
-    }
-    return false;
-}
-
-
-/**
- * Get the maximum bounds that enclose the volumes and the minimum
- * voxel spacing from the volumes.
- *
- * @param boundsOut
- *    Bounds of the volumes.
- * @param spacingOut
- *    Minimum voxel spacing from the volumes.  Always positive values (even if
- *    volumes is oriented right to left).
- *
- */
-bool
-OLD_BrainOpenGLVolumeSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
-                                                                      float spacingOut[3])
-{
-    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(m_volumeDrawInfo.size());
-    if (numberOfVolumesToDraw <= 0) {
-        return false;
+    float sliceCoordinates[3] = {
+        m_browserTabContent->getSliceCoordinateParasagittal(),
+        m_browserTabContent->getSliceCoordinateCoronal(),
+        m_browserTabContent->getSliceCoordinateAxial()
+    };
+    
+    int32_t sliceIndex = -1;
+    int32_t maximumSliceIndex = -1;
+    int64_t dimI, dimJ, dimK, numMaps, numComponents;
+    m_underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+    const int32_t sliceStep = m_browserTabContent->getMontageSliceSpacing();
+    //const VolumeSliceViewPlaneEnum::Enum slicePlane = m_browserTabContent->getSliceViewPlane();
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            sliceIndex = -1;
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            sliceIndex = m_browserTabContent->getSliceIndexAxial(m_underlayVolume);
+            maximumSliceIndex = dimK;
+            sliceThickness = z1 - originZ;
+            sliceOrigin = originZ;
+            axisLetter = "Z";
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            sliceIndex = m_browserTabContent->getSliceIndexCoronal(m_underlayVolume);
+            maximumSliceIndex = dimJ;
+            sliceThickness = y1 - originY;
+            sliceOrigin = originY;
+            axisLetter = "Y";
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            sliceIndex = m_browserTabContent->getSliceIndexParasagittal(m_underlayVolume);
+            maximumSliceIndex = dimI;
+            sliceThickness = x1 - originX;
+            sliceOrigin = originX;
+            axisLetter = "X";
+            break;
     }
     
     /*
-     * Find maximum extent of all voxels and smallest voxel
-     * size in each dimension.
+     * Foreground color for slice coordinate text
      */
-    float minVoxelX = std::numeric_limits<float>::max();
-    float maxVoxelX = -std::numeric_limits<float>::max();
-    float minVoxelY = std::numeric_limits<float>::max();
-    float maxVoxelY = -std::numeric_limits<float>::max();
-    float minVoxelZ = std::numeric_limits<float>::max();
-    float maxVoxelZ = -std::numeric_limits<float>::max();
-    float voxelStepX = std::numeric_limits<float>::max();
-    float voxelStepY = std::numeric_limits<float>::max();
-    float voxelStepZ = std::numeric_limits<float>::max();
-//    float sliceCoordinate = 0.0;
-    for (int32_t i = 0; i < numberOfVolumesToDraw; i++) {
-        const VolumeMappableInterface* volumeFile = m_volumeDrawInfo[i].volumeFile;
-        int64_t dimI, dimJ, dimK, numMaps, numComponents;
-        volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-        
-        float originX, originY, originZ;
-        float x1, y1, z1;
-        float lastX, lastY, lastZ;
-        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
-        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
-        volumeFile->indexToSpace(dimI - 1, dimJ - 1, dimK - 1, lastX, lastY, lastZ);
-        const float dx = x1 - originX;
-        const float dy = y1 - originY;
-        const float dz = z1 - originZ;
-        voxelStepX = std::min(voxelStepX, std::fabs(dx));
-        voxelStepY = std::min(voxelStepY, std::fabs(dy));
-        voxelStepZ = std::min(voxelStepZ, std::fabs(dz));
-        
-        minVoxelX = std::min(minVoxelX, std::min(originX, lastX));
-        maxVoxelX = std::max(maxVoxelX, std::max(originX, lastX));
-        minVoxelY = std::min(minVoxelY, std::min(originY, lastY));
-        maxVoxelY = std::max(maxVoxelY, std::max(originY, lastY));
-        minVoxelZ = std::min(minVoxelZ, std::min(originZ, lastZ));
-        maxVoxelZ = std::max(maxVoxelZ, std::max(originZ, lastZ));
-        
-    }
-//    int64_t numVoxelsX = std::ceil(((maxVoxelX - minVoxelX) / voxelStepX) + 1);
-//    int64_t numVoxelsY = std::ceil(((maxVoxelY - minVoxelY) / voxelStepY) + 1);
-//    int64_t numVoxelsZ = std::ceil(((maxVoxelZ - minVoxelZ) / voxelStepZ) + 1);
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    uint8_t foregroundRGB[3];
+    prefs->getColorForegroundVolumeView(foregroundRGB);
+    const bool showCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
     
-//    const AString voxelInfo = ("Volume Coord Min/Max: X("
-//                               + AString::number(minVoxelX) + ", "
-//                               + AString::number(maxVoxelX) + ")  Y("
-//                               + AString::number(minVoxelY) + ", "
-//                               + AString::number(maxVoxelY) + ") Z("
-//                               + AString::number(minVoxelZ) + ", "
-//                               + AString::number(maxVoxelZ) + ") "
-//                               + " Min Voxel Sizes: ("
-//                               + AString::number(voxelStepX) + ", "
-//                               + AString::number(voxelStepY) + ", "
-//                               + AString::number(voxelStepZ) + ") "
-//                               + " Number of Voxels: ("
-//                               + AString::number(numVoxelsX) + ", "
-//                               + AString::number(numVoxelsY) + ", "
-//                               + AString::number(numVoxelsZ) + ") Slice Coordinate ("
-//                               + AString::number(sliceCoordinate) + ")");
-//    CaretLogFine(voxelInfo);
-    
-    boundsOut[0] = minVoxelX;
-    boundsOut[1] = maxVoxelX;
-    boundsOut[2] = minVoxelY;
-    boundsOut[3] = maxVoxelY;
-    boundsOut[4] = minVoxelZ;
-    boundsOut[5] = maxVoxelZ;
-    
-    spacingOut[0] = voxelStepX;
-    spacingOut[1] = voxelStepY;
-    spacingOut[2] = voxelStepZ;
-    
-    bool valid = false;
-    
-    if ((maxVoxelX > minVoxelX)
-        && (maxVoxelY > minVoxelY)
-        && (maxVoxelZ > minVoxelZ)
-        && (voxelStepX > 0.0)
-        && (voxelStepY > 0.0)
-        && (voxelStepZ > 0.0)) {
-        valid = true;
-    }
-    
-    return valid;
-}
-
-/**
- * Draw a one millimeter square facing the user.
- * NOTE: This method will alter the current
- * modelviewing matrices so caller may need
- * to enclose the call to this method within
- * glPushMatrix() and glPopMatrix().
- *
- * @param size
- *     Size of square.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::drawSquare(const float size)
-{
-    const float length = size * 0.5;
     
     /*
-     * Draw both front and back side since in some instances,
-     * such as surface montage, we are viweing from the far
-     * side (from back of monitor)
+     * Determine a slice offset to selected slices is in
+     * the center of the montage
      */
-    glBegin(GL_QUADS);
-    glNormal3f(0.0, 0.0, 1.0);
-    glVertex3f(-length, -length, 0.0);
-    glVertex3f( length, -length, 0.0);
-    glVertex3f( length,  length, 0.0);
-    glVertex3f(-length,  length, 0.0);
-    glNormal3f(0.0, 0.0, -1.0);
-    glVertex3f(-length, -length, 0.0);
-    glVertex3f(-length,  length, 0.0);
-    glVertex3f( length,  length, 0.0);
-    glVertex3f( length, -length, 0.0);
-    glEnd();
-}
-
-/* ======================================================================= */
-/**
- * Create a voxel for drawing.
- *
- * @param center
- *    Center of voxel.
- * @param leftBottom
- *    Left bottom coordinate of voxel.
- * @param rightBottom
- *    Right bottom coordinate of voxel.
- * @param rightTop
- *    Right top coordinate of voxel.
- * @param leftTop
- *    Left top coordinate of voxel.
- */
-OLD_BrainOpenGLVolumeSliceDrawing::VoxelToDraw::VoxelToDraw(const float center[3],
-            const double leftBottom[3],
-            const double rightBottom[3],
-            const double rightTop[3],
-            const double leftTop[3])
-{
-    m_center[0] = center[0];
-    m_center[1] = center[1];
-    m_center[2] = center[2];
+    const int32_t numSlicesViewed = (numCols * numRows);
+    const int32_t sliceOffset = ((numSlicesViewed / 2)
+                             * sliceStep);
     
-    m_coordinates[0]  = leftBottom[0];
-    m_coordinates[1]  = leftBottom[1];
-    m_coordinates[2]  = leftBottom[2];
-    m_coordinates[3]  = rightBottom[0];
-    m_coordinates[4]  = rightBottom[1];
-    m_coordinates[5]  = rightBottom[2];
-    m_coordinates[6]  = rightTop[0];
-    m_coordinates[7]  = rightTop[1];
-    m_coordinates[8]  = rightTop[2];
-    m_coordinates[9]  = leftTop[0];
-    m_coordinates[10] = leftTop[1];
-    m_coordinates[11] = leftTop[2];
+    sliceIndex += sliceOffset;
     
-    const int64_t numSlices = 5;
-    m_sliceIndices.reserve(numSlices);
-    m_sliceOffsets.reserve(numSlices);
+    /*
+     * Find first valid slice for montage
+     */
+    while (sliceIndex >= 0) {
+        if (sliceIndex < maximumSliceIndex) {
+            break;
+        }
+        sliceIndex -= sliceStep;
+    }
+    
+    if (sliceIndex >= 0) {
+        for (int32_t i = 0; i < numRows; i++) {
+            for (int32_t j = 0; j < numCols; j++) {
+                if ((sliceIndex >= 0)
+                    && (sliceIndex < maximumSliceIndex)) {
+                    const int32_t vpX = (j * (vpSizeX + montageMargin));
+                    const int32_t vpY = ((numRows - i - 1) * (vpSizeY + montageMargin));
+                    int32_t vp[4] = {
+                        viewport[0] + vpX,
+                        viewport[1] + vpY,
+                        vpSizeX,
+                        vpSizeY
+                    };
+                    
+                    if ((vp[2] <= 0)
+                        || (vp[3] <= 0)) {
+                        continue;
+                    }
+                    
+                    const float sliceCoord = (sliceOrigin
+                                              + sliceThickness * sliceIndex);
+                    switch (sliceViewPlane) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            sliceCoordinates[2] = sliceCoord;
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            sliceCoordinates[1] = sliceCoord;
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            sliceCoordinates[0] = sliceCoord;
+                            break;
+                    }
+                    
+                    drawVolumeSliceViewProjection(sliceDrawingType,
+                                                  sliceProjectionType,
+                                                  sliceViewPlane,
+                                                  sliceCoordinates,
+                                                  vp);
+                    
+                    if (showCoordinates) {
+                        const AString coordText = (axisLetter
+                                                   + "="
+                                                   + AString::number(sliceCoord, 'f', montageCoordPrecision)
+                                                   + "mm");
+                        glColor3ubv(foregroundRGB);
+                        m_fixedPipelineDrawing->drawTextWindowCoords((vpSizeX - 5),
+                                                                     5,
+                                                                     coordText,
+                                                                     BrainOpenGLTextRenderInterface::X_RIGHT,
+                                                                     BrainOpenGLTextRenderInterface::Y_BOTTOM,
+                                                                     BrainOpenGLTextRenderInterface::NORMAL,
+                                                                     12);
+                    }
+                }
+                sliceIndex -= sliceStep;
+            }
+        }
+    }
+    
+    /*
+     * Draw the axes labels for the montage view
+     */
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+
+
+    if (prefs->isVolumeAxesLabelsDisplayed()) {
+        drawAxesCrosshairsOrthoAndOblique(sliceProjectionType,
+                                          sliceViewPlane,
+                                          sliceCoordinates,
+                                          false,
+                                          true);
+    }
 }
 
 /**
- * Add a value from a volume slice.
+ * Draw a slice for either projection mode (oblique, orthogonal)
  *
- * @param sliceIndex
- *    Index of the slice.
- * @param sliceOffset
- *    Offset of value in the slice.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::VoxelToDraw::addVolumeValue(const int64_t sliceIndex,
-                    const int64_t sliceOffset)
-{
-    CaretAssert(sliceIndex >= 0);
-    CaretAssert(sliceOffset >= 0);
-    m_sliceIndices.push_back(sliceIndex);
-    m_sliceOffsets.push_back(sliceOffset);
-}
-
-
-
-
-
-
-
-/**
- * Draw a volume slice for a volume slice view.
- *
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
- *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
- * @param drawMode
- *   The drawing mode
- * @param montageSliceIndex
- *   When drawing slice montage, this is the slice to draw.
+ *    The plane for slice drawing.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slice.
  * @param viewport
- *   Viewport in which drawing takes place.
+ *    The viewport (region of graphics area) for drawing slices.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                            const DRAW_MODE drawMode,
-                                                            const int32_t montageSliceIndex,
-                                                            const int viewport[4])
+OldBrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                           const float sliceCoordinates[3],
+                                                           const int32_t viewport[4])
 {
-    bool isDrawingSlice2D = false;
-    bool isSetViewport = false;
-    switch (drawMode) {
-        case DRAW_MODE_ALL_STRUCTURES_VIEW:
-            break;
-        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
-            break;
-        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
-            isDrawingSlice2D = true;
-            isSetViewport = true;
-            break;
+    bool twoDimSliceViewFlag = false;
+    if (m_modelVolume != NULL) {
+        twoDimSliceViewFlag = true;
+    }
+    else if (m_modelWholeBrain != NULL) {
+        /* nothing */
+    }
+    else {
+        CaretAssertMessage(0, "Invalid model type.");
     }
     
-    if (isDrawingSlice2D) {
+    if (twoDimSliceViewFlag) {
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-    }
-    
-    if (isSetViewport) {
+
         glViewport(viewport[0],
                    viewport[1],
                    viewport[2],
                    viewport[3]);
-    }
-    
-    if (isDrawingSlice2D) {
+
         /*
          * Set the orthographic projection to fit the slice axis
          */
@@ -1638,29 +663,28 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPl
      * Create the plane equation for the slice
      */
     Plane slicePlane;
-    createSlicePlaneEquation(sliceViewPlane,
-                             montageSliceIndex,
+    createSlicePlaneEquation(sliceProjectionType,
+                             sliceViewPlane,
+                             sliceCoordinates,
                              slicePlane);
     CaretAssert(slicePlane.isValidPlane());
     if (slicePlane.isValidPlane() == false) {
         return;
     }
     
-    /*
-     * Create the oblique slice transformation matrix
-     */
-    Matrix4x4 obliqueTransformationMatrix;
-    createObliqueTransformationMatrix(obliqueTransformationMatrix);
     
-    if (isDrawingSlice2D) {
+    if (twoDimSliceViewFlag) {
         /*
          * Set the viewing transformation (camera position)
          */
-        setVolumeSliceViewingAndModelingTransformations(sliceViewPlane,
-                                            slicePlane);        
+        setVolumeSliceViewingAndModelingTransformations(sliceProjectionType,
+                                                        sliceViewPlane,
+                                                        slicePlane,
+                                                        sliceCoordinates);
     }
-        
+    
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+    SelectionItemVoxelEditing* voxelEditingID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
     
     m_fixedPipelineDrawing->applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_VOLUME,
                                                 StructureEnum::ALL);
@@ -1673,7 +697,8 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPl
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (voxelID->isEnabledForSelection()) {
+            if (voxelID->isEnabledForSelection()
+                || voxelEditingID->isEnabledForSelection()) {
                 m_identificationModeFlag = true;
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
@@ -1685,7 +710,7 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPl
             return;
             break;
     }
-
+    
     resetIdentification();
     
     /*
@@ -1694,32 +719,49 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPl
     GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
     glDisable(GL_CULL_FACE);
     
-    switch (m_sliceViewMode) {
-        case VolumeSliceViewModeEnum::OBLIQUE:
-            drawObliqueSlice(sliceViewPlane,
-                             slicePlane,
-                             drawMode,
-                             obliqueTransformationMatrix,
-                             1.0);
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            if (m_modelVolume != NULL) {
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CULLING)) {
+                    drawOrthogonalSliceWithCulling(sliceViewPlane,
+                                                   sliceCoordinates,
+                                                   slicePlane);
+                }
+                else {
+                    drawOrthogonalSlice(sliceViewPlane,
+                                        sliceCoordinates,
+                                        slicePlane);
+                }
+            }
+            else if (m_modelWholeBrain != NULL) {
+                drawOrthogonalSlice(sliceViewPlane,
+                                sliceCoordinates,
+                                slicePlane);
+            }
             break;
-        case VolumeSliceViewModeEnum::MONTAGE:
-        case VolumeSliceViewModeEnum::ORTHOGONAL:
-            drawOrthogonalSlice(drawMode,
-                                sliceViewPlane,
-                                slicePlane,
-                                montageSliceIndex);
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            /*
+             * Create the oblique slice transformation matrix
+             */
+            Matrix4x4 obliqueTransformationMatrix;
+            createObliqueTransformationMatrix(sliceCoordinates,
+                                              obliqueTransformationMatrix);
+            
+            drawObliqueSlice(sliceViewPlane,
+                             obliqueTransformationMatrix,
+                             slicePlane);
+        }
             break;
     }
     
-    
-    
-    
     if ( ! m_identificationModeFlag) {
         if (slicePlane.isValidPlane()) {
-            drawLayers(slicePlane,
-                       m_volumeDrawInfo[0].volumeFile,
+            drawLayers(sliceDrawingType,
+                       sliceProjectionType,
                        sliceViewPlane,
-                       drawMode);
+                       slicePlane,
+                       sliceCoordinates);
         }
     }
     
@@ -1730,7 +772,7 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPl
      */
     if (m_identificationModeFlag) {
         processIdentification();
-    }    
+    }
     
     if (cullFaceOn) {
         glEnable(GL_CULL_FACE);
@@ -1738,766 +780,56 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPl
 }
 
 /**
- * Draw the layers type data.
+ * Draw an oblique slice.
  *
- * @param slicePlane
- *    Plane of the slice.
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
  * @param transformationMatrix
- *    The transformation matrix used for oblique viewing.
- * @param volume
- *    The underlay volume.
- * @param sliceViewPlane
- *    The slice view plane.
- * @param drawMode
- *    The slice drawing mode.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
-                                              const VolumeMappableInterface* /*volume*/,
-                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                              const DRAW_MODE drawMode)
-{
-    bool drawCrosshairsFlag = true;
-    bool drawFibersFlag     = true;
-    bool drawFociFlag       = true;
-    bool drawOutlineFlag    = true;
-    
-    switch (drawMode) {
-        case DRAW_MODE_ALL_STRUCTURES_VIEW:
-            drawCrosshairsFlag = false;
-            drawFibersFlag = false;
-            drawFociFlag = false;
-            break;
-        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
-            break;
-        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
-            break;
-    }
-    
-    if ( ! m_identificationModeFlag) {
-        if (slicePlane.isValidPlane()) {
-            /*
-             * Disable culling so that both sides of the triangles/quads are drawn.
-             */
-            GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
-            glDisable(GL_CULL_FACE);
-            
-            glPushMatrix();
-            
-            GLboolean depthBufferEnabled = false;
-            glGetBooleanv(GL_DEPTH_TEST,
-                          &depthBufferEnabled);
-
-            /*
-             * Use some polygon offset that will adjust the depth values of the
-             * layers so that the layers depth values place the layers in front of
-             * the volume slice.
-             */
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glPolygonOffset(0.0, 1.0);
-            
-            if (drawOutlineFlag) {
-                drawSurfaceOutline(slicePlane);
-            }
-            
-            if (drawFibersFlag) {
-                glDisable(GL_DEPTH_TEST);
-                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane,
-                                                              StructureEnum::ALL);
-                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane,
-                                                              StructureEnum::ALL);
-                if (depthBufferEnabled) {
-                    glEnable(GL_DEPTH_TEST);
-                }
-                else {
-                    glDisable(GL_DEPTH_TEST);
-                }
-            }
-            if (drawFociFlag) {
-                glDisable(GL_DEPTH_TEST);
-                drawVolumeSliceFoci(slicePlane);
-                if (depthBufferEnabled) {
-                    glEnable(GL_DEPTH_TEST);
-                }
-                else {
-                    glDisable(GL_DEPTH_TEST);
-                }
-            }
-            
-            glDisable(GL_POLYGON_OFFSET_FILL);
-            
-            if (drawCrosshairsFlag) {
-                glPushMatrix();
-                drawAxesCrosshairs(sliceViewPlane);
-                glPopMatrix();
-                if (depthBufferEnabled) {
-                    glEnable(GL_DEPTH_TEST);
-                }
-                else {
-                    glDisable(GL_DEPTH_TEST);
-                }
-            }
-            
-            glPopMatrix();
-            
-            if (cullFaceOn) {
-                glEnable(GL_CULL_FACE);
-            }
-        }
-    }
-}
-
-
-/**
- * Draw an orthogonal slice.
- *
- * @param drawMode
- *    The drawing mode.
- * @param sliceViewPlane
- *    The slice plane being viewed.
+ *    The for oblique viewing.
  * @param plane
- *    The plane equation for the slice.
- * @param montageSliceIndex
- *    The montage slice for drawing in montage mode.
+ *    Plane equation for the selected slice.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const DRAW_MODE drawMode,
-                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                       const Plane& plane,
-                                                       const int32_t montageSliceIndex)
+OldBrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                              Matrix4x4& transformationMatrix,
+                                              const Plane& plane)
 {
-    
-    const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
-    const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
-    const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-                                                                                                browserTabIndex);
-    bool isOutlineMode = false;
-    switch (labelDrawingType) {
-        case LabelDrawingTypeEnum::DRAW_FILLED:
-            break;
-        case LabelDrawingTypeEnum::DRAW_OUTLINE:
-            isOutlineMode = true;
-            break;
-    }
-    
     /*
-     * Enable alpha blending so voxels that are not drawn from higher layers
-     * allow voxels from lower layers to be seen.
+     * When performing voxel identification for editing voxels,
+     * we need to draw EVERY voxel since the user may click
+     * regions where the voxels are "off".
      */
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    /*
-     * Flat shading voxels not interpolated
-     */
-    glShadeModel(GL_FLAT);
-    
-    
-    /*
-     * Compute coordinate of point in center of first slice
-     */
-    float selectedSliceCoordinate = 0.0;
-    float sliceNormalVector[3] = { 0.0, 0.0, 0.0 };
-    plane.getNormalVector(sliceNormalVector);
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            selectedSliceCoordinate = m_browserTabContent->getSliceCoordinateAxial();
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            selectedSliceCoordinate = m_browserTabContent->getSliceCoordinateCoronal();
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            selectedSliceCoordinate = m_browserTabContent->getSliceCoordinateParasagittal();
-            break;
-    }
-    
-    /*
-     * Override for montage slice drawing.
-     */
-    switch (m_sliceViewMode) {
-        case VolumeSliceViewModeEnum::MONTAGE:
-        {
-            const int64_t montIJK[3] = {
-                montageSliceIndex,
-                montageSliceIndex,
-                montageSliceIndex
-            };
-            float montXYZ[3];
-            m_volumeDrawInfo[0].volumeFile->indexToSpace(montIJK,
-                                                         montXYZ);
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    CaretAssert(0);
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    selectedSliceCoordinate = montXYZ[2];
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    selectedSliceCoordinate = montXYZ[1];
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    selectedSliceCoordinate = montXYZ[0];
-                    break;
-            }
-        }
-            break;
-        case VolumeSliceViewModeEnum::OBLIQUE:
-            break;
-        case VolumeSliceViewModeEnum::ORTHOGONAL:
-            break;
-    }
-    
-    /*
-     * Holds colors for voxels in the slice
-     * Outside of loop to minimize allocations
-     * It is faster to make one call to
-     * NodeAndVoxelColoring::colorScalarsWithPalette() with
-     * all voxels in the slice than it is to call it
-     * separately for each voxel.
-     */
-    std::vector<uint8_t> sliceVoxelsRgbaVector;
-    
-    /*
-     * Draw each of the volumes separately so that each
-     * is drawn with the correct voxel slices.
-     */
-    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(m_volumeDrawInfo.size());
-    for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
-        const BrainOpenGLFixedPipeline::VolumeDrawInfo& volInfo = m_volumeDrawInfo[iVol];
-        const VolumeMappableInterface* volumeFile = volInfo.volumeFile;
-        int64_t dimI, dimJ, dimK, numMaps, numComponents;
-        volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-        const int64_t mapIndex = volInfo.mapIndex;
-        
-        float originX, originY, originZ;
-        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
-        
-        float x1, y1, z1;
-        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
-        const float voxelStepX = x1 - originX;
-        const float voxelStepY = y1 - originY;
-        const float voxelStepZ = z1 - originZ;
-        
-        /*
-         * Determine index of slice being viewed for the volume
-         */
-        float coordinateOnSlice[3] = {
-            originX,
-            originY,
-            originZ
-        };
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                coordinateOnSlice[2] = selectedSliceCoordinate;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                coordinateOnSlice[1] = selectedSliceCoordinate;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                coordinateOnSlice[0] = selectedSliceCoordinate;
-                break;
-        }
-        
-        int64_t sliceIndicesForCoordinateOnSlice[3];
-        volumeFile->enclosingVoxel(coordinateOnSlice[0],
-                                   coordinateOnSlice[1],
-                                   coordinateOnSlice[2],
-                                   sliceIndicesForCoordinateOnSlice[0],
-                                   sliceIndicesForCoordinateOnSlice[1],
-                                   sliceIndicesForCoordinateOnSlice[2]);
-        
-        int64_t sliceIndexForDrawing = -1;
-        int64_t numVoxelsInSlice = 0;
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                sliceIndexForDrawing = sliceIndicesForCoordinateOnSlice[2];
-                if ((sliceIndexForDrawing < 0)
-                    || (sliceIndexForDrawing >= dimK)) {
-                    continue;
-                }
-                numVoxelsInSlice = dimI * dimJ;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                sliceIndexForDrawing = sliceIndicesForCoordinateOnSlice[1];
-                if ((sliceIndexForDrawing < 0)
-                    || (sliceIndexForDrawing >= dimJ)) {
-                    continue;
-                }
-                numVoxelsInSlice = dimI * dimK;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                sliceIndexForDrawing = sliceIndicesForCoordinateOnSlice[0];
-                if ((sliceIndexForDrawing < 0)
-                    || (sliceIndexForDrawing >= dimI)) {
-                    continue;
-                }
-                numVoxelsInSlice = dimJ * dimK;
-                break;
-        }
-
-        /*
-         * Stores RGBA values for each voxel.
-         * Use a vector for voxel colors so no worries about memory being freed.
-         */
-        const int64_t numVoxelsInSliceRGBA = numVoxelsInSlice * 4;
-        if (numVoxelsInSliceRGBA > static_cast<int64_t>(sliceVoxelsRgbaVector.size())) {
-            sliceVoxelsRgbaVector.resize(numVoxelsInSliceRGBA);
-        }
-        uint8_t* sliceVoxelsRGBA = &sliceVoxelsRgbaVector[0];
-        
-        /*
-         * Get colors for all voxels in the slice.
-         */
-        volumeFile->getVoxelColorsForSliceInMap(m_brain->getPaletteFile(),
-                                                mapIndex,
-                                                sliceViewPlane,
-                                                sliceIndexForDrawing,
-                                                displayGroup,
-                                                browserTabIndex,
-                                                sliceVoxelsRGBA);
-        
-        /*
-         * Is label outline mode?
-         */
-        if (m_volumeDrawInfo[iVol].mapFile->isMappedWithLabelTable()) {
-            if (isOutlineMode) {
-                int64_t xdim = 0;
-                int64_t ydim = 0;
-                switch (sliceViewPlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                        CaretAssert(0);
-                        break;
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        xdim = dimI;
-                        ydim = dimJ;
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        xdim = dimI;
-                        ydim = dimK;
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        xdim = dimJ;
-                        ydim = dimK;
-                        break;
-                }
-                
-                NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
-                                                                        xdim,
-                                                                        ydim);
-            }
-        }
-        
-        int64_t selectedSliceIndices[3] = {
-            m_browserTabContent->getSliceIndexParasagittal(volumeFile),
-            m_browserTabContent->getSliceIndexCoronal(volumeFile),
-            m_browserTabContent->getSliceIndexAxial(volumeFile)
-        };
-        /*
-         * Override selected slice indices for montage.
-         */
-        switch (m_sliceViewMode) {
-            case VolumeSliceViewModeEnum::MONTAGE:
-            {
-                switch (sliceViewPlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                        CaretAssert(0);
-                        break;
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        selectedSliceIndices[2] = sliceIndexForDrawing;
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        selectedSliceIndices[1] = sliceIndexForDrawing;
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        selectedSliceIndices[0] = sliceIndexForDrawing;
-                        break;
+    float voxelEditingValue = 1.0;
+    VolumeFile* voxelEditingVolumeFile = NULL;
+    bool volumeEditingDrawAllVoxelsFlag = false;
+    if (m_identificationModeFlag) {
+        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+        if (voxelEditID->isEnabledForSelection()) {
+            voxelEditingVolumeFile = voxelEditID->getVolumeFileForEditing();
+            if (voxelEditingVolumeFile != NULL) {
+                volumeEditingDrawAllVoxelsFlag = true;
+                if (voxelEditingVolumeFile->isMappedWithLabelTable()) {
+                    if (voxelEditingVolumeFile->getNumberOfMaps() > 0) {
+                        voxelEditingValue = voxelEditingVolumeFile->getMapLabelTable(0)->getUnassignedLabelKey();
+                    }
                 }
             }
-                break;
-            case VolumeSliceViewModeEnum::OBLIQUE:
-                break;
-            case VolumeSliceViewModeEnum::ORTHOGONAL:
-                break;
-        }
-        
-        const uint8_t volumeDrawingOpacity = static_cast<int8_t>(volInfo.opacity * 255.0);
-
-        /*
-         * Setup for drawing the voxels in the slice.
-         */
-        float startCoordinate[3] = {
-            originX - (voxelStepX / 2.0),
-            originY - (voxelStepY / 2.0),
-            originZ - (voxelStepZ / 2.0)
-        };
-        
-        float rowStep[3] = {
-            0.0,
-            0.0,
-            0.0
-        };
-        
-        float columnStep[3] = {
-            0.0,
-            0.0,
-            0.0
-        };
-        
-  
-        int64_t numberOfRows = 0;
-        int64_t numberOfColumns = 0;
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                startCoordinate[2] = m_browserTabContent->getSliceCoordinateAxial();
-                rowStep[1] = voxelStepY;
-                columnStep[0] = voxelStepX;
-                numberOfRows    = dimJ;
-                numberOfColumns = dimI;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                startCoordinate[1] = m_browserTabContent->getSliceCoordinateCoronal();
-                rowStep[2] = voxelStepZ;
-                columnStep[0] = voxelStepX;
-                numberOfRows    = dimK;
-                numberOfColumns = dimI;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                startCoordinate[0] = m_browserTabContent->getSliceCoordinateParasagittal();
-                rowStep[2] = voxelStepZ;
-                columnStep[1] = voxelStepY;
-                numberOfRows    = dimK;
-                numberOfColumns = dimJ;
-                break;
-        }
-        
-        if (drawMode == DRAW_MODE_ALL_STRUCTURES_VIEW) {
-            /*
-             * After the a slice is drawn in ALL view, some layers
-             * (volume surface outline) may be drawn in lines.  As the
-             * view is rotated, lines will partially appear and disappear
-             * due to the lines having the same (extremely close) depth
-             * values as the voxel polygons.  OpenGL's Polygon Offset
-             * only works with polygons and NOT with lines or points.
-             * So, polygon offset cannot be used to move the depth
-             * values for the lines and points "a little closer" to
-             * the user.  Instead, polygon offset is used to push
-             * the underlaying slices "a little bit away" from the 
-             * user.  
-             * 
-             * Resolves WB-414
-             */
-            const float inverseSliceIndex = numberOfVolumesToDraw - iVol;
-            //const float factor = 5.0;
-            const float factor  = inverseSliceIndex * 1.0 + 1.0;
-            const float units  = inverseSliceIndex * 1.0 + 1.0;
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glPolygonOffset(factor, units);
-            
-//            if (iVol > 0) {
-//                glEnable(GL_POLYGON_OFFSET_FILL);
-//                glPolygonOffset(-1.0, -1.0);
+//            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
+//            if (vf == voxelEditID->getVolumeFileForEditing()) {
+//                volumeEditingDrawAllVoxelsFlag = true;
 //            }
         }
-        
-        /*
-         * Draw the voxels in the slice.
-         */
-        drawOrthogonalSliceVoxels(sliceViewPlane,
-                                  sliceNormalVector,
-                                  selectedSliceIndices,
-                                  startCoordinate,
-                                  rowStep,
-                                  columnStep,
-                                  numberOfColumns,
-                                  numberOfRows,
-                                  sliceVoxelsRgbaVector,
-                                  iVol,
-                                  mapIndex,
-                                  volumeDrawingOpacity);
-        
-        glDisable(GL_POLYGON_OFFSET_FILL);
-    }
-    glDisable(GL_BLEND);
-    glShadeModel(GL_SMOOTH);
-}
-
-/**
- * Draw the voxels in an orthogonal slice.
- *
- * @param sliceViewPlane
- *    The slice plane being viewed.
- * @param sliceNormalVector
- *    Normal vector of the slice plane.
- * @param selectedSliceIndices
- *    Selected slice indices.
- * @param coordinate
- *    Coordinate of first voxel in the slice (bottom left as begin viewed)
- * @param rowStep
- *    Three-dimensional step to next row.
- * @param columnStep
- *    Three-dimensional step to next column.
- * @param numberOfColumns
- *    Number of columns in the slice.
- * @param numberOfRows
- *    Number of rows in the slice.
- * @param sliceRGBA
- *    RGBA coloring for voxels in the slice.
- * @param volumeIndex
- *    Index of the volume being drawn.
- * @param mapIndex
- *    Selected map in the volume being drawn.
- * @param sliceOpacity
- *    Opacity from the overlay.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                             const float sliceNormalVector[3],
-                                                             const int64_t selectedSliceIndices[3],
-                                                             const float coordinate[3],
-                                                             const float rowStep[3],
-                                                             const float columnStep[3],
-                                                             const int64_t numberOfColumns,
-                                                             const int64_t numberOfRows,
-                                                             const std::vector<uint8_t>& sliceRGBA,
-                                                             const int32_t volumeIndex,
-                                                             const int32_t mapIndex,
-                                                             const uint8_t sliceOpacity)
-{
-    const int64_t numVoxelsInSlice = numberOfColumns * numberOfRows;
-    
-    /*
-     * Allocate for quadrilateral drawing
-     */
-    const int64_t numQuadCoords = numVoxelsInSlice * 12;
-    const int64_t numQuadRgba   = numVoxelsInSlice * 16;
-    std::vector<float> voxelQuadCoordinates;
-    std::vector<float> voxelQuadNormals;
-    std::vector<uint8_t> voxelQuadRgba;
-    voxelQuadCoordinates.reserve(numQuadCoords);
-    voxelQuadNormals.reserve(numQuadCoords);
-    voxelQuadRgba.reserve(numQuadRgba);
-    
-    /*
-     * Step to next row or column voxel
-     */
-    const float rowStepX = rowStep[0];
-    const float rowStepY = rowStep[1];
-    const float rowStepZ = rowStep[2];
-    const float columnStepX = columnStep[0];
-    const float columnStepY = columnStep[1];
-    const float columnStepZ = columnStep[2];
-    
-    /*
-     * Draw each row
-     */
-    for (int64_t jRow = 0; jRow < numberOfRows; jRow++) {
-        /*
-         * Coordinates on left side of row
-         */
-        float rowBottomLeft[3] = {
-            coordinate[0] + (jRow * rowStepX),
-            coordinate[1] + (jRow * rowStepY),
-            coordinate[2] + (jRow * rowStepZ)
-        };
-        float rowTopLeft[3] = {
-            rowBottomLeft[0] + rowStepX,
-            rowBottomLeft[1] + rowStepY,
-            rowBottomLeft[2] + rowStepZ
-        };
-        
-        /*
-         * Draw each voxel in its column
-         */
-        for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
-            
-            /*
-             * Offset of voxel in coloring.
-             */
-            const int64_t sliceRgbaOffset = (4 * (iCol
-                                                  + (numberOfColumns * jRow)));
-            const int64_t alphaOffset = sliceRgbaOffset + 3;
-            
-            uint8_t rgba[4] = {
-                0,
-                0,
-                0,
-                0
-            };
-            
-            /*
-             * Negative alpha means do not display
-             */
-            CaretAssertVectorIndex(sliceRGBA, alphaOffset);
-            if (sliceRGBA[alphaOffset] <= 0) {
-                if (volumeIndex == 0) {
-                    /*
-                     * For first drawn volume, use an alpha of 255 so
-                     * so that black is drawn
-                     */
-                    rgba[3] = 255;
-                    
-                    /*
-                     * OVERRIDES BLACK VOXEL ABOVE (255)
-                     * For first drawn volume, use an alpha of zero so
-                     * that the background shows through
-                     */
-                    rgba[3] = 0; //255;
-                }
-            }
-            else {
-                /*
-                 * Use overlay's opacity
-                 */
-                rgba[0] = sliceRGBA[sliceRgbaOffset];
-                rgba[1] = sliceRGBA[sliceRgbaOffset + 1];
-                rgba[2] = sliceRGBA[sliceRgbaOffset + 2];
-                rgba[3] = sliceOpacity;
-            }
-            
-            /*
-             * Draw voxel based upon opacity
-             */
-            if (rgba[3] > 0) {
-                if (m_identificationModeFlag) {
-                    /*
-                     * Add info about voxel for identication.
-                     */
-                    int64_t voxelI = 0;
-                    int64_t voxelJ = 0;
-                    int64_t voxelK = 0;
-                    switch (sliceViewPlane) {
-                        case VolumeSliceViewPlaneEnum::ALL:
-                            CaretAssert(0);
-                            break;
-                        case VolumeSliceViewPlaneEnum::AXIAL:
-                            voxelI = iCol;
-                            voxelJ = jRow;
-                            voxelK = selectedSliceIndices[2];
-                            break;
-                        case VolumeSliceViewPlaneEnum::CORONAL:
-                            voxelI = iCol;
-                            voxelJ = selectedSliceIndices[1];
-                            voxelK = jRow;
-                            break;
-                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                            voxelI = selectedSliceIndices[0];
-                            voxelJ = iCol;
-                            voxelK = jRow;
-                            break;
-                    }
-                    addVoxelToIdentification(volumeIndex, mapIndex, voxelI, voxelJ, voxelK, rgba);
-                }
-                
-                /*
-                 * Set coordinates of voxel corners
-                 */
-                float voxelBottomLeft[3] = {
-                    rowBottomLeft[0] + (iCol * columnStepX),
-                    rowBottomLeft[1] + (iCol * columnStepY),
-                    rowBottomLeft[2] + (iCol * columnStepZ)
-                };
-                float voxelBottomRight[3] = {
-                    voxelBottomLeft[0] + columnStepX,
-                    voxelBottomLeft[1] + columnStepY,
-                    voxelBottomLeft[2] + columnStepZ
-                };
-                float voxelTopLeft[3] = {
-                    rowTopLeft[0] + (iCol * columnStepX),
-                    rowTopLeft[1] + (iCol * columnStepY),
-                    rowTopLeft[2] + (iCol * columnStepZ)
-                };
-                float voxelTopRight[3] = {
-                    voxelTopLeft[0] + columnStepX,
-                    voxelTopLeft[1] + columnStepY,
-                    voxelTopLeft[2] + columnStepZ
-                };
-                
-                /*
-                 * Add voxel to quadrilaterals
-                 */
-                voxelQuadCoordinates.push_back(voxelBottomLeft[0]);
-                voxelQuadCoordinates.push_back(voxelBottomLeft[1]);
-                voxelQuadCoordinates.push_back(voxelBottomLeft[2]);
-
-                voxelQuadCoordinates.push_back(voxelBottomRight[0]);
-                voxelQuadCoordinates.push_back(voxelBottomRight[1]);
-                voxelQuadCoordinates.push_back(voxelBottomRight[2]);
-                
-                voxelQuadCoordinates.push_back(voxelTopRight[0]);
-                voxelQuadCoordinates.push_back(voxelTopRight[1]);
-                voxelQuadCoordinates.push_back(voxelTopRight[2]);
-                
-                voxelQuadCoordinates.push_back(voxelTopLeft[0]);
-                voxelQuadCoordinates.push_back(voxelTopLeft[1]);
-                voxelQuadCoordinates.push_back(voxelTopLeft[2]);
-                
-                
-                for (int32_t iNormalAndColor = 0; iNormalAndColor < 4; iNormalAndColor++) {
-                    voxelQuadRgba.push_back(rgba[0]);
-                    voxelQuadRgba.push_back(rgba[1]);
-                    voxelQuadRgba.push_back(rgba[2]);
-                    voxelQuadRgba.push_back(rgba[3]);
-                    
-                    voxelQuadNormals.push_back(sliceNormalVector[0]);
-                    voxelQuadNormals.push_back(sliceNormalVector[1]);
-                    voxelQuadNormals.push_back(sliceNormalVector[2]);
-                }
-            }
-        }
     }
     
-    /*
-     * Draw the voxels.
-     */
-    if (voxelQuadCoordinates.empty() == false) {
-        BrainOpenGLPrimitiveDrawing::drawQuads(voxelQuadCoordinates,
-                                               voxelQuadNormals,
-                                               voxelQuadRgba);
-    }
-}
-
-
-/**
- * Draw a volume slice's voxels.
- *
- * @param sliceViewPlane
- *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
- * @param plane
- *   The plane equation.
- * @param drawMode
- *   The drawing mode.
- * @param transformationMatrix
- *   Transformation matrix for screen to model.
- * @param zoom
- *   The slice zooming.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                    const Plane& plane,
-                                                    const DRAW_MODE drawMode,
-                                                    const Matrix4x4& transformationMatrix,
-                                                    const float zoom)
-{
+    const bool obliqueSliceModeThreeDimFlag = false;
+    
     float m[16];
     glGetFloatv(GL_MODELVIEW_MATRIX, m);
     Matrix4x4 tm;
     tm.setMatrixFromOpenGL(m);
-//    CaretLogFine("Oblique drawing matrix for slice: "
-//                            + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
-//                            + tm.toFormattedString("  "));
+    //    CaretLogFine("Oblique drawing matrix for slice: "
+    //                            + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
+    //                            + tm.toFormattedString("  "));
     
     const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
     
@@ -2512,23 +844,16 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
         return;
     }
     float voxelSize = std::min(voxelSpacing[0],
-                                     std::min(voxelSpacing[1],
-                                              voxelSpacing[2]));
+                               std::min(voxelSpacing[1],
+                                        voxelSpacing[2]));
     
     /*
      * Use a larger voxel size for the 3D view in volume slice viewing
      * since it draws all three slices and this takes time
      */
-    switch (drawMode) {
-        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
-            break;
-        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
-            voxelSize *= 3.0;
-            break;
-        case DRAW_MODE_ALL_STRUCTURES_VIEW:
-            break;
+    if (obliqueSliceModeThreeDimFlag) {
+        voxelSize *= 3.0;
     }
-
     
     /*
      * Look at point is in center of volume
@@ -2568,8 +893,8 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
     int64_t originIJK[3];
     m_volumeDrawInfo[0].volumeFile->enclosingVoxel(zeroXYZ[0], zeroXYZ[1], zeroXYZ[2],
                                                    originIJK[0], originIJK[1], originIJK[2]);
-
-
+    
+    
     /*
      * Get XYZ center of origin Voxel
      */
@@ -2633,7 +958,7 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
         float newMaxScreenX = lastVoxelCenterX + halfVoxel;
         float newMinScreenY = firstVoxelCenterY - halfVoxel;
         float newMaxScreenY = lastVoxelCenterY + halfVoxel;
-                
+        
         if (debugFlag) {
             const AString msg2 = ("Origin Voxel Coordinate: ("
                                   + AString::fromNumbers(actualOrigin, 3, ",")
@@ -2669,14 +994,14 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
     
     
     if (alignVoxelsFlag == 2) {
-//        CaretLogFine("Oblique Screen X: ("
-//                       + AString::number(minScreenX)
-//                     + ","
-//                       + AString::number(maxScreenX)
-//                     + ") Y: ("
-//                       + AString::number(minScreenY) + ","
-//                       + AString::number(maxScreenY)
-//                     + ")");
+        //        CaretLogFine("Oblique Screen X: ("
+        //                       + AString::number(minScreenX)
+        //                     + ","
+        //                       + AString::number(maxScreenX)
+        //                     + ") Y: ("
+        //                       + AString::number(minScreenY) + ","
+        //                       + AString::number(maxScreenY)
+        //                     + ")");
         
         const float quarterVoxelSize = voxelSize / 4.0;
         float newMinScreenX = (static_cast<int64_t>(minScreenX / voxelSize) * voxelSize) + quarterVoxelSize;
@@ -2684,18 +1009,18 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
         float newMinScreenY = (static_cast<int64_t>(minScreenY / voxelSize) * voxelSize) + quarterVoxelSize;
         float newMaxScreenY = (static_cast<int64_t>(maxScreenY / voxelSize) * voxelSize) - quarterVoxelSize;
         
-//        CaretLogFine("NEW Oblique Screen MinX: "
-//                       + AString::number(newMinScreenX) + " MaxX: "
-//                       + AString::number(newMaxScreenX) + " MinY: "
-//                       + AString::number(newMinScreenY) + " MaxY: "
-//                       + AString::number(newMaxScreenY));
+        //        CaretLogFine("NEW Oblique Screen MinX: "
+        //                       + AString::number(newMinScreenX) + " MaxX: "
+        //                       + AString::number(newMaxScreenX) + " MinY: "
+        //                       + AString::number(newMinScreenY) + " MaxY: "
+        //                       + AString::number(newMaxScreenY));
         
         minScreenX = newMinScreenX;
         maxScreenX = newMaxScreenX;
         minScreenY = newMinScreenY;
         maxScreenY = newMaxScreenY;
     }
-
+    
     /*
      * Set the corners of the screen for the respective view
      */
@@ -2713,33 +1038,33 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
             bottomLeft[2] = 0.0;
             bottomRight[0] = maxScreenX;
             bottomRight[1] = minScreenY;
-            bottomRight[2] = 0.0; 
+            bottomRight[2] = 0.0;
             topRight[0] = maxScreenX;
             topRight[1] = maxScreenY;
-            topRight[2] = 0.0; 
+            topRight[2] = 0.0;
             topLeft[0] = minScreenX;
             topLeft[1] = maxScreenY;
-            topLeft[2] = 0.0; 
+            topLeft[2] = 0.0;
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             bottomLeft[0] = minScreenX;
-            bottomLeft[1] = 0.0; 
+            bottomLeft[1] = 0.0;
             bottomLeft[2] = minScreenY;
             bottomRight[0] = maxScreenX;
-            bottomRight[1] = 0.0; 
+            bottomRight[1] = 0.0;
             bottomRight[2] = minScreenY;
             topRight[0] = maxScreenX;
-            topRight[1] = 0.0; 
+            topRight[1] = 0.0;
             topRight[2] = maxScreenY;
             topLeft[0] = minScreenX;
-            topLeft[1] = 0.0; 
+            topLeft[1] = 0.0;
             topLeft[2] = maxScreenY;
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            bottomLeft[0] = 0.0; 
+            bottomLeft[0] = 0.0;
             bottomLeft[1] = minScreenX;
             bottomLeft[2] = minScreenY;
-            bottomRight[0] = 0.0; 
+            bottomRight[0] = 0.0;
             bottomRight[1] = maxScreenX;
             bottomRight[2] = minScreenY;
             topRight[0] = 0.0;
@@ -2776,10 +1101,10 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
         std::cout << qPrintable(msg) << std::endl;
     }
     
-//    CaretLogFine("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
-//                   + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
-//                   + " TR: " + AString::fromNumbers(topRight, 3, ",")
-//                   + " TL: " + AString::fromNumbers(topLeft, 3, ","));
+    //    CaretLogFine("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
+    //                   + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
+    //                   + " TR: " + AString::fromNumbers(topRight, 3, ",")
+    //                   + " TL: " + AString::fromNumbers(topLeft, 3, ","));
     if (debugFlag) {
         m_fixedPipelineDrawing->setLineWidth(3.0);
         glColor3f(1.0, 0.0, 0.0);
@@ -3067,6 +1392,20 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
                                                         vdi.mapIndex);
                     }
                     
+                    /*
+                     * Need to draw all voxels when editing
+                     */
+                    if (volumeEditingDrawAllVoxelsFlag) {
+                        if (! valueValidFlag) {
+                            if (volumeFile != NULL) {
+                                if (volumeFile == voxelEditingVolumeFile) {
+                                    value = voxelEditingValue;
+                                    valueValidFlag = true;
+                                }
+                            }
+                        }
+                    }
+                    
                     if (valueValidFlag) {
                         if (voxelDrawingInfo == NULL) {
                             /*
@@ -3116,16 +1455,6 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
     const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
     const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-                                                                                                browserTabIndex);
-    bool isOutlineMode = false;
-    switch (labelDrawingType) {
-        case LabelDrawingTypeEnum::DRAW_FILLED:
-            break;
-        case LabelDrawingTypeEnum::DRAW_OUTLINE:
-            isOutlineMode = true;
-            break;
-    }
     
     /*
      * Color voxel values
@@ -3137,12 +1466,24 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
             
             VolumeMappableInterface* volume = volumeSlices[i].m_volumeMappableInterface;
             CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(volume);
+            VolumeFile* volumeFile = volumeSlices[i].m_volumeFile;
+            
             CaretAssert(mappableFile);
             const int32_t mapIndex = volumeSlices[i].m_mapIndex;
             const float* values = &volumeSlices[i].m_values[0];
             uint8_t* rgba = &volumeSlices[i].m_rgba[0];
             
-            if (mappableFile->isMappedWithPalette()) {
+            if (volumeEditingDrawAllVoxelsFlag
+                && (volumeFile == voxelEditingVolumeFile)) {
+                for (int64_t i = 0; i < numValues; i++) {
+                    const int64_t i4 = i * 4;
+                    rgba[i4] = 255;
+                    rgba[i4+1] = 255;
+                    rgba[i4+2] = 255;
+                    rgba[i4+3] = 255;
+                }
+            }
+            else if (mappableFile->isMappedWithPalette()) {
                 const PaletteColorMapping* paletteColorMapping = mappableFile->getMapPaletteColorMapping(mapIndex);
                 const AString paletteName = paletteColorMapping->getSelectedPaletteName();
                 const Palette* palette = m_paletteFile->getPaletteByName(paletteName);
@@ -3164,11 +1505,11 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
             else if (mappableFile->isMappedWithLabelTable()) {
                 GiftiLabelTable* labelTable = mappableFile->getMapLabelTable(mapIndex);
                 NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
-                                                                 values,
-                                                                 numValues,
-                                                                 displayGroup,
-                                                                 browserTabIndex,
-                                                                 rgba);
+                                                                                   values,
+                                                                                   numValues,
+                                                                                   displayGroup,
+                                                                                   browserTabIndex,
+                                                                                   rgba);
             }
             else {
                 CaretAssert(0);
@@ -3237,7 +1578,15 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
                                            voxelI, voxelJ, voxelK);
                     
                     if (volMap->indexValid(voxelI, voxelJ, voxelK)) {
-                        addVoxelToIdentification(sliceIndex, volumeSlices[sliceIndex].m_mapIndex, voxelI, voxelJ, voxelK, voxelRGBA);
+                        float diffXYZ[3];
+                        vtd->getDiffXYZ(diffXYZ);
+                        addVoxelToIdentification(sliceIndex,
+                                                 volumeSlices[sliceIndex].m_mapIndex,
+                                                 voxelI,
+                                                 voxelJ,
+                                                 voxelK,
+                                                 diffXYZ,
+                                                 voxelRGBA);
                     }
                 }
             }
@@ -3321,7 +1670,6 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
     
     if ( ! quadCoordsVector.empty()) {
         glPushMatrix();
-        glScalef(zoom, zoom, zoom);
         BrainOpenGLPrimitiveDrawing::drawQuads(quadCoordsVector,
                                                quadNormalsVector,
                                                quadRGBAsVector);
@@ -3330,35 +1678,1304 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
 }
 
 /**
- * Draw a square for debugging.
+ * Draw an orthogonal slice.
+ *
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slice.
+ * @param plane
+ *    Plane equation for the selected slice.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::drawDebugSquare()
+OldBrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                 const float sliceCoordinates[3],
+                                                 const Plane& plane)
 {
-    glColor3f(1.0, 0.0, 1.0);
-    glBegin(GL_POLYGON);
-    glVertex3f(-25.0, -25.0, 1.0);
-    glVertex3f( 25.0, -25.0, 1.0);
-    glVertex3f( 25.0,  25.0, 1.0);
-    glVertex3f(-25.0,  25.0, 1.0);
-    glEnd();
+    const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
+    const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
+    const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+    //    switch (labelDrawingType) {
+    //        case LabelDrawingTypeEnum::DRAW_FILLED_LABEL_COLOR:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_FILLED_BLACK_OUTLINE:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_FILLED_WHITE_OUTLINE:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_BLACK:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_WHITE:
+    //            break;
+    //    }
+    //    bool isOutlineMode = false;
+    //    switch (labelDrawingType) {
+    //        case LabelDrawingTypeEnum::DRAW_FILLED:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE:
+    //            isOutlineMode = true;
+    //            break;
+    //    }
+    
+    /*
+     * Enable alpha blending so voxels that are not drawn from higher layers
+     * allow voxels from lower layers to be seen.
+     */
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    /*
+     * Flat shading voxels not interpolated
+     */
+    glShadeModel(GL_FLAT);
+    
+    CaretAssert(plane.isValidPlane());
+    if (plane.isValidPlane() == false) {
+        return;
+    }    
+    
+    /*
+     * Compute coordinate of point in center of first slice
+     */
+    float selectedSliceCoordinate = 0.0;
+    float sliceNormalVector[3] = { 0.0, 0.0, 0.0 };
+    plane.getNormalVector(sliceNormalVector);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            selectedSliceCoordinate = sliceCoordinates[2];
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            selectedSliceCoordinate = sliceCoordinates[1];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            selectedSliceCoordinate = sliceCoordinates[0];
+            break;
+    }
+    
+    /*
+     * Holds colors for voxels in the slice
+     * Outside of loop to minimize allocations
+     * It is faster to make one call to
+     * NodeAndVoxelColoring::colorScalarsWithPalette() with
+     * all voxels in the slice than it is to call it
+     * separately for each voxel.
+     */
+    std::vector<uint8_t> sliceVoxelsRgbaVector;
+    
+    /*
+     * Draw each of the volumes separately so that each
+     * is drawn with the correct voxel slices.
+     */
+    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(m_volumeDrawInfo.size());
+    for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
+        const BrainOpenGLFixedPipeline::VolumeDrawInfo& volInfo = m_volumeDrawInfo[iVol];
+        const VolumeMappableInterface* volumeFile = volInfo.volumeFile;
+        int64_t dimI, dimJ, dimK, numMaps, numComponents;
+        volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+        const int64_t mapIndex = volInfo.mapIndex;
+        
+        float originX, originY, originZ;
+        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
+        
+        float x1, y1, z1;
+        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
+        const float voxelStepX = x1 - originX;
+        const float voxelStepY = y1 - originY;
+        const float voxelStepZ = z1 - originZ;
+        
+ 
+        /*
+         * Determine index of slice being viewed for the volume
+         */
+        float coordinateOnSlice[3] = {
+            originX,
+            originY,
+            originZ
+        };
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                coordinateOnSlice[2] = selectedSliceCoordinate;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                coordinateOnSlice[1] = selectedSliceCoordinate;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                coordinateOnSlice[0] = selectedSliceCoordinate;
+                break;
+        }
+        
+        int64_t sliceIndicesForCoordinateOnSlice[3];
+        volumeFile->enclosingVoxel(coordinateOnSlice[0],
+                                   coordinateOnSlice[1],
+                                   coordinateOnSlice[2],
+                                   sliceIndicesForCoordinateOnSlice[0],
+                                   sliceIndicesForCoordinateOnSlice[1],
+                                   sliceIndicesForCoordinateOnSlice[2]);
+        
+        int64_t sliceIndexForDrawing = -1;
+        int64_t numVoxelsInSlice = 0;
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                sliceIndexForDrawing = sliceIndicesForCoordinateOnSlice[2];
+                if ((sliceIndexForDrawing < 0)
+                    || (sliceIndexForDrawing >= dimK)) {
+                    continue;
+                }
+                numVoxelsInSlice = dimI * dimJ;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                sliceIndexForDrawing = sliceIndicesForCoordinateOnSlice[1];
+                if ((sliceIndexForDrawing < 0)
+                    || (sliceIndexForDrawing >= dimJ)) {
+                    continue;
+                }
+                numVoxelsInSlice = dimI * dimK;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                sliceIndexForDrawing = sliceIndicesForCoordinateOnSlice[0];
+                if ((sliceIndexForDrawing < 0)
+                    || (sliceIndexForDrawing >= dimI)) {
+                    continue;
+                }
+                numVoxelsInSlice = dimJ * dimK;
+                break;
+        }
+        
+        /*
+         * Stores RGBA values for each voxel.
+         * Use a vector for voxel colors so no worries about memory being freed.
+         */
+        const int64_t numVoxelsInSliceRGBA = numVoxelsInSlice * 4;
+        if (numVoxelsInSliceRGBA > static_cast<int64_t>(sliceVoxelsRgbaVector.size())) {
+            sliceVoxelsRgbaVector.resize(numVoxelsInSliceRGBA);
+        }
+        uint8_t* sliceVoxelsRGBA = &sliceVoxelsRgbaVector[0];
+        
+        /*
+         * Get colors for all voxels in the slice.
+         */
+        const int64_t validVoxelCount =
+           volumeFile->getVoxelColorsForSliceInMap(m_brain->getPaletteFile(),
+                                                mapIndex,
+                                                sliceViewPlane,
+                                                sliceIndexForDrawing,
+                                                displayGroup,
+                                                browserTabIndex,
+                                                sliceVoxelsRGBA);
+        
+        /*
+         * Is label outline mode?
+         */
+        if (m_volumeDrawInfo[iVol].mapFile->isMappedWithLabelTable()) {
+            int64_t xdim = 0;
+            int64_t ydim = 0;
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    xdim = dimI;
+                    ydim = dimJ;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    xdim = dimI;
+                    ydim = dimK;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    xdim = dimJ;
+                    ydim = dimK;
+                    break;
+            }
+            
+            LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
+            CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+            const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeFile);
+            if (mapFile != NULL) {
+                if (mapFile->isMappedWithLabelTable()) {
+                    const LabelDrawingProperties* props = mapFile->getLabelDrawingProperties();
+                    labelDrawingType = props->getDrawingType();
+                    outlineColor     = props->getOutlineColor();
+                }
+            }
+            NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
+                                                                    labelDrawingType,
+                                                                    outlineColor,
+                                                                    xdim,
+                                                                    ydim);
+        }
+
+        int64_t selectedSliceIndices[3];
+        volumeFile->enclosingVoxel(sliceCoordinates[0],
+                                   sliceCoordinates[1],
+                                   sliceCoordinates[2],
+                                   selectedSliceIndices[0],
+                                   selectedSliceIndices[1],
+                                   selectedSliceIndices[2]);
+        
+        const uint8_t volumeDrawingOpacity = static_cast<int8_t>(volInfo.opacity * 255.0);
+        
+        /*
+         * Setup for drawing the voxels in the slice.
+         */
+        float startCoordinate[3] = {
+            originX - (voxelStepX / 2.0),
+            originY - (voxelStepY / 2.0),
+            originZ - (voxelStepZ / 2.0)
+        };
+        
+        float rowStep[3] = {
+            0.0,
+            0.0,
+            0.0
+        };
+        
+        float columnStep[3] = {
+            0.0,
+            0.0,
+            0.0
+        };
+        
+        
+        int64_t numberOfRows = 0;
+        int64_t numberOfColumns = 0;
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                startCoordinate[2] = selectedSliceCoordinate; //m_browserTabContent->getSliceCoordinateAxial();
+                rowStep[1] = voxelStepY;
+                columnStep[0] = voxelStepX;
+                numberOfRows    = dimJ;
+                numberOfColumns = dimI;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                startCoordinate[1] = selectedSliceCoordinate; //m_browserTabContent->getSliceCoordinateCoronal();
+                rowStep[2] = voxelStepZ;
+                columnStep[0] = voxelStepX;
+                numberOfRows    = dimK;
+                numberOfColumns = dimI;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                startCoordinate[0] = selectedSliceCoordinate; //m_browserTabContent->getSliceCoordinateParasagittal();
+                rowStep[2] = voxelStepZ;
+                columnStep[1] = voxelStepY;
+                numberOfRows    = dimK;
+                numberOfColumns = dimJ;
+                break;
+        }
+        
+        if (m_modelWholeBrain != NULL) {
+            /*
+             * After the a slice is drawn in ALL view, some layers
+             * (volume surface outline) may be drawn in lines.  As the
+             * view is rotated, lines will partially appear and disappear
+             * due to the lines having the same (extremely close) depth
+             * values as the voxel polygons.  OpenGL's Polygon Offset
+             * only works with polygons and NOT with lines or points.
+             * So, polygon offset cannot be used to move the depth
+             * values for the lines and points "a little closer" to
+             * the user.  Instead, polygon offset is used to push
+             * the underlaying slices "a little bit away" from the
+             * user.
+             *
+             * Resolves WB-414
+             */
+            const float inverseSliceIndex = numberOfVolumesToDraw - iVol;
+            //const float factor = 5.0;
+            const float factor  = inverseSliceIndex * 1.0 + 1.0;
+            const float units  = inverseSliceIndex * 1.0 + 1.0;
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(factor, units);
+            
+            //            if (iVol > 0) {
+            //                glEnable(GL_POLYGON_OFFSET_FILL);
+            //                glPolygonOffset(-1.0, -1.0);
+            //            }
+        }
+        
+        /*
+         * Draw the voxels in the slice.
+         */
+        drawOrthogonalSliceVoxels(sliceNormalVector,
+                                  startCoordinate,
+                                  rowStep,
+                                  columnStep,
+                                  numberOfColumns,
+                                  numberOfRows,
+                                  sliceVoxelsRgbaVector,
+                                  validVoxelCount,
+                                  volumeFile,
+                                  iVol,
+                                  mapIndex,
+                                  volumeDrawingOpacity);
+        
+        glDisable(GL_POLYGON_OFFSET_FILL);
+    }
+    glDisable(GL_BLEND);
+    glShadeModel(GL_SMOOTH);
+}
+
+/**
+ * Draw an orthogonal slice with culling to avoid drawing
+ * voxels not visible in the viewport and reduce drawing time.
+ *
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slice.
+ * @param plane
+ *    Plane equation for the selected slice.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                              const float sliceCoordinates[3],
+                                                              const Plane& plane)
+{
+    const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
+    const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
+    const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+    /*
+     * Enable alpha blending so voxels that are not drawn from higher layers
+     * allow voxels from lower layers to be seen.
+     */
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    /*
+     * Flat shading voxels not interpolated
+     */
+    glShadeModel(GL_FLAT);
+    
+    CaretAssert(plane.isValidPlane());
+    if (plane.isValidPlane() == false) {
+        return;
+    }
+    
+    /*
+     * Compute coordinate of point in center of first slice
+     */
+    float selectedSliceCoordinate = 0.0;
+    float sliceNormalVector[3] = { 0.0, 0.0, 0.0 };
+    plane.getNormalVector(sliceNormalVector);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            selectedSliceCoordinate = sliceCoordinates[2];
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            selectedSliceCoordinate = sliceCoordinates[1];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            selectedSliceCoordinate = sliceCoordinates[0];
+            break;
+    }
+    
+    /*
+     * Holds colors for voxels in the slice
+     * Outside of loop to minimize allocations
+     * It is faster to make one call to
+     * NodeAndVoxelColoring::colorScalarsWithPalette() with
+     * all voxels in the slice than it is to call it
+     * separately for each voxel.
+     */
+    std::vector<uint8_t> sliceVoxelsRgbaVector;
+    
+    /*
+     * Draw each of the volumes separately so that each
+     * is drawn with the correct voxel slices.
+     */
+    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(m_volumeDrawInfo.size());
+    for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
+        const BrainOpenGLFixedPipeline::VolumeDrawInfo& volInfo = m_volumeDrawInfo[iVol];
+        const VolumeMappableInterface* volumeFile = volInfo.volumeFile;
+        
+        int64_t culledFirstVoxelIJK[3];
+        int64_t culledLastVoxelIJK[3];
+        float voxelDeltaXYZ[3];
+
+        if ( ! getVolumeDrawingViewDependentCulling(sliceViewPlane,
+                                                    selectedSliceCoordinate,
+                                                    volumeFile,
+                                                    culledFirstVoxelIJK,
+                                                    culledLastVoxelIJK,
+                                                    voxelDeltaXYZ)) {
+            CaretLogSevere("OldBrainOpenGLVolumeSliceDrawing::getVolumeDrawingViewDependentCulling() failed.");
+            continue;
+        }
+        const int64_t numVoxelsI = std::abs(culledLastVoxelIJK[0] - culledFirstVoxelIJK[0]) + 1;
+        const int64_t numVoxelsJ = std::abs(culledLastVoxelIJK[1] - culledFirstVoxelIJK[1]) + 1;
+        const int64_t numVoxelsK = std::abs(culledLastVoxelIJK[2] - culledFirstVoxelIJK[2]) + 1;
+        
+        int64_t dimIJK[3], numMaps, numComponents;
+        volumeFile->getDimensions(dimIJK[0], dimIJK[1], dimIJK[2], numMaps, numComponents);
+        const int64_t mapIndex = volInfo.mapIndex;
+        
+        float firstVoxelXYZ[3];
+        volumeFile->indexToSpace(culledFirstVoxelIJK[0], culledFirstVoxelIJK[1], culledFirstVoxelIJK[2],
+                                 firstVoxelXYZ[0], firstVoxelXYZ[1], firstVoxelXYZ[2]);
+        
+        const float voxelStepX = voxelDeltaXYZ[0];
+        const float voxelStepY = voxelDeltaXYZ[1];
+        const float voxelStepZ = voxelDeltaXYZ[2];
+        
+        int64_t sliceIndexForDrawing = -1;
+        int64_t numVoxelsInSlice = 0;
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                sliceIndexForDrawing = culledFirstVoxelIJK[2];
+                if ((sliceIndexForDrawing < 0)
+                    || (sliceIndexForDrawing >= dimIJK[2])) {
+                    continue;
+                }
+                numVoxelsInSlice = numVoxelsI * numVoxelsJ;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                sliceIndexForDrawing = culledFirstVoxelIJK[1];
+                if ((sliceIndexForDrawing < 0)
+                    || (sliceIndexForDrawing >= dimIJK[1])) {
+                    continue;
+                }
+                numVoxelsInSlice = numVoxelsI * numVoxelsK;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                sliceIndexForDrawing = culledFirstVoxelIJK[0];
+                if ((sliceIndexForDrawing < 0)
+                    || (sliceIndexForDrawing >= dimIJK[0])) {
+                    continue;
+                }
+                numVoxelsInSlice = numVoxelsJ * numVoxelsK;
+                break;
+        }
+        
+        /*
+         * Stores RGBA values for each voxel.
+         * Use a vector for voxel colors so no worries about memory being freed.
+         */
+        const int64_t numVoxelsInSliceRGBA = numVoxelsInSlice * 4;
+        if (numVoxelsInSliceRGBA != static_cast<int64_t>(sliceVoxelsRgbaVector.size())) {
+            sliceVoxelsRgbaVector.resize(numVoxelsInSliceRGBA);
+        }
+        uint8_t* sliceVoxelsRGBA = &sliceVoxelsRgbaVector[0];
+        
+        /*
+         * Get colors for all voxels in the slice.
+         */
+        const int64_t voxelCountIJK[3] = {
+            numVoxelsI,
+            numVoxelsJ,
+            numVoxelsK
+        };
+        
+        const int64_t validVoxelCount =
+           volumeFile->getVoxelColorsForSubSliceInMap(m_brain->getPaletteFile(),
+                                                   mapIndex,
+                                                   sliceViewPlane,
+                                                   sliceIndexForDrawing,
+                                                   culledFirstVoxelIJK,
+                                                   culledLastVoxelIJK,
+                                                   voxelCountIJK,
+                                                   displayGroup,
+                                                   browserTabIndex,
+                                                   sliceVoxelsRGBA);
+        
+        /*
+         * Is label outline mode?
+         */
+        if (m_volumeDrawInfo[iVol].mapFile->isMappedWithLabelTable()) {
+            int64_t xdim = 0;
+            int64_t ydim = 0;
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    xdim = numVoxelsI;
+                    ydim = numVoxelsJ;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    xdim = numVoxelsI;
+                    ydim = numVoxelsK;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    xdim = numVoxelsJ;
+                    ydim = numVoxelsK;
+                    break;
+            }
+            
+            LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
+            CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+            const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeFile);
+            if (mapFile != NULL) {
+                if (mapFile->isMappedWithLabelTable()) {
+                    const LabelDrawingProperties* props = mapFile->getLabelDrawingProperties();
+                    labelDrawingType = props->getDrawingType();
+                    outlineColor     = props->getOutlineColor();
+                }
+            }
+            NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
+                                                                    labelDrawingType,
+                                                                    outlineColor,
+                                                                    xdim,
+                                                                    ydim);
+        }
+        
+        const uint8_t volumeDrawingOpacity = static_cast<int8_t>(volInfo.opacity * 255.0);
+        
+        /*
+         * Setup for drawing the voxels in the slice.
+         */
+        float startCoordinate[3] = {
+            firstVoxelXYZ[0] - (voxelStepX / 2.0),
+            firstVoxelXYZ[1] - (voxelStepY / 2.0),
+            firstVoxelXYZ[2] - (voxelStepZ / 2.0)
+        };
+        
+        float rowStep[3] = {
+            0.0,
+            0.0,
+            0.0
+        };
+        
+        float columnStep[3] = {
+            0.0,
+            0.0,
+            0.0
+        };
+        
+        
+        int64_t numberOfRows = 0;
+        int64_t numberOfColumns = 0;
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                rowStep[1] = voxelStepY;
+                columnStep[0] = voxelStepX;
+                numberOfRows    = numVoxelsJ;
+                numberOfColumns = numVoxelsI;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                rowStep[2] = voxelStepZ;
+                columnStep[0] = voxelStepX;
+                numberOfRows    = numVoxelsK;
+                numberOfColumns = numVoxelsI;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                rowStep[2] = voxelStepZ;
+                columnStep[1] = voxelStepY;
+                numberOfRows    = numVoxelsK;
+                numberOfColumns = numVoxelsJ;
+                break;
+        }
+        
+        if (m_modelWholeBrain != NULL) {
+            /*
+             * After the a slice is drawn in ALL view, some layers
+             * (volume surface outline) may be drawn in lines.  As the
+             * view is rotated, lines will partially appear and disappear
+             * due to the lines having the same (extremely close) depth
+             * values as the voxel polygons.  OpenGL's Polygon Offset
+             * only works with polygons and NOT with lines or points.
+             * So, polygon offset cannot be used to move the depth
+             * values for the lines and points "a little closer" to
+             * the user.  Instead, polygon offset is used to push
+             * the underlaying slices "a little bit away" from the
+             * user.
+             *
+             * Resolves WB-414
+             */
+            const float inverseSliceIndex = numberOfVolumesToDraw - iVol;
+            //const float factor = 5.0;
+            const float factor  = inverseSliceIndex * 1.0 + 1.0;
+            const float units  = inverseSliceIndex * 1.0 + 1.0;
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(factor, units);
+        }
+        
+        /*
+         * Draw the voxels in the slice.
+         */
+        drawOrthogonalSliceVoxels(sliceNormalVector,
+                                  startCoordinate,
+                                  rowStep,
+                                  columnStep,
+                                  numberOfColumns,
+                                  numberOfRows,
+                                  sliceVoxelsRgbaVector,
+                                  validVoxelCount,
+                                  volumeFile,
+                                  iVol,
+                                  mapIndex,
+                                  volumeDrawingOpacity);
+        
+        glDisable(GL_POLYGON_OFFSET_FILL);
+    }
+    glDisable(GL_BLEND);
+    glShadeModel(GL_SMOOTH);
+}
+
+/**
+ * Create the equation for the slice plane
+ *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param montageSliceIndex
+ *    Selected montage slice index
+ * @param planeOut
+ *    OUTPUT plane of slice after transforms.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                      const float sliceCoordinates[3],
+                                                      Plane& planeOut)
+{
+    /*
+     * Default the slice normal vector to an orthogonal view
+     */
+    float sliceNormalVector[3] = { 0.0, 0.0, 0.0 };
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            sliceNormalVector[2] = 1.0;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            sliceNormalVector[1] = -1.0;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            sliceNormalVector[0] = -1.0;
+            break;
+    }
+    
+    switch (sliceProjectionType) {
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            /*
+             * Transform the slice normal vector by the oblique rotation
+             * matrix so that the normal vector points out of the slice
+             */
+            const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+            obliqueRotationMatrix.multiplyPoint3(sliceNormalVector);
+            MathFunctions::normalizeVector(sliceNormalVector);
+        }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
+    
+    Plane plane(sliceNormalVector,
+                sliceCoordinates);
+    planeOut = plane;
+    
+    //    CaretLogFine("Setting plane "
+    //                   + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
+    //                   + "\n   Selected Coordinate:"
+    //                   + AString::number(selectedSliceCoordinate[0])
+    //                   + ", "
+    //                   + AString::number(selectedSliceCoordinate[1])
+    //                   + ", "
+    //                   + AString::number(selectedSliceCoordinate[2])
+    //                   + "\n   Slice Plane: "
+    //                   + plane.toString());
+    
+    m_lookAtCenter[0] = sliceCoordinates[0];
+    m_lookAtCenter[1] = sliceCoordinates[1];
+    m_lookAtCenter[2] = sliceCoordinates[2];
+}
+
+/**
+ * Set the volume slice viewing transformation.  This sets the position and
+ * orientation of the camera.
+ *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param plane
+ *    Plane equation of selected slice.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slices.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                             const Plane& plane,
+                                                                             const float sliceCoordinates[3])
+{
+    /*
+     * Initialize the modelview matrix to the identity matrix
+     * This places the camera at the origin, pointing down the
+     * negative-Z axis with the up vector set to (0,1,0 =>
+     * positive-Y is up).
+     */
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    const float* userTranslation = m_browserTabContent->getTranslation();
+    
+    /*
+     * Move the camera with the user's translation
+     */
+    float viewTranslationX = 0.0;
+    float viewTranslationY = 0.0;
+    float viewTranslationZ = 0.0;
+    
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
+            viewTranslationY = sliceCoordinates[1] + userTranslation[1];
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
+            viewTranslationY = sliceCoordinates[2] + userTranslation[2];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            viewTranslationX = -(sliceCoordinates[1] + userTranslation[1]);
+            viewTranslationY =   sliceCoordinates[2] + userTranslation[2];
+            break;
+    }
+    
+    glTranslatef(viewTranslationX,
+                 viewTranslationY,
+                 viewTranslationZ);
+    
+    
+    
+    
+    glGetDoublev(GL_MODELVIEW_MATRIX,
+                 m_viewingMatrix);
+    
+    /*
+     * Since an orthographic projection is used, the camera only needs
+     * to be a little bit from the center along the plane's normal vector.
+     */
+    double planeNormal[3];
+    plane.getNormalVector(planeNormal);
+    double cameraXYZ[3] = {
+        m_lookAtCenter[0] + planeNormal[0] * 1.0,
+        m_lookAtCenter[1] + planeNormal[1] * 1.0,
+        m_lookAtCenter[2] + planeNormal[2] * 1.0,
+    };
+    
+    /*
+     * Set the up vector which indices which way is up (screen Y)
+     */
+    float up[3] = { 0.0, 0.0, 0.0 };
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            up[1] = 1.0;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            up[2] = 1.0;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            up[2] = 1.0;
+            break;
+    }
+    
+    /*
+     * For oblique viewing, the up vector needs to be rotated by the
+     * oblique rotation matrix.
+     */
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
+    
+    /*
+     * Now set the camera to look at the selected coordinate (center)
+     * with the camera offset a little bit from the center.
+     * This allows the slice's voxels to be drawn in the actual coordinates.
+     */
+    gluLookAt(cameraXYZ[0], cameraXYZ[1], cameraXYZ[2],
+              m_lookAtCenter[0], m_lookAtCenter[1], m_lookAtCenter[2],
+              up[0], up[1], up[2]);
+}
+
+/**
+ * Draw the layers type data.
+ *
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param slicePlane
+ *    Plane of the slice.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slices.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                        const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                        const Plane& slicePlane,
+                                        const float sliceCoordinates[3])
+{
+    bool drawCrosshairsFlag = true;
+    bool drawFibersFlag     = true;
+    bool drawFociFlag       = true;
+    bool drawOutlineFlag    = true;
+    
+    if (m_modelWholeBrain != NULL) {
+        drawCrosshairsFlag = false;
+        drawFibersFlag = false;
+        drawFociFlag = false;
+    }
+    
+    if ( ! m_identificationModeFlag) {
+        if (slicePlane.isValidPlane()) {
+            /*
+             * Disable culling so that both sides of the triangles/quads are drawn.
+             */
+            GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
+            glDisable(GL_CULL_FACE);
+            
+            glPushMatrix();
+            
+            GLboolean depthBufferEnabled = false;
+            glGetBooleanv(GL_DEPTH_TEST,
+                          &depthBufferEnabled);
+            
+            /*
+             * Use some polygon offset that will adjust the depth values of the
+             * layers so that the layers depth values place the layers in front of
+             * the volume slice.
+             */
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(0.0, 1.0);
+            
+            if (drawOutlineFlag) {
+                drawSurfaceOutline(slicePlane);
+            }
+            
+            if (drawFibersFlag) {
+                glDisable(GL_DEPTH_TEST);
+                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane,
+                                                              StructureEnum::ALL);
+                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane,
+                                                              StructureEnum::ALL);
+                if (depthBufferEnabled) {
+                    glEnable(GL_DEPTH_TEST);
+                }
+                else {
+                    glDisable(GL_DEPTH_TEST);
+                }
+            }
+            if (drawFociFlag) {
+                glDisable(GL_DEPTH_TEST);
+                drawVolumeSliceFoci(slicePlane);
+                if (depthBufferEnabled) {
+                    glEnable(GL_DEPTH_TEST);
+                }
+                else {
+                    glDisable(GL_DEPTH_TEST);
+                }
+            }
+            
+            glDisable(GL_POLYGON_OFFSET_FILL);
+            
+            if (drawCrosshairsFlag) {
+                glPushMatrix();
+                drawAxesCrosshairs(sliceProjectionType,
+                                   sliceDrawingType,
+                                   sliceViewPlane,
+                                   sliceCoordinates);
+                glPopMatrix();
+                if (depthBufferEnabled) {
+                    glEnable(GL_DEPTH_TEST);
+                }
+                else {
+                    glDisable(GL_DEPTH_TEST);
+                }
+            }
+            
+            glPopMatrix();
+            
+            if (cullFaceOn) {
+                glEnable(GL_CULL_FACE);
+            }
+        }
+    }
+}
+
+/**
+ * Draw surface outlines on the volume slices
+ *
+ * @param plane
+ *   Plane of the volume slice on which surface outlines are drawn.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
+{
+    if ( ! plane.isValidPlane()) {
+        return;
+    }
+    
+    //    CaretLogFine("\nSurface Outline Plane: "
+    //                 + plane.toString());
+    
+    float intersectionPoint1[3];
+    float intersectionPoint2[3];
+    
+    m_fixedPipelineDrawing->enableLineAntiAliasing();
+    
+    VolumeSurfaceOutlineSetModel* outlineSet = m_browserTabContent->getVolumeSurfaceOutlineSet();
+    
+    /*
+     * Process each surface outline
+     */
+    const int32_t numberOfOutlines = outlineSet->getNumberOfDislayedVolumeSurfaceOutlines();
+    for (int io = 0;
+         io < numberOfOutlines;
+         io++) {
+        VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
+        if (outline->isDisplayed()) {
+            Surface* surface = outline->getSurface();
+            if (surface != NULL) {
+                const float thickness = outline->getThickness();
+                //const float lineWidth = m_fixedPipelineDrawing->modelSizeToPixelSize(thickness);
+                
+                int numTriangles = surface->getNumberOfTriangles();
+                
+                CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+                int32_t colorSourceBrowserTabIndex = -1;
+                
+                VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel = outline->getColorOrTabModel();
+                VolumeSurfaceOutlineColorOrTabModel::Item* selectedColorOrTabItem = colorOrTabModel->getSelectedItem();
+                switch (selectedColorOrTabItem->getItemType()) {
+                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
+                        colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
+                        break;
+                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
+                        outlineColor = selectedColorOrTabItem->getColor();
+                        break;
+                }
+                const bool surfaceColorFlag = (colorSourceBrowserTabIndex >= 0);
+                
+                float* nodeColoringRGBA = NULL;
+                if (surfaceColorFlag) {
+                    nodeColoringRGBA = m_fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL,
+                                                                                                      surface,
+                                                                                                      colorSourceBrowserTabIndex);
+                }
+                
+                glColor3fv(CaretColorEnum::toRGB(outlineColor));
+                //m_fixedPipelineDrawing->setLineWidth(lineWidth);
+                m_fixedPipelineDrawing->setLineWidth(thickness);
+                
+                /*
+                 * Examine each triangle to see if it intersects the Plane
+                 * in which the slice exists.
+                 */
+                glBegin(GL_LINES);
+                for (int it = 0; it < numTriangles; it++) {
+                    const int32_t* triangleNodes = surface->getTriangle(it);
+                    const float* c1 = surface->getCoordinate(triangleNodes[0]);
+                    const float* c2 = surface->getCoordinate(triangleNodes[1]);
+                    const float* c3 = surface->getCoordinate(triangleNodes[2]);
+                    
+                    if (plane.triangleIntersectPlane(c1, c2, c3,
+                                                     intersectionPoint1,
+                                                     intersectionPoint2)) {
+                        if (surfaceColorFlag) {
+                            /*
+                             * Use coloring assigned to the first node in the triangle
+                             * but only if Alpha is valid (greater than zero).
+                             */
+                            const int64_t colorIndex = triangleNodes[0] * 4;
+                            if (nodeColoringRGBA[colorIndex + 3] > 0.0) {
+                                glColor3fv(&nodeColoringRGBA[triangleNodes[0] * 4]);
+                            }
+                            else {
+                                continue;
+                            }
+                        }
+                        
+                        /*
+                         * Draw the line where the triangle intersections the slice
+                         */
+                        glVertex3fv(intersectionPoint1);
+                        glVertex3fv(intersectionPoint2);
+                    }
+                }
+                glEnd();
+            }
+        }
+    }
+    
+    m_fixedPipelineDrawing->disableLineAntiAliasing();
+}
+
+/**
+ * Draw foci on volume slice.
+ *
+ * @param plane
+ *   Plane of the volume slice on which surface outlines are drawn.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
+{
+    SelectionItemFocusVolume* idFocus = m_brain->getSelectionManager()->getVolumeFocusIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (idFocus->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    VolumeMappableInterface* underlayVolume = m_volumeDrawInfo[0].volumeFile;
+    float minVoxelSpacing;
+    float maxVoxelSpacing;
+    if ( ! getMinMaxVoxelSpacing(underlayVolume, minVoxelSpacing, maxVoxelSpacing)) {
+        return;
+    }
+    
+    const float sliceThickness = maxVoxelSpacing;
+    const float halfSliceThickness = sliceThickness * 0.5;
+    
+    
+    const DisplayPropertiesFoci* fociDisplayProperties = m_brain->getDisplayPropertiesFoci();
+    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
+    
+    if (fociDisplayProperties->isDisplayed(displayGroup,
+                                           m_fixedPipelineDrawing->windowTabIndex) == false) {
+        return;
+    }
+    const float focusDiameter = fociDisplayProperties->getFociSize(displayGroup,
+                                                                   m_fixedPipelineDrawing->windowTabIndex);
+    const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
+                                                                                                  m_fixedPipelineDrawing->windowTabIndex);
+    
+    bool drawAsSpheres = false;
+    switch (fociDisplayProperties->getDrawingType(displayGroup,
+                                                  m_fixedPipelineDrawing->windowTabIndex)) {
+        case FociDrawingTypeEnum::DRAW_AS_SPHERES:
+            drawAsSpheres = true;
+            break;
+        case FociDrawingTypeEnum::DRAW_AS_SQUARES:
+            break;
+    }
+    
+    /*
+     * Process each foci file
+     */
+    const int32_t numberOfFociFiles = m_brain->getNumberOfFociFiles();
+    for (int32_t iFile = 0; iFile < numberOfFociFiles; iFile++) {
+        FociFile* fociFile = m_brain->getFociFile(iFile);
+        
+        const GroupAndNameHierarchyModel* classAndNameSelection = fociFile->getGroupAndNameHierarchyModel();
+        if (classAndNameSelection->isSelected(displayGroup,
+                                              m_fixedPipelineDrawing->windowTabIndex) == false) {
+            continue;
+        }
+        
+        const GiftiLabelTable* classColorTable = fociFile->getClassColorTable();
+        const GiftiLabelTable* nameColorTable = fociFile->getNameColorTable();
+        
+        const int32_t numFoci = fociFile->getNumberOfFoci();
+        
+        for (int32_t j = 0; j < numFoci; j++) {
+            Focus* focus = fociFile->getFocus(j);
+            
+            const GroupAndNameHierarchyItem* groupNameItem = focus->getGroupNameSelectionItem();
+            if (groupNameItem != NULL) {
+                if (groupNameItem->isSelected(displayGroup,
+                                              m_fixedPipelineDrawing->windowTabIndex) == false) {
+                    continue;
+                }
+            }
+            
+            float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+            switch (fociColoringType) {
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS:
+                    if (focus->isClassRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
+                        if (colorLabel != NULL) {
+                            colorLabel->getColor(rgba);
+                            focus->setClassRgba(rgba);
+                        }
+                        else {
+                            focus->setClassRgba(rgba);
+                        }
+                    }
+                    focus->getClassRgba(rgba);
+                    break;
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
+                    if (focus->isNameRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
+                        if (colorLabel != NULL) {
+                            colorLabel->getColor(rgba);
+                            focus->setNameRgba(rgba);
+                        }
+                        else {
+                            focus->setNameRgba(rgba);
+                        }
+                    }
+                    focus->getNameRgba(rgba);
+                    break;
+            }
+            
+            const int32_t numProjections = focus->getNumberOfProjections();
+            for (int32_t k = 0; k < numProjections; k++) {
+                const SurfaceProjectedItem* spi = focus->getProjection(k);
+                if (spi->isVolumeXYZValid()) {
+                    float xyz[3];
+                    spi->getVolumeXYZ(xyz);
+                    
+                    bool drawIt = false;
+                    if (plane.absoluteDistanceToPlane(xyz) < halfSliceThickness) {
+                        drawIt = true;
+                    }
+                    
+                    if (drawIt) {
+                        glPushMatrix();
+                        glTranslatef(xyz[0], xyz[1], xyz[2]);
+                        if (isSelect) {
+                            uint8_t idRGBA[4];
+                            m_fixedPipelineDrawing->colorIdentification->addItem(idRGBA,
+                                                                                 SelectionItemDataTypeEnum::FOCUS_VOLUME,
+                                                                                 iFile, // file index
+                                                                                 j, // focus index
+                                                                                 k);// projection index
+                            idRGBA[3] = 255;
+                            if (drawAsSpheres) {
+                                m_fixedPipelineDrawing->drawSphereWithDiameter(idRGBA,
+                                                                               focusDiameter);
+                            }
+                            else {
+                                glColor4ubv(idRGBA);
+                                drawSquare(focusDiameter);
+                            }
+                        }
+                        else {
+                            if (drawAsSpheres) {
+                                m_fixedPipelineDrawing->drawSphereWithDiameter(rgba,
+                                                                               focusDiameter);
+                            }
+                            else {
+                                glColor3fv(rgba);
+                                drawSquare(focusDiameter);
+                            }
+                        }
+                        glPopMatrix();
+                    }
+                }
+            }
+        }
+    }
+    
+    if (isSelect) {
+        int32_t fociFileIndex = -1;
+        int32_t focusIndex = -1;
+        int32_t focusProjectionIndex = -1;
+        float depth = -1.0;
+        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::FOCUS_VOLUME,
+                                                           m_fixedPipelineDrawing->mouseX,
+                                                           m_fixedPipelineDrawing->mouseY,
+                                                           fociFileIndex,
+                                                           focusIndex,
+                                                           focusProjectionIndex,
+                                                           depth);
+        if (fociFileIndex >= 0) {
+            if (idFocus->isOtherScreenDepthCloserToViewer(depth)) {
+                Focus* focus = m_brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
+                idFocus->setBrain(m_brain);
+                idFocus->setFocus(focus);
+                idFocus->setFociFile(m_brain->getFociFile(fociFileIndex));
+                idFocus->setFocusIndex(focusIndex);
+                idFocus->setFocusProjectionIndex(focusProjectionIndex);
+                idFocus->setVolumeFile(underlayVolume);
+                idFocus->setScreenDepth(depth);
+                float xyz[3];
+                const SurfaceProjectedItem* spi = focus->getProjection(focusProjectionIndex);
+                spi->getVolumeXYZ(xyz);
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(idFocus, xyz);
+                CaretLogFine("Selected Volume Focus Identification Symbol: " + QString::number(focusIndex));
+            }
+        }
+    }
 }
 
 /**
  * Draw the axes crosshairs.
  *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
  * @param sliceViewPlane
- *    The slice view plane.
+ *    View plane that is displayed.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slices.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane)
+OldBrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                const float sliceCoordinates[3])
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     const bool drawCrosshairsFlag = prefs->isVolumeAxesCrosshairsDisplayed();
-    const bool drawCrosshairLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
+    bool drawCrosshairLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
     
-    switch (m_sliceViewMode) {
-        case VolumeSliceViewModeEnum::OBLIQUE:
+    switch (sliceDrawingType) {
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+            drawCrosshairLabelsFlag = false;
+            break;
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+            break;
+    }
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            drawAxesCrosshairsOrthoAndOblique(sliceProjectionType,
+                                              sliceViewPlane,
+                                              sliceCoordinates,
+                                              drawCrosshairsFlag,
+                                              drawCrosshairLabelsFlag);
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
         {
             glPushMatrix();
             glLoadIdentity();
@@ -3367,63 +2984,48 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeSliceViewPlane
             glGetDoublev(GL_MODELVIEW_MATRIX, mv);
             Matrix4x4 mvm;
             mvm.setMatrixFromOpenGL(mv);
-
+            
             float trans[3];
             m_browserTabContent->getTranslation(trans);
             glTranslatef(trans[0], trans[1], trans[2]);
-            drawAxesCrosshairsOrthoAndOblique(sliceViewPlane,
-                                              VolumeSliceViewModeEnum::OBLIQUE,
+            drawAxesCrosshairsOrthoAndOblique(sliceProjectionType,
+                                              sliceViewPlane,
+                                              sliceCoordinates,
                                               drawCrosshairsFlag,
                                               drawCrosshairLabelsFlag);
-           glPopMatrix();
+            glPopMatrix();
         }
             break;
-        case VolumeSliceViewModeEnum::MONTAGE:
-            drawAxesCrosshairsOrthoAndOblique(sliceViewPlane,
-                                              VolumeSliceViewModeEnum::ORTHOGONAL,
-                                              drawCrosshairsFlag,
-                                              false);
-            break;
-        case VolumeSliceViewModeEnum::ORTHOGONAL:
-            drawAxesCrosshairsOrthoAndOblique(sliceViewPlane,
-                                              VolumeSliceViewModeEnum::ORTHOGONAL,
-                                              drawCrosshairsFlag,
-                                              drawCrosshairLabelsFlag);
-            break;
     }
-
 }
-
 
 /**
  * Draw the axes crosshairs for an orthogonal slice.
  *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
  *    The slice plane view.
- * @param sliceViewMode
- *    The slice viewing mode.
- * @param volume
- *    The underlay volume.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slices.
  * @param drawCrosshairsFlag
  *    If true, draw the crosshairs.
  * @param drawCrosshairLabelsFlag
  *    If true, draw the crosshair labels.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                       const VolumeSliceViewModeEnum::Enum sliceViewMode,
-                                       const bool drawCrosshairsFlag,
-                                       const bool drawCrosshairLabelsFlag)
+OldBrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                               const float sliceCoordinates[3],
+                                                                 const bool drawCrosshairsFlag,
+                                                                 const bool drawCrosshairLabelsFlag)
 {
     bool obliqueModeFlag = false;
-    switch (sliceViewMode) {
-        case VolumeSliceViewModeEnum::MONTAGE:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewModeEnum::OBLIQUE:
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             obliqueModeFlag = true;
             break;
-        case VolumeSliceViewModeEnum::ORTHOGONAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
     }
     
@@ -3432,36 +3034,28 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Volum
                   &depthEnabled);
     glDisable(GL_DEPTH_TEST);
     
-    //const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
-    
-    const float centerXYZ[3] = {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
-    };
-    
     const float bigValue = 10000.0;
     
     float horizontalAxisStartXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
+        sliceCoordinates[0],
+        sliceCoordinates[1],
+        sliceCoordinates[2]
     };
     float horizontalAxisEndXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
+        sliceCoordinates[0],
+        sliceCoordinates[1],
+        sliceCoordinates[2]
     };
     
     float verticalAxisStartXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
+        sliceCoordinates[0],
+        sliceCoordinates[1],
+        sliceCoordinates[2]
     };
     float verticalAxisEndXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
+        sliceCoordinates[0],
+        sliceCoordinates[1],
+        sliceCoordinates[2]
     };
     
     if (obliqueModeFlag) {
@@ -3471,34 +3065,34 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Volum
             case VolumeSliceViewPlaneEnum::AXIAL:
                 break;
             case VolumeSliceViewPlaneEnum::CORONAL:
-                horizontalAxisStartXYZ[0] = centerXYZ[0];
-                horizontalAxisStartXYZ[1] = centerXYZ[2];
-                horizontalAxisStartXYZ[2] = centerXYZ[1];
-                horizontalAxisEndXYZ[0]   = centerXYZ[0];
-                horizontalAxisEndXYZ[1]   = centerXYZ[2];
-                horizontalAxisEndXYZ[2]   = centerXYZ[1];
+                horizontalAxisStartXYZ[0] = sliceCoordinates[0];
+                horizontalAxisStartXYZ[1] = sliceCoordinates[2];
+                horizontalAxisStartXYZ[2] = sliceCoordinates[1];
+                horizontalAxisEndXYZ[0]   = sliceCoordinates[0];
+                horizontalAxisEndXYZ[1]   = sliceCoordinates[2];
+                horizontalAxisEndXYZ[2]   = sliceCoordinates[1];
                 
-                verticalAxisStartXYZ[0] = centerXYZ[0];
-                verticalAxisStartXYZ[1] = centerXYZ[1];
-                verticalAxisStartXYZ[2] = centerXYZ[2];
-                verticalAxisEndXYZ[0]   = centerXYZ[0];
-                verticalAxisEndXYZ[1]   = centerXYZ[1];
-                verticalAxisEndXYZ[2]   = centerXYZ[2];
+                verticalAxisStartXYZ[0] = sliceCoordinates[0];
+                verticalAxisStartXYZ[1] = sliceCoordinates[1];
+                verticalAxisStartXYZ[2] = sliceCoordinates[2];
+                verticalAxisEndXYZ[0]   = sliceCoordinates[0];
+                verticalAxisEndXYZ[1]   = sliceCoordinates[1];
+                verticalAxisEndXYZ[2]   = sliceCoordinates[2];
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                horizontalAxisStartXYZ[0] = centerXYZ[1];
-                horizontalAxisStartXYZ[1] = centerXYZ[2];
-                horizontalAxisStartXYZ[2] = centerXYZ[0];
-                horizontalAxisEndXYZ[0]   = centerXYZ[1];
-                horizontalAxisEndXYZ[1]   = centerXYZ[2];
-                horizontalAxisEndXYZ[2]   = centerXYZ[0];
+                horizontalAxisStartXYZ[0] = sliceCoordinates[1];
+                horizontalAxisStartXYZ[1] = sliceCoordinates[2];
+                horizontalAxisStartXYZ[2] = sliceCoordinates[0];
+                horizontalAxisEndXYZ[0]   = sliceCoordinates[1];
+                horizontalAxisEndXYZ[1]   = sliceCoordinates[2];
+                horizontalAxisEndXYZ[2]   = sliceCoordinates[0];
                 
-                verticalAxisStartXYZ[0] = -centerXYZ[1];
-                verticalAxisStartXYZ[1] = centerXYZ[0];
-                verticalAxisStartXYZ[2] = centerXYZ[2];
-                verticalAxisEndXYZ[0]   = -centerXYZ[1];
-                verticalAxisEndXYZ[1]   = centerXYZ[0];
-                verticalAxisEndXYZ[2]   = centerXYZ[2];
+                verticalAxisStartXYZ[0] = -sliceCoordinates[1];
+                verticalAxisStartXYZ[1] = sliceCoordinates[0];
+                verticalAxisStartXYZ[2] = sliceCoordinates[2];
+                verticalAxisEndXYZ[0]   = -sliceCoordinates[1];
+                verticalAxisEndXYZ[1]   = sliceCoordinates[0];
+                verticalAxisEndXYZ[2]   = sliceCoordinates[2];
                 break;
         }
     }
@@ -3616,33 +3210,19 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Volum
      * Crosshairs
      */
     if (drawCrosshairsFlag) {
-//        const bool drawAsLines = true;
-//        if (drawAsLines) {
-            glLineWidth(1.0);
-            glColor3fv(horizontalAxisRGBA);
-            glBegin(GL_LINES);
-            glVertex3fv(horizontalAxisStartXYZ);
-            glVertex3fv(horizontalAxisEndXYZ);
-            glEnd();
-            
-            glLineWidth(1.0);
-            glColor3fv(verticalAxisRGBA);
-            glBegin(GL_LINES);
-            glVertex3fv(verticalAxisStartXYZ);
-            glVertex3fv(verticalAxisEndXYZ);
-            glEnd();
-//        }
-//        else {
-//            m_fixedPipelineDrawing->drawCylinder(horizontalAxisRGBA,
-//                                                 horizontalAxisStartXYZ,
-//                                                 horizontalAxisEndXYZ,
-//                                                 axesCrosshairRadius);
-//            
-//            m_fixedPipelineDrawing->drawCylinder(verticalAxisRGBA,
-//                                                 verticalAxisStartXYZ,
-//                                                 verticalAxisEndXYZ,
-//                                                 axesCrosshairRadius);
-//        }
+        glLineWidth(1.0);
+        glColor3fv(horizontalAxisRGBA);
+        glBegin(GL_LINES);
+        glVertex3fv(horizontalAxisStartXYZ);
+        glVertex3fv(horizontalAxisEndXYZ);
+        glEnd();
+        
+        glLineWidth(1.0);
+        glColor3fv(verticalAxisRGBA);
+        glBegin(GL_LINES);
+        glVertex3fv(verticalAxisStartXYZ);
+        glVertex3fv(verticalAxisEndXYZ);
+        glEnd();
     }
     
     if (drawCrosshairLabelsFlag) {
@@ -3795,47 +3375,6 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Volum
     }
 }
 
-
-
-
-/**
- * Get the location of the axes labels for the given slice plane.
- *
- * @param sliceViewPlane
- *    The slice view plane.
- * @param axesStartXYZ
- *    The start of the axes.
- * @param axesEndXYZ
- *    The end of the axes.
- * @param axesTextStartXYZ
- *    Output location of label for the 'negative' axes.
- * @param axesTextEndXYZ
- *    Output location of label for the 'positive' axes.
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::getAxesTextLabelsXYZ(const float axesStartXYZ[3],
-                          const float axesEndXYZ[3],
-                          float axesTextStartXYZ[3],
-                          float axesTextEndXYZ[3]) const
-{
-    float startOffset[3] = { 0.0, 0.0, 0.0 };
-    float endOffset[3] = { 0.0, 0.0, 0.0 };
-    
-    const float offsetScale = 0.04;
-    for (int32_t i = 0; i < 3; i++) {
-        startOffset[i] = offsetScale * axesStartXYZ[i];
-        endOffset[i]   = offsetScale * axesEndXYZ[i];
-    }
-    
-    axesTextStartXYZ[0] = axesStartXYZ[0] + startOffset[0];
-    axesTextStartXYZ[1] = axesStartXYZ[1] + startOffset[1];
-    axesTextStartXYZ[2] = axesStartXYZ[2] + startOffset[2];
-
-    axesTextEndXYZ[0] = axesEndXYZ[0] + endOffset[0];
-    axesTextEndXYZ[1] = axesEndXYZ[1] + endOffset[1];
-    axesTextEndXYZ[2] = axesEndXYZ[2] + endOffset[2];
-}
-
 /**
  * Get the RGBA coloring for a slice view plane.
  *
@@ -3845,8 +3384,8 @@ OLD_BrainOpenGLVolumeSliceDrawing::getAxesTextLabelsXYZ(const float axesStartXYZ
  *    Output colors ranging 0.0 to 1.0
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::getAxesColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                  float rgbaOut[4]) const
+OldBrainOpenGLVolumeSliceDrawing::getAxesColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                            float rgbaOut[4]) const
 {
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
@@ -3874,180 +3413,76 @@ OLD_BrainOpenGLVolumeSliceDrawing::getAxesColor(const VolumeSliceViewPlaneEnum::
 }
 
 /**
- * Reset for volume identification.
+ * Draw a one millimeter square facing the user.
+ * NOTE: This method will alter the current
+ * modelviewing matrices so caller may need
+ * to enclose the call to this method within
+ * glPushMatrix() and glPopMatrix().
  *
- * Clear identification indices and if identification is enabled,
- * reserve a reasonable amount of space for the indices.
+ * @param size
+ *     Size of square.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::resetIdentification()
+OldBrainOpenGLVolumeSliceDrawing::drawSquare(const float size)
 {
-    m_identificationIndices.clear();
-    
-    if (m_identificationModeFlag) {
-        int64_t estimatedNumberOfItems = 0;
-        
-        std::vector<int64_t> volumeDims;
-        m_volumeDrawInfo[0].volumeFile->getDimensions(volumeDims);
-        if (volumeDims.size() >= 3) {
-            const int64_t maxDim = std::max(volumeDims[0],
-                                            std::max(volumeDims[1], volumeDims[2]));
-            estimatedNumberOfItems = maxDim * maxDim * IDENTIFICATION_INDICES_PER_VOXEL;
-        }
-        
-        m_identificationIndices.reserve(estimatedNumberOfItems);
-    }
-}
-
-/**
- * Add a voxel to the identification indices.
- *
- * @param volumeIndex
- *    Index of the volume.
- * @param mapIndex
- *    Index of the volume map.
- * @param voxelI
- *    Voxel Index I
- * @param voxelJ
- *    Voxel Index J
- * @param voxelK
- *    Voxel Index K
- * @param rgbaForColorIdentificationOut
- *    Encoded identification in RGBA color OUTPUT
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::addVoxelToIdentification(const int32_t volumeIndex,
-                                                            const int32_t mapIndex,
-                                                            const int32_t voxelI,
-                                                            const int32_t voxelJ,
-                                                            const int32_t voxelK,
-                                                            uint8_t rgbaForColorIdentificationOut[4])
-{
-    const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_VOXEL;
-    
-    m_fixedPipelineDrawing->colorIdentification->addItem(rgbaForColorIdentificationOut,
-                                                         SelectionItemDataTypeEnum::VOXEL,
-                                                         idIndex);
-    rgbaForColorIdentificationOut[3] = 255;
+    const float length = size * 0.5;
     
     /*
-     * If these items change, need to update reset and
-     * processing of identification.
+     * Draw both front and back side since in some instances,
+     * such as surface montage, we are viweing from the far
+     * side (from back of monitor)
      */
-    m_identificationIndices.push_back(volumeIndex);
-    m_identificationIndices.push_back(mapIndex);
-    m_identificationIndices.push_back(voxelI);
-    m_identificationIndices.push_back(voxelJ);
-    m_identificationIndices.push_back(voxelK);
+    glBegin(GL_QUADS);
+    glNormal3f(0.0, 0.0, 1.0);
+    glVertex3f(-length, -length, 0.0);
+    glVertex3f( length, -length, 0.0);
+    glVertex3f( length,  length, 0.0);
+    glVertex3f(-length,  length, 0.0);
+    glNormal3f(0.0, 0.0, -1.0);
+    glVertex3f(-length, -length, 0.0);
+    glVertex3f(-length,  length, 0.0);
+    glVertex3f( length,  length, 0.0);
+    glVertex3f( length, -length, 0.0);
+    glEnd();
 }
 
 /**
- * Process voxel identification.
+ * Get the minimum and maximum distance between adjacent voxels in all
+ * slices planes.  Output spacing value are always non-negative even if
+ * a right-to-left orientation.
+ *
+ * @param volume
+ *    Volume for which min/max spacing is requested.
+ * @param minSpacingOut
+ *    Output minimum spacing.
+ * @param maxSpacingOut
+ *    Output maximum spacing.
+ * @return
+ *    True if min and max spacing are greater than zero.
  */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::processIdentification()
+bool
+OldBrainOpenGLVolumeSliceDrawing::getMinMaxVoxelSpacing(const VolumeMappableInterface* volume,
+                                                     float& minSpacingOut,
+                                                     float& maxSpacingOut) const
 {
-    int32_t identifiedItemIndex;
-    float depth = -1.0;
-    m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
-                                                       m_fixedPipelineDrawing->mouseX,
-                                                       m_fixedPipelineDrawing->mouseY,
-                                                       identifiedItemIndex,
-                                                       depth);
-    if (identifiedItemIndex >= 0) {
-        const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_VOXEL;
-        const int32_t volDrawInfoIndex = m_identificationIndices[idIndex];
-        CaretAssertVectorIndex(m_volumeDrawInfo, volDrawInfoIndex);
-        VolumeMappableInterface* vf = m_volumeDrawInfo[volDrawInfoIndex].volumeFile;
-        const int64_t voxelIndices[3] = {
-            m_identificationIndices[idIndex + 2],
-            m_identificationIndices[idIndex + 3],
-            m_identificationIndices[idIndex + 4]
-        };
-        
-        SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
-        if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-            voxelID->setVoxelIdentification(m_brain,
-                                            vf,
-                                            voxelIndices,
-                                            depth);
-            
-            float voxelCoordinates[3];
-            vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
-                             voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-            
-            m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
-                                                             voxelCoordinates);
-            CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
-        }
+    CaretAssert(volume);
+    
+    float originX, originY, originZ;
+    float x1, y1, z1;
+    volume->indexToSpace(0, 0, 0, originX, originY, originZ);
+    volume->indexToSpace(1, 1, 1, x1, y1, z1);
+    const float dx = std::fabs(x1 - originX);
+    const float dy = std::fabs(y1 - originY);
+    const float dz = std::fabs(z1 - originZ);
+    
+    minSpacingOut = std::min(std::min(dx, dy), dz);
+    maxSpacingOut = std::max(std::max(dx, dy), dz);
+    
+    if ((minSpacingOut > 0.0)
+        && (maxSpacingOut > 0.0)) {
+        return true;
     }
-}
-
-/* ======================================================================= */
-
-/**
- * Constructor
- *
- * @param volumeMappableInterface
- *   Volume that contains the data values.
- * @param mapIndex
- *   Index of selected map.
- */
-OLD_BrainOpenGLVolumeSliceDrawing::VolumeSlice::VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
-                                                            const int32_t mapIndex)
-{
-    m_volumeMappableInterface = volumeMappableInterface;
-    m_volumeFile = dynamic_cast<VolumeFile*>(m_volumeMappableInterface);
-    m_ciftiMappableDataFile = dynamic_cast<CiftiMappableDataFile*>(m_volumeMappableInterface);
-    
-    CaretAssert(m_volumeMappableInterface);
-    m_mapIndex = mapIndex;
-    CaretAssert(m_mapIndex >= 0);
-    
-    const int64_t sliceDim = 300;
-    const int64_t numVoxels = sliceDim * sliceDim;
-    m_values.reserve(numVoxels);
-}
-
-/**
- * Add a value and return its index.
- *
- * @param value
- *     Value that is added.
- * @return
- *     The index for the value.
- */
-int64_t
-OLD_BrainOpenGLVolumeSliceDrawing::VolumeSlice::addValue(const float value)
-{
-    const int64_t indx = static_cast<int64_t>(m_values.size());
-    m_values.push_back(value);
-    return indx;
-}
-
-/**
- * Return RGBA colors for value using the value's index
- * returned by addValue().
- *
- * @param indx
- *    Index of the value.
- * @return
- *    RGBA coloring for value.
- */
-uint8_t*
-OLD_BrainOpenGLVolumeSliceDrawing::VolumeSlice::getRgbaForValueByIndex(const int64_t indx)
-{
-    CaretAssertVectorIndex(m_rgba, indx * 4);
-    return &m_rgba[indx*4];
-}
-
-/**
- * Allocate colors for the voxel values
- */
-void
-OLD_BrainOpenGLVolumeSliceDrawing::VolumeSlice::allocateColors()
-{
-    m_rgba.resize(m_values.size() * 4);
+    return false;
 }
 
 /**
@@ -4055,12 +3490,9 @@ OLD_BrainOpenGLVolumeSliceDrawing::VolumeSlice::allocateColors()
  *
  * @param viewport
  *    The viewport region for the orientation axes.
- * @param sliceViewPlane
- *    Slice plane that is viewed.
  */
 void
-OLD_BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
-                                                   const VolumeSliceViewPlaneEnum::Enum /*sliceViewPlane*/)
+OldBrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     const bool drawCylindersFlag = prefs->isVolumeAxesCrosshairsDisplayed();
@@ -4184,7 +3616,6 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
         const double paraTextMin[3]  = { 0.0, textMinCoord, 0.0 };
         const double paraTextMax[3]  = { 0.0, textMaxCoord, 0.0 };
         
-//        const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
         const float axesCrosshairRadius = 1.0;
         
         if (drawCylindersFlag) {
@@ -4233,10 +3664,2010 @@ OLD_BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
-
+    
 }
 
+/**
+ * Set the orthographic projection.
+ *
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param viewport
+ *    The viewport.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                         const int viewport[4])
+{
+    
+    /*
+     * Determine model size in screen Y when viewed
+     */
+    BoundingBox boundingBox;
+    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+    
+    /*
+     * Set top and bottom to the min/max coordinate
+     * that runs vertically on the screen
+     */
+    double modelTop = 200.0;
+    double modelBottom = -200.0;
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssertMessage(0, "Should never get here");
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            modelTop = boundingBox.getMaxY();
+            modelBottom = boundingBox.getMinY();
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            modelTop = boundingBox.getMaxZ();
+            modelBottom = boundingBox.getMinZ();
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            modelTop = boundingBox.getMaxZ();
+            modelBottom = boundingBox.getMinZ();
+            break;
+    }
+    
+    /*
+     * Scale ratio makes region slightly larger than model
+     */
+    const double zoom = m_browserTabContent->getScaling();
+    double scaleRatio = (1.0 / 0.98);
+    if (zoom > 0.0) {
+        scaleRatio /= zoom;
+    }
+    modelTop *= scaleRatio;
+    modelBottom *= scaleRatio;
+    
+    /*
+     * Determine aspect ratio of viewport
+     */
+    const double viewportWidth = viewport[2];
+    const double viewportHeight = viewport[3];
+    const double aspectRatio = (viewportWidth
+                                / viewportHeight);
+    
+    /*
+     * Set bounds of orthographic projection
+     */
+    const double halfModelY = ((modelTop - modelBottom) / 2.0);
+    const double orthoBottom = modelBottom;
+    const double orthoTop    = modelTop;
+    const double orthoRight  =  halfModelY * aspectRatio;
+    const double orthoLeft   = -halfModelY * aspectRatio;
+    const double nearDepth = -1000.0;
+    const double farDepth  =  1000.0;
+    m_orthographicBounds[0] = orthoLeft;
+    m_orthographicBounds[1] = orthoRight;
+    m_orthographicBounds[2] = orthoBottom;
+    m_orthographicBounds[3] = orthoTop;
+    m_orthographicBounds[4] = nearDepth;
+    m_orthographicBounds[5] = farDepth;
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(m_orthographicBounds[0],
+            m_orthographicBounds[1],
+            m_orthographicBounds[2],
+            m_orthographicBounds[3],
+            m_orthographicBounds[4],
+            m_orthographicBounds[5]);
+    glMatrixMode(GL_MODELVIEW);
+    
+    //    CaretLogFine("Orthographic Bounds: "
+    //                   + AString::fromNumbers(m_orthographicBounds, 6, ","));
+}
 
+/**
+ * Draw the voxels in an orthogonal slice.
+ *
+ * @param sliceNormalVector
+ *    Normal vector of the slice plane.
+ * @param coordinate
+ *    Coordinate of first voxel in the slice (bottom left as begin viewed)
+ * @param rowStep
+ *    Three-dimensional step to next row.
+ * @param columnStep
+ *    Three-dimensional step to next column.
+ * @param numberOfColumns
+ *    Number of columns in the slice.
+ * @param numberOfRows
+ *    Number of rows in the slice.
+ * @param sliceRGBA
+ *    RGBA coloring for voxels in the slice.
+ * @param validVoxelCount
+ *    Number of voxels with valid coloring
+ * @param volumeInterface
+ *    Index of the volume being drawn.
+ * @param volumeIndex
+ *    Selected map in the volume being drawn.
+ * @param mapIndex
+ *    Selected map in the volume being drawn.
+ * @param sliceOpacity
+ *    Opacity from the overlay.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormalVector[3],
+                                                         const float coordinate[3],
+                                                         const float rowStep[3],
+                                                         const float columnStep[3],
+                                                         const int64_t numberOfColumns,
+                                                         const int64_t numberOfRows,
+                                                         const std::vector<uint8_t>& sliceRGBA,
+                                                         const int64_t validVoxelCount,
+                                                         const VolumeMappableInterface* volumeInterface,
+                                                         const int32_t volumeIndex,
+                                                         const int32_t mapIndex,
+                                                         const uint8_t sliceOpacity)
+{
+    /*
+     * There are two ways to draw the voxels.
+     *
+     * Quad Indices: This method submits each vertex (coordinate, normal, rgba)
+     * one time BUT it submits EVERY vertex in the slice.  Note that the vertex
+     * is shared by four voxels (except along an edge).  For each valid voxel, 
+     * it submits the indices of the voxel's four vertices.  This method is
+     * efficient when many voxels are drawn since each vertex is submitted to
+     * OpenGL one time and is shared by up to four voxels.  However, when
+     * only a few voxels are drawn, many unused vertices are submitted.
+     *
+     * Single Quads: For each voxel, this method submits the four vertices
+     * (coordinate, normal, rgba) for each voxel drawn.  Even though adjacent
+     * voxels share vertices, the vertices are submitted for each voxel.  When
+     * only a small number of voxels in the slice are drawn, this method is 
+     * efficient since only the needed vertex data is submitted.  However,
+     * when many voxels are drawn, many vertices are duplicated making the
+     * drawing inefficient.
+     *
+     * So, estimate the bytes that are passed to OpenGL for each drawing
+     * mode and choose the drawing mode that requires the smallest number
+     * of bytes.
+     */
+    bool drawWithQuadIndicesFlag = false;
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_QUADS)) {
+        /*
+         * Each vertex requires 28 bytes
+         *   (3 float xyz, 3 float normal xyz + 4 bytes color).
+         *
+         * Single quads uses four vertices per quad.
+         * 
+         * Index quads requires four 4-byte ints for the quad's indices.
+         */
+        const int64_t bytesPerVertex = 28;
+        const int64_t totalVertexBytes = ((numberOfColumns + 1)
+                                          * (numberOfRows + 1)
+                                          * bytesPerVertex);
+        const int64_t singleQuadBytes = (validVoxelCount * bytesPerVertex * 4);
+        const int64_t indexQuadBytes = (totalVertexBytes
+                                        + (16 * validVoxelCount));
+        
+        if (indexQuadBytes < singleQuadBytes) {
+            drawWithQuadIndicesFlag = true;
+        }
+    }
+    
+    if (drawWithQuadIndicesFlag) {
+        drawOrthogonalSliceVoxelsQuadIndicesAndStrips(sliceNormalVector,
+                                                      coordinate,
+                                                      rowStep,
+                                                      columnStep,
+                                                      numberOfColumns,
+                                                      numberOfRows,
+                                                      sliceRGBA,
+                                                      volumeInterface,
+                                                      volumeIndex,
+                                                      mapIndex,
+                                                      sliceOpacity);
+    }
+    else {
+        drawOrthogonalSliceVoxelsSingleQuads(sliceNormalVector,
+                                                      coordinate,
+                                                      rowStep,
+                                                      columnStep,
+                                                      numberOfColumns,
+                                                      numberOfRows,
+                                                      sliceRGBA,
+                                                      volumeInterface,
+                                                      volumeIndex,
+                                                      mapIndex,
+                                                      sliceOpacity);
+    }
+    
+}
+
+/**
+ * Draw the voxels in an orthogonal slice with single quads.
+ *
+ * Four coordinates, normals, and colors are sent to OpenGL for each 
+ * quad that is drawn.  This may be efficent when only a few voxels
+ * are drawn but very inefficient when many voxels are drawn.
+ *
+ * @param sliceNormalVector
+ *    Normal vector of the slice plane.
+ * @param coordinate
+ *    Coordinate of first voxel in the slice (bottom left as begin viewed)
+ * @param rowStep
+ *    Three-dimensional step to next row.
+ * @param columnStep
+ *    Three-dimensional step to next column.
+ * @param numberOfColumns
+ *    Number of columns in the slice.
+ * @param numberOfRows
+ *    Number of rows in the slice.
+ * @param sliceRGBA
+ *    RGBA coloring for voxels in the slice.
+ * @param volumeInterface
+ *    Index of the volume being drawn.
+ * @param volumeIndex
+ *    Selected map in the volume being drawn.
+ * @param mapIndex
+ *    Selected map in the volume being drawn.
+ * @param sliceOpacity
+ *    Opacity from the overlay.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsSingleQuads(const float sliceNormalVector[3],
+                                                         const float coordinate[3],
+                                                         const float rowStep[3],
+                                                         const float columnStep[3],
+                                                         const int64_t numberOfColumns,
+                                                         const int64_t numberOfRows,
+                                                         const std::vector<uint8_t>& sliceRGBA,
+                                                         const VolumeMappableInterface* volumeInterface,
+                                                         const int32_t volumeIndex,
+                                                         const int32_t mapIndex,
+                                                         const uint8_t sliceOpacity)
+{
+    /*
+     * When performing voxel identification for editing voxels,
+     * we need to draw EVERY voxel since the user may click
+     * regions where the voxels are "off".
+     */
+    bool volumeEditingDrawAllVoxelsFlag = false;
+    if (m_identificationModeFlag) {
+        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+        if (voxelEditID->isEnabledForSelection()) {
+            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
+            if (vf == voxelEditID->getVolumeFileForEditing()) {
+                volumeEditingDrawAllVoxelsFlag = true;
+            }
+        }
+    }
+    
+    const int64_t numVoxelsInSlice = numberOfColumns * numberOfRows;
+    
+    /*
+     * Allocate for quadrilateral drawing
+     */
+    const int64_t numQuadCoords = numVoxelsInSlice * 12;
+    const int64_t numQuadRgba   = numVoxelsInSlice * 16;
+    std::vector<float> voxelQuadCoordinates;
+    std::vector<float> voxelQuadNormals;
+    std::vector<uint8_t> voxelQuadRgba;
+    voxelQuadCoordinates.reserve(numQuadCoords);
+    voxelQuadNormals.reserve(numQuadCoords);
+    voxelQuadRgba.reserve(numQuadRgba);
+    
+    /*
+     * Step to next row or column voxel
+     */
+    const float rowStepX = rowStep[0];
+    const float rowStepY = rowStep[1];
+    const float rowStepZ = rowStep[2];
+    const float columnStepX = columnStep[0];
+    const float columnStepY = columnStep[1];
+    const float columnStepZ = columnStep[2];
+    
+    /*
+     * Draw each row
+     */
+    for (int64_t jRow = 0; jRow < numberOfRows; jRow++) {
+        /*
+         * Coordinates on left side of row
+         */
+        float rowBottomLeft[3] = {
+            coordinate[0] + (jRow * rowStepX),
+            coordinate[1] + (jRow * rowStepY),
+            coordinate[2] + (jRow * rowStepZ)
+        };
+        float rowTopLeft[3] = {
+            rowBottomLeft[0] + rowStepX,
+            rowBottomLeft[1] + rowStepY,
+            rowBottomLeft[2] + rowStepZ
+        };
+        
+        /*
+         * Draw each voxel in its column
+         */
+        for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
+            
+            /*
+             * Offset of voxel in coloring.
+             */
+            const int64_t sliceRgbaOffset = (4 * (iCol
+                                                  + (numberOfColumns * jRow)));
+            const int64_t alphaOffset = sliceRgbaOffset + 3;
+            
+            uint8_t rgba[4] = {
+                0,
+                0,
+                0,
+                0
+            };
+            
+            /*
+             * Negative alpha means do not display
+             */
+            CaretAssertVectorIndex(sliceRGBA, alphaOffset);
+            if (sliceRGBA[alphaOffset] <= 0) {
+                if (volumeIndex == 0) {
+                    /*
+                     * For first drawn volume, use an alpha of 255 so
+                     * so that black is drawn
+                     */
+                    rgba[3] = 255;
+                    
+                    /*
+                     * OVERRIDES BLACK VOXEL ABOVE (255)
+                     * For first drawn volume, use an alpha of zero so
+                     * that the background shows through
+                     */
+                    rgba[3] = 0; //255;
+                }
+            }
+            else {
+                /*
+                 * Use overlay's opacity
+                 */
+                rgba[0] = sliceRGBA[sliceRgbaOffset];
+                rgba[1] = sliceRGBA[sliceRgbaOffset + 1];
+                rgba[2] = sliceRGBA[sliceRgbaOffset + 2];
+                rgba[3] = sliceOpacity;
+            }
+            
+            /*
+             * Set coordinates of voxel corners
+             */
+            float voxelBottomLeft[3] = {
+                rowBottomLeft[0] + (iCol * columnStepX),
+                rowBottomLeft[1] + (iCol * columnStepY),
+                rowBottomLeft[2] + (iCol * columnStepZ)
+            };
+            float voxelBottomRight[3] = {
+                voxelBottomLeft[0] + columnStepX,
+                voxelBottomLeft[1] + columnStepY,
+                voxelBottomLeft[2] + columnStepZ
+            };
+            float voxelTopLeft[3] = {
+                rowTopLeft[0] + (iCol * columnStepX),
+                rowTopLeft[1] + (iCol * columnStepY),
+                rowTopLeft[2] + (iCol * columnStepZ)
+            };
+            float voxelTopRight[3] = {
+                voxelTopLeft[0] + columnStepX,
+                voxelTopLeft[1] + columnStepY,
+                voxelTopLeft[2] + columnStepZ
+            };
+            
+            /*
+             * Need to draw ALL voxels if performing
+             * identificaiton for voxel editing.
+             */
+            if (volumeEditingDrawAllVoxelsFlag) {
+                rgba[3] = 255;
+            }
+            
+            /*
+             * Draw voxel based upon opacity
+             */
+            if (rgba[3] > 0) {
+                if (m_identificationModeFlag) {
+                    /*
+                     * Add info about voxel for identication.
+                     */
+                    int64_t voxelI = 0;
+                    int64_t voxelJ = 0;
+                    int64_t voxelK = 0;
+                    
+                    const float voxelCenterX = (voxelBottomLeft[0] + voxelTopRight[0]) / 2.0;
+                    const float voxelCenterY = (voxelBottomLeft[1] + voxelTopRight[1]) / 2.0;
+                    const float voxelCenterZ = (voxelBottomLeft[2] + voxelTopRight[2]) / 2.0;
+                    volumeInterface->enclosingVoxel(voxelCenterX, voxelCenterY, voxelCenterZ,
+                                                    voxelI, voxelJ, voxelK);
+                    
+//                    switch (sliceViewPlane) {
+//                        case VolumeSliceViewPlaneEnum::ALL:
+//                            CaretAssert(0);
+//                            break;
+//                        case VolumeSliceViewPlaneEnum::AXIAL:
+//                            voxelI = iCol;
+//                            voxelJ = jRow;
+//                            voxelK = selectedSliceIndices[2];
+//                            break;
+//                        case VolumeSliceViewPlaneEnum::CORONAL:
+//                            voxelI = iCol;
+//                            voxelJ = selectedSliceIndices[1];
+//                            voxelK = jRow;
+//                            break;
+//                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                            voxelI = selectedSliceIndices[0];
+//                            voxelJ = iCol;
+//                            voxelK = jRow;
+//                            break;
+//                    }
+                    const float voxelDiffXYZ[3] = {
+                        voxelTopRight[0] - voxelBottomLeft[0],
+                        voxelTopRight[1] - voxelBottomLeft[1],
+                        voxelTopRight[2] - voxelBottomLeft[2],
+                    };
+                    addVoxelToIdentification(volumeIndex,
+                                             mapIndex,
+                                             voxelI,
+                                             voxelJ,
+                                             voxelK,
+                                             voxelDiffXYZ,
+                                             rgba);
+                }
+                
+                /*
+                 * Add voxel to quadrilaterals
+                 */
+                voxelQuadCoordinates.push_back(voxelBottomLeft[0]);
+                voxelQuadCoordinates.push_back(voxelBottomLeft[1]);
+                voxelQuadCoordinates.push_back(voxelBottomLeft[2]);
+                
+                voxelQuadCoordinates.push_back(voxelBottomRight[0]);
+                voxelQuadCoordinates.push_back(voxelBottomRight[1]);
+                voxelQuadCoordinates.push_back(voxelBottomRight[2]);
+                
+                voxelQuadCoordinates.push_back(voxelTopRight[0]);
+                voxelQuadCoordinates.push_back(voxelTopRight[1]);
+                voxelQuadCoordinates.push_back(voxelTopRight[2]);
+                
+                voxelQuadCoordinates.push_back(voxelTopLeft[0]);
+                voxelQuadCoordinates.push_back(voxelTopLeft[1]);
+                voxelQuadCoordinates.push_back(voxelTopLeft[2]);
+                
+                
+                for (int32_t iNormalAndColor = 0; iNormalAndColor < 4; iNormalAndColor++) {
+                    voxelQuadRgba.push_back(rgba[0]);
+                    voxelQuadRgba.push_back(rgba[1]);
+                    voxelQuadRgba.push_back(rgba[2]);
+                    voxelQuadRgba.push_back(rgba[3]);
+                    
+                    voxelQuadNormals.push_back(sliceNormalVector[0]);
+                    voxelQuadNormals.push_back(sliceNormalVector[1]);
+                    voxelQuadNormals.push_back(sliceNormalVector[2]);
+                }
+            }
+        }
+    }
+    
+    /*
+     * Draw the voxels.
+     */
+    if (voxelQuadCoordinates.empty() == false) {
+        BrainOpenGLPrimitiveDrawing::drawQuads(voxelQuadCoordinates,
+                                               voxelQuadNormals,
+                                               voxelQuadRgba);
+    }
+}
+
+/**
+ * Draw the voxels in an orthogonal slice using quad indices or strips.
+ *
+ * Each vertex (coordinate, its normal vector, and its color) is sent to OpenGL
+ * one time.  Index arrays are used to specify the vertices when drawing the
+ * quads.
+ *
+ * This is efficient when many voxels are drawn but may be inefficent
+ * when only a few voxels are drawn.
+ *
+ * @param sliceNormalVector
+ *    Normal vector of the slice plane.
+ * @param firstVoxelCoordinate
+ *    Coordinate of first voxel in the slice (bottom left as begin viewed)
+ * @param rowStep
+ *    Three-dimensional step to next row.
+ * @param columnStep
+ *    Three-dimensional step to next column.
+ * @param numberOfColumns
+ *    Number of columns in the slice.
+ * @param numberOfRows
+ *    Number of rows in the slice.
+ * @param sliceRGBA
+ *    RGBA coloring for voxels in the slice.
+ * @param volumeInterface
+ *    Index of the volume being drawn.
+ * @param volumeIndex
+ *    Selected map in the volume being drawn.
+ * @param mapIndex
+ *    Selected map in the volume being drawn.
+ * @param sliceOpacity
+ *    Opacity from the overlay.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsQuadIndicesAndStrips(const float sliceNormalVector[3],
+                                                                             const float firstVoxelCoordinate[3],
+                                                                             const float rowStep[3],
+                                                                             const float columnStep[3],
+                                                                             const int64_t numberOfColumns,
+                                                                             const int64_t numberOfRows,
+                                                                             const std::vector<uint8_t>& sliceRGBA,
+                                                                             const VolumeMappableInterface* volumeInterface,
+                                                                             const int32_t volumeIndex,
+                                                                             const int32_t mapIndex,
+                                                                             const uint8_t sliceOpacity)
+{
+    const bool debugFlag = false;
+    
+    enum DrawType {
+        DRAW_QUADS,
+        DRAW_QUAD_STRIPS
+    };
+    
+    const DrawType drawType = DRAW_QUADS;
+    
+    /*
+     * When performing voxel identification for editing voxels,
+     * we need to draw EVERY voxel since the user may click
+     * regions where the voxels are "off".
+     */
+    bool volumeEditingDrawAllVoxelsFlag = false;
+    if (m_identificationModeFlag) {
+        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+        if (voxelEditID->isEnabledForSelection()) {
+            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
+            if (vf == voxelEditID->getVolumeFileForEditing()) {
+                volumeEditingDrawAllVoxelsFlag = true;
+            }
+        }
+    }
+    
+    /*
+     * Allocate vectors for quadrilateral drawing
+     */
+    const int64_t totalCoordElements = (numberOfColumns + 1) * (numberOfRows + 1);
+    const int64_t numQuadStripCoords = totalCoordElements * 3;
+    const int64_t numQuadStripRGBA   = totalCoordElements * 4;
+    std::vector<float> voxelQuadCoordinates;
+    std::vector<float> voxelQuadNormals;
+    std::vector<uint8_t> voxelQuadRgba;
+    voxelQuadCoordinates.reserve(numQuadStripCoords);
+    voxelQuadNormals.reserve(numQuadStripCoords);
+    voxelQuadRgba.reserve(numQuadStripRGBA);
+    
+    /*
+     * Step to next row or column voxel
+     */
+    const float rowStepX = rowStep[0];
+    const float rowStepY = rowStep[1];
+    const float rowStepZ = rowStep[2];
+    const float columnStepX = columnStep[0];
+    const float columnStepY = columnStep[1];
+    const float columnStepZ = columnStep[2];
+    
+    const float voxelStepX = rowStepX + columnStepX;
+    const float voxelStepY = rowStepY + columnStepY;
+    const float voxelStepZ = rowStepZ + columnStepZ;
+    const float voxelStepXYZ[3] = {
+        voxelStepX,
+        voxelStepY,
+        voxelStepZ
+    };
+    
+    const float halfVoxelStepX = (voxelStepX / 2.0);
+    const float halfVoxelStepY = (voxelStepY / 2.0);
+    const float halfVoxelStepZ = (voxelStepZ / 2.0);
+    
+    int64_t numberOfVoxelsToDraw = 0;
+    
+    /*
+     * Loop through column COORDINATES
+     */
+    float columnBottomCoord[3] = {
+        firstVoxelCoordinate[0],
+        firstVoxelCoordinate[1],
+        firstVoxelCoordinate[2]
+    };
+    for (int64_t iCol = 0; iCol <= numberOfColumns; iCol++) {
+        if (iCol > 0) {
+            columnBottomCoord[0] += columnStepX;
+            columnBottomCoord[1] += columnStepY;
+            columnBottomCoord[2] += columnStepZ;
+        }
+//        const float columnBottomCoord[3] = {
+//            firstVoxelCoordinate[0] + (iCol * columnStepX),
+//            firstVoxelCoordinate[1] + (iCol * columnStepY),
+//            firstVoxelCoordinate[2] + (iCol * columnStepZ)
+//        };
+        
+        /*
+         * Loop through the row COORDINATES
+         */
+        float rowCoord[3] = {
+            columnBottomCoord[0],
+            columnBottomCoord[1],
+            columnBottomCoord[2]
+        };
+        for (int64_t jRow = 0; jRow <= numberOfRows; jRow++) {
+            if (jRow > 0) {
+                rowCoord[0] += rowStepX;
+                rowCoord[1] += rowStepY;
+                rowCoord[2] += rowStepZ;
+            }
+//            const float coord[3] = {
+//                columnBottomCoord[0] + (jRow * rowStepX),
+//                columnBottomCoord[1] + (jRow * rowStepY),
+//                columnBottomCoord[2] + (jRow * rowStepZ)
+//            };
+            
+            voxelQuadCoordinates.push_back(rowCoord[0]);
+            voxelQuadCoordinates.push_back(rowCoord[1]);
+            voxelQuadCoordinates.push_back(rowCoord[2]);
+            
+            voxelQuadNormals.push_back(sliceNormalVector[0]);
+            voxelQuadNormals.push_back(sliceNormalVector[1]);
+            voxelQuadNormals.push_back(sliceNormalVector[2]);
+            
+            uint8_t rgba[4] = {
+                0,
+                0,
+                0,
+                0
+            };
+            
+            /*
+             * With FLAT shading:
+             *    Quads: Uses top left coordinate for quad coloring
+             *    Quad Strip: Uses top right coordinate for quad coloring
+             * So, the color is only set for this coordinate
+             */
+            int64_t iColRGBA = iCol;
+            int64_t jRowRGBA = jRow;
+            switch (drawType) {
+                case DRAW_QUADS:
+                    if (iColRGBA >= numberOfColumns) {
+                        iColRGBA = numberOfColumns - 1;
+                    }
+                    jRowRGBA = jRow - 1;
+                    break;
+                case DRAW_QUAD_STRIPS:
+                    iColRGBA = iCol - 1;
+                    jRowRGBA = jRow - 1;
+                    break;
+            }
+            if ((iColRGBA >= 0)
+                && (jRowRGBA >= 0)) {
+                const int64_t voxelOffset = (iColRGBA
+                                             + (numberOfColumns * jRowRGBA));
+                if (debugFlag) {
+                    std::cout << "col=" << iCol << " row=" << jRow << " voxel-offset=" << voxelOffset << std::endl;
+                }
+                
+                /*
+                 * Offset of voxel in coloring.
+                 * Note that colors are stored in rows
+                 */
+                int64_t sliceRgbaOffset = (4 * voxelOffset);
+//                int64_t sliceRgbaOffset = (4 * (iColRGBA
+//                                                + (numberOfColumns * jRowRGBA)));
+                
+                /*
+                 * An alpha greater than zero means the voxel is displayed
+                 */
+                const int64_t alphaOffset = sliceRgbaOffset + 3;
+                CaretAssertVectorIndex(sliceRGBA, alphaOffset);
+                if (sliceRGBA[alphaOffset] > 0) {
+                    /*
+                     * Use overlay's opacity for the voxel
+                     */
+                    rgba[0] = sliceRGBA[sliceRgbaOffset];
+                    rgba[1] = sliceRGBA[sliceRgbaOffset + 1];
+                    rgba[2] = sliceRGBA[sliceRgbaOffset + 2];
+                    rgba[3] = sliceOpacity;
+                }
+            }
+            
+            /*
+             * Voxel editing requires drawing of all voxels so that
+             * "off" voxels can be turned "on".
+             */
+            if (volumeEditingDrawAllVoxelsFlag) {
+                rgba[3] = 255;
+            }
+            
+            /*
+             * Draw voxel if non-zero opacity
+             */
+            if (rgba[3] > 0) {
+                
+                ++numberOfVoxelsToDraw;
+                
+                if (m_identificationModeFlag) {
+                    /*
+                     * Identification information is encoded in the
+                     * RGBA coloring.
+                     */
+                    const float voxelCenterX = rowCoord[0] + halfVoxelStepX;
+                    const float voxelCenterY = rowCoord[1] + halfVoxelStepY;
+                    const float voxelCenterZ = rowCoord[2] + halfVoxelStepZ;
+                    int64_t voxelI = 0;
+                    int64_t voxelJ = 0;
+                    int64_t voxelK = 0;
+                    volumeInterface->enclosingVoxel(voxelCenterX, voxelCenterY, voxelCenterZ,
+                                                    voxelI, voxelJ, voxelK);
+                    
+                    addVoxelToIdentification(volumeIndex,
+                                             mapIndex,
+                                             voxelI,
+                                             voxelJ,
+                                             voxelK,
+                                             voxelStepXYZ,
+                                             rgba);
+                }
+            }
+            
+            voxelQuadRgba.push_back(rgba[0]);
+            voxelQuadRgba.push_back(rgba[1]);
+            voxelQuadRgba.push_back(rgba[2]);
+            voxelQuadRgba.push_back(rgba[3]);
+        }
+    }
+    
+    const int64_t numberOfCoordinates = voxelQuadCoordinates.size() / 3;
+    if (debugFlag) {
+        std::cout << "Num rows/cols: " << numberOfRows << ", " << numberOfColumns << std::endl;
+        std::cout << "Total, 3, 4 " << totalCoordElements << ", " << numQuadStripCoords << ", " << numQuadStripRGBA << std::endl;
+        std::cout << "Size coords: " << voxelQuadCoordinates.size() << std::endl;
+        std::cout << "Size normals: " << voxelQuadNormals.size() << std::endl;
+        std::cout << "Size rgba: " << voxelQuadRgba.size() << std::endl;
+        std::cout << "Valid voxels: " << numberOfVoxelsToDraw << std::endl;
+        
+        for (int64_t i = 0; i < numberOfCoordinates; i++) {
+            std::cout << i << ": ";
+            CaretAssertVectorIndex(voxelQuadCoordinates, i*3 + 2);
+            std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[i*3], 3, ",")) << "    ";
+            CaretAssertVectorIndex(voxelQuadRgba, i*4 + 3);
+            std::cout << qPrintable(AString::fromNumbers(&voxelQuadRgba[i*4], 4, ",")) << std::endl;
+        }
+    }
+    
+    /*
+     * Setup indices into coordinates/normals/coloring to draw the quads
+     */
+    switch (drawType) {
+        case DRAW_QUADS:
+        {
+            std::vector<uint32_t> quadIndices;
+            quadIndices.reserve(numberOfVoxelsToDraw * 4);
+            
+            for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
+                const int64_t columnOffset = (iCol * (numberOfRows + 1));
+                for (int64_t jRow = 0; jRow < numberOfRows; jRow++) {
+                    const int64_t coordBottomLeftIndex = columnOffset + jRow; //(iCol * (numberOfRows + 1) + jRow);
+                    const int64_t coordTopLeftIndex = coordBottomLeftIndex + 1;
+                    const int64_t rgbaIndex = coordTopLeftIndex * 4;
+                    
+                    CaretAssert(coordBottomLeftIndex < numberOfCoordinates);
+                    CaretAssert(coordTopLeftIndex < numberOfCoordinates);
+                    CaretAssertVectorIndex(voxelQuadRgba, rgbaIndex + 3);
+                    
+                    if (voxelQuadRgba[rgbaIndex + 3] > 0) {
+                        /*
+                         * For quads: (bottom left, bottom right, top right, top left)
+                         * Color with flat shading comes from the top left coordinate
+                         */
+                        const int32_t coordBottomRightIndex = coordBottomLeftIndex + (numberOfRows + 1);
+                        const int32_t coordTopRightIndex    = coordBottomRightIndex + 1;
+                        CaretAssert(coordBottomRightIndex < numberOfCoordinates);
+                        CaretAssert(coordTopRightIndex < numberOfCoordinates);
+                        
+                        quadIndices.push_back(coordBottomLeftIndex);
+                        quadIndices.push_back(coordBottomRightIndex);
+                        quadIndices.push_back(coordTopRightIndex);
+                        quadIndices.push_back(coordTopLeftIndex);
+                    }
+                }
+                
+                if (debugFlag) {
+                    std::cout << "Quad Indices: " << quadIndices.size() << std::endl;
+                    for (uint32_t i = 0; i < quadIndices.size(); i++) {
+                        std::cout << quadIndices[i] << " (";
+                        const int32_t coordOffset = quadIndices[i] * 3;
+                        CaretAssertVectorIndex(voxelQuadCoordinates, coordOffset + 2);
+                        std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[coordOffset], 3, ",")) << ")   (";
+                        
+                        const int32_t rgbaOffset = quadIndices[i] * 4;
+                        CaretAssertVectorIndex(voxelQuadRgba, rgbaOffset + 3);
+                        std::cout << qPrintable(AString::fromNumbers(&voxelQuadRgba[rgbaOffset], 4, ",")) << " " << std::endl;
+                    }
+                    std::cout << std::endl;
+                }
+            }
+            
+            if (debugFlag) {
+                std::cout << "Drawing " << quadIndices.size() / 4 << " quads." << std::endl;
+            }
+            BrainOpenGLPrimitiveDrawing::drawQuadIndices(voxelQuadCoordinates,
+                                                         voxelQuadNormals,
+                                                         voxelQuadRgba,
+                                                         quadIndices);
+        }
+            break;
+        case DRAW_QUAD_STRIPS:
+        {
+            int64_t stripCount = 0;
+            
+            const int64_t maxCoordsPerStrip = numberOfRows * 2 + 2;
+            
+            for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
+                std::vector<uint32_t> quadIndices;
+                quadIndices.reserve(maxCoordsPerStrip);
+                
+                for (int64_t jRow = 0; jRow < numberOfRows; jRow++) {
+                    const int32_t coordBottomLeftIndex = (iCol * (numberOfRows + 1) + jRow);
+                    const int32_t coordTopLeftIndex = coordBottomLeftIndex + 1;
+                    const int32_t coordBottomRightIndex = coordBottomLeftIndex + (numberOfRows + 1);
+                    const int32_t coordTopRightIndex    = coordBottomRightIndex + 1;
+                    const int64_t rgbaIndex = coordTopRightIndex * 4;
+                    
+                    CaretAssert(coordBottomLeftIndex < numberOfCoordinates);
+                    CaretAssert(coordTopLeftIndex < numberOfCoordinates);
+                    CaretAssert(coordBottomRightIndex < numberOfCoordinates);
+                    CaretAssert(coordTopRightIndex < numberOfCoordinates);
+                    CaretAssertVectorIndex(voxelQuadRgba, rgbaIndex + 3);
+                    
+                    if (voxelQuadRgba[rgbaIndex + 3] > 0) {
+                        /*
+                         * For quad strips (bottom left, bottom right, top left, top right)
+                         */
+                        if (quadIndices.empty()) {
+                            quadIndices.push_back(coordBottomLeftIndex);
+                            quadIndices.push_back(coordBottomRightIndex);
+                        }
+                        quadIndices.push_back(coordTopLeftIndex);
+                        quadIndices.push_back(coordTopRightIndex);
+                    }
+                    else {
+                        if ( ! quadIndices.empty()) {
+                            if (debugFlag) {
+                                std::cout << "Quad Indices: " << quadIndices.size() << std::endl;
+                                for (uint32_t i = 0; i < quadIndices.size(); i++) {
+                                    std::cout << quadIndices[i] << " (";
+                                    const int32_t coordOffset = quadIndices[i] * 3;
+                                    CaretAssertVectorIndex(voxelQuadCoordinates, coordOffset + 2);
+                                    std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[coordOffset], 3, ",")) << ")   (";
+                                    
+                                    const int32_t rgbaOffset = quadIndices[i] * 4;
+                                    CaretAssertVectorIndex(voxelQuadRgba, rgbaOffset + 3);
+                                    std::cout << qPrintable(AString::fromNumbers(&voxelQuadRgba[rgbaOffset], 4, ",")) << " " << std::endl;
+                                }
+                                std::cout << std::endl;
+                            }
+                            BrainOpenGLPrimitiveDrawing::drawQuadStrips(voxelQuadCoordinates,
+                                                                        voxelQuadNormals,
+                                                                        voxelQuadRgba,
+                                                                        quadIndices);
+                            quadIndices.clear();
+                            stripCount++;
+                        }
+                    }
+                    
+                }
+                if ( ! quadIndices.empty()) {
+                    if (debugFlag) {
+                        std::cout << "Quad Indices: " << quadIndices.size() << std::endl;
+                        for (uint32_t i = 0; i < quadIndices.size(); i++) {
+                            std::cout << quadIndices[i] << " (";
+                            const int32_t coordOffset = quadIndices[i] * 3;
+                            CaretAssertVectorIndex(voxelQuadCoordinates, coordOffset + 2);
+                            std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[coordOffset], 3, ",")) << ")   (";
+                            
+                            const int32_t rgbaOffset = quadIndices[i] * 4;
+                            CaretAssertVectorIndex(voxelQuadRgba, rgbaOffset + 3);
+                            std::cout << qPrintable(AString::fromNumbers(&voxelQuadRgba[rgbaOffset], 4, ",")) << " " << std::endl;
+                        }
+                        std::cout << std::endl;
+                    }
+                    BrainOpenGLPrimitiveDrawing::drawQuadStrips(voxelQuadCoordinates,
+                                                                voxelQuadNormals,
+                                                                voxelQuadRgba,
+                                                                quadIndices);
+                    quadIndices.clear();
+                    stripCount++;
+                }
+                
+                //                if (debugFlag) {
+                //                    std::cout << "Quad Indices: " << quadIndices.size() << std::endl;
+                //                    for (uint32_t i = 0; i < quadIndices.size(); i++) {
+                //                        std::cout << quadIndices[i] << " ";
+                //                        const int32_t coordOffset = quadIndices[i] * 3;
+                //                        std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[coordOffset], 3, ",")) <<  std::endl;
+                //                    }
+                //                    std::cout << std::endl;
+                //                }
+            }
+            if (debugFlag) {
+                std::cout << "Strips drawn: " << stripCount << std::endl;
+            }
+        }
+            break;
+    }
+}
+
+///**
+// * Draw the voxels in an orthogonal slice using quad indices or strips.
+// * 
+// * Each vertex (coordinate, its normal vector, and its color) is sent to OpenGL
+// * one time.  Index arrays are used to specify the vertices when drawing the
+// * quads.
+// * 
+// * This is efficient when many voxels are drawn but may be inefficent
+// * when only a few voxels are drawn.
+// *
+// * @param sliceNormalVector
+// *    Normal vector of the slice plane.
+// * @param coordinate
+// *    Coordinate of first voxel in the slice (bottom left as begin viewed)
+// * @param rowStep
+// *    Three-dimensional step to next row.
+// * @param columnStep
+// *    Three-dimensional step to next column.
+// * @param numberOfColumns
+// *    Number of columns in the slice.
+// * @param numberOfRows
+// *    Number of rows in the slice.
+// * @param sliceRGBA
+// *    RGBA coloring for voxels in the slice.
+// * @param volumeInterface
+// *    Index of the volume being drawn.
+// * @param volumeIndex
+// *    Selected map in the volume being drawn.
+// * @param mapIndex
+// *    Selected map in the volume being drawn.
+// * @param sliceOpacity
+// *    Opacity from the overlay.
+// */
+//void
+//OldBrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsQuadIndicesAndStrips(const float sliceNormalVector[3],
+//                                                         const float coordinate[3],
+//                                                         const float rowStep[3],
+//                                                         const float columnStep[3],
+//                                                         const int64_t numberOfColumns,
+//                                                         const int64_t numberOfRows,
+//                                                         const std::vector<uint8_t>& sliceRGBA,
+//                                                         const VolumeMappableInterface* volumeInterface,
+//                                                         const int32_t volumeIndex,
+//                                                         const int32_t mapIndex,
+//                                                         const uint8_t sliceOpacity)
+//{
+//    const bool debugFlag = false;
+//
+//    enum DrawType {
+//        DRAW_QUADS,
+//        DRAW_QUAD_STRIPS
+//    };
+//    
+//    const DrawType drawType = DRAW_QUADS;
+//    
+//    /*
+//     * When performing voxel identification for editing voxels,
+//     * we need to draw EVERY voxel since the user may click
+//     * regions where the voxels are "off".
+//     */
+//    bool volumeEditingDrawAllVoxelsFlag = false;
+//    if (m_identificationModeFlag) {
+//        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+//        if (voxelEditID->isEnabledForSelection()) {
+//            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
+//            if (vf == voxelEditID->getVolumeFileForEditing()) {
+//                volumeEditingDrawAllVoxelsFlag = true;
+//            }
+//        }
+//    }
+//    
+//    /*
+//     * Allocate vectors for quadrilateral drawing
+//     */
+//    const int64_t totalCoordElements = (numberOfColumns + 1) * (numberOfRows + 1);
+//    const int64_t numQuadStripCoords = totalCoordElements * 3;
+//    const int64_t numQuadStripRGBA   = totalCoordElements * 4;
+//    std::vector<float> voxelQuadCoordinates;
+//    std::vector<float> voxelQuadNormals;
+//    std::vector<uint8_t> voxelQuadRgba;
+//    voxelQuadCoordinates.reserve(numQuadStripCoords);
+//    voxelQuadNormals.reserve(numQuadStripCoords);
+//    voxelQuadRgba.reserve(numQuadStripRGBA);
+//    
+//    /*
+//     * Step to next row or column voxel
+//     */
+//    const float rowStepX = rowStep[0];
+//    const float rowStepY = rowStep[1];
+//    const float rowStepZ = rowStep[2];
+//    const float columnStepX = columnStep[0];
+//    const float columnStepY = columnStep[1];
+//    const float columnStepZ = columnStep[2];
+//    
+//    const float voxelStepX = rowStepX + columnStepX;
+//    const float voxelStepY = rowStepY + columnStepY;
+//    const float voxelStepZ = rowStepZ + columnStepZ;
+//    const float voxelStepXYZ[3] = {
+//        voxelStepX,
+//        voxelStepY,
+//        voxelStepZ
+//    };
+//    
+//    const float halfVoxelStepX = (voxelStepX / 2.0);
+//    const float halfVoxelStepY = (voxelStepY / 2.0);
+//    const float halfVoxelStepZ = (voxelStepZ / 2.0);
+//    
+//    int64_t numberOfVoxelsToDraw = 0;
+//    
+//    /*
+//     * Loop through column COORDINATES 
+//     */
+//    for (int64_t iCol = 0; iCol <= numberOfColumns; iCol++) {
+//        const float columnBottomCoord[3] = {
+//            coordinate[0] + (iCol * columnStepX),
+//            coordinate[1] + (iCol * columnStepY),
+//            coordinate[2] + (iCol * columnStepZ)
+//        };
+//
+//        /*
+//         * Loop through the row COORDINATES
+//         */
+//        for (int64_t jRow = 0; jRow <= numberOfRows; jRow++) {
+//            const float coord[3] = {
+//                columnBottomCoord[0] + (jRow * rowStepX),
+//                columnBottomCoord[1] + (jRow * rowStepY),
+//                columnBottomCoord[2] + (jRow * rowStepZ)
+//            };
+//            
+//            voxelQuadCoordinates.push_back(coord[0]);
+//            voxelQuadCoordinates.push_back(coord[1]);
+//            voxelQuadCoordinates.push_back(coord[2]);
+//            
+//            voxelQuadNormals.push_back(sliceNormalVector[0]);
+//            voxelQuadNormals.push_back(sliceNormalVector[1]);
+//            voxelQuadNormals.push_back(sliceNormalVector[2]);
+//            
+//            uint8_t rgba[4] = {
+//                0,
+//                0,
+//                0,
+//                0
+//            };
+//            
+//            /*
+//             * With FLAT shading:
+//             *    Quads: Uses top left coordinate for quad coloring
+//             *    Quad Strip: Uses top right coordinate for quad coloring
+//             * So, the color is only set for this coordinate
+//             */
+//            int64_t iColRGBA = iCol;
+//            int64_t jRowRGBA = jRow;
+//            switch (drawType) {
+//                case DRAW_QUADS:
+//                    if (iColRGBA >= numberOfColumns) {
+//                        iColRGBA = numberOfColumns - 1;
+//                    }
+//                    jRowRGBA = jRow - 1;
+//                    break;
+//                case DRAW_QUAD_STRIPS:
+//                    iColRGBA = iCol - 1;
+//                    jRowRGBA = jRow - 1;
+//                    break;
+//            }
+//            if ((iColRGBA >= 0)
+//                && (jRowRGBA >= 0)) {
+//                const int64_t voxelOffset = (iColRGBA
+//                                             + (numberOfColumns * jRowRGBA));
+//                if (debugFlag) {
+//                    std::cout << "col=" << iCol << " row=" << jRow << " voxel-offset=" << voxelOffset << std::endl;
+//                }
+//                
+//                /*
+//                 * Offset of voxel in coloring.
+//                 * Note that colors are stored in rows
+//                 */
+//                int64_t sliceRgbaOffset = (4 * (iColRGBA
+//                                                + (numberOfColumns * jRowRGBA)));
+//                
+//                /*
+//                 * An alpha greater than zero means the voxel is displayed
+//                 */
+//                const int64_t alphaOffset = sliceRgbaOffset + 3;
+//                CaretAssertVectorIndex(sliceRGBA, alphaOffset);
+//                if (sliceRGBA[alphaOffset] > 0) {
+//                    /*
+//                     * Use overlay's opacity for the voxel
+//                     */
+//                    rgba[0] = sliceRGBA[sliceRgbaOffset];
+//                    rgba[1] = sliceRGBA[sliceRgbaOffset + 1];
+//                    rgba[2] = sliceRGBA[sliceRgbaOffset + 2];
+//                    rgba[3] = sliceOpacity;
+//                }
+//            }
+//            
+//            /*
+//             * Voxel editing requires drawing of all voxels so that
+//             * "off" voxels can be turned "on".
+//             */
+//            if (volumeEditingDrawAllVoxelsFlag) {
+//                rgba[3] = 255;
+//            }
+//            
+//            /*
+//             * Draw voxel if non-zero opacity
+//             */
+//            if (rgba[3] > 0) {
+//                
+//                ++numberOfVoxelsToDraw;
+//                
+//                if (m_identificationModeFlag) {
+//                    /*
+//                     * Identification information is encoded in the
+//                     * RGBA coloring.
+//                     */
+//                    const float voxelCenterX = coord[0] + halfVoxelStepX;
+//                    const float voxelCenterY = coord[1] + halfVoxelStepY;
+//                    const float voxelCenterZ = coord[2] + halfVoxelStepZ;
+//                    int64_t voxelI = 0;
+//                    int64_t voxelJ = 0;
+//                    int64_t voxelK = 0;
+//                    volumeInterface->enclosingVoxel(voxelCenterX, voxelCenterY, voxelCenterZ,
+//                                                    voxelI, voxelJ, voxelK);
+//                    
+//                    addVoxelToIdentification(volumeIndex,
+//                                             mapIndex,
+//                                             voxelI,
+//                                             voxelJ,
+//                                             voxelK,
+//                                             voxelStepXYZ,
+//                                             rgba);
+//                }
+//            }
+//            
+//            voxelQuadRgba.push_back(rgba[0]);
+//            voxelQuadRgba.push_back(rgba[1]);
+//            voxelQuadRgba.push_back(rgba[2]);
+//            voxelQuadRgba.push_back(rgba[3]);
+//        }
+//    }
+//    
+//    const int64_t numberOfCoordinates = voxelQuadCoordinates.size() / 3;
+//    if (debugFlag) {
+//        std::cout << "Num rows/cols: " << numberOfRows << ", " << numberOfColumns << std::endl;
+//        std::cout << "Total, 3, 4 " << totalCoordElements << ", " << numQuadStripCoords << ", " << numQuadStripRGBA << std::endl;
+//        std::cout << "Size coords: " << voxelQuadCoordinates.size() << std::endl;
+//        std::cout << "Size normals: " << voxelQuadNormals.size() << std::endl;
+//        std::cout << "Size rgba: " << voxelQuadRgba.size() << std::endl;
+//        std::cout << "Valid voxels: " << numberOfVoxelsToDraw << std::endl;
+//        
+//        for (int64_t i = 0; i < numberOfCoordinates; i++) {
+//            std::cout << i << ": ";
+//            CaretAssertVectorIndex(voxelQuadCoordinates, i*3 + 2);
+//            std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[i*3], 3, ",")) << "    ";
+//            CaretAssertVectorIndex(voxelQuadRgba, i*4 + 3);
+//            std::cout << qPrintable(AString::fromNumbers(&voxelQuadRgba[i*4], 4, ",")) << std::endl;
+//        }
+//    }
+//
+//    /*
+//     * Setup indices into coordinates/normals/coloring to draw the quads
+//     */
+//    switch (drawType) {
+//        case DRAW_QUADS:
+//        {
+//            std::vector<uint32_t> quadIndices;
+//            quadIndices.reserve(numberOfVoxelsToDraw * 4);
+//            
+//            for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
+//                for (int64_t jRow = 0; jRow < numberOfRows; jRow++) {
+//                    const int32_t coordBottomLeftIndex = (iCol * (numberOfRows + 1) + jRow);
+//                    const int32_t coordTopLeftIndex = coordBottomLeftIndex + 1;
+//                    const int64_t rgbaIndex = coordTopLeftIndex * 4;
+//
+//                    CaretAssert(coordBottomLeftIndex < numberOfCoordinates);
+//                    CaretAssert(coordTopLeftIndex < numberOfCoordinates);
+//                    CaretAssertVectorIndex(voxelQuadRgba, rgbaIndex + 3);
+//                    
+//                    if (voxelQuadRgba[rgbaIndex + 3] > 0) {
+//                        /*
+//                         * For quads: (bottom left, bottom right, top right, top left)
+//                         * Color with flat shading comes from the top left coordinate
+//                         */
+//                        const int32_t coordBottomRightIndex = coordBottomLeftIndex + (numberOfRows + 1);
+//                        const int32_t coordTopRightIndex    = coordBottomRightIndex + 1;
+//                        CaretAssert(coordBottomRightIndex < numberOfCoordinates);
+//                        CaretAssert(coordTopRightIndex < numberOfCoordinates);
+//                        
+//                        quadIndices.push_back(coordBottomLeftIndex);
+//                        quadIndices.push_back(coordBottomRightIndex);
+//                        quadIndices.push_back(coordTopRightIndex);
+//                        quadIndices.push_back(coordTopLeftIndex);
+//                    }
+//                }
+//                
+//                if (debugFlag) {
+//                    std::cout << "Quad Indices: " << quadIndices.size() << std::endl;
+//                    for (uint32_t i = 0; i < quadIndices.size(); i++) {
+//                        std::cout << quadIndices[i] << " (";
+//                        const int32_t coordOffset = quadIndices[i] * 3;
+//                        CaretAssertVectorIndex(voxelQuadCoordinates, coordOffset + 2);
+//                        std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[coordOffset], 3, ",")) << ")   (";
+//
+//                        const int32_t rgbaOffset = quadIndices[i] * 4;
+//                        CaretAssertVectorIndex(voxelQuadRgba, rgbaOffset + 3);
+//                        std::cout << qPrintable(AString::fromNumbers(&voxelQuadRgba[rgbaOffset], 4, ",")) << " " << std::endl;
+//                    }
+//                    std::cout << std::endl;
+//                }
+//            }
+//            
+//            if (debugFlag) {
+//                std::cout << "Drawing " << quadIndices.size() / 4 << " quads." << std::endl;
+//            }
+//            BrainOpenGLPrimitiveDrawing::drawQuadIndices(voxelQuadCoordinates,
+//                                                         voxelQuadNormals,
+//                                                         voxelQuadRgba,
+//                                                         quadIndices);
+//        }
+//            break;
+//        case DRAW_QUAD_STRIPS:
+//        {
+//            int64_t stripCount = 0;
+//            
+//            const int64_t maxCoordsPerStrip = numberOfRows * 2 + 2;
+//            
+//            for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
+//                std::vector<uint32_t> quadIndices;
+//                quadIndices.reserve(maxCoordsPerStrip);
+//                
+//                for (int64_t jRow = 0; jRow < numberOfRows; jRow++) {
+//                    const int32_t coordBottomLeftIndex = (iCol * (numberOfRows + 1) + jRow);
+//                    const int32_t coordTopLeftIndex = coordBottomLeftIndex + 1;
+//                    const int32_t coordBottomRightIndex = coordBottomLeftIndex + (numberOfRows + 1);
+//                    const int32_t coordTopRightIndex    = coordBottomRightIndex + 1;
+//                    const int64_t rgbaIndex = coordTopRightIndex * 4;
+//                    
+//                    CaretAssert(coordBottomLeftIndex < numberOfCoordinates);
+//                    CaretAssert(coordTopLeftIndex < numberOfCoordinates);
+//                    CaretAssert(coordBottomRightIndex < numberOfCoordinates);
+//                    CaretAssert(coordTopRightIndex < numberOfCoordinates);
+//                    CaretAssertVectorIndex(voxelQuadRgba, rgbaIndex + 3);
+//                    
+//                    if (voxelQuadRgba[rgbaIndex + 3] > 0) {
+//                        /*
+//                         * For quad strips (bottom left, bottom right, top left, top right)
+//                         */
+//                        if (quadIndices.empty()) {
+//                            quadIndices.push_back(coordBottomLeftIndex);
+//                            quadIndices.push_back(coordBottomRightIndex);
+//                        }
+//                        quadIndices.push_back(coordTopLeftIndex);
+//                        quadIndices.push_back(coordTopRightIndex);
+//                    }
+//                    else {
+//                        if ( ! quadIndices.empty()) {
+//                            if (debugFlag) {
+//                                std::cout << "Quad Indices: " << quadIndices.size() << std::endl;
+//                                for (uint32_t i = 0; i < quadIndices.size(); i++) {
+//                                    std::cout << quadIndices[i] << " (";
+//                                    const int32_t coordOffset = quadIndices[i] * 3;
+//                                    CaretAssertVectorIndex(voxelQuadCoordinates, coordOffset + 2);
+//                                    std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[coordOffset], 3, ",")) << ")   (";
+//                                    
+//                                    const int32_t rgbaOffset = quadIndices[i] * 4;
+//                                    CaretAssertVectorIndex(voxelQuadRgba, rgbaOffset + 3);
+//                                    std::cout << qPrintable(AString::fromNumbers(&voxelQuadRgba[rgbaOffset], 4, ",")) << " " << std::endl;
+//                                }
+//                                std::cout << std::endl;
+//                            }
+//                            BrainOpenGLPrimitiveDrawing::drawQuadStrips(voxelQuadCoordinates,
+//                                                                         voxelQuadNormals,
+//                                                                         voxelQuadRgba,
+//                                                                         quadIndices);
+//                            quadIndices.clear();
+//                            stripCount++;
+//                        }
+//                    }
+//                    
+//                }
+//                if ( ! quadIndices.empty()) {
+//                    if (debugFlag) {
+//                        std::cout << "Quad Indices: " << quadIndices.size() << std::endl;
+//                        for (uint32_t i = 0; i < quadIndices.size(); i++) {
+//                            std::cout << quadIndices[i] << " (";
+//                            const int32_t coordOffset = quadIndices[i] * 3;
+//                            CaretAssertVectorIndex(voxelQuadCoordinates, coordOffset + 2);
+//                            std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[coordOffset], 3, ",")) << ")   (";
+//                            
+//                            const int32_t rgbaOffset = quadIndices[i] * 4;
+//                            CaretAssertVectorIndex(voxelQuadRgba, rgbaOffset + 3);
+//                            std::cout << qPrintable(AString::fromNumbers(&voxelQuadRgba[rgbaOffset], 4, ",")) << " " << std::endl;
+//                        }
+//                        std::cout << std::endl;
+//                    }
+//                    BrainOpenGLPrimitiveDrawing::drawQuadStrips(voxelQuadCoordinates,
+//                                                                 voxelQuadNormals,
+//                                                                 voxelQuadRgba,
+//                                                                 quadIndices);
+//                    quadIndices.clear();
+//                    stripCount++;
+//                }
+//                
+////                if (debugFlag) {
+////                    std::cout << "Quad Indices: " << quadIndices.size() << std::endl;
+////                    for (uint32_t i = 0; i < quadIndices.size(); i++) {
+////                        std::cout << quadIndices[i] << " ";
+////                        const int32_t coordOffset = quadIndices[i] * 3;
+////                        std::cout << qPrintable(AString::fromNumbers(&voxelQuadCoordinates[coordOffset], 3, ",")) <<  std::endl;
+////                    }
+////                    std::cout << std::endl;
+////                }
+//            }
+//            if (debugFlag) {
+//                std::cout << "Strips drawn: " << stripCount << std::endl;
+//            }
+//        }
+//            break;
+//    }
+//}
+
+/**
+ * Reset for volume identification.
+ *
+ * Clear identification indices and if identification is enabled,
+ * reserve a reasonable amount of space for the indices.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::resetIdentification()
+{
+    m_identificationIndices.clear();
+    
+    if (m_identificationModeFlag) {
+        int64_t estimatedNumberOfItems = 0;
+        
+        std::vector<int64_t> volumeDims;
+        m_volumeDrawInfo[0].volumeFile->getDimensions(volumeDims);
+        if (volumeDims.size() >= 3) {
+            const int64_t maxDim = std::max(volumeDims[0],
+                                            std::max(volumeDims[1], volumeDims[2]));
+            estimatedNumberOfItems = maxDim * maxDim * IDENTIFICATION_INDICES_PER_VOXEL;
+        }
+        
+        m_identificationIndices.reserve(estimatedNumberOfItems);
+    }
+}
+
+/**
+ * Add a voxel to the identification indices.
+ *
+ * @param volumeIndex
+ *    Index of the volume.
+ * @param mapIndex
+ *    Index of the volume map.
+ * @param voxelI
+ *    Voxel Index I
+ * @param voxelJ
+ *    Voxel Index J
+ * @param voxelK
+ *    Voxel Index K
+ * @param voxelDiffXYZ
+ *    Change in XYZ from voxel bottom left to top right
+ * @param rgbaForColorIdentificationOut
+ *    Encoded identification in RGBA color OUTPUT
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::addVoxelToIdentification(const int32_t volumeIndex,
+                                                        const int32_t mapIndex,
+                                                        const int32_t voxelI,
+                                                        const int32_t voxelJ,
+                                                        const int32_t voxelK,
+                                                        const float voxelDiffXYZ[3],
+                                                        uint8_t rgbaForColorIdentificationOut[4])
+{
+    const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_VOXEL;
+    
+    m_fixedPipelineDrawing->colorIdentification->addItem(rgbaForColorIdentificationOut,
+                                                         SelectionItemDataTypeEnum::VOXEL,
+                                                         idIndex);
+    rgbaForColorIdentificationOut[3] = 255;
+    
+    /*
+     * ID stack requires integers to 
+     * use an integer pointer to the float values
+     */
+    CaretAssert(sizeof(float) == sizeof(int32_t));
+    const int32_t* intPointerDiffXYZ = (int32_t*)voxelDiffXYZ;
+    
+    /*
+     * If these items change, need to update reset and
+     * processing of identification.
+     */
+    m_identificationIndices.push_back(volumeIndex);
+    m_identificationIndices.push_back(mapIndex);
+    m_identificationIndices.push_back(voxelI);
+    m_identificationIndices.push_back(voxelJ);
+    m_identificationIndices.push_back(voxelK);
+    m_identificationIndices.push_back(intPointerDiffXYZ[0]);
+    m_identificationIndices.push_back(intPointerDiffXYZ[1]);
+    m_identificationIndices.push_back(intPointerDiffXYZ[2]);
+}
+
+/**
+ * Process voxel identification.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::processIdentification()
+{
+    int32_t identifiedItemIndex;
+    float depth = -1.0;
+    m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
+                                                       m_fixedPipelineDrawing->mouseX,
+                                                       m_fixedPipelineDrawing->mouseY,
+                                                       identifiedItemIndex,
+                                                       depth);
+    if (identifiedItemIndex >= 0) {
+        const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_VOXEL;
+        const int32_t volDrawInfoIndex = m_identificationIndices[idIndex];
+        CaretAssertVectorIndex(m_volumeDrawInfo, volDrawInfoIndex);
+        VolumeMappableInterface* vf = m_volumeDrawInfo[volDrawInfoIndex].volumeFile;
+        const int64_t voxelIndices[3] = {
+            m_identificationIndices[idIndex + 2],
+            m_identificationIndices[idIndex + 3],
+            m_identificationIndices[idIndex + 4]
+        };
+        
+        const float* floatDiffXYZ = (float*)&m_identificationIndices[idIndex + 5];
+        
+        SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+        if (voxelID->isEnabledForSelection()) {
+            if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                voxelID->setVoxelIdentification(m_brain,
+                                                vf,
+                                                voxelIndices,
+                                                depth);
+                
+                float voxelCoordinates[3];
+                vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                                 voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
+                                                                 voxelCoordinates);
+                CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
+            }
+        }
+        
+        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+        if (voxelEditID->isEnabledForSelection()) {
+            if (voxelEditID->getVolumeFileForEditing() == vf) {
+                if (voxelEditID->isOtherScreenDepthCloserToViewer(depth)) {
+                    voxelEditID->setVoxelIdentification(m_brain,
+                                                        vf,
+                                                        voxelIndices,
+                                                        depth);
+                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
+                    
+                    float voxelCoordinates[3];
+                    vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                                     voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                    
+                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
+                                                                     voxelCoordinates);
+                    CaretLogFinest("Selected Voxel Editing (3D): Indices ("
+                                   + AString::fromNumbers(voxelIndices, 3, ",")
+                                   + ") Diff XYZ ("
+                                   + AString::fromNumbers(floatDiffXYZ, 3, ",")
+                                   + ")");
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Get the maximum bounds that enclose the volumes and the minimum
+ * voxel spacing from the volumes.
+ *
+ * @param boundsOut
+ *    Bounds of the volumes.
+ * @param spacingOut
+ *    Minimum voxel spacing from the volumes.  Always positive values (even if
+ *    volumes is oriented right to left).
+ *
+ */
+bool
+OldBrainOpenGLVolumeSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
+                                                                float spacingOut[3])
+{
+    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(m_volumeDrawInfo.size());
+    if (numberOfVolumesToDraw <= 0) {
+        return false;
+    }
+    
+    /*
+     * Find maximum extent of all voxels and smallest voxel
+     * size in each dimension.
+     */
+    float minVoxelX = std::numeric_limits<float>::max();
+    float maxVoxelX = -std::numeric_limits<float>::max();
+    float minVoxelY = std::numeric_limits<float>::max();
+    float maxVoxelY = -std::numeric_limits<float>::max();
+    float minVoxelZ = std::numeric_limits<float>::max();
+    float maxVoxelZ = -std::numeric_limits<float>::max();
+    float voxelStepX = std::numeric_limits<float>::max();
+    float voxelStepY = std::numeric_limits<float>::max();
+    float voxelStepZ = std::numeric_limits<float>::max();
+    for (int32_t i = 0; i < numberOfVolumesToDraw; i++) {
+        const VolumeMappableInterface* volumeFile = m_volumeDrawInfo[i].volumeFile;
+        int64_t dimI, dimJ, dimK, numMaps, numComponents;
+        volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+        
+        float originX, originY, originZ;
+        float x1, y1, z1;
+        float lastX, lastY, lastZ;
+        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
+        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
+        volumeFile->indexToSpace(dimI - 1, dimJ - 1, dimK - 1, lastX, lastY, lastZ);
+        const float dx = x1 - originX;
+        const float dy = y1 - originY;
+        const float dz = z1 - originZ;
+        voxelStepX = std::min(voxelStepX, std::fabs(dx));
+        voxelStepY = std::min(voxelStepY, std::fabs(dy));
+        voxelStepZ = std::min(voxelStepZ, std::fabs(dz));
+        
+        minVoxelX = std::min(minVoxelX, std::min(originX, lastX));
+        maxVoxelX = std::max(maxVoxelX, std::max(originX, lastX));
+        minVoxelY = std::min(minVoxelY, std::min(originY, lastY));
+        maxVoxelY = std::max(maxVoxelY, std::max(originY, lastY));
+        minVoxelZ = std::min(minVoxelZ, std::min(originZ, lastZ));
+        maxVoxelZ = std::max(maxVoxelZ, std::max(originZ, lastZ));
+    }
+    
+    boundsOut[0] = minVoxelX;
+    boundsOut[1] = maxVoxelX;
+    boundsOut[2] = minVoxelY;
+    boundsOut[3] = maxVoxelY;
+    boundsOut[4] = minVoxelZ;
+    boundsOut[5] = maxVoxelZ;
+    
+    spacingOut[0] = voxelStepX;
+    spacingOut[1] = voxelStepY;
+    spacingOut[2] = voxelStepZ;
+    
+    bool valid = false;
+    
+    if ((maxVoxelX > minVoxelX)
+        && (maxVoxelY > minVoxelY)
+        && (maxVoxelZ > minVoxelZ)
+        && (voxelStepX > 0.0)
+        && (voxelStepY > 0.0)
+        && (voxelStepZ > 0.0)) {
+        valid = true;
+    }
+    
+    return valid;
+}
+
+/**
+ * Create the oblique transformation matrix.
+ *
+ * @param sliceCoordinates
+ *    Slice that is being drawn.
+ * @param obliqueTransformationMatrixOut
+ *    OUTPUT transformation matrix for oblique viewing.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::createObliqueTransformationMatrix(const float sliceCoordinates[3],
+                                                                 Matrix4x4& obliqueTransformationMatrixOut)
+{
+    /*
+     * Initialize the oblique transformation matrix
+     */
+    obliqueTransformationMatrixOut.identity();
+    
+    /*
+     * Get the oblique rotation matrix
+     */
+    Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+    
+    /*
+     * Create the transformation matrix
+     */
+    obliqueTransformationMatrixOut.postmultiply(obliqueRotationMatrix);
+    
+    /*
+     * Translate to selected coordinate
+     */
+    obliqueTransformationMatrixOut.translate(sliceCoordinates[0],
+                                             sliceCoordinates[1],
+                                             sliceCoordinates[2]);
+}
+
+/**
+ * Find portion (or all) of slice that fits inside the graphics window.
+ *
+ * @param sliceViewPlane
+ *    The orthogonal plane being viewed.
+ * @param selectedSliceCoordinate
+ *    Coordinate of the slice being drawn.
+ * @param volumeFile
+ *    Volume file that is to be drawn.
+ * @param culledFirstVoxelIJKOut
+ *    First (bottom left) voxel that will be drawn for the volume file.
+ * @param culledLastVoxelIJKOut
+ *    Last (top right) voxel that will be drawn for the volume file.
+ * @param voxelDeltaXYZOut
+ *    Voxel sizes for the volume file.  The element corresponding to the 
+ *    slice plane being drawn will be zero (axial => [2]=0)
+ */
+bool
+OldBrainOpenGLVolumeSliceDrawing::getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                    const float selectedSliceCoordinate,
+                                                                    const VolumeMappableInterface* volumeFile,
+                                                                    int64_t culledFirstVoxelIJKOut[3],
+                                                                    int64_t culledLastVoxelIJKOut[3],
+                                                                    float voxelDeltaXYZOut[3])
+{
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    GLdouble projectionMatrix[16];
+    glGetDoublev(GL_PROJECTION_MATRIX,
+                 projectionMatrix);
+    GLdouble modelMatrix[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX,
+                 modelMatrix);
+    
+    const double vpMinX = viewport[0];
+    const double vpMaxX = viewport[0] + viewport[2];
+    const double vpMinY = viewport[1];
+    const double vpMaxY = viewport[1] + viewport[3];
+    
+    GLdouble bottomLeftWin[3] = {
+        vpMinX,
+        vpMinY,
+        0.0
+    };
+    GLdouble bottomRightWin[3] = {
+        vpMaxX,
+        vpMinY,
+        0.0
+    };
+    GLdouble topRightWin[3] = {
+        vpMaxX,
+        vpMaxY,
+        0.0
+    };
+    GLdouble topLeftWin[3] = {
+        vpMinX,
+        vpMaxY,
+        0.0
+    };
+    
+    GLdouble bottomLeftCoord[3];
+    int32_t cornersValidCount = 0;
+    if (gluUnProject(bottomLeftWin[0], bottomLeftWin[1], bottomLeftWin[2],
+                     modelMatrix, projectionMatrix, viewport,
+                     &bottomLeftCoord[0], &bottomLeftCoord[1], &bottomLeftCoord[2])) {
+        cornersValidCount++;
+    }
+    
+    GLdouble bottomRightCoord[3];
+    if (gluUnProject(bottomRightWin[0], bottomRightWin[1], bottomRightWin[2],
+                     modelMatrix, projectionMatrix, viewport,
+                     &bottomRightCoord[0], &bottomRightCoord[1], &bottomRightCoord[2])) {
+        cornersValidCount++;
+    }
+    
+    GLdouble topRightCoord[3];
+    if (gluUnProject(topRightWin[0], topRightWin[1], topRightWin[2],
+                     modelMatrix, projectionMatrix, viewport,
+                     &topRightCoord[0], &topRightCoord[1], &topRightCoord[2])) {
+        cornersValidCount++;
+    }
+    
+    GLdouble topLeftCoord[3];
+    if (gluUnProject(topLeftWin[0], topLeftWin[1], topLeftWin[2],
+                     modelMatrix, projectionMatrix, viewport,
+                     &topLeftCoord[0], &topLeftCoord[1], &topLeftCoord[2])) {
+        cornersValidCount++;
+    }
+    
+    
+    if (cornersValidCount != 4) {
+        return false;
+    }
+    
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            bottomLeftCoord[2] = selectedSliceCoordinate;
+            bottomRightCoord[2] = selectedSliceCoordinate;
+            topRightCoord[2] = selectedSliceCoordinate;
+            topLeftCoord[2] = selectedSliceCoordinate;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            bottomLeftCoord[1] = selectedSliceCoordinate;
+            bottomRightCoord[1] = selectedSliceCoordinate;
+            topRightCoord[1] = selectedSliceCoordinate;
+            topLeftCoord[1] = selectedSliceCoordinate;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            bottomLeftCoord[0] = selectedSliceCoordinate;
+            bottomRightCoord[0] = selectedSliceCoordinate;
+            topRightCoord[0] = selectedSliceCoordinate;
+            topLeftCoord[0] = selectedSliceCoordinate;
+            break;
+    }
+//    std::cout << std::endl;
+//    std::cout << "Bottom Left:  " << qPrintable(AString::fromNumbers(bottomLeftCoord, 3, ",")) << std::endl;
+//    std::cout << "Bottom Right: " << qPrintable(AString::fromNumbers(bottomRightCoord, 3, ",")) << std::endl;
+//    std::cout << "Top Right:    " << qPrintable(AString::fromNumbers(topRightCoord, 3, ",")) << std::endl;
+//    std::cout << "Top Left:     " << qPrintable(AString::fromNumbers(topLeftCoord, 3, ",")) << std::endl;
+    
+    BoundingBox boundingBox;
+    volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+//    std::cout << "Bounding Box: " << qPrintable(boundingBox.toString()) << std::endl;
+    
+    boundingBox.limitCoordinateToBoundingBox(bottomLeftCoord);
+    boundingBox.limitCoordinateToBoundingBox(bottomRightCoord);
+    boundingBox.limitCoordinateToBoundingBox(topRightCoord);
+    boundingBox.limitCoordinateToBoundingBox(topLeftCoord);
+    
+//    std::cout << "Limited Bottom Left:  " << qPrintable(AString::fromNumbers(bottomLeftCoord, 3, ",")) << std::endl;
+//    std::cout << "Limited Bottom Right: " << qPrintable(AString::fromNumbers(bottomRightCoord, 3, ",")) << std::endl;
+//    std::cout << "Limited Top Right:    " << qPrintable(AString::fromNumbers(topRightCoord, 3, ",")) << std::endl;
+//    std::cout << "Limited Top Left:     " << qPrintable(AString::fromNumbers(topLeftCoord, 3, ",")) << std::endl;
+//    std::cout << std::endl;
+    
+    /*
+     * Note: Spacing may be negative for some orientations
+     * and positive may be on left or bottom
+     */
+    float voxelDeltaX, voxelDeltaY, voxelDeltaZ;
+    volumeFile->getVoxelSpacing(voxelDeltaX,
+                                voxelDeltaY,
+                                voxelDeltaZ);
+    voxelDeltaX = std::fabs(voxelDeltaX);
+    voxelDeltaY = std::fabs(voxelDeltaY);
+    voxelDeltaZ = std::fabs(voxelDeltaZ);
+    if (bottomLeftCoord[0] > topRightCoord[0]) {
+        voxelDeltaX = -voxelDeltaX;
+    }
+    if (bottomLeftCoord[1] > topRightCoord[1]) {
+        voxelDeltaY = -voxelDeltaY;
+    }
+    if (bottomLeftCoord[2] > topRightCoord[2]) {
+        voxelDeltaZ = -voxelDeltaZ;
+    }
+    bool adjustX = false;
+    bool adjustY = false;
+    bool adjustZ = false;
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            adjustX = true;
+            adjustY = true;
+            voxelDeltaZ = 0.0;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            adjustX = true;
+            adjustZ = true;
+            voxelDeltaY = 0.0;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            adjustY = true;
+            adjustZ = true;
+            voxelDeltaX = 0.0;
+            break;
+    }
+    
+    /*
+     * Adjust by one voxel to ensure full coverage
+     */
+    if (adjustX) {
+        bottomLeftCoord[0] -= voxelDeltaX;
+        topRightCoord[0]   += voxelDeltaX;
+    }
+    if (adjustY) {
+        bottomLeftCoord[1] -= voxelDeltaY;
+        topRightCoord[1]   += voxelDeltaY;
+    }
+    if (adjustZ) {
+        bottomLeftCoord[2] -= voxelDeltaZ;
+        topRightCoord[2]   += voxelDeltaZ;
+    }
+    
+//    std::cout << "Adjusted Bottom Left:  " << qPrintable(AString::fromNumbers(bottomLeftCoord, 3, ",")) << std::endl;
+//    std::cout << "Adjusted Top Right:    " << qPrintable(AString::fromNumbers(topRightCoord, 3, ",")) << std::endl;
+    
+    int64_t bottomLeftIJK[3];
+    volumeFile->enclosingVoxel(bottomLeftCoord[0],
+                               bottomLeftCoord[1],
+                               bottomLeftCoord[2],
+                               bottomLeftIJK[0],
+                               bottomLeftIJK[1],
+                               bottomLeftIJK[2]);
+    
+    int64_t topRightIJK[3];
+    volumeFile->enclosingVoxel(topRightCoord[0],
+                               topRightCoord[1],
+                               topRightCoord[2],
+                               topRightIJK[0],
+                               topRightIJK[1],
+                               topRightIJK[2]);
+    
+    volumeFile->limitIndicesToValidIndices(bottomLeftIJK[0], bottomLeftIJK[1], bottomLeftIJK[2]);
+    volumeFile->limitIndicesToValidIndices(topRightIJK[0], topRightIJK[1], topRightIJK[2]);
+//    std::cout << "Bottom Left Dimensions:  " << qPrintable(AString::fromNumbers(bottomLeftIJK, 3, ",")) << std::endl;
+//    std::cout << "Top Right Dimensions:    " << qPrintable(AString::fromNumbers(topRightIJK, 3, ",")) << std::endl;
+    
+    culledFirstVoxelIJKOut[0] = bottomLeftIJK[0];
+    culledFirstVoxelIJKOut[1] = bottomLeftIJK[1];
+    culledFirstVoxelIJKOut[2] = bottomLeftIJK[2];
+    culledLastVoxelIJKOut[0]  = topRightIJK[0];
+    culledLastVoxelIJKOut[1]  = topRightIJK[1];
+    culledLastVoxelIJKOut[2]  = topRightIJK[2];
+    
+    voxelDeltaXYZOut[0] = voxelDeltaX;
+    voxelDeltaXYZOut[1] = voxelDeltaY;
+    voxelDeltaXYZOut[2] = voxelDeltaZ;
+    
+    return true;
+}
+
+/* ======================================================================= */
+
+/**
+ * Constructor
+ *
+ * @param volumeMappableInterface
+ *   Volume that contains the data values.
+ * @param mapIndex
+ *   Index of selected map.
+ */
+OldBrainOpenGLVolumeSliceDrawing::VolumeSlice::VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
+                                                        const int32_t mapIndex)
+{
+    m_volumeMappableInterface = volumeMappableInterface;
+    m_volumeFile = dynamic_cast<VolumeFile*>(m_volumeMappableInterface);
+    m_ciftiMappableDataFile = dynamic_cast<CiftiMappableDataFile*>(m_volumeMappableInterface);
+    
+    CaretAssert(m_volumeMappableInterface);
+    m_mapIndex = mapIndex;
+    CaretAssert(m_mapIndex >= 0);
+    
+    const int64_t sliceDim = 300;
+    const int64_t numVoxels = sliceDim * sliceDim;
+    m_values.reserve(numVoxels);
+}
+
+/**
+ * Add a value and return its index.
+ *
+ * @param value
+ *     Value that is added.
+ * @return
+ *     The index for the value.
+ */
+int64_t
+OldBrainOpenGLVolumeSliceDrawing::VolumeSlice::addValue(const float value)
+{
+    const int64_t indx = static_cast<int64_t>(m_values.size());
+    m_values.push_back(value);
+    return indx;
+}
+
+/**
+ * Return RGBA colors for value using the value's index
+ * returned by addValue().
+ *
+ * @param indx
+ *    Index of the value.
+ * @return
+ *    RGBA coloring for value.
+ */
+uint8_t*
+OldBrainOpenGLVolumeSliceDrawing::VolumeSlice::getRgbaForValueByIndex(const int64_t indx)
+{
+    CaretAssertVectorIndex(m_rgba, indx * 4);
+    return &m_rgba[indx*4];
+}
+
+/**
+ * Allocate colors for the voxel values
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::VolumeSlice::allocateColors()
+{
+    m_rgba.resize(m_values.size() * 4);
+}
+
+/* ======================================================================= */
+/**
+ * Create a voxel for drawing.
+ *
+ * @param center
+ *    Center of voxel.
+ * @param leftBottom
+ *    Left bottom coordinate of voxel.
+ * @param rightBottom
+ *    Right bottom coordinate of voxel.
+ * @param rightTop
+ *    Right top coordinate of voxel.
+ * @param leftTop
+ *    Left top coordinate of voxel.
+ */
+OldBrainOpenGLVolumeSliceDrawing::VoxelToDraw::VoxelToDraw(const float center[3],
+                                                        const double leftBottom[3],
+                                                        const double rightBottom[3],
+                                                        const double rightTop[3],
+                                                        const double leftTop[3])
+{
+    m_center[0] = center[0];
+    m_center[1] = center[1];
+    m_center[2] = center[2];
+    
+    m_coordinates[0]  = leftBottom[0];
+    m_coordinates[1]  = leftBottom[1];
+    m_coordinates[2]  = leftBottom[2];
+    m_coordinates[3]  = rightBottom[0];
+    m_coordinates[4]  = rightBottom[1];
+    m_coordinates[5]  = rightBottom[2];
+    m_coordinates[6]  = rightTop[0];
+    m_coordinates[7]  = rightTop[1];
+    m_coordinates[8]  = rightTop[2];
+    m_coordinates[9]  = leftTop[0];
+    m_coordinates[10] = leftTop[1];
+    m_coordinates[11] = leftTop[2];
+    
+    const int64_t numSlices = 5;
+    m_sliceIndices.reserve(numSlices);
+    m_sliceOffsets.reserve(numSlices);
+}
+
+/**
+ * Get the change in XYZ for the voxel ([top right] minus [bottom left])
+ *
+ * @param dxyzOut
+ *     Change in XYZ from bottom left to top right
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::VoxelToDraw::getDiffXYZ(float dxyzOut[3]) const
+{
+    dxyzOut[0] = m_coordinates[6] - m_coordinates[0];
+    dxyzOut[1] = m_coordinates[7] - m_coordinates[1];
+    dxyzOut[2] = m_coordinates[8] - m_coordinates[2];
+}
+
+/**
+ * Add a value from a volume slice.
+ *
+ * @param sliceIndex
+ *    Index of the slice.
+ * @param sliceOffset
+ *    Offset of value in the slice.
+ */
+void
+OldBrainOpenGLVolumeSliceDrawing::VoxelToDraw::addVolumeValue(const int64_t sliceIndex,
+                                                           const int64_t sliceOffset)
+{
+    CaretAssert(sliceIndex >= 0);
+    CaretAssert(sliceOffset >= 0);
+    m_sliceIndices.push_back(sliceIndex);
+    m_sliceOffsets.push_back(sliceOffset);
+}
 
 
 

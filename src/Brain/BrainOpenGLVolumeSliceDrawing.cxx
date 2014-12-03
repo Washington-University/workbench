@@ -2423,6 +2423,38 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
                                                                              const float sliceCoordinates[3])
 {
     /*
+     * Determine model size in screen Y when viewed
+     */
+    BoundingBox boundingBox;
+    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+    const double centerX = boundingBox.getCenterX();
+    const double centerY = boundingBox.getCenterY();
+    const double centerZ = boundingBox.getCenterZ();
+    
+//    /*
+//     * Set top and bottom to the min/max coordinate
+//     * that runs vertically on the screen
+//     */
+//    double modelTop = 200.0;
+//    double modelBottom = -200.0;
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//            CaretAssertMessage(0, "Should never get here");
+//            break;
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            modelTop = boundingBox.getMaxY();
+//            modelBottom = boundingBox.getMinY();
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            modelTop = boundingBox.getMaxZ();
+//            modelBottom = boundingBox.getMinZ();
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            modelTop = boundingBox.getMaxZ();
+//            modelBottom = boundingBox.getMinZ();
+//            break;
+//    }
+    /*
      * Initialize the modelview matrix to the identity matrix
      * This places the camera at the origin, pointing down the
      * negative-Z axis with the up vector set to (0,1,0 =>
@@ -2431,40 +2463,41 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    const float* userTranslation = m_browserTabContent->getTranslation();
-    
     /*
-     * Move the camera with the user's translation
+     * Translate to place center of volume at origin
      */
-    float viewTranslationX = 0.0;
-    float viewTranslationY = 0.0;
-    float viewTranslationZ = 0.0;
-    
+    double moveToCenterX = 0.0;
+    double moveToCenterY = 0.0;
+    double moveToCenterZ = 0.0;
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssertMessage(0, "Should never get here");
+            break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
-            viewTranslationY = sliceCoordinates[1] + userTranslation[1];
+            moveToCenterX = -centerX;
+            moveToCenterY = -centerY;
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
-            viewTranslationY = sliceCoordinates[2] + userTranslation[2];
+            moveToCenterX = -centerX;
+            moveToCenterY = -centerZ;
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            viewTranslationX = -(sliceCoordinates[1] + userTranslation[1]);
-            viewTranslationY =   sliceCoordinates[2] + userTranslation[2];
+            moveToCenterX =  centerY;
+            moveToCenterY = -centerZ;
             break;
     }
     
-    glTranslatef(viewTranslationX,
-                 viewTranslationY,
-                 viewTranslationZ);
     
+    glTranslated(moveToCenterX,
+                 moveToCenterY,
+                 moveToCenterZ);
     
-    
-    
-    glGetDoublev(GL_MODELVIEW_MATRIX,
-                 m_viewingMatrix);
+    /*
+     * Set "look at" to origin
+     */
+    m_lookAtCenter[0] = 0.0;
+    m_lookAtCenter[1] = 0.0;
+    m_lookAtCenter[2] = 0.0;
     
     /*
      * Since an orthographic projection is used, the camera only needs
@@ -2475,7 +2508,7 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
     double cameraXYZ[3] = {
         m_lookAtCenter[0] + planeNormal[0] * 1.0,
         m_lookAtCenter[1] + planeNormal[1] * 1.0,
-        m_lookAtCenter[2] + planeNormal[2] * 1.0,
+        m_lookAtCenter[2] + planeNormal[2] * 1.0
     };
     
     /*
@@ -2495,17 +2528,17 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
             break;
     }
     
-    /*
-     * For oblique viewing, the up vector needs to be rotated by the
-     * oblique rotation matrix.
-     */
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            break;
-    }
+//    /*
+//     * For oblique viewing, the up vector needs to be rotated by the
+//     * oblique rotation matrix.
+//     */
+//    switch (sliceProjectionType) {
+//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+//            m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
+//            break;
+//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+//            break;
+//    }
     
     /*
      * Now set the camera to look at the selected coordinate (center)
@@ -2515,6 +2548,76 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
     gluLookAt(cameraXYZ[0], cameraXYZ[1], cameraXYZ[2],
               m_lookAtCenter[0], m_lookAtCenter[1], m_lookAtCenter[2],
               up[0], up[1], up[2]);
+    
+    
+    const float* userTranslation = m_browserTabContent->getTranslation();
+    
+    /*
+     * Apply user translation
+     */
+    glTranslatef(userTranslation[0],
+                 userTranslation[1],
+                 userTranslation[2]);
+    
+    /*
+     * For oblique viewing, the up vector needs to be rotated by the
+     * oblique rotation matrix.
+     */
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            Matrix4x4 m = m_browserTabContent->getObliqueVolumeRotationMatrix();
+            m.invert();
+            double mat4[16];
+            m.getMatrixForOpenGL(mat4);
+            glMultMatrixd(mat4);
+        }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
+    /*
+     * Apply user scaling
+     */
+    const float userScaling = m_browserTabContent->getScaling();
+    glScalef(userScaling,
+             userScaling,
+             userScaling);
+    
+//    
+//    /*
+//     * Move the camera with the user's translation
+//     */
+//    float viewTranslationX = 0.0;
+//    float viewTranslationY = 0.0;
+//    float viewTranslationZ = 0.0;
+//    
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
+//            viewTranslationY = sliceCoordinates[1] + userTranslation[1];
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
+//            viewTranslationY = sliceCoordinates[2] + userTranslation[2];
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            viewTranslationX = -(sliceCoordinates[1] + userTranslation[1]);
+//            viewTranslationY =   sliceCoordinates[2] + userTranslation[2];
+//            break;
+//    }
+//    
+//    glTranslatef(viewTranslationX,
+//                 viewTranslationY,
+//                 viewTranslationZ);
+    
+    
+    
+    
+    glGetDoublev(GL_MODELVIEW_MATRIX,
+                 m_viewingMatrix);
+    
 }
 
 /**
@@ -3713,7 +3816,7 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
     /*
      * Scale ratio makes region slightly larger than model
      */
-    const double zoom = m_browserTabContent->getScaling();
+    const double zoom =  1.0; //m_browserTabContent->getScaling();
     double scaleRatio = (1.0 / 0.98);
     if (zoom > 0.0) {
         scaleRatio /= zoom;
@@ -3733,10 +3836,10 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
      * Set bounds of orthographic projection
      */
     const double halfModelY = ((modelTop - modelBottom) / 2.0);
-    const double orthoBottom = modelBottom;
-    const double orthoTop    = modelTop;
-    const double orthoRight  =  halfModelY * aspectRatio;
+    const double orthoBottom = -halfModelY;
+    const double orthoTop    =  halfModelY;
     const double orthoLeft   = -halfModelY * aspectRatio;
+    const double orthoRight  =  halfModelY * aspectRatio;
     const double nearDepth = -1000.0;
     const double farDepth  =  1000.0;
     m_orthographicBounds[0] = orthoLeft;

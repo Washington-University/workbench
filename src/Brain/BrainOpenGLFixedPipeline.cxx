@@ -41,6 +41,7 @@
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
+#include "OLD_BrainOpenGLVolumeSliceDrawing.h"
 #include "BrainOpenGLShapeCone.h"
 #include "BrainOpenGLShapeCube.h"
 #include "BrainOpenGLShapeCylinder.h"
@@ -61,6 +62,7 @@
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "ClippingPlaneGroup.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
@@ -3060,14 +3062,26 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
     
     VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
     VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
-    
-    BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-    volumeSliceDrawing.draw(this,
-                            browserTabContent,
-                            volumeDrawInfo,
-                            sliceDrawingType,
-                            sliceProjectionType,
-                            viewport);
+
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CENTERING)) {
+        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+        volumeSliceDrawing.draw(this,
+                                browserTabContent,
+                                volumeDrawInfo,
+                                sliceDrawingType,
+                                sliceProjectionType,
+                                viewport);
+    }
+    else {
+        OldBrainOpenGLVolumeSliceDrawing oldVolumeSliceDrawing;
+        oldVolumeSliceDrawing.draw(this,
+                                   browserTabContent,
+                                   volumeDrawInfo,
+                                   sliceDrawingType,
+                                   sliceProjectionType,
+                                   viewport);
+        
+    }
 }
 
 
