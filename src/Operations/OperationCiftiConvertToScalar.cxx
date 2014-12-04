@@ -93,7 +93,7 @@ void OperationCiftiConvertToScalar::useParameters(OperationParameters* myParams,
                 getline(nameListFile, mapName);
                 if (!nameListFile)//no, seriously, that is how you check if your input was good
                 {
-                    CaretLogWarning("warning, name file contained " + AString::number(i) + " names, expected " + AString::number(rowSize));
+                    CaretLogWarning("name file contained " + AString::number(i) + " names, expected " + AString::number(rowSize));
                     break;
                 }
                 myXML.setMapNameForRowIndex(i, mapName.c_str());
