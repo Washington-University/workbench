@@ -90,7 +90,7 @@ void AlgorithmGiftiLabelToROI::useParameters(OperationParameters* myParams, Prog
         if (!nameMode) throw AlgorithmException("you must specify one of -name or -key");
     }
     int whichMap = -1;
-    OptionalParameter* mapOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* mapOpt = myParams->getOptionalParameter(5);
     if (mapOpt->m_present)
     {
         AString mapID = mapOpt->getString(1);
