@@ -63,7 +63,7 @@
 
 using namespace caret;
 
-static const bool debugFlag = true;
+static const bool debugFlag = false;
     
 /**
  * \class caret::BrainOpenGLVolumeObliqueSliceDrawing 
@@ -862,6 +862,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
 //            break;
 //    }
     
+    if (debugFlag) {
     std::cout << "Depth Range: " << AString::fromNumbers(depthRange, 2, ",") << std::endl;
     
     std::cout << "bottom left xyz:" << AString::fromNumbers(bottomLeft, 3, ",") << std::endl;
@@ -869,7 +870,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
     std::cout << "top right xyz:" << AString::fromNumbers(topRight, 3, ",") << std::endl;
     std::cout << "top left xyz:" << AString::fromNumbers(topLeft, 3, ",") << std::endl;
     
-    {
         double xyz[3] = { 0.0, 0.0, 0.0 };
         if (gluUnProject(viewport[0] + viewport[2], viewport[1] + viewport[3], 1.0,
                          modelMatrix, projMatrix, viewport,
@@ -1463,7 +1463,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                     if (useInterpolatedVoxel
                         && isPaletteMappedVolumeFile) {
                         value = volumeFile->interpolateValue(voxelCenter,
-                                                             VolumeFile::ENCLOSING_VOXEL, //  VolumeFile::CUBIC,
+                                                             //VolumeFile::ENCLOSING_VOXEL,
+                                                             VolumeFile::CUBIC,
                                                              &valueValidFlag,
                                                              vdi.mapIndex);
                     }
