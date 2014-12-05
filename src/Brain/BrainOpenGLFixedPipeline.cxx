@@ -40,6 +40,7 @@
 #include "Brain.h"
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
+#include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #include "OLD_BrainOpenGLVolumeSliceDrawing.h"
 #include "BrainOpenGLShapeCone.h"
@@ -3063,14 +3064,46 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
     VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
     VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
 
+    bool useNewDrawingFlag = false;
+    
+//    switch (sliceProjectionType) {
+//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+//            break;
+//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+//            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CENTERING)) {
+//                useNewDrawingFlag = true;
+//            }
+//            break;
+//    }
     if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CENTERING)) {
-        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-        volumeSliceDrawing.draw(this,
-                                browserTabContent,
-                                volumeDrawInfo,
-                                sliceDrawingType,
-                                sliceProjectionType,
-                                viewport);
+        useNewDrawingFlag = true;
+    }
+    
+    if (useNewDrawingFlag) {
+        switch (sliceProjectionType) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            {
+                BrainOpenGLVolumeObliqueSliceDrawing volumeSliceDrawing;
+                volumeSliceDrawing.draw(this,
+                                        browserTabContent,
+                                        volumeDrawInfo,
+                                        sliceDrawingType,
+                                        sliceProjectionType,
+                                        viewport);
+            }
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            {
+                BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+                volumeSliceDrawing.draw(this,
+                                        browserTabContent,
+                                        volumeDrawInfo,
+                                        sliceDrawingType,
+                                        sliceProjectionType,
+                                        viewport);
+            }
+                break;
+        }
     }
     else {
         OldBrainOpenGLVolumeSliceDrawing oldVolumeSliceDrawing;
@@ -3080,7 +3113,6 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
                                    sliceDrawingType,
                                    sliceProjectionType,
                                    viewport);
-        
     }
 }
 
