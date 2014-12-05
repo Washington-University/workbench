@@ -187,6 +187,7 @@ AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, co
         vector<float> rowScratch(numMaps);
         for (int64_t row = 0; row < numRows; ++row)
         {
+            myCifti->getRow(rowScratch.data(), row);
             int input = (int)floor(rowScratch[whichMap] + 0.5f);
             if (input == matchKey)
             {
@@ -268,6 +269,7 @@ AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, co
         vector<float> rowScratch(numMaps);
         for (int64_t row = 0; row < numRows; ++row)//try anyway, in case label table is incomplete
         {
+            myCifti->getRow(rowScratch.data(), row);
             int input = (int)floor(rowScratch[whichMap] + 0.5f);
             if (input == labelKey)
             {
