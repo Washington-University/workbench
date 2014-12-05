@@ -2458,22 +2458,31 @@ BrainOpenGLVolumeObliqueSliceDrawing::createSlicePlaneEquation(const VolumeSlice
             break;
     }
     
-//    switch (sliceProjectionType) {
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+    switch (sliceProjectionType) {
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            /*
+             * Transform the slice normal vector by the oblique rotation
+             * matrix so that the normal vector points out of the slice
+             */
+            Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+            obliqueRotationMatrix.invert();
+            obliqueRotationMatrix.multiplyPoint3(sliceNormalVector);
+            MathFunctions::normalizeVector(sliceNormalVector);
+        }
 //        {
-//            /*
-//             * Transform the slice normal vector by the oblique rotation
-//             * matrix so that the normal vector points out of the slice
-//             */
-//            const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
-//            obliqueRotationMatrix.multiplyPoint3(sliceNormalVector);
+//            GLdouble m44[16];
+//            glGetDoublev(GL_MODELVIEW_MATRIX, m44);
+//            Matrix4x4 viewMatrix;
+//            viewMatrix.setMatrixFromOpenGL(m44);
+//            viewMatrix.multiplyPoint3(sliceNormalVector);
 //            MathFunctions::normalizeVector(sliceNormalVector);
 //        }
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//            break;
-//    }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
     
     Plane plane(sliceNormalVector,
                 sliceCoordinates);
@@ -2531,13 +2540,13 @@ BrainOpenGLVolumeObliqueSliceDrawing::setVolumeSliceViewingAndModelingTransforma
      * Since an orthographic projection is used, the camera only needs
      * to be a little bit from the center along the plane's normal vector.
      */
-    double planeNormal[3];
-    plane.getNormalVector(planeNormal);
-    double cameraXYZ[3] = {
-        m_lookAtCenter[0] + planeNormal[0] * S_EYE_OFFSET_DISTANCE,
-        m_lookAtCenter[1] + planeNormal[1] * S_EYE_OFFSET_DISTANCE,
-        m_lookAtCenter[2] + planeNormal[2] * S_EYE_OFFSET_DISTANCE,
-    };
+//    double planeNormal[3];
+//    plane.getNormalVector(planeNormal);
+//    double cameraXYZ[3] = {
+//        m_lookAtCenter[0] + planeNormal[0] * S_EYE_OFFSET_DISTANCE,
+//        m_lookAtCenter[1] + planeNormal[1] * S_EYE_OFFSET_DISTANCE,
+//        m_lookAtCenter[2] + planeNormal[2] * S_EYE_OFFSET_DISTANCE,
+//    };
     
     /*
      * Set the up vector which indices which way is up (screen Y)
