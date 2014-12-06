@@ -44,10 +44,14 @@ OperationParameters* OperationCiftiConvertToScalar::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addCiftiParameter(1, "cifti-in", "input cifti file");
+    
     ret->addStringParameter(2, "direction", "which mapping to change to scalar maps, ROW or COLUMN");
+    
     ret->addCiftiOutputParameter(3, "cifti-out", "output cifti file, must not be the same as input");
+    
     OptionalParameter* nameFileOpt = ret->createOptionalParameter(4, "-name-file", "specify names for the maps");
     nameFileOpt->addStringParameter(1, "file", "text file containing map names, one per line");
+    
     ret->setHelpText(
         AString("Creates a new cifti file with the same data as the input, but with one of the dimensions set to contain strings identifying each map.  ") +
         "Specifying ROW means each row will contain one value from each scalar map.  This is the timepoints direction in dtseries."

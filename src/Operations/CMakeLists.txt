@@ -26,6 +26,7 @@ OperationBorderMerge.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
+OperationCiftiCreateScalarSeries.h
 OperationCiftiEstimateFWHM.h
 OperationCiftiExportDenseMapping.h
 OperationCiftiLabelExportTable.h
@@ -104,6 +105,7 @@ OperationBorderMerge.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
 OperationCiftiConvertToScalar.cxx
+OperationCiftiCreateScalarSeries.cxx
 OperationCiftiEstimateFWHM.cxx
 OperationCiftiExportDenseMapping.cxx
 OperationCiftiLabelExportTable.cxx
