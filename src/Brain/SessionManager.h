@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "ApplicationTypeEnum.h"
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
@@ -39,7 +40,7 @@ namespace caret {
     class SessionManager : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        static void createSessionManager();
+        static void createSessionManager(const ApplicationTypeEnum::Enum applicationType);
         
         static void deleteSessionManager();
         

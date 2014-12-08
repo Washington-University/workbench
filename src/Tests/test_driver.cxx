@@ -65,7 +65,7 @@ int main(int argc, char** argv)
     {
         QCoreApplication myApp(argc, argv);
         caret_global_commandLine_init(argc, argv);
-        SessionManager::createSessionManager();
+        SessionManager::createSessionManager(ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE);
         vector<TestInterface*> mytests;
         mytests.push_back(new CiftiFileTest("ciftifile"));
         mytests.push_back(new HeapTest("heap"));

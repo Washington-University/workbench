@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
         /*
          * Create the session manager.
          */
-        SessionManager::createSessionManager();
+        SessionManager::createSessionManager(ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE);
         
         /*
          * Disable volume voxel coloring since it can be a little slow

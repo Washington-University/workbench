@@ -25,6 +25,7 @@
 #include "SessionManager.h"
 #undef __SESSION_MANAGER_DECLARE__
 
+#include "ApplicationInformation.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -118,13 +119,21 @@ SessionManager::~SessionManager()
  * Create the session manager.
  * This must be called one AND ONLY one time prior to any
  * other Caret mechanisms.
+ *
+ * @param applicationType
+ *    The type of application (command line or GUI).
  */
 void 
-SessionManager::createSessionManager()
+SessionManager::createSessionManager(const ApplicationTypeEnum::Enum applicationType)
 {
     CaretAssertMessage((s_singletonSessionManager == NULL), 
                        "Session manager has already been created.");
 
+    /*
+     * Set the type of application.
+     */
+    ApplicationInformation::setApplicationType(applicationType);
+    
     /*
      * Create log manager.
      */

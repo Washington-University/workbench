@@ -255,7 +255,7 @@ main(int argc, char* argv[])
         /*
         * Create the session manager.
         */
-        SessionManager::createSessionManager();
+        SessionManager::createSessionManager(ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE);
         caretLoggerIsValid = true;
 
         /*

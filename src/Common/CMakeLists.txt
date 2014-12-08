@@ -26,6 +26,7 @@ QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
 #
 ADD_LIBRARY(Common
 ApplicationInformation.h
+ApplicationTypeEnum.h
 AString.h
 AStringNaturalComparison.h
 Base64.h
@@ -67,6 +68,7 @@ DescriptiveStatistics.h
 DeveloperFlagsEnum.h
 ElapsedTimer.h
 Event.h
+EventAlertUser.h
 EventListenerInterface.h
 EventManager.h
 EventProgressUpdate.h
@@ -116,6 +118,7 @@ YokingGroupEnum.h
 
 ${MOC_SOURCE_FILES}
 ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
+ApplicationTypeEnum.cxx
 AString.cxx
 AStringNaturalComparison.cxx
 Base64.cxx
@@ -148,6 +151,7 @@ DescriptiveStatistics.cxx
 DeveloperFlagsEnum.cxx
 ElapsedTimer.cxx
 Event.cxx
+EventAlertUser.cxx
 EventManager.cxx
 EventProgressUpdate.cxx
 EventTypeEnum.cxx
