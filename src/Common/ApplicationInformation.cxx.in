@@ -68,7 +68,6 @@ ApplicationInformation::ApplicationInformation()
 #ifdef CARET_OS_WINDOWS
     this->operatingSystemName = "Operating System: Windows";
 #endif // CARET_OS_MACOSX
-
 }
 
 /**
@@ -119,6 +118,8 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
     
     informationValues.push_back(this->name);
     
+    informationValues.push_back("Type: " + ApplicationTypeEnum::toGuiName(s_applicationType));
+
     informationValues.push_back("Version: " + this->version);
     
     informationValues.push_back("Qt Compiled Version: " + QString(QT_VERSION_STR));
@@ -166,5 +167,27 @@ ApplicationInformation::getAllInformationInString(const AString& separator) cons
     
     return infoOut;
 }
+
+/**
+ * @return The type of application.
+ */
+ApplicationTypeEnum::Enum 
+ApplicationInformation::getApplicationType()
+{
+    return s_applicationType;
+}
+        
+/**
+ * Set the application type.
+ *
+ * @param applicationType
+ *    New value for application type.
+ */
+void 
+ApplicationInformation::setApplicationType(const ApplicationTypeEnum::Enum applicationType)
+{
+    s_applicationType = applicationType;
+}
+        
 
 
