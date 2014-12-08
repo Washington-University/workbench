@@ -159,7 +159,8 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
                                              const bool& ignoreMinima, const bool& ignoreMaxima) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    CiftiXMLOld myXML = myCifti->getCiftiXMLOld();
+    CiftiXMLOld myXML = myCifti->getCiftiXMLOld(), myOutXML;
+    myOutXML = myXML;
     vector<StructureEnum::Enum> surfaceList, volumeList;
     if (myDir == CiftiXMLOld::ALONG_COLUMN)
     {
@@ -212,12 +213,19 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
             }
         }
     }
+    int outDir = myDir;
     if (sumMaps)
     {
-        myXML.resetDirectionToScalars(myDir, 1);
-        myXML.setMapNameForIndex(myDir, 0, "sum of extrema");
+        if (myDir == CiftiXMLOld::ALONG_ROW)//NOTE: when using along row and -sum-maps, make a dscalar, not a scalard
+        {
+            myOutXML.copyMapping(CiftiXMLOld::ALONG_COLUMN, myXML, CiftiXMLOld::ALONG_ROW);//so, transpose the maps if we are using dense along row
+            myOutXML.copyMapping(CiftiXMLOld::ALONG_ROW, myXML, CiftiXMLOld::ALONG_COLUMN);
+        }
+        outDir = CiftiXMLOld::ALONG_COLUMN;
+        myOutXML.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, 1);
+        myOutXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 0, "sum of extrema");
     }
-    myCiftiOut->setCiftiXML(myXML);
+    myCiftiOut->setCiftiXML(myOutXML);
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
         const SurfaceFile* mySurf = NULL;
@@ -243,7 +251,7 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
         } else {
             AlgorithmMetricExtrema(NULL, mySurf, &myMetric, surfDist, &myMetricOut, &myRoi, surfPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
         }
-        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
+        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, outDir, surfaceList[whichStruct], &myMetricOut);
     }
     if (mergedVolume)
     {
@@ -258,7 +266,7 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
             } else {
                 AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
             }
-            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, &myVolOut, true);
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, outDir, &myVolOut, true);
         }
     } else {
         for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
@@ -272,7 +280,7 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
             } else {
                 AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
             }
-            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, outDir, volumeList[whichStruct], &myVolOut, true);
         }
     }
 }
