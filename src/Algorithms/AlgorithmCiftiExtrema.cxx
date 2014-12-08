@@ -82,7 +82,8 @@ OperationParameters* AlgorithmCiftiExtrema::getParameters()
     ret->createOptionalParameter(16, "-only-minima", "only find the minima");
 
     ret->setHelpText(
-        AString("The input cifti file must have a brain models mapping along the specified direction.  ") +
+        AString("Finds spatial locations in a cifti file that have more extreme values than all nearby locations in the same component (surface or volume structure).  ") +
+        "The input cifti file must have a brain models mapping along the specified direction.  " +
         "COLUMN is the direction that works on dtseries and dscalar.  For dconn, you probably want ROW."
     );
     return ret;
