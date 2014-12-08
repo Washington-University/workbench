@@ -1845,13 +1845,13 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                             float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
                                                                                   + (mouseDeltaY * mouseDeltaY)));
                             
-                            /*
-                             * Rotation needs to be oppposite for newer
-                             * oblique slice drawing for volumes that
-                             * do not have a voxel corresponding to
-                             * the origin.
-                             */
-                            mouseDelta = -mouseDelta;
+//                            /*
+//                             * Rotation needs to be oppposite for newer
+//                             * oblique slice drawing for volumes that
+//                             * do not have a voxel corresponding to
+//                             * the origin.
+//                             */
+//                            mouseDelta = -mouseDelta;
                             
                             switch (slicePlane) {
                                 case VolumeSliceViewPlaneEnum::ALL:

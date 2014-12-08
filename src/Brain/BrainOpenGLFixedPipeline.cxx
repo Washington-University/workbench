@@ -3066,17 +3066,21 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
 
     bool useNewDrawingFlag = false;
     
-//    switch (sliceProjectionType) {
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CENTERING)) {
-//                useNewDrawingFlag = true;
-//            }
-//            break;
-//    }
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CENTERING)) {
-        useNewDrawingFlag = true;
+    /*
+     * There is/was a flaw in volume drawing in that it does not "center"
+     * correctly when the voxel corresponding to the coordinate (0, 0, 0)
+     * is not within the volume.  It seems to be fixed for orthogonal
+     * drawing but oblique drawing probably needs a new algorithm to 
+     * fix the problem.
+     */
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CENTERING)) {
+                useNewDrawingFlag = true;
+            }
+            break;
     }
     
     if (useNewDrawingFlag) {
