@@ -51,6 +51,7 @@
 #include "CustomViewDialog.h"
 #include "DataFileException.h"
 #include "ElapsedTimer.h"
+#include "EventAlertUser.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -215,7 +216,7 @@ GuiManager::GuiManager(QObject* parent)
     m_helpViewerDialogDisplayAction->setChecked(false);
     m_helpViewerDialogDisplayAction->blockSignals(false);
     
-    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ALERT_USER);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW);
@@ -917,7 +918,16 @@ GuiManager::applicationName() const
 void 
 GuiManager::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_NEW) {
+    if (event->getEventType() == EventTypeEnum::EVENT_ALERT_USER) {
+        EventAlertUser* alertUserEvent = dynamic_cast<EventAlertUser*>(event);
+        const AString message = alertUserEvent->getMessage();
+        
+        BrainBrowserWindow* bbw = getActiveBrowserWindow();
+        CaretAssert(bbw);
+        
+        WuQMessageBox::errorOk(bbw, message);
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_NEW) {
         EventBrowserWindowNew* eventNewBrowser =
             dynamic_cast<EventBrowserWindowNew*>(event);
         CaretAssert(eventNewBrowser);

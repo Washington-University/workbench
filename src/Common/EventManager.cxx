@@ -29,8 +29,10 @@
 #include "EventManager.h"
 #undef __EVENT_MANAGER_MAIN__
 
+#include "ApplicationInformation.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventAlertUser.h"
 #include "EventListenerInterface.h"
 
 using namespace caret;
@@ -351,6 +353,20 @@ EventManager::sendEvent(Event* event)
         CaretLogFiner(msg);
     }
     else {
+        if (eventType == EventTypeEnum::EVENT_ALERT_USER) {
+            /*
+             * Only send the ALERT USER event if there is a GUI.
+             * Otherwise, simply log the alert message.
+             */
+            EventAlertUser* alertEvent = dynamic_cast<EventAlertUser*>(event);
+            CaretAssert(alertEvent);
+            
+            if (ApplicationInformation::getApplicationType() != ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+                CaretLogSevere(alertEvent->getMessage());
+                return;
+            }
+        }
+        
         /*
          * Get listeners for event.
          */
@@ -451,6 +467,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         }
             return;
             break;
+        case EventTypeEnum::EVENT_ALERT_USER:
         case EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_DELETE:
         case EventTypeEnum::EVENT_BROWSER_TAB_GET:

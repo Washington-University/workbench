@@ -65,6 +65,10 @@ EventTypeEnum::initialize()
                                      "EVENT_INVALID", 
                                      "Invalid Event"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ALERT_USER,
+                                     "EVENT_ALERT_USER",
+                                     "Alert user about something (if gui, a pop is displayed, otherwise logged at severe level"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BRAIN_STRUCTURE_GET_ALL,
                                      "EVENT_BRAIN_STRUCTURE_GET_ALL",
                                      "Get all brain structures"));

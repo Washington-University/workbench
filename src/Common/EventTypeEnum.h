@@ -38,6 +38,8 @@ public:
     enum Enum {
         /** Invalid event */
         EVENT_INVALID,
+        /** Alert user about something */
+        EVENT_ALERT_USER,
         /** Get all brain structures */
         EVENT_BRAIN_STRUCTURE_GET_ALL,
         /** Delete a browser tab. */
