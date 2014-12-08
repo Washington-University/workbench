@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #define __CHART_AXIS_CARTESIAN_DECLARE__
 #include "ChartAxisCartesian.h"
 #undef __CHART_AXIS_CARTESIAN_DECLARE__
@@ -27,6 +29,8 @@
 #include "CaretLogger.h"
 #include "ChartModelCartesian.h"
 #include "ChartScaleAutoRanging.h"
+#include "EventAlertUser.h"
+#include "EventManager.h"
 #include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -279,20 +283,46 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
     
     float labelsStart = m_axisLabelsMinimumValue;
     float labelsEnd   = m_axisLabelsMaximumValue;
+    /*
+     * If the "labels end" or "labels start" value is not valid (infinity or not-a-number) there
+     * are invalid values in the data and will cause the labels processing later
+     * in this method to fail.  So, alert the user that there is a problem in
+     * the data.
+     *
+     * A set is used to track those models for which the user has
+     * already been alerted.  Otherwise, the alert message will be
+     * displayed every time this method is called (which is many) and
+     * the user will receive endless pop-ups.
+     */
+    if ( (! MathFunctions::isNumeric(labelsStart))
+        || (! MathFunctions::isNumeric(labelsEnd))) {
+        const ChartModel* chartModel = getParentChartModel();
+        CaretAssert(chartModel);
+        const ChartModelCartesian* chartModelCartesian = dynamic_cast<const ChartModelCartesian*>(chartModel);
+        
+        static std::set<const ChartModelCartesian*> invalidChartModelCartesians;
+        
+        if (invalidChartModelCartesians.find(chartModelCartesian) == invalidChartModelCartesians.end()) {
+            invalidChartModelCartesians.insert(chartModelCartesian);
+            const AString msg("Invalid numbers (infinity or not-a-number) found when trying to create chart.  "
+                              "Run \"wb_command -file-information\" on files being charted to find the file "
+                              "that contains invalid data so that the file can be fixed.");
+            EventManager::get()->sendEvent(EventAlertUser(msg).getPointer());
+        }
+        
+        return;
+    }
+    
     float labelsRange = (m_axisLabelsMaximumValue - m_axisLabelsMinimumValue);
     if (labelsRange <= 0.0) {
         return;
     }
+    
     const float tickLabelsStep = m_axisLabelsStepValue;
     if (tickLabelsStep <= 0.0) {
         return;
     }
     
-    if ( ! MathFunctions::isNumeric(labelsEnd)) {
-        CaretLogSevere("Invalid numbers (infinity or not-a-number) found when trying to create chart.  "
-                       "Run \"wb_command -file-information\" on files being charted to find the file that contains invalid data so that the file can be fixed.");
-        return;
-    }
     
     float labelValue  = labelsStart;
     while (labelValue <= labelsEnd) {
