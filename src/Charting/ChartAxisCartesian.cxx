@@ -24,8 +24,10 @@
 #undef __CHART_AXIS_CARTESIAN_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ChartModelCartesian.h"
 #include "ChartScaleAutoRanging.h"
+#include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -283,6 +285,12 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
     }
     const float tickLabelsStep = m_axisLabelsStepValue;
     if (tickLabelsStep <= 0.0) {
+        return;
+    }
+    
+    if ( ! MathFunctions::isNumeric(labelsEnd)) {
+        CaretLogSevere("Invalid numbers (infinity or not-a-number) found when trying to create chart.  "
+                       "Run \"wb_command -file-information\" on files being charted to find the file that contains invalid data so that the file can be fixed.");
         return;
     }
     
