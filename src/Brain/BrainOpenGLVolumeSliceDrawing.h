@@ -221,8 +221,7 @@ namespace caret {
         
         void setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                             const Plane& plane,
-                                                             const float sliceCoordinates[3]);
+                                                             const Plane& plane);
         
         void getAxesColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                           float rgbaOut[4]) const;

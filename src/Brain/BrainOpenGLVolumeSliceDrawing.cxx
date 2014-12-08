@@ -679,8 +679,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
          */
         setVolumeSliceViewingAndModelingTransformations(sliceProjectionType,
                                                         sliceViewPlane,
-                                                        slicePlane,
-                                                        sliceCoordinates);
+                                                        slicePlane);
     }
     
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
@@ -2413,14 +2412,11 @@ BrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceProject
  *    View plane that is displayed.
  * @param plane
  *    Plane equation of selected slice.
- * @param sliceCoordinates
- *    Coordinates of the selected slices.
  */
 void
 BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                                             const Plane& plane,
-                                                                             const float sliceCoordinates[3])
+                                                                             const Plane& plane)
 {
     /*
      * Determine model size in screen Y when viewed
