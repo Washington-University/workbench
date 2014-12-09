@@ -305,6 +305,7 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     isColoringValid = this->assignCiftiDenseLabelColoring(displayPropertiesLabels,
                                                                      browserTabIndex,
                                                                      brainStructure,
+                                                                          surface,
                                                                       dynamic_cast<CiftiBrainordinateLabelFile*>(selectedMapFile),
                                                                      selectedMapIndex,
                                                                      //selectedMapUniqueID,
@@ -370,6 +371,7 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     isColoringValid = assignCiftiParcelLabelColoring(displayPropertiesLabels,
                                                    browserTabIndex,
                                                    brainStructure,
+                                                                     surface,
                                                    cplf,
                                                    selectedMapIndex,
                                                    numNodes,
@@ -583,6 +585,7 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
     
     const GiftiLabelTable* labelTable = labelFile->getLabelTable();
     
+    CaretAssert(surface);
     CaretPointer<TopologyHelper> topologyHelper = surface->getTopologyHelper();
     
     /*
@@ -1097,6 +1100,7 @@ bool
 SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
                                               const int32_t browserTabIndex,
                                               const BrainStructure* brainStructure,
+                                                   const Surface* surface,
                                           CiftiBrainordinateLabelFile* ciftiLabelFile,
                                               const int32_t mapIndex,
                                               //const AString& ciftiMapUniqueID,
@@ -1162,13 +1166,8 @@ SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels
                                               &dataValues[0],
                                               numberOfNodes);
     
-    const Surface* surface = ((brainStructure->getNumberOfSurfaces() > 0)
-                              ? brainStructure->getSurface(0)
-                              : NULL);
-    CaretPointer<TopologyHelper> topologyHelper;
-    if (surface != NULL) {
-        topologyHelper = surface->getTopologyHelper();
-    }
+    CaretAssert(surface);
+    CaretPointer<TopologyHelper> topologyHelper = surface->getTopologyHelper();
 
     /*
      * All nodes are colored.  Remove coloring for nodes whose
@@ -1258,6 +1257,7 @@ bool
 SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
                                                    const int32_t browserTabIndex,
                                                    const BrainStructure* brainStructure,
+                                                    const Surface* surface,
                                                    CiftiParcelLabelFile* ciftiParcelLabelFile,
                                                    const int32_t mapIndex,
                                                    const int32_t numberOfNodes,
@@ -1309,13 +1309,8 @@ SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabel
                                               &dataValues[0],
                                               numberOfNodes);
     
-    const Surface* surface = ((brainStructure->getNumberOfSurfaces() > 0)
-                              ? brainStructure->getSurface(0)
-                              : NULL);
-    CaretPointer<TopologyHelper> topologyHelper;
-    if (surface != NULL) {
-        topologyHelper = surface->getTopologyHelper();
-    }
+    CaretAssert(surface);
+    CaretPointer<TopologyHelper> topologyHelper = surface->getTopologyHelper();
     
     /*
      * All nodes are colored.  Remove coloring for nodes whose
