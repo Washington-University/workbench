@@ -79,6 +79,11 @@ void CommandParser::executeOperation(ProgramParameters& parameters)
     //code to show what arguments map to what parameters should go here
     if (m_doProvenance) provenanceBeforeOperation(myOutAssoc);
     m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
+    vector<AString> uncheckedWarnings = myAlgParams->findUncheckedParams("the command");
+    for (size_t i = 0; i < uncheckedWarnings.size(); ++i)
+    {
+        CaretLogWarning(uncheckedWarnings[i]);
+    }
     if (m_doProvenance) provenanceAfterOperation(myOutAssoc);
     //TODO: deallocate input files - give abstract parameter a virtual deallocate method? use CaretPointer and rely on reference counting?
     writeOutput(myOutAssoc);

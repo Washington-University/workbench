@@ -44,12 +44,14 @@ namespace caret {
     {
         int32_t m_key;//identifies this parameter uniquely for this algorithm
         AString m_shortName, m_description;
+        bool m_operationUsed;//check if the operation called get...() for this parameter
         virtual OperationParametersEnum::Enum getType() = 0;
         virtual AbstractParameter* cloneAbstractParameter() = 0;
         AbstractParameter(int32_t key, const AString& shortName, const AString& description) :
         m_key(key),
         m_shortName(shortName),
-        m_description(description)
+        m_description(description),
+        m_operationUsed(false)
         {
         };
         virtual ~AbstractParameter();
@@ -203,6 +205,9 @@ namespace caret {
         bool checkUniqueOutput(const int32_t& key, const OperationParametersEnum::Enum& type);
         bool checkUniqueOption(const int32_t& key);
         bool checkUniqueRepeatable(const int32_t& key);
+        
+        ///helper for checking that all parameters have been checked by the operation, returns warning strings
+        std::vector<AString> findUncheckedParams(const AString& contextString) const;
     };
     
     struct OptionalParameter : public ParameterComponent
@@ -210,21 +215,26 @@ namespace caret {
         int32_t m_key;//uniquely identifies this option
         AString m_optionSwitch, m_description;
         bool m_present;//to be filled by parser
-        OptionalParameter(const OptionalParameter& rhs) :
+        bool m_operationUsed;//check if the operation called get...() for this parameter
+        OptionalParameter(const OptionalParameter& rhs) ://copy constructor is used by cloning in RepeatableParameter
         ParameterComponent(rhs),
         m_key(rhs.m_key),
         m_optionSwitch(rhs.m_optionSwitch),
-        m_description(rhs.m_description)
+        m_description(rhs.m_description),
+        m_present(false),
+        m_operationUsed(false)
         {
-            m_present = false;
         }
         OptionalParameter(int32_t key, const AString& optionSwitch, const AString& description) :
         m_key(key),
         m_optionSwitch(optionSwitch),
-        m_description(description)
+        m_description(description),
+        m_present(false),
+        m_operationUsed(false)
         {
-            m_present = false;
         }
+    private:
+        OptionalParameter();//no default construction
     };
     
     struct RepeatableOption
@@ -232,18 +242,21 @@ namespace caret {
         int32_t m_key;//uniquely identifies this option
         AString m_optionSwitch, m_description;
         ParameterComponent m_template;
+        bool m_operationUsed;//check if the operation called get...() for this parameter
         std::vector<ParameterComponent*> m_instances;//to be filled by parser
         RepeatableOption(const RepeatableOption& rhs) :
         m_key(rhs.m_key),
         m_optionSwitch(rhs.m_optionSwitch),
         m_description(rhs.m_description),
-        m_template(rhs.m_template)
+        m_template(rhs.m_template),
+        m_operationUsed(false)
         {
         }
         RepeatableOption(int32_t key, const AString& optionSwitch, const AString& description) :
         m_key(key),
         m_optionSwitch(optionSwitch),
-        m_description(description)
+        m_description(description),
+        m_operationUsed(false)
         {
         }
         ~RepeatableOption();
@@ -251,7 +264,7 @@ namespace caret {
     
     struct OperationParameters : public ParameterComponent
     {
-        AString m_helpText;//formatted by the parser object for display in terminal or modal window
+        AString m_helpText;//to be formatted by the parser object for display in terminal or modal window
 
         ///constructor
         OperationParameters();

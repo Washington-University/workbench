@@ -19,6 +19,7 @@
 /*LICENSE_END*/
 
 #include "OperationParameters.h"
+
 #include "CaretAssert.h"
 
 #include "BorderFile.h"
@@ -38,20 +39,19 @@ ParameterComponent::ParameterComponent()
 
 ParameterComponent::~ParameterComponent()
 {
-    uint32_t i;
-    for (i = 0; i < m_paramList.size(); ++i)
+    for (size_t i = 0; i < m_paramList.size(); ++i)
     {
         delete m_paramList[i];
     }
-    for (i = 0; i < m_outputList.size(); ++i)
+    for (size_t i = 0; i < m_outputList.size(); ++i)
     {
         delete m_outputList[i];
     }
-    for (i = 0; i < m_optionList.size(); ++i)
+    for (size_t i = 0; i < m_optionList.size(); ++i)
     {
         delete m_optionList[i];
     }
-    for (i = 0; i < m_repeatableOptions.size(); ++i)
+    for (size_t i = 0; i < m_repeatableOptions.size(); ++i)
     {
         delete m_repeatableOptions[i];
     }
@@ -59,7 +59,7 @@ ParameterComponent::~ParameterComponent()
 
 RepeatableOption::~RepeatableOption()
 {
-    for (uint32_t i = 0; i < m_instances.size(); ++i)
+    for (size_t i = 0; i < m_instances.size(); ++i)
     {
         delete m_instances[i];
     }
@@ -71,24 +71,23 @@ OperationParameters::OperationParameters()
 
 ParameterComponent::ParameterComponent(const ParameterComponent& rhs)
 {
-    uint32_t i;
     m_paramList.resize(rhs.m_paramList.size());
-    for (i = 0; i < m_paramList.size(); ++i)
+    for (size_t i = 0; i < m_paramList.size(); ++i)
     {
         m_paramList[i] = rhs.m_paramList[i]->cloneAbstractParameter();
     }
     m_outputList.resize(rhs.m_outputList.size());
-    for (i = 0; i < m_outputList.size(); ++i)
+    for (size_t i = 0; i < m_outputList.size(); ++i)
     {
         m_outputList[i] = rhs.m_outputList[i]->cloneAbstractParameter();
     }
     m_optionList.resize(rhs.m_optionList.size());
-    for (i = 0; i < m_optionList.size(); ++i)
+    for (size_t i = 0; i < m_optionList.size(); ++i)
     {
         m_optionList[i] = new OptionalParameter(*(rhs.m_optionList[i]));
     }
     m_repeatableOptions.resize(rhs.m_repeatableOptions.size());
-    for (i = 0; i < m_repeatableOptions.size(); ++i)
+    for (size_t i = 0; i < m_repeatableOptions.size(); ++i)
     {
         m_repeatableOptions[i] = new RepeatableOption(*(rhs.m_repeatableOptions[i]));
     }
@@ -112,8 +111,7 @@ ParameterComponent* ParameterComponent::createRepeatableParameter(const int32_t 
 
 bool ParameterComponent::checkUniqueInput(const int32_t& key, const OperationParametersEnum::Enum& type)
 {
-    uint32_t i;
-    for (i = 0; i < m_paramList.size(); ++i)
+    for (size_t i = 0; i < m_paramList.size(); ++i)
     {
         if (m_paramList[i]->m_key == key && type == m_paramList[i]->getType())
         {
@@ -125,8 +123,7 @@ bool ParameterComponent::checkUniqueInput(const int32_t& key, const OperationPar
 
 bool ParameterComponent::checkUniqueOption(const int32_t& key)
 {
-    uint32_t i;
-    for (i = 0; i < m_optionList.size(); ++i)
+    for (size_t i = 0; i < m_optionList.size(); ++i)
     {
         if (m_optionList[i]->m_key == key)
         {
@@ -138,8 +135,7 @@ bool ParameterComponent::checkUniqueOption(const int32_t& key)
 
 bool ParameterComponent::checkUniqueRepeatable(const int32_t& key)
 {
-    uint32_t i;
-    for (i = 0; i < m_repeatableOptions.size(); ++i)
+    for (size_t i = 0; i < m_repeatableOptions.size(); ++i)
     {
         if (m_repeatableOptions[i]->m_key == key)
         {
@@ -151,8 +147,7 @@ bool ParameterComponent::checkUniqueRepeatable(const int32_t& key)
 
 bool ParameterComponent::checkUniqueOutput(const int32_t& key, const OperationParametersEnum::Enum& type)
 {
-    uint32_t i;
-    for (i = 0; i < m_outputList.size(); ++i)
+    for (size_t i = 0; i < m_outputList.size(); ++i)
     {
         if (m_outputList[i]->m_key == key && type == m_outputList[i]->getType())
         {
@@ -162,13 +157,57 @@ bool ParameterComponent::checkUniqueOutput(const int32_t& key, const OperationPa
     return true;
 }
 
+vector<AString> ParameterComponent::findUncheckedParams(const AString& contextString) const
+{
+    vector<AString> ret;
+    for (size_t i = 0; i < m_paramList.size(); ++i)
+    {
+        if (!m_paramList[i]->m_operationUsed)
+        {
+            ret.push_back("parameter '" + m_paramList[i]->m_shortName + "' of " + contextString + " was not checked by the operation");
+        }
+    }
+    for (size_t i = 0; i < m_outputList.size(); ++i)
+    {
+        if (!m_outputList[i]->m_operationUsed)
+        {
+            ret.push_back("parameter '" + m_outputList[i]->m_shortName + "' of " + contextString + " was not checked by the operation");
+        }
+    }
+    for (size_t i = 0; i < m_optionList.size(); ++i)
+    {
+        if (!m_optionList[i]->m_operationUsed)
+        {
+            ret.push_back("option '" + m_optionList[i]->m_optionSwitch + "' of " + contextString + " was not checked by the operation");
+        }
+        if (m_optionList[i]->m_present)
+        {
+            vector<AString> temp = m_optionList[i]->findUncheckedParams("option '" + m_optionList[i]->m_optionSwitch + "'");
+            ret.insert(ret.end(), temp.begin(), temp.end());
+        }
+    }
+    for (size_t i = 0; i < m_repeatableOptions.size(); ++i)
+    {
+        if (!m_repeatableOptions[i]->m_operationUsed)
+        {
+            ret.push_back("option '" + m_repeatableOptions[i]->m_optionSwitch + "' of " + contextString + " was not checked by the operation");
+        }
+        for (size_t j = 0; j < m_repeatableOptions[i]->m_instances.size(); ++j)
+        {
+            vector<AString> temp = m_repeatableOptions[i]->m_instances[j]->findUncheckedParams("option '" + m_repeatableOptions[i]->m_optionSwitch + "'");
+            ret.insert(ret.end(), temp.begin(), temp.end());
+        }
+    }
+    return ret;
+}
+
 AbstractParameter* ParameterComponent::getInputParameter(const int32_t key, const OperationParametersEnum::Enum type)
 {
-    uint32_t i;
-    for (i = 0; i < m_paramList.size(); ++i)
+    for (size_t i = 0; i < m_paramList.size(); ++i)
     {
         if (m_paramList[i]->m_key == key && type == m_paramList[i]->getType())
         {
+            m_paramList[i]->m_operationUsed = true;
             return m_paramList[i];
         }
     }
@@ -178,11 +217,11 @@ AbstractParameter* ParameterComponent::getInputParameter(const int32_t key, cons
 
 OptionalParameter* ParameterComponent::getOptionalParameter(const int32_t key)
 {
-    uint32_t i;
-    for (i = 0; i < m_optionList.size(); ++i)
+    for (size_t i = 0; i < m_optionList.size(); ++i)
     {
         if (m_optionList[i]->m_key == key)
         {
+            m_optionList[i]->m_operationUsed = true;
             return m_optionList[i];
         }
     }
@@ -192,11 +231,11 @@ OptionalParameter* ParameterComponent::getOptionalParameter(const int32_t key)
 
 const vector<ParameterComponent*>* ParameterComponent::getRepeatableParameterInstances(const int32_t key)
 {
-    uint32_t i;
-    for (i = 0; i < m_repeatableOptions.size(); ++i)
+    for (size_t i = 0; i < m_repeatableOptions.size(); ++i)
     {
         if (m_repeatableOptions[i]->m_key == key)
         {
+            m_repeatableOptions[i]->m_operationUsed = true;
             return &(m_repeatableOptions[i]->m_instances);
         }
     }
@@ -206,11 +245,11 @@ const vector<ParameterComponent*>* ParameterComponent::getRepeatableParameterIns
 
 AbstractParameter* ParameterComponent::getOutputParameter(const int32_t key, const OperationParametersEnum::Enum type)
 {
-    uint32_t i;
-    for (i = 0; i < m_outputList.size(); ++i)
+    for (size_t i = 0; i < m_outputList.size(); ++i)
     {
         if (m_outputList[i]->m_key == key && type == m_outputList[i]->getType())
         {
+            m_outputList[i]->m_operationUsed = true;
             return m_outputList[i];
         }
     }
