@@ -90,7 +90,6 @@ namespace caret {
                                  const Surface* surface,
                                  const LabelFile* labelFile,
                                  const int32_t mapIndex,
-                                 //const AString& labelMapUniqueID,
                                  const int32_t numberOfNodes,
                                  float* rgbv);
 
@@ -100,14 +99,12 @@ namespace caret {
                                            const Surface* surface,
                                   CiftiBrainordinateLabelFile* ciftiLabelFile,
                                       const int32_t mapIndex,
-                                      //const AString& metricMapUniqueID,
                                   const int32_t numberOfNodes,
                                   float* rgbv);
         
         bool assignCiftiScalarColoring(const BrainStructure* brainStructure,
                                        CiftiBrainordinateScalarFile* ciftiScalarFile,
                                        const int32_t mapIndex,
-                                       //const AString& metricMapUniqueID,
                                        const int32_t numberOfNodes,
                                        float* rgbv);
         
@@ -123,42 +120,36 @@ namespace caret {
         bool assignCiftiParcelScalarColoring(const BrainStructure* brainStructure,
                                        CiftiParcelScalarFile* ciftiScalarFile,
                                              const int32_t mapIndex,
-                                             //const AString& metricMapUniqueID,
                                        const int32_t numberOfNodes,
                                        float* rgbv);
         
         bool assignCiftiDataSeriesColoring(const BrainStructure* brainStructure,
                                        CiftiBrainordinateDataSeriesFile* ciftiDataSeriesFile,
                                            const int32_t mapIndex,
-                                           //const AString& metricMapUniqueID,
                                        const int32_t numberOfNodes,
                                        float* rgbv);
         
         bool assignCiftiParcelSeriesColoring(const BrainStructure* brainStructure,
                                            CiftiParcelSeriesFile* ciftiParcelSeriesFile,
                                              const int32_t mapIndex,
-                                             //const AString& metricMapUniqueID,
                                            const int32_t numberOfNodes,
                                            float* rgbv);
         
         bool assignCiftiMappableConnectivityMatrixColoring(const BrainStructure* brainStructure,
                                                    CiftiMappableConnectivityMatrixDataFile* ciftiConnectivityMatrixFile,
                                                            const int32_t mapIndex,
-                                                           //const AString& selectedMapUniqueID,
                                                    const int32_t numberOfNodes,
                                                    float* rgbv);
         
         bool assignMetricColoring(const BrainStructure* brainStructure,
                                   MetricFile* metricFile,
                                   const int32_t mapIndex,
-                                  //const AString& metricMapUniqueID,
                                   const int32_t numberOfNodes,
                                   float* rgbv);
         
         bool assignRgbaColoring(const BrainStructure* brainStructure,
                                 const RgbaFile* rgbaFile,
                                 const int32_t mapIndex,
-                                //const AString& rgbaMapUniqueID,
                                 const int32_t numberOfNodes,
                                 float* rgbv);
         
