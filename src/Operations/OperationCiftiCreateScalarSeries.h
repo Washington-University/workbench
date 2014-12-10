@@ -21,40 +21,6 @@
  */
 /*LICENSE_END*/
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings in plain text mode (not "whole word only"):
-
-OperationCiftiCreateScalarSeries     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
-OPERATION_CIFTI_CREATE_SCALAR_SERIES    : uppercase of operation name, with underscore between words, used in #ifdef guards
-
-next, make OperationCiftiCreateScalarSeries.cxx from OperationTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiCreateScalarSeries/g' > OperationCiftiCreateScalarSeries.cxx
-cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiCreateScalarSeries/g' > Operations/OperationCiftiCreateScalarSeries.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiCreateScalarSeries/g' > src/Operations/OperationCiftiCreateScalarSeries.cxx
-
-or manually copy and replace
-
-next, implement its functions
-
-add these to Operations/CMakeLists.txt:
-
-OperationCiftiCreateScalarSeries.h
-OperationCiftiCreateScalarSeries.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "OperationCiftiCreateScalarSeries.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiCreateScalarSeries()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractOperation.h"
 
 namespace caret {

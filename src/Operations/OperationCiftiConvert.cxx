@@ -171,7 +171,12 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             newMap.setLength(numCols);
             myXML.setMap(CiftiXML::ALONG_ROW, newMap);
         }
-        if (myXML.getDimensionLength(CiftiXML::ALONG_ROW) != numCols || myXML.getDimensionLength(CiftiXML::ALONG_COLUMN) != numRows) throw OperationException("dimensions of input gifti array do not match dimensions in the embedded Cifti XML");
+        if (myXML.getDimensionLength(CiftiXML::ALONG_ROW) != numCols || myXML.getDimensionLength(CiftiXML::ALONG_COLUMN) != numRows)
+        {
+            throw OperationException("dimensions of input gifti array (" + AString::number(numRows) + " rows, " + AString::number(numCols) + " columns)" +
+                                     " do not match dimensions of the Cifti XML (" + AString::number(myXML.getDimensionLength(CiftiXML::ALONG_COLUMN)) + " rows, " +
+                                         AString::number(myXML.getDimensionLength(CiftiXML::ALONG_ROW)) + " columns)");
+        }
         myOutFile->setCiftiXML(myXML);
         OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(5);
         if (fromGiftiReplace->m_present)
@@ -308,8 +313,16 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             outXML.setMap(CiftiXML::ALONG_ROW, newMap);
         }
         int64_t numRows = outXML.getDimensionLength(CiftiXML::ALONG_COLUMN), numCols = outXML.getDimensionLength(CiftiXML::ALONG_ROW);
-        if (myDims[3] != numCols) throw OperationException("input nifti has the wrong size for row length");
-        if (numRows > myDims[0] * myDims[1] * myDims[2]) throw OperationException("input nifti is too small for number of rows");
+        if (myDims[3] != numCols)
+        {
+            throw OperationException("input nifti has the wrong size for row length (nifti says " + AString::number(myDims[3]) +
+                                     ", cifti XML says " + AString::number(numCols));
+        }
+        if (numRows > myDims[0] * myDims[1] * myDims[2])
+        {
+            throw OperationException("input nifti is too small for column length (need at least " + AString::number(numRows) +
+                                     ", product of first three nifti dimensions is " + AString::number(myDims[0] * myDims[1] * myDims[2]) + ")");
+        }
         myCiftiOut->setCiftiXML(outXML);
         vector<float> rowscratch(numCols);
         for (int64_t i = 0; i < numRows; ++i)
