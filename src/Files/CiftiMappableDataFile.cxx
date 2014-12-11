@@ -3407,19 +3407,72 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
             break;
         case CiftiMappingType::PARCELS:
         {
-            
+            int64_t parcelIndex = -1;
             const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
             if (map.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
                 const std::vector<CiftiParcelsMap::Parcel>& parcels = map.getParcels();
-                const int64_t parcelIndex = map.getIndexForNode(nodeIndex,
-                                                                structure);
+                parcelIndex = map.getIndexForNode(nodeIndex,
+                                                  structure);
                 if ((parcelIndex >= 0)
                     && (parcelIndex < static_cast<int64_t>(parcels.size()))) {
                     textValueOut = parcels[parcelIndex].m_name;
-                    return true;
+                }
+            }
+            
+            if (parcelIndex >= 0) {
+                int64_t itemIndex = -1;
+                switch (ciftiXML.getMappingType(m_dataReadingDirectionForCiftiXML)) {
+                    case CiftiMappingType::BRAIN_MODELS:
+                    {
+                        const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_dataReadingDirectionForCiftiXML);
+                        if (map.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+                            itemIndex = map.getIndexForNode(nodeIndex,
+                                                            structure);
+                        }
+                    }
+                        break;
+                    case CiftiMappingType::LABELS:
+                        break;
+                    case CiftiMappingType::PARCELS:
+                        break;
+                    case CiftiMappingType::SCALARS:
+                        itemIndex = mapIndex;
+                        break;
+                    case CiftiMappingType::SERIES:
+                        itemIndex = mapIndex;
+                        break;
+                }
+                if (itemIndex >= 0) {
+                    const int64_t numRows = m_ciftiFile->getNumberOfRows();
+                    const int64_t numCols = m_ciftiFile->getNumberOfColumns();
+                    
+                    switch (m_dataReadingDirectionForCiftiXML) {
+                        case CiftiXML::ALONG_COLUMN:
+                        {
+                            std::vector<float> data;
+                            data.resize(numRows);
+                            CaretAssert(parcelIndex < numCols);
+                            m_ciftiFile->getColumn(&data[0], parcelIndex);
+                            CaretAssertVectorIndex(data, itemIndex);
+                            textValueOut += (" " + AString::number(data[itemIndex]));
+                        }
+                            break;
+                        case CiftiXML::ALONG_ROW:
+                        {
+                            std::vector<float> data;
+                            data.resize(numCols);
+                            CaretAssert(parcelIndex < numRows);
+                            m_ciftiFile->getRow(&data[0], parcelIndex);
+                            CaretAssertVectorIndex(data, itemIndex);
+                            textValueOut += (" " + AString::number(data[itemIndex]));
+                        }
+                            break;
+                    }
+                
                 }
             }
         }
+            return true;
             break;
         case CiftiMappingType::SCALARS:
             CaretAssertMessage(0, "Mapping type should never be SCALARS");
@@ -4120,9 +4173,58 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                             CaretAssertVectorIndex(parcels,
                                                    parcelMapIndex);
                             textValueOut = parcels[parcelMapIndex].m_name;
-                            return true;
+                        }
+                        
+                        if (parcelMapIndex >= 0) {
+                            int64_t itemIndex = -1;
+                            switch (ciftiXML.getMappingType(m_dataReadingDirectionForCiftiXML)) {
+                                case CiftiMappingType::BRAIN_MODELS:
+                                {
+                                    const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_dataReadingDirectionForCiftiXML);
+                                    itemIndex = map.getIndexForVoxel(ijk);
+                                }
+                                    break;
+                                case CiftiMappingType::LABELS:
+                                    break;
+                                case CiftiMappingType::PARCELS:
+                                    break;
+                                case CiftiMappingType::SCALARS:
+                                    itemIndex = mapIndex;
+                                    break;
+                                case CiftiMappingType::SERIES:
+                                    itemIndex = mapIndex;
+                                    break;
+                            }
+                            if (itemIndex >= 0) {
+                                const int64_t numRows = m_ciftiFile->getNumberOfRows();
+                                const int64_t numCols = m_ciftiFile->getNumberOfColumns();
+                                
+                                switch (m_dataReadingDirectionForCiftiXML) {
+                                    case CiftiXML::ALONG_COLUMN:
+                                    {
+                                        std::vector<float> data;
+                                        data.resize(numRows);
+                                        CaretAssert(parcelMapIndex < numCols);
+                                        m_ciftiFile->getColumn(&data[0], parcelMapIndex);
+                                        CaretAssertVectorIndex(data, itemIndex);
+                                        textValueOut += (" " + AString::number(data[itemIndex]));
+                                    }
+                                        break;
+                                    case CiftiXML::ALONG_ROW:
+                                    {
+                                        std::vector<float> data;
+                                        data.resize(numCols);
+                                        CaretAssert(parcelMapIndex < numRows);
+                                        m_ciftiFile->getRow(&data[0], parcelMapIndex);
+                                        CaretAssertVectorIndex(data, itemIndex);
+                                        textValueOut += (" " + AString::number(data[itemIndex]));
+                                    }
+                                        break;
+                                }
+                            }
                         }
                     }
+                        return true;
                         break;
                     case CiftiMappingType::SCALARS:
                         CaretAssertMessage(0, "Mapping type should never be SCALARS");
