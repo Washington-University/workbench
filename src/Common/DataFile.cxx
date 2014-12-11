@@ -214,17 +214,17 @@ DataFile::checkFileReadability(const AString& filename)
     
     FileInformation fileInfo(filename);
     if (fileInfo.exists() == false) {
-        throw DataFileException(getFileName(),
+        throw DataFileException(filename,
                                 "File does not exist.");
     }
     
     if (fileInfo.isDirectory()) {
-        throw DataFileException(getFileName(),
+        throw DataFileException(filename,
                                 "Filename is a directory, not a file.");
     }
     
     if (fileInfo.isReadable() == false) {
-        throw DataFileException(getFileName(),
+        throw DataFileException(filename,
                                 "File is not readable due its permissions.");
     }
 }
@@ -252,13 +252,13 @@ DataFile::checkFileWritability(const AString& filename)
     FileInformation fileInfo(filename);
     if (fileInfo.exists()) {
         if (fileInfo.isDirectory()) {
-            throw DataFileException(getFileName(),
+            throw DataFileException(filename,
                                     "Filename is a directory, not a file.");
         }
         
         
         if (fileInfo.isWritable() == false) {
-            throw DataFileException(getFileName(),
+            throw DataFileException(filename,
                                     "File name exists is not writable due its permissions.");
         }
     }
