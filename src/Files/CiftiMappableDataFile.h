@@ -58,6 +58,10 @@ namespace caret {
              */
             DATA_ACCESS_METHOD_INVALID,
             /**
+             * No access to data
+             */
+            DATA_ACCESS_NONE,
+            /**
              * The data is accessed from CiftiFile using ROW Methods
              * and from the XML using ALONG_COLUMN
              */
@@ -684,6 +688,9 @@ namespace caret {
         /** force an update of the class and name hierarchy */
         mutable bool m_forceUpdateOfGroupAndNameHierarchy;
 
+        
+        static const int32_t S_CIFTI_XML_ALONG_INVALID;
+        
 //        std::vector<int64_t> m_ciftiDimensions;
         
         // ADD_NEW_MEMBERS_HERE
@@ -691,7 +698,7 @@ namespace caret {
     };
     
 #ifdef __CIFTI_MAPPABLE_DATA_FILE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const int32_t CiftiMappableDataFile::S_CIFTI_XML_ALONG_INVALID = -1;
 #endif // __CIFTI_MAPPABLE_DATA_FILE_DECLARE__
     
 } // namespace

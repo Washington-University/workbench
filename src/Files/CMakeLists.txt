@@ -48,6 +48,7 @@ CiftiParcelReordering.h
 CiftiParcelReorderingModel.h
 CiftiParcelSeriesFile.h
 CiftiParcelScalarFile.h
+CiftiScalarDataSeriesFile.h
 ConnectivityDataLoaded.h
 EventCaretMappableDataFilesGet.h
 EventChartMatrixYokingValidation.h
@@ -149,6 +150,7 @@ CiftiParcelReordering.cxx
 CiftiParcelReorderingModel.cxx
 CiftiParcelSeriesFile.cxx
 CiftiParcelScalarFile.cxx
+CiftiScalarDataSeriesFile.cxx
 ConnectivityDataLoaded.cxx
 EventCaretMappableDataFilesGet.cxx
 EventChartMatrixYokingValidation.cxx

@@ -61,6 +61,8 @@ public:
         CONNECTIVITY_PARCEL_SCALAR,
         /** Connectivity - Parcel Series */
         CONNECTIVITY_PARCEL_SERIES,
+        /** Connectivity - Scalar Data Series */
+        CONNECTIVITY_SCALAR_DATA_SERIES,
         /** Foci */
         FOCI,
         /** Image */

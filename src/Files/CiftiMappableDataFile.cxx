@@ -87,6 +87,9 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
     m_fileMapDataType              = FILE_MAP_DATA_TYPE_INVALID;
     m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_INVALID;
     
+    m_dataMappingDirectionForCiftiXML = S_CIFTI_XML_ALONG_INVALID;
+    m_dataReadingDirectionForCiftiXML = S_CIFTI_XML_ALONG_INVALID;
+    
     m_fileFastStatistics.grabNew(NULL);
     m_fileHistogram.grabNew(NULL);
     m_fileHistorgramLimitedValues.grabNew(NULL);
@@ -165,6 +168,14 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
             m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_dataMappingAccessMethod      = DATA_ACCESS_NONE;
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
@@ -655,6 +666,10 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
             expectedAlongColumnMapType = CiftiMappingType::PARCELS;
             expectedAlongRowMapType = CiftiMappingType::SERIES;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            expectedAlongColumnMapType = CiftiMappingType::SCALARS;
+            expectedAlongRowMapType = CiftiMappingType::SERIES;
+            break;
         case DataFileTypeEnum::BORDER:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -715,6 +730,8 @@ CiftiMappableDataFile::setupCiftiReadingMappingDirection()
         case DATA_ACCESS_METHOD_INVALID:
             CaretAssert(0);
             break;
+        case DATA_ACCESS_NONE:
+            break;
         case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
             m_dataMappingDirectionForCiftiXML = CiftiXML::ALONG_COLUMN;
             break;
@@ -726,6 +743,8 @@ CiftiMappableDataFile::setupCiftiReadingMappingDirection()
     switch (m_dataReadingAccessMethod) {
         case DATA_ACCESS_METHOD_INVALID:
             CaretAssert(0);
+            break;
+        case DATA_ACCESS_NONE:
             break;
         case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
             m_dataReadingDirectionForCiftiXML = CiftiXML::ALONG_COLUMN;
@@ -754,44 +773,46 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
-    switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
-        case CiftiMappingType::BRAIN_MODELS:
-        {
-            const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_dataMappingDirectionForCiftiXML);
-            if (! map.getSurfaceStructureList().empty()) {
-                m_containsSurfaceData = true;
+    if (m_dataMappingDirectionForCiftiXML != S_CIFTI_XML_ALONG_INVALID) {
+        switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
+            case CiftiMappingType::BRAIN_MODELS:
+            {
+                const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_dataMappingDirectionForCiftiXML);
+                if (! map.getSurfaceStructureList().empty()) {
+                    m_containsSurfaceData = true;
+                }
+                if (map.hasVolumeData()) {
+                    m_containsVolumeData = true;
+                }
             }
-            if (map.hasVolumeData()) {
-                m_containsVolumeData = true;
+                break;
+            case CiftiMappingType::LABELS:
+                CaretAssertMessage(0, "Mapping type should never be LABELS");
+                throw DataFileException(filename,
+                                        "Mapping type should never be LABELS");
+                break;
+            case CiftiMappingType::PARCELS:
+            {
+                const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
+                if (! map.getParcelSurfaceStructures().empty()) {
+                    m_containsSurfaceData = true;
+                }
+                if (map.hasVolumeData()) {
+                    m_containsVolumeData = true;
+                }
             }
+                break;
+            case CiftiMappingType::SCALARS:
+                CaretAssertMessage(0, "Mapping type should never be SCALARS");
+                throw DataFileException(filename,
+                                        "Mapping type should never be SCALARS");
+                break;
+            case CiftiMappingType::SERIES:
+                CaretAssertMessage(0, "Mapping type should never be SERIES");
+                throw DataFileException(filename,
+                                        "Mapping type should never be SERIES");
+                break;
         }
-            break;
-        case CiftiMappingType::LABELS:
-            CaretAssertMessage(0, "Mapping type should never be LABELS");
-            throw DataFileException(filename,
-                                    "Mapping type should never be LABELS");
-            break;
-        case CiftiMappingType::PARCELS:
-        {
-            const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
-            if (! map.getParcelSurfaceStructures().empty()) {
-                m_containsSurfaceData = true;
-            }
-            if (map.hasVolumeData()) {
-                m_containsVolumeData = true;
-            }
-        }
-            break;
-        case CiftiMappingType::SCALARS:
-            CaretAssertMessage(0, "Mapping type should never be SCALARS");
-            throw DataFileException(filename,
-                                    "Mapping type should never be SCALARS");
-            break;
-        case CiftiMappingType::SERIES:
-            CaretAssertMessage(0, "Mapping type should never be SERIES");
-            throw DataFileException(filename,
-                                    "Mapping type should never be SERIES");
-            break;
     }
 
     switch (ciftiXML.getMappingType(m_dataReadingDirectionForCiftiXML)) {
@@ -809,7 +830,7 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
             CiftiSeriesMap::Unit units = map.getUnit();
             switch (units) {
                 case CiftiSeriesMap::HERTZ:
-                    CaretLogWarning("CIFTI Units HERTZ not implemented");
+                    m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_HZ;
                     break;
                 case CiftiSeriesMap::METER:
                     CaretLogWarning("CIFTI Units METER not implemented");
@@ -830,6 +851,8 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
     switch (m_dataMappingAccessMethod) {
         case DATA_ACCESS_METHOD_INVALID:
             CaretAssert(0);
+            break;
+        case DATA_ACCESS_NONE:
             break;
         case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
             if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS) {
@@ -876,6 +899,8 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
             switch (m_dataReadingAccessMethod) {
                 case DATA_ACCESS_METHOD_INVALID:
                     CaretAssert(0);
+                    break;
+                case DATA_ACCESS_NONE:
                     break;
                 case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
                     numberOfMaps = m_ciftiFile->getNumberOfColumns();
@@ -1180,6 +1205,8 @@ CiftiMappableDataFile::getMapData(const int32_t mapIndex,
         case DATA_ACCESS_METHOD_INVALID:
             CaretAssert(0);
             break;
+        case DATA_ACCESS_NONE:
+            break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
             CaretAssert(mapIndex < m_ciftiFile->getNumberOfColumns());
             dataOut.resize(m_ciftiFile->getNumberOfRows());
@@ -1216,6 +1243,8 @@ CiftiMappableDataFile::setMapData(const int32_t mapIndex,
     switch (m_dataReadingAccessMethod) {
         case DATA_ACCESS_METHOD_INVALID:
             CaretAssert(0);
+            break;
+        case DATA_ACCESS_NONE:
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
             CaretAssert(mapIndex < m_ciftiFile->getNumberOfColumns());
@@ -1668,6 +1697,9 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex) const
 const CiftiParcelsMap*
 CiftiMappableDataFile::getCiftiParcelsMapForBrainordinateMapping() const
 {
+    CaretAssert((m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_ROW)
+                || (m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_COLUMN));
+    
     return getCiftiParcelsMapForDirection(m_dataMappingDirectionForCiftiXML);
     
 //    if (m_ciftiFile != NULL) {
@@ -1920,6 +1952,7 @@ CiftiMappableDataFile::getDimensions(int64_t& dimOut1,
     dimTimeOut = 0;
     numComponentsOut = 0;
     
+    if (m_dataMappingDirectionForCiftiXML != S_CIFTI_XML_ALONG_INVALID) {
     switch (m_ciftiFile->getCiftiXML().getMappingType(m_dataMappingDirectionForCiftiXML))
     {
         case CiftiMappingType::BRAIN_MODELS:
@@ -1950,6 +1983,7 @@ CiftiMappableDataFile::getDimensions(int64_t& dimOut1,
         }
         default://nothing else has volume dimensions
             break;
+    }
     }
 }
 
@@ -3366,6 +3400,9 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
     CaretAssert(m_ciftiFile);
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
+    CaretAssert((m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_ROW)
+                || (m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_COLUMN));
+    
     switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
         case CiftiMappingType::BRAIN_MODELS:
         {
@@ -3533,6 +3570,9 @@ CiftiMappableDataFile::getParcelLabelMapSurfaceNodeValue(const int32_t mapIndex,
     
     AString areaName = "";
     
+    CaretAssert((m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_ROW)
+                || (m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_COLUMN));
+
     const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
     if (map.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
         const std::vector<CiftiParcelsMap::Parcel>& parcels = map.getParcels();
@@ -3638,6 +3678,8 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
             useMapData = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             break;
         case DataFileTypeEnum::FOCI:
             CaretAssert(0);
@@ -3786,6 +3828,8 @@ CiftiMappableDataFile::getSeriesDataForSurfaceNode(const StructureEnum::Enum str
         case DATA_ACCESS_METHOD_INVALID:
             CaretAssert(0);
             break;
+        case DATA_ACCESS_NONE:
+            break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
             seriesDataOut.resize(m_ciftiFile->getNumberOfRows());
             valid = m_ciftiFile->getColumnFromNode(&seriesDataOut[0],
@@ -3825,6 +3869,8 @@ CiftiMappableDataFile::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
     switch (m_dataMappingAccessMethod) {
         case DATA_ACCESS_METHOD_INVALID:
             CaretAssert(0);
+            break;
+        case DATA_ACCESS_NONE:
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
             seriesDataOut.resize(m_ciftiFile->getNumberOfRows());
@@ -3889,6 +3935,8 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const PaletteFile* paletteFile,
     switch (m_dataMappingAccessMethod) {
         case DATA_ACCESS_METHOD_INVALID:
             CaretAssert(0);
+            break;
+        case DATA_ACCESS_NONE:
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
             m_ciftiFile->getSurfaceMapForRows(surfaceMap,
@@ -3976,6 +4024,9 @@ CiftiMappableDataFile::getSurfaceDataIndicesForMappingToBrainordinates(const Str
 {
     CaretAssert(m_ciftiFile);
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+    
+    CaretAssert((m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_ROW)
+                || (m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_COLUMN));
     
     switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
         case CiftiMappingType::BRAIN_MODELS:
@@ -4093,6 +4144,9 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                                                                                ijk[1],
                                                                                ijk[2]);
         if (dataOffset >= 0) {
+            CaretAssert((m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_ROW)
+                        || (m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_COLUMN));
+            
             const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
             
             const CiftiParcelLabelFile* parcelLabelFile = dynamic_cast<const CiftiParcelLabelFile*>(this);
@@ -4563,6 +4617,13 @@ int32_t
 CiftiMappableDataFile::getMappingSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
 {
     int32_t numCiftiNodes = -1;
+    
+    if (m_dataMappingAccessMethod == DATA_ACCESS_NONE) {
+        return numCiftiNodes;
+    }
+    
+    CaretAssert((m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_ROW)
+                || (m_dataMappingDirectionForCiftiXML == CiftiXML::ALONG_COLUMN));
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {

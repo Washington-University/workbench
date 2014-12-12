@@ -557,6 +557,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                    break;
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
                     break;

@@ -205,6 +205,13 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "ptseries.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_SCALAR_DATA_SERIES,
+                                        "CONNECTIVITY_SCALAR_DATA_SERIES",
+                                        "Connectivity - Scalar Data Series",
+                                        "CIFTI SCALAR DATA SERIES",
+                                        false,
+                                        "sdseries.nii"));
+    
     enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI", 
                                         "Foci",

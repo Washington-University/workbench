@@ -422,6 +422,8 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                     limitMapIndicesFlag = true;
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                    break;
                 case DataFileTypeEnum::FOCI:
                     break;
                 case DataFileTypeEnum::IMAGE:

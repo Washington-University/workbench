@@ -62,6 +62,7 @@ namespace caret {
     class CiftiParcelLabelFile;
     class CiftiParcelSeriesFile;
     class CiftiParcelScalarFile;
+    class CiftiScalarDataSeriesFile;
     class DisplayProperties;
     class DisplayPropertiesBorders;
     class DisplayPropertiesFiberOrientation;
@@ -230,6 +231,14 @@ namespace caret {
         const CiftiParcelScalarFile* getConnectivityParcelScalarFile(int32_t indx) const;
         
         void getConnectivityParcelScalarFiles(std::vector<CiftiParcelScalarFile*>& connectivityParcelScalarFilesOut) const;
+
+        int32_t getNumberOfConnectivityScalarDataSeriesFiles() const;
+        
+        CiftiScalarDataSeriesFile* getConnectivityScalarDataSeriesFile(int32_t indx);
+        
+        const CiftiScalarDataSeriesFile* getConnectivityScalarDataSeriesFile(int32_t indx) const;
+        
+        void getConnectivityScalarDataSeriesFiles(std::vector<CiftiScalarDataSeriesFile*>& connectivityScalarDataSeriesFilesOut) const;
 
         int32_t getNumberOfConnectivityParcelSeriesFiles() const;
         
@@ -585,6 +594,10 @@ namespace caret {
                                                                 CaretDataFile* caretDataFile,
                                                                 const AString& filename);
         
+        CiftiScalarDataSeriesFile* addReadOrReloadConnectivityScalarDataSeriesFile(const FileModeAddReadReload fileMode,
+                                                                                   CaretDataFile* caretDataFile,
+                                                                                   const AString& filename);
+        
         CiftiFiberOrientationFile* addReadOrReloadConnectivityFiberOrientationFile(const FileModeAddReadReload fileMode,
                                                                         CaretDataFile* caretDataFile,
                                                                         const AString& filename);
@@ -666,6 +679,8 @@ namespace caret {
         std::vector<CiftiParcelSeriesFile*> m_connectivityParcelSeriesFiles;
         
         std::vector<CiftiParcelScalarFile*> m_connectivityParcelScalarFiles;
+        
+        std::vector<CiftiScalarDataSeriesFile*> m_connectivityScalarDataSeriesFiles;
         
         std::vector<CiftiFiberOrientationFile*> m_connectivityFiberOrientationFiles;
         

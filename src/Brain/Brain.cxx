@@ -48,6 +48,7 @@
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelSeriesFile.h"
 #include "CiftiParcelScalarFile.h"
+#include "CiftiScalarDataSeriesFile.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
@@ -516,6 +517,14 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityParcelScalarFiles.clear();
     
+    for (std::vector<CiftiScalarDataSeriesFile*>::iterator clfi = m_connectivityScalarDataSeriesFiles.begin();
+         clfi != m_connectivityScalarDataSeriesFiles.end();
+         clfi++) {
+        CiftiScalarDataSeriesFile* psf = *clfi;
+        delete psf;
+    }
+    m_connectivityScalarDataSeriesFiles.clear();
+    
     for (std::vector<CiftiFiberOrientationFile*>::iterator clfi = m_connectivityFiberOrientationFiles.begin();
          clfi != m_connectivityFiberOrientationFiles.end();
          clfi++) {
@@ -663,6 +672,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                 break;
             case DataFileTypeEnum::FOCI:
                 break;
@@ -2302,6 +2313,84 @@ Brain::addReadOrReloadConnectivityParcelScalarFile(const FileModeAddReadReload f
     return clf;
 }
 
+/**
+ * Read a connectivity scalar data series file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+CiftiScalarDataSeriesFile*
+Brain::addReadOrReloadConnectivityScalarDataSeriesFile(const FileModeAddReadReload fileMode,
+                                                       CaretDataFile* caretDataFile,
+                                                       const AString& filename)
+{
+    CiftiScalarDataSeriesFile* clf = NULL;
+    if (caretDataFile != NULL) {
+        clf = dynamic_cast<CiftiScalarDataSeriesFile*>(caretDataFile);
+        CaretAssert(clf);
+    }
+    else {
+        clf = new CiftiScalarDataSeriesFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                clf->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+            
+            validateCiftiMappableDataFile(clf);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete clf;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityScalarDataSeriesFiles,
+                                      clf);
+        m_connectivityScalarDataSeriesFiles.push_back(clf);
+    }
+    
+    return clf;
+}
 
 /**
  * Find a cifti scalar file containing shape information.
@@ -3426,6 +3515,52 @@ Brain::getConnectivityParcelScalarFiles(std::vector<CiftiParcelScalarFile*>& con
 }
 
 /**
+ * @return Number of connectivity parcel scalar files.
+ */
+int32_t
+Brain::getNumberOfConnectivityScalarDataSeriesFiles() const
+{
+    return m_connectivityScalarDataSeriesFiles.size();
+}
+
+/**
+ * Get the connectivity parcel scalar file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Connectivity parcel scalar file at index.
+ */
+CiftiScalarDataSeriesFile*
+Brain::getConnectivityScalarDataSeriesFile(int32_t indx)
+{
+    CaretAssertVectorIndex(m_connectivityScalarDataSeriesFiles, indx);
+    return m_connectivityScalarDataSeriesFiles[indx];
+}
+
+/**
+ * Get the connectivity parcel scalar file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Connectivity parcel scalar file at index.
+ */
+const CiftiScalarDataSeriesFile*
+Brain::getConnectivityScalarDataSeriesFile(int32_t indx) const
+{
+    CaretAssertVectorIndex(m_connectivityScalarDataSeriesFiles, indx);
+    return m_connectivityScalarDataSeriesFiles[indx];
+}
+
+/**
+ * Get ALL connectivity parcel scalar files.
+ * @param connectivityScalarDataSeriesFilesOut
+ *   Contains all connectivity parcel files on exit.
+ */
+void
+Brain::getConnectivityScalarDataSeriesFiles(std::vector<CiftiScalarDataSeriesFile*>& connectivityScalarDataSeriesFilesOut) const
+{
+    connectivityScalarDataSeriesFilesOut = m_connectivityScalarDataSeriesFiles;
+}
+
+/**
  * @return Number of connectivity parcel data series files.
  */
 int32_t
@@ -3839,6 +3974,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     CiftiParcelSeriesFile* file = dynamic_cast<CiftiParcelSeriesFile*>(caretDataFile);
                     CaretAssert(file);
                     m_connectivityParcelSeriesFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                {
+                    CiftiScalarDataSeriesFile* file = dynamic_cast<CiftiScalarDataSeriesFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityScalarDataSeriesFiles.push_back(file);
                 }
                     break;
                 case DataFileTypeEnum::FOCI:
@@ -4613,6 +4755,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead  = addReadOrReloadConnectivityParcelSeriesFile(fileMode,
                                                                      caretDataFile,
                                                                          dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                caretDataFileRead  = addReadOrReloadConnectivityScalarDataSeriesFile(fileMode,
+                                                             caretDataFile,
+                                                             dataFileName);
                 break;
             case DataFileTypeEnum::FOCI:
                 caretDataFileRead  = addReadOrReloadFociFile(fileMode,
@@ -5928,6 +6075,13 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
         return true;
     }
     
+    std::vector<CiftiScalarDataSeriesFile*>::iterator connScalarDataSeriesIterator = std::find(m_connectivityScalarDataSeriesFiles.begin(),
+                                                                                               m_connectivityScalarDataSeriesFiles.end(),
+                                                                                               caretDataFile);
+    if (connScalarDataSeriesIterator != m_connectivityScalarDataSeriesFiles.end()) {
+        m_connectivityScalarDataSeriesFiles.erase(connScalarDataSeriesIterator);
+        return true;
+    }
     
     std::vector<CiftiFiberOrientationFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
                                                                                                m_connectivityFiberOrientationFiles.end(),

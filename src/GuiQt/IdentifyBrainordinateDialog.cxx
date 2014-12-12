@@ -167,6 +167,8 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                 useIt = true;
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::LABEL:

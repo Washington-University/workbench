@@ -383,6 +383,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                             numNodes,
                                                                             overlayRGBV);
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                    break;
                 case DataFileTypeEnum::FOCI:
                     break;
                 case DataFileTypeEnum::IMAGE:
