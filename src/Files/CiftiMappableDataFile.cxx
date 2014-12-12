@@ -3453,6 +3453,14 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
                 if ((parcelIndex >= 0)
                     && (parcelIndex < static_cast<int64_t>(parcels.size()))) {
                     textValueOut = parcels[parcelIndex].m_name;
+                    
+                    std::vector<float> mapData;
+                    getMapData(0, mapData);
+                    
+                    if (parcelIndex < static_cast<int32_t>(mapData.size())) {
+                        textValueOut += (" "
+                                         + AString::number(mapData[parcelIndex]));
+                    }
                 }
             }
             
@@ -4227,6 +4235,14 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                             CaretAssertVectorIndex(parcels,
                                                    parcelMapIndex);
                             textValueOut = parcels[parcelMapIndex].m_name;
+
+                            std::vector<float> mapData;
+                            getMapData(0, mapData);
+                            
+                            if (parcelMapIndex < static_cast<int32_t>(mapData.size())) {
+                                textValueOut += (" "
+                                                 + AString::number(mapData[parcelMapIndex]));
+                            }
                         }
                         
                         if (parcelMapIndex >= 0) {
