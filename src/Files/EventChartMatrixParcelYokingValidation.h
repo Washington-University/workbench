@@ -1,5 +1,5 @@
-#ifndef __EVENT_CHART_MATRIX_LOADING_YOKING_H__
-#define __EVENT_CHART_MATRIX_LOADING_YOKING_H__
+#ifndef __EVENT_CHART_MATRIX_PARCEL_LOADING_YOKING_H__
+#define __EVENT_CHART_MATRIX_PARCEL_LOADING_YOKING_H__
 
 /*LICENSE_START*/
 /*
@@ -30,9 +30,9 @@
 
 namespace caret {
 
-    class ChartableMatrixInterface;
+    class ChartableMatrixParcelInterface;
     
-    class EventChartMatrixYokingValidation : public Event {
+    class EventChartMatrixParcelYokingValidation : public Event {
         
     public:
         enum Mode {
@@ -40,31 +40,31 @@ namespace caret {
             MODE_VALIDATE_YOKING
         };
         
-        EventChartMatrixYokingValidation(const ChartableMatrixInterface* chartableInterface,
+        EventChartMatrixParcelYokingValidation(const ChartableMatrixParcelInterface* chartableInterface,
                                       const YokingGroupEnum::Enum yokingGroup);
         
-        virtual ~EventChartMatrixYokingValidation();
+        virtual ~EventChartMatrixParcelYokingValidation();
         
         Mode getMode() const;
         
-        void addValidateYokingChartableInterface(const ChartableMatrixInterface* chartableInterface,
+        void addValidateYokingChartableInterface(const ChartableMatrixParcelInterface* chartableInterface,
                                                  const int32_t selectedRowOrColumnIndex);
         
         bool isValidateYokingCompatible(AString& messageOut,
                                         int32_t& selectedRowOrColumnIndexOut) const;
 
-        const ChartableMatrixInterface* getChartableMatrixInterface() const;
+        const ChartableMatrixParcelInterface* getChartableMatrixParcelInterface() const;
         
         // ADD_NEW_METHODS_HERE
 
     private:
-        EventChartMatrixYokingValidation(const EventChartMatrixYokingValidation&);
+        EventChartMatrixParcelYokingValidation(const EventChartMatrixParcelYokingValidation&);
 
-        EventChartMatrixYokingValidation& operator=(const EventChartMatrixYokingValidation&);
+        EventChartMatrixParcelYokingValidation& operator=(const EventChartMatrixParcelYokingValidation&);
         
         const Mode m_mode;
         
-        const ChartableMatrixInterface* m_chartableInterface;
+        const ChartableMatrixParcelInterface* m_chartableInterface;
         
         const YokingGroupEnum::Enum m_yokingGroup;
         
@@ -76,9 +76,9 @@ namespace caret {
 
     };
     
-#ifdef __EVENT_CHART_MATRIX_LOADING_YOKING_DECLARE__
+#ifdef __EVENT_CHART_MATRIX_PARCEL_LOADING_YOKING_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_CHART_MATRIX_LOADING_YOKING_DECLARE__
+#endif // __EVENT_CHART_MATRIX_PARCEL_LOADING_YOKING_DECLARE__
 
 } // namespace
-#endif  //__EVENT_CHART_MATRIX_LOADING_YOKING_H__
+#endif  //__EVENT_CHART_MATRIX_PARCEL_LOADING_YOKING_H__

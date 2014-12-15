@@ -31,6 +31,7 @@ CaretSparseFile.h
 CaretVolumeExtension.h
 ChartableBrainordinateInterface.h
 ChartableMatrixInterface.h
+ChartableMatrixParcelInterface.h
 CiftiBrainordinateDataSeriesFile.h
 CiftiBrainordinateLabelFile.h
 CiftiBrainordinateScalarFile.h
@@ -51,7 +52,7 @@ CiftiParcelScalarFile.h
 CiftiScalarDataSeriesFile.h
 ConnectivityDataLoaded.h
 EventCaretMappableDataFilesGet.h
-EventChartMatrixYokingValidation.h
+EventChartMatrixParcelYokingValidation.h
 EventGetDisplayedDataFiles.h
 EventPaletteGetByName.h
 EventSurfaceColoringInvalidate.h
@@ -153,7 +154,7 @@ CiftiParcelScalarFile.cxx
 CiftiScalarDataSeriesFile.cxx
 ConnectivityDataLoaded.cxx
 EventCaretMappableDataFilesGet.cxx
-EventChartMatrixYokingValidation.cxx
+EventChartMatrixParcelYokingValidation.cxx
 EventGetDisplayedDataFiles.cxx
 EventPaletteGetByName.cxx
 EventSurfaceColoringInvalidate.cxx

@@ -4597,7 +4597,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
             cartesianChart = chartModel->getSelectedDataSeriesChartModel(tabIndex);
             selectionItemDataType = SelectionItemDataTypeEnum::CHART_DATA_SERIES;
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
         {
             CaretDataFileSelectionModel* matrixFileSelector = chartModel->getChartableMatrixFileSelectionModel(tabIndex);
             matrixChartFile = matrixFileSelector->getSelectedFileOfType<ChartableMatrixInterface>();

@@ -418,7 +418,7 @@ ChartHistoryViewController::getSelectedChartModelAndTab(ChartModel* &chartModelO
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                 chartModelOut = modelChart->getSelectedTimeSeriesChartModel(tabIndexOut);

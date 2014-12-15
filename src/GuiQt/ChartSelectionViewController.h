@@ -48,6 +48,7 @@ namespace caret {
     class ChartableBrainordinateInterface;
     class ChartMatrixDisplayProperties;
     class ChartableMatrixInterface;
+    class ChartableMatrixParcelInterface;
     class ChartModel;
     class EnumComboBoxTemplate;
     class ModelChart;
@@ -66,15 +67,15 @@ namespace caret {
     private slots:
         void brainordinateSelectionCheckBoxClicked(int);
         
-        void matrixFileSelected(CaretDataFile* caretDataFile);
+        void matrixParcelFileSelected(CaretDataFile* caretDataFile);
         
-        void matrixFileLoadingComboBoxActivated();
+        void matrixParcelFileLoadingComboBoxActivated();
 
-        void matrixYokingGroupEnumComboBoxActivated();
+        void matrixParcelYokingGroupEnumComboBoxActivated();
         
-        void matrixColorBarActionTriggered(bool status);
+        void matrixParcelColorBarActionTriggered(bool status);
         
-        void matrixSettingsActionTriggered();
+        void matrixParcelSettingsActionTriggered();
         
         void parcelLabelFileRemappingFileSelectorChanged();
         
@@ -100,7 +101,7 @@ namespace caret {
 
         QWidget* createBrainordinateChartWidget();
         
-        QWidget* createMatrixChartWidget(const Qt::Orientation orientation);
+        QWidget* createMatrixParcelChartWidget(const Qt::Orientation orientation);
         
         void updateSelectionViewController();
         
@@ -108,7 +109,7 @@ namespace caret {
                                             ModelChart* modelChart,
                                             const int32_t browserTabIndex);
         
-        void updateMatrixChartWidget(Brain* brain,
+        void updateMatrixParcelChartWidget(Brain* brain,
                                      ModelChart* modelChart,
                                      const int32_t browserTabIndex);
         
@@ -120,13 +121,14 @@ namespace caret {
         
         bool getChartMatrixAndProperties(CaretMappableDataFile* &caretMappableDataFileOut,
                                          ChartableMatrixInterface* & chartableMatrixInterfaceOut,
+                                         ChartableMatrixParcelInterface* &chartableMatrixParcelInterfaceOut,
                                          ChartMatrixDisplayProperties* &chartMatrixDisplayPropertiesOut);
         
         QStackedWidget* m_stackedWidget;
         
         QWidget* m_brainordinateChartWidget;
         
-        QWidget* m_matrixChartWidget;
+        QWidget* m_matrixParcelChartWidget;
         
         Mode m_mode;
         
@@ -140,15 +142,15 @@ namespace caret {
         
         QSignalMapper* m_signalMapperBrainordinateFileEnableCheckBox;
         
-        CaretDataFileSelectionComboBox* m_matrixFileSelectionComboBox;
+        CaretDataFileSelectionComboBox* m_matrixParcelFileSelectionComboBox;
         
-        EnumComboBoxTemplate* m_matrixLoadByColumnRowComboBox;
+        EnumComboBoxTemplate* m_matrixParcelLoadByColumnRowComboBox;
                 
-        EnumComboBoxTemplate* m_matrixYokingGroupComboBox;
+        EnumComboBoxTemplate* m_matrixParcelYokingGroupComboBox;
 
-        QAction* m_matrixColorBarAction;
+        QAction* m_matrixParcelColorBarAction;
         
-        QAction* m_matrixSettingsAction;
+        QAction* m_matrixParcelSettingsAction;
         
         QGroupBox* m_parcelRemappingGroupBox;
         

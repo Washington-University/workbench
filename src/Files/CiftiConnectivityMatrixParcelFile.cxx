@@ -29,7 +29,7 @@
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelReorderingModel.h"
 #include "ConnectivityDataLoaded.h"
-#include "EventChartMatrixYokingValidation.h"
+#include "EventChartMatrixParcelYokingValidation.h"
 #include "EventManager.h"
 #include "FastStatistics.h"
 #include "NodeAndVoxelColoring.h"
@@ -112,12 +112,12 @@ void
 CiftiConnectivityMatrixParcelFile::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_CHART_MATRIX_YOKING_VALIDATION) {
-        EventChartMatrixYokingValidation* yokeEvent = dynamic_cast<EventChartMatrixYokingValidation*>(event);
+        EventChartMatrixParcelYokingValidation* yokeEvent = dynamic_cast<EventChartMatrixParcelYokingValidation*>(event);
         CaretAssert(yokeEvent);
         
-        if (yokeEvent->getChartableMatrixInterface() != this) {
+        if (yokeEvent->getChartableMatrixParcelInterface() != this) {
             switch (yokeEvent->getMode()) {
-                case EventChartMatrixYokingValidation::MODE_APPLY_YOKING:
+                case EventChartMatrixParcelYokingValidation::MODE_APPLY_YOKING:
                 {
 //                    YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
 //                    int32_t rowOrColumnIndex = -1;
@@ -146,7 +146,7 @@ CiftiConnectivityMatrixParcelFile::receiveEvent(Event* event)
 //                    }
                 }
                     break;
-                case EventChartMatrixYokingValidation::MODE_VALIDATE_YOKING:
+                case EventChartMatrixParcelYokingValidation::MODE_VALIDATE_YOKING:
                 {
                     const ConnectivityDataLoaded* connData = getConnectivityDataLoaded();
                     int64_t rowIndex    = -1;
@@ -328,7 +328,7 @@ void
 CiftiConnectivityMatrixParcelFile::getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     chartDataTypesOut.clear();
-    chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+    chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
 }
 
 /**

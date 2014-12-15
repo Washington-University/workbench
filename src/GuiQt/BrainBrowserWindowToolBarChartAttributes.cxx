@@ -135,7 +135,7 @@ BrainBrowserWindowToolBarChartAttributes::getCartesianChart()
             switch (chartType) {
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                     cartesianChart = modelChart->getSelectedDataSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
@@ -170,7 +170,7 @@ BrainBrowserWindowToolBarChartAttributes::getChartableMatrixDisplayProperties()
             switch (chartType) {
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 {
                     ChartableMatrixInterface* matrixInterface = modelChart->getChartableMatrixFileSelectionModel(tabIndex)->getSelectedFileOfType<ChartableMatrixInterface>();
                     if (matrixInterface != NULL) {

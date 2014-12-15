@@ -19,13 +19,13 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_CHART_MATRIX_LOADING_YOKING_DECLARE__
-#include "EventChartMatrixYokingValidation.h"
-#undef __EVENT_CHART_MATRIX_LOADING_YOKING_DECLARE__
+#define __EVENT_CHART_MATRIX_PARCEL_LOADING_YOKING_DECLARE__
+#include "EventChartMatrixParcelYokingValidation.h"
+#undef __EVENT_CHART_MATRIX_PARCEL_LOADING_YOKING_DECLARE__
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
-#include "ChartableMatrixInterface.h"
+#include "ChartableMatrixParcelInterface.h"
 #include "EventTypeEnum.h"
 
 using namespace caret;
@@ -33,7 +33,7 @@ using namespace caret;
 
     
 /**
- * \class caret::EventChartMatrixYokingValidation 
+ * \class caret::EventChartMatrixParcelYokingValidation 
  * \brief Event for coordination of Matrix Chart yoking.
  * \ingroup Files
  */
@@ -48,7 +48,7 @@ using namespace caret;
  * @param yokingGroup
  *   The selected yoking group.
  */
-EventChartMatrixYokingValidation::EventChartMatrixYokingValidation(const ChartableMatrixInterface* chartableInterface,
+EventChartMatrixParcelYokingValidation::EventChartMatrixParcelYokingValidation(const ChartableMatrixParcelInterface* chartableInterface,
                                                              const YokingGroupEnum::Enum yokingGroup)
 : Event(EventTypeEnum::EVENT_CHART_MATRIX_YOKING_VALIDATION),
 m_mode(MODE_VALIDATE_YOKING),
@@ -61,15 +61,15 @@ m_yokingGroup(yokingGroup)
 /**
  * Destructor.
  */
-EventChartMatrixYokingValidation::~EventChartMatrixYokingValidation()
+EventChartMatrixParcelYokingValidation::~EventChartMatrixParcelYokingValidation()
 {
 }
 
 /**
  * @return The mode of this event (apply or validate).
  */
-EventChartMatrixYokingValidation::Mode
-EventChartMatrixYokingValidation::getMode() const
+EventChartMatrixParcelYokingValidation::Mode
+EventChartMatrixParcelYokingValidation::getMode() const
 {
     return m_mode;
 }
@@ -84,7 +84,7 @@ EventChartMatrixYokingValidation::getMode() const
  *   Selected row or column index in the file.
  */
 void
-EventChartMatrixYokingValidation::addValidateYokingChartableInterface(const ChartableMatrixInterface* chartableInterface,
+EventChartMatrixParcelYokingValidation::addValidateYokingChartableInterface(const ChartableMatrixParcelInterface* chartableInterface,
                                                                       const int32_t selectedRowOrColumnIndex)
 {
     CaretAssert(chartableInterface);
@@ -171,7 +171,7 @@ EventChartMatrixYokingValidation::addValidateYokingChartableInterface(const Char
  *    True if compatible, else false.
  */
 bool
-EventChartMatrixYokingValidation::isValidateYokingCompatible(AString& messageOut,
+EventChartMatrixParcelYokingValidation::isValidateYokingCompatible(AString& messageOut,
                                                              int32_t& selectedRowOrColumnIndexOut) const
 {
     selectedRowOrColumnIndexOut = -1;
@@ -201,8 +201,8 @@ EventChartMatrixYokingValidation::isValidateYokingCompatible(AString& messageOut
 /**
  * @return Chartable interface for which this event was issued.
  */
-const ChartableMatrixInterface*
-EventChartMatrixYokingValidation::getChartableMatrixInterface() const
+const ChartableMatrixParcelInterface*
+EventChartMatrixParcelYokingValidation::getChartableMatrixParcelInterface() const
 {
     return m_chartableInterface;
 }

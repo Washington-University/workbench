@@ -5805,6 +5805,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityParcelSeriesFiles.begin(),
                            m_connectivityParcelSeriesFiles.end());
     
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityScalarDataSeriesFiles.begin(),
+                           m_connectivityScalarDataSeriesFiles.end());
+    
     allDataFilesOut.push_back(m_paletteFile);
     
     allDataFilesOut.insert(allDataFilesOut.end(),

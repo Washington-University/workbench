@@ -55,7 +55,7 @@ BrainBrowserWindowToolBarChartType::BrainBrowserWindowToolBarChartType(BrainBrow
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
-    m_chartMatrixTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX));
+    m_chartMatrixTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER));
     
     m_chartDataSeriesTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES));
 
@@ -96,7 +96,7 @@ BrainBrowserWindowToolBarChartType::chartTypeRadioButtonClicked(int)
         chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES;
     }
     else if (m_chartMatrixTypeRadioButton->isChecked()) {
-        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX;
+        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER;
     }
     else if (m_chartTimeSeriesTypeRadioButton->isChecked()) {
         chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
@@ -149,7 +149,7 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
                 case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                     dataSeriesValidFlag = true;
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     matrixValidFlag = true;
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
@@ -168,7 +168,7 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
             case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                 m_chartDataSeriesTypeRadioButton->setChecked(true);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 m_chartMatrixTypeRadioButton->setChecked(true);
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:

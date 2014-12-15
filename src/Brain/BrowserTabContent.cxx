@@ -1189,7 +1189,7 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 {
                     CaretDataFileSelectionModel* fileModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
                     if (fileModel != NULL) {
@@ -2101,7 +2101,7 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         ModelChart* modelChart = getDisplayedChartModel();
         CaretAssert(modelChart);
         
-        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
             CaretDataFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
             if (matrixSelectionModel != NULL) {
                 ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();
@@ -2231,7 +2231,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         ModelChart* modelChart = getDisplayedChartModel();
         CaretAssert(modelChart);
         
-        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
             CaretDataFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
             if (matrixSelectionModel != NULL) {
                 ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();

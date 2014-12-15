@@ -23,7 +23,7 @@
 
 #include "BrainConstants.h"
 #include "CiftiMappableDataFile.h"
-#include "ChartableMatrixInterface.h"
+#include "ChartableMatrixParcelInterface.h"
 
 namespace caret {
     
@@ -31,7 +31,7 @@ namespace caret {
     class SceneClassAssistant;
     
     class CiftiParcelLabelFile : public CiftiMappableDataFile,
-    public ChartableMatrixInterface {
+    public ChartableMatrixParcelInterface {
         
     public:
         CiftiParcelLabelFile();

@@ -125,7 +125,7 @@ ChartToolBoxViewController::receiveEvent(Event* event)
                         break;
                     case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                         break;
-                    case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                         break;
                     case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                         historyWidgetValid = true;
@@ -170,7 +170,7 @@ ChartToolBoxViewController::getSelectedChartModel()
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                 chartModel = modelChart->getSelectedTimeSeriesChartModel(browserTabIndex);

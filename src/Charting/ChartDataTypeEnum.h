@@ -37,8 +37,8 @@ public:
     enum Enum {
         /** Invalid */
         CHART_DATA_TYPE_INVALID,
-        /** Matrix (connectivity) */
-        CHART_DATA_TYPE_MATRIX,
+        /** Matrix (connectivity in layer) */
+        CHART_DATA_TYPE_MATRIX_LAYER,
         /** Data Series */
         CHART_DATA_TYPE_DATA_SERIES,
         /** Time Series */

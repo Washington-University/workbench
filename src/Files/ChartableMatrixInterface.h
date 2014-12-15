@@ -32,8 +32,6 @@ namespace caret {
     class CaretMappableDataFile;
     class ChartMatrixDisplayProperties;
     class CiftiMappableDataFile;
-    class CiftiParcelLabelFile;
-    class CiftiParcelReordering;
     class CiftiParcelsMap;
     
     class ChartableMatrixInterface {
@@ -104,32 +102,6 @@ namespace caret {
          */
         virtual ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) = 0;
         
-        /**
-         * @return Coloring mode for selected parcel.
-         */
-        virtual CiftiParcelColoringModeEnum::Enum getSelectedParcelColoringMode() const = 0;
-        
-        /**
-         * Set the coloring mode for selected parcel.
-         *
-         * @param coloringMode
-         *    New value for coloring mode.
-         */
-        virtual void setSelectedParcelColoringMode(const CiftiParcelColoringModeEnum::Enum coloringMode) = 0;
-        
-        /**
-         * @return Color for selected parcel.
-         */
-        virtual CaretColorEnum::Enum getSelectedParcelColor() const = 0;
-        
-        /**
-         * Set color for selected parcel.
-         *
-         * @param color
-         *    New color for selected parcel.
-         */
-        virtual void setSelectedParcelColor(const CaretColorEnum::Enum color) = 0;
-        
         virtual CaretMappableDataFile* getMatrixChartCaretMappableDataFile();
         
         virtual const CaretMappableDataFile* getMatrixChartCaretMappableDataFile() const;
@@ -168,103 +140,6 @@ namespace caret {
         virtual void getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
         
         bool isMatrixChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
-        
-        /**
-         * Get the selected parcel label file used for reordering of parcels.
-         *
-         * @param compatibleParcelLabelFilesOut
-         *    All Parcel Label files that are compatible with file implementing
-         *    this interface.
-         * @param selectedParcelLabelFileOut
-         *    The selected parcel label file used for reordering the parcels.
-         *    May be NULL!
-         * @param selectedParcelLabelFileMapIndexOut
-         *    Map index in the selected parcel label file.
-         * @param enabledStatusOut
-         *    Enabled status of reordering.
-         */
-        virtual void getSelectedParcelLabelFileAndMapForReordering(std::vector<CiftiParcelLabelFile*>& compatibleParcelLabelFilesOut,
-                                                                   CiftiParcelLabelFile* &selectedParcelLabelFileOut,
-                                                 int32_t& selectedParcelLabelFileMapIndexOut,
-                                                 bool& enabledStatusOut) const = 0;
-        
-        /**
-         * Set the selected parcel label file used for reordering of parcels.
-         *
-         * @param selectedParcelLabelFile
-         *    The selected parcel label file used for reordering the parcels.
-         *    May be NULL!
-         * @param selectedParcelLabelFileMapIndex
-         *    Map index in the selected parcel label file.
-         * @param enabledStatus
-         *    Enabled status of reordering.
-         */
-        virtual void setSelectedParcelLabelFileAndMapForReordering(CiftiParcelLabelFile* selectedParcelLabelFile,
-                                                                   const int32_t selectedParcelLabelFileMapIndex,
-                                                                   const bool enabledStatus) = 0;
-        
-        /**
-         * Create the parcel reordering for the given map index using
-         * the given parcel label file and its map index.
-         *
-         * @param parcelLabelFile
-         *    The selected parcel label file used for reordering the parcels.
-         * @param parcelLabelFileMapIndex
-         *    Map index in the selected parcel label file.
-         * @param errorMessageOut
-         *    Error message output.  Will only be non-empty if NULL is returned.
-         * @return
-         *    Pointer to parcel reordering or NULL if not found.
-         */
-        virtual bool createParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
-                                    const int32_t parcelLabelFileMapIndex,
-                                    AString& errorMessageOut) = 0;
-        
-        /**
-         * Get the parcel reordering for the given map index that was created using
-         * the given parcel label file and its map index.
-         *
-         * @param parcelLabelFile
-         *    The selected parcel label file used for reordering the parcels.
-         * @param parcelLabelFileMapIndex
-         *    Map index in the selected parcel label file.
-         * @return
-         *    Pointer to parcel reordering or NULL if not found.
-         */
-        virtual const CiftiParcelReordering* getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
-                                                         const int32_t parcelLabelFileMapIndex) const = 0;
-        
-        /**
-         * @return True if loading attributes (column/row, yoking) are
-         * supported by this file type.
-         */
-        virtual bool isSupportsLoadingAttributes() = 0;
-        
-        /**
-         * @return The matrix loading type (by row/column).
-         */
-        virtual ChartMatrixLoadingDimensionEnum::Enum getMatrixLoadingDimension() const = 0;
-        
-        /**
-         * Set the matrix loading type (by row/column).
-         *
-         * @param matrixLoadingType
-         *    New value for matrix loading type.
-         */
-        virtual void setMatrixLoadingDimension(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType) = 0;
-        
-        /**
-         * @return Selected yoking group.
-         */
-        virtual YokingGroupEnum::Enum getYokingGroup() const = 0;
-        
-        /**
-         * Set the selected yoking group.
-         *
-         * @param yokingGroup
-         *    New value for yoking group.
-         */
-        virtual void setYokingGroup(const YokingGroupEnum::Enum yokingType) = 0;
         
         // ADD_NEW_METHODS_HERE
         

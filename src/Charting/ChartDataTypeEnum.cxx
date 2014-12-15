@@ -114,9 +114,9 @@ ChartDataTypeEnum::initialize()
                                     "CHART_DATA_TYPE_DATA_SERIES", 
                                     "Data Series"));
     
-    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_MATRIX,
-                                         "CHART_DATA_TYPE_MATRIX",
-                                         "Matrix"));
+    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_MATRIX_LAYER,
+                                         "CHART_DATA_TYPE_MATRIX_LAYER",
+                                         "Matrix - Layer"));
     
     enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_TIME_SERIES,
                                     "CHART_DATA_TYPE_TIME_SERIES", 
@@ -164,7 +164,7 @@ ChartDataTypeEnum::toName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its name.
- * @param name 
+ * @param nameIn
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -173,9 +173,14 @@ ChartDataTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 ChartDataTypeEnum::Enum 
-ChartDataTypeEnum::fromName(const AString& name, bool* isValidOut)
+ChartDataTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+ 
+    AString name(nameIn);
+    if (name == "CHART_DATA_TYPE_MATRIX") {
+        name = "CHART_DATA_TYPE_MATRIX_LAYER";
+    }
     
     bool validFlag = false;
     Enum enumValue = ChartDataTypeEnum::enumData[0].enumValue;
@@ -217,7 +222,7 @@ ChartDataTypeEnum::toGuiName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its GUI name.
- * @param s 
+ * @param guiNameIn
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -226,9 +231,14 @@ ChartDataTypeEnum::toGuiName(Enum enumValue) {
  *     Enumerated value.
  */
 ChartDataTypeEnum::Enum 
-ChartDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ChartDataTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    
+    AString guiName(guiNameIn);
+    if (guiName == "Matrix") {
+        guiName = "Matrix - Layer";
+    }
     
     bool validFlag = false;
     Enum enumValue = ChartDataTypeEnum::enumData[0].enumValue;

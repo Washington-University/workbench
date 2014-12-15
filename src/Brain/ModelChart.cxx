@@ -235,7 +235,7 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             CaretAssert(0);
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
             CaretAssert(0);
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
@@ -620,7 +620,7 @@ ModelChart::saveChartModelsToScene(const SceneAttributes* sceneAttributes,
             case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                 chartModel = getSelectedDataSeriesChartModel(tabIndex);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                 chartModel = getSelectedTimeSeriesChartModel(tabIndex);
@@ -726,7 +726,7 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                     switch (chartDataType) {
                         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                             CaretAssert(0);
                             break;
                         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
@@ -795,7 +795,7 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                 m_dataSeriesChartData.push_back(cartChartPointer);
             }
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 CaretAssert(0);
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
@@ -829,7 +829,7 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
             chartModel = const_cast<ChartModelDataSeries*>(getSelectedDataSeriesChartModel(tabIndex));
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
             chartModel = const_cast<ChartModelTimeSeries*>(getSelectedTimeSeriesChartModel(tabIndex));
@@ -946,7 +946,7 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                     haveTimeSeries = true;
@@ -975,7 +975,7 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     haveMatrix = true;
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
@@ -988,7 +988,7 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
         validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES);
     }
     if (haveMatrix) {
-        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
     }
     if (haveTimeSeries) {
         validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
@@ -1062,9 +1062,9 @@ ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
                             break;
                         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                             if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
-                                chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX;
+                                chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER;
                             }
                             break;
                         case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:

@@ -21,21 +21,52 @@
  */
 /*LICENSE_END*/
 
-
+#include "BrainConstants.h"
+#include "ChartableMatrixInterface.h"
 #include "CiftiMappableDataFile.h"
-
+#include "EventListenerInterface.h"
 
 
 namespace caret {
 
-    class CiftiScalarDataSeriesFile : public CiftiMappableDataFile {
+    class CiftiScalarDataSeriesFile :
+    public CiftiMappableDataFile,
+    public ChartableMatrixInterface,
+    public EventListenerInterface {
         
     public:
         CiftiScalarDataSeriesFile();
         
         virtual ~CiftiScalarDataSeriesFile();
         
-
+        virtual void receiveEvent(Event* event);
+        
+        virtual void getMatrixDimensions(int32_t& numberOfRowsOut,
+                                         int32_t& numberOfColumnsOut) const;
+        
+        virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
+                                       int32_t& numberOfColumnsOut,
+                                       std::vector<float>& rgbaOut) const;
+        
+        virtual bool getMatrixCellAttributes(const int32_t rowIndex,
+                                             const int32_t columnIndex,
+                                             AString& cellValueOut,
+                                             AString& rowNameOut,
+                                             AString& columnNameOut) const;
+        
+        virtual bool isMatrixChartingEnabled(const int32_t tabIndex) const;
+        
+        virtual bool isMatrixChartingSupported() const;
+        
+        virtual void setMatrixChartingEnabled(const int32_t tabIndex,
+                                              const bool enabled);
+        
+        virtual void getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        
+        const ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) const;
+        
+        ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -43,8 +74,13 @@ namespace caret {
 
         CiftiScalarDataSeriesFile& operator=(const CiftiScalarDataSeriesFile&);
         
+        bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        ChartMatrixDisplayProperties* m_chartMatrixDisplayProperties[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         // ADD_NEW_MEMBERS_HERE
 
+        
     };
     
 #ifdef __CIFTI_SCALAR_DATA_SERIES_FILE_DECLARE__

@@ -151,7 +151,7 @@ ChartData::newChartDataForChartDataType(const ChartDataTypeEnum::Enum chartDataT
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             CaretAssert(0);
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
             CaretAssert(0);
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:

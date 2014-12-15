@@ -26,7 +26,7 @@
 #include "CaretAssert.h"
 #include "CiftiFile.h"
 #include "CaretLogger.h"
-#include "ChartableMatrixInterface.h"
+#include "ChartableMatrixParcelInterface.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileException.h"
 #include "EventManager.h"
@@ -363,9 +363,9 @@ CiftiMappableConnectivityMatrixDataFile::getCifitDirectionForLoadingRowOrColumn(
      * Parcel File is able to load by either and implements the 
      * ChartableMatrixInterface.
      */
-    ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(this);
-    if (matrixInterface != NULL) {
-        switch (matrixInterface->getMatrixLoadingDimension()) {
+    ChartableMatrixParcelInterface* matrixParcelInterface = dynamic_cast<ChartableMatrixParcelInterface*>(this);
+    if (matrixParcelInterface != NULL) {
+        switch (matrixParcelInterface->getMatrixLoadingDimension()) {
             case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
                 ciftiDirection = CiftiXML::ALONG_ROW;
                 break;
