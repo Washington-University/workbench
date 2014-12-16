@@ -118,6 +118,10 @@ ChartDataTypeEnum::initialize()
                                          "CHART_DATA_TYPE_MATRIX_LAYER",
                                          "Matrix - Layer"));
     
+    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_MATRIX_SERIES,
+                                         "CHART_DATA_TYPE_MATRIX_SERIES",
+                                         "Matrix - Series"));
+    
     enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_TIME_SERIES,
                                     "CHART_DATA_TYPE_TIME_SERIES", 
                                     "Time Series"));

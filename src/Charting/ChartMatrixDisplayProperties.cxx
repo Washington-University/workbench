@@ -48,6 +48,7 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_cellHeight = 10.0;
     m_colorBarDisplayed = false;
     m_highlightSelectedRowColumn = true;
+    m_displayGridLines = true;
     resetPropertiesToDefault();
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -57,6 +58,7 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_sceneAssistant->addArray("m_viewPanning", m_viewPanning, 2, 0.0);
     m_sceneAssistant->add("m_colorBarDisplayed", &m_colorBarDisplayed);
     m_sceneAssistant->add("m_highlightSelectedRowColumn", &m_highlightSelectedRowColumn);
+    m_sceneAssistant->add("m_displayGridLines", &m_displayGridLines);
     
     m_sceneAssistant->add<ChartMatrixScaleModeEnum, ChartMatrixScaleModeEnum::Enum>("m_scaleMode",
                                                                                     &m_scaleMode);
@@ -346,6 +348,27 @@ void
 ChartMatrixDisplayProperties::setSelectedRowColumnHighlighted(const bool highlightStatus)
 {
     m_highlightSelectedRowColumn = highlightStatus;
+}
+
+/**
+ * Are the grid lines displayed?
+ */
+bool
+ChartMatrixDisplayProperties::isGridLinesDisplayed() const
+{
+    return m_displayGridLines;
+}
+
+/**
+ * Set the grid lines displayed for the given tab.
+ *
+ * @param displayGridLines
+ *     True if grid lines are displayed, else false.
+ */
+void
+ChartMatrixDisplayProperties::setGridLinesDisplayed(const bool displayGridLines)
+{
+    m_displayGridLines = displayGridLines;
 }
 
 

@@ -33,6 +33,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartData.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "CaretPreferences.h"
@@ -1184,38 +1185,46 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
     if (useChartsFlag) {
         ModelChart* modelChart = getDisplayedChartModel();
         if (modelChart != NULL) {
+            CaretDataFileSelectionModel* fileModel = NULL;
+            
             switch (modelChart->getSelectedChartDataType(m_tabNumber)) {
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                {
-                    CaretDataFileSelectionModel* fileModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
-                    if (fileModel != NULL) {
-                        CaretDataFile* caretFile = fileModel->getSelectedFile();
-                        if (caretFile != NULL) {
-                            CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(caretFile);
-                            if (mapFile != NULL) {
-                                ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(mapFile);
-                                if (matrixFile != NULL) {
-                                    ChartMatrixDisplayProperties* props = matrixFile->getChartMatrixDisplayProperties(m_tabNumber);
-                                    if (props->isColorBarDisplayed()) {
-                                        /*
-                                         * Matrix contains all file data and always
-                                         * uses a map index of zero.
-                                         */
-                                        mapFiles.push_back(mapFile);
-                                        mapIndices.push_back(0);
-                                    }
-                                }
+                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
+                        fileModel = modelChart->getChartableMatrixParcelFileSelectionModel(m_tabNumber);
+                    }
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
+                        CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(m_tabNumber);
+                        fileModel = fileMapModel->getCaretDataFileSelectionModel();
+                    }
+                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                    break;
+            }
+            
+            if (fileModel != NULL) {
+                CaretDataFile* caretFile = fileModel->getSelectedFile();
+                if (caretFile != NULL) {
+                    CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(caretFile);
+                    if (mapFile != NULL) {
+                        ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(mapFile);
+                        if (matrixFile != NULL) {
+                            ChartMatrixDisplayProperties* props = matrixFile->getChartMatrixDisplayProperties(m_tabNumber);
+                            if (props->isColorBarDisplayed()) {
+                                /*
+                                 * Matrix contains all file data and always
+                                 * uses a map index of zero.
+                                 */
+                                mapFiles.push_back(mapFile);
+                                mapIndices.push_back(0);
                             }
                         }
                     }
                 }
-                    break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-                    break;
             }
         }
     }
@@ -1224,7 +1233,7 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
 /**
  * @return The volume surface outline model for this tab.
  */
-VolumeSurfaceOutlineSetModel* 
+VolumeSurfaceOutlineSetModel*
 BrowserTabContent::getVolumeSurfaceOutlineSet()
 {
     return m_volumeSurfaceOutlineSetModel;
@@ -2101,8 +2110,15 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         ModelChart* modelChart = getDisplayedChartModel();
         CaretAssert(modelChart);
         
+        CaretDataFileSelectionModel* matrixSelectionModel = NULL;
         if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
-            CaretDataFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
+            matrixSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(m_tabNumber);
+        }
+        
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
+            CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(m_tabNumber);
+            matrixSelectionModel = fileMapModel->getCaretDataFileSelectionModel();
+        }
             if (matrixSelectionModel != NULL) {
                 ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();
                 if (chartableInterface != NULL) {
@@ -2118,7 +2134,6 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
                     matrixProperties->setViewZooming(scaling);
                 }
             }
-        }        
     }
     else {
         float scaling = getViewingTransformation()->getScaling();
@@ -2231,19 +2246,25 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         ModelChart* modelChart = getDisplayedChartModel();
         CaretAssert(modelChart);
         
+        CaretDataFileSelectionModel* matrixSelectionModel = NULL;
         if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
-            CaretDataFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
-            if (matrixSelectionModel != NULL) {
-                ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();
-                if (chartableInterface != NULL) {
-                    ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
-                    matrixProperties->setScaleMode(ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL);
-                    float translation[2];
-                    matrixProperties->getViewPanning(translation);
-                    translation[0] += mouseDX;
-                    translation[1] += mouseDY;
-                    matrixProperties->setViewPanning(translation);
-                }
+            matrixSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(m_tabNumber);
+        }
+        
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
+            CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(m_tabNumber);
+            matrixSelectionModel = fileMapModel->getCaretDataFileSelectionModel();
+        }
+        if (matrixSelectionModel != NULL) {
+            ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();
+            if (chartableInterface != NULL) {
+                ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
+                matrixProperties->setScaleMode(ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL);
+                float translation[2];
+                matrixProperties->getViewPanning(translation);
+                translation[0] += mouseDX;
+                translation[1] += mouseDY;
+                matrixProperties->setViewPanning(translation);
             }
         }
     }

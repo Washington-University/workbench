@@ -55,7 +55,9 @@ BrainBrowserWindowToolBarChartType::BrainBrowserWindowToolBarChartType(BrainBrow
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
-    m_chartMatrixTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER));
+    m_chartMatrixLayerTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER));
+    
+    m_chartMatrixSeriesTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES));
     
     m_chartDataSeriesTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES));
 
@@ -65,14 +67,16 @@ m_parentToolBar(parentToolBar)
     m_chartTypeButtonGroup = new QButtonGroup(this);
     QObject::connect(m_chartTypeButtonGroup, SIGNAL(buttonClicked(int)),
                      this, SLOT(chartTypeRadioButtonClicked(int)));
-    m_chartTypeButtonGroup->addButton(m_chartMatrixTypeRadioButton);
+    m_chartTypeButtonGroup->addButton(m_chartMatrixLayerTypeRadioButton);
+    m_chartTypeButtonGroup->addButton(m_chartMatrixSeriesTypeRadioButton);
     m_chartTypeButtonGroup->addButton(m_chartDataSeriesTypeRadioButton);
     m_chartTypeButtonGroup->addButton(m_chartTimeSeriesTypeRadioButton);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
     layout->addWidget(m_chartDataSeriesTypeRadioButton);
-    layout->addWidget(m_chartMatrixTypeRadioButton);
+    layout->addWidget(m_chartMatrixLayerTypeRadioButton);
+    layout->addWidget(m_chartMatrixSeriesTypeRadioButton);
     layout->addWidget(m_chartTimeSeriesTypeRadioButton);
     layout->addStretch();
 }
@@ -95,11 +99,14 @@ BrainBrowserWindowToolBarChartType::chartTypeRadioButtonClicked(int)
     if (m_chartDataSeriesTypeRadioButton->isChecked()) {
         chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES;
     }
-    else if (m_chartMatrixTypeRadioButton->isChecked()) {
+    else if (m_chartMatrixLayerTypeRadioButton->isChecked()) {
         chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER;
     }
     else if (m_chartTimeSeriesTypeRadioButton->isChecked()) {
         chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
+    }
+    else if (m_chartMatrixSeriesTypeRadioButton->isChecked()) {
+        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES;
     }
     else {
         CaretAssertMessage(0, "Has a new chart radio button been added?");
@@ -135,9 +142,10 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
         const int32_t tabIndex = browserTabContent->getTabNumber();
         const ChartDataTypeEnum::Enum chartType = chartModel->getSelectedChartDataType(tabIndex);
         
-        bool dataSeriesValidFlag = false;
-        bool matrixValidFlag     = false;
-        bool timeSeriesValidFlag = false;
+        bool dataSeriesValidFlag   = false;
+        bool matrixLayerValidFlag  = false;
+        bool matrixSeriesValidFlag = false;
+        bool timeSeriesValidFlag   = false;
         std::vector<ChartDataTypeEnum::Enum> validChartDataTypes;
         chartModel->getValidChartDataTypes(validChartDataTypes);
         for (std::vector<ChartDataTypeEnum::Enum>::iterator iter = validChartDataTypes.begin();
@@ -150,7 +158,10 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
                     dataSeriesValidFlag = true;
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                    matrixValidFlag = true;
+                    matrixLayerValidFlag = true;
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                    matrixSeriesValidFlag = true;
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                     timeSeriesValidFlag = true;
@@ -159,7 +170,7 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
         }
         
         m_chartDataSeriesTypeRadioButton->setEnabled(dataSeriesValidFlag);
-        m_chartMatrixTypeRadioButton->setEnabled(matrixValidFlag);
+        m_chartMatrixLayerTypeRadioButton->setEnabled(matrixLayerValidFlag);
         m_chartTimeSeriesTypeRadioButton->setEnabled(timeSeriesValidFlag);
         
         switch (chartType) {
@@ -169,7 +180,10 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
                 m_chartDataSeriesTypeRadioButton->setChecked(true);
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                m_chartMatrixTypeRadioButton->setChecked(true);
+                m_chartMatrixLayerTypeRadioButton->setChecked(true);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                m_chartMatrixSeriesTypeRadioButton->setChecked(true);
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                 m_chartTimeSeriesTypeRadioButton->setChecked(true);

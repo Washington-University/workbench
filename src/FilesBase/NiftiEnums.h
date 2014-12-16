@@ -298,17 +298,17 @@ public:
     /**  NIFTI Time Units
        */
     enum Enum {
-        /**  */
+        /** Unknown */
         NIFTI_UNITS_UNKNOWN = ::NIFTI_UNITS_UNKNOWN,
-        /**  */
+        /** Seconds */
         NIFTI_UNITS_SEC = ::NIFTI_UNITS_SEC,
-        /**  */
+        /** Milliseconds */
         NIFTI_UNITS_MSEC = ::NIFTI_UNITS_MSEC,
-        /**  */
+        /** Microseconds */
         NIFTI_UNITS_USEC = ::NIFTI_UNITS_USEC,
-        /**  */
+        /** Hertz */
         NIFTI_UNITS_HZ = ::NIFTI_UNITS_HZ,
-        /**  */
+        /** Parts Per Million */
         NIFTI_UNITS_PPM = ::NIFTI_UNITS_PPM
     };
 
@@ -323,8 +323,10 @@ public:
 
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
+    static AString toGuiName(Enum e);
+    
 private:
-    NiftiTimeUnitsEnum(const Enum e, const int32_t integerCode, const AString& name);
+    NiftiTimeUnitsEnum(const Enum e, const int32_t integerCode, const AString& name, const AString& guiName);
 
     static const NiftiTimeUnitsEnum* findData(const Enum e);
 
@@ -340,7 +342,7 @@ private:
 
     AString name;
 
-
+    AString guiName;
 };
 
 /**

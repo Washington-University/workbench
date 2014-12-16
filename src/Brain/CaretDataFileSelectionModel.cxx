@@ -28,7 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretMappableDataFile.h"
-#include "ChartableMatrixInterface.h"
+#include "ChartableMatrixParcelInterface.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -100,16 +100,33 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileType(Brain* brain,
 
 /**
  * Create a new instance of a Caret Data File Selection Model that
- * selects files that implement the chartable matrix interface.
+ * selects files that implement the chartable matrix parcel interface.
  *
  * @param brain
  *    Brain from which files are obtained.
  */
 CaretDataFileSelectionModel*
-CaretDataFileSelectionModel::newInstanceForChartableMatrixInterface(Brain* brain)
+CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface(Brain* brain)
 {
     CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
-                                                                         FILE_MODE_CHARTABLE_MATRIX_INTERFACE);
+                                                                         FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE);
+    
+    return model;
+}
+
+/**
+ * Create a new instance of a Caret Data File Selection Model that
+ * selects files that implement the chartable matrix interface but 
+ * NOT the chartable matrix parcel interface.
+ *
+ * @param brain
+ *    Brain from which files are obtained.
+ */
+CaretDataFileSelectionModel*
+CaretDataFileSelectionModel::newInstanceForChartableMatrixSeriesInterface(Brain* brain)
+{
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
+                                                                         FILE_MODE_CHARTABLE_MATRIX_SERIES_INTERFACE);
     
     return model;
 }
@@ -226,7 +243,7 @@ CaretDataFileSelectionModel::getAvailableFiles() const
                                                      caretDataFiles);
         }
             break;
-        case FILE_MODE_CHARTABLE_MATRIX_INTERFACE:
+        case FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE:
         {
             std::vector<ChartableMatrixInterface*> chartFiles;
             m_brain->getAllChartableMatrixDataFiles(chartFiles);
@@ -235,8 +252,33 @@ CaretDataFileSelectionModel::getAvailableFiles() const
                  iter != chartFiles.end();
                  iter++) {
                 ChartableMatrixInterface* chartFile = *iter;
-                CaretMappableDataFile* mapFile = chartFile->getMatrixChartCaretMappableDataFile();
-                caretDataFiles.push_back(mapFile);
+                ChartableMatrixParcelInterface* chartParcelFile = dynamic_cast<ChartableMatrixParcelInterface*>(chartFile);
+                /*
+                 * Want files that ARE parcel chartable
+                 */
+                if (chartParcelFile != NULL) {
+                    CaretMappableDataFile* mapFile = chartParcelFile->getMatrixChartCaretMappableDataFile();
+                    caretDataFiles.push_back(mapFile);
+                }
+            }
+        }
+        case FILE_MODE_CHARTABLE_MATRIX_SERIES_INTERFACE:
+        {
+            std::vector<ChartableMatrixInterface*> chartFiles;
+            m_brain->getAllChartableMatrixDataFiles(chartFiles);
+            
+            for (std::vector<ChartableMatrixInterface*>::iterator iter = chartFiles.begin();
+                 iter != chartFiles.end();
+                 iter++) {
+                ChartableMatrixInterface* chartFile = *iter;
+                ChartableMatrixParcelInterface* chartParcelFile = dynamic_cast<ChartableMatrixParcelInterface*>(chartFile);
+                /*
+                 * Want files that are NOT parcel chartable
+                 */
+                if (chartParcelFile == NULL) {
+                    CaretMappableDataFile* mapFile = chartFile->getMatrixChartCaretMappableDataFile();
+                    caretDataFiles.push_back(mapFile);
+                }
             }
         }
             break;

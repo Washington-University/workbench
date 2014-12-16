@@ -39,6 +39,8 @@ public:
         CHART_DATA_TYPE_INVALID,
         /** Matrix (connectivity in layer) */
         CHART_DATA_TYPE_MATRIX_LAYER,
+        /** Matrix (series data) */
+        CHART_DATA_TYPE_MATRIX_SERIES,
         /** Data Series */
         CHART_DATA_TYPE_DATA_SERIES,
         /** Time Series */

@@ -127,7 +127,6 @@ ModelWholeBrain.h
 Overlay.h
 OverlaySet.h
 OverlaySetArray.h
-OverlayYokingGroupEnum.h
 ProjectionViewTypeEnum.h
 SelectionItemDataTypeEnum.h
 SelectionItem.h
@@ -242,7 +241,6 @@ ModelWholeBrain.cxx
 Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx
-OverlayYokingGroupEnum.cxx
 ProjectionViewTypeEnum.cxx
 SelectionItemDataTypeEnum.cxx
 SelectionItem.cxx

@@ -57,6 +57,7 @@ namespace caret {
                                      const int32_t viewport[4],
                                      BrainOpenGLTextRenderInterface* textRenderer,
                                      ChartableMatrixInterface* chartMatrixInterface,
+                                     const int32_t scalarDataSeriesMapIndex,
                                      const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                      const int32_t tabIndex);
         
@@ -85,7 +86,8 @@ namespace caret {
         
         void drawChartGraphicsMatrix(const int32_t viewport[4],
                                      BrainOpenGLTextRenderInterface* textRenderer,
-                                     ChartableMatrixInterface* chartMatrixInterface);
+                                     ChartableMatrixInterface* chartMatrixInterface,
+                                     const int32_t scalarDataSeriesMapIndex);
 
         void drawChartGraphicsBoxAndSetViewport(const float vpX,
                                const float vpY,

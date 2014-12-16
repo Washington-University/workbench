@@ -38,7 +38,9 @@ namespace caret {
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileType(Brain* brain,
                                                                             const DataFileTypeEnum::Enum dataFileType);
         
-        static CaretDataFileSelectionModel* newInstanceForChartableMatrixInterface(Brain* brain);
+        static CaretDataFileSelectionModel* newInstanceForChartableMatrixParcelInterface(Brain* brain);
+        
+        static CaretDataFileSelectionModel* newInstanceForChartableMatrixSeriesInterface(Brain* brain);
         
         static CaretDataFileSelectionModel* newInstanceForMultiStructureBorderFiles(Brain* brain);
         
@@ -100,7 +102,8 @@ namespace caret {
 
     private:
         enum FileMode {
-            FILE_MODE_CHARTABLE_MATRIX_INTERFACE,
+            FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE,
+            FILE_MODE_CHARTABLE_MATRIX_SERIES_INTERFACE,
             FILE_MODE_DATA_FILE_TYPE_ENUM,
             FILE_MODE_MULTI_STRUCTURE_BORDER_FILES
         };

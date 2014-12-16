@@ -29,6 +29,7 @@
 #include "CiftiFile.h"
 #include "FastStatistics.h"
 #include "NodeAndVoxelColoring.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -48,9 +49,17 @@ CiftiScalarDataSeriesFile::CiftiScalarDataSeriesFile()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
-        m_chartMatrixDisplayProperties[i] = new ChartMatrixDisplayProperties();
+        m_chartMatrixDisplayPropertiesForTab[i] = new ChartMatrixDisplayProperties();
+        m_chartMatrixDisplayPropertiesForTab[i]->setGridLinesDisplayed(false);
+        m_yokingGroupForTab[i] = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
     }
     
+    m_sceneAssistant = new SceneClassAssistant();
+    
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>("m_yokingGroupForTab",
+                                                                                                             m_yokingGroupForTab);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_chartingEnabledForTab",
+                                                m_chartingEnabledForTab);
 }
 
 /**
@@ -59,8 +68,10 @@ CiftiScalarDataSeriesFile::CiftiScalarDataSeriesFile()
 CiftiScalarDataSeriesFile::~CiftiScalarDataSeriesFile()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete m_chartMatrixDisplayProperties[i];
+        delete m_chartMatrixDisplayPropertiesForTab[i];
     }
+    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -73,6 +84,37 @@ void
 CiftiScalarDataSeriesFile::receiveEvent(Event* event)
 {
     
+}
+
+/**
+ * @param tabIndex
+ *     Index of tab.
+ * @return 
+ *     Selected yoking group for the given tab.
+ */
+OverlayYokingGroupEnum::Enum
+CiftiScalarDataSeriesFile::getYokingGroup(const int32_t tabIndex) const
+{
+    return m_yokingGroupForTab[tabIndex];
+}
+
+/**
+ * Set the selected yoking group for the given tab.
+ *
+ * @param tabIndex
+ *     Index of tab.
+ * @param yokingGroup
+ *    New value for yoking group.
+ */
+void
+CiftiScalarDataSeriesFile::setYokingGroup(const int32_t tabIndex,
+                              const OverlayYokingGroupEnum::Enum yokingGroup)
+{
+    m_yokingGroupForTab[tabIndex] = yokingGroup;
+    
+    if (m_yokingGroupForTab[tabIndex] == OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+        return;
+    }
 }
 
 
@@ -146,13 +188,18 @@ CiftiScalarDataSeriesFile::getMatrixCellAttributes(const int32_t rowIndex,
         && (columnIndex < m_ciftiFile->getNumberOfColumns())) {
         const CiftiXML& xml = m_ciftiFile->getCiftiXML();
         
-        const std::vector<CiftiParcelsMap::Parcel>& rowsParcelsMap = xml.getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
-        CaretAssertVectorIndex(rowsParcelsMap, rowIndex);
-        rowNameOut = rowsParcelsMap[rowIndex].m_name;
+        const CiftiScalarsMap& scalarsMap = xml.getScalarsMap(CiftiXML::ALONG_COLUMN);
+        CaretAssertArrayIndex(scalarsMap, scalarsMap.getLength(), rowIndex);
+        rowNameOut = " ";
         
-        const std::vector<CiftiParcelsMap::Parcel>& columnsParcelsMap = xml.getParcelsMap(CiftiXML::ALONG_ROW).getParcels();
-        CaretAssertVectorIndex(columnsParcelsMap, columnIndex);
-        columnNameOut = columnsParcelsMap[columnIndex].m_name;
+        const CiftiSeriesMap& seriesMap = xml.getSeriesMap(CiftiXML::ALONG_ROW);
+        CaretAssertArrayIndex(seriesMap, seriesMap.getLength(), columnIndex);
+        const float time = seriesMap.getStart() + seriesMap.getStep() * columnIndex;
+        columnNameOut = (AString::number(time, 'f', 3)
+                         + " "
+                         + NiftiTimeUnitsEnum::toGuiName(getMapIntervalUnits())
+                         + " Map Name: "
+                         + getMapName(columnIndex));
         
         const int32_t numberOfElementsInRow = m_ciftiFile->getNumberOfColumns();
         std::vector<float> rowData(numberOfElementsInRow);
@@ -216,7 +263,7 @@ void
 CiftiScalarDataSeriesFile::getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     chartDataTypesOut.clear();
-    chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
+    chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES);
 }
 
 /**
@@ -226,7 +273,7 @@ const ChartMatrixDisplayProperties*
 CiftiScalarDataSeriesFile::getChartMatrixDisplayProperties(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_chartMatrixDisplayProperties, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    return m_chartMatrixDisplayProperties[tabIndex];
+    return m_chartMatrixDisplayPropertiesForTab[tabIndex];
 }
 
 /**
@@ -236,7 +283,82 @@ ChartMatrixDisplayProperties*
 CiftiScalarDataSeriesFile::getChartMatrixDisplayProperties(const int32_t tabIndex)
 {
     CaretAssertArrayIndex(m_chartMatrixDisplayProperties, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    return m_chartMatrixDisplayProperties[tabIndex];
+    return m_chartMatrixDisplayPropertiesForTab[tabIndex];
+}
+
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+CiftiScalarDataSeriesFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                                             SceneClass* sceneClass)
+{
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    /*
+     * Save chart matrix properties
+     */
+    SceneObjectMapIntegerKey* chartMatrixPropertiesMap = new SceneObjectMapIntegerKey("m_chartMatrixDisplayPropertiesMap",
+                                                                                      SceneObjectDataTypeEnum::SCENE_CLASS);
+    const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+         tabIter != tabIndices.end();
+         tabIter++) {
+        const int32_t tabIndex = *tabIter;
+        
+        chartMatrixPropertiesMap->addClass(tabIndex,
+                                           m_chartMatrixDisplayPropertiesForTab[tabIndex]->saveToScene(sceneAttributes,
+                                                                                                 "m_chartMatrixDisplayProperties"));
+    }
+    sceneClass->addChild(chartMatrixPropertiesMap);
+}
+
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+CiftiScalarDataSeriesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                                                  const SceneClass* sceneClass)
+{
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
+    /*
+     * Restore chart matrix properties
+     */
+    const SceneObjectMapIntegerKey* chartMatrixPropertiesMap = sceneClass->getMapIntegerKey("m_chartMatrixDisplayPropertiesMap");
+    if (chartMatrixPropertiesMap != NULL) {
+        const std::vector<int32_t> tabIndices = chartMatrixPropertiesMap->getKeys();
+        for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+             tabIter != tabIndices.end();
+             tabIter++) {
+            const int32_t tabIndex = *tabIter;
+            const SceneClass* sceneClass = chartMatrixPropertiesMap->classValue(tabIndex);
+            m_chartMatrixDisplayPropertiesForTab[tabIndex]->restoreFromScene(sceneAttributes,
+                                                                       sceneClass);
+        }
+    }
 }
 
 

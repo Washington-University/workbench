@@ -120,6 +120,8 @@ namespace caret {
         
         void highlightSelectionCheckBoxClicked(bool checked);
         
+        void displayGridLinesCheckBoxClicked(bool checked);
+        
         void resetButtonClicked();
         
     private:
@@ -132,6 +134,8 @@ namespace caret {
         WuQWidgetObjectGroup* m_manualWidgetsGroup;
         
         QCheckBox* m_highlightSelectionCheckBox;
+        
+        QCheckBox* m_displayGridLinesCheckBox;
         
     };
 #ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ATTRIBUTES_DECLARE__

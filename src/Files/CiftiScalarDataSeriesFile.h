@@ -22,22 +22,29 @@
 /*LICENSE_END*/
 
 #include "BrainConstants.h"
-#include "ChartableMatrixInterface.h"
+#include "ChartableMatrixSeriesInterface.h"
 #include "CiftiMappableDataFile.h"
 #include "EventListenerInterface.h"
 
 
 namespace caret {
 
+    class SceneClassAssistant;
+    
     class CiftiScalarDataSeriesFile :
     public CiftiMappableDataFile,
-    public ChartableMatrixInterface,
+    public ChartableMatrixSeriesInterface,
     public EventListenerInterface {
         
     public:
         CiftiScalarDataSeriesFile();
         
         virtual ~CiftiScalarDataSeriesFile();
+        
+        virtual OverlayYokingGroupEnum::Enum getYokingGroup(const int32_t tabIndex) const;
+        
+        virtual void setYokingGroup(const int32_t tabIndex,
+                                    const OverlayYokingGroupEnum::Enum yokingType);
         
         virtual void receiveEvent(Event* event);
         
@@ -69,14 +76,26 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
+        
     private:
         CiftiScalarDataSeriesFile(const CiftiScalarDataSeriesFile&);
 
         CiftiScalarDataSeriesFile& operator=(const CiftiScalarDataSeriesFile&);
         
+        SceneClassAssistant* m_sceneAssistant;
+        
+        /** yoking status */
+        OverlayYokingGroupEnum::Enum m_yokingGroupForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        ChartMatrixDisplayProperties* m_chartMatrixDisplayProperties[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        ChartMatrixDisplayProperties* m_chartMatrixDisplayPropertiesForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         // ADD_NEW_MEMBERS_HERE
 

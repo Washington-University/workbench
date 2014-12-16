@@ -36,6 +36,7 @@
 namespace caret {
 
     class CaretDataFileSelectionModel;
+    class CaretMappableDataFileAndMapSelectionModel;
     class ChartData;
     class ChartDataCartesian;
     class ChartableMatrixInterface;
@@ -100,7 +101,9 @@ namespace caret {
         
         void reset();
         
-        CaretDataFileSelectionModel* getChartableMatrixFileSelectionModel(const int32_t tabIndex);
+        CaretDataFileSelectionModel* getChartableMatrixParcelFileSelectionModel(const int32_t tabIndex);
+        
+        CaretMappableDataFileAndMapSelectionModel* getChartableMatrixSeriesFileAndMapSelectionModel(const int32_t tabIndex);
         
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
@@ -155,6 +158,8 @@ namespace caret {
         std::vector<ChartableMatrixInterface*> m_previousChartMatrixFiles;
 
         CaretDataFileSelectionModel* m_chartableMatrixFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        CaretMappableDataFileAndMapSelectionModel* m_chartableMatrixSeriesFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         SceneClassAssistant* m_sceneAssistant;
     };

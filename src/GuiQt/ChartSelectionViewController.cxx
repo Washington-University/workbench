@@ -53,6 +53,7 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CiftiParcelLabelFile.h"
+#include "CiftiScalarDataSeriesFile.h"
 #include "DeveloperFlagsEnum.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventChartMatrixParcelYokingValidation.h"
@@ -93,9 +94,12 @@ m_browserWindowIndex(browserWindowIndex)
     
     m_matrixParcelChartWidget = createMatrixParcelChartWidget(orientation);
     
+    m_matrixSeriesChartWidget = createMatrixSeriesChartWidget(orientation);
+    
     m_stackedWidget = new QStackedWidget();
     m_stackedWidget->addWidget(m_brainordinateChartWidget);
     m_stackedWidget->addWidget(m_matrixParcelChartWidget);
+    m_stackedWidget->addWidget(m_matrixSeriesChartWidget);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
@@ -143,7 +147,10 @@ ChartSelectionViewController::updateSelectionViewController()
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-            m_mode = MODE_MATRIX;
+            m_mode = MODE_MATRIX_LAYER;
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+            m_mode = MODE_MATRIX_SERIES;
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
             m_mode = MODE_BRAINORDINATE;
@@ -160,11 +167,17 @@ ChartSelectionViewController::updateSelectionViewController()
                                            modelChart,
                                            browserTabIndex);
             break;
-        case MODE_MATRIX:
+        case MODE_MATRIX_LAYER:
             m_stackedWidget->setCurrentWidget(m_matrixParcelChartWidget);
             updateMatrixParcelChartWidget(brain,
                                     modelChart,
                                     browserTabIndex);
+            break;
+        case MODE_MATRIX_SERIES:
+            m_stackedWidget->setCurrentWidget(m_matrixSeriesChartWidget);
+            updateMatrixSeriesChartWidget(brain,
+                                          modelChart,
+                                          browserTabIndex);
             break;
     }
 }
@@ -185,7 +198,8 @@ ChartSelectionViewController::brainordinateSelectionCheckBoxClicked(int indx)
             break;
         case MODE_BRAINORDINATE:
             break;
-        case MODE_MATRIX:
+        case MODE_MATRIX_LAYER:
+        case MODE_MATRIX_SERIES:
             CaretAssertMessage(0, "Checkbox should never be clicked when mode is matrix.");
             return;
             break;
@@ -405,10 +419,14 @@ ChartSelectionViewController::matrixParcelFileLoadingComboBoxActivated()
     ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
     ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
     ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
     if ( ! getChartMatrixAndProperties(caretMappableDataFile,
                                        chartableMatrixInterface,
                                        chartableMatrixParcelInterface,
-                                       chartMatrixDisplayProperties)) {
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
         return;
     }
     
@@ -431,10 +449,14 @@ ChartSelectionViewController::matrixParcelYokingGroupEnumComboBoxActivated()
     ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
     ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
     ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
     if ( ! getChartMatrixAndProperties(caretMappableDataFile,
                                        chartableMatrixInterface,
                                        chartableMatrixParcelInterface,
-                                       chartMatrixDisplayProperties)) {
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
         return;
     }
     
@@ -512,10 +534,14 @@ ChartSelectionViewController::matrixParcelColorBarActionTriggered(bool status)
     ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
     ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
     ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
     if ( ! getChartMatrixAndProperties(caretMappableDataFile,
                                        chartableMatrixInterface,
                                        chartableMatrixParcelInterface,
-                                       chartMatrixDisplayProperties)) {
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
         return;
     }
     
@@ -533,10 +559,14 @@ ChartSelectionViewController::matrixParcelSettingsActionTriggered()
     ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
     ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
     ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
     if ( ! getChartMatrixAndProperties(caretMappableDataFile,
                                        chartableMatrixInterface,
                                        chartableMatrixParcelInterface,
-                                       chartMatrixDisplayProperties)) {
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
         return;
     }
 
@@ -783,8 +813,13 @@ ChartSelectionViewController::createMatrixParcelChartWidget(const Qt::Orientatio
  *    Output with ChartableMatrixInterface implemented by the caret
  *    mappable data file.
  * @param chartableMatrixParcelInterfaceOut
- *    Output with chartableMatrixParcelInterfaceOut implemented by the 
+ *    Output with ChartableMatrixParcelInterfaceOut implemented by the
  *    caret mappable data file (may be NULL).
+ * @param chartableMatrixSeriesInterfaceOut
+ *    Output with ChartableMatrixSeriesInterfaceOut implemented by the 
+ *    caret mappable data file (may be NULL).
+ * @param browserTabIndexOut
+ *    Index selected tab.
  * @param chartMatrixDisplayPropertiesOut
  *    Matrix display properties from the ChartableMatrixInterface.
  * @return True if all output values are valid, else false.
@@ -793,12 +828,16 @@ bool
 ChartSelectionViewController::getChartMatrixAndProperties(CaretMappableDataFile* &caretMappableDataFileOut,
                                                           ChartableMatrixInterface* & chartableMatrixInterfaceOut,
                                                           ChartableMatrixParcelInterface* &chartableMatrixParcelInterfaceOut,
-                                                          ChartMatrixDisplayProperties* &chartMatrixDisplayPropertiesOut)
+                                                          ChartableMatrixSeriesInterface* &chartableMatrixSeriesInterfaceOut,
+                                                          ChartMatrixDisplayProperties* &chartMatrixDisplayPropertiesOut,
+                                                          int32_t& browserTabIndexOut)
 {
-    caretMappableDataFileOut        = NULL;
-    chartableMatrixInterfaceOut     = NULL;
+    caretMappableDataFileOut          = NULL;
+    chartableMatrixInterfaceOut       = NULL;
     chartableMatrixParcelInterfaceOut = NULL;
-    chartMatrixDisplayPropertiesOut = NULL;
+    chartableMatrixSeriesInterfaceOut = NULL;
+    chartMatrixDisplayPropertiesOut   = NULL;
+    browserTabIndexOut                = -1;
     
     Brain* brain = GuiManager::get()->getBrain();
     
@@ -807,11 +846,15 @@ ChartSelectionViewController::getChartMatrixAndProperties(CaretMappableDataFile*
     if (browserTabContent == NULL) {
         return false;
     }
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    browserTabIndexOut = browserTabContent->getTabNumber();
+    
+    if (browserTabIndexOut < 0) {
+        return false;
+    }
     
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
-        CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
+        CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(browserTabIndexOut);
         m_matrixParcelFileSelectionComboBox->updateComboBox(fileSelectionModel);
         
         CaretDataFile* caretFile = fileSelectionModel->getSelectedFile();
@@ -819,7 +862,8 @@ ChartSelectionViewController::getChartMatrixAndProperties(CaretMappableDataFile*
             chartableMatrixInterfaceOut = dynamic_cast<ChartableMatrixInterface*>(caretFile);
             if (chartableMatrixInterfaceOut != NULL) {
                 chartableMatrixParcelInterfaceOut = dynamic_cast<ChartableMatrixParcelInterface*>(caretFile);
-                chartMatrixDisplayPropertiesOut = chartableMatrixInterfaceOut->getChartMatrixDisplayProperties(browserTabIndex);
+                chartableMatrixSeriesInterfaceOut = dynamic_cast<ChartableMatrixSeriesInterface*>(caretFile);
+                chartMatrixDisplayPropertiesOut = chartableMatrixInterfaceOut->getChartMatrixDisplayProperties(browserTabIndexOut);
                 caretMappableDataFileOut = chartableMatrixInterfaceOut->getMatrixChartCaretMappableDataFile();
                 return true;
             }
@@ -840,10 +884,14 @@ ChartSelectionViewController::parcelLabelFileRemappingFileSelectorChanged()
     ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
     ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
     ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
     if ( ! getChartMatrixAndProperties(caretMappableDataFile,
                                        chartableMatrixInterface,
                                        chartableMatrixParcelInterface,
-                                       chartMatrixDisplayProperties)) {
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
         return;
     }
     
@@ -885,77 +933,363 @@ ChartSelectionViewController::parcelLabelFileRemappingFileSelectorChanged()
 void
 ChartSelectionViewController::updateMatrixParcelChartWidget(Brain* /* brain */,
                                                       ModelChart* modelChart,
-                                                      const int32_t browserTabIndex)
+                                                      const int32_t /*browserTabIndex*/)
 {
     CaretMappableDataFile*          caretMappableDataFile        = NULL;
     ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
     ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
     ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
     if ( ! getChartMatrixAndProperties(caretMappableDataFile,
                                        chartableMatrixInterface,
                                        chartableMatrixParcelInterface,
-                                       chartMatrixDisplayProperties)) {
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
         return;
     }
     
-    CaretAssert(chartableMatrixParcelInterface);
-    
-    
-    
-    CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
-    m_matrixParcelFileSelectionComboBox->updateComboBox(fileSelectionModel);
-//    m_parcelLabelFileRemappingFileSelector->updateFileAndMapSelector(parcelLabelReMapModel);
-
-//    bool enablePaletteOptions = false;
-//    const ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
-//    if (displayProperties != NULL) {
-    const ChartMatrixLoadingDimensionEnum::Enum loadType = chartableMatrixParcelInterface->getMatrixLoadingDimension();
-    m_matrixParcelLoadByColumnRowComboBox->setSelectedItem<ChartMatrixLoadingDimensionEnum, ChartMatrixLoadingDimensionEnum::Enum>(loadType);
+    if (chartableMatrixParcelInterface != NULL) {
+        CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(browserTabIndex);
+        m_matrixParcelFileSelectionComboBox->updateComboBox(fileSelectionModel);
+        const ChartMatrixLoadingDimensionEnum::Enum loadType = chartableMatrixParcelInterface->getMatrixLoadingDimension();
+        m_matrixParcelLoadByColumnRowComboBox->setSelectedItem<ChartMatrixLoadingDimensionEnum, ChartMatrixLoadingDimensionEnum::Enum>(loadType);
         
         const YokingGroupEnum::Enum yokingGroup = chartableMatrixParcelInterface->getYokingGroup();
         m_matrixParcelYokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(yokingGroup);
         m_matrixParcelColorBarAction->blockSignals(true);
         m_matrixParcelColorBarAction->setChecked(chartMatrixDisplayProperties->isColorBarDisplayed());
         m_matrixParcelColorBarAction->blockSignals(false);
-    
-    m_matrixParcelYokingGroupComboBox->getWidget()->setEnabled(chartableMatrixParcelInterface->isSupportsLoadingAttributes());
-    m_matrixParcelLoadByColumnRowComboBox->getWidget()->setEnabled(chartableMatrixParcelInterface->isSupportsLoadingAttributes());
-//    }
-    
-    /*
-     * Update palette reordering.
-     */
-    std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
-    CiftiParcelLabelFile* parcelLabelFile = NULL;
-    int32_t parcelLabelFileMapIndex = -1;
-    bool remappingEnabled = false;
-    chartableMatrixParcelInterface->getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
-                                                                                  parcelLabelFile,
-                                                                                  parcelLabelFileMapIndex,
-                                                                                  remappingEnabled);
-    std::vector<CaretMappableDataFile*> caretMapDataFiles;
-    if ( ! parcelLabelFiles.empty()) {
-        caretMapDataFiles.insert(caretMapDataFiles.end(),
-                              parcelLabelFiles.begin(),
-                              parcelLabelFiles.end());
+        
+        m_matrixParcelYokingGroupComboBox->getWidget()->setEnabled(chartableMatrixParcelInterface->isSupportsLoadingAttributes());
+        m_matrixParcelLoadByColumnRowComboBox->getWidget()->setEnabled(chartableMatrixParcelInterface->isSupportsLoadingAttributes());
+        
+        /*
+         * Update palette reordering.
+         */
+        std::vector<CiftiParcelLabelFile*> parcelLabelFiles;
+        CiftiParcelLabelFile* parcelLabelFile = NULL;
+        int32_t parcelLabelFileMapIndex = -1;
+        bool remappingEnabled = false;
+        chartableMatrixParcelInterface->getSelectedParcelLabelFileAndMapForReordering(parcelLabelFiles,
+                                                                                      parcelLabelFile,
+                                                                                      parcelLabelFileMapIndex,
+                                                                                      remappingEnabled);
+        std::vector<CaretMappableDataFile*> caretMapDataFiles;
+        if ( ! parcelLabelFiles.empty()) {
+            caretMapDataFiles.insert(caretMapDataFiles.end(),
+                                     parcelLabelFiles.begin(),
+                                     parcelLabelFiles.end());
+        }
+        
+        m_parcelReorderingEnabledCheckBox->setChecked(remappingEnabled);
+        CaretMappableDataFileAndMapSelectionModel* model = m_parcelLabelFileRemappingFileSelector->getModel();
+        model->overrideAvailableDataFiles(caretMapDataFiles);
+        model->setSelectedFile(parcelLabelFile);
+        model->setSelectedMapIndex(parcelLabelFileMapIndex);
+        m_parcelLabelFileRemappingFileSelector->updateFileAndMapSelector(model);
+        
+        m_matrixParcelColorBarAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
+        m_matrixParcelSettingsAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
+        
+        const bool showParcelGUI = DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_PARCEL_REORDERING);
+        m_parcelRemappingGroupBox->setVisible(showParcelGUI);
+        
     }
     
-    const bool haveParcelLabelFiles = ( ! parcelLabelFiles.empty());
+    m_parcelRemappingGroupBox->setEnabled(chartableMatrixParcelInterface != NULL);
+}
+
+/**
+ * @return The matrix chart series widget.
+ */
+QWidget*
+ChartSelectionViewController::createMatrixSeriesChartWidget(const Qt::Orientation orientation)
+{
+    /*
+     * ColorBar Tool Button
+     */
+    QIcon colorBarIcon;
+    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
+                                                           colorBarIcon);
+    m_matrixSeriesColorBarAction = WuQtUtilities::createAction("CB",
+                                                               "Display color bar for this overlay",
+                                                               this,
+                                                               this,
+                                                               SLOT(matrixSeriesColorBarActionTriggered(bool)));
+    m_matrixSeriesColorBarAction->setCheckable(true);
+    if (colorBarIconValid) {
+        m_matrixSeriesColorBarAction->setIcon(colorBarIcon);
+    }
+    QToolButton* colorBarToolButton = new QToolButton();
+    colorBarToolButton->setDefaultAction(m_matrixSeriesColorBarAction);
     
-    m_parcelReorderingEnabledCheckBox->setChecked(remappingEnabled);
-    CaretMappableDataFileAndMapSelectionModel* model = m_parcelLabelFileRemappingFileSelector->getModel();
-    model->overrideAvailableDataFiles(caretMapDataFiles);
-    model->setSelectedFile(parcelLabelFile);
-    model->setSelectedMapIndex(parcelLabelFileMapIndex);
-    m_parcelLabelFileRemappingFileSelector->updateFileAndMapSelector(model);
+    /*
+     * Settings Tool Button
+     */
+    QLabel* settingsLabel = new QLabel("Settings");
+    QIcon settingsIcon;
+    const bool settingsIconValid = WuQtUtilities::loadIcon(":/LayersPanel/wrench.png",
+                                                           settingsIcon);
     
-    m_matrixParcelColorBarAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
-    m_matrixParcelSettingsAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
+    m_matrixSeriesSettingsAction = WuQtUtilities::createAction("S",
+                                                               "Edit settings for this map and overlay",
+                                                               this,
+                                                               this,
+                                                               SLOT(matrixSeriesSettingsActionTriggered()));
+    if (settingsIconValid) {
+        m_matrixSeriesSettingsAction->setIcon(settingsIcon);
+    }
+    QToolButton* settingsToolButton = new QToolButton();
+    settingsToolButton->setDefaultAction(m_matrixSeriesSettingsAction);
     
-    const bool showParcelGUI = DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_PARCEL_REORDERING);
-    m_parcelRemappingGroupBox->setVisible(showParcelGUI);
     
-    m_parcelRemappingGroupBox->setEnabled(haveParcelLabelFiles);
+    QLabel* fileLabel = new QLabel("Matrix File");
+    m_matrixSeriesFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+    QObject::connect(m_matrixSeriesFileSelectionComboBox, SIGNAL(fileSelected(CaretDataFile*)),
+                     this, SLOT(matrixSeriesFileSelected(CaretDataFile*)));
+    
+    /*
+     * Yoking Group
+     */
+    QLabel* yokeLabel = new QLabel("Yoke ");
+    m_matrixSeriesYokingComboBox = new EnumComboBoxTemplate(this);
+    m_matrixSeriesYokingComboBox->setup<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
+    m_matrixSeriesYokingComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
+    m_matrixSeriesYokingComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
+#ifdef CARET_OS_MACOSX
+    m_matrixSeriesYokingComboBox->getComboBox()->setFixedWidth(m_matrixSeriesYokingComboBox->getComboBox()->sizeHint().width() - 20);
+#endif // CARET_OS_MACOSX
+    QObject::connect(m_matrixSeriesYokingComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(matrixSeriesYokingGroupActivated()));
+    
+    QGroupBox* fileYokeGroupBox = new QGroupBox("Matrix Loading");
+    fileYokeGroupBox->setFlat(true);
+    fileYokeGroupBox->setAlignment(Qt::AlignHCenter);
+    QGridLayout* fileYokeLayout = new QGridLayout(fileYokeGroupBox);
+    
+    switch (orientation) {
+        case Qt::Horizontal:
+        {
+            WuQtUtilities::setLayoutSpacingAndMargins(fileYokeLayout, 2, 0);
+            fileYokeLayout->setColumnStretch(0, 0);
+            fileYokeLayout->setColumnStretch(1, 0);
+            fileYokeLayout->setColumnStretch(2, 0);
+            fileYokeLayout->setColumnStretch(3, 100);
+            
+            fileYokeLayout->addWidget(settingsLabel,
+                                      0, 0,
+                                      1, 2,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(yokeLabel,
+                                      0, 2,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(fileLabel,
+                                      0, 3,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(settingsToolButton,
+                                      1, 0);
+            fileYokeLayout->addWidget(colorBarToolButton,
+                                      1, 1);
+            fileYokeLayout->addWidget(m_matrixSeriesYokingComboBox->getWidget(),
+                                      1, 2);
+            fileYokeLayout->addWidget(m_matrixSeriesFileSelectionComboBox->getWidget(),
+                                      1, 3);
+        }
+            break;
+        case Qt::Vertical:
+        {
+            WuQtUtilities::setLayoutSpacingAndMargins(fileYokeLayout, 2, 0);
+            fileYokeLayout->setColumnStretch(0, 0);
+            fileYokeLayout->setColumnStretch(1, 0);
+            fileYokeLayout->setColumnStretch(2, 0);
+            fileYokeLayout->setColumnStretch(3, 100);
+            
+            fileYokeLayout->addWidget(settingsLabel,
+                                      0, 0,
+                                      1, 2,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(yokeLabel,
+                                      0, 2,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(settingsToolButton,
+                                      1, 0);
+            fileYokeLayout->addWidget(colorBarToolButton,
+                                      1, 1);
+            fileYokeLayout->addWidget(m_matrixSeriesYokingComboBox->getWidget(),
+                                      1, 2);
+            fileYokeLayout->addWidget(fileLabel,
+                                      2, 0, 1, 3,
+                                      Qt::AlignHCenter);
+            fileYokeLayout->addWidget(m_matrixSeriesFileSelectionComboBox->getWidget(),
+                                      3, 0, 1, 3);
+        }
+            break;
+        default:
+            CaretAssert(0);
+            break;
+    }
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 1, 0);
+    layout->addWidget(fileYokeGroupBox);
+    layout->addStretch();
+    
+    return widget;
+}
+
+/**
+ * Update the matrix chart widget.
+ *
+ * @param brain
+ *     The Brain.
+ * @param modelChart
+ *     The Model for charts.
+ * @param browserTabIndex
+ *     Index of the browser tab.
+ */
+void
+ChartSelectionViewController::updateMatrixSeriesChartWidget(Brain* brain,
+                                                            ModelChart* modelChart,
+                                                            const int32_t /*browserTabIndex*/)
+{
+    CaretMappableDataFile*          caretMappableDataFile        = NULL;
+    ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
+    ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
+    ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
+    if ( ! getChartMatrixAndProperties(caretMappableDataFile,
+                                       chartableMatrixInterface,
+                                       chartableMatrixParcelInterface,
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
+        return;
+    }
+    
+    if (chartableMatrixSeriesInterface != NULL) {
+        CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(browserTabIndex);
+        CaretDataFileSelectionModel* fileSelectionModel = fileMapModel->getCaretDataFileSelectionModel();
+        m_matrixSeriesFileSelectionComboBox->updateComboBox(fileSelectionModel);
+        
+        const OverlayYokingGroupEnum::Enum yokingGroup = chartableMatrixSeriesInterface->getYokingGroup(browserTabIndex);
+        m_matrixSeriesYokingComboBox->setSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>(yokingGroup);
+        
+//        const YokingGroupEnum::Enum yokingGroup = chartableMatrixParcelInterface->getYokingGroup();
+//        m_matrixParcelYokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(yokingGroup);
+        m_matrixSeriesColorBarAction->blockSignals(true);
+        m_matrixSeriesColorBarAction->setChecked(chartMatrixDisplayProperties->isColorBarDisplayed());
+        m_matrixSeriesColorBarAction->blockSignals(false);
+        
+//        m_matrixParcelYokingGroupComboBox->getWidget()->setEnabled(chartableMatrixSeriesInterface->isSupportsLoadingAttributes());
+        
+        
+        m_matrixSeriesColorBarAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
+        m_matrixSeriesSettingsAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
+    }
+}
+
+
+/**
+ * Called when a matrix series file is selected.
+ *
+ * @param caretDataFile
+ *    Caret data file that was selected.
+ */
+void
+ChartSelectionViewController::matrixSeriesFileSelected(CaretDataFile* /*caretDataFile*/)
+{
+    updateSelectionViewController();
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+}
+
+/**
+ * Called when colorbar icon button is clicked for matrix series file.
+ */
+void
+ChartSelectionViewController::matrixSeriesColorBarActionTriggered(bool status)
+{
+    CaretMappableDataFile*          caretMappableDataFile        = NULL;
+    ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
+    ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
+    ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
+    if ( ! getChartMatrixAndProperties(caretMappableDataFile,
+                                       chartableMatrixInterface,
+                                       chartableMatrixParcelInterface,
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
+        return;
+    }
+    
+    if (chartableMatrixSeriesInterface != NULL) {
+        chartMatrixDisplayProperties->setColorBarDisplayed(status);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+/**
+ * Called when settings icon button is clicked to display palette editor
+ * for matrix series file.
+ */
+void
+ChartSelectionViewController::matrixSeriesSettingsActionTriggered()
+{
+    CaretMappableDataFile*          caretMappableDataFile        = NULL;
+    ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
+    ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
+    ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
+    if ( ! getChartMatrixAndProperties(caretMappableDataFile,
+                                       chartableMatrixInterface,
+                                       chartableMatrixParcelInterface,
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
+        return;
+    }
+    
+    if (chartableMatrixSeriesInterface != NULL) {
+        const int32_t mapIndex = 0;
+        EventPaletteColorMappingEditorDialogRequest dialogEvent(m_browserWindowIndex,
+                                                                caretMappableDataFile,
+                                                                mapIndex);
+        EventManager::get()->sendEvent(dialogEvent.getPointer());
+    }
+}
+
+/**
+ * Called when matrix series yoking group is changed.
+ */
+void
+ChartSelectionViewController::matrixSeriesYokingGroupActivated()
+{
+    CaretMappableDataFile*          caretMappableDataFile        = NULL;
+    ChartableMatrixInterface*       chartableMatrixInterface     = NULL;
+    ChartMatrixDisplayProperties*   chartMatrixDisplayProperties = NULL;
+    ChartableMatrixParcelInterface* chartableMatrixParcelInterface = NULL;
+    ChartableMatrixSeriesInterface* chartableMatrixSeriesInterface = NULL;
+    int32_t browserTabIndex = -1;
+    if ( ! getChartMatrixAndProperties(caretMappableDataFile,
+                                       chartableMatrixInterface,
+                                       chartableMatrixParcelInterface,
+                                       chartableMatrixSeriesInterface,
+                                       chartMatrixDisplayProperties,
+                                       browserTabIndex)) {
+        return;
+    }
+    
+    if (chartableMatrixSeriesInterface != NULL) {
+        chartableMatrixSeriesInterface->setYokingGroup(browserTabIndex,
+                                                       m_matrixSeriesYokingComboBox->getSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
 }
 
 ///**

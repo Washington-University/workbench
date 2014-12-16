@@ -49,6 +49,7 @@ namespace caret {
     class ChartMatrixDisplayProperties;
     class ChartableMatrixInterface;
     class ChartableMatrixParcelInterface;
+    class ChartableMatrixSeriesInterface;
     class ChartModel;
     class EnumComboBoxTemplate;
     class ModelChart;
@@ -79,6 +80,14 @@ namespace caret {
         
         void parcelLabelFileRemappingFileSelectorChanged();
         
+        void matrixSeriesFileSelected(CaretDataFile* caretDataFile);
+        
+        void matrixSeriesColorBarActionTriggered(bool status);
+        
+        void matrixSeriesSettingsActionTriggered();
+        
+        void matrixSeriesYokingGroupActivated();
+        
     private:
         ChartSelectionViewController(const ChartSelectionViewController&);
 
@@ -94,7 +103,8 @@ namespace caret {
         enum Mode {
             MODE_INVALID,
             MODE_BRAINORDINATE,
-            MODE_MATRIX
+            MODE_MATRIX_LAYER,
+            MODE_MATRIX_SERIES
         };
         
         // ADD_NEW_MEMBERS_HERE
@@ -102,6 +112,8 @@ namespace caret {
         QWidget* createBrainordinateChartWidget();
         
         QWidget* createMatrixParcelChartWidget(const Qt::Orientation orientation);
+        
+        QWidget* createMatrixSeriesChartWidget(const Qt::Orientation orientation);
         
         void updateSelectionViewController();
         
@@ -113,6 +125,10 @@ namespace caret {
                                      ModelChart* modelChart,
                                      const int32_t browserTabIndex);
         
+        void updateMatrixSeriesChartWidget(Brain* brain,
+                                           ModelChart* modelChart,
+                                           const int32_t browserTabIndex);
+        
         ChartableBrainordinateInterface* getBrainordinateFileAtIndex(const int32_t indx);
         
 //        ChartableMatrixInterface* getMatrixFileAtIndex(const int32_t indx);
@@ -122,13 +138,17 @@ namespace caret {
         bool getChartMatrixAndProperties(CaretMappableDataFile* &caretMappableDataFileOut,
                                          ChartableMatrixInterface* & chartableMatrixInterfaceOut,
                                          ChartableMatrixParcelInterface* &chartableMatrixParcelInterfaceOut,
-                                         ChartMatrixDisplayProperties* &chartMatrixDisplayPropertiesOut);
+                                         ChartableMatrixSeriesInterface* &chartableMatrixSeriesInterfaceOut,
+                                         ChartMatrixDisplayProperties* &chartMatrixDisplayPropertiesOut,
+                                         int32_t& browserTabIndexOut);
         
         QStackedWidget* m_stackedWidget;
         
         QWidget* m_brainordinateChartWidget;
         
         QWidget* m_matrixParcelChartWidget;
+        
+        QWidget* m_matrixSeriesChartWidget;
         
         Mode m_mode;
         
@@ -157,6 +177,14 @@ namespace caret {
         QCheckBox* m_parcelReorderingEnabledCheckBox;
         
         CaretMappableDataFileAndMapSelectorObject* m_parcelLabelFileRemappingFileSelector;
+        
+        QAction* m_matrixSeriesColorBarAction;
+        
+        QAction* m_matrixSeriesSettingsAction;
+        
+        CaretDataFileSelectionComboBox* m_matrixSeriesFileSelectionComboBox;
+        
+        EnumComboBoxTemplate* m_matrixSeriesYokingComboBox;
         
         static const int COLUMN_CHECKBOX;
         static const int COLUMN_LINE_EDIT;

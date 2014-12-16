@@ -154,6 +154,8 @@ ChartData::newChartDataForChartDataType(const ChartDataTypeEnum::Enum chartDataT
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
             CaretAssert(0);
             break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+            break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
             chartData = new ChartDataCartesian(chartDataType,
                                                ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,

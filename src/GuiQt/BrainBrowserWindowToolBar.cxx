@@ -1315,6 +1315,9 @@ BrainBrowserWindowToolBar::updateToolBar()
                     case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                         showChartAttributesWidget = true;
                         break;
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                        showChartAttributesWidget = true;
+                        break;
                     case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                         showChartAxesWidget = true;
                         showChartAttributesWidget = true;

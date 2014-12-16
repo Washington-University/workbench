@@ -96,6 +96,7 @@ CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionM
             isMappableFile = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            isMappableFile = true;
             break;
         case DataFileTypeEnum::FOCI:
             break;

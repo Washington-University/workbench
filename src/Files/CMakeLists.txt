@@ -32,6 +32,7 @@ CaretVolumeExtension.h
 ChartableBrainordinateInterface.h
 ChartableMatrixInterface.h
 ChartableMatrixParcelInterface.h
+ChartableMatrixSeriesInterface.h
 CiftiBrainordinateDataSeriesFile.h
 CiftiBrainordinateLabelFile.h
 CiftiBrainordinateScalarFile.h
@@ -85,6 +86,7 @@ MetricFile.h
 MetricSmoothingObject.h
 NodeAndVoxelColoring.h
 OxfordSparseThreeFile.h
+OverlayYokingGroupEnum.h
 PaletteFile.h
 RgbaFile.h
 SceneFile.h
@@ -187,6 +189,7 @@ MetricFile.cxx
 MetricSmoothingObject.cxx
 NodeAndVoxelColoring.cxx
 OxfordSparseThreeFile.cxx
+OverlayYokingGroupEnum.cxx
 PaletteFile.cxx
 RgbaFile.cxx
 SceneFile.cxx

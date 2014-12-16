@@ -672,15 +672,18 @@ NiftiSpacingUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidO
  *    An enumerated value.
  * @param name
  *    Name of enumberated value.
+ * @param guiName
+ *    Name in GUI of enumberated value.
  */
-NiftiTimeUnitsEnum::NiftiTimeUnitsEnum(
-        const Enum e,
-        const int32_t integerCode,
-        const AString& name)
+NiftiTimeUnitsEnum::NiftiTimeUnitsEnum(const Enum e,
+                                       const int32_t integerCode,
+                                       const AString& name,
+                                       const AString& guiName)
 {
     this->e = e;
     this->integerCode = integerCode;
     this->name = name;
+    this->guiName = guiName;
 }
 
 /**
@@ -698,12 +701,12 @@ NiftiTimeUnitsEnum::initializeTimeUnits()
     }
     initializedFlag = true;
 
-    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_UNKNOWN, 0,"NIFTI_UNITS_UNKNOWN"));
-    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_SEC, 8,"NIFTI_UNITS_SEC"));
-    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_MSEC, 16,"NIFTI_UNITS_MSEC"));
-    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_USEC, 24,"NIFTI_UNITS_USEC"));
-    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_HZ, 32,"NIFTI_UNITS_HZ"));
-    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_PPM, 40,"NIFTI_UNITS_PPM"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_UNKNOWN, 0,"NIFTI_UNITS_UNKNOWN","Unknown"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_SEC, 8,"NIFTI_UNITS_SEC","Seconds"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_MSEC, 16,"NIFTI_UNITS_MSEC","Milliseconds"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_USEC, 24,"NIFTI_UNITS_USEC","Microseconds"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_HZ, 32,"NIFTI_UNITS_HZ","Hertz"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_PPM, 40,"NIFTI_UNITS_PPM","Parts Per Million"));
 }
 
 /**
@@ -829,6 +832,26 @@ NiftiTimeUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     }
     return e;
 }
+
+/**
+ * Get a string representation for GUI of the enumerated type.
+ * @param e
+ *     Enumerated value.
+ * @param isValidOut
+ *     If not NULL, it is set indicating that a
+ *     label exists for the input enum value.
+ * @return
+ *     String representing enumerated value for GUI.
+ */
+AString
+NiftiTimeUnitsEnum::toGuiName(Enum e) {
+    initializeTimeUnits();
+    
+    const NiftiTimeUnitsEnum* ntu = findData(e);
+    return ntu->guiName;
+}
+
+
 
 /**
  * Constructor.

@@ -36,6 +36,8 @@
 #include "CaretDataFile.h"
 #include "CaretDataFileSelectionModel.h"
 #include "EnumComboBoxTemplate.h"
+#include "CaretMappableDataFile.h"
+#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "ChartModelDataSeries.h"
 #include "ChartModelTimeSeries.h"
@@ -137,6 +139,8 @@ BrainBrowserWindowToolBarChartAttributes::getCartesianChart()
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                    break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                     cartesianChart = modelChart->getSelectedDataSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
                     break;
@@ -172,9 +176,21 @@ BrainBrowserWindowToolBarChartAttributes::getChartableMatrixDisplayProperties()
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 {
-                    ChartableMatrixInterface* matrixInterface = modelChart->getChartableMatrixFileSelectionModel(tabIndex)->getSelectedFileOfType<ChartableMatrixInterface>();
+                    ChartableMatrixInterface* matrixInterface = modelChart->getChartableMatrixParcelFileSelectionModel(tabIndex)->getSelectedFileOfType<ChartableMatrixInterface>();
                     if (matrixInterface != NULL) {
                         matrixDisplayProperties = matrixInterface->getChartMatrixDisplayProperties(tabIndex);
+                    }
+                }
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                {
+                    CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(tabIndex);
+                    CaretMappableDataFile* mapFile = fileMapModel->getSelectedFile();
+                    if (mapFile != NULL) {
+                        ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(mapFile);
+                        if (matrixInterface != NULL) {
+                            matrixDisplayProperties = matrixInterface->getChartMatrixDisplayProperties(tabIndex);
+                        }
                     }
                 }
                     break;
@@ -341,9 +357,14 @@ EventListenerInterface()
     QObject::connect(m_highlightSelectionCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(highlightSelectionCheckBoxClicked(bool)));
     
+    m_displayGridLinesCheckBox = new QCheckBox("Show Grid Outline");
+    QObject::connect(m_displayGridLinesCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(displayGridLinesCheckBoxClicked(bool)));
+    
     m_manualWidgetsGroup = new WuQWidgetObjectGroup(this);
     m_manualWidgetsGroup->add(m_cellWidthSpinBox);
     m_manualWidgetsGroup->add(m_cellHeightSpinBox);
+    m_manualWidgetsGroup->add(m_displayGridLinesCheckBox);
     m_manualWidgetsGroup->add(resetToolButton);
     
     const int32_t COLUMN_LABEL = 0;
@@ -361,7 +382,9 @@ EventListenerInterface()
     rowIndex++;
     gridLayout->addWidget(resetToolButton, rowIndex, COLUMN_LABEL, 1, 2, Qt::AlignHCenter);
     rowIndex++;
-    gridLayout->addWidget(m_highlightSelectionCheckBox, rowIndex, COLUMN_LABEL, 1, 2, Qt::AlignHCenter);
+    gridLayout->addWidget(m_highlightSelectionCheckBox, rowIndex, COLUMN_LABEL, 1, 2, Qt::AlignLeft);
+    rowIndex++;
+    gridLayout->addWidget(m_displayGridLinesCheckBox, rowIndex, COLUMN_LABEL, 1, 2, Qt::AlignLeft);
     rowIndex++;
     
     gridWidget->setFixedSize(gridWidget->sizeHint());
@@ -428,6 +451,10 @@ MatrixChartAttributesWidget::updateContent()
         m_highlightSelectionCheckBox->blockSignals(true);
         m_highlightSelectionCheckBox->setChecked(matrixDisplayProperties->isSelectedRowColumnHighlighted());
         m_highlightSelectionCheckBox->blockSignals(false);
+        
+        m_displayGridLinesCheckBox->blockSignals(true);
+        m_displayGridLinesCheckBox->setChecked(matrixDisplayProperties->isGridLinesDisplayed());
+        m_displayGridLinesCheckBox->blockSignals(false);
     }
 }
 
@@ -491,6 +518,22 @@ MatrixChartAttributesWidget::highlightSelectionCheckBoxClicked(bool checked)
     ChartMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableMatrixDisplayProperties();
     if (matrixDisplayProperties != NULL) {
         matrixDisplayProperties->setSelectedRowColumnHighlighted(checked);
+        m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
+    }
+}
+
+/**
+ * Called when the display grid lines check box is checked.
+ *
+ * @param checked
+ *    New checked status.
+ */
+void
+MatrixChartAttributesWidget::displayGridLinesCheckBoxClicked(bool checked)
+{
+    ChartMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableMatrixDisplayProperties();
+    if (matrixDisplayProperties != NULL) {
+        matrixDisplayProperties->setGridLinesDisplayed(checked);
         m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
     }
 }

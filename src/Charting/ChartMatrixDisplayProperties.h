@@ -66,6 +66,10 @@ namespace caret {
         
         void setScaleMode(const ChartMatrixScaleModeEnum::Enum scaleMode);
         
+        bool isGridLinesDisplayed() const;
+        
+        void setGridLinesDisplayed(const bool displayGridLines);
+        
         void resetPropertiesToDefault();
         
         bool isSelectedRowColumnHighlighted() const;
@@ -122,6 +126,9 @@ namespace caret {
         
         /** Highlight the selected row/column */
         bool m_highlightSelectedRowColumn;
+        
+        /** Display grid lines */
+        bool m_displayGridLines;
         
         // ADD_NEW_MEMBERS_HERE
 

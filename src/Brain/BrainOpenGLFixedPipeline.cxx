@@ -54,6 +54,7 @@
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretPreferences.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
@@ -4589,6 +4590,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     const ChartDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartDataType(tabIndex);
 
     SelectionItemDataTypeEnum::Enum selectionItemDataType = SelectionItemDataTypeEnum::INVALID;
+    int32_t scalarDataSeriesMapIndex = -1;
     
     switch (chartDataType) {
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
@@ -4599,9 +4601,21 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
         {
-            CaretDataFileSelectionModel* matrixFileSelector = chartModel->getChartableMatrixFileSelectionModel(tabIndex);
+            CaretDataFileSelectionModel* matrixFileSelector = chartModel->getChartableMatrixParcelFileSelectionModel(tabIndex);
             matrixChartFile = matrixFileSelector->getSelectedFileOfType<ChartableMatrixInterface>();
             selectionItemDataType = SelectionItemDataTypeEnum::CHART_MATRIX;
+        }
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+        {
+            CaretMappableDataFileAndMapSelectionModel* fileMapModel = chartModel->getChartableMatrixSeriesFileAndMapSelectionModel(tabIndex);
+            CaretMappableDataFile* mapFile = fileMapModel->getSelectedFile();
+            if (mapFile != NULL) {
+                matrixChartFile = dynamic_cast<ChartableMatrixInterface*>(mapFile);
+                scalarDataSeriesMapIndex = fileMapModel->getSelectedMapIndex();
+                selectionItemDataType = SelectionItemDataTypeEnum::CHART_MATRIX;
+                
+            }
         }
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
@@ -4627,6 +4641,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
                                      viewport,
                                      this->textRenderer,
                                      matrixChartFile,
+                                     scalarDataSeriesMapIndex,
                                      selectionItemDataType,
                                      this->windowTabIndex);
     }

@@ -381,10 +381,6 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
             }
         }
         
-        if (mappable == false) {
-            CaretLogSevere("Map file is neither surface nor volume mappable: " + mapFile->getFileName());
-        }
-        
         if (useIt) {
             mapFilesOut.push_back(mapFile);
         }

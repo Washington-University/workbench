@@ -59,7 +59,9 @@ namespace caret {
         
         QButtonGroup* m_chartTypeButtonGroup;
         
-        QRadioButton* m_chartMatrixTypeRadioButton;
+        QRadioButton* m_chartMatrixLayerTypeRadioButton;
+        
+        QRadioButton* m_chartMatrixSeriesTypeRadioButton;
         
         QRadioButton* m_chartDataSeriesTypeRadioButton;
         

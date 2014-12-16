@@ -86,6 +86,8 @@ namespace caret {
          *     Text rendering.
          * @param chartMatrixInterface
          *     Chart matrix interface containing matrix data.
+         * @param scalarDataSeriesMapIndex
+         *     Scalar data series selected map index.
          * @param selectionItemDataType
          *     Selected data type.
          * @param tabIndex
@@ -96,6 +98,7 @@ namespace caret {
                                      const int32_t viewport[4],
                                      BrainOpenGLTextRenderInterface* textRenderer,
                                      ChartableMatrixInterface* chartMatrixInterface,
+                                     const int32_t scalarDataSeriesMapIndex,
                                      const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                      const int32_t tabIndex) = 0;
         
