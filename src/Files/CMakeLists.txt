@@ -55,6 +55,8 @@ ConnectivityDataLoaded.h
 EventCaretMappableDataFilesGet.h
 EventChartMatrixParcelYokingValidation.h
 EventGetDisplayedDataFiles.h
+EventMapYokingSelectMap.h
+EventMapYokingValidation.h
 EventPaletteGetByName.h
 EventSurfaceColoringInvalidate.h
 Fiber.h
@@ -82,6 +84,7 @@ ImageSpatialUnitsEnum.h
 LabelDrawingProperties.h
 LabelDrawingTypeEnum.h
 LabelFile.h
+MapYokingGroupEnum.h
 MetricFile.h
 MetricSmoothingObject.h
 NodeAndVoxelColoring.h
@@ -158,6 +161,8 @@ ConnectivityDataLoaded.cxx
 EventCaretMappableDataFilesGet.cxx
 EventChartMatrixParcelYokingValidation.cxx
 EventGetDisplayedDataFiles.cxx
+EventMapYokingSelectMap.cxx
+EventMapYokingValidation.cxx
 EventPaletteGetByName.cxx
 EventSurfaceColoringInvalidate.cxx
 Fiber.cxx
@@ -185,6 +190,7 @@ ImageSpatialUnitsEnum.cxx
 LabelDrawingProperties.cxx
 LabelDrawingTypeEnum.cxx
 LabelFile.cxx
+MapYokingGroupEnum.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
 NodeAndVoxelColoring.cxx

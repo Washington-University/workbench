@@ -46,6 +46,8 @@ public:
         EVENT_BROWSER_TAB_DELETE,
         /** Get a browser tab by tab number */
         EVENT_BROWSER_TAB_GET,
+        /** Get indices of all valid browser tabs */
+        EVENT_BROWSER_TAB_INDICES_GET_ALL,
         /** Get ALL (both viewed and not viewed) browser tabs */
         EVENT_BROWSER_TAB_GET_ALL,
         /** Get ALL VIEWED browser tabs (tabs that are viewed in windows) */
@@ -94,6 +96,10 @@ public:
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
         /** Browser window image capture */
         EVENT_IMAGE_CAPTURE,
+        /** Validate when adding a mapped file to mapped yoking */
+        EVENT_MAP_YOKING_SELECT_MAP,
+        /** Select a map for mapped yoked files */
+        EVENT_MAP_YOKING_VALIDATION,
         /** model - ADD */
         EVENT_MODEL_ADD,
         /** model  - DELETE */

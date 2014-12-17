@@ -41,10 +41,10 @@ namespace caret {
         
         virtual ~CiftiScalarDataSeriesFile();
         
-        virtual OverlayYokingGroupEnum::Enum getYokingGroup(const int32_t tabIndex) const;
+        virtual MapYokingGroupEnum::Enum getYokingGroup(const int32_t tabIndex) const;
         
         virtual void setYokingGroup(const int32_t tabIndex,
-                                    const OverlayYokingGroupEnum::Enum yokingType);
+                                    const MapYokingGroupEnum::Enum yokingType);
         
         virtual void receiveEvent(Event* event);
         
@@ -91,7 +91,7 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
         
         /** yoking status */
-        OverlayYokingGroupEnum::Enum m_yokingGroupForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        MapYokingGroupEnum::Enum m_yokingGroupForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

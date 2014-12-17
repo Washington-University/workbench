@@ -27,6 +27,8 @@
 #include "CaretLogger.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "CiftiFile.h"
+#include "EventManager.h"
+#include "EventMapYokingValidation.h"
 #include "FastStatistics.h"
 #include "NodeAndVoxelColoring.h"
 #include "SceneClassAssistant.h"
@@ -51,15 +53,17 @@ CiftiScalarDataSeriesFile::CiftiScalarDataSeriesFile()
         m_chartingEnabledForTab[i] = false;
         m_chartMatrixDisplayPropertiesForTab[i] = new ChartMatrixDisplayProperties();
         m_chartMatrixDisplayPropertiesForTab[i]->setGridLinesDisplayed(false);
-        m_yokingGroupForTab[i] = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
+        m_yokingGroupForTab[i] = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     }
     
     m_sceneAssistant = new SceneClassAssistant();
     
-    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>("m_yokingGroupForTab",
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_yokingGroupForTab",
                                                                                                              m_yokingGroupForTab);
     m_sceneAssistant->addTabIndexedBooleanArray("m_chartingEnabledForTab",
                                                 m_chartingEnabledForTab);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
 }
 
 /**
@@ -67,6 +71,8 @@ CiftiScalarDataSeriesFile::CiftiScalarDataSeriesFile()
  */
 CiftiScalarDataSeriesFile::~CiftiScalarDataSeriesFile()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         delete m_chartMatrixDisplayPropertiesForTab[i];
     }
@@ -83,7 +89,15 @@ CiftiScalarDataSeriesFile::~CiftiScalarDataSeriesFile()
 void
 CiftiScalarDataSeriesFile::receiveEvent(Event* event)
 {
-    
+    if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
+        EventMapYokingValidation* yokeMapEvent = dynamic_cast<EventMapYokingValidation*>(event);
+        CaretAssert(yokeMapEvent);
+        
+        yokeMapEvent->addMapYokedFileAllTabs(this,
+                                             m_yokingGroupForTab);
+        
+        yokeMapEvent->setEventProcessed();
+    }
 }
 
 /**
@@ -92,7 +106,7 @@ CiftiScalarDataSeriesFile::receiveEvent(Event* event)
  * @return 
  *     Selected yoking group for the given tab.
  */
-OverlayYokingGroupEnum::Enum
+MapYokingGroupEnum::Enum
 CiftiScalarDataSeriesFile::getYokingGroup(const int32_t tabIndex) const
 {
     return m_yokingGroupForTab[tabIndex];
@@ -108,11 +122,11 @@ CiftiScalarDataSeriesFile::getYokingGroup(const int32_t tabIndex) const
  */
 void
 CiftiScalarDataSeriesFile::setYokingGroup(const int32_t tabIndex,
-                              const OverlayYokingGroupEnum::Enum yokingGroup)
+                              const MapYokingGroupEnum::Enum yokingGroup)
 {
     m_yokingGroupForTab[tabIndex] = yokingGroup;
     
-    if (m_yokingGroupForTab[tabIndex] == OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+    if (m_yokingGroupForTab[tabIndex] == MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         return;
     }
 }

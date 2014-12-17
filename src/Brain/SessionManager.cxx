@@ -38,6 +38,7 @@
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventBrowserTabIndicesGetAll.h"
 #include "EventBrowserTabNew.h"
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
@@ -75,6 +76,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DELETE);
@@ -316,6 +318,19 @@ SessionManager::receiveEvent(Event* event)
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             if (m_browserTabs[i] != NULL) {
                 tabEvent->addBrowserTab(m_browserTabs[i]);
+            }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL) {
+        EventBrowserTabIndicesGetAll* tabEvent =
+        dynamic_cast<EventBrowserTabIndicesGetAll*>(event);
+        CaretAssert(tabEvent);
+        
+        tabEvent->setEventProcessed();
+        
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            if (m_browserTabs[i] != NULL) {
+                tabEvent->addBrowserTabIndex(m_browserTabs[i]->getTabNumber());
             }
         }
     }

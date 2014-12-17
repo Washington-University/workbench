@@ -89,6 +89,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_GET_ALL_VIEWED",
                                      "Get ALL Viewed browser tabs"));
 
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_INDICES_GET_ALL,
+                                     "EVENT_BROWSER_TAB_INDICES_GET_ALL",
+                                     "Browser Tab Indices Get All"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_NEW,
                                      "EVENT_BROWSER_TAB_NEW", 
                                      "Create a browser tab"));
@@ -177,11 +181,19 @@ EventTypeEnum::initialize()
                                      "EVENT_IMAGE_CAPTURE",
                                      "Capture an Image of Browser Window Graphics Region"));
 
+    enumData.push_back(EventTypeEnum(EVENT_MAP_YOKING_SELECT_MAP,
+                                     "EVENT_MAP_YOKING_SELECT_MAP", 
+                                     "Map Yoking Select Map"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_MAP_YOKING_VALIDATION,
+                                     "EVENT_MAP_YOKING_VALIDATION",
+                                     "Map Yoking Validation"));
+    
     enumData.push_back(EventTypeEnum(EVENT_MODEL_ADD,
-                                     "EVENT_MODEL_ADD", 
+                                     "EVENT_MODEL_ADD",
                                      "Add a model"));
     
-    enumData.push_back(EventTypeEnum(EVENT_MODEL_DELETE, 
+    enumData.push_back(EventTypeEnum(EVENT_MODEL_DELETE,
                                     "EVENT_MODEL_DELETE", 
                                     "Delete a model"));
     
@@ -263,7 +275,11 @@ EventTypeEnum::initialize()
     
     CaretAssertMessage((enumData.size() == static_cast<uint64_t>(EVENT_COUNT + 1)),
                        ("Number of EventTypeEnum::Enum values is incorrect.\n"
-                        "Have enumerated type been added?"));
+                        "Have enumerated type been added?\n"
+                        "enumData.size()="
+                        + AString::number(enumData.size())
+                        + "   EVENT_COUNT+1="
+                        + AString::number(EVENT_COUNT + 1)));
 }
 
 /**

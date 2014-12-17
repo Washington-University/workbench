@@ -69,6 +69,7 @@ DeveloperFlagsEnum.h
 ElapsedTimer.h
 Event.h
 EventAlertUser.h
+EventBrowserTabIndicesGetAll.h
 EventListenerInterface.h
 EventManager.h
 EventProgressUpdate.h
@@ -152,6 +153,7 @@ DeveloperFlagsEnum.cxx
 ElapsedTimer.cxx
 Event.cxx
 EventAlertUser.cxx
+EventBrowserTabIndicesGetAll.cxx
 EventManager.cxx
 EventProgressUpdate.cxx
 EventTypeEnum.cxx

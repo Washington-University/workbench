@@ -37,6 +37,7 @@
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "EventOverlayYokingGroupGet.h"
+#include "EventMapYokingValidation.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelSurfaceMontage.h"
@@ -116,6 +117,7 @@ m_includeVolumeFiles(includeVolumeFiles)
                                     includeVolumeFiles);
     }
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_GET_YOKED);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
 }
 
 /**

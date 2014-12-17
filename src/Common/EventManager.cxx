@@ -473,6 +473,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_BROWSER_TAB_GET:
         case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED:
+        case EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_NEW:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS:
@@ -494,6 +495,8 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION:
         case EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL:
         case EventTypeEnum::EVENT_IMAGE_CAPTURE:
+        case EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP:
+        case EventTypeEnum::EVENT_MAP_YOKING_VALIDATION:
         case EventTypeEnum::EVENT_MODEL_ADD:
         case EventTypeEnum::EVENT_MODEL_DELETE:
         case EventTypeEnum::EVENT_MODEL_GET_ALL:

@@ -1,5 +1,5 @@
-#ifndef __CHARTABLE_MATRIX_SERIES_INTERFACE_H__
-#define __CHARTABLE_MATRIX_SERIES_INTERFACE_H__
+#ifndef __EVENT_BROWSER_TAB_INDICES_GET_ALL_H__
+#define __EVENT_BROWSER_TAB_INDICES_GET_ALL_H__
 
 /*LICENSE_START*/
 /*
@@ -22,38 +22,41 @@
 /*LICENSE_END*/
 
 
-#include "ChartableMatrixInterface.h"
-#include "MapYokingGroupEnum.h"
+#include "Event.h"
+
 
 
 namespace caret {
 
-    class ChartableMatrixSeriesInterface : public ChartableMatrixInterface {
+    class EventBrowserTabIndicesGetAll : public Event {
         
     public:
-        ChartableMatrixSeriesInterface() { }
+        EventBrowserTabIndicesGetAll();
         
-        virtual ~ChartableMatrixSeriesInterface() { }
+        virtual ~EventBrowserTabIndicesGetAll();
         
-        virtual MapYokingGroupEnum::Enum getYokingGroup(const int32_t tabIndex) const = 0;
+        void addBrowserTabIndex(const int32_t browserTabIndex);
         
-        virtual void setYokingGroup(const int32_t tabIndex,
-                                    const MapYokingGroupEnum::Enum yokingType) = 0;
+        std::vector<int32_t> getAllBrowserTabIndices() const;
+
+        bool isValidBrowserTabIndex(const int32_t browserTabIndex);
         
         // ADD_NEW_METHODS_HERE
 
     private:
-        ChartableMatrixSeriesInterface(const ChartableMatrixSeriesInterface&);
+        EventBrowserTabIndicesGetAll(const EventBrowserTabIndicesGetAll&);
 
-        ChartableMatrixSeriesInterface& operator=(const ChartableMatrixSeriesInterface&);
+        EventBrowserTabIndicesGetAll& operator=(const EventBrowserTabIndicesGetAll&);
+        
+        std::vector<int32_t> m_browserTabIndices;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHARTABLE_MATRIX_SERIES_INTERFACE_DECLARE__
+#ifdef __EVENT_BROWSER_TAB_INDICES_GET_ALL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_MATRIX_SERIES_INTERFACE_DECLARE__
+#endif // __EVENT_BROWSER_TAB_INDICES_GET_ALL_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_MATRIX_SERIES_INTERFACE_H__
+#endif  //__EVENT_BROWSER_TAB_INDICES_GET_ALL_H__

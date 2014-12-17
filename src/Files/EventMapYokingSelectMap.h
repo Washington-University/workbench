@@ -1,5 +1,5 @@
-#ifndef __CHARTABLE_MATRIX_SERIES_INTERFACE_H__
-#define __CHARTABLE_MATRIX_SERIES_INTERFACE_H__
+#ifndef __EVENT_MAP_YOKING_SELECT_MAP_H__
+#define __EVENT_MAP_YOKING_SELECT_MAP_H__
 
 /*LICENSE_START*/
 /*
@@ -22,38 +22,34 @@
 /*LICENSE_END*/
 
 
-#include "ChartableMatrixInterface.h"
-#include "MapYokingGroupEnum.h"
+#include "Event.h"
+
 
 
 namespace caret {
 
-    class ChartableMatrixSeriesInterface : public ChartableMatrixInterface {
+    class EventMapYokingSelectMap : public Event {
         
     public:
-        ChartableMatrixSeriesInterface() { }
+        EventMapYokingSelectMap();
         
-        virtual ~ChartableMatrixSeriesInterface() { }
+        virtual ~EventMapYokingSelectMap();
         
-        virtual MapYokingGroupEnum::Enum getYokingGroup(const int32_t tabIndex) const = 0;
-        
-        virtual void setYokingGroup(const int32_t tabIndex,
-                                    const MapYokingGroupEnum::Enum yokingType) = 0;
-        
+
         // ADD_NEW_METHODS_HERE
 
     private:
-        ChartableMatrixSeriesInterface(const ChartableMatrixSeriesInterface&);
+        EventMapYokingSelectMap(const EventMapYokingSelectMap&);
 
-        ChartableMatrixSeriesInterface& operator=(const ChartableMatrixSeriesInterface&);
+        EventMapYokingSelectMap& operator=(const EventMapYokingSelectMap&);
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHARTABLE_MATRIX_SERIES_INTERFACE_DECLARE__
+#ifdef __EVENT_MAP_YOKING_SELECT_MAP_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_MATRIX_SERIES_INTERFACE_DECLARE__
+#endif // __EVENT_MAP_YOKING_SELECT_MAP_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_MATRIX_SERIES_INTERFACE_H__
+#endif  //__EVENT_MAP_YOKING_SELECT_MAP_H__

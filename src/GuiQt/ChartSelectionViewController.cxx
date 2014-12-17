@@ -1055,7 +1055,7 @@ ChartSelectionViewController::createMatrixSeriesChartWidget(const Qt::Orientatio
      */
     QLabel* yokeLabel = new QLabel("Yoke ");
     m_matrixSeriesYokingComboBox = new EnumComboBoxTemplate(this);
-    m_matrixSeriesYokingComboBox->setup<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
+    m_matrixSeriesYokingComboBox->setup<MapYokingGroupEnum, MapYokingGroupEnum::Enum>();
     m_matrixSeriesYokingComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
     m_matrixSeriesYokingComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
 #ifdef CARET_OS_MACOSX
@@ -1063,6 +1063,17 @@ ChartSelectionViewController::createMatrixSeriesChartWidget(const Qt::Orientatio
 #endif // CARET_OS_MACOSX
     QObject::connect(m_matrixSeriesYokingComboBox, SIGNAL(itemActivated()),
                      this, SLOT(matrixSeriesYokingGroupActivated()));
+    
+    
+    /*
+     * MAP YOKING TEMPORARILY DISABLED
+     */
+    m_matrixSeriesYokingComboBox->getWidget()->setEnabled(false);
+    
+    
+    
+    
+    
     
     QGroupBox* fileYokeGroupBox = new QGroupBox("Matrix Loading");
     fileYokeGroupBox->setFlat(true);
@@ -1175,8 +1186,8 @@ ChartSelectionViewController::updateMatrixSeriesChartWidget(Brain* brain,
         CaretDataFileSelectionModel* fileSelectionModel = fileMapModel->getCaretDataFileSelectionModel();
         m_matrixSeriesFileSelectionComboBox->updateComboBox(fileSelectionModel);
         
-        const OverlayYokingGroupEnum::Enum yokingGroup = chartableMatrixSeriesInterface->getYokingGroup(browserTabIndex);
-        m_matrixSeriesYokingComboBox->setSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>(yokingGroup);
+        const MapYokingGroupEnum::Enum yokingGroup = chartableMatrixSeriesInterface->getYokingGroup(browserTabIndex);
+        m_matrixSeriesYokingComboBox->setSelectedItem<MapYokingGroupEnum, MapYokingGroupEnum::Enum>(yokingGroup);
         
 //        const YokingGroupEnum::Enum yokingGroup = chartableMatrixParcelInterface->getYokingGroup();
 //        m_matrixParcelYokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(yokingGroup);
@@ -1287,7 +1298,7 @@ ChartSelectionViewController::matrixSeriesYokingGroupActivated()
     
     if (chartableMatrixSeriesInterface != NULL) {
         chartableMatrixSeriesInterface->setYokingGroup(browserTabIndex,
-                                                       m_matrixSeriesYokingComboBox->getSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>());
+                                                       m_matrixSeriesYokingComboBox->getSelectedItem<MapYokingGroupEnum, MapYokingGroupEnum::Enum>());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
