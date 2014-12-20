@@ -385,16 +385,9 @@ void CiftiParcelsMap::readXML2(QXmlStreamReader& xml)
                 throw CaretException("invalid value for SurfaceNumberOfVertices: " + attrs.value("SurfaceNumberOfVertices").toString());
             }
             addSurface(numNodes, tempStructure);//let the standard modification functions do error checking
-            while (!xml.atEnd() && !xml.isEndElement())
+            if (xml.readNextStartElement())
             {
-                xml.readNext();
-                switch (xml.tokenType())
-                {
-                    case QXmlStreamReader::StartElement:
-                        throw CaretException("unexpected element inside Surface: " + xml.name().toString());
-                    default:
-                        break;
-                }
+                throw CaretException("unexpected element inside Surface: " + xml.name().toString());
             }
         } else if (name == "Parcel") {
             myParcels.push_back(readParcel2(xml));

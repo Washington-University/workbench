@@ -44,15 +44,14 @@ CiftiVersion::CiftiVersion(const QString& versionString)
     {
         m_minor = 0;
         m_major = versionString.toShort(&ok);
+        if (!ok) throw CaretException("improperly formatted version string: " + versionString);
     } else {
-        if (result > 0)
-        {
-            m_major = versionString.mid(0, result).toShort(&ok);
-            if (!ok) throw CaretException("improperly formatted version string: " + versionString);
-            m_minor = versionString.mid(result + 1).toShort(&ok);
-        }
+        if (result == 0) throw CaretException("improperly formatted version string: " + versionString);
+        m_major = versionString.mid(0, result).toShort(&ok);
+        if (!ok) throw CaretException("improperly formatted version string: " + versionString);
+        m_minor = versionString.mid(result + 1).toShort(&ok);
+        if (!ok) throw CaretException("improperly formatted version string: " + versionString);
     }
-    if (!ok) throw CaretException("improperly formatted version string: " + versionString);
 }
 
 bool CiftiVersion::hasReversedFirstDims() const

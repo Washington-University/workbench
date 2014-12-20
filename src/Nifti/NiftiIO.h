@@ -132,7 +132,6 @@ namespace caret
             default:
                 CaretAssert(0);
                 throw DataFileException("internal error, tell the developers what you just tried to do");
-                break;
         }
     }
     
@@ -198,7 +197,6 @@ namespace caret
             default:
                 CaretAssert(0);
                 throw DataFileException("internal error, tell the developers what you just tried to do");
-                break;
         }
         m_file.write(m_scratch.data(), m_scratch.size());
     }

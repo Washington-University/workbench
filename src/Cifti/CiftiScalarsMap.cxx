@@ -150,7 +150,7 @@ void CiftiScalarsMap::readXML1(QXmlStreamReader& xml)
             {
                 if (xml.name() != "NamedMap")
                 {
-                    throw CaretException("unexpected element in scalars mapping type: " + xml.name().toString());
+                    throw CaretException("unexpected element in scalars map: " + xml.name().toString());
                 }
                 m_maps.push_back(ScalarMap());//HACK: because operator= is deliberately broken by GiftiMetadata for UUID
                 m_maps.back().readXML1(xml);
@@ -175,7 +175,7 @@ void CiftiScalarsMap::readXML2(QXmlStreamReader& xml)
             {
                 if (xml.name() != "NamedMap")
                 {
-                    throw CaretException("unexpected element in scalars mapping type: " + xml.name().toString());
+                    throw CaretException("unexpected element in scalars map: " + xml.name().toString());
                 }
                 m_maps.push_back(ScalarMap());//HACK: because operator= is deliberately broken by GiftiMetadata for UUID
                 m_maps.back().readXML2(xml);

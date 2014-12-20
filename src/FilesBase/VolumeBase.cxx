@@ -98,7 +98,7 @@ void VolumeBase::addSubvolumes(const int64_t& numToAdd)
         throw DataFileException("cannot call addSubvolumes on an uninitialized VolumeFile");//release shouldn't allow it either
     }
     vector<int64_t> newdims = olddims;
-    newdims[3] += numToAdd;//add to the non
+    newdims[3] += numToAdd;//add to the flattened non-spatial dimensions
     VolumeStorage newStorage(newdims.data());
     newdims.resize(4);//drop the number of components from the dimensions array
     m_origDims = newdims;//and reset our original dimensions

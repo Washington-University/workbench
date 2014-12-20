@@ -571,17 +571,17 @@ void CiftiXnatImpl::init(const QString& url)
     {
         throw DataFileException("only 2D cifti are supported via URL at this time");
     }
-    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SERIES && m_xml.getDimensionLength(CiftiXML::ALONG_ROW) < 1)
+    if (m_xml.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES && m_xml.getDimensionLength(CiftiXML::ALONG_ROW) < 1)
     {
         CaretHttpRequest rowRequest = m_baseRequest;
         rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString("0")));
-        m_xml.getSeriesMap(CiftiXML::ALONG_COLUMN).setLength(getSizeFromReq(rowRequest));//number of timepoints along a row is the number of columns
+        m_xml.getSeriesMap(CiftiXML::ALONG_ROW).setLength(getSizeFromReq(rowRequest));
     }
-    if (m_xml.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES && m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN) < 1)
+    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SERIES && m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN) < 1)
     {
         CaretHttpRequest columnRequest = m_baseRequest;
         columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString("0")));
-        m_xml.getSeriesMap(CiftiXML::ALONG_ROW).setLength(getSizeFromReq(columnRequest));//see above
+        m_xml.getSeriesMap(CiftiXML::ALONG_COLUMN).setLength(getSizeFromReq(columnRequest));
     }
     CaretLogFine("Connected URL: "
                    + url

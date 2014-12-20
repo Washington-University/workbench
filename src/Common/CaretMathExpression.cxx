@@ -375,7 +375,6 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                 case INVALID:
                     CaretAssertMessage(0, "MathNode is type FUNC but INVALID function");
                     throw CaretException("parsing problem in CaretMathExpression");
-                    return 0.0;
             }
             break;
         }

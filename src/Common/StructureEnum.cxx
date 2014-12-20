@@ -490,10 +490,47 @@ StructureEnum::getAllEnums(std::vector<StructureEnum::Enum>& allEnums)
 bool 
 StructureEnum::isRight(const Enum enumValue)
 {
-    const AString name = toName(enumValue).toUpper();
-    if (name.contains("RIGHT")) {
-        return true;
+    switch (enumValue)
+    {
+        case ACCUMBENS_RIGHT:
+        case AMYGDALA_RIGHT:
+        case CAUDATE_RIGHT:
+        case CEREBELLAR_WHITE_MATTER_RIGHT:
+        case CEREBELLUM_RIGHT:
+        case CEREBRAL_WHITE_MATTER_RIGHT:
+        case CORTEX_RIGHT:
+        case DIENCEPHALON_VENTRAL_RIGHT:
+        case HIPPOCAMPUS_RIGHT:
+        case PALLIDUM_RIGHT:
+        case PUTAMEN_RIGHT:
+        case THALAMUS_RIGHT:
+            return true;
+        case ALL://avoid default so smart compilers can warn when a new structure isn't added here
+        case ALL_GREY_MATTER:
+        case ALL_WHITE_MATTER:
+        case BRAIN_STEM:
+        case CEREBELLUM:
+        case CORTEX:
+        case INVALID:
+        case OTHER:
+        case OTHER_GREY_MATTER:
+        case OTHER_WHITE_MATTER:
+            return false;//visually separate none/both from opposite cases
+        case ACCUMBENS_LEFT:
+        case AMYGDALA_LEFT:
+        case CAUDATE_LEFT:
+        case CEREBELLAR_WHITE_MATTER_LEFT:
+        case CEREBELLUM_LEFT:
+        case CEREBRAL_WHITE_MATTER_LEFT:
+        case CORTEX_LEFT:
+        case DIENCEPHALON_VENTRAL_LEFT:
+        case HIPPOCAMPUS_LEFT:
+        case PALLIDUM_LEFT:
+        case PUTAMEN_LEFT:
+        case THALAMUS_LEFT:
+            return false;
     }
+    CaretAssert(false);
     return false;
 }
 
@@ -507,12 +544,48 @@ StructureEnum::isRight(const Enum enumValue)
 bool 
 StructureEnum::isLeft(const Enum enumValue)
 {
-    const AString name = toName(enumValue).toUpper();
-    if (name.contains("LEFT")) {
-        return true;
+    switch (enumValue)
+    {
+        case ACCUMBENS_LEFT:
+        case AMYGDALA_LEFT:
+        case CAUDATE_LEFT:
+        case CEREBELLAR_WHITE_MATTER_LEFT:
+        case CEREBELLUM_LEFT:
+        case CEREBRAL_WHITE_MATTER_LEFT:
+        case CORTEX_LEFT:
+        case DIENCEPHALON_VENTRAL_LEFT:
+        case HIPPOCAMPUS_LEFT:
+        case PALLIDUM_LEFT:
+        case PUTAMEN_LEFT:
+        case THALAMUS_LEFT:
+            return true;
+        case ALL://avoid default so smart compilers can warn when a new structure isn't added here
+        case ALL_GREY_MATTER:
+        case ALL_WHITE_MATTER:
+        case BRAIN_STEM:
+        case CEREBELLUM:
+        case CORTEX:
+        case INVALID:
+        case OTHER:
+        case OTHER_GREY_MATTER:
+        case OTHER_WHITE_MATTER:
+            return false;//visually separate none/both from opposite cases
+        case ACCUMBENS_RIGHT:
+        case AMYGDALA_RIGHT:
+        case CAUDATE_RIGHT:
+        case CEREBELLAR_WHITE_MATTER_RIGHT:
+        case CEREBELLUM_RIGHT:
+        case CEREBRAL_WHITE_MATTER_RIGHT:
+        case CORTEX_RIGHT:
+        case DIENCEPHALON_VENTRAL_RIGHT:
+        case HIPPOCAMPUS_RIGHT:
+        case PALLIDUM_RIGHT:
+        case PUTAMEN_RIGHT:
+        case THALAMUS_RIGHT:
+            return false;
     }
+    CaretAssert(false);
     return false;
-    
 }
 
 /**

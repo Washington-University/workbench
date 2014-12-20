@@ -118,7 +118,7 @@ void CiftiLabelsMap::readXML1(QXmlStreamReader& xml)
             {
                 if (xml.name() != "NamedMap")
                 {
-                    throw CaretException("unexpected element in labels mapping type: " + xml.name().toString());
+                    throw CaretException("unexpected element in labels map: " + xml.name().toString());
                 }
                 LabelMap tempMap;
                 tempMap.readXML1(xml);
@@ -143,7 +143,7 @@ void CiftiLabelsMap::readXML2(QXmlStreamReader& xml)
             {
                 if (xml.name() != "NamedMap")
                 {
-                    throw CaretException("unexpected element in labels mapping type: " + xml.name().toString());
+                    throw CaretException("unexpected element in labels map: " + xml.name().toString());
                 }
                 LabelMap tempMap;
                 tempMap.readXML2(xml);

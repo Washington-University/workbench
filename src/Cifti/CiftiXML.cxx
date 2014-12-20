@@ -342,7 +342,7 @@ void CiftiXML::readXML(QXmlStreamReader& xml)
                     }
                     haveCifti = true;
                 } else {
-                    throw CaretException("unknown element in Cifti XML: " + name.toString());
+                    throw CaretException("unexpected root element in Cifti XML: " + name.toString());
                 }
             }
         }
@@ -388,7 +388,7 @@ void CiftiXML::parseCIFTI1(QXmlStreamReader& xml)
                 if (xml.hasError()) return;
                 haveMatrix = true;
             } else {
-                throw CaretException("unknown element in CIFTI: " + name.toString());
+                throw CaretException("unexpected element in CIFTI: " + name.toString());
             }
         } else if (xml.isEndElement()) {
             break;
@@ -422,7 +422,7 @@ void CiftiXML::parseCIFTI2(QXmlStreamReader& xml)//yes, these will often have la
                 if (xml.hasError()) return;
                 haveMatrix = true;
             } else {
-                throw CaretException("unknown element in CIFTI: " + name.toString());
+                throw CaretException("unexpected element in CIFTI: " + name.toString());
             }
         } else if (xml.isEndElement()) {
             break;
@@ -470,7 +470,7 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
                 CaretLogFiner("skipping unused LabelTable element in Matrix in CIFTI-1");
                 xml.readElementText(QXmlStreamReader::SkipChildElements);
             } else {
-                throw CaretException("unknown element in Matrix: " + name.toString());
+                throw CaretException("unexpected element in Matrix: " + name.toString());
             }
         } else if (xml.isEndElement()) {
             break;
@@ -544,7 +544,7 @@ void CiftiXML::parseMatrix2(QXmlStreamReader& xml)
                 parseMatrixIndicesMap2(xml);
                 if (xml.hasError()) return;
             } else {
-                throw CaretException("unknown element in Matrix: " + name.toString());
+                throw CaretException("unexpected element in Matrix: " + name.toString());
             }
         } else if (xml.isEndElement()) {
             break;

@@ -1438,25 +1438,26 @@ void GiftiLabelTable::readFromQXmlStreamReader(QXmlStreamReader& xml)
         bool ok = false;
         QString temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_KEY).toString();
         key = temp.toInt(&ok);
-        if (!ok) xml.raiseError("key attribute missing or noninteger");
+        if (!ok) xml.raiseError("Key attribute of Label missing or noninteger");
         temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_RED).toString();
         rgba[0] = temp.toFloat(&ok);
-        if (!ok) xml.raiseError("red attribute missing or not a number");
+        if (!ok) xml.raiseError("Red attribute of Label missing or not a number");
         temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_GREEN).toString();
         rgba[1] = temp.toFloat(&ok);
-        if (!ok) xml.raiseError("green attribute missing or not a number");
+        if (!ok) xml.raiseError("Green attribute of Label missing or not a number");
         temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_BLUE).toString();
         rgba[2] = temp.toFloat(&ok);
-        if (!ok) xml.raiseError("blue attribute missing or not a number");
+        if (!ok) xml.raiseError("Blue attribute of Label missing or not a number");
         temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA).toString();
         if (temp == "")
         {
             rgba[3] = 1.0f;
         } else {
             rgba[3] = temp.toFloat(&ok);
-            if (!ok) xml.raiseError("alpha attribute not a number");
+            if (!ok) xml.raiseError("Alpha attribute of Label not a number");
         }
         temp = xml.readElementText();
+        if (xml.hasError()) return;
         if ((temp == "unknown" || temp == "Unknown") && rgba[3] == 0.0f)
         {
             if (haveUnassigned)

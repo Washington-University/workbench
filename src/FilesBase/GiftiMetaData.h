@@ -111,8 +111,7 @@ public:
  
     AString toFormattedString(const AString& indentation);
 
-    void writeAsXML(XmlWriter& xmlWriter)
-           ;
+    void writeAsXML(XmlWriter& xmlWriter);
 
     void writeCiftiXML1(QXmlStreamWriter& xmlWriter) const;
     void writeCiftiXML2(QXmlStreamWriter& xmlWriter) const;//extra names for code style, and in case it changes in a future version

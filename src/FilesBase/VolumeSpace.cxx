@@ -345,7 +345,7 @@ void VolumeSpace::readCiftiXML1(QXmlStreamReader& xml)
     }
     if (xml.name() != "TransformationMatrixVoxelIndicesIJKtoXYZ")
     {
-        throw CaretException("found unknown element in Volume: " + xml.name().toString());
+        throw CaretException("unexpected element in Volume: " + xml.name().toString());
     }
     QXmlStreamAttributes transattribs = xml.attributes();
     if (!transattribs.hasAttribute("UnitsXYZ"))//ignore the space attributes
@@ -427,7 +427,7 @@ void VolumeSpace::readCiftiXML2(QXmlStreamReader& xml)
     }
     if (xml.name() != "TransformationMatrixVoxelIndicesIJKtoXYZ")
     {
-        throw CaretException("found unknown element in Volume: " + xml.name().toString());
+        throw CaretException("unexpected element in Volume: " + xml.name().toString());
     }
     QXmlStreamAttributes transattribs = xml.attributes();
     if (!transattribs.hasAttribute("MeterExponent"))//ignore the space attributes
