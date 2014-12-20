@@ -108,7 +108,7 @@ OperationShowScene::getParameters()
                      "etc.\n"
                      "\n"
                      "The image format is determined by the image file extension.\n"
-                     "Image formats available on this sytem are:\n");
+                     "Image formats available on this system are:\n");
     
     std::vector<AString> imageFileExtensions;
     AString defaultExtension;

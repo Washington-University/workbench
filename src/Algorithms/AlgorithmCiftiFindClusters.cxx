@@ -215,7 +215,7 @@ AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj
         }
         if (myAreas != NULL && myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
         {
-            throw AlgorithmException(surfType + " corected areas metric has the wrong number of vertices");
+            throw AlgorithmException(surfType + " corrected areas metric has the wrong number of vertices");
         }
     }
     myCiftiOut->setCiftiXML(myXML);

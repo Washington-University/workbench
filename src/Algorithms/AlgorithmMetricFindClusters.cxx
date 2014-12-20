@@ -129,7 +129,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
     }
     if (myAreas != NULL && myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
     {
-        throw AlgorithmException("corected area metric does not match surface in number of vertices");
+        throw AlgorithmException("corrected area metric does not match surface in number of vertices");
     }
     int numCols = myMetric->getNumberOfColumns();
     if (columnNum < -1 || columnNum >= numCols)
