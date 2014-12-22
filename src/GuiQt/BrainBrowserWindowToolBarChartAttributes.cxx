@@ -184,10 +184,10 @@ BrainBrowserWindowToolBarChartAttributes::getChartableMatrixDisplayProperties()
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                 {
-                    CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(tabIndex);
-                    CaretMappableDataFile* mapFile = fileMapModel->getSelectedFile();
-                    if (mapFile != NULL) {
-                        ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(mapFile);
+                    CaretDataFileSelectionModel* fileModel = modelChart->getChartableMatrixSeriesFileSelectionModel(tabIndex);
+                    CaretDataFile* caretFile = fileModel->getSelectedFile();
+                    if (caretFile != NULL) {
+                        ChartableMatrixInterface* matrixInterface = dynamic_cast<ChartableMatrixInterface*>(caretFile);
                         if (matrixInterface != NULL) {
                             matrixDisplayProperties = matrixInterface->getChartMatrixDisplayProperties(tabIndex);
                         }

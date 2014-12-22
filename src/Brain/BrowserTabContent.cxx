@@ -1199,8 +1199,7 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                     if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
-                        CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(m_tabNumber);
-                        fileModel = fileMapModel->getCaretDataFileSelectionModel();
+                        fileModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
                     }
                 case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                     break;
@@ -2116,8 +2115,7 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         }
         
         if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
-            CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(m_tabNumber);
-            matrixSelectionModel = fileMapModel->getCaretDataFileSelectionModel();
+            matrixSelectionModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
         }
             if (matrixSelectionModel != NULL) {
                 ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();
@@ -2252,8 +2250,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         }
         
         if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
-            CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(m_tabNumber);
-            matrixSelectionModel = fileMapModel->getCaretDataFileSelectionModel();
+            matrixSelectionModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
         }
         if (matrixSelectionModel != NULL) {
             ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();

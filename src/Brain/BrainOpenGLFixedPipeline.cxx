@@ -4609,10 +4609,10 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
         {
-            CaretMappableDataFileAndMapSelectionModel* fileMapModel = chartModel->getChartableMatrixSeriesFileAndMapSelectionModel(tabIndex);
-            CaretMappableDataFile* mapFile = fileMapModel->getSelectedFile();
-            if (mapFile != NULL) {
-                ChartableMatrixSeriesInterface* matrixSeriesFile = dynamic_cast<ChartableMatrixSeriesInterface*>(mapFile);
+            CaretDataFileSelectionModel* fileModel = chartModel->getChartableMatrixSeriesFileSelectionModel(tabIndex);
+            CaretDataFile* caretFile = fileModel->getSelectedFile();
+            if (caretFile != NULL) {
+                ChartableMatrixSeriesInterface* matrixSeriesFile = dynamic_cast<ChartableMatrixSeriesInterface*>(caretFile);
                 if (matrixSeriesFile != NULL) {
                     matrixChartFile = matrixSeriesFile;
                     selectionItemDataType = SelectionItemDataTypeEnum::CHART_MATRIX;

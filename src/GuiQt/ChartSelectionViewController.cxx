@@ -855,20 +855,66 @@ ChartSelectionViewController::getChartMatrixAndProperties(CaretMappableDataFile*
     
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
-        CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(browserTabIndexOut);
-        m_matrixParcelFileSelectionComboBox->updateComboBox(fileSelectionModel);
-        
-        CaretDataFile* caretFile = fileSelectionModel->getSelectedFile();
-        if (caretFile != NULL) {
-            chartableMatrixInterfaceOut = dynamic_cast<ChartableMatrixInterface*>(caretFile);
-            if (chartableMatrixInterfaceOut != NULL) {
-                chartableMatrixParcelInterfaceOut = dynamic_cast<ChartableMatrixParcelInterface*>(caretFile);
-                chartableMatrixSeriesInterfaceOut = dynamic_cast<ChartableMatrixSeriesInterface*>(caretFile);
-                chartMatrixDisplayPropertiesOut = chartableMatrixInterfaceOut->getChartMatrixDisplayProperties(browserTabIndexOut);
-                caretMappableDataFileOut = chartableMatrixInterfaceOut->getMatrixChartCaretMappableDataFile();
-                return true;
+        switch (modelChart->getSelectedChartDataType(browserTabIndexOut)) {
+            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+            {
+                CaretDataFileSelectionModel* parcelFileSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(browserTabIndexOut);
+                //m_matrixParcelFileSelectionComboBox->updateComboBox(parcelFileSelectionModel);
+                CaretDataFile* caretParcelFile = parcelFileSelectionModel->getSelectedFile();
+                
+                if (caretParcelFile != NULL) {
+                    chartableMatrixInterfaceOut = dynamic_cast<ChartableMatrixInterface*>(caretParcelFile);
+                    if (chartableMatrixInterfaceOut != NULL) {
+                        chartableMatrixParcelInterfaceOut = dynamic_cast<ChartableMatrixParcelInterface*>(caretParcelFile);
+                        chartMatrixDisplayPropertiesOut = chartableMatrixInterfaceOut->getChartMatrixDisplayProperties(browserTabIndexOut);
+                        caretMappableDataFileOut = chartableMatrixInterfaceOut->getMatrixChartCaretMappableDataFile();
+                        return true;
+                    }
+                }
             }
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+            {
+                CaretDataFileSelectionModel* seriesFileSelectionModel = modelChart->getChartableMatrixSeriesFileSelectionModel(browserTabIndexOut);
+                CaretDataFile* caretSeriesFile = seriesFileSelectionModel->getSelectedFile();
+                
+                
+                if (caretSeriesFile != NULL) {
+                    chartableMatrixInterfaceOut = dynamic_cast<ChartableMatrixInterface*>(caretSeriesFile);
+                    if (chartableMatrixInterfaceOut != NULL) {
+                        chartableMatrixSeriesInterfaceOut = dynamic_cast<ChartableMatrixSeriesInterface*>(caretSeriesFile);
+                        chartMatrixDisplayPropertiesOut = chartableMatrixInterfaceOut->getChartMatrixDisplayProperties(browserTabIndexOut);
+                        caretMappableDataFileOut = chartableMatrixInterfaceOut->getMatrixChartCaretMappableDataFile();
+                        return true;
+                    }
+                }
+            }
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                break;
         }
+        
+//        CaretDataFileSelectionModel* parcelFileSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(browserTabIndexOut);
+//        //m_matrixParcelFileSelectionComboBox->updateComboBox(parcelFileSelectionModel);
+//        CaretDataFile* caretParcelFile = parcelFileSelectionModel->getSelectedFile();
+//
+//        CaretDataFileSelectionModel* seriesFileSelectionModel = modelChart->getChartableMatrixSeriesFileSelectionModel(browserTabIndexOut);
+//        CaretDataFile* caretSeriesFile = seriesFileSelectionModel->getSelectedFile();
+//        
+//        if (caretParcelFile != NULL) {
+//            chartableMatrixInterfaceOut = dynamic_cast<ChartableMatrixInterface*>(caretParcelFile);
+//            if (chartableMatrixInterfaceOut != NULL) {
+//                chartableMatrixParcelInterfaceOut = dynamic_cast<ChartableMatrixParcelInterface*>(caretParcelFile);
+//                chartableMatrixSeriesInterfaceOut = dynamic_cast<ChartableMatrixSeriesInterface*>(caretParcelFile);
+//                chartMatrixDisplayPropertiesOut = chartableMatrixInterfaceOut->getChartMatrixDisplayProperties(browserTabIndexOut);
+//                caretMappableDataFileOut = chartableMatrixInterfaceOut->getMatrixChartCaretMappableDataFile();
+//                return true;
+//            }
+//        }
     }
     
     return false;
@@ -1151,7 +1197,7 @@ ChartSelectionViewController::createMatrixSeriesChartWidget(const Qt::Orientatio
  *     Index of the browser tab.
  */
 void
-ChartSelectionViewController::updateMatrixSeriesChartWidget(Brain* brain,
+ChartSelectionViewController::updateMatrixSeriesChartWidget(Brain* /*brain*/,
                                                             ModelChart* modelChart,
                                                             const int32_t /*browserTabIndex*/)
 {
@@ -1171,8 +1217,7 @@ ChartSelectionViewController::updateMatrixSeriesChartWidget(Brain* brain,
     }
     
     if (chartableMatrixSeriesInterface != NULL) {
-        CaretMappableDataFileAndMapSelectionModel* fileMapModel = modelChart->getChartableMatrixSeriesFileAndMapSelectionModel(browserTabIndex);
-        CaretDataFileSelectionModel* fileSelectionModel = fileMapModel->getCaretDataFileSelectionModel();
+        CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixSeriesFileSelectionModel(browserTabIndex);
         m_matrixSeriesFileSelectionComboBox->updateComboBox(fileSelectionModel);
         
         const MapYokingGroupEnum::Enum yokingGroup = chartableMatrixSeriesInterface->getMapYokingGroup(browserTabIndex);

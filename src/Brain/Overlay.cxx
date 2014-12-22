@@ -433,20 +433,20 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
     
     selectedMapFileOut = m_selectedMapFile;
     if (selectedMapFileOut != NULL) {
-        /*
-         * Update for overlay yoking
-         */
-        if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-            const int32_t yokeMapIndex = MapYokingGroupEnum::getSelectedMapIndex(m_mapYokingGroup);
-            if ((yokeMapIndex >= 0)
-                && (yokeMapIndex < selectedMapFileOut->getNumberOfMaps())) {
-                m_selectedMapIndex = yokeMapIndex;
-            }
-            else if (yokeMapIndex >= selectedMapFileOut->getNumberOfMaps()) {
-                m_selectedMapIndex = selectedMapFileOut->getNumberOfMaps() - 1;
-            }
-        }
-        
+//        /*
+//         * Update for overlay yoking
+//         */
+//        if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+//            const int32_t yokeMapIndex = MapYokingGroupEnum::getSelectedMapIndex(m_mapYokingGroup);
+//            if ((yokeMapIndex >= 0)
+//                && (yokeMapIndex < selectedMapFileOut->getNumberOfMaps())) {
+//                m_selectedMapIndex = yokeMapIndex;
+//            }
+//            else if (yokeMapIndex >= selectedMapFileOut->getNumberOfMaps()) {
+//                m_selectedMapIndex = selectedMapFileOut->getNumberOfMaps() - 1;
+//            }
+//        }
+//        
         selectedMapIndexOut = m_selectedMapIndex;  //m_selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
     }
 }
@@ -466,13 +466,16 @@ Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
     m_selectedMapIndex = selectedMapIndex;
     
     if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-        if (selectedMapFile != NULL) {
-            MapYokingGroupEnum::setSelectedMapIndex(m_mapYokingGroup,
-                                                        selectedMapIndex);
-        }
-        else {
+        if (m_selectedMapFile == NULL) {
             m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
         }
+//        if (selectedMapFile != NULL) {
+//            MapYokingGroupEnum::setSelectedMapIndex(m_mapYokingGroup,
+//                                                        selectedMapIndex);
+//        }
+//        else {
+//            m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+//        }
     }
 }
 

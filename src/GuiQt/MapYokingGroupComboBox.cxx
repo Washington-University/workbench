@@ -130,8 +130,7 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
         
         if ((mapFile != NULL)
             && (mapIndex >= 0)) {
-            const YokeValidationResult result = validateYoking(previousMapYokingGroup,
-                                                         mapFile,
+            const YokeValidationResult result = validateYoking(mapFile,
                                                          mapIndex,
                                                          selectionStatus);
             
@@ -173,8 +172,7 @@ MapYokingGroupComboBox::validateYokingChange(Overlay* overlay)
     
     if ((mapFile != NULL)
         && (mapIndex >= 0)) {
-        const YokeValidationResult result = validateYoking(previousMapYokingGroup,
-                                                     mapFile,
+        const YokeValidationResult result = validateYoking(mapFile,
                                                      mapIndex,
                                                      selectionStatus);
         
@@ -212,12 +210,11 @@ MapYokingGroupComboBox::validateYokingChange(Overlay* overlay)
  *     if yoking is selected (turned on or changed).
  */
 MapYokingGroupComboBox::YokeValidationResult
-MapYokingGroupComboBox::validateYoking(const MapYokingGroupEnum::Enum previousMapYokingGroup,
-                                       CaretMappableDataFile* selectedFile,
+MapYokingGroupComboBox::validateYoking(CaretMappableDataFile* selectedFile,
                                        int32_t& selectedMapIndexInOut,
                                        bool& selectionStatusInOut)
 {
-    YokeValidationResult yokeResult = YOKE_VALIDATE_RESULT_PREVIOUS;
+    YokeValidationResult yokeResult = YOKE_VALIDATE_RESULT_OFF; //YOKE_VALIDATE_RESULT_PREVIOUS;
     
     MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
     if (newYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {

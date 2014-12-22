@@ -267,8 +267,8 @@ CiftiScalarDataSeriesFile::getMatrixCellAttributes(const int32_t rowIndex,
         && (columnIndex < m_ciftiFile->getNumberOfColumns())) {
         const CiftiXML& xml = m_ciftiFile->getCiftiXML();
         
-        const CiftiScalarsMap& scalarsMap = xml.getScalarsMap(CiftiXML::ALONG_COLUMN);
-        CaretAssertArrayIndex(scalarsMap, scalarsMap.getLength(), rowIndex);
+//        const CiftiScalarsMap& scalarsMap = xml.getScalarsMap(CiftiXML::ALONG_COLUMN);
+//        CaretAssertArrayIndex(scalarsMap, scalarsMap.getLength(), rowIndex);
         rowNameOut = " ";
         
         const CiftiSeriesMap& seriesMap = xml.getSeriesMap(CiftiXML::ALONG_ROW);

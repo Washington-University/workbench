@@ -66,8 +66,8 @@ ModelChart::ModelChart(Brain* brain)
 
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartableMatrixFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface(m_brain);
-        m_chartableMatrixSeriesFileSelectionModel[i] = new CaretMappableDataFileAndMapSelectionModel(m_brain,
-                                                                                                     DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES);
+        m_chartableMatrixSeriesFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(m_brain,
+                                                                                       DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES);
     }
     initializeCharts();
     
@@ -890,7 +890,7 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
         {
-            CaretMappableDataFileAndMapSelectionModel* sm = m_chartableMatrixSeriesFileSelectionModel[tabIndex];
+            CaretDataFileSelectionModel* sm = m_chartableMatrixSeriesFileSelectionModel[tabIndex];
             const CaretDataFile* caretFile = sm->getSelectedFile();
             if (caretFile != NULL) {
                 descriptionOut.addLine("Matrix (series) chart for: "
@@ -1300,8 +1300,8 @@ ModelChart::getChartableMatrixParcelFileSelectionModel(const int32_t tabIndex)
  * @return
  *     Chartable file selection model for the tab.
  */
-CaretMappableDataFileAndMapSelectionModel*
-ModelChart::getChartableMatrixSeriesFileAndMapSelectionModel(const int32_t tabIndex)
+CaretDataFileSelectionModel*
+ModelChart::getChartableMatrixSeriesFileSelectionModel(const int32_t tabIndex)
 {
     CaretAssertArrayIndex(m_chartableMatrixSeriesFileSelectionModel,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,

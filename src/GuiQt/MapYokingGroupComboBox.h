@@ -68,8 +68,7 @@ namespace caret {
 
         MapYokingGroupComboBox& operator=(const MapYokingGroupComboBox&);
         
-        YokeValidationResult validateYoking(const MapYokingGroupEnum::Enum previousMapYokingGroup,
-                                            CaretMappableDataFile* selectedFile,
+        YokeValidationResult validateYoking(CaretMappableDataFile* selectedFile,
                                             int32_t& selectedMapIndexInOut,
                                             bool& selectionStatusInOut);
         
