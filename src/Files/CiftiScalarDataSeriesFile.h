@@ -41,10 +41,15 @@ namespace caret {
         
         virtual ~CiftiScalarDataSeriesFile();
         
-        virtual MapYokingGroupEnum::Enum getYokingGroup(const int32_t tabIndex) const;
+        virtual MapYokingGroupEnum::Enum getMapYokingGroup(const int32_t tabIndex) const;
         
-        virtual void setYokingGroup(const int32_t tabIndex,
+        virtual void setMapYokingGroup(const int32_t tabIndex,
                                     const MapYokingGroupEnum::Enum yokingType);
+        
+        virtual int32_t getSelectedMapIndex(const int32_t tabIndex);
+        
+        virtual void setSelectedMapIndex(const int32_t tabIndex,
+                                         const int32_t mapIndex);
         
         virtual void receiveEvent(Event* event);
         
@@ -96,6 +101,8 @@ namespace caret {
         bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         ChartMatrixDisplayProperties* m_chartMatrixDisplayPropertiesForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        int32_t m_selectedMapIndices[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         // ADD_NEW_MEMBERS_HERE
 

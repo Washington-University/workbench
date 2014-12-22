@@ -45,12 +45,12 @@
 #include "EventModelGetAll.h"
 #include "EventProgressUpdate.h"
 #include "LogManager.h"
+#include "MapYokingGroupEnum.h"
 #include "ModelWholeBrain.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "ScenePrimitiveArray.h"
-#include "OverlayYokingGroupEnum.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
 
@@ -426,36 +426,38 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
                                             "SessionManager",
                                             1);
     
-    /*
-     * Save overlay yoking groups.
-     */
-    std::vector<OverlayYokingGroupEnum::Enum> overlayYokingGroups;
-    OverlayYokingGroupEnum::getAllEnums(overlayYokingGroups);
-    const int32_t numOverlayYokingGroups = static_cast<int32_t>(overlayYokingGroups.size());
-    if (numOverlayYokingGroups > 0) {
-        std::vector<int32_t> overlayMapSelections(numOverlayYokingGroups, 1);
-        
-        CaretArray<bool> overlayMapEnabled(numOverlayYokingGroups);
-        for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
-            overlayMapEnabled[i] = false;
-        }
-        
-        for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
-            const OverlayYokingGroupEnum::Enum enumValue = overlayYokingGroups[i];
-            if (enumValue != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-                const int32_t groupIndex = OverlayYokingGroupEnum::toIntegerCode(enumValue);
-                const int32_t mapIndex   = OverlayYokingGroupEnum::getSelectedMapIndex(enumValue);
-                overlayMapSelections[groupIndex] = mapIndex;
-                overlayMapEnabled[groupIndex] = OverlayYokingGroupEnum::isEnabled(enumValue);
+    {
+        /*
+         * Save map yoking groups.
+         */
+        std::vector<MapYokingGroupEnum::Enum> mapYokingGroups;
+        MapYokingGroupEnum::getAllEnums(mapYokingGroups);
+        const int32_t numMapYokingGroups = static_cast<int32_t>(mapYokingGroups.size());
+        if (numMapYokingGroups > 0) {
+            std::vector<int32_t> mapMapSelections(numMapYokingGroups, 1);
+            
+            CaretArray<bool> mapMapEnabled(numMapYokingGroups);
+            for (int32_t i = 0; i < numMapYokingGroups; i++) {
+                mapMapEnabled[i] = false;
             }
+            
+            for (int32_t i = 0; i < numMapYokingGroups; i++) {
+                const MapYokingGroupEnum::Enum enumValue = mapYokingGroups[i];
+                if (enumValue != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                    const int32_t groupIndex = MapYokingGroupEnum::toIntegerCode(enumValue);
+                    const int32_t mapIndex   = MapYokingGroupEnum::getSelectedMapIndex(enumValue);
+                    mapMapSelections[groupIndex] = mapIndex;
+                    mapMapEnabled[groupIndex] = MapYokingGroupEnum::isEnabled(enumValue);
+                }
+            }
+            
+            sceneClass->addIntegerArray("MapYokingIndexArray",
+                                        &mapMapSelections[0],
+                                        numMapYokingGroups);
+            sceneClass->addBooleanArray("MapYokingEnabledArray",
+                                        &mapMapEnabled[0],
+                                        numMapYokingGroups);
         }
-        
-        sceneClass->addIntegerArray("OverlayYokingGroupArray",
-                                    &overlayMapSelections[0],
-                                    numOverlayYokingGroups);
-        sceneClass->addBooleanArray("OverlayYokingEnabledArray",
-                                    &overlayMapEnabled[0],
-                                    numOverlayYokingGroups);
     }
     
     /*
@@ -543,60 +545,118 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
     }
     
-    /*
-     * Restore overlay yoking groups
-     */
-    std::vector<OverlayYokingGroupEnum::Enum> overlayYokingGroups;
-    OverlayYokingGroupEnum::getAllEnums(overlayYokingGroups);
-    const int32_t numOverlayYokingGroups = static_cast<int32_t>(overlayYokingGroups.size());
-    if (numOverlayYokingGroups > 0) {
-        std::vector<int32_t> overlayMapSelections(numOverlayYokingGroups, 1);
-        
-        sceneClass->getIntegerArrayValue("OverlayYokingGroupArray",
-                                         &overlayMapSelections[0],
-                                         numOverlayYokingGroups,
-                                         1);
-        
-        for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
-            bool isValid = false;
-            const OverlayYokingGroupEnum::Enum enumValue = OverlayYokingGroupEnum::fromIntegerCode(i,
-                                                                                                   &isValid);
-            if (enumValue != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-                if (isValid) {
-                    OverlayYokingGroupEnum::setSelectedMapIndex(enumValue, overlayMapSelections[i]);
-                }
-                else {
-                    OverlayYokingGroupEnum::setSelectedMapIndex(enumValue, 1);
+    
+    {
+        /*
+         * Restore map yoking groups
+         */
+        std::vector<MapYokingGroupEnum::Enum> mapYokingGroups;
+        MapYokingGroupEnum::getAllEnums(mapYokingGroups);
+        const int32_t numMapYokingGroups = static_cast<int32_t>(mapYokingGroups.size());
+        if (numMapYokingGroups > 0) {
+            std::vector<int32_t> mapIndexSelections(numMapYokingGroups, 1);
+            
+            sceneClass->getIntegerArrayValue("MapYokingIndexArray",
+                                             &mapIndexSelections[0],
+                                             numMapYokingGroups,
+                                             1);
+            
+            for (int32_t i = 0; i < numMapYokingGroups; i++) {
+                bool isValid = false;
+                const MapYokingGroupEnum::Enum enumValue = MapYokingGroupEnum::fromIntegerCode(i,
+                                                                                               &isValid);
+                if (enumValue != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                    if (isValid) {
+                        MapYokingGroupEnum::setSelectedMapIndex(enumValue, mapIndexSelections[i]);
+                    }
+                    else {
+                        MapYokingGroupEnum::setSelectedMapIndex(enumValue, 1);
+                    }
                 }
             }
-        }
-        
-        
-        const ScenePrimitiveArray* overlayEnabledArray = sceneClass->getPrimitiveArray("OverlayYokingEnabledArray");
-        if (overlayEnabledArray != NULL) {
-            for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
-                bool isValid = false;
-                const OverlayYokingGroupEnum::Enum enumValue = OverlayYokingGroupEnum::fromIntegerCode(i,
-                                                                                                       &isValid);
-                if (enumValue != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-                    /*
-                     * Enabled status was added on 10/17/2014.
-                     * Previous to this data, there was no enabled status and
-                     * we will assume enabled status was on.
-                     */
-                    bool enabledStatus = true;   
-                    if (isValid) {
-                        if (overlayEnabledArray != NULL) {
-                            if (i < overlayEnabledArray->getNumberOfArrayElements()) {
-                                enabledStatus = overlayEnabledArray->booleanValue(i);
+            
+            
+            const ScenePrimitiveArray* mapEnabledArray = sceneClass->getPrimitiveArray("MapYokingEnabledArray");
+            if (mapEnabledArray != NULL) {
+                for (int32_t i = 0; i < numMapYokingGroups; i++) {
+                    bool isValid = false;
+                    const MapYokingGroupEnum::Enum enumValue = MapYokingGroupEnum::fromIntegerCode(i,
+                                                                                                   &isValid);
+                    if (enumValue != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                        /*
+                         * Enabled status was added on 10/17/2014.
+                         * Previous to this data, there was no enabled status and
+                         * we will assume enabled status was on.
+                         */
+                        bool enabledStatus = true;
+                        if (isValid) {
+                            if (mapEnabledArray != NULL) {
+                                if (i < mapEnabledArray->getNumberOfArrayElements()) {
+                                    enabledStatus = mapEnabledArray->booleanValue(i);
+                                }
                             }
                         }
+                        MapYokingGroupEnum::setEnabled(enumValue, enabledStatus);
                     }
-                    OverlayYokingGroupEnum::setEnabled(enumValue, enabledStatus);
                 }
             }
         }
+    }
+    
+    {
+        /*
+         * Restore overlay yoking groups
+         * Note: Overlay yoking groups were replaced by MapYokingGroupEnum
+         * So if overlay yoking group is found, the scene was created
+         * before map yoking groups.
+         */
         
+        const ScenePrimitiveArray* overlayEnabledArray = sceneClass->getPrimitiveArray("OverlayYokingEnabledArray");
+        const ScenePrimitiveArray* mapIndexArray = sceneClass->getPrimitiveArray("OverlayYokingGroupArray");
+        if (mapIndexArray != NULL) {
+            const int32_t numMapIndexElements = mapIndexArray->getNumberOfArrayElements();
+            
+            for (int32_t i = 0; i < numMapIndexElements; i++) {
+                bool isValid = false;
+                const MapYokingGroupEnum::Enum enumValue = MapYokingGroupEnum::fromIntegerCode(i,
+                                                                                               &isValid);
+                if (enumValue != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                    if (isValid) {
+                        MapYokingGroupEnum::setSelectedMapIndex(enumValue,
+                                                                mapIndexArray->integerValue(i));
+                    }
+                    else {
+                        MapYokingGroupEnum::setSelectedMapIndex(enumValue, 1);
+                    }
+                }
+            }
+            
+            
+            if (overlayEnabledArray != NULL) {
+                const int32_t numMapEnabledElements = overlayEnabledArray->getNumberOfArrayElements();
+                for (int32_t i = 0; i < numMapEnabledElements; i++) {
+                    bool isValid = false;
+                    const MapYokingGroupEnum::Enum enumValue = MapYokingGroupEnum::fromIntegerCode(i,
+                                                                                                   &isValid);
+                    if (enumValue != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                        /*
+                         * Enabled status was added on 10/17/2014.
+                         * Previous to this data, there was no enabled status and
+                         * we will assume enabled status was on.
+                         */
+                        bool enabledStatus = true;
+                        if (isValid) {
+                            if (overlayEnabledArray != NULL) {
+                                if (i < overlayEnabledArray->getNumberOfArrayElements()) {
+                                    enabledStatus = overlayEnabledArray->booleanValue(i);
+                                }
+                            }
+                        }
+                        MapYokingGroupEnum::setEnabled(enumValue, enabledStatus);
+                    }
+                }
+            }
+        }
     }
     
     /*

@@ -32,19 +32,32 @@ using namespace caret;
     
 /**
  * \class caret::EventMapYokingSelectMap 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Event sent when a yoked overlay or file selection changes.
  * \ingroup Files
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
  */
 
 /**
- * Constructor.
+ * Constructor for change in map yoking.
+ *
+ * @param caretMappableDataFile
+ *    Caret mappable file that is causing this event.
+ * @param mapYokingGroup
+ *    Map yoking group that has a status change (selected map or enabled status)
  */
-EventMapYokingSelectMap::EventMapYokingSelectMap()
-: Event(EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP)
+EventMapYokingSelectMap::EventMapYokingSelectMap(const MapYokingGroupEnum::Enum mapYokingGroup,
+                                                 const CaretMappableDataFile* caretMappableDataFile,
+                                                 const int32_t mapIndex,
+                                                 const bool selectionStatus)
+: Event(EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP),
+m_mapYokingGroup(mapYokingGroup),
+m_caretMappableDataFile(caretMappableDataFile),
+m_mapIndex(mapIndex),
+m_selectionStatus(selectionStatus)
 {
-    
+    if (mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        MapYokingGroupEnum::setSelectedMapIndex(mapYokingGroup, mapIndex);
+        MapYokingGroupEnum::setEnabled(mapYokingGroup, selectionStatus);
+    }
 }
 
 /**
@@ -53,4 +66,42 @@ EventMapYokingSelectMap::EventMapYokingSelectMap()
 EventMapYokingSelectMap::~EventMapYokingSelectMap()
 {
 }
+
+/**
+ * @return The map yoking group.
+ */
+MapYokingGroupEnum::Enum
+EventMapYokingSelectMap::getMapYokingGroup() const
+{
+    return m_mapYokingGroup;
+}
+
+/**
+ * @return Caret Mappable Data File for which event was issued.
+ * Might be NULL.
+ */
+const CaretMappableDataFile*
+EventMapYokingSelectMap::getCaretMappableDataFile() const
+{
+    return m_caretMappableDataFile;
+}
+
+/**
+ * @return Map index selected.
+ */
+int32_t
+EventMapYokingSelectMap::getMapIndex() const
+{
+    return m_mapIndex;
+}
+
+/**
+ * @return Selection status but ONLY for SAME FILE !
+ */
+bool
+EventMapYokingSelectMap::getSelectionStatus() const
+{
+    return m_selectionStatus;
+}
+
 

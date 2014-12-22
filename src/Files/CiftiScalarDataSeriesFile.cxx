@@ -27,7 +27,9 @@
 #include "CaretLogger.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "CiftiFile.h"
+#include "EventBrowserTabIndicesGetAll.h"
 #include "EventManager.h"
+#include "EventMapYokingSelectMap.h"
 #include "EventMapYokingValidation.h"
 #include "FastStatistics.h"
 #include "NodeAndVoxelColoring.h"
@@ -54,6 +56,7 @@ CiftiScalarDataSeriesFile::CiftiScalarDataSeriesFile()
         m_chartMatrixDisplayPropertiesForTab[i] = new ChartMatrixDisplayProperties();
         m_chartMatrixDisplayPropertiesForTab[i]->setGridLinesDisplayed(false);
         m_yokingGroupForTab[i] = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+        m_selectedMapIndices[i] = 0;
     }
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -63,6 +66,10 @@ CiftiScalarDataSeriesFile::CiftiScalarDataSeriesFile()
     m_sceneAssistant->addTabIndexedBooleanArray("m_chartingEnabledForTab",
                                                 m_chartingEnabledForTab);
     
+    m_sceneAssistant->addTabIndexedIntegerArray("m_selectedMapIndices",
+                                                m_selectedMapIndices);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
 }
 
@@ -98,6 +105,32 @@ CiftiScalarDataSeriesFile::receiveEvent(Event* event)
         
         yokeMapEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP) {
+        /*
+         * The events intended for overlays are received here so that
+         * only DISPLAYED overlays are updated.
+         */
+        EventMapYokingSelectMap* selectMapEvent = dynamic_cast<EventMapYokingSelectMap*>(event);
+        CaretAssert(selectMapEvent);
+        
+        const MapYokingGroupEnum::Enum mapYokingGroup = selectMapEvent->getMapYokingGroup();
+        if (mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            const int32_t yokedMapIndex = selectMapEvent->getMapIndex();
+            
+            EventBrowserTabIndicesGetAll tabIndicesEvent;
+            EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
+            const std::vector<int32_t> tabIndices = tabIndicesEvent.getAllBrowserTabIndices();
+            for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
+                 iter != tabIndices.end();
+                 iter++) {
+                const int32_t tabIndex = *iter;
+                
+                if (getMapYokingGroup(tabIndex) == mapYokingGroup) {
+                    setSelectedMapIndex(tabIndex, yokedMapIndex);
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -107,8 +140,9 @@ CiftiScalarDataSeriesFile::receiveEvent(Event* event)
  *     Selected yoking group for the given tab.
  */
 MapYokingGroupEnum::Enum
-CiftiScalarDataSeriesFile::getYokingGroup(const int32_t tabIndex) const
+CiftiScalarDataSeriesFile::getMapYokingGroup(const int32_t tabIndex) const
 {
+    CaretAssertArrayIndex(m_yokingGroupForTab, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_yokingGroupForTab[tabIndex];
 }
 
@@ -121,15 +155,46 @@ CiftiScalarDataSeriesFile::getYokingGroup(const int32_t tabIndex) const
  *    New value for yoking group.
  */
 void
-CiftiScalarDataSeriesFile::setYokingGroup(const int32_t tabIndex,
+CiftiScalarDataSeriesFile::setMapYokingGroup(const int32_t tabIndex,
                               const MapYokingGroupEnum::Enum yokingGroup)
 {
+    CaretAssertArrayIndex(m_yokingGroupForTab, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     m_yokingGroupForTab[tabIndex] = yokingGroup;
     
     if (m_yokingGroupForTab[tabIndex] == MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         return;
     }
 }
+
+/**
+ * @param tabIndex
+ *     Index of tab.
+ * @return
+ *     Selected map index in the given tab.
+ */
+int32_t 
+CiftiScalarDataSeriesFile::getSelectedMapIndex(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_selectedMapIndices, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    return m_selectedMapIndices[tabIndex];
+}
+
+/**
+ * Set the selected map index for the given tab.
+ *
+ * @param tabIndex
+ *     Index of tab.
+ * @param mapIndex
+ *    New value for selected map index.
+ */
+void
+CiftiScalarDataSeriesFile::setSelectedMapIndex(const int32_t tabIndex,
+                                 const int32_t mapIndex)
+{
+    CaretAssertArrayIndex(m_selectedMapIndices, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    m_selectedMapIndices[tabIndex] = mapIndex;
+}
+
 
 
 /**

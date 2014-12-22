@@ -213,10 +213,6 @@ EventTypeEnum::initialize()
                                      "EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE",
                                      "Operating system requests open data file (Mac only)"));
     
-    enumData.push_back(EventTypeEnum(EVENT_OVERLAY_GET_YOKED,
-                                     "EVENT_OVERLAY_GET_YOKED",
-                                     "Get overlays yoked to a specific group"));
-    
     enumData.push_back(EventTypeEnum(EVENT_OVERLAY_SETTINGS_EDITOR_SHOW,
                                      "EVENT_OVERLAY_SETTINGS_EDITOR_SHOW",
                                      "Request display of overlay settings editor"));

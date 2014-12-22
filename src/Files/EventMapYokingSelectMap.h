@@ -23,18 +23,29 @@
 
 
 #include "Event.h"
-
-
+#include "MapYokingGroupEnum.h"
 
 namespace caret {
 
+    class CaretMappableDataFile;
+    
     class EventMapYokingSelectMap : public Event {
         
     public:
-        EventMapYokingSelectMap();
+        EventMapYokingSelectMap(const MapYokingGroupEnum::Enum mapYokingGroup,
+                                const CaretMappableDataFile* caretMappableDataFile,
+                                const int32_t mapIndex,
+                                const bool selectionStatus);
         
         virtual ~EventMapYokingSelectMap();
         
+        MapYokingGroupEnum::Enum getMapYokingGroup() const;
+        
+        const CaretMappableDataFile* getCaretMappableDataFile() const;
+        
+        int32_t getMapIndex() const;
+        
+        bool getSelectionStatus() const;
 
         // ADD_NEW_METHODS_HERE
 
@@ -43,6 +54,14 @@ namespace caret {
 
         EventMapYokingSelectMap& operator=(const EventMapYokingSelectMap&);
         
+        const MapYokingGroupEnum::Enum m_mapYokingGroup;
+        
+        const CaretMappableDataFile* m_caretMappableDataFile;
+        
+        const int32_t m_mapIndex;
+        
+        const bool m_selectionStatus;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

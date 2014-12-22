@@ -101,7 +101,6 @@ EventModelSurfaceGet.h
 EventNodeDataFilesGet.h
 EventNodeIdentificationColorsGetFromCharts.h
 EventOverlayValidate.h
-EventOverlayYokingGroupGet.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
 FeatureColoringTypeEnum.h
@@ -216,7 +215,6 @@ EventModelSurfaceGet.cxx
 EventNodeDataFilesGet.cxx
 EventNodeIdentificationColorsGetFromCharts.cxx
 EventOverlayValidate.cxx
-EventOverlayYokingGroupGet.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
 FeatureColoringTypeEnum.cxx

@@ -45,6 +45,7 @@
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
+#include "CiftiScalarDataSeriesFile.h"
 #include "ClippingPlanesDialog.h"
 #include "CursorDisplayScoped.h"
 #include "CursorManager.h"
@@ -59,6 +60,7 @@
 #include "EventHelpViewerDisplay.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
+#include "EventMapYokingSelectMap.h"
 #include "EventModelGetAll.h"
 #include "EventOperatingSystemRequestOpenDataFile.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
@@ -660,18 +662,6 @@ GuiManager::exitProgram(QWidget* parent)
         else {
             CaretAssert(0);
         }
-
-//        const AString msg = ("<html>"
-//                             "Closing this window will exit the application.<p>"
-//                             "Did you create or update a scene file for the analyses "
-//                             "you were just working on? Scenes can reduce setup time "
-//                             "when returning to this dataset for further analysis. They "
-//                             "are especially useful during manuscript preparation "
-//                             "because each scene can regenerate exactly what is displayed "
-//                             "in the current version of a figure."
-//                             "</html>");
-//        okToExit = WuQMessageBox::warningOkCancel(parent,
-//                                                  msg);
     }
     
     if (okToExit) {
@@ -771,7 +761,6 @@ GuiManager::getBrowserTabContentForBrowserWindow(const int32_t browserWindowInde
     CaretAssert(browserWindow);
     
     BrowserTabContent* tabContent = browserWindow->getBrowserTabContent();
-    //CaretAssert(tabContent);
     return tabContent;
 }
 
@@ -1072,8 +1061,6 @@ GuiManager::receiveEvent(Event* event)
              * After it is created, the file will be opened.
              */
             m_nameOfDataFileToOpenAfterStartup = openFileEvent->getDataFileName();
-            //CaretLogSevere("No browser window open for loading file from operating system.");
-            //CaretAssert(0);
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW) {
@@ -1527,40 +1514,6 @@ GuiManager::showHelpDialogActionToggled(bool status)
     showHideHelpDialog(status, NULL);
 }
 
-///**
-// * Show the Help Viewer Dialog.
-// *
-// * @param browserWindow
-// *    Parent of dialog if it needs to be created.
-// * @param helpPageName
-// *    Name of help page for display.
-// */
-//void
-//GuiManager::processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
-//                                        const AString& helpPageName)
-//{
-//    CaretAssert(browserWindow);
-//    
-//    if (m_helpViewerDialog == NULL) {
-//        BrainBrowserWindow* bbw = browserWindow;
-//        if (bbw == NULL) {
-//            bbw = getActiveBrowserWindow();
-//        }
-//        m_helpViewerDialog = new HelpViewerDialog(bbw);
-//        this->addNonModalDialog(m_helpViewerDialog);
-//    }
-//    
-//    m_helpViewerDialog->updateDialog();
-//
-//    if ( ! helpPageName.isEmpty()) {
-//        m_helpViewerDialog->showHelpPageWithName(helpPageName);
-//    }
-//    
-//    m_helpViewerDialog->setVisible(true);
-//    m_helpViewerDialog->show();
-//    m_helpViewerDialog->activateWindow();
-//}
-
 /**
  * @return The action that indicates the enabled status
  * for display of the information window.
@@ -1810,7 +1763,6 @@ GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWi
         this->addNonModalDialog(this->connectomeDatabaseWebView);
     }
     this->connectomeDatabaseWebView->show();
-//    this->connectomeDatabaseWebView->activateWindow();
 }
 
 /**
@@ -1938,13 +1890,6 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     SceneWindowGeometry::setFirstBrowserWindowCoordinatesInvalid();
         
-//    /*
-//     * Reset the brain
-//     */
-//    Brain* brain = GuiManager::get()->getBrain();
-//    brain->resetBrainKeepSceneFiles();
-//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
-
     /*
      * Close all but one window and remove its tabs
      */
@@ -2055,16 +2000,6 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                      + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                      + " seconds");
         timer.reset();
-        
-        /*
-         * Close windows not needed
-         */
-        //    for (std::list<BrainBrowserWindow*>::iterator iter = availableWindows.begin();
-        //         iter != availableWindows.end();
-        //         iter++) {
-        //        BrainBrowserWindow* bbw = *iter;
-        //        bbw->close();
-        //    }
         
         /*
          * Restore information window
@@ -2335,7 +2270,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
                     if (ciftiParcelFile->isMapDataLoadingEnabled(0)) {
                         const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
                         const int32_t columnIndex = idChartMatrix->getMatrixColumnIndex();
-                        if (rowIndex >= 0) {
+                        if ((rowIndex >= 0)
+                            && (columnIndex >= 0)) {
                             try {
                                 ciftiConnectivityManager->loadRowOrColumnFromParcelFile(brain,
                                                                                         ciftiParcelFile,
@@ -2351,6 +2287,27 @@ GuiManager::processIdentification(const int32_t tabIndex,
                             }
                             updateGraphicsFlag = true;
                         }
+                    }
+                }
+                
+                CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(chartMatrixInterface);
+                if (scalarDataSeriesFile != NULL) {
+                    const int32_t columnIndex = idChartMatrix->getMatrixColumnIndex();
+                    if (columnIndex >= 0) {
+                        scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
+                                                                  columnIndex);
+                        
+                        const MapYokingGroupEnum::Enum mapYoking = scalarDataSeriesFile->getMapYokingGroup(tabIndex);
+                        
+                        if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                            EventMapYokingSelectMap selectMapEvent(mapYoking,
+                                                                   scalarDataSeriesFile,
+                                                                   columnIndex,
+                                                                   true);
+                            EventManager::get()->sendEvent(selectMapEvent.getPointer());
+                        }
+                        
+                        updateGraphicsFlag = true;
                     }
                 }
             }

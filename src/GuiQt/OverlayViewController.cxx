@@ -36,17 +36,17 @@
 #undef __OVERLAY_VIEW_CONTROLLER_DECLARE__
 
 #include "CaretMappableDataFile.h"
-#include "EnumComboBoxTemplate.h"
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventMapYokingSelectMap.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
-#include "EventOverlayYokingGroupGet.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FilePathNamePrefixCompactor.h"
 #include "GuiManager.h"
+#include "MapYokingGroupComboBox.h"
 #include "Overlay.h"
 #include "UsernamePasswordWidget.h"
 #include "WuQFactory.h"
@@ -208,16 +208,15 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     /*
      * Yoking Group
      */
-    m_yokingGroupComboBox = new EnumComboBoxTemplate(this);
-    m_yokingGroupComboBox->setup<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
-    m_yokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
-    m_yokingGroupComboBox->getWidget()->setToolTip(yokeToolTip);
+    m_mapYokingGroupComboBox = new MapYokingGroupComboBox(this);
+    m_mapYokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
+    m_mapYokingGroupComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
 #ifdef CARET_OS_MACOSX
-    m_yokingGroupComboBox->getComboBox()->setFixedWidth(m_yokingGroupComboBox->getComboBox()->sizeHint().width() - 20);
+    m_mapYokingGroupComboBox->getWidget()->setFixedWidth(m_mapYokingGroupComboBox->getWidget()->sizeHint().width() - 20);
 #endif // CARET_OS_MACOSX
-    QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
+    QObject::connect(m_mapYokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokingGroupActivated()));
-    
+
     /*
      * Use layout group so that items can be shown/hidden
      */
@@ -239,7 +238,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          row, 4);
         this->gridLayoutGroup->addWidget(this->fileComboBox,
                                          row, 5);
-        this->gridLayoutGroup->addWidget(this->m_yokingGroupComboBox->getWidget(),
+        this->gridLayoutGroup->addWidget(this->m_mapYokingGroupComboBox->getWidget(),
                                          row, 6,
                                          Qt::AlignHCenter);
         this->gridLayoutGroup->addWidget(m_mapIndexSpinBox,
@@ -276,7 +275,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          row, 0,
                                          1, 2,
                                          Qt::AlignCenter);
-        this->gridLayoutGroup->addWidget(this->m_yokingGroupComboBox->getWidget(),
+        this->gridLayoutGroup->addWidget(this->m_mapYokingGroupComboBox->getWidget(),
                                          row, 2,
                                          1, 2);
         this->gridLayoutGroup->addWidget(mapLabel,
@@ -289,40 +288,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
                                          row, 0, 1, -1);
-//        int row = this->gridLayoutGroup->rowCount();
-//        this->gridLayoutGroup->addWidget(this->enabledCheckBox,
-//                                         row, 0,
-//                                         2, 1);
-//        this->gridLayoutGroup->addWidget(settingsToolButton,
-//                                         row, 1);
-//        this->gridLayoutGroup->addWidget(colorBarToolButton,
-//                                         row, 2);
-//        this->gridLayoutGroup->addWidget(constructionToolButton,
-//                                         row, 3);
-//        this->gridLayoutGroup->addWidget(fileLabel,
-//                              row, 4);
-//        this->gridLayoutGroup->addWidget(this->fileComboBox,
-//                              row, 5, 1, 2);
-//        
-//        row++;
-//        this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
-//                                         row, 1,
-//                                         1, 2,
-//                                         Qt::AlignCenter);
-//        this->gridLayoutGroup->addWidget(this->m_yokingGroupComboBox->getWidget(),
-//                                         row, 3);
-//        this->gridLayoutGroup->addWidget(mapLabel,
-//                              row, 4);
-//        this->gridLayoutGroup->addWidget(m_mapIndexSpinBox,
-//                                         row, 5);
-//        this->gridLayoutGroup->addWidget(this->mapNameComboBox,
-//                              row, 6);
-//        
-//        row++;
-//        this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
-//                                         row, 0, 1, -1);
     }
-    //this->setFixedHeight(this->sizeHint().height());
 }
 
 /**
@@ -368,7 +334,6 @@ OverlayViewController::updateOverlaySettingsEditor()
     }
 }
 
-
 /**
  * Called when a selection is made from the file combo box.
  * @parm indx
@@ -385,7 +350,9 @@ OverlayViewController::fileComboBoxSelected(int indx)
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
     overlay->setSelectionData(file, 0);
     
-    validateYokingSelection(overlay->getYokingGroup());
+    validateYokingSelection();
+    
+    //validateYokingSelection(overlay->getYokingGroup());
     // not needed with call to validateYokingSelection: this->updateViewController(this->overlay);
     
     // called inside validateYokingSelection();  this->updateUserInterfaceAndGraphicsWindow();
@@ -414,6 +381,15 @@ OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
     const int overlayIndex = indx - 1;
     
     overlay->setSelectionData(file, overlayIndex);
+    
+    const MapYokingGroupEnum::Enum mapYoking = overlay->getMapYokingGroup();
+    if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        EventMapYokingSelectMap selectMapEvent(mapYoking,
+                                               file,
+                                               overlayIndex,
+                                               overlay->isEnabled());
+        EventManager::get()->sendEvent(selectMapEvent.getPointer());
+    }
     
     /*
      * Need to update map name combo box.
@@ -452,6 +428,15 @@ OverlayViewController::mapNameComboBoxSelected(int indx)
     
     overlay->setSelectionData(file, indx);
     
+    const MapYokingGroupEnum::Enum mapYoking = overlay->getMapYokingGroup();
+    if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        EventMapYokingSelectMap selectMapEvent(mapYoking,
+                                               file,
+                                               indx,
+                                               overlay->isEnabled());
+        EventManager::get()->sendEvent(selectMapEvent.getPointer());
+    }
+    
     /*
      * Need to update map index spin box.
      * Note that the map index spin box ranges [1, N].
@@ -479,32 +464,18 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
     }
     overlay->setEnabled(checked);
     
-    if (overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-        /*
-         * Need to change the enabled status for any other overlays that are
-         * yoked to the SAME Yoking Group AND contains the SAME data file.
-         */
+    const MapYokingGroupEnum::Enum mapYoking = overlay->getMapYokingGroup();
+    if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         CaretMappableDataFile* myFile = NULL;
         int32_t myIndex = -1;
         this->overlay->getSelectionData(myFile,
                                         myIndex);
         
-        EventOverlayYokingGroupGet yokedOverlaysEvent(overlay->getYokingGroup());
-        EventManager::get()->sendEvent(yokedOverlaysEvent.getPointer());
-        
-        const int32_t numOverlaysYoked = yokedOverlaysEvent.getNumberOfYokedOverlays();
-        for (int32_t i = 0; i < numOverlaysYoked; i++) {
-            Overlay* yokedOverlay = yokedOverlaysEvent.getYokedOverlay(i);
-            CaretAssert(yokedOverlay);
-            CaretMappableDataFile* otherMapFile = NULL;
-            int32_t otherMapIndex = -1;
-            yokedOverlay->getSelectionData(otherMapFile,
-                                           otherMapIndex);
-            
-            if (myFile == otherMapFile) {
-                yokedOverlay->setEnabled(checked);
-            }
-        }
+        EventMapYokingSelectMap selectMapEvent(mapYoking,
+                                               myFile,
+                                               myIndex,
+                                               overlay->isEnabled());
+        EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
     
     this->updateUserInterface();
@@ -547,75 +518,16 @@ OverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
 }
 
 /**
- * Validate and possibly change the yoking group selection.
+ * Validate yoking when there are changes made to the overlay.
  */
 void
-OverlayViewController::validateYokingSelection(const OverlayYokingGroupEnum::Enum previousYokingGroup)
+OverlayViewController::validateYokingSelection()
 {
-    OverlayYokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
-    if (yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-        CaretMappableDataFile* selectedFile = NULL;
-        int32_t selectedMapIndex;
-        overlay->getSelectionData(selectedFile,
-                                  selectedMapIndex);
-        const bool enabledStatus = overlay->isEnabled();
-        if ((selectedFile != NULL)
-            && (selectedMapIndex >= 0)) {
-            /*
-             * Get info on overlay yoked to the selected yoking group
-             */
-            EventOverlayYokingGroupGet yokedOverlaysEvent(yokingGroup);
-            EventManager::get()->sendEvent(yokedOverlaysEvent.getPointer());
-            const int32_t numOverlaysYoked = yokedOverlaysEvent.getNumberOfYokedOverlays();
-            
-            /*
-             * Check compatibility based (number of maps in yoked overlays match)
-             * and warn use if there is an incompatibility.
-             */
-            AString message;
-            if (yokedOverlaysEvent.validateCompatibility(selectedFile,
-                                                         message) == false) {
-                message.appendWithNewLine("");
-                message.appendWithNewLine("Allow yoking?");
-                
-                message = WuQtUtilities::createWordWrappedToolTipText(message);
-                
-                WuQMessageBox::YesNoCancelResult result =
-                WuQMessageBox::warningYesNoCancel(m_yokingGroupComboBox->getWidget(),
-                                                  message,
-                                                  "");
-                switch (result) {
-                    case WuQMessageBox::RESULT_YES:
-                        break;
-                    case WuQMessageBox::RESULT_NO:
-                        yokingGroup = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
-                        break;
-                    case WuQMessageBox::RESULT_CANCEL:
-                        yokingGroup = previousYokingGroup;
-                        break;
-                }
-            }
-            
-            overlay->setYokingGroup(yokingGroup);
-            if (yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-                if (numOverlaysYoked <= 0) {
-                    OverlayYokingGroupEnum::setSelectedMapIndex(yokingGroup,
-                                                                selectedMapIndex);
-                    OverlayYokingGroupEnum::setEnabled(yokingGroup,
-                                                       enabledStatus);
-                }
-            }
-        }
-    }
-    else {
-        overlay->setYokingGroup(yokingGroup);
-    }
+    m_mapYokingGroupComboBox->validateYokingChange(this->overlay);
+    updateViewController(this->overlay);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    updateViewController(overlay);
-    
-    this->updateUserInterfaceAndGraphicsWindow();
 }
-
 
 /**
  * Called when the yoking group is changed.
@@ -623,13 +535,13 @@ OverlayViewController::validateYokingSelection(const OverlayYokingGroupEnum::Enu
 void
 OverlayViewController::yokingGroupActivated()
 {
-    OverlayYokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
+    MapYokingGroupEnum::Enum yokingGroup = m_mapYokingGroupComboBox->getMapYokingGroup();
    
     /*
      * Has yoking group changed?
      */
-    if (yokingGroup != overlay->getYokingGroup()) {
-        validateYokingSelection(overlay->getYokingGroup());
+    if (yokingGroup != overlay->getMapYokingGroup()) {
+        validateYokingSelection();
     }
 }
 
@@ -668,8 +580,6 @@ OverlayViewController::updateViewController(Overlay* overlay)
 {
     this->overlay = overlay;
 
-//    this->widgetsGroup->blockAllSignals(true);
-    
     this->fileComboBox->clear();
     
     /*
@@ -746,9 +656,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
     }
     this->enabledCheckBox->setCheckState(checkState);
     
-    m_yokingGroupComboBox->blockSignals(true);
-    m_yokingGroupComboBox->setSelectedItem<OverlayYokingGroupEnum,OverlayYokingGroupEnum::Enum>(this->overlay->getYokingGroup());
-    m_yokingGroupComboBox->blockSignals(false);
+    m_mapYokingGroupComboBox->setMapYokingGroup(overlay->getMapYokingGroup());
     
     this->colorBarAction->blockSignals(true);
     this->colorBarAction->setChecked(overlay->isPaletteDisplayEnabled());
@@ -757,8 +665,6 @@ OverlayViewController::updateViewController(Overlay* overlay)
     this->opacityDoubleSpinBox->blockSignals(true);
     this->opacityDoubleSpinBox->setValue(overlay->getOpacity());
     this->opacityDoubleSpinBox->blockSignals(false);
-//    this->widgetsGroup->blockAllSignals(false);
-//    this->widgetsGroup->setEnabled(this->overlay != NULL);
 
     const bool haveFile = (selectedFile != NULL);
     bool haveMultipleMaps = false;
@@ -798,7 +704,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
     this->enabledCheckBox->setEnabled(haveFile);
     this->constructionAction->setEnabled(true);
     this->opacityDoubleSpinBox->setEnabled(haveOpacity);
-    this->m_yokingGroupComboBox->getWidget()->setEnabled(haveYoking);
+    this->m_mapYokingGroupComboBox->getWidget()->setEnabled(haveYoking);
     this->colorBarAction->setEnabled(dataIsMappedWithPalette);
     this->settingsAction->setEnabled(true);
 }
@@ -819,7 +725,7 @@ OverlayViewController::updateUserInterfaceAndGraphicsWindow()
 void
 OverlayViewController::updateUserInterface()
 {
-    if (this->overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+    if (this->overlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     else {
@@ -834,7 +740,7 @@ void
 OverlayViewController::updateGraphicsWindow()
 {
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    if (this->overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+    if (this->overlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
     else {

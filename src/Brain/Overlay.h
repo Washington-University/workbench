@@ -26,10 +26,10 @@
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
+#include "MapYokingGroupEnum.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneableInterface.h"
 #include "WholeBrainVoxelDrawingMode.h"
-#include "OverlayYokingGroupEnum.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -75,12 +75,8 @@ namespace caret {
         
         void swapData(Overlay* overlay);
         
-//        void getSelectionData(DataFileTypeEnum::Enum& mapFileTypeOut,
-//                              AString& selectedMapUniqueIDOut);
-        
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
-                              //AString& selectedMapUniqueIDOut,
                               int32_t& selectedMapIndexOut);
         
         void getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
@@ -93,9 +89,9 @@ namespace caret {
         
         void setPaletteDisplayEnabled(const bool enabled);
         
-        OverlayYokingGroupEnum::Enum getYokingGroup() const;
+        MapYokingGroupEnum::Enum getMapYokingGroup() const;
         
-        void setYokingGroup(const OverlayYokingGroupEnum::Enum yokingType);
+        void setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -125,8 +121,8 @@ namespace caret {
         /** enabled status */
         mutable bool m_enabled;
         
-        /** yoking status */
-        OverlayYokingGroupEnum::Enum m_yokingGroup;
+        /** map yoking group */
+        MapYokingGroupEnum::Enum m_mapYokingGroup;
         
         /** available mappable files */
         //std::vector<CaretMappableDataFile*> m_mapFiles;

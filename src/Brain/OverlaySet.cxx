@@ -36,7 +36,7 @@
 #include "CiftiBrainordinateScalarFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
-#include "EventOverlayYokingGroupGet.h"
+#include "EventMapYokingSelectMap.h"
 #include "EventMapYokingValidation.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -116,8 +116,8 @@ m_includeVolumeFiles(includeVolumeFiles)
         m_overlays[i] = new Overlay(includeSurfaceStructures,
                                     includeVolumeFiles);
     }
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_GET_YOKED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
 }
 
 /**
@@ -413,7 +413,7 @@ OverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
     CaretAssertArrayIndex(m_overlays,
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS,
                           overlayIndex);
-    m_overlays[overlayIndex]->setYokingGroup(OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF);
+    m_overlays[overlayIndex]->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
     
     if (m_numberOfDisplayedOverlays > BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
         m_numberOfDisplayedOverlays--;
@@ -1190,7 +1190,7 @@ void
 OverlaySet::resetOverlayYokingToOff()
 {
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        m_overlays[i]->setYokingGroup(OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF);
+        m_overlays[i]->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
     }
 }
 
@@ -1279,27 +1279,78 @@ OverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
 void
 OverlaySet::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_OVERLAY_GET_YOKED) {
-        EventOverlayYokingGroupGet* yokeGroupEvent = dynamic_cast<EventOverlayYokingGroupGet*>(event);
-        CaretAssert(yokeGroupEvent);
-        const OverlayYokingGroupEnum::Enum requestedYokingGroup = yokeGroupEvent->getYokingGroup();
-        
-        if (requestedYokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+    if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
+        /*
+         * The events intended for overlays are received here so that
+         * only DISPLAYED overlays are updated.
+         */
+        EventMapYokingValidation* mapYokeEvent = dynamic_cast<EventMapYokingValidation*>(event);
+        CaretAssert(mapYokeEvent);
+
+        const MapYokingGroupEnum::Enum requestedYokingGroup = mapYokeEvent->getMapYokingGroup();
+        if (requestedYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            
             /*
              * Find all overlays with the requested yoking
              */
             const int32_t overlayCount = getNumberOfDisplayedOverlays();
             for (int32_t j = 0; j < overlayCount; j++) {
                 Overlay* overlay = getOverlay(j);
-                if (overlay->getYokingGroup() == requestedYokingGroup) {
-                    yokeGroupEvent->addYokedOverlay(m_name,
-                                                    m_tabIndex,
-                                                    overlay);
+                
+                CaretMappableDataFile* mapFile = NULL;
+                int32_t mapIndex = -1;
+                overlay->getSelectionData(mapFile,
+                                          mapIndex);
+                if (mapFile != NULL) {
+                    mapYokeEvent->addMapYokedFile(mapFile, overlay->getMapYokingGroup(), m_tabIndex);
                 }
             }
         }
         
-        yokeGroupEvent->setEventProcessed();
+        mapYokeEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP) {
+        /*
+         * The events intended for overlays are received here so that
+         * only DISPLAYED overlays are updated.
+         */
+        EventMapYokingSelectMap* selectMapEvent = dynamic_cast<EventMapYokingSelectMap*>(event);
+        CaretAssert(selectMapEvent);
+        const MapYokingGroupEnum::Enum eventYokingGroup = selectMapEvent->getMapYokingGroup();
+        if (eventYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            const int32_t yokingGroupMapIndex = MapYokingGroupEnum::getSelectedMapIndex(eventYokingGroup);
+            const bool yokingGroupSelectedStatus = MapYokingGroupEnum::isEnabled(eventYokingGroup);
+            const CaretMappableDataFile* eventMapFile = selectMapEvent->getCaretMappableDataFile();
+            
+            /*
+             * Find all overlays with the requested yoking
+             */
+            const int32_t overlayCount = getNumberOfDisplayedOverlays();
+            for (int32_t j = 0; j < overlayCount; j++) {
+                Overlay* overlay = getOverlay(j);
+                
+                if (overlay->getMapYokingGroup() == selectMapEvent->getMapYokingGroup()) {
+                    CaretMappableDataFile* mapFile = NULL;
+                    int32_t mapIndex = -1;
+                    overlay->getSelectionData(mapFile,
+                                              mapIndex);
+                    
+                    if (mapFile != NULL) {
+                        if (yokingGroupMapIndex < mapFile->getNumberOfMaps()) {
+                            overlay->setSelectionData(mapFile,
+                                                      yokingGroupMapIndex);
+                        }
+                        
+                        if (mapFile == eventMapFile) {
+                            overlay->setEnabled(yokingGroupSelectedStatus);
+                        }
+                    }
+                }
+            }
+        }
+        
+        
+//        const MapYokingGroupEnum::Enum mapYokingGroup = selectMapEvent->get
     }
 }
 

@@ -57,6 +57,7 @@
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretPreferences.h"
 #include "ChartableMatrixInterface.h"
+#include "ChartableMatrixSeriesInterface.h"
 #include "ChartModelDataSeries.h"
 #include "ChartModelTimeSeries.h"
 #include "CiftiBrainordinateLabelFile.h"
@@ -4611,9 +4612,12 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
             CaretMappableDataFileAndMapSelectionModel* fileMapModel = chartModel->getChartableMatrixSeriesFileAndMapSelectionModel(tabIndex);
             CaretMappableDataFile* mapFile = fileMapModel->getSelectedFile();
             if (mapFile != NULL) {
-                matrixChartFile = dynamic_cast<ChartableMatrixInterface*>(mapFile);
-                scalarDataSeriesMapIndex = fileMapModel->getSelectedMapIndex();
-                selectionItemDataType = SelectionItemDataTypeEnum::CHART_MATRIX;
+                ChartableMatrixSeriesInterface* matrixSeriesFile = dynamic_cast<ChartableMatrixSeriesInterface*>(mapFile);
+                if (matrixSeriesFile != NULL) {
+                    matrixChartFile = matrixSeriesFile;
+                    selectionItemDataType = SelectionItemDataTypeEnum::CHART_MATRIX;
+                    scalarDataSeriesMapIndex = matrixSeriesFile->getSelectedMapIndex(tabIndex);
+                }
                 
             }
         }

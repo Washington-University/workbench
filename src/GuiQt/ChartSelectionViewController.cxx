@@ -64,6 +64,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "MapYokingGroupComboBox.h"
 #include "ModelChart.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
@@ -1054,26 +1055,14 @@ ChartSelectionViewController::createMatrixSeriesChartWidget(const Qt::Orientatio
      * Yoking Group
      */
     QLabel* yokeLabel = new QLabel("Yoke ");
-    m_matrixSeriesYokingComboBox = new EnumComboBoxTemplate(this);
-    m_matrixSeriesYokingComboBox->setup<MapYokingGroupEnum, MapYokingGroupEnum::Enum>();
+    m_matrixSeriesYokingComboBox = new MapYokingGroupComboBox(this);
     m_matrixSeriesYokingComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
     m_matrixSeriesYokingComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
 #ifdef CARET_OS_MACOSX
-    m_matrixSeriesYokingComboBox->getComboBox()->setFixedWidth(m_matrixSeriesYokingComboBox->getComboBox()->sizeHint().width() - 20);
+    m_matrixSeriesYokingComboBox->getWidget()->setFixedWidth(m_matrixSeriesYokingComboBox->getWidget()->sizeHint().width() - 20);
 #endif // CARET_OS_MACOSX
     QObject::connect(m_matrixSeriesYokingComboBox, SIGNAL(itemActivated()),
                      this, SLOT(matrixSeriesYokingGroupActivated()));
-    
-    
-    /*
-     * MAP YOKING TEMPORARILY DISABLED
-     */
-    m_matrixSeriesYokingComboBox->getWidget()->setEnabled(false);
-    
-    
-    
-    
-    
     
     QGroupBox* fileYokeGroupBox = new QGroupBox("Matrix Loading");
     fileYokeGroupBox->setFlat(true);
@@ -1186,8 +1175,8 @@ ChartSelectionViewController::updateMatrixSeriesChartWidget(Brain* brain,
         CaretDataFileSelectionModel* fileSelectionModel = fileMapModel->getCaretDataFileSelectionModel();
         m_matrixSeriesFileSelectionComboBox->updateComboBox(fileSelectionModel);
         
-        const MapYokingGroupEnum::Enum yokingGroup = chartableMatrixSeriesInterface->getYokingGroup(browserTabIndex);
-        m_matrixSeriesYokingComboBox->setSelectedItem<MapYokingGroupEnum, MapYokingGroupEnum::Enum>(yokingGroup);
+        const MapYokingGroupEnum::Enum yokingGroup = chartableMatrixSeriesInterface->getMapYokingGroup(browserTabIndex);
+        m_matrixSeriesYokingComboBox->setMapYokingGroup(yokingGroup);
         
 //        const YokingGroupEnum::Enum yokingGroup = chartableMatrixParcelInterface->getYokingGroup();
 //        m_matrixParcelYokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(yokingGroup);
@@ -1296,34 +1285,8 @@ ChartSelectionViewController::matrixSeriesYokingGroupActivated()
         return;
     }
     
-    if (chartableMatrixSeriesInterface != NULL) {
-        chartableMatrixSeriesInterface->setYokingGroup(browserTabIndex,
-                                                       m_matrixSeriesYokingComboBox->getSelectedItem<MapYokingGroupEnum, MapYokingGroupEnum::Enum>());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+    m_matrixSeriesYokingComboBox->validateYokingChange(chartableMatrixSeriesInterface,
+                                                       browserTabIndex);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
-///**
-// * @return Chart model selected in the selected tab (NULL if not valid)
-// */
-//ChartModel*
-//ChartSelectionViewController::getSelectedChartModel()
-//{
-//    Brain* brain = GuiManager::get()->getBrain();
-//    
-//    BrowserTabContent* browserTabContent =
-//    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-//    if (browserTabContent == NULL) {
-//        return NULL;
-//    }
-//    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    
-//    ChartModel* chartModel = NULL;
-//    
-//    ModelChart* modelChart = brain->getChartModel();
-//    if (modelChart != NULL) {
-//        chartModel = modelChart->getSelectedChartModel(browserTabIndex);
-//    }
-//    
-//    return chartModel;
-//}

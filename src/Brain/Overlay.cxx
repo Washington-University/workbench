@@ -67,7 +67,7 @@ m_includeVolumeFiles(includeVolumeFiles)
     m_name = "Overlay ";
     m_enabled = true;
     m_paletteDisplayedFlag = false;
-    m_yokingGroup = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
+    m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     
     m_wholeBrainVoxelDrawingMode = WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES;
     
@@ -77,8 +77,8 @@ m_includeVolumeFiles(includeVolumeFiles)
     m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag);
     m_sceneAssistant->add<WholeBrainVoxelDrawingMode, WholeBrainVoxelDrawingMode::Enum>("m_wholeBrainVoxelDrawingMode",
                                                                                         &m_wholeBrainVoxelDrawingMode);
-    m_sceneAssistant->add<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>("m_yokingGroup",
-                                                                                &m_yokingGroup);
+    m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
+                                                                        &m_mapYokingGroup);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_OVERLAY_VALIDATE);
@@ -262,7 +262,7 @@ Overlay::copyData(const Overlay* overlay)
     m_selectedMapFile = overlay->m_selectedMapFile;
     m_selectedMapIndex = overlay->m_selectedMapIndex;
     m_paletteDisplayedFlag = overlay->m_paletteDisplayedFlag;
-    m_yokingGroup = overlay->m_yokingGroup;
+    m_mapYokingGroup = overlay->m_mapYokingGroup;
 }
 
 /**
@@ -397,7 +397,7 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
          * the selected file will change.
          */
         m_selectedMapFile = NULL;
-        m_yokingGroup = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
+        m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     }
     
     /*
@@ -436,8 +436,8 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         /*
          * Update for overlay yoking
          */
-        if (m_yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-            const int32_t yokeMapIndex = OverlayYokingGroupEnum::getSelectedMapIndex(m_yokingGroup);
+        if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            const int32_t yokeMapIndex = MapYokingGroupEnum::getSelectedMapIndex(m_mapYokingGroup);
             if ((yokeMapIndex >= 0)
                 && (yokeMapIndex < selectedMapFileOut->getNumberOfMaps())) {
                 m_selectedMapIndex = yokeMapIndex;
@@ -465,13 +465,13 @@ Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
     m_selectedMapFile = selectedMapFile;
     m_selectedMapIndex = selectedMapIndex;
     
-    if (m_yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+    if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         if (selectedMapFile != NULL) {
-            OverlayYokingGroupEnum::setSelectedMapIndex(m_yokingGroup,
+            MapYokingGroupEnum::setSelectedMapIndex(m_mapYokingGroup,
                                                         selectedMapIndex);
         }
         else {
-            m_yokingGroup = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
+            m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
         }
     }
 }
@@ -497,29 +497,26 @@ Overlay::setPaletteDisplayEnabled(const bool enabled)
 }
 
 /**
- * @return Selected yoking group.
+ * @return Selected map yoking group.
  */
-OverlayYokingGroupEnum::Enum
-Overlay::getYokingGroup() const
+MapYokingGroupEnum::Enum
+Overlay::getMapYokingGroup() const
 {
-    return m_yokingGroup;
+    return m_mapYokingGroup;
 }
 
 /**
- * Set the selected yoking group.
+ * Set the map yoking group.
  *
- * @param yokingGroup
- *    New value for yoking group.
+ * @param mapYokingGroup
+ *    New value for map yoking group.
  */
 void
-Overlay::setYokingGroup(const OverlayYokingGroupEnum::Enum yokingGroup)
+Overlay::setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup)
 {
-    m_yokingGroup = yokingGroup;
-    
-    if (m_yokingGroup == OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-        return;
-    }
+    m_mapYokingGroup = mapYokingGroup;
 }
+
 
 /**
  * Create a scene for an instance of a class.
@@ -615,6 +612,22 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
+
+    /*
+     * OverlayYokingGroup was replaced by MapYokingGroup.
+     * If an overlay yoking group is found, convert it to 
+     * a map yoking group.
+     */
+    const AString overlayYokingGroupName = sceneClass->getStringValue("m_yokingGroup",
+                                                                      "");
+    if ( ! overlayYokingGroupName.isEmpty()) {
+        bool valid = false;
+        const MapYokingGroupEnum::Enum mapGroup = MapYokingGroupEnum::fromOverlayYokingGroupEnumName(overlayYokingGroupName,
+                                                                              &valid);
+        if (valid) {
+            m_mapYokingGroup = mapGroup;
+        }
+    }
     
     const AString selectedMapFileNameWithPath = sceneClass->getPathNameValue("selectedMapFileNameWithPath");
     

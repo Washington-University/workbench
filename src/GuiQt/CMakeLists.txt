@@ -87,6 +87,7 @@ MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MapSettingsParcelsWidget.h
+MapYokingGroupComboBox.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MovieDialog.h
@@ -231,6 +232,7 @@ MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MapSettingsParcelsWidget.h
+MapYokingGroupComboBox.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MouseEvent.h
@@ -375,6 +377,7 @@ MapSettingsLabelsWidget.cxx
 MapSettingsLayerWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
 MapSettingsParcelsWidget.cxx
+MapYokingGroupComboBox.cxx
 MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MouseEvent.cxx

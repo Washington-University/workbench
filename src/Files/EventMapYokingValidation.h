@@ -45,7 +45,10 @@ namespace caret {
         void addMapYokedFileAllTabs(const CaretMappableDataFile* caretMapFile,
                                     const MapYokingGroupEnum::Enum* mapYokingGroupsForAllTabs);
         
+        MapYokingGroupEnum::Enum getMapYokingGroup() const;
+        
         bool validateCompatibility(const CaretMappableDataFile* caretMapFile,
+                                   int32_t& numberOfYokedFilesOut,
                                    AString& messageOut) const;
         
         // ADD_NEW_METHODS_HERE
@@ -55,8 +58,10 @@ namespace caret {
         public:
             YokedFileInfo(const CaretMappableDataFile* caretMapFile,
                           const int32_t tabIndex);
+
+            const CaretMappableDataFile* m_mapFile;
             
-            int32_t m_tabIndex;
+            const int32_t m_tabIndex;
             
             int32_t m_numberOfMaps;
             

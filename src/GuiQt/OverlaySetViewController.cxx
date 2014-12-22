@@ -146,16 +146,6 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         horizontalLayout->addStretch();
     }
     
-//    QWidget* widget = new QWidget();
-//    QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
-//    WuQtUtilities::setLayoutSpacingAndMargins(widgetLayout, 2, 2);
-//    widgetLayout->addWidget(gridWidget);
-//    widgetLayout->addStretch();
-//    
-//    QVBoxLayout* layout = new QVBoxLayout(this);
-//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-//    layout->addWidget(widget);
-    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 

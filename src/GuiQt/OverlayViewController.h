@@ -25,8 +25,6 @@
 
 #include <QWidget>
 
-#include "OverlayYokingGroupEnum.h"
-
 class QAction;
 class QCheckBox;
 class QComboBox;
@@ -38,7 +36,7 @@ class QToolButton;
 
 namespace caret {
 
-    class EnumComboBoxTemplate;
+    class MapYokingGroupComboBox;
     class Overlay;
     class WuQGridLayoutGroup;
     
@@ -114,7 +112,7 @@ namespace caret {
         
         QMenu* createConstructionMenu(QWidget* parent);
         
-        void validateYokingSelection(const OverlayYokingGroupEnum::Enum previousYokingGroup);
+        void validateYokingSelection();
         
         void updateOverlaySettingsEditor();
         
@@ -142,7 +140,7 @@ namespace caret {
         
         QAction* settingsAction;
         
-        EnumComboBoxTemplate* m_yokingGroupComboBox;
+        MapYokingGroupComboBox* m_mapYokingGroupComboBox;
         
         QAction* m_constructionReloadFileAction;
         

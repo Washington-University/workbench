@@ -52,6 +52,7 @@ namespace caret {
     class ChartableMatrixSeriesInterface;
     class ChartModel;
     class EnumComboBoxTemplate;
+    class MapYokingGroupComboBox;
     class ModelChart;
     
     class ChartSelectionViewController : public QWidget, public EventListenerInterface {
@@ -184,7 +185,7 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_matrixSeriesFileSelectionComboBox;
         
-        EnumComboBoxTemplate* m_matrixSeriesYokingComboBox;
+        MapYokingGroupComboBox* m_matrixSeriesYokingComboBox;
         
         static const int COLUMN_CHECKBOX;
         static const int COLUMN_LINE_EDIT;

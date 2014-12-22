@@ -466,13 +466,12 @@ UserInputModeVolumeEditWidget::newFileActionTriggered()
                 volumeEditInfo.m_topOverlay->setSelectionData(vf,
                                                               mapIndex);
                 volumeEditInfo.m_topOverlay->setEnabled(true);
-                volumeEditInfo.m_topOverlay->setYokingGroup(OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF);
+                volumeEditInfo.m_topOverlay->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
                 m_inputModeVolumeEdit->updateGraphicsAfterEditing(vf,
                                                                   mapIndex);
             }
             
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-            //updateWidget();
         }
     }
 }
@@ -483,12 +482,6 @@ UserInputModeVolumeEditWidget::newFileActionTriggered()
 void
 UserInputModeVolumeEditWidget::addMapsActionTriggered()
 {
-//    if (m_lockAction->isChecked()) {
-//        WuQMessageBox::errorOk(m_addMapsToolButton,
-//                               "Volume must be unlocked (Press \"Lock\" in toolbar) to allow adding maps.");
-//        return;
-//    }
-    
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
         VolumeFile* vf = volumeEditInfo.m_volumeFile;

@@ -51,8 +51,6 @@ namespace caret {
         void receiveEvent(Event* event);
         
     private slots:
-//        void overlayCountSpinBoxValueChanged(int);
-        
         void processAddOverlayAbove(const int32_t overlayIndex);
         
         void processAddOverlayBelow(const int32_t overlayIndex);
@@ -73,7 +71,6 @@ namespace caret {
         void updateViewController();
         
         void updateColoringAndGraphics();
-//        QSpinBox* overlayCountSpinBox;
         
         std::vector<OverlayViewController*> overlayViewControllers;
         

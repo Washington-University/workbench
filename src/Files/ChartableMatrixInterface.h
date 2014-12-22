@@ -93,21 +93,39 @@ namespace caret {
                                              AString& columnNameOut) const = 0;
         
         /**
-         * @return The CaretMappableDataFile that implements this interface (const methdod).
+         * @return The matrix display properties for the given tab.
+         * @param tabIndex
+         *    Index of tab.
          */
         virtual const ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) const = 0;
         
         /**
-         * @return The CaretMappableDataFile that implements this interface.
+         * @return The matrix display properties for the given tab.
+         * @param tabIndex
+         *    Index of tab.
          */
         virtual ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) = 0;
         
+        /**
+         * @return The CaretMappableDataFile that implements this interface.
+         */
         virtual CaretMappableDataFile* getMatrixChartCaretMappableDataFile();
         
+         /**
+         * @return The CaretMappableDataFile that implements this interface (const methdod).
+         */
         virtual const CaretMappableDataFile* getMatrixChartCaretMappableDataFile() const;
         
+         /**
+          * @return The CiftiMappableDataFile that implements this interface.
+          * May be NULL !
+          */
         virtual CiftiMappableDataFile* getMatrixChartCiftiMappableDataFile();
         
+         /**
+          * @return The CiftiMappableDataFile that implements this interface (const methdod).
+          * May be NULL !
+          */
         virtual const CiftiMappableDataFile* getMatrixChartCiftiMappableDataFile() const;
         
         /**

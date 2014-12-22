@@ -112,8 +112,6 @@ public:
         EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS,
         /** open file request from the operating system (Mac only) for now */
         EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
-        /** Get all yoked overlays */
-        EVENT_OVERLAY_GET_YOKED,
         /** request display of overlay settings editor */
         EVENT_OVERLAY_SETTINGS_EDITOR_SHOW,
         /** Validate that overlay is valid (it exists). */

@@ -142,12 +142,23 @@ EventMapYokingValidation::addMapYokedFileAllTabs(const CaretMappableDataFile* ca
     }
 }
 
+/**
+ * @return The map yoking group.
+ */
+MapYokingGroupEnum::Enum
+EventMapYokingValidation::getMapYokingGroup() const
+{
+    return m_mapYokingGroup;
+}
 
 /**
  * Validate the file for compatibility.
  *
  * @param caretMapFile
  *     The map file.
+ * @param numberOfYokedFilesOut
+ *     Number of files, excluding the given file, currently yoked 
+ *     to this yoking group.
  * @param messageOut
  *     Message containing information about any incompatibility.
  * @return
@@ -155,8 +166,10 @@ EventMapYokingValidation::addMapYokedFileAllTabs(const CaretMappableDataFile* ca
  */
 bool
 EventMapYokingValidation::validateCompatibility(const CaretMappableDataFile* caretMapFile,
+                                                int32_t& numberOfYokedFilesOut,
                                                 AString& messageOut) const
 {
+    numberOfYokedFilesOut = 0;
     messageOut = "";
     
     CaretAssert(caretMapFile);
@@ -168,8 +181,13 @@ EventMapYokingValidation::validateCompatibility(const CaretMappableDataFile* car
          iter++) {
         const YokedFileInfo& yfi = *iter;
         
-        if (yfi.m_numberOfMaps != numberOfMaps) {
-            messageOut.appendWithNewLine("   " + yfi.m_infoText);
+        if (caretMapFile != yfi.m_mapFile) {
+            
+            numberOfYokedFilesOut++;
+            
+            if (yfi.m_numberOfMaps != numberOfMaps) {
+                messageOut.appendWithNewLine("   " + yfi.m_infoText);
+            }
         }
     }
     
@@ -184,7 +202,7 @@ EventMapYokingValidation::validateCompatibility(const CaretMappableDataFile* car
                            + "\n\n");
     messageOut.insert(0, fileInfo);
                            
-    return true;
+    return false;
 }
 
 /**
@@ -197,12 +215,12 @@ EventMapYokingValidation::validateCompatibility(const CaretMappableDataFile* car
  */
 EventMapYokingValidation::YokedFileInfo::YokedFileInfo(const CaretMappableDataFile* caretMapFile,
                                                        const int32_t tabIndex)
+: m_mapFile(caretMapFile),
+m_tabIndex(tabIndex)
 {
     CaretAssert(caretMapFile);
     
     m_numberOfMaps = caretMapFile->getNumberOfMaps();
-    
-    m_tabIndex = tabIndex;
     
     m_infoText = (AString::number(m_numberOfMaps)
                   + " maps in tab "
