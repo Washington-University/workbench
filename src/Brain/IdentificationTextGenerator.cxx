@@ -630,10 +630,10 @@ IdentificationTextGenerator::generateChartMatrixIdentificationText(Identificatio
         
         if (validData) {
             idText.addLine(true,
-                           ("Row " + AString::number(rowIndex)),
+                           ("Row " + AString::number(rowIndex + 1)),
                            rowName);
             idText.addLine(true,
-                           ("Column " + AString::number(columnIndex)),
+                           ("Column " + AString::number(columnIndex + 1)),
                            columnName);
             idText.addLine(true, "Value",
                            cellValue);

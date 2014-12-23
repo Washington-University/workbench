@@ -358,6 +358,8 @@ OverlayViewController::fileComboBoxSelected(int indx)
     // called inside validateYokingSelection();  this->updateUserInterfaceAndGraphicsWindow();
 
     updateOverlaySettingsEditor();
+    updateViewController(this->overlay);
+    updateGraphicsWindow();
 }
 
 /**
@@ -525,8 +527,8 @@ OverlayViewController::validateYokingSelection()
 {
     m_mapYokingGroupComboBox->validateYokingChange(this->overlay);
     updateViewController(this->overlay);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    
+    updateGraphicsWindow();
+    //EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
