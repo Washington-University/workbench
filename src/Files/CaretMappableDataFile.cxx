@@ -524,9 +524,10 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
         }
     }
     
-    bool showMapFlag = ((isMappedWithLabelTable() || isMappedWithPalette())
-                              && (isSurfaceMappable() || isVolumeMappable()));
-    
+//    bool showMapFlag = ((isMappedWithLabelTable() || isMappedWithPalette())
+//                              && (isSurfaceMappable() || isVolumeMappable()));
+    bool showMapFlag = (isMappedWithLabelTable() || isMappedWithPalette());
+   
     /*
      * Do not show maps on CIFTI connectivity matrix data because
      * they do not have maps, they have a matrix.
@@ -546,10 +547,10 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     
     if (showMapFlag) {
         const int32_t numMaps = getNumberOfMaps();
-        if (isSurfaceMappable()) {
+//        if (isSurfaceMappable()) {
             dataFileInformation.addNameAndValue("Number of Maps",
                                                 numMaps);
-        }
+//        }
         
         if (numMaps > 0) {
             int columnCount = 0;
