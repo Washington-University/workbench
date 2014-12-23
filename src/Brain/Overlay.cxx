@@ -621,7 +621,7 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
      * If an overlay yoking group is found, convert it to 
      * a map yoking group.
      */
-    const AString overlayYokingGroupName = sceneClass->getStringValue("m_yokingGroup",
+    const AString overlayYokingGroupName = sceneClass->getEnumeratedTypeValueAsString("m_yokingGroup",
                                                                       "");
     if ( ! overlayYokingGroupName.isEmpty()) {
         bool valid = false;
