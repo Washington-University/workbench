@@ -30,6 +30,7 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "DataFileContentInformation.h"
 #include "FastStatistics.h"
+#include "FileInformation.h"
 #include "GiftiLabelTable.h"
 #include "Histogram.h"
 #include "LabelDrawingProperties.h"
@@ -486,6 +487,12 @@ void
 CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    const int64_t dataSizeInBytes = getUncompressedDataSizeInBytes();
+    if (dataSizeInBytes >= 0) {
+        dataFileInformation.addNameAndValue("Data Size",
+                                            FileInformation::fileSizeToStandardUnits(dataSizeInBytes));
+    }
     
     dataFileInformation.addNameAndValue("Maps to Surface",
                                         isSurfaceMappable());

@@ -1606,6 +1606,82 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex,
 }
 
 /**
+ * @return The estimated size of data after it is uncompressed
+ * and loaded into RAM.  A negative value indicates that the
+ * file size cannot be computed.
+ */
+int64_t
+CiftiMappableDataFile::getUncompressedDataSizeInBytes() const
+{
+    int64_t dataSize = 0;
+    
+    if (m_ciftiFile != NULL) {
+        dataSize = (m_ciftiFile->getNumberOfColumns()
+                    * m_ciftiFile->getNumberOfRows()
+                    * sizeof(float));
+    }
+    
+    return dataSize;
+}
+
+/**
+ * Get statistics describing the distribution of data
+ * mapped with a color palette for all data within the file.
+ *
+ * @return
+ *    Fast statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */
+const FastStatistics*
+CiftiMappableDataFile::getFileFastStatistics()
+{
+    return NULL;
+}
+
+/**
+ * Get histogram describing the distribution of data
+ * mapped with a color palette for all data within
+ * the file.
+ *
+ * @return
+ *    Histogram for data (will be NULL for data
+ *    not mapped using a palette).
+ */
+const Histogram*
+CiftiMappableDataFile::getFileHistogram()
+{
+    return NULL;
+}
+
+/**
+ * Get histogram describing the distribution of data
+ * mapped with a color palette for all data in the file
+ * within the given range of values.
+ *
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ * @return
+ *    Descriptive statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */
+const Histogram*
+CiftiMappableDataFile::getFileHistogram(const float mostPositiveValueInclusive,
+                                           const float leastPositiveValueInclusive,
+                                           const float leastNegativeValueInclusive,
+                                           const float mostNegativeValueInclusive,
+                                           const bool includeZeroValues)
+{
+    return NULL;
+}
+/**
  * Get the palette color mapping for the map at the given index.
  *
  * @param mapIndex

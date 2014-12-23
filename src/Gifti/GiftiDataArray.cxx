@@ -1702,9 +1702,11 @@ GiftiDataArray::getPaletteColorMapping() const
 const DescriptiveStatistics* 
 GiftiDataArray::getDescriptiveStatistics() const
 {
-    if (this->descriptiveStatistics == NULL) {
-        this->descriptiveStatistics = new DescriptiveStatistics();
-        this->descriptiveStatistics->update(this->dataPointerFloat, 
+    if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+        if (this->descriptiveStatistics == NULL) {
+            this->descriptiveStatistics = new DescriptiveStatistics();
+        }
+        this->descriptiveStatistics->update(this->dataPointerFloat,
                                             this->getTotalNumberOfElements());
     }
     return this->descriptiveStatistics;
@@ -1712,9 +1714,10 @@ GiftiDataArray::getDescriptiveStatistics() const
 
 const FastStatistics* GiftiDataArray::getFastStatistics() const
 {
-    if (m_fastStatistics == NULL)
-    {
-        m_fastStatistics.grabNew(new FastStatistics());
+    if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+        if (m_fastStatistics == NULL) {
+            m_fastStatistics.grabNew(new FastStatistics());
+        }
         m_fastStatistics->update(dataPointerFloat, getTotalNumberOfElements());
     }
     return m_fastStatistics;
@@ -1722,9 +1725,10 @@ const FastStatistics* GiftiDataArray::getFastStatistics() const
 
 const Histogram* GiftiDataArray::getHistogram() const
 {
-    if (m_histogram == NULL)
-    {
-        m_histogram.grabNew(new Histogram(100));
+    if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+        if (m_histogram == NULL) {
+            m_histogram.grabNew(new Histogram(100));
+        }
         m_histogram->update(dataPointerFloat, getTotalNumberOfElements());
     }
     return m_histogram;
@@ -1753,17 +1757,19 @@ GiftiDataArray::getDescriptiveStatistics(const float mostPositiveValueInclusive,
                                                       const float mostNegativeValueInclusive,
                                                       const bool includeZeroValues) const
 {
-    if (this->descriptiveStatisticsLimitedValues == NULL) {
-        this->descriptiveStatisticsLimitedValues = new DescriptiveStatistics();
+    if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+        if (this->descriptiveStatisticsLimitedValues == NULL) {
+            this->descriptiveStatisticsLimitedValues = new DescriptiveStatistics();
+        }
+        this->descriptiveStatisticsLimitedValues->update(this->dataPointerFloat,
+                                                         this->getTotalNumberOfElements(),
+                                                         mostPositiveValueInclusive,
+                                                         leastPositiveValueInclusive,
+                                                         leastNegativeValueInclusive,
+                                                         mostNegativeValueInclusive,
+                                                         includeZeroValues);
     }
-    this->descriptiveStatisticsLimitedValues->update(this->dataPointerFloat, 
-                                                     this->getTotalNumberOfElements(),
-                                                     mostPositiveValueInclusive,
-                                                     leastPositiveValueInclusive,
-                                                     leastNegativeValueInclusive,
-                                                     mostNegativeValueInclusive,
-                                                     includeZeroValues);
-    return this->descriptiveStatisticsLimitedValues;    
+    return this->descriptiveStatisticsLimitedValues;
 }
 
 const Histogram* GiftiDataArray::getHistogram(const float mostPositiveValueInclusive,
@@ -1772,16 +1778,18 @@ const Histogram* GiftiDataArray::getHistogram(const float mostPositiveValueInclu
                                               const float mostNegativeValueInclusive,
                                               const bool includeZeroValues) const
 {
-    if (m_histogramLimitedValues == NULL)
-    {
-        m_histogramLimitedValues.grabNew(new Histogram(100));
+    if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+        if (m_histogramLimitedValues == NULL)
+        {
+            m_histogramLimitedValues.grabNew(new Histogram(100));
+        }
+        m_histogramLimitedValues->update(dataPointerFloat, getTotalNumberOfElements(),
+                                         mostPositiveValueInclusive,
+                                         leastPositiveValueInclusive,
+                                         leastNegativeValueInclusive,
+                                         mostNegativeValueInclusive,
+                                         includeZeroValues);
     }
-    m_histogramLimitedValues->update(dataPointerFloat, getTotalNumberOfElements(),
-                                    mostPositiveValueInclusive,
-                                    leastPositiveValueInclusive,
-                                    leastNegativeValueInclusive,
-                                    mostNegativeValueInclusive,
-                                    includeZeroValues);
     return m_histogramLimitedValues;
 }
 

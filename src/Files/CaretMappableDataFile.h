@@ -201,6 +201,13 @@ namespace caret {
         virtual bool isMappedWithPalette() const = 0;
         
         /**
+         * @return The estimated size of data after it is uncompressed
+         * and loaded into RAM.  A negative value indicates that the
+         * file size cannot be computed.
+         */
+        virtual int64_t getUncompressedDataSizeInBytes() const = 0;
+        
+        /**
          * Get statistics describing the distribution of data
          * mapped with a color palette at the given index.
          *
@@ -251,6 +258,51 @@ namespace caret {
                                                               const float mostNegativeValueInclusive,
                                                               const bool includeZeroValues) = 0;
         
+        /**
+         * Get statistics describing the distribution of data
+         * mapped with a color palette for all data within the file.
+         *
+         * @return
+         *    Fast statistics for data (will be NULL for data
+         *    not mapped using a palette).
+         */
+        virtual const FastStatistics* getFileFastStatistics() = 0;
+        /**
+         * Get histogram describing the distribution of data
+         * mapped with a color palette for all data within
+         * the file.
+         *
+         * @return
+         *    Histogram for data (will be NULL for data
+         *    not mapped using a palette).
+         */
+        virtual const Histogram* getFileHistogram() = 0;
+        
+        /**
+         * Get histogram describing the distribution of data
+         * mapped with a color palette for all data in the file
+         * within the given range of values.
+         *
+         * @param mostPositiveValueInclusive
+         *    Values more positive than this value are excluded.
+         * @param leastPositiveValueInclusive
+         *    Values less positive than this value are excluded.
+         * @param leastNegativeValueInclusive
+         *    Values less negative than this value are excluded.
+         * @param mostNegativeValueInclusive
+         *    Values more negative than this value are excluded.
+         * @param includeZeroValues
+         *    If true zero values (very near zero) are included.
+         * @return
+         *    Descriptive statistics for data (will be NULL for data
+         *    not mapped using a palette).
+         */
+        virtual const Histogram* getFileHistogram(const float mostPositiveValueInclusive,
+                                                   const float leastPositiveValueInclusive,
+                                                   const float leastNegativeValueInclusive,
+                                                   const float mostNegativeValueInclusive,
+                                                  const bool includeZeroValues) = 0;
+
         /**
          * Get the palette color mapping for the map at the given index.
          *

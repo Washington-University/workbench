@@ -219,6 +219,19 @@ namespace caret {
                                                               const float mostNegativeValueInclusive,
                                                               const bool includeZeroValues);
         
+        
+        virtual int64_t getUncompressedDataSizeInBytes() const;
+        
+        virtual const FastStatistics* getFileFastStatistics();
+        
+        virtual const Histogram* getFileHistogram();
+        
+        virtual const Histogram* getFileHistogram(const float mostPositiveValueInclusive,
+                                                  const float leastPositiveValueInclusive,
+                                                  const float leastNegativeValueInclusive,
+                                                  const float mostNegativeValueInclusive,
+                                                  const bool includeZeroValues);
+        
         bool isMappedWithPalette() const;
         
         PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
