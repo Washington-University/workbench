@@ -3195,7 +3195,7 @@ Brain::getAllChartableBrainordinateDataFiles(std::vector<ChartableBrainordinateI
          iter++) {
         ChartableBrainordinateInterface* chartFile = dynamic_cast<ChartableBrainordinateInterface*>(*iter);
         if (chartFile != NULL) {
-            if (chartFile->isBrainordinateChartingSupported()) {
+            if (chartFile->isLineSeriesChartingSupported()) {
                 chartableDataFilesOut.push_back(chartFile);
             }
         }
@@ -3225,7 +3225,7 @@ Brain::getAllChartableBrainordinateDataFilesForChartDataType(const ChartDataType
          iter != chartFiles.end();
          iter++) {
         ChartableBrainordinateInterface* chartFile = *iter;
-        if (chartFile->isBrainordinateChartDataTypeSupported(chartDataType)) {
+        if (chartFile->isLineSeriesChartDataTypeSupported(chartDataType)) {
             chartableDataFilesOut.push_back(chartFile);
         }
     }
@@ -3259,10 +3259,10 @@ Brain::getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<Char
          iter++) {
         ChartableBrainordinateInterface* chartFile = dynamic_cast<ChartableBrainordinateInterface*>(*iter);
         if (chartFile != NULL) {
-            if (chartFile->isBrainordinateChartingSupported()) {
+            if (chartFile->isLineSeriesChartingSupported()) {
                 for (int32_t iTab = 0; iTab < numTabs; iTab++) {
                     const int32_t tabIndex = tabIndices[iTab];
-                    if (chartFile->isBrainordinateChartingEnabled(tabIndex)) {
+                    if (chartFile->isLineSeriesChartingEnabled(tabIndex)) {
                         chartableDataFilesOut.push_back(chartFile);
                         break;
                     }

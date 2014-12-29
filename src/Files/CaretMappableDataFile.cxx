@@ -877,7 +877,7 @@ CaretMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& da
  *    Chart types supported by this file.
  */
 void
-CaretMappableDataFile::helpGetSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+CaretMappableDataFile::helpgetSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     chartDataTypesOut.clear();
     

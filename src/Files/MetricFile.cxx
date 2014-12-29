@@ -420,7 +420,7 @@ MetricFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
  * @return Is charting enabled for this file?
  */
 bool
-MetricFile::isBrainordinateChartingEnabled(const int32_t tabIndex) const
+MetricFile::isLineSeriesChartingEnabled(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
@@ -434,7 +434,7 @@ MetricFile::isBrainordinateChartingEnabled(const int32_t tabIndex) const
  * is chartable if it contains more than one map.
  */
 bool
-MetricFile::isBrainordinateChartingSupported() const
+MetricFile::isLineSeriesChartingSupported() const
 {
     if (getNumberOfMaps() > 1) {
         return true;
@@ -450,7 +450,7 @@ MetricFile::isBrainordinateChartingSupported() const
  *    New status for charting enabled.
  */
 void
-MetricFile::setBrainordinateChartingEnabled(const int32_t tabIndex,
+MetricFile::setLineSeriesChartingEnabled(const int32_t tabIndex,
                                                  const bool enabled)
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
@@ -466,9 +466,9 @@ MetricFile::setBrainordinateChartingEnabled(const int32_t tabIndex,
  *    Chart types supported by this file.
  */
 void
-MetricFile::getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+MetricFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
-    helpGetSupportedBrainordinateChartDataTypes(chartDataTypesOut);
+    helpgetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
 }
 
 /**
@@ -484,7 +484,7 @@ MetricFile::getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnu
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-MetricFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
+MetricFile::loadLineSeriesChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                           const int32_t nodeIndex)
 {
     ChartDataCartesian* chartData = NULL;
@@ -533,7 +533,7 @@ MetricFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum s
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-MetricFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+MetricFile::loadAverageLineSeriesChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                                   const std::vector<int32_t>& nodeIndices)
 {
     ChartDataCartesian* chartData = NULL;
@@ -602,7 +602,7 @@ MetricFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-MetricFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float * /*xyz[3]*/)
+MetricFile::loadLineSeriesChartDataForVoxelAtCoordinate(const float * /*xyz[3]*/)
 {
     ChartDataCartesian* chartData = NULL; //helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;

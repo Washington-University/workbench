@@ -51,7 +51,7 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartDataCartesian* loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadLineSeriesChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                        const int32_t nodeIndex) = 0;
         
         /**
@@ -66,7 +66,7 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartDataCartesian* loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadAverageLineSeriesChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                             const std::vector<int32_t>& nodeIndices) = 0;
 
         /**
@@ -79,29 +79,29 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) = 0;
+        virtual ChartDataCartesian* loadLineSeriesChartDataForVoxelAtCoordinate(const float xyz[3]) = 0;
         
         /**
          * @return The CaretMappableDataFile that implements this interface.
          */
-        virtual CaretMappableDataFile* getBrainordinateChartCaretMappableDataFile();
+        virtual CaretMappableDataFile* getLineSeriesChartCaretMappableDataFile();
         
         /**
          * @return The CaretMappableDataFile that implements this interface.
          */
-        virtual const CaretMappableDataFile* getBrainordinateChartCaretMappableDataFile() const;
+        virtual const CaretMappableDataFile* getLineSeriesChartCaretMappableDataFile() const;
         
         /**
          * @return Is charting enabled for this file in the given tab?
          */
-        virtual bool isBrainordinateChartingEnabled(const int32_t tabIndex) const = 0;
+        virtual bool isLineSeriesChartingEnabled(const int32_t tabIndex) const = 0;
         
         /**
          * @return Return true if the file's current state supports
          * charting data, else false.  Typically a brainordinate file
          * is chartable if it contains more than one map.
          */
-        virtual bool isBrainordinateChartingSupported() const = 0;
+        virtual bool isLineSeriesChartingSupported() const = 0;
         
         /**
          * Set charting enabled for this file in the given tab
@@ -109,7 +109,7 @@ namespace caret {
          * @param enabled
          *    New status for charting enabled.
          */
-        virtual void setBrainordinateChartingEnabled(const int32_t tabIndex,
+        virtual void setLineSeriesChartingEnabled(const int32_t tabIndex,
                                         const bool enabled) = 0;
         
         /**
@@ -118,9 +118,9 @@ namespace caret {
          * @param chartDataTypesOut
          *    Chart types supported by this file.
          */
-        virtual void getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
+        virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
         
-        bool isBrainordinateChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
+        bool isLineSeriesChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
 
     private:
 //        ChartableBrainordinateInterface(const ChartableBrainordinateInterface&);

@@ -1001,7 +1001,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                                  iter != chartableFiles.end();
                                  iter++) {
                                 const ChartableBrainordinateInterface* chartFile = *iter;
-                                const CaretMappableDataFile* mapDataFile = chartFile->getBrainordinateChartCaretMappableDataFile();
+                                const CaretMappableDataFile* mapDataFile = chartFile->getLineSeriesChartCaretMappableDataFile();
                                 if (mapDataFile != NULL){
                                     if (mapDataFile->isVolumeMappable()) {
                                         const VolumeMappableInterface* volMap = dynamic_cast<const VolumeMappableInterface*>(mapDataFile);
@@ -1549,7 +1549,7 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
          iter != chartFiles.end();
          iter++) {
         ChartableBrainordinateInterface* chartFile = *iter;
-        if (chartFile->isBrainordinateChartingEnabled(tabIndex)) {
+        if (chartFile->isLineSeriesChartingEnabled(tabIndex)) {
             return false;
         }
     }
@@ -1561,7 +1561,7 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
          iter != chartFiles.end();
          iter++) {
         ChartableBrainordinateInterface* chartFile = *iter;
-        chartFile->setBrainordinateChartingEnabled(tabIndex,
+        chartFile->setLineSeriesChartingEnabled(tabIndex,
                                       true);
     }
 

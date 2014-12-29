@@ -174,11 +174,11 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
-        ChartData* chartData = chartFile->loadAverageBrainordinateChartDataForSurfaceNodes(structure,
+        ChartData* chartData = chartFile->loadAverageLineSeriesChartDataForSurfaceNodes(structure,
                                                                               nodeIndices);
         if (chartData != NULL) {
             ChartDataSource* dataSource = chartData->getChartDataSource();
-            dataSource->setSurfaceNodeAverage(chartFile->getBrainordinateChartCaretMappableDataFile()->getFileName(),
+            dataSource->setSurfaceNodeAverage(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
                                               StructureEnum::toName(structure),
                                               surfaceNumberOfNodes, nodeIndices);
             
@@ -209,10 +209,10 @@ ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3])
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
-        ChartData* chartData = chartFile->loadBrainordinateChartDataForVoxelAtCoordinate(xyz);
+        ChartData* chartData = chartFile->loadLineSeriesChartDataForVoxelAtCoordinate(xyz);
         if (chartData != NULL) {
             ChartDataSource* dataSource = chartData->getChartDataSource();
-            dataSource->setVolumeVoxel(chartFile->getBrainordinateChartCaretMappableDataFile()->getFileName(),
+            dataSource->setVolumeVoxel(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
                                        xyz);
             
             addChartToChartModels(tabIndices,
@@ -308,7 +308,7 @@ ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableBrainordinateI
              tabIter != validTabIndices.end();
              tabIter++) {
             const int32_t tabIndex = *tabIter;
-            if (cf->isBrainordinateChartingEnabled(tabIndex)) {
+            if (cf->isLineSeriesChartingEnabled(tabIndex)) {
                 chartFileTabIndices.push_back(tabIndex);
             }
         }
@@ -346,11 +346,11 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
 
         CaretAssert(chartFile);
-        ChartData* chartData = chartFile->loadBrainordinateChartDataForSurfaceNode(structure,
+        ChartData* chartData = chartFile->loadLineSeriesChartDataForSurfaceNode(structure,
                                                nodeIndex);
         if (chartData != NULL) {
             ChartDataSource* dataSource = chartData->getChartDataSource();
-            dataSource->setSurfaceNode(chartFile->getBrainordinateChartCaretMappableDataFile()->getFileName(),
+            dataSource->setSurfaceNode(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
                                        StructureEnum::toName(structure),
                                        surfaceNumberOfNodes,
                                        nodeIndex);
@@ -1004,7 +1004,7 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
         ChartableBrainordinateInterface* chartFile = *fileIter;
         
         std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
-        chartFile->getSupportedBrainordinateChartDataTypes(chartDataTypes);
+        chartFile->getSupportedLineSeriesChartDataTypes(chartDataTypes);
         
         for (std::vector<ChartDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
              typeIter != chartDataTypes.end();

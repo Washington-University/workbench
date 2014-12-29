@@ -417,7 +417,7 @@ namespace caret {
         
         ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data);
         
-        void helpGetSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        void helpgetSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);

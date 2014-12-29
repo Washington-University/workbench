@@ -42,10 +42,10 @@ using namespace caret;
  *    True if chart data type is supported by the file, else false.
  */
 bool
-ChartableBrainordinateInterface::isBrainordinateChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const
+ChartableBrainordinateInterface::isLineSeriesChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const
 {
     std::vector<ChartDataTypeEnum::Enum> validTypes;
-    getSupportedBrainordinateChartDataTypes(validTypes);
+    getSupportedLineSeriesChartDataTypes(validTypes);
     
     if (std::find(validTypes.begin(),
                   validTypes.end(),
@@ -61,7 +61,7 @@ ChartableBrainordinateInterface::isBrainordinateChartDataTypeSupported(const Cha
  * Will be NULL if this interface is not implemented by a CaretMappableDataFile.
  */
 CaretMappableDataFile*
-ChartableBrainordinateInterface::getBrainordinateChartCaretMappableDataFile()
+ChartableBrainordinateInterface::getLineSeriesChartCaretMappableDataFile()
 {
     CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(this);
     CaretAssert(cmdf);
@@ -73,7 +73,7 @@ ChartableBrainordinateInterface::getBrainordinateChartCaretMappableDataFile()
  * Will be NULL if this interface is not implemented by a CaretMappableDataFile.
  */
 const CaretMappableDataFile*
-ChartableBrainordinateInterface::getBrainordinateChartCaretMappableDataFile() const
+ChartableBrainordinateInterface::getLineSeriesChartCaretMappableDataFile() const
 {
     const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(this);
     CaretAssert(cmdf);

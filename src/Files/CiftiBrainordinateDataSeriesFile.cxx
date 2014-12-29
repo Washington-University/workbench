@@ -59,7 +59,7 @@ CiftiBrainordinateDataSeriesFile::~CiftiBrainordinateDataSeriesFile()
  * @return Is charting enabled for this file?
  */
 bool
-CiftiBrainordinateDataSeriesFile::isBrainordinateChartingEnabled(const int32_t tabIndex) const
+CiftiBrainordinateDataSeriesFile::isLineSeriesChartingEnabled(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
@@ -73,7 +73,7 @@ CiftiBrainordinateDataSeriesFile::isBrainordinateChartingEnabled(const int32_t t
  * is chartable if it contains more than one map.
  */
 bool
-CiftiBrainordinateDataSeriesFile::isBrainordinateChartingSupported() const
+CiftiBrainordinateDataSeriesFile::isLineSeriesChartingSupported() const
 {
     if (getNumberOfMaps() > 1) {
         return true;
@@ -89,7 +89,7 @@ CiftiBrainordinateDataSeriesFile::isBrainordinateChartingSupported() const
  *    New status for charting enabled.
  */
 void
-CiftiBrainordinateDataSeriesFile::setBrainordinateChartingEnabled(const int32_t tabIndex,
+CiftiBrainordinateDataSeriesFile::setLineSeriesChartingEnabled(const int32_t tabIndex,
                                                      const bool enabled)
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
@@ -111,7 +111,7 @@ CiftiBrainordinateDataSeriesFile::setBrainordinateChartingEnabled(const int32_t 
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiBrainordinateDataSeriesFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
+CiftiBrainordinateDataSeriesFile::loadLineSeriesChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                const int32_t nodeIndex)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNode(structure,
@@ -223,7 +223,7 @@ CiftiBrainordinateDataSeriesFile::loadBrainordinateChartDataForSurfaceNode(const
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiBrainordinateDataSeriesFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+CiftiBrainordinateDataSeriesFile::loadAverageLineSeriesChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                                       const std::vector<int32_t>& nodeIndices)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNodeAverage(structure,
@@ -242,7 +242,7 @@ CiftiBrainordinateDataSeriesFile::loadAverageBrainordinateChartDataForSurfaceNod
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiBrainordinateDataSeriesFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3])
+CiftiBrainordinateDataSeriesFile::loadLineSeriesChartDataForVoxelAtCoordinate(const float xyz[3])
 {
     ChartDataCartesian* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;
@@ -255,9 +255,9 @@ CiftiBrainordinateDataSeriesFile::loadBrainordinateChartDataForVoxelAtCoordinate
  *    Chart types supported by this file.
  */
 void
-CiftiBrainordinateDataSeriesFile::getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+CiftiBrainordinateDataSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
-    helpGetSupportedBrainordinateChartDataTypes(chartDataTypesOut);
+    helpgetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
 }
 
 /**
