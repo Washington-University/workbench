@@ -35,7 +35,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "ChartingDataManager.h"
-#include "ChartableBrainordinateInterface.h"
+#include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
@@ -3176,14 +3176,14 @@ Brain::getAllCiftiMappableDataFiles(std::vector<CiftiMappableDataFile*>& allCift
 
 /**
  * Get all of the Brainordinate Chartable Data Files.  Only files that implement the 
- * ChartableBrainordinateInterface AND return true for ChartableBrainordinateInterface::isChartingSupported()
+ * ChartableLineSeriesBrainordinateInterface AND return true for ChartableLineSeriesBrainordinateInterface::isChartingSupported()
  * are included in the returned files.
  *
  * @param chartableDataFilesOut
  *    Contains all chartable data files upon exit.
  */
 void
-Brain::getAllChartableBrainordinateDataFiles(std::vector<ChartableBrainordinateInterface*>& chartableDataFilesOut) const
+Brain::getAllChartableBrainordinateDataFiles(std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const
 {
     chartableDataFilesOut.clear();
     
@@ -3193,7 +3193,7 @@ Brain::getAllChartableBrainordinateDataFiles(std::vector<ChartableBrainordinateI
     for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
          iter != allFiles.end();
          iter++) {
-        ChartableBrainordinateInterface* chartFile = dynamic_cast<ChartableBrainordinateInterface*>(*iter);
+        ChartableLineSeriesBrainordinateInterface* chartFile = dynamic_cast<ChartableLineSeriesBrainordinateInterface*>(*iter);
         if (chartFile != NULL) {
             if (chartFile->isLineSeriesChartingSupported()) {
                 chartableDataFilesOut.push_back(chartFile);
@@ -3204,7 +3204,7 @@ Brain::getAllChartableBrainordinateDataFiles(std::vector<ChartableBrainordinateI
 
 /**
  * Get all of the Brainordinate Chartable Data Files.  Only files that implement the
- * ChartableBrainordinateInterface AND return true for ChartableBrainordinateInterface::isChartingSupported()
+ * ChartableLineSeriesBrainordinateInterface AND return true for ChartableLineSeriesBrainordinateInterface::isChartingSupported()
  * and support a chart of the given data type are included in the returned files.
  *
  * @param chartDataType
@@ -3214,17 +3214,17 @@ Brain::getAllChartableBrainordinateDataFiles(std::vector<ChartableBrainordinateI
  */
 void
 Brain::getAllChartableBrainordinateDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
-                                                std::vector<ChartableBrainordinateInterface*>& chartableDataFilesOut) const
+                                                std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const
 {
     chartableDataFilesOut.clear();
     
-    std::vector<ChartableBrainordinateInterface*> chartFiles;
+    std::vector<ChartableLineSeriesBrainordinateInterface*> chartFiles;
     getAllChartableBrainordinateDataFiles(chartFiles);
     
-    for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartFiles.begin();
+    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator iter = chartFiles.begin();
          iter != chartFiles.end();
          iter++) {
-        ChartableBrainordinateInterface* chartFile = *iter;
+        ChartableLineSeriesBrainordinateInterface* chartFile = *iter;
         if (chartFile->isLineSeriesChartDataTypeSupported(chartDataType)) {
             chartableDataFilesOut.push_back(chartFile);
         }
@@ -3234,15 +3234,15 @@ Brain::getAllChartableBrainordinateDataFilesForChartDataType(const ChartDataType
 
 /**
  * Get all of the Brainordinate Chartable Data Files.  Only files that implement the
- * ChartableBrainordinateInterface, return true for ChartableBrainordinateInterface::isChartingSupported(),
- * AND return true for ChartableBrainordinateInterface::isChartingEnabled() for any tab index
+ * ChartableLineSeriesBrainordinateInterface, return true for ChartableLineSeriesBrainordinateInterface::isChartingSupported(),
+ * AND return true for ChartableLineSeriesBrainordinateInterface::isChartingEnabled() for any tab index
  * are included in the returned files.
  *
  * @param chartableDataFilesOut
  *    Contains all chartable data files upon exit.
  */
 void
-Brain::getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<ChartableBrainordinateInterface*>& chartableDataFilesOut) const
+Brain::getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const
 {
     chartableDataFilesOut.clear();
     
@@ -3257,7 +3257,7 @@ Brain::getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<Char
     for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
          iter != allFiles.end();
          iter++) {
-        ChartableBrainordinateInterface* chartFile = dynamic_cast<ChartableBrainordinateInterface*>(*iter);
+        ChartableLineSeriesBrainordinateInterface* chartFile = dynamic_cast<ChartableLineSeriesBrainordinateInterface*>(*iter);
         if (chartFile != NULL) {
             if (chartFile->isLineSeriesChartingSupported()) {
                 for (int32_t iTab = 0; iTab < numTabs; iTab++) {
@@ -4394,7 +4394,7 @@ Brain::getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
 void
 Brain::updateChartModel()
 {
-    std::vector<ChartableBrainordinateInterface*> chartableBrainordinateFiles;
+    std::vector<ChartableLineSeriesBrainordinateInterface*> chartableBrainordinateFiles;
     getAllChartableBrainordinateDataFiles(chartableBrainordinateFiles);
     
     std::vector<ChartableMatrixInterface*> chartableMatrixFiles;

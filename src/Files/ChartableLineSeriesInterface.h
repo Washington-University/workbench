@@ -1,5 +1,5 @@
-#ifndef __CHARTABLE_BRAINORDINATE_INTERFACE_H__
-#define __CHARTABLE_BRAINORDINATE_INTERFACE_H__
+#ifndef __CHARTABLE_LINE_SERIES_INTERFACE_H__
+#define __CHARTABLE_LINE_SERIES_INTERFACE_H__
 
 /*LICENSE_START*/
 /*
@@ -30,57 +30,15 @@ namespace caret {
     class ChartDataCartesian;
     class CaretMappableDataFile;
     
-    class ChartableBrainordinateInterface {
+    class ChartableLineSeriesInterface {
         
     protected:
-        ChartableBrainordinateInterface() { }
+        ChartableLineSeriesInterface() { }
         
-        virtual ~ChartableBrainordinateInterface() { }
+        virtual ~ChartableLineSeriesInterface() { }
    
     public:
 
-        /**
-         * Load charting data for the surface with the given structure and node index.
-         *
-         * @param structure
-         *     The surface's structure.
-         * @param nodeIndex
-         *     Index of the node.
-         * @return
-         *     Pointer to the chart data.  If the data FAILED to load,
-         *     the returned pointer will be NULL.  Caller takes ownership
-         *     of the pointer and must delete it when no longer needed.
-         */
-        virtual ChartDataCartesian* loadLineSeriesChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                       const int32_t nodeIndex) = 0;
-        
-        /**
-         * Load average charting data for the surface with the given structure and node indices.
-         *
-         * @param structure
-         *     The surface's structure.
-         * @param nodeIndices
-         *     Indices of the node.
-         * @return
-         *     Pointer to the chart data.  If the data FAILED to load,
-         *     the returned pointer will be NULL.  Caller takes ownership
-         *     of the pointer and must delete it when no longer needed.
-         */
-        virtual ChartDataCartesian* loadAverageLineSeriesChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                            const std::vector<int32_t>& nodeIndices) = 0;
-
-        /**
-         * Load charting data for the voxel enclosing the given coordinate.
-         *
-         * @param xyz
-         *     Coordinate of voxel.
-         * @return
-         *     Pointer to the chart data.  If the data FAILED to load,
-         *     the returned pointer will be NULL.  Caller takes ownership
-         *     of the pointer and must delete it when no longer needed.
-         */
-        virtual ChartDataCartesian* loadLineSeriesChartDataForVoxelAtCoordinate(const float xyz[3]) = 0;
-        
         /**
          * @return The CaretMappableDataFile that implements this interface.
          */
@@ -123,9 +81,9 @@ namespace caret {
         bool isLineSeriesChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
 
     private:
-//        ChartableBrainordinateInterface(const ChartableBrainordinateInterface&);
+//        ChartableLineSeriesInterface(const ChartableLineSeriesInterface&);
 //
-//        ChartableBrainordinateInterface& operator=(const ChartableBrainordinateInterface&);
+//        ChartableLineSeriesInterface& operator=(const ChartableLineSeriesInterface&);
         
     public:
 
@@ -136,9 +94,9 @@ namespace caret {
 
     };
     
-#ifdef __CHARTABLE_BRAINORDINATE_INTERFACE_DECLARE__
+#ifdef __CHARTABLE_LINE_SERIES_INTERFACE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_BRAINORDINATE_INTERFACE_DECLARE__
+#endif // __CHARTABLE_LINE_SERIES_INTERFACE_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_BRAINORDINATE_INTERFACE_H__
+#endif  //__CHARTABLE_LINE_SERIES_INTERFACE_H__

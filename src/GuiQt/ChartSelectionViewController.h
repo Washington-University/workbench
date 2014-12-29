@@ -45,7 +45,7 @@ namespace caret {
     class CaretDataFileSelectionComboBox;
     class CaretMappableDataFile;
     class CaretMappableDataFileAndMapSelectorObject;
-    class ChartableBrainordinateInterface;
+    class ChartableLineSeriesBrainordinateInterface;
     class ChartMatrixDisplayProperties;
     class ChartableMatrixInterface;
     class ChartableMatrixParcelInterface;
@@ -130,7 +130,7 @@ namespace caret {
                                            ModelChart* modelChart,
                                            const int32_t browserTabIndex);
         
-        ChartableBrainordinateInterface* getBrainordinateFileAtIndex(const int32_t indx);
+        ChartableLineSeriesBrainordinateInterface* getBrainordinateFileAtIndex(const int32_t indx);
         
 //        ChartableMatrixInterface* getMatrixFileAtIndex(const int32_t indx);
         

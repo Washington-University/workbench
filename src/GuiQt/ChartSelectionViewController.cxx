@@ -49,7 +49,7 @@
 #include "ChartMatrixDisplayProperties.h"
 #include "ChartMatrixLoadingDimensionEnum.h"
 #include "ChartModel.h"
-#include "ChartableBrainordinateInterface.h"
+#include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CiftiParcelLabelFile.h"
@@ -216,7 +216,7 @@ ChartSelectionViewController::brainordinateSelectionCheckBoxClicked(int indx)
     CaretAssertVectorIndex(m_brainordinateFileEnableCheckBoxes, indx);
     const bool newStatus = m_brainordinateFileEnableCheckBoxes[indx]->isChecked();
     
-    ChartableBrainordinateInterface* chartFile = getBrainordinateFileAtIndex(indx);
+    ChartableLineSeriesBrainordinateInterface* chartFile = getBrainordinateFileAtIndex(indx);
     CaretAssert(chartFile);
 
     if (chartFile != NULL) {
@@ -234,16 +234,16 @@ ChartSelectionViewController::brainordinateSelectionCheckBoxClicked(int indx)
  *    Brainordinate chartable file associated with the given index or NULL
  *    if not valid
  */
-ChartableBrainordinateInterface*
+ChartableLineSeriesBrainordinateInterface*
 ChartSelectionViewController::getBrainordinateFileAtIndex(const int32_t indx)
 {
-    ChartableBrainordinateInterface* filePointer = NULL;
+    ChartableLineSeriesBrainordinateInterface* filePointer = NULL;
     
     CaretAssertVectorIndex(m_brainordinateFileEnableCheckBoxes, indx);
     const QVariant filePointerVariant = m_brainordinateFileEnableCheckBoxes[indx]->property(BRAINORDINATE_FILE_POINTER_PROPERTY_NAME);
     if (filePointerVariant.isValid()) {
         void* ptr = filePointerVariant.value<void*>();
-        filePointer = (ChartableBrainordinateInterface*)ptr;
+        filePointer = (ChartableLineSeriesBrainordinateInterface*)ptr;
     }
     
     return filePointer;
@@ -325,7 +325,7 @@ ChartSelectionViewController::updateBrainordinateChartWidget(Brain* brain,
                                                              ModelChart* modelChart,
                                                              const int32_t browserTabIndex)
 {
-    std::vector<ChartableBrainordinateInterface*> chartableBrainordinateFilesVector;
+    std::vector<ChartableLineSeriesBrainordinateInterface*> chartableBrainordinateFilesVector;
     
     const ChartDataTypeEnum::Enum chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
 
@@ -362,7 +362,7 @@ ChartSelectionViewController::updateBrainordinateChartWidget(Brain* brain,
         }
         
         CaretAssertVectorIndex(chartableBrainordinateFilesVector, i);
-        ChartableBrainordinateInterface* chartBrainFile = chartableBrainordinateFilesVector[i];
+        ChartableLineSeriesBrainordinateInterface* chartBrainFile = chartableBrainordinateFilesVector[i];
         CaretAssert(chartBrainFile);
         const bool checkBoxStatus = chartBrainFile->isLineSeriesChartingEnabled(browserTabIndex);
         

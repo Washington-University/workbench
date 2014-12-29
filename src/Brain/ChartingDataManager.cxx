@@ -126,7 +126,7 @@ ChartingDataManager::hasNetworkFiles() const
      */
     return false;
     
-//    std::vector<ChartableBrainordinateInterface*> chartFiles;
+//    std::vector<ChartableLineSeriesBrainordinateInterface*> chartFiles;
 //    if (requireChartingEnableInFiles) {
 //        m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
 //    }
@@ -134,10 +134,10 @@ ChartingDataManager::hasNetworkFiles() const
 //        m_brain->getAllChartableDataFiles(chartFiles);
 //    }
 //    
-//    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = chartFiles.begin();
+//    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator fileIter = chartFiles.begin();
 //         fileIter != chartFiles.end();
 //         fileIter++) {
-//        ChartableBrainordinateInterface* chartFile = *fileIter;
+//        ChartableLineSeriesBrainordinateInterface* chartFile = *fileIter;
 //        
 //        CaretDataFile* caretDataFile = dynamic_cast<CaretDataFile*>(chartFile);
 //        CaretAssert(caretDataFile);

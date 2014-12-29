@@ -35,7 +35,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
-#include "ChartableBrainordinateInterface.h"
+#include "ChartableLineSeriesBrainordinateInterface.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartToolBoxViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"

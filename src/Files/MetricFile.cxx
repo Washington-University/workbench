@@ -52,7 +52,7 @@ MetricFile::MetricFile()
  */
 MetricFile::MetricFile(const MetricFile& sf)
 : GiftiTypeFile(sf),
-ChartableBrainordinateInterface()
+ChartableLineSeriesBrainordinateInterface()
 {
     this->copyHelperMetricFile(sf);
 }

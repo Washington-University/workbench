@@ -22,7 +22,7 @@
 /*LICENSE_END*/
 
 #include "BrainConstants.h"
-#include "ChartableBrainordinateInterface.h"
+#include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CiftiMappableDataFile.h"
 
 namespace caret {
@@ -30,7 +30,7 @@ namespace caret {
 
     class CiftiBrainordinateDataSeriesFile :
     public CiftiMappableDataFile,
-    public ChartableBrainordinateInterface {
+    public ChartableLineSeriesBrainordinateInterface {
         
     public:
         CiftiBrainordinateDataSeriesFile();

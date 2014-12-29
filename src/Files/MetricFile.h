@@ -25,7 +25,7 @@
 #include <vector>
 #include <stdint.h>
 
-#include "ChartableBrainordinateInterface.h"
+#include "ChartableLineSeriesBrainordinateInterface.h"
 #include "BrainConstants.h"
 #include "GiftiTypeFile.h"
 
@@ -36,7 +36,7 @@ namespace caret {
     /**
      * \brief A Metric data file.
      */
-    class MetricFile : public GiftiTypeFile, public ChartableBrainordinateInterface {
+    class MetricFile : public GiftiTypeFile, public ChartableLineSeriesBrainordinateInterface {
         
     public:
         MetricFile();

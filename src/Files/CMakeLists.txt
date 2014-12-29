@@ -29,7 +29,8 @@ CaretDataFileHelper.h
 CaretMappableDataFile.h
 CaretSparseFile.h
 CaretVolumeExtension.h
-ChartableBrainordinateInterface.h
+ChartableLineSeriesBrainordinateInterface.h
+ChartableLineSeriesInterface.h
 ChartableMatrixInterface.h
 ChartableMatrixParcelInterface.h
 ChartableMatrixSeriesInterface.h
@@ -136,7 +137,8 @@ CaretDataFileHelper.cxx
 CaretMappableDataFile.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
-ChartableBrainordinateInterface.cxx
+ChartableLineSeriesBrainordinateInterface.cxx
+ChartableLineSeriesInterface.cxx
 ChartableMatrixInterface.cxx
 CiftiBrainordinateDataSeriesFile.cxx
 CiftiBrainordinateLabelFile.cxx

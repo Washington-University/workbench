@@ -46,7 +46,7 @@ namespace caret {
     class CaretDataFile;
     class CaretMappableDataFile;
     class ChartingDataManager;
-    class ChartableBrainordinateInterface;
+    class ChartableLineSeriesBrainordinateInterface;
     class ChartableMatrixInterface;
     class CiftiBrainordinateDataSeriesFile;
     class CiftiBrainordinateLabelFile;
@@ -298,12 +298,12 @@ namespace caret {
         
         void getConnectivityDataSeriesFiles(std::vector<CiftiBrainordinateDataSeriesFile*>& connectivityDataSeriesFilesOut) const;
         
-        void getAllChartableBrainordinateDataFiles(std::vector<ChartableBrainordinateInterface*>& chartableDataFilesOut) const;
+        void getAllChartableBrainordinateDataFiles(std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const;
         
         void getAllChartableBrainordinateDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
-                                                      std::vector<ChartableBrainordinateInterface*>& chartableDataFilesOut) const;
+                                                      std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const;
         
-        void getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<ChartableBrainordinateInterface*>& chartableDataFilesOut) const;
+        void getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const;
         
         void getAllChartableMatrixDataFiles(std::vector<ChartableMatrixInterface*>& chartableDataFilesOut) const;
         

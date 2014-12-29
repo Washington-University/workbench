@@ -27,7 +27,7 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "ChartAxis.h"
-#include "ChartableBrainordinateInterface.h"
+#include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartableMatrixInterface.h"
@@ -164,13 +164,13 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
                                          const int32_t surfaceNumberOfNodes,
                                          const std::vector<int32_t>& nodeIndices)
 {
-    std::map<ChartableBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
     getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
     
-    for (std::map<ChartableBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+    for (std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
          fileTabIter != chartFileEnabledTabs.end();
          fileTabIter++) {
-        ChartableBrainordinateInterface* chartFile = fileTabIter->first;
+        ChartableLineSeriesBrainordinateInterface* chartFile = fileTabIter->first;
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
@@ -199,13 +199,13 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
 void
 ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3])
 {
-    std::map<ChartableBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
     getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
     
-    for (std::map<ChartableBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+    for (std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
          fileTabIter != chartFileEnabledTabs.end();
          fileTabIter++) {
-        ChartableBrainordinateInterface* chartFile = fileTabIter->first;
+        ChartableLineSeriesBrainordinateInterface* chartFile = fileTabIter->first;
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
@@ -287,7 +287,7 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
  *    tabs for which that chartable file is enabled.
  */
 void
-ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableBrainordinateInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const
+ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const
 {
     chartFileEnabledTabsOut.clear();
     
@@ -295,13 +295,13 @@ ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableBrainordinateI
     EventManager::get()->sendEvent(allTabsEvent.getPointer());
     std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
     
-    std::vector<ChartableBrainordinateInterface*> chartFiles;
+    std::vector<ChartableLineSeriesBrainordinateInterface*> chartFiles;
     m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
     
-    for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartFiles.begin();
+    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator iter = chartFiles.begin();
          iter != chartFiles.end();
          iter++) {
-        ChartableBrainordinateInterface* cf = *iter;
+        ChartableLineSeriesBrainordinateInterface* cf = *iter;
         std::vector<int32_t> chartFileTabIndices;
         
         for (std::vector<int32_t>::iterator tabIter = validTabIndices.begin();
@@ -336,13 +336,13 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                         const int32_t surfaceNumberOfNodes,
                                         const int32_t nodeIndex)
 {
-    std::map<ChartableBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
     getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
     
-    for (std::map<ChartableBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+    for (std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
          fileTabIter != chartFileEnabledTabs.end();
          fileTabIter++) {
-        ChartableBrainordinateInterface* chartFile = fileTabIter->first;
+        ChartableLineSeriesBrainordinateInterface* chartFile = fileTabIter->first;
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
 
         CaretAssert(chartFile);
@@ -995,13 +995,13 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
     bool haveMatrixSeries = false;
     bool haveTimeSeries   = false;
     
-    std::vector<ChartableBrainordinateInterface*> allBrainordinateChartableFiles;
+    std::vector<ChartableLineSeriesBrainordinateInterface*> allBrainordinateChartableFiles;
     m_brain->getAllChartableBrainordinateDataFiles(allBrainordinateChartableFiles);
 
-    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = allBrainordinateChartableFiles.begin();
+    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator fileIter = allBrainordinateChartableFiles.begin();
          fileIter != allBrainordinateChartableFiles.end();
          fileIter++) {
-        ChartableBrainordinateInterface* chartFile = *fileIter;
+        ChartableLineSeriesBrainordinateInterface* chartFile = *fileIter;
         
         std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
         chartFile->getSupportedLineSeriesChartDataTypes(chartDataTypes);

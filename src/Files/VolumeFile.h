@@ -27,7 +27,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretMutex.h"
 #include "CaretVolumeExtension.h"
-#include "ChartableBrainordinateInterface.h"
+#include "ChartableLineSeriesBrainordinateInterface.h"
 #include "StructureEnum.h"
 #include "GiftiMetaData.h"
 #include "BoundingBox.h"
@@ -42,7 +42,7 @@ namespace caret {
     class VolumeFileVoxelColorizer;
     class VolumeSpline;
     
-    class VolumeFile : public VolumeBase, public CaretMappableDataFile, public ChartableBrainordinateInterface
+    class VolumeFile : public VolumeBase, public CaretMappableDataFile, public ChartableLineSeriesBrainordinateInterface
     {
         VolumeFile(const VolumeFile&);
         
