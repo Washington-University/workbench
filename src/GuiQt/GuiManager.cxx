@@ -2292,17 +2292,17 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 
                 CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(chartMatrixInterface);
                 if (scalarDataSeriesFile != NULL) {
-                    const int32_t columnIndex = idChartMatrix->getMatrixColumnIndex();
-                    if (columnIndex >= 0) {
+                    const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
+                    if (rowIndex >= 0) {
                         scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
-                                                                  columnIndex);
+                                                                  rowIndex);
                         
                         const MapYokingGroupEnum::Enum mapYoking = scalarDataSeriesFile->getMapYokingGroup(tabIndex);
                         
                         if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
                             EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                    scalarDataSeriesFile,
-                                                                   columnIndex,
+                                                                   rowIndex,
                                                                    true);
                             EventManager::get()->sendEvent(selectMapEvent.getPointer());
                         }

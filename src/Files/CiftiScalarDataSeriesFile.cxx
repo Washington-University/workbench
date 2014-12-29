@@ -261,24 +261,47 @@ CiftiScalarDataSeriesFile::getMatrixCellAttributes(const int32_t rowIndex,
                                                            AString& rowNameOut,
                                                            AString& columnNameOut) const
 {
+    rowNameOut    = " ";
+    columnNameOut = " ";
+    
     if ((rowIndex >= 0)
         && (rowIndex < m_ciftiFile->getNumberOfRows())
         && (columnIndex >= 0)
         && (columnIndex < m_ciftiFile->getNumberOfColumns())) {
         const CiftiXML& xml = m_ciftiFile->getCiftiXML();
         
-//        const CiftiScalarsMap& scalarsMap = xml.getScalarsMap(CiftiXML::ALONG_COLUMN);
-//        CaretAssertArrayIndex(scalarsMap, scalarsMap.getLength(), rowIndex);
-        rowNameOut = " ";
+        const CiftiScalarsMap& scalarsMap = xml.getScalarsMap(CiftiXML::ALONG_COLUMN);
+        CaretAssertArrayIndex(scalarsMap, scalarsMap.getLength(), rowIndex);
+        rowNameOut = scalarsMap.getMapName(rowIndex);
         
         const CiftiSeriesMap& seriesMap = xml.getSeriesMap(CiftiXML::ALONG_ROW);
         CaretAssertArrayIndex(seriesMap, seriesMap.getLength(), columnIndex);
         const float time = seriesMap.getStart() + seriesMap.getStep() * columnIndex;
+        
+        AString timeUnitsString;
+        switch (seriesMap.getUnit()) {
+            case CiftiSeriesMap::HERTZ:
+                timeUnitsString = NiftiTimeUnitsEnum::toGuiName(NiftiTimeUnitsEnum::NIFTI_UNITS_HZ);
+                break;
+            case CiftiSeriesMap::METER:
+                CaretLogWarning("CIFTI Units METER not implemented");
+                break;
+            case CiftiSeriesMap::RADIAN:
+                CaretLogWarning("CIFTI Units RADIAN not implemented");
+                break;
+            case CiftiSeriesMap::SECOND:
+                timeUnitsString = NiftiTimeUnitsEnum::toGuiName(NiftiTimeUnitsEnum::NIFTI_UNITS_SEC);
+                break;
+        }
+
         columnNameOut = (AString::number(time, 'f', 3)
                          + " "
-                         + NiftiTimeUnitsEnum::toGuiName(getMapIntervalUnits())
-                         + " Map Name: "
-                         + getMapName(columnIndex));
+                         + timeUnitsString);
+//        columnNameOut = (AString::number(time, 'f', 3)
+//                         + " "
+//                         + NiftiTimeUnitsEnum::toGuiName(getMapIntervalUnits())
+//                         + " Map Name: "
+//                         + getMapName(columnIndex));
         
         const int32_t numberOfElementsInRow = m_ciftiFile->getNumberOfColumns();
         std::vector<float> rowData(numberOfElementsInRow);

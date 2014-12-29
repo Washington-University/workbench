@@ -1033,7 +1033,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
         CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(chartMatrixInterface);
         if (scalarDataSeriesFile != NULL) {
             if (scalarDataSeriesMapIndex >= 0) {
-                selectedColumnIndices.insert(scalarDataSeriesMapIndex);
+                loadedRowIndex = scalarDataSeriesMapIndex;
+                // 12/29/2014 JWH selectedColumnIndices.insert(scalarDataSeriesMapIndex);
             }
         }
         
