@@ -4872,6 +4872,9 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     
+    dataFileInformation.addNameAndValue("Number of Rows", m_ciftiFile->getNumberOfRows());
+    dataFileInformation.addNameAndValue("Number of Columns", m_ciftiFile->getNumberOfColumns());
+    
     int64_t dimI, dimJ, dimK, dimTime, dimNumComp;
     getDimensions(dimI,
                   dimJ,
