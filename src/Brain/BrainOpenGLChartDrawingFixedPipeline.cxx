@@ -999,19 +999,21 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                                        numberOfColumns,
                                        matrixRGBA)) {
         std::set<int32_t> selectedColumnIndices;
+        std::set<int32_t> selectedRowIndices;
         
-        int64_t loadedRowIndex = -1;
-        int64_t loadedColumnIndex = -1;
         CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(chartMatrixInterface);
         if (connMapFile != NULL) {
             const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
             if (connDataLoaded != NULL) {
+                int64_t loadedRowIndex = -1;
+                int64_t loadedColumnIndex = -1;
                 connDataLoaded->getRowColumnLoading(loadedRowIndex,
                                                     loadedColumnIndex);
-                if (loadedRowIndex < 0) {
-                    if (loadedColumnIndex >= 0) {
-                        selectedColumnIndices.insert(loadedColumnIndex);
-                    }
+                if (loadedRowIndex >= 0) {
+                    selectedRowIndices.insert(loadedRowIndex);
+                }
+                else if (loadedColumnIndex >= 0) {
+                    selectedColumnIndices.insert(loadedColumnIndex);
                 }
             }
         }
@@ -1033,7 +1035,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
         CiftiScalarDataSeriesFile* scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(chartMatrixInterface);
         if (scalarDataSeriesFile != NULL) {
             if (scalarDataSeriesMapIndex >= 0) {
-                loadedRowIndex = scalarDataSeriesMapIndex;
+                //loadedRowIndex = scalarDataSeriesMapIndex;
+                selectedRowIndices.insert(scalarDataSeriesMapIndex);
                 // 12/29/2014 JWH selectedColumnIndices.insert(scalarDataSeriesMapIndex);
             }
         }
@@ -1090,8 +1093,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                 break;
         }
         
-        const bool highlightSelectedRowColumnFlag = matrixProperties->isSelectedRowColumnHighlighted();
-        const bool displayGridLinesFlag = matrixProperties->isGridLinesDisplayed();
+        const bool highlightSelectedRowColumnFlag = ( ( ! m_identificationModeFlag)
+                                                     && matrixProperties->isSelectedRowColumnHighlighted() );
+        const bool displayGridLinesFlag = ( ( ! m_identificationModeFlag)
+                                           && matrixProperties->isGridLinesDisplayed() );
         
         /*
          * Set the coordinates for the area in which the matrix is drawn.
@@ -1137,10 +1142,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
         quadVerticesFloatRGBA.reserve(numberOfRows * numberOfColumns * 4);
         std::vector<uint8_t> quadVerticesByteRGBA;
         quadVerticesByteRGBA.reserve(numberOfRows * numberOfColumns * 4);
-        
-        std::vector<float> loadedRowHighlightVerticesXYZ;
-        std::vector<float> loadedRowHighlightVerticesRGBA;
-        bool loadedRowDataValid = false;
         
         float cellY = (numberOfRows - 1) * cellHeight;
         for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
@@ -1225,47 +1226,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                 cellX += cellWidth;
             }
             
-            if ( ! m_identificationModeFlag) {
-                if (rowIndex == loadedRowIndex) {
-                    loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesXYZ.push_back(cellY);
-                    loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[0]);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[1]);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[2]);
-                    loadedRowHighlightVerticesRGBA.push_back(1.0);
-                    
-                    loadedRowHighlightVerticesXYZ.push_back(numberOfColumns * cellWidth);
-                    loadedRowHighlightVerticesXYZ.push_back(cellY);
-                    loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[0]);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[1]);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[2]);
-                    loadedRowHighlightVerticesRGBA.push_back(1.0);
-                    
-                    loadedRowHighlightVerticesXYZ.push_back(numberOfColumns * cellWidth);
-                    loadedRowHighlightVerticesXYZ.push_back(cellY + cellHeight);
-                    loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[0]);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[1]);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[2]);
-                    loadedRowHighlightVerticesRGBA.push_back(1.0);
-                    
-                    
-                    loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesXYZ.push_back(cellY + cellHeight);
-                    loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[0]);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[1]);
-                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[2]);
-                    loadedRowHighlightVerticesRGBA.push_back(1.0);
-
-                    CaretAssert(loadedRowHighlightVerticesXYZ.size() == 12);
-                    CaretAssert(loadedRowHighlightVerticesRGBA.size() == 16);
-                    
-                    loadedRowDataValid = true;
-                }
-            }
             cellY -= cellHeight;
         }
         
@@ -1304,6 +1264,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
             glEnd();
             
             glDisable(GL_BLEND);
+
             
             /*
              * Drawn an outline around the matrix elements.
@@ -1323,8 +1284,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                     outlineRGBA.push_back(gridLineColorFloats[2]);
                     outlineRGBA.push_back(gridLineColorFloats[3]);
                 }
-                glPolygonMode(GL_FRONT, GL_LINE);
                 
+                glPolygonMode(GL_FRONT, GL_LINE);
                 glLineWidth(1.0);
                 glBegin(GL_QUADS);
                 for (int32_t i = 0; i < numberQuadVertices; i++) {
@@ -1336,26 +1297,77 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                 glEnd();
             }
             
-            if (loadedRowDataValid
+            if ( (! selectedRowIndices.empty())
                 && highlightSelectedRowColumnFlag) {
-                CaretAssert((loadedRowHighlightVerticesXYZ.size() / 3) == (loadedRowHighlightVerticesRGBA.size() / 4));
+                std::vector<float> rowXYZ;
+                std::vector<float> rowRGBA;
                 
-                const int32_t numberOfVertices = static_cast<int32_t>(loadedRowHighlightVerticesXYZ.size() / 3);
+                for (std::set<int32_t>::iterator rowIter = selectedRowIndices.begin();
+                     rowIter != selectedRowIndices.end();
+                     rowIter ++) {
+                    const float rowIndex = * rowIter;
+                    const float rowY = (numberOfRows - rowIndex - 1) * cellHeight;
+                    
+                    
+                    rowXYZ.push_back(0.0);
+                    rowXYZ.push_back(rowY);
+                    rowXYZ.push_back(0.0);
+                    rowRGBA.push_back(highlightRGB[0]);
+                    rowRGBA.push_back(highlightRGB[1]);
+                    rowRGBA.push_back(highlightRGB[2]);
+                    rowRGBA.push_back(1.0);
+                    
+                    rowXYZ.push_back(0.0);
+                    rowXYZ.push_back(rowY + cellHeight);
+                    rowXYZ.push_back(0.0);
+                    rowRGBA.push_back(highlightRGB[0]);
+                    rowRGBA.push_back(highlightRGB[1]);
+                    rowRGBA.push_back(highlightRGB[2]);
+                    rowRGBA.push_back(1.0);
+                    
+                    rowXYZ.push_back(numberOfColumns * cellWidth);
+                    rowXYZ.push_back(rowY + cellHeight);
+                    rowXYZ.push_back(0.0);
+                    rowRGBA.push_back(highlightRGB[0]);
+                    rowRGBA.push_back(highlightRGB[1]);
+                    rowRGBA.push_back(highlightRGB[2]);
+                    rowRGBA.push_back(1.0);
+                    
+                    
+                    rowXYZ.push_back(numberOfColumns * cellWidth);
+                    rowXYZ.push_back(rowY);
+                    rowXYZ.push_back(0.0);
+                    rowRGBA.push_back(highlightRGB[0]);
+                    rowRGBA.push_back(highlightRGB[1]);
+                    rowRGBA.push_back(highlightRGB[2]);
+                    rowRGBA.push_back(1.0);
+                }
+                
+                CaretAssert((rowXYZ.size() / 3) == (rowRGBA.size() / 4));
+                
+                const int32_t numberOfVertices = static_cast<int32_t>(rowXYZ.size() / 3);
+                const int32_t numberOfQuads = numberOfVertices / 4;
+                CaretAssert((numberOfQuads * 4) == numberOfVertices);
                 
                 /*
                  * As cells get larger, increase linewidth for selected row
                  */
-                float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+                const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
                 glLineWidth(highlightLineWidth);
                 
-                glBegin(GL_QUADS);
-                for (int32_t i = 0; i < numberOfVertices; i++) {
-                    CaretAssertVectorIndex(loadedRowHighlightVerticesRGBA, i*4 + 3);
-                    glColor4fv(&loadedRowHighlightVerticesRGBA[i*4]);
-                    CaretAssertVectorIndex(loadedRowHighlightVerticesXYZ, i*3 + 2);
-                    glVertex3fv(&loadedRowHighlightVerticesXYZ[i*3]);
+                for (int32_t iQuad = 0; iQuad < numberOfQuads; iQuad++) {
+                    glBegin(GL_LINE_LOOP);
+                    for (int32_t iVert = 0; iVert < 4; iVert++) {
+                        const int32_t rgbaOffset = (iQuad * 16) + (iVert * 4);
+                        CaretAssertVectorIndex(rowRGBA, rgbaOffset + 3);
+                        glColor4fv(&rowRGBA[rgbaOffset]);
+
+                        const int32_t xyzOffset = (iQuad * 12) + (iVert * 3);
+                        CaretAssertVectorIndex(rowXYZ, xyzOffset + 2);
+                        glVertex3fv(&rowXYZ[xyzOffset]);
+                    }
+                    glEnd();
                 }
-                glEnd();
                 glLineWidth(1.0);
             }
             
@@ -1369,9 +1381,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                      colIter++) {
                     const float columnIndex = *colIter;
                     const float colX = columnIndex * cellWidth;
-                    
-                    //const CaretColorEnum::Enum highlightColor = chartMatrixInterface->getSelectedParcelColor();
-                    //const float* highlightRGB = CaretColorEnum::toRGB(highlightColor);
                     
                     columnXYZ.push_back(colX);
                     columnXYZ.push_back(0.0);
@@ -1410,23 +1419,31 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                 CaretAssert((columnXYZ.size() / 3) == (columnRGBA.size() / 4));
                 
                 const int32_t numberOfVertices = static_cast<int32_t>(columnXYZ.size() / 3);
+                const int32_t numberOfQuads = numberOfVertices / 4;
+                CaretAssert((numberOfQuads * 4) == numberOfVertices);
                 
                 /*
                  * As cells get larger, increase linewidth for selected row
                  */
-                float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+                const float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
                 glLineWidth(highlightLineWidth);
                 
-                glBegin(GL_QUADS);
-                for (int32_t i = 0; i < numberOfVertices; i++) {
-                    CaretAssertVectorIndex(columnRGBA, i*4 + 3);
-                    glColor4fv(&columnRGBA[i*4]);
-                    CaretAssertVectorIndex(columnXYZ, i*3 + 2);
-                    glVertex3fv(&columnXYZ[i*3]);
+                for (int32_t iQuad = 0; iQuad < numberOfQuads; iQuad++) {
+                    glBegin(GL_LINE_LOOP);
+                    for (int32_t iVert = 0; iVert < 4; iVert++) {
+                        const int32_t rgbaOffset = (iQuad * 16) + (iVert * 4);
+                        CaretAssertVectorIndex(columnRGBA, rgbaOffset + 3);
+                        glColor4fv(&columnRGBA[rgbaOffset]);
+                        
+                        const int32_t xyzOffset = (iQuad * 12) + (iVert * 3);
+                        CaretAssertVectorIndex(columnXYZ, xyzOffset + 2);
+                        glVertex3fv(&columnXYZ[xyzOffset]);
+                    }
+                    glEnd();
                 }
-                glEnd();
                 glLineWidth(1.0);
             }
+            
             glPolygonMode(GL_FRONT, GL_FILL);
         }
     }
