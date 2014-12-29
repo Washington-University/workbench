@@ -75,6 +75,9 @@ VolumeFile::setVoxelColoringEnabled(const bool enabled)
 VolumeFile::VolumeFile()
 : VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_fileFastStatistics.grabNew(NULL);
+    m_fileHistogram.grabNew(NULL);
+    m_fileHistorgramLimitedValues.grabNew(NULL);
     m_forceUpdateOfGroupAndNameHierarchy = true;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
@@ -86,6 +89,9 @@ VolumeFile::VolumeFile()
 VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_fileFastStatistics.grabNew(NULL);
+    m_fileHistogram.grabNew(NULL);
+    m_fileHistorgramLimitedValues.grabNew(NULL);
     m_forceUpdateOfGroupAndNameHierarchy = true;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
@@ -98,6 +104,9 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_fileFastStatistics.grabNew(NULL);
+    m_fileHistogram.grabNew(NULL);
+    m_fileHistorgramLimitedValues.grabNew(NULL);
     m_forceUpdateOfGroupAndNameHierarchy = true;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
@@ -178,6 +187,9 @@ VolumeFile::clear()
     m_voxelColorizer.grabNew(NULL);
     m_classNameHierarchy.grabNew(NULL);
     m_forceUpdateOfGroupAndNameHierarchy = true;
+    m_fileFastStatistics.grabNew(NULL);
+    m_fileHistogram.grabNew(NULL);
+    m_fileHistorgramLimitedValues.grabNew(NULL);
     
     m_caretVolExt.clear();
     m_brickAttributes.clear();
@@ -675,6 +687,9 @@ VolumeFile::setModified()
     VolumeBase::setModified();
     m_brickStatisticsValid = false;
     m_splinesValid = false;
+    m_fileFastStatistics.grabNew(NULL);
+    m_fileHistogram.grabNew(NULL);
+    m_fileHistorgramLimitedValues.grabNew(NULL);
 }
 
 /**
@@ -899,7 +914,18 @@ VolumeFile::getUncompressedDataSizeInBytes() const
 const FastStatistics*
 VolumeFile::getFileFastStatistics()
 {
-    return NULL;
+    if (m_fileFastStatistics == NULL) {
+        std::vector<float> fileData;
+        CaretAssertMessage(0, "Need pointer to ALL volume data");
+        //getFileData(fileData);
+        if ( ! fileData.empty()) {
+            m_fileFastStatistics.grabNew(new FastStatistics());
+            m_fileFastStatistics->update(&fileData[0],
+                                         fileData.size());
+        }
+    }
+    
+    return m_fileFastStatistics;
 }
 
 /**
@@ -914,7 +940,17 @@ VolumeFile::getFileFastStatistics()
 const Histogram*
 VolumeFile::getFileHistogram()
 {
-    return NULL;
+    if (m_fileHistogram == NULL) {
+        std::vector<float> fileData;
+        CaretAssertMessage(0, "Need pointer to ALL volume data");
+        //getFileData(fileData);
+        if ( ! fileData.empty()) {
+            m_fileHistogram.grabNew(new Histogram());
+            m_fileHistogram->update(&fileData[0],
+                                    fileData.size());
+        }
+    }
+    return m_fileHistogram;
 }
 
 /**
@@ -943,7 +979,45 @@ VolumeFile::getFileHistogram(const float mostPositiveValueInclusive,
                                            const float mostNegativeValueInclusive,
                                            const bool includeZeroValues)
 {
-    return NULL;
+    bool updateHistogramFlag = false;
+    if (m_fileHistorgramLimitedValues != NULL) {
+        if ((mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
+            || (leastPositiveValueInclusive != m_fileHistogramLimitedValuesLeastPositiveValueInclusive)
+            || (leastNegativeValueInclusive != m_fileHistogramLimitedValuesLeastNegativeValueInclusive)
+            || (mostNegativeValueInclusive != m_fileHistogramLimitedValuesMostNegativeValueInclusive)
+            || (includeZeroValues != m_fileHistogramLimitedValuesIncludeZeroValues)) {
+            updateHistogramFlag = true;
+        }
+    }
+    else {
+        updateHistogramFlag = true;
+    }
+    
+    if (updateHistogramFlag) {
+        std::vector<float> fileData;
+        CaretAssertMessage(0, "Need pointer to ALL volume data");
+        //getFileData(fileData);
+        if ( ! fileData.empty()) {
+            if (m_fileHistorgramLimitedValues == NULL) {
+                m_fileHistorgramLimitedValues.grabNew(new Histogram());
+            }
+            m_fileHistorgramLimitedValues->update(&fileData[0],
+                                                  fileData.size(),
+                                                  mostPositiveValueInclusive,
+                                                  leastPositiveValueInclusive,
+                                                  leastNegativeValueInclusive,
+                                                  mostNegativeValueInclusive,
+                                                  includeZeroValues);
+            
+            m_fileHistogramLimitedValuesMostPositiveValueInclusive  = mostPositiveValueInclusive;
+            m_fileHistogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
+            m_fileHistogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
+            m_fileHistogramLimitedValuesMostNegativeValueInclusive  = mostNegativeValueInclusive;
+            m_fileHistogramLimitedValuesIncludeZeroValues           = includeZeroValues;
+        }
+    }
+    
+    return m_fileHistorgramLimitedValues;
 }
 
 /**

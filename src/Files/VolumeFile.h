@@ -70,6 +70,21 @@ namespace caret {
         
         bool m_brickStatisticsValid;//so that setModified() doesn't do something slow
         
+        /** Fast statistics used when statistics computed on all data in file */
+        CaretPointer<FastStatistics> m_fileFastStatistics;
+        
+        /** Histogram used when statistics computed on all data in file */
+        CaretPointer<Histogram> m_fileHistogram;
+        
+        /** Histogram with limited values used when statistics computed on all data in file */
+        CaretPointer<Histogram> m_fileHistorgramLimitedValues;
+        
+        float m_fileHistogramLimitedValuesMostPositiveValueInclusive;
+        float m_fileHistogramLimitedValuesLeastPositiveValueInclusive;
+        float m_fileHistogramLimitedValuesLeastNegativeValueInclusive;
+        float m_fileHistogramLimitedValuesMostNegativeValueInclusive;
+        bool m_fileHistogramLimitedValuesIncludeZeroValues;
+        
         /** Performs coloring of voxels.  Will be NULL if coloring is disabled. */
         CaretPointer<VolumeFileVoxelColorizer> m_voxelColorizer;
         
