@@ -1009,6 +1009,28 @@ BrainBrowserWindowToolBar::removeAndReturnAllTabs(std::vector<BrowserTabContent*
 }
 
 /**
+ * Get content of all tabs
+ *
+ * @param allTabContent
+ *    Will contain the content from the tabs upon return.
+ */
+void
+BrainBrowserWindowToolBar::getAllTabContent(std::vector<BrowserTabContent*>& allTabContent) const
+{
+    allTabContent.clear();
+    
+    int32_t numTabs = this->tabBar->count();
+    for (int32_t i = 0; i < numTabs; i++) {
+        void* p = this->tabBar->tabData(i).value<void*>();
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+        if (btc != NULL) {
+            allTabContent.push_back(btc);
+        }
+    }
+}
+
+
+/**
  * Remove the tab that contains the given tab content.
  * Note: The tab content is NOT deleted and the caller must
  * either delete it or move it into a window.

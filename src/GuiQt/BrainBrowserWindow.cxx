@@ -3242,13 +3242,27 @@ BrainBrowserWindow::getDescriptionOfContent(PlainTextStringBuilder& descriptionO
     descriptionOut.addLine("Window "
                            + AString::number(getBrowserWindowIndex() + 1)
                            + ":");
+
+    std::vector<BrowserTabContent*> tabContent;
     
-    const BrowserTabContent* btc = getBrowserTabContent();
-    if (btc != NULL) {
-        descriptionOut.pushIndentation();
-        btc->getDescriptionOfContent(descriptionOut);
-        descriptionOut.popIndentation();
+    if (isTileTabsSelected()) {
+        m_toolbar->getAllTabContent(tabContent);
     }
+    else {
+        BrowserTabContent* btc = m_toolbar->getTabContentFromSelectedTab();
+        if (btc != NULL) {
+            tabContent.push_back(btc);
+        }
+    }
+    
+    descriptionOut.pushIndentation();
+    for (std::vector<BrowserTabContent*>::iterator iter = tabContent.begin();
+         iter != tabContent.end();
+         iter++) {
+        const BrowserTabContent* btc = *iter;
+        btc->getDescriptionOfContent(descriptionOut);
+    }
+    descriptionOut.popIndentation();
 }
 
 
