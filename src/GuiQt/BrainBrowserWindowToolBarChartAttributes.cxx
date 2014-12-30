@@ -40,6 +40,7 @@
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "ChartModelDataSeries.h"
+#include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
 #include "ChartableMatrixInterface.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
@@ -141,10 +142,13 @@ BrainBrowserWindowToolBarChartAttributes::getCartesianChart()
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                     cartesianChart = modelChart->getSelectedDataSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                    cartesianChart = modelChart->getSelectedFrequencySeriesChartModel(tabIndex);
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     cartesianChart = modelChart->getSelectedTimeSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
                     break;
             }
@@ -194,9 +198,11 @@ BrainBrowserWindowToolBarChartAttributes::getChartableMatrixDisplayProperties()
                     }
                 }
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     break;
             }
         }

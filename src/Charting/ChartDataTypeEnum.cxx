@@ -110,9 +110,17 @@ ChartDataTypeEnum::initialize()
                                          "CHART_DATA_TYPE_INVALID",
                                          "Invalid"));
     
-    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_DATA_SERIES,
-                                    "CHART_DATA_TYPE_DATA_SERIES", 
-                                    "Data Series"));
+    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_LINE_DATA_SERIES,
+                                         "CHART_DATA_TYPE_LINE_DATA_SERIES",
+                                         "Data Series"));
+    
+    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_LINE_FREQUENCY_SERIES,
+                                         "CHART_DATA_TYPE_LINE_FREQUENCY_SERIES",
+                                         "Frequency Series"));
+    
+    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_LINE_TIME_SERIES,
+                                         "CHART_DATA_TYPE_LINE_TIME_SERIES",
+                                         "Time Series"));
     
     enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_MATRIX_LAYER,
                                          "CHART_DATA_TYPE_MATRIX_LAYER",
@@ -121,11 +129,6 @@ ChartDataTypeEnum::initialize()
     enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_MATRIX_SERIES,
                                          "CHART_DATA_TYPE_MATRIX_SERIES",
                                          "Matrix - Series"));
-    
-    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_TIME_SERIES,
-                                    "CHART_DATA_TYPE_TIME_SERIES", 
-                                    "Time Series"));
-    
 }
 
 /**
@@ -181,9 +184,18 @@ ChartDataTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
  
+    /*
+     * Convert from obsolete names
+     */
     AString name(nameIn);
     if (name == "CHART_DATA_TYPE_MATRIX") {
         name = "CHART_DATA_TYPE_MATRIX_LAYER";
+    }
+    else if (name == "CHART_DATA_TYPE_DATA_SERIES") {
+        name = "CHART_DATA_TYPE_LINE_DATA_SERIES";
+    }
+    else if (name == "CHART_DATA_TYPE_TIME_SERIES") {
+        name = "CHART_DATA_TYPE_LINE_TIME_SERIES";
     }
     
     bool validFlag = false;

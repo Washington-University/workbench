@@ -110,7 +110,11 @@ ChartAxisUnitsEnum::initialize()
                                     "CHART_AXIS_UNITS_NONE", 
                                     "None"));
     
-    enumData.push_back(ChartAxisUnitsEnum(CHART_AXIS_UNITS_TIME_SECONDS, 
+    enumData.push_back(ChartAxisUnitsEnum(CHART_AXIS_UNITS_FREQUENCY_HERTZ,
+                                          "CHART_AXIS_UNITS_FREQUENCY_HERTZ",
+                                          "Frequency"));
+    
+    enumData.push_back(ChartAxisUnitsEnum(CHART_AXIS_UNITS_TIME_SECONDS,
                                     "CHART_AXIS_UNITS_TIME_SECONDS", 
                                     "Time"));
     

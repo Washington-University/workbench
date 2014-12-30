@@ -87,6 +87,10 @@ SelectionItemDataTypeEnum::initialize()
                                                  "CHART_DATA_SERIES",
                                                  "Data-Series Chart"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_FREQUENCY_SERIES,
+                                                 "CHART_FREQUENCY_SERIES",
+                                                 "Frequency-Series Chart"));
+    
     enumData.push_back(SelectionItemDataTypeEnum(CHART_MATRIX,
                                                  "CHART_MATRIX",
                                                  "Matrix Chart"));

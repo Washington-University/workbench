@@ -52,7 +52,8 @@ CiftiScalarDataSeriesFile::CiftiScalarDataSeriesFile()
 : CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartingEnabledForTab[i] = false;
+        m_lineSeriesChartingEnabledForTab[i] = false;
+        m_matrixChartingEnabledForTab[i] = false;
         m_chartMatrixDisplayPropertiesForTab[i] = new ChartMatrixDisplayProperties();
         m_chartMatrixDisplayPropertiesForTab[i]->setGridLinesDisplayed(false);
         m_yokingGroupForTab[i] = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
@@ -62,9 +63,12 @@ CiftiScalarDataSeriesFile::CiftiScalarDataSeriesFile()
     m_sceneAssistant = new SceneClassAssistant();
     
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_yokingGroupForTab",
-                                                                                                             m_yokingGroupForTab);
-    m_sceneAssistant->addTabIndexedBooleanArray("m_chartingEnabledForTab",
-                                                m_chartingEnabledForTab);
+                                                                                                     m_yokingGroupForTab);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_lineSeriesChartingEnabledForTab",
+                                                m_lineSeriesChartingEnabledForTab);
+    
+    m_sceneAssistant->addTabIndexedBooleanArray("m_matrixChartingEnabledForTab",
+                                                m_matrixChartingEnabledForTab);
     
     m_sceneAssistant->addTabIndexedIntegerArray("m_selectedMapIndices",
                                                 m_selectedMapIndices);
@@ -322,10 +326,10 @@ CiftiScalarDataSeriesFile::getMatrixCellAttributes(const int32_t rowIndex,
 bool
 CiftiScalarDataSeriesFile::isMatrixChartingEnabled(const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_chartingEnabledForTab,
+    CaretAssertArrayIndex(m_matrixChartingEnabledForTab,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           tabIndex);
-    return m_chartingEnabledForTab[tabIndex];
+    return m_matrixChartingEnabledForTab[tabIndex];
 }
 
 /**
@@ -349,10 +353,10 @@ void
 CiftiScalarDataSeriesFile::setMatrixChartingEnabled(const int32_t tabIndex,
                                                             const bool enabled)
 {
-    CaretAssertArrayIndex(m_chartingEnabledForTab,
+    CaretAssertArrayIndex(m_matrixChartingEnabledForTab,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           tabIndex);
-    m_chartingEnabledForTab[tabIndex] = enabled;
+    m_matrixChartingEnabledForTab[tabIndex] = enabled;
 }
 
 /**
@@ -386,6 +390,94 @@ CiftiScalarDataSeriesFile::getChartMatrixDisplayProperties(const int32_t tabInde
 {
     CaretAssertArrayIndex(m_chartMatrixDisplayProperties, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_chartMatrixDisplayPropertiesForTab[tabIndex];
+}
+
+/**
+ * Load charting data for the given column index.
+ *
+ * @param columnIndex
+ *     Index of the column.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+CiftiScalarDataSeriesFile::loadLineSeriesChartDataForColumn(const int32_t columnIndex)
+{
+    return NULL;
+}
+
+/**
+ * Load charting data for the given row index.
+ *
+ * @param rowIndex
+ *     Index of the row.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+CiftiScalarDataSeriesFile::loadLineSeriesChartDataForRow(const int32_t rowIndex)
+{
+    return NULL;
+}
+
+/**
+ * @return Is charting enabled for this file?
+ */
+bool
+CiftiScalarDataSeriesFile::isLineSeriesChartingEnabled(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_lineSeriesChartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_lineSeriesChartingEnabledForTab[tabIndex];
+}
+
+/**
+ * @return Return true if the file's current state supports
+ * charting data, else false.  Typically a brainordinate file
+ * is chartable if it contains more than one map.
+ */
+bool
+CiftiScalarDataSeriesFile::isLineSeriesChartingSupported() const
+{
+    if ((m_ciftiFile->getNumberOfColumns() > 0)
+        && (m_ciftiFile->getNumberOfRows() > 0)) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Get chart data types supported by the file.
+ *
+ * @param chartDataTypesOut
+ *    Chart types supported by this file.
+ */
+void
+CiftiScalarDataSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+{
+    helpgetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
+}
+
+/**
+ * Set charting enabled for this file.
+ *
+ * @param enabled
+ *    New status for charting enabled.
+ */
+void
+CiftiScalarDataSeriesFile::setLineSeriesChartingEnabled(const int32_t tabIndex,
+                                                    const bool enabled)
+{
+    CaretAssertArrayIndex(m_lineSeriesChartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    m_lineSeriesChartingEnabledForTab[tabIndex] = enabled;
 }
 
 /**

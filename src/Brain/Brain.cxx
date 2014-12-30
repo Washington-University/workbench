@@ -3176,7 +3176,7 @@ Brain::getAllCiftiMappableDataFiles(std::vector<CiftiMappableDataFile*>& allCift
 
 /**
  * Get all of the Brainordinate Chartable Data Files.  Only files that implement the 
- * ChartableLineSeriesBrainordinateInterface AND return true for ChartableLineSeriesBrainordinateInterface::isChartingSupported()
+ * ChartableLineSeriesBrainordinateInterface AND return true for ChartableLineSeriesBrainordinateInterface::isLineSeriesChartDataTypeSupported()
  * are included in the returned files.
  *
  * @param chartableDataFilesOut
@@ -3203,8 +3203,36 @@ Brain::getAllChartableBrainordinateDataFiles(std::vector<ChartableLineSeriesBrai
 }
 
 /**
- * Get all of the Brainordinate Chartable Data Files.  Only files that implement the
- * ChartableLineSeriesBrainordinateInterface AND return true for ChartableLineSeriesBrainordinateInterface::isChartingSupported()
+ * Get all of the Line Series Chartable Data Files.  Only files that implement the
+ * ChartableLineSeriesInterface AND return true for ChartableLineSeriesInterface::isLineSeriesChartDataTypeSupported()
+ * are included in the returned files.
+ *
+ * @param chartableDataFilesOut
+ *    Contains all chartable data files upon exit.
+ */
+void
+Brain::getAllChartableLineSeriesDataFiles(std::vector<ChartableLineSeriesInterface*>& chartableDataFilesOut) const
+{
+    chartableDataFilesOut.clear();
+    
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles);
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
+         iter != allFiles.end();
+         iter++) {
+        ChartableLineSeriesInterface* chartFile = dynamic_cast<ChartableLineSeriesInterface*>(*iter);
+        if (chartFile != NULL) {
+            if (chartFile->isLineSeriesChartingSupported()) {
+                chartableDataFilesOut.push_back(chartFile);
+            }
+        }
+    }
+}
+
+/**
+ * Get all of the Line Series Chartable Data Files.  Only files that implement the
+ * ChartableLineSeriesInterface AND return true for ChartableLineSeriesInterface::isLineSeriesChartDataTypeSupported()
  * and support a chart of the given data type are included in the returned files.
  *
  * @param chartDataType
@@ -3213,24 +3241,23 @@ Brain::getAllChartableBrainordinateDataFiles(std::vector<ChartableLineSeriesBrai
  *    Contains all chartable data files upon exit.
  */
 void
-Brain::getAllChartableBrainordinateDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
-                                                std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const
+Brain::getAllChartableLineSeriesDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
+                                                std::vector<ChartableLineSeriesInterface*>& chartableDataFilesOut) const
 {
     chartableDataFilesOut.clear();
     
-    std::vector<ChartableLineSeriesBrainordinateInterface*> chartFiles;
-    getAllChartableBrainordinateDataFiles(chartFiles);
+    std::vector<ChartableLineSeriesInterface*> chartFiles;
+    getAllChartableLineSeriesDataFiles(chartFiles);
     
-    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator iter = chartFiles.begin();
+    for (std::vector<ChartableLineSeriesInterface*>::iterator iter = chartFiles.begin();
          iter != chartFiles.end();
          iter++) {
-        ChartableLineSeriesBrainordinateInterface* chartFile = *iter;
+        ChartableLineSeriesInterface* chartFile = *iter;
         if (chartFile->isLineSeriesChartDataTypeSupported(chartDataType)) {
             chartableDataFilesOut.push_back(chartFile);
         }
     }
 }
-
 
 /**
  * Get all of the Brainordinate Chartable Data Files.  Only files that implement the

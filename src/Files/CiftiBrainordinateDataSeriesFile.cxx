@@ -153,12 +153,12 @@ CiftiBrainordinateDataSeriesFile::loadLineSeriesChartDataForSurfaceNode(const St
 //            }
 //            
 //            if (dataSeriesFlag) {
-//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
 //                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
 //                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
 //            }
 //            else if (timeSeriesFlag) {
-//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES,
 //                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
 //                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
 //            }

@@ -1330,17 +1330,21 @@ BrainBrowserWindowToolBar::updateToolBar()
                 switch (modelChart->getSelectedChartDataType(browserTabContent->getTabNumber())) {
                     case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                         break;
-                    case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-                        showChartAxesWidget = true;
-                        showChartAttributesWidget = true;
-                        break;
                     case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                         showChartAttributesWidget = true;
                         break;
                     case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                         showChartAttributesWidget = true;
                         break;
-                    case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                        showChartAxesWidget = true;
+                        showChartAttributesWidget = true;
+                        break;
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                        showChartAxesWidget = true;
+                        showChartAttributesWidget = true;
+                        break;
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                         showChartAxesWidget = true;
                         showChartAttributesWidget = true;
                         break;

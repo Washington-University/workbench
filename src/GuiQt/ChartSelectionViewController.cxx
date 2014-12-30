@@ -142,9 +142,6 @@ ChartSelectionViewController::updateSelectionViewController()
     }
     
     switch (chartDataType) {
-        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-            m_mode = MODE_BRAINORDINATE;
-            break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
@@ -153,9 +150,14 @@ ChartSelectionViewController::updateSelectionViewController()
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
             m_mode = MODE_MATRIX_SERIES;
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
             m_mode = MODE_BRAINORDINATE;
-            
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+            m_mode = MODE_BRAINORDINATE;
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+            m_mode = MODE_BRAINORDINATE;
             break;
     }
     
@@ -325,13 +327,13 @@ ChartSelectionViewController::updateBrainordinateChartWidget(Brain* brain,
                                                              ModelChart* modelChart,
                                                              const int32_t browserTabIndex)
 {
-    std::vector<ChartableLineSeriesBrainordinateInterface*> chartableBrainordinateFilesVector;
+    std::vector<ChartableLineSeriesInterface*> chartableLineSeriesFilesVector;
     
     const ChartDataTypeEnum::Enum chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
 
-    brain->getAllChartableBrainordinateDataFilesForChartDataType(chartDataType,
-                                                                 chartableBrainordinateFilesVector);
-    const int32_t numChartableFiles = static_cast<int32_t>(chartableBrainordinateFilesVector.size());
+    brain->getAllChartableLineSeriesDataFilesForChartDataType(chartDataType,
+                                                                 chartableLineSeriesFilesVector);
+    const int32_t numChartableFiles = static_cast<int32_t>(chartableLineSeriesFilesVector.size());
     
     for (int32_t i = 0; i < numChartableFiles; i++) {
         QCheckBox* checkBox = NULL;
@@ -361,8 +363,8 @@ ChartSelectionViewController::updateBrainordinateChartWidget(Brain* brain,
                                     row, COLUMN_LINE_EDIT);
         }
         
-        CaretAssertVectorIndex(chartableBrainordinateFilesVector, i);
-        ChartableLineSeriesBrainordinateInterface* chartBrainFile = chartableBrainordinateFilesVector[i];
+        CaretAssertVectorIndex(chartableLineSeriesFilesVector, i);
+        ChartableLineSeriesInterface* chartBrainFile = chartableLineSeriesFilesVector[i];
         CaretAssert(chartBrainFile);
         const bool checkBoxStatus = chartBrainFile->isLineSeriesChartingEnabled(browserTabIndex);
         
@@ -858,8 +860,6 @@ ChartSelectionViewController::getChartMatrixAndProperties(CaretMappableDataFile*
         switch (modelChart->getSelectedChartDataType(browserTabIndexOut)) {
             case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
             {
                 CaretDataFileSelectionModel* parcelFileSelectionModel = modelChart->getChartableMatrixParcelFileSelectionModel(browserTabIndexOut);
@@ -894,7 +894,11 @@ ChartSelectionViewController::getChartMatrixAndProperties(CaretMappableDataFile*
                 }
             }
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                 break;
         }
         

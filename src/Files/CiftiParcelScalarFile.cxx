@@ -174,7 +174,7 @@ CiftiParcelScalarFile::loadLineSeriesChartDataForSurfaceNode(const StructureEnum
 //                                        data)) {
 //            const int64_t numData = static_cast<int64_t>(data.size());
 //            
-//            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+//            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
 //                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
 //                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
 //            for (int64_t i = 0; i < numData; i++) {

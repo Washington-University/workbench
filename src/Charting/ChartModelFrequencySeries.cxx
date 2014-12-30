@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __CHART_MODEL_TIME_SERIES_DECLARE__
-#include "ChartModelTimeSeries.h"
-#undef __CHART_MODEL_TIME_SERIES_DECLARE__
+#define __CHART_MODEL_FREQUENCY_SERIES_DECLARE__
+#include "ChartModelFrequencySeries.h"
+#undef __CHART_MODEL_FREQUENCY_SERIES_DECLARE__
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -29,17 +29,17 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartModelTimeSeries 
- * \brief Chart model for line series charts.
+ * \class caret::ChartModelFrequencySeries 
+ * \brief Chart model for frequency series charts.
  * \ingroup Charting
  */
 
 /**
  * Constructor.
  */
-ChartModelTimeSeries::ChartModelTimeSeries()
-: ChartModelCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES,
-                      ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
+ChartModelFrequencySeries::ChartModelFrequencySeries()
+: ChartModelCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES,
+                      ChartAxisUnitsEnum::CHART_AXIS_UNITS_FREQUENCY_HERTZ,
                       ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE)
 {
     
@@ -48,7 +48,7 @@ ChartModelTimeSeries::ChartModelTimeSeries()
 /**
  * Destructor.
  */
-ChartModelTimeSeries::~ChartModelTimeSeries()
+ChartModelFrequencySeries::~ChartModelFrequencySeries()
 {
 }
 
@@ -57,10 +57,10 @@ ChartModelTimeSeries::~ChartModelTimeSeries()
  * @param obj
  *    Object that is copied.
  */
-ChartModelTimeSeries::ChartModelTimeSeries(const ChartModelTimeSeries& obj)
+ChartModelFrequencySeries::ChartModelFrequencySeries(const ChartModelFrequencySeries& obj)
 : ChartModelCartesian(obj)
 {
-    this->copyHelperChartModelTimeSeries(obj);
+    this->copyHelperChartModelFrequencySeries(obj);
 }
 
 /**
@@ -70,12 +70,12 @@ ChartModelTimeSeries::ChartModelTimeSeries(const ChartModelTimeSeries& obj)
  * @return 
  *    Reference to this object.
  */
-ChartModelTimeSeries&
-ChartModelTimeSeries::operator=(const ChartModelTimeSeries& obj)
+ChartModelFrequencySeries&
+ChartModelFrequencySeries::operator=(const ChartModelFrequencySeries& obj)
 {
     if (this != &obj) {
         ChartModelCartesian::operator=(obj);
-        this->copyHelperChartModelTimeSeries(obj);
+        this->copyHelperChartModelFrequencySeries(obj);
     }
     return *this;    
 }
@@ -86,7 +86,7 @@ ChartModelTimeSeries::operator=(const ChartModelTimeSeries& obj)
  *    Object that is copied.
  */
 void 
-ChartModelTimeSeries::copyHelperChartModelTimeSeries(const ChartModelTimeSeries& /*obj*/)
+ChartModelFrequencySeries::copyHelperChartModelFrequencySeries(const ChartModelFrequencySeries& /*obj*/)
 {
     
 }

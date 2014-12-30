@@ -275,6 +275,9 @@ ChartAxis::getAxisUnitsSuffix() const
     switch (m_axisUnits) {
         case ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE:
             break;
+        case ChartAxisUnitsEnum::CHART_AXIS_UNITS_FREQUENCY_HERTZ:
+            suffix = "hz";
+            break;
         case ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS:
             suffix = "s";
             break;

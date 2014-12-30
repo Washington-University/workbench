@@ -1190,7 +1190,11 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
             switch (modelChart->getSelectedChartDataType(m_tabNumber)) {
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
@@ -1201,8 +1205,6 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
                     if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
                         fileModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
                     }
-                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-                    break;
             }
             
             if (fileModel != NULL) {

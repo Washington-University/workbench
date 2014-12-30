@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "BrainConstants.h"
+#include "ChartableLineSeriesRowColumnInterface.h"
 #include "ChartableMatrixSeriesInterface.h"
 #include "CiftiMappableDataFile.h"
 #include "EventListenerInterface.h"
@@ -33,6 +34,7 @@ namespace caret {
     
     class CiftiScalarDataSeriesFile :
     public CiftiMappableDataFile,
+    public ChartableLineSeriesRowColumnInterface,
     public ChartableMatrixSeriesInterface,
     public EventListenerInterface {
         
@@ -79,6 +81,19 @@ namespace caret {
         
         ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex);
         
+        virtual bool isLineSeriesChartingEnabled(const int32_t tabIndex) const;
+        
+        virtual void setLineSeriesChartingEnabled(const int32_t tabIndex,
+                                                  const bool enabled);
+        
+        virtual bool isLineSeriesChartingSupported() const;
+        
+        virtual ChartDataCartesian* loadLineSeriesChartDataForColumn(const int32_t columnIndex);
+        
+        virtual ChartDataCartesian* loadLineSeriesChartDataForRow(const int32_t rowIndex);
+
+        virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -98,7 +113,9 @@ namespace caret {
         /** yoking status */
         MapYokingGroupEnum::Enum m_yokingGroupForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_lineSeriesChartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        bool m_matrixChartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         ChartMatrixDisplayProperties* m_chartMatrixDisplayPropertiesForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

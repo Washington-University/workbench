@@ -37,14 +37,16 @@ public:
     enum Enum {
         /** Invalid */
         CHART_DATA_TYPE_INVALID,
+        /** Line Data Series */
+        CHART_DATA_TYPE_LINE_DATA_SERIES,
+        /** Line Frequency Series */
+        CHART_DATA_TYPE_LINE_FREQUENCY_SERIES,
+        /** Line Time Series */
+        CHART_DATA_TYPE_LINE_TIME_SERIES,
         /** Matrix (connectivity in layer) */
         CHART_DATA_TYPE_MATRIX_LAYER,
         /** Matrix (series data) */
-        CHART_DATA_TYPE_MATRIX_SERIES,
-        /** Data Series */
-        CHART_DATA_TYPE_DATA_SERIES,
-        /** Time Series */
-        CHART_DATA_TYPE_TIME_SERIES
+        CHART_DATA_TYPE_MATRIX_SERIES
     };
 
 

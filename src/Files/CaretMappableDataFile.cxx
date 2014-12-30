@@ -822,12 +822,12 @@ CaretMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& da
     ChartDataCartesian* chartData = NULL;
     
     if (timeSeriesFlag) {
-        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES,
                                            ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
                                            ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
     }
     else {
-        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES,
                                            ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
                                            ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
     }
@@ -883,24 +883,23 @@ CaretMappableDataFile::helpgetSupportedLineSeriesChartDataTypes(std::vector<Char
     
     switch (getMapIntervalUnits()) {
         case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-            CaretLogSevere("Units - HZ not supported");
-            CaretAssertMessage(0, "Units - HZ not supported");
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES);
             break;
         case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES);
             break;
         case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
             CaretLogSevere("Units - PPM not supported");
             CaretAssertMessage(0, "Units - PPM not supported");
             break;
         case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES);
             break;
         case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES);
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES);
             break;
         case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES);
             break;
     }
 }

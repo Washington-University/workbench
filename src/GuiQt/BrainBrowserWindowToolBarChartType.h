@@ -21,10 +21,12 @@
  */
 /*LICENSE_END*/
 
+class QAbstractButton;
 class QButtonGroup;
 class QRadioButton;
 
 #include "BrainBrowserWindowToolBarComponent.h"
+#include "ChartDataTypeEnum.h"
 
 namespace caret {
 
@@ -41,7 +43,7 @@ namespace caret {
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
     private slots:
-        void chartTypeRadioButtonClicked(int);
+        void chartTypeRadioButtonClicked(int buttonIndex);
         
     private:
         BrainBrowserWindowToolBarChartType(const BrainBrowserWindowToolBarChartType&);
@@ -57,15 +59,19 @@ namespace caret {
 
         BrainBrowserWindowToolBar* m_parentToolBar;
         
+        std::vector<std::pair<ChartDataTypeEnum::Enum, QRadioButton*> > m_chartTypeRadioButtons;
+        
         QButtonGroup* m_chartTypeButtonGroup;
         
-        QRadioButton* m_chartMatrixLayerTypeRadioButton;
-        
-        QRadioButton* m_chartMatrixSeriesTypeRadioButton;
-        
-        QRadioButton* m_chartDataSeriesTypeRadioButton;
-        
-        QRadioButton* m_chartTimeSeriesTypeRadioButton;
+//        QRadioButton* m_chartMatrixLayerTypeRadioButton;
+//        
+//        QRadioButton* m_chartMatrixSeriesTypeRadioButton;
+//        
+//        QRadioButton* m_chartDataSeriesTypeRadioButton;
+//        
+//        QRadioButton* m_chartFrequencySeriesTypeRadioButton;
+//        
+//        QRadioButton* m_chartTimeSeriesTypeRadioButton;
         
     };
     

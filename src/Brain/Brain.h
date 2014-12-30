@@ -300,8 +300,10 @@ namespace caret {
         
         void getAllChartableBrainordinateDataFiles(std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const;
         
-        void getAllChartableBrainordinateDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
-                                                      std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const;
+        void getAllChartableLineSeriesDataFiles(std::vector<ChartableLineSeriesInterface*>& chartableDataFilesOut) const;
+        
+        void getAllChartableLineSeriesDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
+                                                      std::vector<ChartableLineSeriesInterface*>& chartableDataFilesOut) const;
         
         void getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<ChartableLineSeriesBrainordinateInterface*>& chartableDataFilesOut) const;
         

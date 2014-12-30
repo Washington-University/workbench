@@ -41,6 +41,7 @@ namespace caret {
     class ChartableMatrixInterface;
     class ChartModel;
     class ChartModelDataSeries;
+    class ChartModelFrequencySeries;
     class ChartModelTimeSeries;
     class ChartableLineSeriesBrainordinateInterface;
     class CiftiConnectivityMatrixParcelFile;
@@ -88,6 +89,10 @@ namespace caret {
         
         const ChartModelDataSeries* getSelectedDataSeriesChartModel(const int32_t tabIndex) const;
         
+        ChartModelFrequencySeries* getSelectedFrequencySeriesChartModel(const int32_t tabIndex);
+        
+        const ChartModelFrequencySeries* getSelectedFrequencySeriesChartModel(const int32_t tabIndex) const;
+        
         ChartModelTimeSeries* getSelectedTimeSeriesChartModel(const int32_t tabIndex);
         
         const ChartModelTimeSeries* getSelectedTimeSeriesChartModel(const int32_t tabIndex) const;
@@ -125,6 +130,8 @@ namespace caret {
         
         const ChartModelDataSeries* getSelectedDataSeriesChartModelHelper(const int32_t tabIndex) const;
         
+        const ChartModelFrequencySeries* getSelectedFrequencySeriesChartModelHelper(const int32_t tabIndex) const;
+        
         const ChartModelTimeSeries* getSelectedTimeSeriesChartModelHelper(const int32_t tabIndex) const;
         
         void saveChartModelsToScene(const SceneAttributes* sceneAttributes,
@@ -145,11 +152,17 @@ namespace caret {
         /** Chart model for data-series data */
         ChartModelDataSeries* m_chartModelDataSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
+        /** Chart model for frequency-series data */
+        ChartModelFrequencySeries* m_chartModelFrequencySeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         /** Chart model for time-series data */
         ChartModelTimeSeries* m_chartModelTimeSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
         /** Contains data series charts */
         std::list<QWeakPointer<ChartDataCartesian> > m_dataSeriesChartData;
+        
+        /** Contains time series charts */
+        std::list<QWeakPointer<ChartDataCartesian> > m_frequencySeriesChartData;
         
         /** Contains time series charts */
         std::list<QWeakPointer<ChartDataCartesian> > m_timeSeriesChartData;

@@ -51,6 +51,8 @@ public:
         BORDER_VOLUME,
         /** Data-Series Chart */
         CHART_DATA_SERIES,
+        /** Frequency-Series Chart */
+        CHART_FREQUENCY_SERIES,
         /** Matrix chart */
         CHART_MATRIX,
         /** Time-Series Chart */

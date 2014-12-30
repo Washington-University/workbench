@@ -26,9 +26,13 @@
 
 namespace caret {
 
-    //class CaretMappableDataFile;
     class ChartDataCartesian;
-    class CaretMappableDataFile;
+    
+    /**
+     * \class caret::ChartableLineSeriesBrainordinateInterface
+     * \brief Interface for files that are able to produce line series brainordinate charts.
+     * \ingroup Files
+     */
     
     class ChartableLineSeriesBrainordinateInterface : public ChartableLineSeriesInterface {
         

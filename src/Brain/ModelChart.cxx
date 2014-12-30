@@ -35,6 +35,7 @@
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
 #include "ChartModelDataSeries.h"
+#include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
@@ -105,6 +106,10 @@ ModelChart::initializeCharts()
         m_chartModelDataSeries[i]->getLeftAxis()->setText("Value");
         m_chartModelDataSeries[i]->getBottomAxis()->setText("Map Index");
         
+        m_chartModelFrequencySeries[i] = new ChartModelFrequencySeries();
+        m_chartModelFrequencySeries[i]->getLeftAxis()->setText("Value");
+        m_chartModelFrequencySeries[i]->getBottomAxis()->setText("Frequency");
+        
         m_chartModelTimeSeries[i] = new ChartModelTimeSeries();
         m_chartModelTimeSeries[i]->getLeftAxis()->setText("Activity");
         m_chartModelTimeSeries[i]->getBottomAxis()->setText("Time");
@@ -134,6 +139,11 @@ ModelChart::removeAllCharts()
             m_chartModelDataSeries[i] = NULL;
         }
         
+        if (m_chartModelFrequencySeries[i] != NULL) {
+            delete m_chartModelFrequencySeries[i];
+            m_chartModelFrequencySeries[i] = NULL;
+        }
+        
         if (m_chartModelTimeSeries[i] != NULL) {
             delete m_chartModelTimeSeries[i];
             m_chartModelTimeSeries[i] = NULL;
@@ -142,6 +152,7 @@ ModelChart::removeAllCharts()
 
     
     m_dataSeriesChartData.clear();
+    m_frequencySeriesChartData.clear();
     m_timeSeriesChartData.clear();
     
     m_previousChartMatrixFiles.clear();
@@ -241,12 +252,7 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             CaretAssert(0);
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-            CaretAssert(0);
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
         {
             ChartDataCartesian* cdc = dynamic_cast<ChartDataCartesian*>(chartData);
             CaretAssert(cdc);
@@ -261,7 +267,22 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
             m_dataSeriesChartData.push_front(cdcPtr.toWeakRef());
         }
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+        {
+            ChartDataCartesian* cdc = dynamic_cast<ChartDataCartesian*>(chartData);
+            CaretAssert(cdc);
+            QSharedPointer<ChartDataCartesian> cdcPtr(cdc);
+            for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
+                 iter != tabIndices.end();
+                 iter++) {
+                const int32_t tabIndex = *iter;
+                CaretAssertArrayIndex(m_chartModelFrequencySeries, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+                m_chartModelFrequencySeries[tabIndex]->addChartData(cdcPtr);
+            }
+            m_frequencySeriesChartData.push_front(cdcPtr.toWeakRef());
+        }
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
         {
             ChartDataCartesian* cdc = dynamic_cast<ChartDataCartesian*>(chartData);
             CaretAssert(cdc);
@@ -275,6 +296,11 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
             }
             m_timeSeriesChartData.push_front(cdcPtr.toWeakRef());
         }
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+            CaretAssert(0);
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
             break;
     }
 }
@@ -388,6 +414,14 @@ ModelChart::receiveEvent(Event* event)
              dsIter != m_dataSeriesChartData.end();
              dsIter++) {
             QSharedPointer<ChartDataCartesian> spCart = dsIter->toStrongRef();
+            if ( ! spCart.isNull()) {
+                cartesianChartData.push_back(spCart.data());
+            }
+        }
+        for (std::list<QWeakPointer<ChartDataCartesian> >::iterator tsIter = m_frequencySeriesChartData.begin();
+             tsIter != m_frequencySeriesChartData.end();
+             tsIter++) {
+            QSharedPointer<ChartDataCartesian> spCart = tsIter->toStrongRef();
             if ( ! spCart.isNull()) {
                 cartesianChartData.push_back(spCart.data());
             }
@@ -658,14 +692,17 @@ ModelChart::saveChartModelsToScene(const SceneAttributes* sceneAttributes,
         switch (getSelectedChartDataType(tabIndex)) {
             case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                chartModel = getSelectedDataSeriesChartModel(tabIndex);
-                break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                chartModel = getSelectedFrequencySeriesChartModel(tabIndex);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                chartModel = getSelectedDataSeriesChartModel(tabIndex);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                 chartModel = getSelectedTimeSeriesChartModel(tabIndex);
                 break;
         }
@@ -774,11 +811,15 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                             break;
                         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
                             m_chartModelDataSeries[tabIndex]->restoreFromScene(sceneAttributes,
                                                                                chartModelClass);
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                            m_chartModelFrequencySeries[tabIndex]->restoreFromScene(sceneAttributes,
+                                                                                    chartModelClass);
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                             m_chartModelTimeSeries[tabIndex]->restoreFromScene(sceneAttributes,
                                                                                chartModelClass);
                             break;
@@ -820,6 +861,9 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
         m_chartModelDataSeries[i]->restoreChartDataFromScene(restoredChartData);
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartModelFrequencySeries[i]->restoreChartDataFromScene(restoredChartData);
+    }
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartModelTimeSeries[i]->restoreChartDataFromScene(restoredChartData);
     }
     
@@ -833,20 +877,27 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
             case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 CaretAssert(0);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-            {
-                QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
-                CaretAssert( ! cartChartPointer.isNull());
-                m_dataSeriesChartData.push_back(cartChartPointer);
-            }
-                break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                 CaretAssert(0);
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                 CaretAssert(0);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+            {
+                QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
+                CaretAssert( ! cartChartPointer.isNull());
+                m_dataSeriesChartData.push_back(cartChartPointer);
+            }
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+            {
+                QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
+                CaretAssert( ! cartChartPointer.isNull());
+                m_frequencySeriesChartData.push_back(cartChartPointer);
+            }
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
             {
                 QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
                 CaretAssert( ! cartChartPointer.isNull());
@@ -874,9 +925,6 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
     switch (getSelectedChartDataType(tabIndex)) {
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-            chartModel = const_cast<ChartModelDataSeries*>(getSelectedDataSeriesChartModel(tabIndex));
-            break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
         {
             CaretDataFileSelectionModel* sm = m_chartableMatrixFileSelectionModel[tabIndex];
@@ -899,7 +947,13 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
             }
         }
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+            chartModel = const_cast<ChartModelDataSeries*>(getSelectedDataSeriesChartModel(tabIndex));
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+            chartModel = const_cast<ChartModelFrequencySeries*>(getSelectedFrequencySeriesChartModel(tabIndex));
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
             chartModel = const_cast<ChartModelTimeSeries*>(getSelectedTimeSeriesChartModel(tabIndex));
             break;
     }
@@ -956,6 +1010,7 @@ ModelChart::copyTabContent(const int32_t sourceTabIndex,
     
     m_selectedChartDataType[destinationTabIndex] = m_selectedChartDataType[sourceTabIndex];
     *m_chartModelDataSeries[destinationTabIndex] = *m_chartModelDataSeries[sourceTabIndex];
+    *m_chartModelFrequencySeries[destinationTabIndex] = *m_chartModelFrequencySeries[sourceTabIndex];
     *m_chartModelTimeSeries[destinationTabIndex] = *m_chartModelTimeSeries[sourceTabIndex];
     m_chartableMatrixFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixFileSelectionModel[sourceTabIndex]->getSelectedFile());
     m_chartableMatrixSeriesFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixSeriesFileSelectionModel[sourceTabIndex]->getSelectedFile());
@@ -991,6 +1046,7 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
     validChartDataTypesOut.clear();
     
     bool haveDataSeries   = false;
+    bool haveFrequencySeries = false;
     bool haveMatrixLayers = false;
     bool haveMatrixSeries = false;
     bool haveTimeSeries   = false;
@@ -1011,16 +1067,19 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
              typeIter++) {
             const ChartDataTypeEnum::Enum cdt = *typeIter;
             switch (cdt) {
-                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                    haveDataSeries = true;
-                    break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                    haveDataSeries = true;
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                    haveFrequencySeries = true;
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     haveTimeSeries = true;
                     break;
             }
@@ -1043,8 +1102,6 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
              typeIter++) {
             const ChartDataTypeEnum::Enum cdt = *typeIter;
             switch (cdt) {
-                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                    break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
@@ -1053,14 +1110,21 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
                     haveMatrixSeries = true;
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
                     break;
             }
         }
     }
     
     if (haveDataSeries) {
-        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES);
+        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES);
+    }
+    if (haveFrequencySeries) {
+        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES);
     }
     if (haveMatrixLayers) {
         validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER);
@@ -1069,7 +1133,7 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
         validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES);
     }
     if (haveTimeSeries) {
-        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES);
     }
 }
 
@@ -1131,13 +1195,6 @@ ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
                     }
                     
                     switch (cdt) {
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                            if (m_chartModelDataSeries[tabIndex]->getNumberOfChartData()) {
-                                if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
-                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES;
-                                }
-                            }
-                            break;
                         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                             break;
                         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
@@ -1150,10 +1207,24 @@ ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
                                 chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES;
                             }
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-                            if (m_chartModelTimeSeries[tabIndex]->getNumberOfChartData()) {
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                            if (m_chartModelDataSeries[tabIndex]->getNumberOfChartData() > 0) {
                                 if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
-                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
+                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES;
+                                }
+                            }
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                            if (m_chartModelFrequencySeries[tabIndex]->getNumberOfChartData() > 0) {
+                                if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES;
+                                }
+                            }
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                            if (m_chartModelTimeSeries[tabIndex]->getNumberOfChartData() > 0) {
+                                if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES;
                                 }
                             }
                             break;
@@ -1225,6 +1296,60 @@ ModelChart::getSelectedDataSeriesChartModelHelper(const int32_t tabIndex) const
     CaretAssertArrayIndex(m_chartModelDataSeries, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_chartModelDataSeries[tabIndex];
 }
+
+/**
+ * Get the time series chart model selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    time series chart model in the given tab.
+ */
+ChartModelFrequencySeries*
+ModelChart::getSelectedFrequencySeriesChartModel(const int32_t tabIndex)
+{
+    const ChartModelFrequencySeries* model = getSelectedFrequencySeriesChartModelHelper(tabIndex);
+    if (model == NULL) {
+        return NULL;
+    }
+    ChartModelFrequencySeries* nonConstModel = const_cast<ChartModelFrequencySeries*>(model);
+    return nonConstModel;
+}
+
+/**
+ * Get the time series chart model selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    time series chart model in the given tab.
+ */
+const ChartModelFrequencySeries*
+ModelChart::getSelectedFrequencySeriesChartModel(const int32_t tabIndex) const
+{
+    return getSelectedFrequencySeriesChartModelHelper(tabIndex);
+}
+
+/**
+ * Helper to get the time series chart model selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    time series chart model in the given tab.
+ */
+const ChartModelFrequencySeries*
+ModelChart::getSelectedFrequencySeriesChartModelHelper(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_chartModelFrequencySeries, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    return m_chartModelFrequencySeries[tabIndex];
+}
+
+
+
+
+
+
 
 /**
  * Get the time series chart model selected in the given tab.

@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** No units */
         CHART_AXIS_UNITS_NONE,
+        /** Frequency units */
+        CHART_AXIS_UNITS_FREQUENCY_HERTZ,
         /** Time units */
         CHART_AXIS_UNITS_TIME_SECONDS
     };
