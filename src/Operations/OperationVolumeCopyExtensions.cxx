@@ -66,7 +66,7 @@ void OperationVolumeCopyExtensions::useParameters(OperationParameters* myParams,
     VolumeFile* dataVol = myParams->getVolume(1);
     VolumeFile* extVol = myParams->getVolume(2);
     VolumeFile* outVol = myParams->getOutputVolume(3);
-    bool skipUnknown = myParams->getOptionalParameter(4)->m_present;
+    bool dropUnknown = myParams->getOptionalParameter(4)->m_present;
     if (!dataVol->getVolumeSpace().matches(extVol->getVolumeSpace())) throw OperationException("volume spaces do not match");
     vector<int64_t> dataDims = dataVol->getDimensions();
     vector<int64_t> extDims = extVol->getDimensions();
@@ -74,14 +74,13 @@ void OperationVolumeCopyExtensions::useParameters(OperationParameters* myParams,
     if (dataVol->getOriginalDimensions() != extVol->getOriginalDimensions()) throw OperationException("non-spatial dimensions do not match");
     outVol->reinitialize(dataVol->getOriginalDimensions(), dataVol->getSform(), dataDims[4], extVol->getType());
     outVol->m_header = extVol->m_header;//copy all standard header fields, too
-    if (!skipUnknown)
+    if (dropUnknown)
     {
-        for (int64_t i = 0; i < (int64_t)extVol->m_extensions.size(); ++i)
+        switch (outVol->m_header->getType())
         {
-            if (extVol->m_extensions[i]->getType() == AbstractVolumeExtension::NIFTI)//this will also copy our extension, but that gets regenerated on writing anyway
-            {
-                outVol->m_extensions.push_back(CaretPointer<NiftiExtension>(new NiftiExtension(*((NiftiExtension*)extVol->m_extensions[i].getPointer()))));
-            }
+            case AbstractHeader::NIFTI:
+                ((NiftiHeader*)outVol->m_header.getPointer())->m_extensions.clear();
+                break;
         }
     }
     if (outVol->getFileMetaData() != NULL)

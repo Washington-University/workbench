@@ -86,21 +86,6 @@ VolumeFile::VolumeFile()
     validateMembers();
 }
 
-VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
-: VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
-{
-    m_fileFastStatistics.grabNew(NULL);
-    m_fileHistogram.grabNew(NULL);
-    m_fileHistorgramLimitedValues.grabNew(NULL);
-    m_forceUpdateOfGroupAndNameHierarchy = true;
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartingEnabledForTab[i] = false;
-    }
-    m_volumeFileEditorDelegate.grabNew(NULL);
-    validateMembers();
-    setType(whatType);
-}
-
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
@@ -117,14 +102,6 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
 }
 
 void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
-{
-    clear();
-    VolumeBase::reinitialize(dimensionsIn, indexToSpace, numComponents);
-    validateMembers();
-    setType(whatType);
-}
-
-void VolumeFile::reinitialize(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 {
     clear();
     VolumeBase::reinitialize(dimensionsIn, indexToSpace, numComponents);
@@ -272,11 +249,7 @@ void VolumeFile::readFile(const AString& filename)
         CaretLogFine("Time to read volume data is "
                      + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                      + " seconds.");
-        m_header.grabNew(new NiftiHeader(inHeader));
-        for (int64_t i = 0; i < (int64_t)inHeader.m_extensions.size(); ++i)
-        {
-            m_extensions.push_back(inHeader.m_extensions[i]);
-        }//end nifti-specific code
+        m_header.grabNew(new NiftiHeader(inHeader));//end nifti-specific code
         parseExtensions();
         clearModified();
     }
@@ -315,23 +288,16 @@ VolumeFile::writeFile(const AString& filename)
                                 "writing multi-component volumes is not currently supported");//its a hassle, and uncommon, and there is only one 3-component type, restricted to 0-255
     }
     updateCaretExtension();
+    
     NiftiHeader outHeader;//begin nifti-specific code
     if (m_header != NULL && (m_header->getType() == AbstractHeader::NIFTI))
     {
-        outHeader = *((NiftiHeader*)m_header.getPointer());
+        outHeader = *((NiftiHeader*)m_header.getPointer());//also shallow copies extensions
     }
     outHeader.clearDataScaling();
     outHeader.setSForm(getVolumeSpace().getSform());
     outHeader.setDimensions(getOriginalDimensions());
     outHeader.setDataType(NIFTI_TYPE_FLOAT32);
-    outHeader.m_extensions.clear();
-    for (int64_t i = 0; i < (int64_t)m_extensions.size(); ++i)
-    {
-        if (m_extensions[i]->getType() == AbstractVolumeExtension::NIFTI)
-        {//ugliness due to smart pointer operator= not allowing you to go from base to derived - could use dynamic_cast internally, but might allow more stupid mistakes past the compiler
-            outHeader.m_extensions.push_back(CaretPointer<NiftiExtension>(new NiftiExtension(*((NiftiExtension*)m_extensions[i].getPointer()))));
-        }
-    }
     NiftiIO myIO;
     int outVersion = 1;
     if (!outHeader.canWriteVersion(1)) outVersion = 2;
@@ -516,47 +482,42 @@ bool VolumeFile::matchesVolumeSpace(const int64_t dims[3], const vector<vector<f
 void VolumeFile::parseExtensions()
 {
     const int NIFTI_ECODE_CARET = 30;//this should probably go in nifti1.h
-    int numExtensions = (int)m_extensions.size();
-    int whichExt = -1, whichType = -1;//type will track caret's preference in which extension to read, the greater the type, the more it prefers it
-    for (int i = 0; i < numExtensions; ++i)
+    if (m_header != NULL && m_header->getType() == AbstractHeader::NIFTI)
     {
-        switch (m_extensions[i]->getType())
+        const NiftiHeader& myHeader = *((NiftiHeader*)m_header.getPointer());
+        int numExtensions = (int)myHeader.m_extensions.size();
+        int whichExt = -1, whichType = -1;//type will track caret's preference in which extension to read, the greater the type, the more it prefers it
+        for (int i = 0; i < numExtensions; ++i)
         {
-            case AbstractVolumeExtension::NIFTI:
+            const NiftiExtension& myNiftiExtension = *(myHeader.m_extensions[i]);
+            switch (myNiftiExtension.m_ecode)
             {
-                NiftiExtension* myNiftiExtension = (NiftiExtension*)m_extensions[i].getPointer();
-                switch (myNiftiExtension->m_ecode)
-                {
-                    case NIFTI_ECODE_CARET:
-                        if (100 > whichType)//mostly to make it use the first caret extension it finds in the list of extensions
-                        {
-                            whichExt = i;
-                            whichType = 100;//caret extension gets maximum priority
-                        }
-                        break;
-                    default:
-                        break;
-                }
-                break;
+                case NIFTI_ECODE_CARET:
+                    if (100 > whichType)//mostly to make it use the first caret extension it finds in the list of extensions
+                    {
+                        whichExt = i;
+                        whichType = 100;//caret extension gets maximum priority
+                    }
+                    break;
+                default:
+                    break;
             }
-            default:
-                break;
+            break;
         }
-    }
-    if (whichExt != -1)
-    {
-        switch (whichType)
+        if (whichExt != -1)
         {
-            case 100://caret extension
+            switch (whichType)
+            {
+                case 100://caret extension
                 {
-                    QByteArray myByteArray(m_extensions[whichExt]->m_bytes.data(), m_extensions[whichExt]->m_bytes.size());
-                    myByteArray.append('\0');//give it a null byte to ensure it stops
+                    QByteArray myByteArray(myHeader.m_extensions[whichExt]->m_bytes.data(), myHeader.m_extensions[whichExt]->m_bytes.size());
                     AString myString(myByteArray);
                     m_caretVolExt.readFromXmlString(myString);
+                    break;
                 }
-                break;
-            default:
-                break;
+                default:
+                    break;
+            }
         }
     }
     validateMembers();
@@ -565,40 +526,40 @@ void VolumeFile::parseExtensions()
 void VolumeFile::updateCaretExtension()
 {
     const int NIFTI_ECODE_CARET = 30;//this should probably go in nifti1.h
-    int numExtensions = (int)m_extensions.size();
-    for (int i = 0; i < numExtensions; ++i)
-    {
-        switch (m_extensions[i]->getType())
-        {
-            case AbstractVolumeExtension::NIFTI:
-                {
-                    NiftiExtension* myNiftiExtension = (NiftiExtension*)m_extensions[i].getPointer();
-                    if (myNiftiExtension->m_ecode == NIFTI_ECODE_CARET)
-                    {
-                        m_extensions.erase(m_extensions.begin() + i);
-                        --i;
-                        --numExtensions;
-                    }
-                }
-                break;
-            default:
-                break;
-        }
-    }
     stringstream mystream;
     XmlWriter myWriter(mystream);
     m_caretVolExt.writeAsXML(myWriter);
-    NiftiExtension* newExt = new NiftiExtension();//use default nifti version from this constructor
-    newExt->m_ecode = NIFTI_ECODE_CARET;
     string myStr = mystream.str();
-    int length = myStr.length();
-    newExt->m_bytes.resize(length + 1);//add a null byte for safety
-    for (int i = 0; i < length; ++i)
+    if (m_header == NULL) m_header.grabNew(new NiftiHeader());
+    switch (m_header->getType())
     {
-        newExt->m_bytes[i] = myStr[i];
+        case AbstractHeader::NIFTI:
+        {
+            NiftiHeader& myHeader = *((NiftiHeader*)m_header.getPointer());
+            int numExtensions = (int)myHeader.m_extensions.size();
+            for (int i = 0; i < numExtensions; ++i)//erase all existing caret extensions
+            {
+                NiftiExtension* myNiftiExtension = myHeader.m_extensions[i];
+                if (myNiftiExtension->m_ecode == NIFTI_ECODE_CARET)
+                {
+                    myHeader.m_extensions.erase(myHeader.m_extensions.begin() + i);
+                    --i;
+                    --numExtensions;
+                }
+            }
+            CaretPointer<NiftiExtension> newExt(new NiftiExtension());
+            newExt->m_ecode = NIFTI_ECODE_CARET;
+            int length = myStr.length();
+            newExt->m_bytes.resize(length + 1);//allocate a null byte for safety
+            for (int i = 0; i < length; ++i)
+            {
+                newExt->m_bytes[i] = myStr[i];
+            }
+            newExt->m_bytes[length] = '\0';
+            myHeader.m_extensions.push_back(newExt);
+            break;
+        }
     }
-    newExt->m_bytes[length] = 0;
-    m_extensions.push_back(CaretPointer<AbstractVolumeExtension>(newExt));//doesn't matter whether this CaretPointer is the base type or inherited type, operator= will have it stored as base type inside the vector
 }
 
 void VolumeFile::validateMembers()

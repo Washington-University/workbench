@@ -32,10 +32,10 @@
 namespace caret
 {
     
-    struct NiftiExtension : public AbstractVolumeExtension
+    struct NiftiExtension
     {
         int32_t m_ecode;
-        ExtensionType getType() const { return NIFTI; }//should probably just say NIFTI, and have a separate version field for when NIFTI2 gets an updated extension format (probably with int64_t)
+        std::vector<char> m_bytes;
     };
     
     struct NiftiHeader : public AbstractHeader

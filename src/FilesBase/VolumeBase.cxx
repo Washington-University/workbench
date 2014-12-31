@@ -38,22 +38,6 @@ AbstractHeader::~AbstractHeader()
 {
 }
 
-AbstractVolumeExtension::~AbstractVolumeExtension()
-{
-}
-
-void VolumeBase::reinitialize(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
-{
-    vector<int64_t> dimensionCast;
-    int32_t dimSize = (int32_t)dimensionsIn.size();
-    dimensionCast.resize(dimSize);
-    for (int32_t i = 0; i < dimSize; ++i)
-    {
-        dimensionCast[i] = (int64_t)dimensionsIn[i];
-    }
-    reinitialize(dimensionCast, indexToSpace, numComponents);
-}
-
 void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
     clear();
@@ -125,12 +109,6 @@ VolumeBase::VolumeBase()
     m_origDims.push_back(0);
     m_origDims.push_back(0);
     m_ModifiedFlag = false;
-}
-
-VolumeBase::VolumeBase(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
-{
-    reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
-    m_ModifiedFlag = true;
 }
 
 VolumeBase::VolumeBase(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
@@ -355,7 +333,7 @@ void VolumeBase::clear()
     m_storage.clear();
     m_origDims.clear();
     m_origDims.resize(3, 0);//give original dimensions 3 elements, just because
-    m_extensions.clear();
+    m_header.grabNew(NULL);
 }
 
 VolumeBase::~VolumeBase()

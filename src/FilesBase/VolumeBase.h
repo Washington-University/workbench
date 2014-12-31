@@ -31,17 +31,6 @@
 
 namespace caret {
 
-    struct AbstractVolumeExtension
-    {
-        enum ExtensionType
-        {
-            NIFTI
-        };
-        std::vector<char> m_bytes;
-        virtual ExtensionType getType() const = 0;
-        virtual ~AbstractVolumeExtension();
-    };
-    
     struct AbstractHeader
     {
         enum HeaderType
@@ -143,11 +132,8 @@ namespace caret {
     protected:
         VolumeBase();
         VolumeBase(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
-        //convenience method for unsigned
-        VolumeBase(const std::vector<uint64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const uint64_t numComponents = 1);
         ///recreates the volume file storage with new size and spacing
         void reinitialize(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
-        void reinitialize(const std::vector<uint64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const uint64_t numComponents = 1);
         
         void addSubvolumes(const int64_t& numToAdd);
         
@@ -155,10 +141,7 @@ namespace caret {
         void clear();
         virtual ~VolumeBase();
 
-        ///there isn't much VolumeFile can do to restrict access to extensions, so just have them public
-        std::vector<CaretPointer<AbstractVolumeExtension> > m_extensions;
-        
-        ///ditto for header
+        ///there isn't much VolumeFile can do to restrict access to the header, so just have it public
         CaretPointer<AbstractHeader> m_header;
         
         ///get the spacing info
