@@ -1050,14 +1050,14 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
     bool haveMatrixLayers = false;
     bool haveMatrixSeries = false;
     bool haveTimeSeries   = false;
-    
-    std::vector<ChartableLineSeriesBrainordinateInterface*> allBrainordinateChartableFiles;
-    m_brain->getAllChartableBrainordinateDataFiles(allBrainordinateChartableFiles);
 
-    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator fileIter = allBrainordinateChartableFiles.begin();
-         fileIter != allBrainordinateChartableFiles.end();
+    std::vector<ChartableLineSeriesInterface*> allLineChartableFiles;
+    m_brain->getAllChartableLineSeriesDataFiles(allLineChartableFiles);
+
+    for (std::vector<ChartableLineSeriesInterface*>::iterator fileIter = allLineChartableFiles.begin();
+         fileIter != allLineChartableFiles.end();
          fileIter++) {
-        ChartableLineSeriesBrainordinateInterface* chartFile = *fileIter;
+        ChartableLineSeriesInterface* chartFile = *fileIter;
         
         std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
         chartFile->getSupportedLineSeriesChartDataTypes(chartDataTypes);
@@ -1085,6 +1085,42 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
             }
         }
     }
+
+    
+//    std::vector<ChartableLineSeriesBrainordinateInterface*> allBrainordinateChartableFiles;
+//    m_brain->getAllChartableBrainordinateDataFiles(allBrainordinateChartableFiles);
+//
+//    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator fileIter = allBrainordinateChartableFiles.begin();
+//         fileIter != allBrainordinateChartableFiles.end();
+//         fileIter++) {
+//        ChartableLineSeriesBrainordinateInterface* chartFile = *fileIter;
+//        
+//        std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
+//        chartFile->getSupportedLineSeriesChartDataTypes(chartDataTypes);
+//        
+//        for (std::vector<ChartDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
+//             typeIter != chartDataTypes.end();
+//             typeIter++) {
+//            const ChartDataTypeEnum::Enum cdt = *typeIter;
+//            switch (cdt) {
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+//                    break;
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+//                    break;
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+//                    break;
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+//                    haveDataSeries = true;
+//                    break;
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+//                    haveFrequencySeries = true;
+//                    break;
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+//                    haveTimeSeries = true;
+//                    break;
+//            }
+//        }
+//    }
     
     std::vector<ChartableMatrixInterface*> allMatrixChartableFiles;
     m_brain->getAllChartableMatrixDataFiles(allMatrixChartableFiles);

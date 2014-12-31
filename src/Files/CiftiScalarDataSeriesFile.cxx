@@ -405,6 +405,7 @@ CiftiScalarDataSeriesFile::getChartMatrixDisplayProperties(const int32_t tabInde
 ChartDataCartesian*
 CiftiScalarDataSeriesFile::loadLineSeriesChartDataForColumn(const int32_t columnIndex)
 {
+    CaretAssertToDoFatal();
     return NULL;
 }
 
@@ -421,6 +422,7 @@ CiftiScalarDataSeriesFile::loadLineSeriesChartDataForColumn(const int32_t column
 ChartDataCartesian*
 CiftiScalarDataSeriesFile::loadLineSeriesChartDataForRow(const int32_t rowIndex)
 {
+    CaretAssertToDoFatal();
     return NULL;
 }
 
@@ -461,7 +463,33 @@ CiftiScalarDataSeriesFile::isLineSeriesChartingSupported() const
 void
 CiftiScalarDataSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
-    helpgetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
+    chartDataTypesOut.clear();
+    
+    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+    CiftiMappingType::MappingType mapType = ciftiXML.getMappingType(CiftiXML::ALONG_ROW);
+    const AString message("Mapping type should always be SERIES for CIFTI Scalar Data Series File");
+    CaretAssertMessage(mapType == CiftiMappingType::SERIES,
+                       message);
+    if (mapType == CiftiMappingType::SERIES) {
+        const CiftiSeriesMap& seriesMap = ciftiXML.getSeriesMap(CiftiXML::ALONG_ROW);
+        switch (seriesMap.getUnit()) {
+            case CiftiSeriesMap::HERTZ:
+                chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES);
+                break;
+            case CiftiSeriesMap::METER:
+                CaretLogWarning("CIFTI Units METER not implemented");
+                break;
+            case CiftiSeriesMap::RADIAN:
+                CaretLogWarning("CIFTI Units RADIAN not implemented");
+                break;
+            case CiftiSeriesMap::SECOND:
+                chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES);
+                break;
+        }
+    }
+    else {
+        CaretLogSevere(message);
+    }
 }
 
 /**

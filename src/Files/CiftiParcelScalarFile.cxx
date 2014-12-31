@@ -126,7 +126,7 @@ CiftiParcelScalarFile::isLineSeriesChartingSupported() const
 void
 CiftiParcelScalarFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
-    helpgetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
+    helpGetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
 }
 
 /**

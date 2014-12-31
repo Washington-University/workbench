@@ -257,7 +257,7 @@ CiftiBrainordinateDataSeriesFile::loadLineSeriesChartDataForVoxelAtCoordinate(co
 void
 CiftiBrainordinateDataSeriesFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
-    helpgetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
+    helpGetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
 }
 
 /**

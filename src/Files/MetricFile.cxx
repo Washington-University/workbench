@@ -468,7 +468,7 @@ MetricFile::setLineSeriesChartingEnabled(const int32_t tabIndex,
 void
 MetricFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
-    helpgetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
+    helpGetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
 }
 
 /**

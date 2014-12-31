@@ -217,7 +217,7 @@ CiftiBrainordinateScalarFile::setLineSeriesChartingEnabled(const int32_t tabInde
 void
 CiftiBrainordinateScalarFile::getSupportedLineSeriesChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
-    helpgetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
+    helpGetSupportedLineSeriesChartDataTypes(chartDataTypesOut);
 }
 
 /**
