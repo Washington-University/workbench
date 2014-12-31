@@ -666,6 +666,20 @@ IdentificationTextGenerator::generateChartDataSourceText(IdentificationStringBui
     switch (chartDataSource->getDataSourceMode()) {
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
             break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW:
+        {
+            AString fileName;
+            int32_t rowIndex;
+            chartDataSource->getFileRow(fileName,
+                                        rowIndex);
+            idText.addLine(true,
+                           "File",
+                           fileName);
+            idText.addLine(true,
+                           "Row",
+                           AString::number(rowIndex + 1));
+        }
+            break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
         {
             AString structureName;

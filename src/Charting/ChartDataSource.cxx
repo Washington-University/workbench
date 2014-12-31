@@ -72,6 +72,7 @@ ChartDataSource::initializeMembersChartDataSource()
     m_voxelXYZ[0] = 0.0;
     m_voxelXYZ[1] = 0.0;
     m_voxelXYZ[2] = 0.0;
+    m_fileRowIndex = -1;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<ChartDataSourceModeEnum, ChartDataSourceModeEnum::Enum>("m_dataSourceMode",
@@ -84,6 +85,8 @@ ChartDataSource::initializeMembersChartDataSource()
                           &m_surfaceStructureName);
     m_sceneAssistant->addArray("m_voxelXYZ",
                                m_voxelXYZ, 3, -1);
+    m_sceneAssistant->add("m_fileRowIndex",
+                          &m_fileRowIndex);
 }
 
 /**
@@ -134,6 +137,7 @@ ChartDataSource::copyHelperChartDataSource(const ChartDataSource& obj)
     m_voxelXYZ[0]          = obj.m_voxelXYZ[0];
     m_voxelXYZ[1]          = obj.m_voxelXYZ[1];
     m_voxelXYZ[2]          = obj.m_voxelXYZ[2];
+    m_fileRowIndex         = obj.m_fileRowIndex;
 }
 
 /**
@@ -308,6 +312,40 @@ ChartDataSource::setVolumeVoxel(const AString& chartableFileName,
 }
 
 /**
+ * Get the file row data source.
+ *
+ * @param chartableFileName
+ *    Name of the file.
+ * @param fileRowIndex
+ *    Index of the row.
+ */
+void
+ChartDataSource::getFileRow(AString& chartableFileName,
+                            int32_t& fileRowIndex) const
+{
+    chartableFileName  = m_chartableFileName;
+    fileRowIndex = m_fileRowIndex;
+}
+
+/**
+ * Set the file row data source.
+ *
+ * @param chartableFileName
+ *    Name of the file.
+ * @param fileRowIndex
+ *    Index of the row.
+ */
+void
+ChartDataSource::setFileRow(const AString& chartableFileName,
+                            const int32_t fileRowIndex)
+{
+    m_dataSourceMode = ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW;
+    m_chartableFileName  = chartableFileName;
+    m_fileRowIndex = fileRowIndex;
+}
+
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -317,6 +355,10 @@ ChartDataSource::getDescription() const
     AString s;
     switch (m_dataSourceMode) {
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW:
+            s += (" Row "
+                  + AString::number(m_fileRowIndex + 1));
             break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
             s += (m_surfaceStructureName
@@ -344,6 +386,7 @@ ChartDataSource::getDescription() const
     
     return s;
 }
+
 
 /**
  * Get a description of this object's content.
@@ -381,6 +424,8 @@ ChartDataSource::saveToScene(const SceneAttributes* sceneAttributes,
     
     switch (m_dataSourceMode) {
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW:
             break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
             break;
@@ -426,6 +471,8 @@ ChartDataSource::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     switch (m_dataSourceMode) {
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW:
             break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
             break;

@@ -262,8 +262,8 @@ ModelChart::loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMap
             ChartData* chartData = chartFile->loadLineSeriesChartDataForRow(rowIndex);
             if (chartData != NULL) {
                 ChartDataSource* dataSource = chartData->getChartDataSource();
-                //            dataSource->setVolumeVoxel(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
-                //                                       xyz);
+                dataSource->setFileRow(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
+                                       rowIndex);
                 
                 addChartToChartModels(tabIndices,
                                       chartData);

@@ -35,13 +35,15 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Invalid mode */
         CHART_DATA_SOURCE_MODE_INVALID,
-        /** */
+        /** Chart is from a file's row */
+        CHART_DATA_SOURCE_MODE_FILE_ROW,
+        /** Chart is from a surface node index */
         CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX,
-        /** */
+        /** Chart is from an average of surface node indices */
         CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE,
-        /** */
+        /** Chart is from a voxel index */
         CHART_DATA_SOURCE_MODE_VOXEL_IJK
     };
 

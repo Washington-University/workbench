@@ -31,7 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::ChartDataSourceModeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Enumerated type for shource source of a chart.
  *
  * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
@@ -110,19 +110,23 @@ ChartDataSourceModeEnum::initialize()
 
     enumData.push_back(ChartDataSourceModeEnum(CHART_DATA_SOURCE_MODE_INVALID, 
                                     "CHART_DATA_SOURCE_MODE_INVALID", 
-                                    ""));
+                                    "Invalid"));
     
-    enumData.push_back(ChartDataSourceModeEnum(CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX, 
+    enumData.push_back(ChartDataSourceModeEnum(CHART_DATA_SOURCE_MODE_FILE_ROW,
+                                               "CHART_DATA_SOURCE_MODE_FILE_ROW",
+                                               "Chart Source File Row"));
+    
+    enumData.push_back(ChartDataSourceModeEnum(CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX,
                                     "CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX", 
-                                    ""));
+                                    "Chart Source Surface Node"));
     
     enumData.push_back(ChartDataSourceModeEnum(CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE, 
                                     "CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE", 
-                                    ""));
+                                    "Chart Source Average of Surface Nodes"));
     
     enumData.push_back(ChartDataSourceModeEnum(CHART_DATA_SOURCE_MODE_VOXEL_IJK, 
                                     "CHART_DATA_SOURCE_MODE_VOXEL_IJK", 
-                                    ""));
+                                    "Chart Source Voxel"));
     
 }
 
