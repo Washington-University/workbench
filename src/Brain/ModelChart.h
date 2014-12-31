@@ -38,13 +38,16 @@ namespace caret {
     class CaretDataFileSelectionModel;
     class ChartData;
     class ChartDataCartesian;
+    class ChartableLineSeriesBrainordinateInterface;
+    class ChartableLineSeriesInterface;
+    class ChartableLineSeriesRowColumnInterface;
     class ChartableMatrixInterface;
     class ChartModel;
     class ChartModelDataSeries;
     class ChartModelFrequencySeries;
     class ChartModelTimeSeries;
-    class ChartableLineSeriesBrainordinateInterface;
     class CiftiConnectivityMatrixParcelFile;
+    class CiftiMappableDataFile;
     class OverlaySetArray;
     class SurfaceFile;
     
@@ -71,6 +74,9 @@ namespace caret {
                                                                const std::vector<int32_t>& nodeIndices);
         
         void loadChartDataForVoxelAtCoordinate(const float xyz[3]);
+        
+        void loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMapFile,
+                                                  const int32_t rowIndex);
         
         OverlaySet* getOverlaySet(const int tabIndex);
         
@@ -142,7 +148,12 @@ namespace caret {
         void restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                                          const SceneClass* sceneClass);
 
-        void getTabsAndChartFilesForChartLoading(std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const;
+        void getTabsAndBrainordinateChartFilesForLineChartLoading(std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >& chartBrainordinateFileEnabledTabsOut) const;
+
+        void getTabsAndRowColumnChartFilesForLineChartLoading(std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> >& chartRowColumnFilesEnabledTabsOut) const;
+        
+        void getTabsAndLineSeriesChartFilesForLineChartLoading(std::map<ChartableLineSeriesInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const;
+        
 
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;

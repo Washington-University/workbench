@@ -27,6 +27,7 @@
 namespace caret {
 
     class Brain;
+    class CiftiMappableDataFile;
     class SurfaceFile;
     
     class ChartingDataManager : public CaretObject {
@@ -43,6 +44,9 @@ namespace caret {
                                      const int32_t nodeIndex) const;
         
         void loadChartForVoxelAtCoordinate(const float xyz[3]) const;
+        
+        void loadChartForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMapFile,
+                                              const int32_t rowIndex) const;
         
         bool hasNetworkFiles() const;
         

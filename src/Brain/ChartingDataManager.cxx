@@ -100,6 +100,28 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
 }
 
 /**
+ * Load chart data from given file at the given row.
+ *
+ * @param ciftiMapFile
+ *     The CIFTI file.
+ * @param rowIndex
+ *     Index of row in the file.
+ */
+void
+ChartingDataManager::loadChartForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMapFile,
+                                                      const int32_t rowIndex) const
+{
+    CaretAssert(ciftiMapFile);
+    
+    ModelChart* modelChart = m_brain->getChartModel();
+    if (modelChart != NULL) {
+        modelChart->loadChartDataForCiftiMappableFileRow(ciftiMapFile,
+                                                         rowIndex);
+    }
+}
+
+
+/**
  * Load chart data for a voxel.
  *
  * @param xyz

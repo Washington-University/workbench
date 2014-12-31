@@ -25,8 +25,12 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ChartDataCartesian.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "CiftiFile.h"
+#include "CiftiSeriesMap.h"
+#include "CiftiXML.h"
+#include "DataFileException.h"
 #include "EventBrowserTabIndicesGetAll.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
@@ -403,9 +407,9 @@ CiftiScalarDataSeriesFile::getChartMatrixDisplayProperties(const int32_t tabInde
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiScalarDataSeriesFile::loadLineSeriesChartDataForColumn(const int32_t columnIndex)
+CiftiScalarDataSeriesFile::loadLineSeriesChartDataForColumn(const int32_t /*columnIndex*/)
 {
-    CaretAssertToDoFatal();
+    CaretAssertMessage(0, "Loading of columns is not used at this time");
     return NULL;
 }
 
@@ -422,8 +426,69 @@ CiftiScalarDataSeriesFile::loadLineSeriesChartDataForColumn(const int32_t column
 ChartDataCartesian*
 CiftiScalarDataSeriesFile::loadLineSeriesChartDataForRow(const int32_t rowIndex)
 {
-    CaretAssertToDoFatal();
-    return NULL;
+    ChartDataCartesian* chartData = NULL;
+    
+    try {
+        if ((rowIndex >= 0)
+            && (rowIndex < m_ciftiFile->getNumberOfRows())) {
+            const int32_t numberOfElementsInRow = m_ciftiFile->getNumberOfColumns();
+            if (numberOfElementsInRow > 0) {
+                std::vector<float> rowData(numberOfElementsInRow);
+                m_ciftiFile->getRow(&rowData[0],
+                                    rowIndex);
+                
+                const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+                const CiftiSeriesMap& seriesMap = ciftiXML.getSeriesMap(CiftiXML::ALONG_ROW);
+                
+                ChartDataTypeEnum::Enum chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+                AString timeUnitsString;
+                switch (seriesMap.getUnit()) {
+                    case CiftiSeriesMap::HERTZ:
+                        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES;
+                        break;
+                    case CiftiSeriesMap::METER:
+                        CaretLogWarning("CIFTI Units METER not implemented");
+                        break;
+                    case CiftiSeriesMap::RADIAN:
+                        CaretLogWarning("CIFTI Units RADIAN not implemented");
+                        break;
+                    case CiftiSeriesMap::SECOND:
+                        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES;
+                        break;
+                }
+                
+                if (chartDataType != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                    chartData = new ChartDataCartesian(chartDataType,
+                                                       ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                                       ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+                    
+                    if (chartData != NULL) {
+                        float timeStart = seriesMap.getStart();
+                        float timeStep  = seriesMap.getStep();
+                        chartData->setTimeStartInSecondsAxisX(timeStart);
+                        chartData->setTimeStepInSecondsAxisX(timeStep);
+                        
+                        for (int64_t i = 0; i < numberOfElementsInRow; i++) {
+                            const float xValue = timeStart + (i * timeStep);
+                            
+                            chartData->addPoint(xValue,
+                                                rowData[i]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    catch (const DataFileException& dfe) {
+        if (chartData != NULL) {
+            delete chartData;
+            chartData = NULL;
+        }
+        
+        throw dfe;
+    }
+    
+    return chartData;
 }
 
 /**

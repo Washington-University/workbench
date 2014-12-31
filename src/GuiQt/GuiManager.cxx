@@ -2306,6 +2306,10 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                    true);
                             EventManager::get()->sendEvent(selectMapEvent.getPointer());
                         }
+                        else {
+                            chartingDataManager->loadChartForCiftiMappableFileRow(scalarDataSeriesFile,
+                                                                                  rowIndex);
+                        }
                         
                         updateGraphicsFlag = true;
                     }

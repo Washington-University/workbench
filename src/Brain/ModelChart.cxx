@@ -30,6 +30,7 @@
 #include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
+#include "ChartableLineSeriesRowColumnInterface.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
@@ -37,6 +38,7 @@
 #include "ChartModelDataSeries.h"
 #include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
+#include "CiftiMappableDataFile.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
@@ -176,7 +178,7 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
                                          const std::vector<int32_t>& nodeIndices)
 {
     std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-    getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
+    getTabsAndBrainordinateChartFilesForLineChartLoading(chartFileEnabledTabs);
     
     for (std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
          fileTabIter != chartFileEnabledTabs.end();
@@ -211,7 +213,7 @@ void
 ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3])
 {
     std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-    getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
+    getTabsAndBrainordinateChartFilesForLineChartLoading(chartFileEnabledTabs);
     
     for (std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
          fileTabIter != chartFileEnabledTabs.end();
@@ -230,6 +232,60 @@ ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3])
                                   chartData);
         }
     }
+}
+
+/**
+ * Load chart data from given file at the given row.
+ *
+ * @param ciftiMapFile
+ *     The CIFTI file.
+ * @param rowIndex
+ *     Index of row in the file.
+ */
+void
+ModelChart::loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMapFile,
+                                                 const int32_t rowIndex)
+{
+    CaretAssert(ciftiMapFile);
+
+    std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    getTabsAndRowColumnChartFilesForLineChartLoading(chartFileEnabledTabs);
+    
+    for (std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+         fileTabIter != chartFileEnabledTabs.end();
+         fileTabIter++) {
+        ChartableLineSeriesRowColumnInterface* chartFile = fileTabIter->first;
+        if (ciftiMapFile == dynamic_cast<CiftiMappableDataFile*>(chartFile)) {
+            const std::vector<int32_t>  tabIndices = fileTabIter->second;
+            
+            CaretAssert(chartFile);
+            ChartData* chartData = chartFile->loadLineSeriesChartDataForRow(rowIndex);
+            if (chartData != NULL) {
+                ChartDataSource* dataSource = chartData->getChartDataSource();
+                //            dataSource->setVolumeVoxel(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
+                //                                       xyz);
+                
+                addChartToChartModels(tabIndices,
+                                      chartData);
+            }
+        }
+    }
+
+//    if (ciftiMapFile != NULL) {
+//        ChartableLineSeriesRowColumnInterface* chartableLineFile = dynamic_cast<ChartableLineSeriesRowColumnInterface*>(ciftiMapFile);
+//        if (chartableLineFile != NULL) {
+//            ChartData* chartData = chartableLineFile->loadLineSeriesChartDataForRow(rowIndex);
+//            if (chartData != NULL) {
+//            }
+//        }
+//        else {
+//            CaretLogSevere("Loading row charts from file type "
+//                           + DataFileTypeEnum::toGuiName(ciftiMapFile->getDataFileType())
+//                           + " name "
+//                           + ciftiMapFile->getFileName()
+//                           + " is not supported.");
+//        }
+//    }
 }
 
 /**
@@ -306,14 +362,97 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
 }
 
 /**
- * Get tabs and chart files for loading chart data.
+ * Get tabs and brainordinate chart files for loading chart data.
+ *
+ * @param chartBrainordinateFileEnabledTabsOut
+ *    Map with first being a chartable file and the second being
+ *    tabs for which that chartable file is enabled.
+ */
+void
+ModelChart::getTabsAndBrainordinateChartFilesForLineChartLoading(std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >& chartBrainordinateFileEnabledTabsOut) const
+{
+//    chartFileEnabledTabsOut.clear();
+//    
+//    EventBrowserTabGetAll allTabsEvent;
+//    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+//    std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
+//    
+//    std::vector<ChartableLineSeriesBrainordinateInterface*> chartFiles;
+//    m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
+//    
+//    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator iter = chartFiles.begin();
+//         iter != chartFiles.end();
+//         iter++) {
+//        ChartableLineSeriesBrainordinateInterface* cf = *iter;
+//        std::vector<int32_t> chartFileTabIndices;
+//        
+//        for (std::vector<int32_t>::iterator tabIter = validTabIndices.begin();
+//             tabIter != validTabIndices.end();
+//             tabIter++) {
+//            const int32_t tabIndex = *tabIter;
+//            if (cf->isLineSeriesChartingEnabled(tabIndex)) {
+//                chartFileTabIndices.push_back(tabIndex);
+//            }
+//        }
+//        
+//        if ( ! chartFileTabIndices.empty()) {
+//            chartFileEnabledTabsOut.insert(std::make_pair(cf, chartFileTabIndices));
+//        }
+//    }
+
+
+    chartBrainordinateFileEnabledTabsOut.clear();
+    
+    std::map<ChartableLineSeriesInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    getTabsAndLineSeriesChartFilesForLineChartLoading(chartFileEnabledTabs);
+    
+    for (std::map<ChartableLineSeriesInterface*, std::vector<int32_t> >::iterator iter = chartFileEnabledTabs.begin();
+         iter != chartFileEnabledTabs.end();
+         iter++) {
+        ChartableLineSeriesBrainordinateInterface* brainChartFile = dynamic_cast<ChartableLineSeriesBrainordinateInterface*>(iter->first);
+        if (brainChartFile != NULL) {
+            chartBrainordinateFileEnabledTabsOut.insert(std::make_pair(brainChartFile,
+                                                                       iter->second));
+        }
+    }
+}
+
+
+/**
+ * Get tabs and row column chart files for loading chart data.
+ *
+ * @param chartRowColumnFilesEnabledTabsOut
+ *    Map with first being a chartable file and the second being
+ *    tabs for which that chartable file is enabled.
+ */
+void
+ModelChart::getTabsAndRowColumnChartFilesForLineChartLoading(std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> >& chartRowColumnFilesEnabledTabsOut) const
+{
+    chartRowColumnFilesEnabledTabsOut.clear();
+    
+    std::map<ChartableLineSeriesInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    getTabsAndLineSeriesChartFilesForLineChartLoading(chartFileEnabledTabs);
+    
+    for (std::map<ChartableLineSeriesInterface*, std::vector<int32_t> >::iterator iter = chartFileEnabledTabs.begin();
+         iter != chartFileEnabledTabs.end();
+         iter++) {
+        ChartableLineSeriesRowColumnInterface* rowColChartFile = dynamic_cast<ChartableLineSeriesRowColumnInterface*>(iter->first);
+        if (rowColChartFile != NULL) {
+            chartRowColumnFilesEnabledTabsOut.insert(std::make_pair(rowColChartFile,
+                                                                       iter->second));
+        }
+    }
+}
+
+/**
+ * Get line series chart files for loading chart data.
  *
  * @param chartFileEnabledTabsOut
  *    Map with first being a chartable file and the second being
  *    tabs for which that chartable file is enabled.
  */
 void
-ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const
+ModelChart::getTabsAndLineSeriesChartFilesForLineChartLoading(std::map<ChartableLineSeriesInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const
 {
     chartFileEnabledTabsOut.clear();
     
@@ -321,13 +460,13 @@ ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableLineSeriesBrai
     EventManager::get()->sendEvent(allTabsEvent.getPointer());
     std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
     
-    std::vector<ChartableLineSeriesBrainordinateInterface*> chartFiles;
-    m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
+    std::vector<ChartableLineSeriesInterface*> chartFiles;
+    m_brain->getAllChartableLineSeriesDataFiles(chartFiles);
     
-    for (std::vector<ChartableLineSeriesBrainordinateInterface*>::iterator iter = chartFiles.begin();
+    for (std::vector<ChartableLineSeriesInterface*>::iterator iter = chartFiles.begin();
          iter != chartFiles.end();
          iter++) {
-        ChartableLineSeriesBrainordinateInterface* cf = *iter;
+        ChartableLineSeriesInterface* cf = *iter;
         std::vector<int32_t> chartFileTabIndices;
         
         for (std::vector<int32_t>::iterator tabIter = validTabIndices.begin();
@@ -363,7 +502,7 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                         const int32_t nodeIndex)
 {
     std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
-    getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
+    getTabsAndBrainordinateChartFilesForLineChartLoading(chartFileEnabledTabs);
     
     for (std::map<ChartableLineSeriesBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
          fileTabIter != chartFileEnabledTabs.end();
