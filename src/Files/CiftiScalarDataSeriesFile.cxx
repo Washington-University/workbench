@@ -138,6 +138,8 @@ CiftiScalarDataSeriesFile::receiveEvent(Event* event)
                 }
             }
         }
+        
+        selectMapEvent->setEventProcessed();
     }
 }
 

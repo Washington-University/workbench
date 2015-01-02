@@ -1347,6 +1347,8 @@ OverlaySet::receiveEvent(Event* event)
                     }
                 }
             }
+            
+            selectMapEvent->setEventProcessed();
         }
         
         

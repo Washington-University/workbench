@@ -25,6 +25,8 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "EventManager.h"
+#include "EventMapYokingSelectMap.h"
 #include "ModelChart.h"
 #include "SurfaceFile.h"
 
@@ -46,6 +48,11 @@ ChartingDataManager::ChartingDataManager(Brain* brain)
 m_brain(brain)
 {
     CaretAssert(brain);
+    
+    /*
+     * Need PROCESSED event (after others have handled the event)
+     */
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
 }
 
 /**
@@ -53,6 +60,28 @@ m_brain(brain)
  */
 ChartingDataManager::~ChartingDataManager()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+ChartingDataManager::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP) {
+        EventMapYokingSelectMap* yokeMapEvent = dynamic_cast<EventMapYokingSelectMap*>(event);
+        CaretAssert(yokeMapEvent);
+        
+        ModelChart* modelChart = m_brain->getChartModel();
+        if (modelChart != NULL) {
+            modelChart->loadChartDataForYokedCiftiMappableFiles(yokeMapEvent->getMapYokingGroup(),
+                                                                yokeMapEvent->getMapIndex());
+        }
+    }
 }
 
 /**

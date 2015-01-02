@@ -30,6 +30,7 @@
 
 #include "ChartDataTypeEnum.h"
 #include "EventListenerInterface.h"
+#include "MapYokingGroupEnum.h"
 #include "Model.h"
 #include "StructureEnum.h"
 
@@ -77,6 +78,9 @@ namespace caret {
         
         void loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* ciftiMapFile,
                                                   const int32_t rowIndex);
+        
+        void loadChartDataForYokedCiftiMappableFiles(const MapYokingGroupEnum::Enum mapYokingGroup,
+                                                     const int32_t mapIndex);
         
         OverlaySet* getOverlaySet(const int tabIndex);
         

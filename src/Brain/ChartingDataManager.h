@@ -23,6 +23,7 @@
 
 
 #include "CaretObject.h"
+#include "EventListenerInterface.h"
 
 namespace caret {
 
@@ -30,7 +31,7 @@ namespace caret {
     class CiftiMappableDataFile;
     class SurfaceFile;
     
-    class ChartingDataManager : public CaretObject {
+    class ChartingDataManager : public CaretObject, public EventListenerInterface {
         
     public:
         ChartingDataManager(Brain* brain);
@@ -49,6 +50,8 @@ namespace caret {
                                               const int32_t rowIndex) const;
         
         bool hasNetworkFiles() const;
+        
+        virtual void receiveEvent(Event* event);
         
     private:
         ChartingDataManager(const ChartingDataManager&);

@@ -39,6 +39,7 @@
 #include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
 #include "CiftiMappableDataFile.h"
+#include "CiftiScalarDataSeriesFile.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
@@ -233,6 +234,60 @@ ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3])
         }
     }
 }
+
+/**
+ * Load chart data for CIFTI Map files yoked to the given yoking group.
+ *
+ * @param mapYokingGroup
+ *     The map yoking group.
+ * @param mapIndex
+ *     The map index.
+ */
+void
+ModelChart::loadChartDataForYokedCiftiMappableFiles(const MapYokingGroupEnum::Enum mapYokingGroup,
+                                                    const int32_t mapIndex)
+{
+    if (mapYokingGroup == MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    getTabsAndRowColumnChartFilesForLineChartLoading(chartFileEnabledTabs);
+    
+    for (std::map<ChartableLineSeriesRowColumnInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+         fileTabIter != chartFileEnabledTabs.end();
+         fileTabIter++) {
+        ChartableLineSeriesRowColumnInterface* chartFile = fileTabIter->first;
+        CaretAssert(chartFile);
+        CiftiScalarDataSeriesFile* csdsf = dynamic_cast<CiftiScalarDataSeriesFile*>(chartFile);
+        if (csdsf != NULL) {
+            
+            std::vector<int32_t> matchedTabIndices;
+            const std::vector<int32_t>  tabIndices = fileTabIter->second;
+            for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+                 tabIter != tabIndices.end();
+                 tabIter++) {
+                const int32_t tabIndex = *tabIter;
+                if (csdsf->getMapYokingGroup(tabIndex) == mapYokingGroup) {
+                    matchedTabIndices.push_back(tabIndex);
+                }
+            }
+            
+            if ( ! matchedTabIndices.empty()) {
+                ChartData* chartData = chartFile->loadLineSeriesChartDataForRow(mapIndex);
+                if (chartData != NULL) {
+                    ChartDataSource* dataSource = chartData->getChartDataSource();
+                    dataSource->setFileRow(chartFile->getLineSeriesChartCaretMappableDataFile()->getFileName(),
+                                           mapIndex);
+                    
+                    addChartToChartModels(matchedTabIndices,
+                                          chartData);
+                }
+            }
+        }
+    }
+}
+
 
 /**
  * Load chart data from given file at the given row.
