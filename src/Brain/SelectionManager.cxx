@@ -33,6 +33,7 @@
 
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
+#include "SelectionItemChartFrequencySeries.h"
 #include "SelectionItemChartMatrix.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemFocusSurface.h"
@@ -63,6 +64,7 @@ SelectionManager::SelectionManager()
 {
     m_surfaceBorderIdentification = new SelectionItemBorderSurface();
     m_chartDataSeriesIdentification = new SelectionItemChartDataSeries();
+    m_chartDataFrequencyIdentification = new SelectionItemChartFrequencySeries();
     m_chartMatrixIdentification     = new SelectionItemChartMatrix();
     m_chartTimeSeriesIdentification = new SelectionItemChartTimeSeries();
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
@@ -75,6 +77,7 @@ SelectionManager::SelectionManager()
     
     m_allSelectionItems.push_back(m_surfaceBorderIdentification);
     m_allSelectionItems.push_back(m_chartDataSeriesIdentification);
+    m_allSelectionItems.push_back(m_chartDataFrequencyIdentification);
     m_allSelectionItems.push_back(m_chartMatrixIdentification);
     m_allSelectionItems.push_back(m_chartTimeSeriesIdentification);
     m_allSelectionItems.push_back(m_surfaceFocusIdentification);
@@ -115,6 +118,8 @@ SelectionManager::~SelectionManager()
     m_surfaceBorderIdentification = NULL;
     delete m_chartDataSeriesIdentification;
     m_chartDataSeriesIdentification = NULL;
+    delete m_chartDataFrequencyIdentification;
+    m_chartDataFrequencyIdentification = NULL;
     delete m_chartMatrixIdentification;
     m_chartMatrixIdentification = NULL;
     delete m_chartTimeSeriesIdentification;
@@ -571,6 +576,25 @@ SelectionManager::getChartDataSeriesIdentification() const
 {
     return m_chartDataSeriesIdentification;
 }
+
+/**
+ * @return Identification for frequency-series chart.
+ */
+SelectionItemChartFrequencySeries*
+SelectionManager::getChartFrequencySeriesIdentification()
+{
+    return m_chartDataFrequencyIdentification;
+}
+
+/**
+ * @return Identification for frequency-series chart (const method).
+ */
+const SelectionItemChartFrequencySeries*
+SelectionManager::getChartFrequencySeriesIdentification() const
+{
+    return m_chartDataFrequencyIdentification;
+}
+
 
 /**
  * @return Identification for matrix chart.

@@ -34,6 +34,7 @@ namespace caret {
     class ChartDataCartesian;
     class ChartModelCartesian;
     class ChartModelDataSeries;
+    class ChartModelFrequencySeries;
     class ChartModelTimeSeries;
     class ChartableMatrixInterface;
     
@@ -148,6 +149,8 @@ namespace caret {
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing;
         
         ChartModelDataSeries* m_chartModelDataSeriesBeingDrawnForIdentification;
+        
+        ChartModelFrequencySeries* m_chartModelFrequencySeriesBeingDrawnForIdentification;
         
         ChartModelTimeSeries* m_chartModelTimeSeriesBeingDrawnForIdentification;
         

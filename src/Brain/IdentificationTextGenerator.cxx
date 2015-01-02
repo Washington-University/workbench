@@ -45,6 +45,7 @@
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
+#include "SelectionItemChartFrequencySeries.h"
 #include "SelectionItemChartMatrix.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemFocusSurface.h"
@@ -126,6 +127,9 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
     
     this->generateChartDataSeriesIdentificationText(idText,
                                                     idManager->getChartDataSeriesIdentification());
+    
+    this->generateChartFrequencySeriesIdentificationText(idText,
+                                                         idManager->getChartFrequencySeriesIdentification());
     
     this->generateChartTimeSeriesIdentificationText(idText,
                                                     idManager->getChartTimeSeriesIdentification());
@@ -593,6 +597,27 @@ IdentificationTextGenerator::generateChartDataSeriesIdentificationText(Identific
         const ChartDataSource* chartDataSource = chartDataCartesian->getChartDataSource();
         generateChartDataSourceText(idText,
                                     "DATA SERIES CHART",
+                                    chartDataSource);
+    }
+}
+
+/**
+ * Generate identification text for a data series chart.
+ * @param idText
+ *     String builder for identification text.
+ * @param idChartDataSeries
+ *     Information for chart id.
+ */
+void
+IdentificationTextGenerator::generateChartFrequencySeriesIdentificationText(IdentificationStringBuilder& idText,
+                                                                       const SelectionItemChartFrequencySeries* idChartFrequencySeries) const
+{
+    if (idChartFrequencySeries->isValid()) {
+        const ChartDataCartesian* chartDataCartesian = idChartFrequencySeries->getChartDataCartesian();
+        
+        const ChartDataSource* chartDataSource = chartDataCartesian->getChartDataSource();
+        generateChartDataSourceText(idText,
+                                    "FREQUENCY SERIES CHART",
                                     chartDataSource);
     }
 }

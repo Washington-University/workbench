@@ -36,6 +36,7 @@
 #include "CaretLogger.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "ChartModelDataSeries.h"
+#include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
 #include "ChartableMatrixInterface.h"
 #include "CaretPreferences.h"
@@ -50,6 +51,7 @@
 #include "EventManager.h"
 #include "IdentificationWithColor.h"
 #include "SelectionItemChartDataSeries.h"
+#include "SelectionItemChartFrequencySeries.h"
 #include "SelectionItemChartMatrix.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionManager.h"
@@ -115,6 +117,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
     m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_tabIndex = tabIndex;
     m_chartModelDataSeriesBeingDrawnForIdentification = dynamic_cast<ChartModelDataSeries*>(cartesianChart);
+    m_chartModelFrequencySeriesBeingDrawnForIdentification = dynamic_cast<ChartModelFrequencySeries*>(cartesianChart);
     m_chartModelTimeSeriesBeingDrawnForIdentification = dynamic_cast<ChartModelTimeSeries*>(cartesianChart);
     m_chartCartesianSelectionTypeForIdentification = selectionItemDataType;
     m_chartableMatrixInterfaceBeingDrawnForIdentification = NULL;
@@ -126,6 +129,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
     saveStateOfOpenGL();
     
     SelectionItemChartDataSeries* chartDataSeriesID = m_brain->getSelectionManager()->getChartDataSeriesIdentification();
+    SelectionItemChartFrequencySeries* chartFrequencySeriesID = m_brain->getSelectionManager()->getChartFrequencySeriesIdentification();
     SelectionItemChartTimeSeries* chartTimeSeriesID = m_brain->getSelectionManager()->getChartTimeSeriesIdentification();
     
     /*
@@ -136,11 +140,9 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (chartDataSeriesID->isEnabledForSelection()) {
-                m_identificationModeFlag = true;
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            }
-            else if (chartTimeSeriesID->isEnabledForSelection()) {
+            if (chartDataSeriesID->isEnabledForSelection()
+                || chartFrequencySeriesID->isEnabledForSelection()
+                || chartTimeSeriesID->isEnabledForSelection()) {
                 m_identificationModeFlag = true;
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
@@ -295,6 +297,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
     m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_tabIndex = tabIndex;
     m_chartModelDataSeriesBeingDrawnForIdentification = NULL;
+    m_chartModelFrequencySeriesBeingDrawnForIdentification = NULL;
     m_chartModelTimeSeriesBeingDrawnForIdentification = NULL;
     m_chartableMatrixInterfaceBeingDrawnForIdentification = chartMatrixInterface;
     m_chartableMatrixSelectionTypeForIdentification = selectionItemDataType;
@@ -1603,6 +1606,38 @@ BrainOpenGLChartDrawingFixedPipeline::processIdentification()
                 };
                 
                 m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartDataSeriesID,
+                                                                 lineXYZ);
+            }
+        }
+    }
+    else if (m_chartModelFrequencySeriesBeingDrawnForIdentification != NULL) {
+        m_fixedPipelineDrawing->getIndexFromColorSelection(m_chartCartesianSelectionTypeForIdentification,
+                                                           m_fixedPipelineDrawing->mouseX,
+                                                           m_fixedPipelineDrawing->mouseY,
+                                                           identifiedItemIndex,
+                                                           depth);
+        if (identifiedItemIndex >= 0) {
+            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
+            const int32_t chartDataIndex = m_identificationIndices[idIndex];
+            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
+            
+            SelectionItemChartFrequencySeries* chartFrequencySeriesID = m_brain->getSelectionManager()->getChartFrequencySeriesIdentification();
+            if (chartFrequencySeriesID->isOtherScreenDepthCloserToViewer(depth)) {
+                ChartDataCartesian* chartDataCartesian =
+                dynamic_cast<ChartDataCartesian*>(m_chartModelFrequencySeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
+                CaretAssert(chartDataCartesian);
+                chartFrequencySeriesID->setChart(m_chartModelFrequencySeriesBeingDrawnForIdentification,
+                                                 chartDataCartesian,
+                                                 chartLineIndex);
+                
+                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
+                const float lineXYZ[3] = {
+                    chartPoint->getX(),
+                    chartPoint->getY(),
+                    0.0
+                };
+                
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartFrequencySeriesID,
                                                                  lineXYZ);
             }
         }
