@@ -43,9 +43,9 @@ namespace caret {
         
         virtual ~CiftiScalarDataSeriesFile();
         
-        virtual MapYokingGroupEnum::Enum getMapYokingGroup(const int32_t tabIndex) const;
+        virtual MapYokingGroupEnum::Enum getMatrixRowColumnMapYokingGroup(const int32_t tabIndex) const;
         
-        virtual void setMapYokingGroup(const int32_t tabIndex,
+        virtual void setMatrixRowColumnMapYokingGroup(const int32_t tabIndex,
                                     const MapYokingGroupEnum::Enum yokingType);
         
         virtual int32_t getSelectedMapIndex(const int32_t tabIndex);

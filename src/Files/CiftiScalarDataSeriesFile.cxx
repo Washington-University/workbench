@@ -133,7 +133,7 @@ CiftiScalarDataSeriesFile::receiveEvent(Event* event)
                  iter++) {
                 const int32_t tabIndex = *iter;
                 
-                if (getMapYokingGroup(tabIndex) == mapYokingGroup) {
+                if (getMatrixRowColumnMapYokingGroup(tabIndex) == mapYokingGroup) {
                     setSelectedMapIndex(tabIndex, yokedMapIndex);
                 }
             }
@@ -150,7 +150,7 @@ CiftiScalarDataSeriesFile::receiveEvent(Event* event)
  *     Selected yoking group for the given tab.
  */
 MapYokingGroupEnum::Enum
-CiftiScalarDataSeriesFile::getMapYokingGroup(const int32_t tabIndex) const
+CiftiScalarDataSeriesFile::getMatrixRowColumnMapYokingGroup(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_yokingGroupForTab, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_yokingGroupForTab[tabIndex];
@@ -165,7 +165,7 @@ CiftiScalarDataSeriesFile::getMapYokingGroup(const int32_t tabIndex) const
  *    New value for yoking group.
  */
 void
-CiftiScalarDataSeriesFile::setMapYokingGroup(const int32_t tabIndex,
+CiftiScalarDataSeriesFile::setMatrixRowColumnMapYokingGroup(const int32_t tabIndex,
                               const MapYokingGroupEnum::Enum yokingGroup)
 {
     CaretAssertArrayIndex(m_yokingGroupForTab, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);

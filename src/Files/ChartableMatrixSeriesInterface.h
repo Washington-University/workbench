@@ -35,9 +35,9 @@ namespace caret {
         
         virtual ~ChartableMatrixSeriesInterface() { }
         
-        virtual MapYokingGroupEnum::Enum getMapYokingGroup(const int32_t tabIndex) const = 0;
+        virtual MapYokingGroupEnum::Enum getMatrixRowColumnMapYokingGroup(const int32_t tabIndex) const = 0;
         
-        virtual void setMapYokingGroup(const int32_t tabIndex,
+        virtual void setMatrixRowColumnMapYokingGroup(const int32_t tabIndex,
                                     const MapYokingGroupEnum::Enum yokingType) = 0;
         
         virtual int32_t getSelectedMapIndex(const int32_t tabIndex) = 0;

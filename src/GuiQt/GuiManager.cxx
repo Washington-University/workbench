@@ -2297,7 +2297,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                         scalarDataSeriesFile->setSelectedMapIndex(tabIndex,
                                                                   rowIndex);
                         
-                        const MapYokingGroupEnum::Enum mapYoking = scalarDataSeriesFile->getMapYokingGroup(tabIndex);
+                        const MapYokingGroupEnum::Enum mapYoking = scalarDataSeriesFile->getMatrixRowColumnMapYokingGroup(tabIndex);
                         
                         if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
                             EventMapYokingSelectMap selectMapEvent(mapYoking,

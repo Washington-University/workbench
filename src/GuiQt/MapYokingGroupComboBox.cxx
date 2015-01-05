@@ -122,7 +122,7 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
 {
     if (chartableMatrixSeriesInterface != NULL) {
         int32_t mapIndex = chartableMatrixSeriesInterface->getSelectedMapIndex(tabIndex);
-        const MapYokingGroupEnum::Enum previousMapYokingGroup = chartableMatrixSeriesInterface->getMapYokingGroup(tabIndex);
+        const MapYokingGroupEnum::Enum previousMapYokingGroup = chartableMatrixSeriesInterface->getMatrixRowColumnMapYokingGroup(tabIndex);
         const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
         CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(chartableMatrixSeriesInterface);
         CaretAssert(mapFile);
@@ -136,20 +136,20 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
             
             switch (result) {
                 case YOKE_VALIDATE_RESULT_ACCEPT:
-                    chartableMatrixSeriesInterface->setMapYokingGroup(tabIndex, newYokingGroup);
+                    chartableMatrixSeriesInterface->setMatrixRowColumnMapYokingGroup(tabIndex, newYokingGroup);
                     chartableMatrixSeriesInterface->setSelectedMapIndex(tabIndex, mapIndex);
                     break;
                 case YOKE_VALIDATE_RESULT_OFF:
-                    chartableMatrixSeriesInterface->setMapYokingGroup(tabIndex,
+                    chartableMatrixSeriesInterface->setMatrixRowColumnMapYokingGroup(tabIndex,
                                                                    MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
                     break;
                 case YOKE_VALIDATE_RESULT_PREVIOUS:
-                    chartableMatrixSeriesInterface->setMapYokingGroup(tabIndex,
+                    chartableMatrixSeriesInterface->setMatrixRowColumnMapYokingGroup(tabIndex,
                                                                    previousMapYokingGroup);
                     break;
             }
             
-            setMapYokingGroup(chartableMatrixSeriesInterface->getMapYokingGroup(tabIndex));
+            setMapYokingGroup(chartableMatrixSeriesInterface->getMatrixRowColumnMapYokingGroup(tabIndex));
         }
     }
 }

@@ -268,7 +268,7 @@ ModelChart::loadChartDataForYokedCiftiMappableFiles(const MapYokingGroupEnum::En
                  tabIter != tabIndices.end();
                  tabIter++) {
                 const int32_t tabIndex = *tabIter;
-                if (csdsf->getMapYokingGroup(tabIndex) == mapYokingGroup) {
+                if (csdsf->getMatrixRowColumnMapYokingGroup(tabIndex) == mapYokingGroup) {
                     matchedTabIndices.push_back(tabIndex);
                 }
             }
