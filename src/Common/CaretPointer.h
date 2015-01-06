@@ -233,7 +233,7 @@ namespace caret
     }
 
     template <typename T>
-    CaretPointerNonsync<T>::CaretPointerNonsync(const CaretPointerNonsync<T>& right)
+    CaretPointerNonsync<T>::CaretPointerNonsync(const CaretPointerNonsync<T>& right) : _caret_pointer_impl::CaretPointerBase<T>()
     {
         m_share = right.m_share;
         m_pointer = right.m_pointer;
@@ -241,7 +241,7 @@ namespace caret
     }
 
     template <typename T> template <typename T2>
-    CaretPointerNonsync<T>::CaretPointerNonsync(const CaretPointerNonsync<T2>& right)
+    CaretPointerNonsync<T>::CaretPointerNonsync(const CaretPointerNonsync<T2>& right) : _caret_pointer_impl::CaretPointerBase<T>()
     {
         m_share = right.m_share;
         m_pointer = right.m_pointer;
@@ -345,7 +345,7 @@ namespace caret
     }
 
     template <typename T>
-    CaretPointer<T>::CaretPointer(const CaretPointer<T>& right)
+    CaretPointer<T>::CaretPointer(const CaretPointer<T>& right) : _caret_pointer_impl::CaretPointerBase<T>()
     {//don't need to lock self during constructor
         CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
         if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
@@ -361,7 +361,7 @@ namespace caret
     }
 
     template <typename T> template <typename T2>
-    CaretPointer<T>::CaretPointer(const CaretPointer<T2>& right)
+    CaretPointer<T>::CaretPointer(const CaretPointer<T2>& right) : _caret_pointer_impl::CaretPointerBase<T>()
     {//don't need to lock self during constructor
         CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
         if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
@@ -487,7 +487,7 @@ namespace caret
     }
 
     template <typename T>
-    CaretArrayNonsync<T>::CaretArrayNonsync(const CaretArrayNonsync<T>& right)
+    CaretArrayNonsync<T>::CaretArrayNonsync(const CaretArrayNonsync<T>& right) : _caret_pointer_impl::CaretArrayBase<T>()
     {
         m_share = right.m_share;
         m_pointer = right.m_pointer;
@@ -496,7 +496,7 @@ namespace caret
     }
 
     template <typename T> template <typename T2>
-    CaretArrayNonsync<T>::CaretArrayNonsync(const CaretArrayNonsync<T2>& right)
+    CaretArrayNonsync<T>::CaretArrayNonsync(const CaretArrayNonsync<T2>& right) : _caret_pointer_impl::CaretArrayBase<T>()
     {
         m_share = right.m_share;
         m_pointer = right.m_pointer;
@@ -625,7 +625,7 @@ namespace caret
     }
 
     template <typename T>
-    CaretArray<T>::CaretArray(const CaretArray<T>& right)
+    CaretArray<T>::CaretArray(const CaretArray<T>& right) : _caret_pointer_impl::CaretArrayBase<T>()
     {//don't need to lock self during constructor
         CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
         if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
@@ -643,7 +643,7 @@ namespace caret
     }
 
     template <typename T> template <typename T2>
-    CaretArray<T>::CaretArray(const CaretArray<T2>& right)
+    CaretArray<T>::CaretArray(const CaretArray<T2>& right) : _caret_pointer_impl::CaretArrayBase<T>()
     {//don't need to lock self during constructor
         CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
         if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
