@@ -68,7 +68,7 @@ static const char* BRAINORDINATE_FILE_POINTER_PROPERTY_NAME = "brainordinateFile
 /**
  * Constructor.
  */
-ChartLinesSelectionViewController::ChartLinesSelectionViewController(const Qt::Orientation orientation,
+ChartLinesSelectionViewController::ChartLinesSelectionViewController(const Qt::Orientation /*orientation */,
                                                            const int32_t browserWindowIndex,
                                                            QWidget* parent)
 : QWidget(parent),

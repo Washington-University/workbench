@@ -212,7 +212,7 @@ MapYokingGroupComboBox::validateYokingChange(Overlay* overlay)
 MapYokingGroupComboBox::YokeValidationResult
 MapYokingGroupComboBox::validateYoking(CaretMappableDataFile* selectedFile,
                                        int32_t& selectedMapIndexInOut,
-                                       bool& selectionStatusInOut)
+                                       bool& /* selectionStatusInOut */)
 {
     YokeValidationResult yokeResult = YOKE_VALIDATE_RESULT_OFF; //YOKE_VALIDATE_RESULT_PREVIOUS;
     
