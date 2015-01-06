@@ -71,8 +71,6 @@
 
 using namespace caret;
 
-static const char* BRAINORDINATE_FILE_POINTER_PROPERTY_NAME = "brainordinateFilePointer";
-
 /**
  * \class caret::ChartMatrixSeriesSelectionViewController 
  * \brief Handles selection of charts displayed in chart model.
