@@ -337,7 +337,15 @@ ChartHistoryViewController::updateHistoryViewController()
         QTableWidgetItem* nameItem = m_chartDataTableWidget->item(i,
                                                                   COLUMN_CHART_DATA_NAME);
         if (nameItem == NULL) {
+            /*
+             * Create name item and do not allow the user 
+             * to edit or select it
+             */
             nameItem = new QTableWidgetItem();
+            nameItem->setFlags(nameItem->flags()
+                                & ( ~ Qt::ItemIsEditable));
+            nameItem->setFlags(nameItem->flags()
+                                & ( ~ Qt::ItemIsSelectable));
             m_chartDataTableWidget->setItem(i,
                                             COLUMN_CHART_DATA_NAME,
                                             nameItem);
@@ -350,7 +358,15 @@ ChartHistoryViewController::updateHistoryViewController()
         QTableWidgetItem* colorItem = m_chartDataTableWidget->item(i,
                                                                    COLUMN_CHART_DATA_COLOR);
         if (colorItem == NULL) {
+            /*
+             * Create color item and do not allow the user
+             * to edit or select it
+             */
             colorItem = new QTableWidgetItem();
+            colorItem->setFlags(colorItem->flags()
+                               & ( ~ Qt::ItemIsEditable));
+            colorItem->setFlags(colorItem->flags()
+                                & ( ~ Qt::ItemIsSelectable));
             m_chartDataTableWidget->setItem(i,
                                             COLUMN_CHART_DATA_COLOR,
                                             colorItem);
