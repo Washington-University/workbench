@@ -5061,7 +5061,7 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                         dataFileInformation.addNameAndValue(("    "
                                                              + StructureEnum::toGuiName(structure)),
                                                             (AString::number(cpm.getSurfaceNumberOfNodes(structure))
-                                                             + " nodes"));
+                                                             + " vertices"));
                     }
                     
 
@@ -5083,7 +5083,7 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                             const std::set<int64_t>& nodeIndices = surfIter->second;
                             dataFileInformation.addNameAndValue("    ",
                                                                 (StructureEnum::toGuiName(structure)
-                                                                 + " Node-Count="
+                                                                 + " Vertex-Count="
                                                                  + AString::number(nodeIndices.size())));
                             
                         }
