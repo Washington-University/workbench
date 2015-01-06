@@ -242,7 +242,7 @@ CartesianChartAttributesWidget::CartesianChartAttributesWidget(BrainBrowserWindo
 : QWidget(brainBrowserWindowToolBarChartAttributes)
 {
     m_brainBrowserWindowToolBarChartAttributes = brainBrowserWindowToolBarChartAttributes;
-
+    
     QLabel* cartesianLineWidthLabel = new QLabel("Line width ");
     m_cartesianLineWidthDoubleSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
                                                                                                        10000.0,
@@ -252,18 +252,14 @@ CartesianChartAttributesWidget::CartesianChartAttributesWidget(BrainBrowserWindo
                                                                                                        SLOT(cartesianLineWidthValueChanged(double)));
     m_cartesianLineWidthDoubleSpinBox->setFixedWidth(65);
     
-    QWidget* gridWidget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(gridWidget);
+    QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(0, 100);
     gridLayout->addWidget(cartesianLineWidthLabel, 0, 0);
     gridLayout->addWidget(m_cartesianLineWidthDoubleSpinBox, 0, 1);
     
-    gridWidget->setFixedSize(gridWidget->sizeHint());
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addWidget(gridWidget);
-    layout->addStretch();
+    this->setFixedSize(this->sizeHint());
 }
 
 /**
@@ -338,14 +334,14 @@ EventListenerInterface()
                                                                                         this,
                                                                                         SLOT(cellWidthSpinBoxValueChanged(double)));
     m_cellWidthSpinBox->setKeyboardTracking(true);
-
+    
     QLabel* cellHeightLabel = new QLabel("Cell Height");
     m_cellHeightSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(1.0,
-                                                                                        1000.0,
-                                                                                        0.1,
-                                                                                        2,
-                                                                                        this,
-                                                                                        SLOT(cellHeightSpinBoxValueChanged(double)));
+                                                                                         1000.0,
+                                                                                         0.1,
+                                                                                         2,
+                                                                                         this,
+                                                                                         SLOT(cellHeightSpinBoxValueChanged(double)));
     m_cellHeightSpinBox->setKeyboardTracking(true);
     
     QAction* resetButtonAction = WuQtUtilities::createAction("Reset",
@@ -376,8 +372,7 @@ EventListenerInterface()
     const int32_t COLUMN_LABEL = 0;
     const int32_t COLUMN_WIDGET = 1;
     
-    QWidget* gridWidget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(gridWidget);
+    QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     int32_t rowIndex = gridLayout->rowCount();
     gridLayout->addWidget(cellWidthLabel, rowIndex, COLUMN_LABEL);
@@ -393,10 +388,7 @@ EventListenerInterface()
     gridLayout->addWidget(m_displayGridLinesCheckBox, rowIndex, COLUMN_LABEL, 1, 2, Qt::AlignLeft);
     rowIndex++;
     
-    gridWidget->setFixedSize(gridWidget->sizeHint());
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addWidget(gridWidget);
-    layout->addStretch();
+    this->setFixedSize(this->sizeHint());
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
