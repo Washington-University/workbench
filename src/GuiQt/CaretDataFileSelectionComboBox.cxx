@@ -49,6 +49,7 @@ CaretDataFileSelectionComboBox::CaretDataFileSelectionComboBox(QObject* parent)
 {
     m_selectionModel = NULL;
     m_comboBox = new QComboBox();
+    m_comboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     QObject::connect(m_comboBox, SIGNAL(activated(int)),
                      this, SLOT(slotFileIndexSelected(int)));
 
