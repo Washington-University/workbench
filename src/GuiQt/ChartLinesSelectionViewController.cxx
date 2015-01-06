@@ -279,7 +279,6 @@ ChartLinesSelectionViewController::updateSelectionViewController()
 void
 ChartLinesSelectionViewController::brainordinateYokingComboBoxActivated(int indx)
 {
-    std::cout << "Combo Box selected " << indx << std::endl;
     CaretAssertVectorIndex(m_fileInfoRows, indx);
     ChartableMatrixSeriesInterface* matrixFile = dynamic_cast<ChartableMatrixSeriesInterface*>(m_fileInfoRows[indx].m_lineSeriesFile);
     if (matrixFile != NULL) {

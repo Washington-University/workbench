@@ -267,7 +267,7 @@ MapYokingGroupComboBox::validateYoking(CaretMappableDataFile* selectedFile,
                      * the map index and status from the yoking group.
                      */
                     selectedMapIndexInOut = MapYokingGroupEnum::getSelectedMapIndex(newYokingGroup);
-                    selectionStatusInOut  = MapYokingGroupEnum::isEnabled(newYokingGroup);
+                    //selectionStatusInOut  = MapYokingGroupEnum::isEnabled(newYokingGroup);
                 }
                 else {
                     /*
@@ -277,8 +277,8 @@ MapYokingGroupComboBox::validateYoking(CaretMappableDataFile* selectedFile,
                      */
                     MapYokingGroupEnum::setSelectedMapIndex(newYokingGroup,
                                                             selectedMapIndexInOut);
-                    MapYokingGroupEnum::setEnabled(newYokingGroup,
-                                                   selectionStatusInOut);
+                    //MapYokingGroupEnum::setEnabled(newYokingGroup,
+                    //                               selectionStatusInOut);
                 }
             }
         }
