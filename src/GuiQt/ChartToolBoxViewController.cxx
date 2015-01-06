@@ -210,6 +210,16 @@ ChartToolBoxViewController::saveToScene(const SceneAttributes* sceneAttributes,
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ChartToolBoxViewController",
                                             1);
+
+    AString tabName;
+    const int tabIndex = m_tabWidget->currentIndex();
+    if ((tabIndex >= 0)
+        && tabIndex < m_tabWidget->count()) {
+        tabName = m_tabWidget->tabText(tabIndex);
+    }
+    sceneClass->addString("selectedChartTabName",
+                          tabName);
+
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -237,6 +247,15 @@ ChartToolBoxViewController::restoreFromScene(const SceneAttributes* sceneAttribu
 {
     if (sceneClass == NULL) {
         return;
+    }
+    
+    const AString tabName = sceneClass->getStringValue("selectedChartTabName",
+                                                       "");
+    for (int32_t i = 0; i < m_tabWidget->count(); i++) {
+        if (m_tabWidget->tabText(i) == tabName) {
+            m_tabWidget->setCurrentIndex(i);
+            break;
+        }
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
