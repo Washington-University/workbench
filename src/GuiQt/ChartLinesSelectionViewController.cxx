@@ -81,7 +81,7 @@ m_browserWindowIndex(browserWindowIndex)
      * exclusive.  The "Select" column title is over both the checkbox
      * and radio button columns.
      */
-    m_brainordinateGridLayout = new QGridLayout(this);
+    m_brainordinateGridLayout = new QGridLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(m_brainordinateGridLayout, 4, 2);
     m_brainordinateGridLayout->setColumnStretch(BRAINORDINATE_COLUMN_CHECKBOX, 0);
     m_brainordinateGridLayout->setColumnStretch(BRAINORDINATE_COLUMN_YOKING_COMBO_BOX, 0);
@@ -106,6 +106,11 @@ m_browserWindowIndex(browserWindowIndex)
                      this, SLOT(brainordinateYokingComboBoxActivated(int)));
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+    layout->addLayout(m_brainordinateGridLayout);
+    layout->addStretch();
 }
 
 /**

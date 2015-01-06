@@ -72,8 +72,6 @@ namespace caret {
 
         void updateSelectionViewController();
         
-        QWidget* m_brainordinateChartWidget;
-        
         const int32_t m_browserWindowIndex;
         
         struct FileInfoRow {

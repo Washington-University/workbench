@@ -82,7 +82,9 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
 
-        QWidget* createMatrixParcelChartWidget(const Qt::Orientation orientation);
+        QGroupBox* createMatrixParcelChartWidget(const Qt::Orientation orientation);
+        
+        QGroupBox* createParcelRemappingWidget(const Qt::Orientation orientation);
         
         void updateSelectionViewController();
         

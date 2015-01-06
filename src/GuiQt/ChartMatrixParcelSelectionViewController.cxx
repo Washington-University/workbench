@@ -65,8 +65,6 @@
 
 using namespace caret;
 
-static const char* BRAINORDINATE_FILE_POINTER_PROPERTY_NAME = "brainordinateFilePointer";
-
 /**
  * \class caret::ChartMatrixParcelSelectionViewController 
  * \brief Handles selection of charts displayed in chart model.
@@ -82,223 +80,234 @@ ChartMatrixParcelSelectionViewController::ChartMatrixParcelSelectionViewControll
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    /*
-     * ColorBar Tool Button
-     */
-    QIcon colorBarIcon;
-    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
-                                                           colorBarIcon);
-    m_matrixParcelColorBarAction = WuQtUtilities::createAction("CB",
-                                                               "Display color bar for this overlay",
-                                                               this,
-                                                               this,
-                                                               SLOT(matrixParcelColorBarActionTriggered(bool)));
-    m_matrixParcelColorBarAction->setCheckable(true);
-    if (colorBarIconValid) {
-        m_matrixParcelColorBarAction->setIcon(colorBarIcon);
-    }
-    QToolButton* colorBarToolButton = new QToolButton();
-    colorBarToolButton->setDefaultAction(m_matrixParcelColorBarAction);
+    m_matrixParcelChartWidget = createMatrixParcelChartWidget(orientation);
+    m_parcelRemappingGroupBox = createParcelRemappingWidget(orientation);
     
-    /*
-     * Settings Tool Button
-     */
-    QLabel* settingsLabel = new QLabel("Settings");
-    QIcon settingsIcon;
-    const bool settingsIconValid = WuQtUtilities::loadIcon(":/LayersPanel/wrench.png",
-                                                           settingsIcon);
-    
-    m_matrixParcelSettingsAction = WuQtUtilities::createAction("S",
-                                                               "Edit settings for this map and overlay",
-                                                               this,
-                                                               this,
-                                                               SLOT(matrixParcelSettingsActionTriggered()));
-    if (settingsIconValid) {
-        m_matrixParcelSettingsAction->setIcon(settingsIcon);
-    }
-    QToolButton* settingsToolButton = new QToolButton();
-    settingsToolButton->setDefaultAction(m_matrixParcelSettingsAction);
-    
-    
-    QLabel* fileLabel = new QLabel("Matrix File");
-    m_matrixParcelFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
-    QObject::connect(m_matrixParcelFileSelectionComboBox, SIGNAL(fileSelected(CaretDataFile*)),
-                     this, SLOT(matrixParcelFileSelected(CaretDataFile*)));
-    
-    QLabel* loadDimensionLabel = new QLabel("Load By");
-    m_matrixParcelLoadByColumnRowComboBox = new EnumComboBoxTemplate(this);
-    m_matrixParcelLoadByColumnRowComboBox->setup<ChartMatrixLoadingDimensionEnum, ChartMatrixLoadingDimensionEnum::Enum>();
-    QObject::connect(m_matrixParcelLoadByColumnRowComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(matrixParcelFileLoadingComboBoxActivated()));
-    
-    
-    QLabel* yokeLabel = new QLabel("Yoke ");
-    m_matrixParcelYokingGroupComboBox = new EnumComboBoxTemplate(this);
-    m_matrixParcelYokingGroupComboBox->setup<YokingGroupEnum, YokingGroupEnum::Enum>();
-    QObject::connect(m_matrixParcelYokingGroupComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(matrixParcelYokingGroupEnumComboBoxActivated()));
-    
-    m_matrixParcelChartWidget = new QGroupBox("Matrix Loading");
-    QGridLayout* matrixLayout = new QGridLayout(m_matrixParcelChartWidget);
-    
-    switch (orientation) {
-        case Qt::Horizontal:
-        {
-            WuQtUtilities::setLayoutSpacingAndMargins(matrixLayout, 2, 0);
-            matrixLayout->setColumnStretch(0, 0);
-            matrixLayout->setColumnStretch(1, 0);
-            matrixLayout->setColumnStretch(2, 0);
-            matrixLayout->setColumnStretch(3, 0);
-            matrixLayout->setColumnStretch(4, 100);
-            
-            matrixLayout->addWidget(loadDimensionLabel,
-                                      0, 0,
-                                      Qt::AlignHCenter);
-            matrixLayout->addWidget(settingsLabel,
-                                      0, 1,
-                                      1, 2,
-                                      Qt::AlignHCenter);
-            matrixLayout->addWidget(yokeLabel,
-                                      0, 3,
-                                      Qt::AlignHCenter);
-            matrixLayout->addWidget(fileLabel,
-                                      0, 4,
-                                      Qt::AlignHCenter);
-            matrixLayout->addWidget(m_matrixParcelLoadByColumnRowComboBox->getWidget(),
-                                      1, 0);
-            matrixLayout->addWidget(settingsToolButton,
-                                      1, 1);
-            matrixLayout->addWidget(colorBarToolButton,
-                                      1, 2);
-            matrixLayout->addWidget(m_matrixParcelYokingGroupComboBox->getWidget(),
-                                      1, 3);
-            matrixLayout->addWidget(m_matrixParcelFileSelectionComboBox->getWidget(),
-                                      1, 4);
-        }
-            break;
-        case Qt::Vertical:
-        {
-            WuQtUtilities::setLayoutSpacingAndMargins(matrixLayout, 2, 0);
-            matrixLayout->setColumnStretch(0, 0);
-            matrixLayout->setColumnStretch(1, 0);
-            matrixLayout->setColumnStretch(2, 0);
-            matrixLayout->setColumnStretch(3, 0);
-            matrixLayout->setColumnStretch(4, 100);
-            
-            matrixLayout->addWidget(loadDimensionLabel,
-                                      0, 0,
-                                      Qt::AlignHCenter);
-            matrixLayout->addWidget(settingsLabel,
-                                      0, 1,
-                                      1, 2,
-                                      Qt::AlignHCenter);
-            matrixLayout->addWidget(yokeLabel,
-                                      0, 3,
-                                      Qt::AlignHCenter);
-            matrixLayout->addWidget(m_matrixParcelLoadByColumnRowComboBox->getWidget(),
-                                      1, 0);
-            matrixLayout->addWidget(settingsToolButton,
-                                      1, 1);
-            matrixLayout->addWidget(colorBarToolButton,
-                                      1, 2);
-            matrixLayout->addWidget(m_matrixParcelYokingGroupComboBox->getWidget(),
-                                      1, 3);
-            matrixLayout->addWidget(fileLabel,
-                                      2, 0, 1, 4,
-                                      Qt::AlignHCenter);
-            matrixLayout->addWidget(m_matrixParcelFileSelectionComboBox->getWidget(),
-                                      3, 0, 1, 4);
-        }
-            break;
-        default:
-            CaretAssert(0);
-            break;
-    }
-    
-    m_parcelReorderingEnabledCheckBox = new QCheckBox("");
-    QObject::connect(m_parcelReorderingEnabledCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(parcelLabelFileRemappingFileSelectorChanged()));
-    
-    m_parcelLabelFileRemappingFileSelector = new CaretMappableDataFileAndMapSelectorObject(DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL,
-                                                                                           CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
-                                                                                           this);
-    QObject::connect(m_parcelLabelFileRemappingFileSelector, SIGNAL(selectionWasPerformed()),
-                     this, SLOT(parcelLabelFileRemappingFileSelectorChanged()));
-    
-    QLabel* parcelCheckBoxLabel = new QLabel("On");
-    QLabel* parcelFileLabel = new QLabel("Parcel Label File");
-    QLabel* parcelFileMapLabel = new QLabel("Map");
-    QLabel* parcelFileMapIndexLabel = new QLabel("Index");
-    QWidget* mapFileComboBox = NULL;
-    QWidget* mapIndexSpinBox = NULL;
-    QWidget* mapNameComboBox = NULL;
-    m_parcelLabelFileRemappingFileSelector->getWidgetsForAddingToLayout(mapFileComboBox,
-                                                                        mapIndexSpinBox,
-                                                                        mapNameComboBox);
-    m_parcelRemappingGroupBox = new QGroupBox("Parcel Reordering");
-    m_parcelRemappingGroupBox->setFlat(true);
-    m_parcelRemappingGroupBox->setAlignment(Qt::AlignHCenter);
-    QGridLayout* parcelMapFileLayout = new QGridLayout(m_parcelRemappingGroupBox);
-    switch (orientation) {
-        case Qt::Horizontal:
-        {
-            WuQtUtilities::setLayoutSpacingAndMargins(parcelMapFileLayout, 2, 0);
-            parcelMapFileLayout->setColumnStretch(0,   0);
-            parcelMapFileLayout->setColumnStretch(1, 100);
-            parcelMapFileLayout->setColumnStretch(2,   0);
-            parcelMapFileLayout->setColumnStretch(3, 100);
-            parcelMapFileLayout->addWidget(parcelCheckBoxLabel, 0, 0, Qt::AlignHCenter);
-            parcelMapFileLayout->addWidget(parcelFileLabel, 0, 1, Qt::AlignHCenter);
-            parcelMapFileLayout->addWidget(parcelFileMapLabel, 0, 2, 1, 2, Qt::AlignHCenter);
-            parcelMapFileLayout->addWidget(m_parcelReorderingEnabledCheckBox, 1,0);
-            parcelMapFileLayout->addWidget(mapFileComboBox, 1, 1);
-            parcelMapFileLayout->addWidget(mapIndexSpinBox, 1, 2);
-            parcelMapFileLayout->addWidget(mapNameComboBox, 1, 3);
-        }
-            break;
-        case Qt::Vertical:
-        {
-            WuQtUtilities::setLayoutSpacingAndMargins(parcelMapFileLayout, 2, 0);
-            parcelMapFileLayout->setColumnStretch(0,   0);
-            parcelMapFileLayout->setColumnStretch(1, 100);
-            parcelMapFileLayout->addWidget(parcelCheckBoxLabel, 0, 0, Qt::AlignHCenter);
-            parcelMapFileLayout->addWidget(parcelFileLabel, 0, 1, Qt::AlignHCenter);
-            parcelMapFileLayout->addWidget(m_parcelReorderingEnabledCheckBox, 1,0, Qt::AlignHCenter);
-            parcelMapFileLayout->addWidget(mapFileComboBox, 1, 1);
-            parcelMapFileLayout->addWidget(parcelFileMapIndexLabel, 2, 0, Qt::AlignHCenter);
-            parcelMapFileLayout->addWidget(parcelFileMapLabel, 2, 1, Qt::AlignHCenter);
-            parcelMapFileLayout->addWidget(mapIndexSpinBox, 3, 0);
-            parcelMapFileLayout->addWidget(mapNameComboBox, 3, 1);
-        }
-            break;
-        default:
-            CaretAssert(0);
-    }
-    
-    
-    QWidget* widget = new QWidget(this);
-    QVBoxLayout* layout = new QVBoxLayout(widget);
+    QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 1, 0);
     layout->addWidget(m_matrixParcelChartWidget);
     layout->addWidget(m_parcelRemappingGroupBox);
-    layout->addStretch();
-    
-    /*
-     * TEMP TODO
-     * FINISH IMPLEMENTATION OF LOADING AND YOKING
-     */
-    const bool hideLoadControls = false;
-    const bool hideYokeControls = false;
-    if (hideLoadControls) {
-        loadDimensionLabel->hide();
-        m_matrixParcelLoadByColumnRowComboBox->getWidget()->hide();
-    }
-    if (hideYokeControls) {
-        yokeLabel->hide();
-        m_matrixParcelYokingGroupComboBox->getWidget()->hide();
-    }
-    
+    //layout->addStretch();
+        
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    
+//    /*
+//     * ColorBar Tool Button
+//     */
+//    QIcon colorBarIcon;
+//    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
+//                                                           colorBarIcon);
+//    m_matrixParcelColorBarAction = WuQtUtilities::createAction("CB",
+//                                                               "Display color bar for this overlay",
+//                                                               this,
+//                                                               this,
+//                                                               SLOT(matrixParcelColorBarActionTriggered(bool)));
+//    m_matrixParcelColorBarAction->setCheckable(true);
+//    if (colorBarIconValid) {
+//        m_matrixParcelColorBarAction->setIcon(colorBarIcon);
+//    }
+//    QToolButton* colorBarToolButton = new QToolButton();
+//    colorBarToolButton->setDefaultAction(m_matrixParcelColorBarAction);
+//    
+//    /*
+//     * Settings Tool Button
+//     */
+//    QLabel* settingsLabel = new QLabel("Settings");
+//    QIcon settingsIcon;
+//    const bool settingsIconValid = WuQtUtilities::loadIcon(":/LayersPanel/wrench.png",
+//                                                           settingsIcon);
+//    
+//    m_matrixParcelSettingsAction = WuQtUtilities::createAction("S",
+//                                                               "Edit settings for this map and overlay",
+//                                                               this,
+//                                                               this,
+//                                                               SLOT(matrixParcelSettingsActionTriggered()));
+//    if (settingsIconValid) {
+//        m_matrixParcelSettingsAction->setIcon(settingsIcon);
+//    }
+//    QToolButton* settingsToolButton = new QToolButton();
+//    settingsToolButton->setDefaultAction(m_matrixParcelSettingsAction);
+//    
+//    
+//    QLabel* fileLabel = new QLabel("Matrix File");
+//    m_matrixParcelFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+//    QObject::connect(m_matrixParcelFileSelectionComboBox, SIGNAL(fileSelected(CaretDataFile*)),
+//                     this, SLOT(matrixParcelFileSelected(CaretDataFile*)));
+//    
+//    QLabel* loadDimensionLabel = new QLabel("Load By");
+//    m_matrixParcelLoadByColumnRowComboBox = new EnumComboBoxTemplate(this);
+//    m_matrixParcelLoadByColumnRowComboBox->setup<ChartMatrixLoadingDimensionEnum, ChartMatrixLoadingDimensionEnum::Enum>();
+//    QObject::connect(m_matrixParcelLoadByColumnRowComboBox, SIGNAL(itemActivated()),
+//                     this, SLOT(matrixParcelFileLoadingComboBoxActivated()));
+//    
+//    
+//    QLabel* yokeLabel = new QLabel("Yoke ");
+//    m_matrixParcelYokingGroupComboBox = new EnumComboBoxTemplate(this);
+//    m_matrixParcelYokingGroupComboBox->setup<YokingGroupEnum, YokingGroupEnum::Enum>();
+//    QObject::connect(m_matrixParcelYokingGroupComboBox, SIGNAL(itemActivated()),
+//                     this, SLOT(matrixParcelYokingGroupEnumComboBoxActivated()));
+//    
+//    m_matrixParcelChartWidget = new QGroupBox("Matrix Loading");
+//    QGridLayout* matrixLayout = new QGridLayout(m_matrixParcelChartWidget);
+//    
+//    switch (orientation) {
+//        case Qt::Horizontal:
+//        {
+//            WuQtUtilities::setLayoutSpacingAndMargins(matrixLayout, 2, 0);
+//            matrixLayout->setColumnStretch(0, 0);
+//            matrixLayout->setColumnStretch(1, 0);
+//            matrixLayout->setColumnStretch(2, 0);
+//            matrixLayout->setColumnStretch(3, 0);
+//            matrixLayout->setColumnStretch(4, 100);
+//            
+//            matrixLayout->addWidget(loadDimensionLabel,
+//                                      0, 0,
+//                                      Qt::AlignHCenter);
+//            matrixLayout->addWidget(settingsLabel,
+//                                      0, 1,
+//                                      1, 2,
+//                                      Qt::AlignHCenter);
+//            matrixLayout->addWidget(yokeLabel,
+//                                      0, 3,
+//                                      Qt::AlignHCenter);
+//            matrixLayout->addWidget(fileLabel,
+//                                      0, 4,
+//                                      Qt::AlignHCenter);
+//            matrixLayout->addWidget(m_matrixParcelLoadByColumnRowComboBox->getWidget(),
+//                                      1, 0);
+//            matrixLayout->addWidget(settingsToolButton,
+//                                      1, 1);
+//            matrixLayout->addWidget(colorBarToolButton,
+//                                      1, 2);
+//            matrixLayout->addWidget(m_matrixParcelYokingGroupComboBox->getWidget(),
+//                                      1, 3);
+//            matrixLayout->addWidget(m_matrixParcelFileSelectionComboBox->getWidget(),
+//                                      1, 4);
+//        }
+//            break;
+//        case Qt::Vertical:
+//        {
+//            WuQtUtilities::setLayoutSpacingAndMargins(matrixLayout, 2, 0);
+//            matrixLayout->setColumnStretch(0, 0);
+//            matrixLayout->setColumnStretch(1, 0);
+//            matrixLayout->setColumnStretch(2, 0);
+//            matrixLayout->setColumnStretch(3, 0);
+//            matrixLayout->setColumnStretch(4, 100);
+//            
+//            matrixLayout->addWidget(loadDimensionLabel,
+//                                      0, 0,
+//                                      Qt::AlignHCenter);
+//            matrixLayout->addWidget(settingsLabel,
+//                                      0, 1,
+//                                      1, 2,
+//                                      Qt::AlignHCenter);
+//            matrixLayout->addWidget(yokeLabel,
+//                                      0, 3,
+//                                      Qt::AlignHCenter);
+//            matrixLayout->addWidget(m_matrixParcelLoadByColumnRowComboBox->getWidget(),
+//                                      1, 0);
+//            matrixLayout->addWidget(settingsToolButton,
+//                                      1, 1);
+//            matrixLayout->addWidget(colorBarToolButton,
+//                                      1, 2);
+//            matrixLayout->addWidget(m_matrixParcelYokingGroupComboBox->getWidget(),
+//                                      1, 3);
+//            matrixLayout->addWidget(fileLabel,
+//                                      2, 0, 1, 4,
+//                                      Qt::AlignHCenter);
+//            matrixLayout->addWidget(m_matrixParcelFileSelectionComboBox->getWidget(),
+//                                      3, 0, 1, 4);
+//        }
+//            break;
+//        default:
+//            CaretAssert(0);
+//            break;
+//    }
+//    
+//    m_parcelReorderingEnabledCheckBox = new QCheckBox("");
+//    QObject::connect(m_parcelReorderingEnabledCheckBox, SIGNAL(clicked(bool)),
+//                     this, SLOT(parcelLabelFileRemappingFileSelectorChanged()));
+//    
+//    m_parcelLabelFileRemappingFileSelector = new CaretMappableDataFileAndMapSelectorObject(DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL,
+//                                                                                           CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
+//                                                                                           this);
+//    QObject::connect(m_parcelLabelFileRemappingFileSelector, SIGNAL(selectionWasPerformed()),
+//                     this, SLOT(parcelLabelFileRemappingFileSelectorChanged()));
+//    
+//    QLabel* parcelCheckBoxLabel = new QLabel("On");
+//    QLabel* parcelFileLabel = new QLabel("Parcel Label File");
+//    QLabel* parcelFileMapLabel = new QLabel("Map");
+//    QLabel* parcelFileMapIndexLabel = new QLabel("Index");
+//    QWidget* mapFileComboBox = NULL;
+//    QWidget* mapIndexSpinBox = NULL;
+//    QWidget* mapNameComboBox = NULL;
+//    m_parcelLabelFileRemappingFileSelector->getWidgetsForAddingToLayout(mapFileComboBox,
+//                                                                        mapIndexSpinBox,
+//                                                                        mapNameComboBox);
+//    m_parcelRemappingGroupBox = new QGroupBox("Parcel Reordering");
+//    m_parcelRemappingGroupBox->setFlat(true);
+//    m_parcelRemappingGroupBox->setAlignment(Qt::AlignHCenter);
+//    QGridLayout* parcelMapFileLayout = new QGridLayout(m_parcelRemappingGroupBox);
+//    switch (orientation) {
+//        case Qt::Horizontal:
+//        {
+//            WuQtUtilities::setLayoutSpacingAndMargins(parcelMapFileLayout, 2, 0);
+//            parcelMapFileLayout->setColumnStretch(0,   0);
+//            parcelMapFileLayout->setColumnStretch(1, 100);
+//            parcelMapFileLayout->setColumnStretch(2,   0);
+//            parcelMapFileLayout->setColumnStretch(3, 100);
+//            parcelMapFileLayout->addWidget(parcelCheckBoxLabel, 0, 0, Qt::AlignHCenter);
+//            parcelMapFileLayout->addWidget(parcelFileLabel, 0, 1, Qt::AlignHCenter);
+//            parcelMapFileLayout->addWidget(parcelFileMapLabel, 0, 2, 1, 2, Qt::AlignHCenter);
+//            parcelMapFileLayout->addWidget(m_parcelReorderingEnabledCheckBox, 1,0);
+//            parcelMapFileLayout->addWidget(mapFileComboBox, 1, 1);
+//            parcelMapFileLayout->addWidget(mapIndexSpinBox, 1, 2);
+//            parcelMapFileLayout->addWidget(mapNameComboBox, 1, 3);
+//        }
+//            break;
+//        case Qt::Vertical:
+//        {
+//            WuQtUtilities::setLayoutSpacingAndMargins(parcelMapFileLayout, 2, 0);
+//            parcelMapFileLayout->setColumnStretch(0,   0);
+//            parcelMapFileLayout->setColumnStretch(1, 100);
+//            parcelMapFileLayout->addWidget(parcelCheckBoxLabel, 0, 0, Qt::AlignHCenter);
+//            parcelMapFileLayout->addWidget(parcelFileLabel, 0, 1, Qt::AlignHCenter);
+//            parcelMapFileLayout->addWidget(m_parcelReorderingEnabledCheckBox, 1,0, Qt::AlignHCenter);
+//            parcelMapFileLayout->addWidget(mapFileComboBox, 1, 1);
+//            parcelMapFileLayout->addWidget(parcelFileMapIndexLabel, 2, 0, Qt::AlignHCenter);
+//            parcelMapFileLayout->addWidget(parcelFileMapLabel, 2, 1, Qt::AlignHCenter);
+//            parcelMapFileLayout->addWidget(mapIndexSpinBox, 3, 0);
+//            parcelMapFileLayout->addWidget(mapNameComboBox, 3, 1);
+//        }
+//            break;
+//        default:
+//            CaretAssert(0);
+//    }
+//    
+//    
+//    QWidget* widget = new QWidget(this);
+//    QVBoxLayout* layout = new QVBoxLayout(widget);
+//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 1, 0);
+//    layout->addWidget(m_matrixParcelChartWidget);
+//    layout->addWidget(m_parcelRemappingGroupBox);
+//    //layout->addStretch();
+//    
+//    /*
+//     * TEMP TODO
+//     * FINISH IMPLEMENTATION OF LOADING AND YOKING
+//     */
+//    const bool hideLoadControls = false;
+//    const bool hideYokeControls = false;
+//    if (hideLoadControls) {
+//        loadDimensionLabel->hide();
+//        m_matrixParcelLoadByColumnRowComboBox->getWidget()->hide();
+//    }
+//    if (hideYokeControls) {
+//        yokeLabel->hide();
+//        m_matrixParcelYokingGroupComboBox->getWidget()->hide();
+//    }
+//    
+//    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -541,9 +550,12 @@ ChartMatrixParcelSelectionViewController::matrixParcelSettingsActionTriggered()
 }
 
 /**
- * @return The matrix chart widget.
+ * @param orientation
+ *     Orientation for the widget.
+ * @return 
+ *     The matrix chart widget.
  */
-QWidget*
+QGroupBox*
 ChartMatrixParcelSelectionViewController::createMatrixParcelChartWidget(const Qt::Orientation orientation)
 {
     /*
@@ -681,6 +693,18 @@ ChartMatrixParcelSelectionViewController::createMatrixParcelChartWidget(const Qt
             break;
     }
     
+    return fileYokeGroupBox;
+}
+
+/**
+ * @param orientation
+ *     Orientation for the widget.
+ * @return
+ *     The parcel remapping widget.
+ */
+QGroupBox*
+ChartMatrixParcelSelectionViewController::createParcelRemappingWidget(const Qt::Orientation orientation)
+{
     m_parcelReorderingEnabledCheckBox = new QCheckBox("");
     QObject::connect(m_parcelReorderingEnabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(parcelLabelFileRemappingFileSelectorChanged()));
@@ -701,10 +725,10 @@ ChartMatrixParcelSelectionViewController::createMatrixParcelChartWidget(const Qt
     m_parcelLabelFileRemappingFileSelector->getWidgetsForAddingToLayout(mapFileComboBox,
                                                                         mapIndexSpinBox,
                                                                         mapNameComboBox);
-    m_parcelRemappingGroupBox = new QGroupBox("Parcel Reordering");
-    m_parcelRemappingGroupBox->setFlat(true);
-    m_parcelRemappingGroupBox->setAlignment(Qt::AlignHCenter);
-    QGridLayout* parcelMapFileLayout = new QGridLayout(m_parcelRemappingGroupBox);
+    QGroupBox* groupBox = new QGroupBox("Parcel Reordering");
+    groupBox->setFlat(true);
+    groupBox->setAlignment(Qt::AlignHCenter);
+    QGridLayout* parcelMapFileLayout = new QGridLayout(groupBox);
     switch (orientation) {
         case Qt::Horizontal:
         {
@@ -740,31 +764,8 @@ ChartMatrixParcelSelectionViewController::createMatrixParcelChartWidget(const Qt
         default:
             CaretAssert(0);
     }
-
     
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 1, 0);
-    layout->addWidget(fileYokeGroupBox);
-    layout->addWidget(m_parcelRemappingGroupBox);
-    layout->addStretch();
-    
-    /*
-     * TEMP TODO
-     * FINISH IMPLEMENTATION OF LOADING AND YOKING
-     */
-    const bool hideLoadControls = false;
-    const bool hideYokeControls = false;
-    if (hideLoadControls) {
-        loadDimensionLabel->hide();
-        m_matrixParcelLoadByColumnRowComboBox->getWidget()->hide();
-    }
-    if (hideYokeControls) {
-        yokeLabel->hide();
-        m_matrixParcelYokingGroupComboBox->getWidget()->hide();
-    }
-    
-    return widget;
+    return groupBox;
 }
 
 /**

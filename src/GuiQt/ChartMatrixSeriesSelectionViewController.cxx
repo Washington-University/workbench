@@ -142,7 +142,7 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_matrixSeriesYokingComboBox, SIGNAL(itemActivated()),
                      this, SLOT(matrixSeriesYokingGroupActivated()));
 
-    QWidget* gridWidget = new QWidget(this);
+    QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     
     switch (orientation) {
@@ -196,10 +196,10 @@ m_browserWindowIndex(browserWindowIndex)
             gridLayout->addWidget(m_matrixSeriesYokingComboBox->getWidget(),
                                       1, 2);
             gridLayout->addWidget(fileLabel,
-                                      2, 0, 1, 3,
+                                      2, 0, 1, 4,
                                       Qt::AlignHCenter);
             gridLayout->addWidget(m_matrixSeriesFileSelectionComboBox->getWidget(),
-                                      3, 0, 1, 3);
+                                      3, 0, 1, 4);
         }
             break;
         default:
@@ -207,11 +207,13 @@ m_browserWindowIndex(browserWindowIndex)
             break;
     }
     
-//    QWidget* widget = new QWidget(this);
-//    QVBoxLayout* layout = new QVBoxLayout(widget);
-//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 1, 0);
-//    layout->addWidget(gridWidget);
-//    layout->addStretch();
+    gridWidget->setSizePolicy(gridWidget->sizePolicy().horizontalPolicy(),
+                              QSizePolicy::Fixed);
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 1, 0);
+    layout->addWidget(gridWidget);
+    layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
