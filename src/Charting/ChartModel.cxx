@@ -899,6 +899,16 @@ ChartModel::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_chartDataUniqueIDsRestoredFromScene.resize(numElements);
         chartUniqueIDsArray->stringValues(m_chartDataUniqueIDsRestoredFromScene,
                                           "");
+
+        /*
+         * Need to reverse order so that multiple charts are restored
+         * in the correct order.  Done here rather than when saving
+         * scenes so that old scenes are restored correctly.
+         */
+        if ( ! m_chartDataUniqueIDsRestoredFromScene.empty()) {
+            std::reverse(m_chartDataUniqueIDsRestoredFromScene.begin(),
+                         m_chartDataUniqueIDsRestoredFromScene.end());
+        }
     }
     
     restoreSubClassDataFromScene(sceneAttributes,
