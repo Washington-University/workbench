@@ -30,8 +30,8 @@ using namespace std;
 
 struct DelTestObj
 {
-    mutable int* m_pointer;//so that we can test const pointers in the future
-    mutable CaretMutex m_mutex;
+    int* m_pointer;
+    CaretMutex m_mutex;
     DelTestObj(int* pointerIn)
     {
         m_pointer = pointerIn;
@@ -51,17 +51,17 @@ PointerTest::PointerTest(const AString& identifier) : TestInterface(identifier)
 void PointerTest::execute()
 {
     const int ITERATIONS = 500;
-    QMutex messageMutex;//QString does NOT behave well under threading
+    CaretMutex messageMutex;//QString does NOT behave well under threading
     int deltrack1, deltrack2, deltrack3;
     {//scope to control when things get destroyed
-        CaretPointer<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
+        CaretPointerSync<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
         {
-            CaretPointer<const DelTestObj> myconstobj = myobj1;//check that pointer to const works, too
+            CaretPointerSync<const DelTestObj> myconstobj = myobj1;//check that pointer to const works, too
         }
         //cout << "pointers: " << myobj1.getPointer() << "\t" << myobj2.getPointer() << "\t" << myobj3.getPointer() << endl;
 #pragma omp CARET_PAR
         {
-            CaretPointer<DelTestObj> myScratch1, myScratch2, myScratch3;
+            CaretPointerSync<DelTestObj> myScratch1, myScratch2, myScratch3;
 #pragma omp CARET_FOR schedule(dynamic)
             for (int i = 0; i < ITERATIONS; ++i)
             {
@@ -69,7 +69,7 @@ void PointerTest::execute()
                 
                 if (myobj1 == NULL)
                 {
-                    QMutexLocker locked(&messageMutex);
+                    CaretMutexLocker locked(&messageMutex);
                     setFailed("NULL generated, detected after self assignment, iteration " + AString::number(i));
                 }
                 
@@ -78,7 +78,7 @@ void PointerTest::execute()
                 
                 if (myScratch1 == NULL)
                 {
-                    QMutexLocker locked(&messageMutex);
+                    CaretMutexLocker locked(&messageMutex);
                     setFailed("NULL generated, detected after get/replace, iteration " + AString::number(i));
                 }
                 
@@ -88,7 +88,7 @@ void PointerTest::execute()
                 
                 if (myScratch1 == NULL)
                 {
-                    QMutexLocker locked(&messageMutex);
+                    CaretMutexLocker locked(&messageMutex);
                     setFailed("NULL generated, detected after get/move/replace, iteration " + AString::number(i));
                 }
                 
@@ -102,13 +102,75 @@ void PointerTest::execute()
                 
                 if (myScratch3 == NULL)
                 {
-                    QMutexLocker locked(&messageMutex);
+                    CaretMutexLocker locked(&messageMutex);
                     setFailed("NULL generated, detected after replace shared, iteration " + AString::number(i));
                 }
                 
                 if (deltrack1 != 0 || deltrack2 != 0 || deltrack3 != 0)
                 {
-                    QMutexLocker locked(&messageMutex);
+                    CaretMutexLocker locked(&messageMutex);
+                    setFailed("premature deletion of object detected, iteration " + AString::number(i));
+                }
+            }
+        }
+    }
+    if (deltrack1 == 0 || deltrack2 == 0 || deltrack3 == 0)
+    {
+        setFailed("object not deleted (parallel)");
+    }
+    if (deltrack1 != 1 || deltrack2 != 1 || deltrack3 != 1)
+    {
+        setFailed("object deleted incorrect number of times (parallel)");
+    }
+    {//repeat with non-synchronized pointers and no parallel code
+        CaretPointer<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
+        {
+            CaretPointer<const DelTestObj> myconstobj = myobj1;//check that pointer to const works, too
+        }
+        //cout << "pointers: " << myobj1.getPointer() << "\t" << myobj2.getPointer() << "\t" << myobj3.getPointer() << endl;
+        {
+            CaretPointer<DelTestObj> myScratch1, myScratch2, myScratch3;
+            for (int i = 0; i < ITERATIONS; ++i)
+            {
+                myobj1 = myobj1;//ensure self assignment is detected and handled
+                
+                if (myobj1 == NULL)
+                {
+                    setFailed("NULL generated, detected after self assignment, iteration " + AString::number(i));
+                }
+                
+                myScratch1 = myobj1;//simple get and put back
+                myobj1 = myScratch1;
+                
+                if (myScratch1 == NULL)
+                {
+                    setFailed("NULL generated, detected after get/replace, iteration " + AString::number(i));
+                }
+                
+                myScratch1 = myobj2;//get, move, put
+                myScratch2 = myScratch1;
+                myobj2 = myScratch2;
+                
+                if (myScratch1 == NULL)
+                {
+                    setFailed("NULL generated, detected after get/move/replace, iteration " + AString::number(i));
+                }
+                
+                myScratch2 = myobj2;
+                myScratch3 = myobj3;
+                if (myScratch2 != myScratch3)
+                {
+                    myobj3 = myScratch2;
+                    myobj3 = myScratch3;
+                }
+                
+                if (myScratch3 == NULL)
+                {
+                    setFailed("NULL generated, detected after replace shared, iteration " + AString::number(i));
+                }
+                
+                if (deltrack1 != 0 || deltrack2 != 0 || deltrack3 != 0)
+                {
                     setFailed("premature deletion of object detected, iteration " + AString::number(i));
                 }
             }
