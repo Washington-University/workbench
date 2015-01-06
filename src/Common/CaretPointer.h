@@ -132,57 +132,81 @@ namespace caret
     }
 
     template <typename T>
-    class CaretPointer : public _caret_pointer_impl::CaretPointerBase<T>
+    class CaretPointerNonsync : public _caret_pointer_impl::CaretPointerBase<T>
     {
         using _caret_pointer_impl::CaretPointerCommon<T>::m_pointer;
         _caret_pointer_impl::CaretPointerShare* m_share;
     public:
-        CaretPointer();
-        ~CaretPointer();
-        CaretPointer(const CaretPointer& right);//because a templated function apparently can't override default copy
+        CaretPointerNonsync();
+        ~CaretPointerNonsync();
+        CaretPointerNonsync(const CaretPointerNonsync& right);//because a templated function apparently can't override default copy
         template <typename T2>
-        CaretPointer(const CaretPointer<T2>& right);
-        explicit CaretPointer(T* right);
-        CaretPointer& operator=(const CaretPointer& right);//or default =
+        CaretPointerNonsync(const CaretPointerNonsync<T2>& right);
+        explicit CaretPointerNonsync(T* right);
+        CaretPointerNonsync& operator=(const CaretPointerNonsync& right);//or default =
         template <typename T2>
-        CaretPointer& operator=(const CaretPointer<T2>& right);
+        CaretPointerNonsync& operator=(const CaretPointerNonsync<T2>& right);
         void grabNew(T* right);//substitute for operator= to bare pointer
         int64_t getReferenceCount() const;
         ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
         T* releasePointer();
-        template <typename T2> friend class CaretPointer;//because for const compatibility, we need to access a different template's members
+        template <typename T2> friend class CaretPointerNonsync;//because for const compatibility, we need to access a different template's members
     };
 
     template <typename T>
-    class CaretPointerSync : public _caret_pointer_impl::CaretPointerBase<T>
+    class CaretPointer : public _caret_pointer_impl::CaretPointerBase<T>
     {
         using _caret_pointer_impl::CaretPointerCommon<T>::m_pointer;
         _caret_pointer_impl::CaretPointerSyncShare* m_share;
         mutable CaretMutex m_mutex;//protects members from modification while reading, or from reading while modifying
     public:
-        CaretPointerSync();
-        ~CaretPointerSync();
-        CaretPointerSync(const CaretPointerSync& right);
+        CaretPointer();
+        ~CaretPointer();
+        CaretPointer(const CaretPointer& right);
         template <typename T2>
-        CaretPointerSync(const CaretPointerSync<T2>& right);
-        explicit CaretPointerSync(T* right);
-        CaretPointerSync& operator=(const CaretPointerSync& right);
+        CaretPointer(const CaretPointer<T2>& right);
+        explicit CaretPointer(T* right);
+        CaretPointer& operator=(const CaretPointer& right);
         template <typename T2>
-        CaretPointerSync& operator=(const CaretPointerSync<T2>& right);
+        CaretPointer& operator=(const CaretPointer<T2>& right);
         void grabNew(T* right);
         int64_t getReferenceCount() const;
         ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
         T* releasePointer();
-        template <typename T2> friend class CaretPointerSync;
+        template <typename T2> friend class CaretPointer;
     };
 
     //separate array because delete and delete[] are different, and use indexing on one, and dereference/arrow on the other
+    template <typename T>
+    class CaretArrayNonsync : public _caret_pointer_impl::CaretArrayBase<T>
+    {
+        using _caret_pointer_impl::CaretPointerCommon<T>::m_pointer;
+        using _caret_pointer_impl::CaretArrayBase<T>::m_size;
+        _caret_pointer_impl::CaretPointerShare* m_share;//same share because it doesn't contain any specific information about what it is counting
+    public:
+        CaretArrayNonsync();
+        ~CaretArrayNonsync();
+        CaretArrayNonsync(const CaretArrayNonsync& right);
+        template <typename T2>
+        CaretArrayNonsync(const CaretArrayNonsync<T2>& right);
+        CaretArrayNonsync(int64_t size);//for simpler construction
+        CaretArrayNonsync(int64_t size, const T& initializer);//plus initialization
+        CaretArrayNonsync& operator=(const CaretArrayNonsync& right);
+        template <typename T2>
+        CaretArrayNonsync& operator=(const CaretArrayNonsync<T2>& right);
+        int64_t getReferenceCount() const;
+        ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
+        T* releasePointer();
+        template <typename T2> friend class CaretArrayNonsync;
+    };
+
     template <typename T>
     class CaretArray : public _caret_pointer_impl::CaretArrayBase<T>
     {
         using _caret_pointer_impl::CaretPointerCommon<T>::m_pointer;
         using _caret_pointer_impl::CaretArrayBase<T>::m_size;
-        _caret_pointer_impl::CaretPointerShare* m_share;//same share because it doesn't contain any specific information about what it is counting
+        _caret_pointer_impl::CaretPointerSyncShare* m_share;//same share because it doesn't contain any specific information about what it is counting
+        mutable CaretMutex m_mutex;//protects members from modification while reading, or from reading while modifying
     public:
         CaretArray();
         ~CaretArray();
@@ -200,40 +224,16 @@ namespace caret
         template <typename T2> friend class CaretArray;
     };
 
-    template <typename T>
-    class CaretArraySync : public _caret_pointer_impl::CaretArrayBase<T>
-    {
-        using _caret_pointer_impl::CaretPointerCommon<T>::m_pointer;
-        using _caret_pointer_impl::CaretArrayBase<T>::m_size;
-        _caret_pointer_impl::CaretPointerSyncShare* m_share;//same share because it doesn't contain any specific information about what it is counting
-        mutable CaretMutex m_mutex;//protects members from modification while reading, or from reading while modifying
-    public:
-        CaretArraySync();
-        ~CaretArraySync();
-        CaretArraySync(const CaretArraySync& right);
-        template <typename T2>
-        CaretArraySync(const CaretArraySync<T2>& right);
-        CaretArraySync(int64_t size);//for simpler construction
-        CaretArraySync(int64_t size, const T& initializer);//plus initialization
-        CaretArraySync& operator=(const CaretArraySync& right);
-        template <typename T2>
-        CaretArraySync& operator=(const CaretArraySync<T2>& right);
-        int64_t getReferenceCount() const;
-        ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
-        T* releasePointer();
-        template <typename T2> friend class CaretArraySync;
-    };
-
     //NOTE:begin pointer functions
     template <typename T>
-    CaretPointer<T>::CaretPointer()
+    CaretPointerNonsync<T>::CaretPointerNonsync()
     {
         m_share = NULL;
         m_pointer = NULL;
     }
 
     template <typename T>
-    CaretPointer<T>::CaretPointer(const CaretPointer<T>& right)
+    CaretPointerNonsync<T>::CaretPointerNonsync(const CaretPointerNonsync<T>& right)
     {
         m_share = right.m_share;
         m_pointer = right.m_pointer;
@@ -241,7 +241,7 @@ namespace caret
     }
 
     template <typename T> template <typename T2>
-    CaretPointer<T>::CaretPointer(const CaretPointer<T2>& right)
+    CaretPointerNonsync<T>::CaretPointerNonsync(const CaretPointerNonsync<T2>& right)
     {
         m_share = right.m_share;
         m_pointer = right.m_pointer;
@@ -249,7 +249,7 @@ namespace caret
     }
 
     template <typename T>
-    CaretPointer<T>::CaretPointer(T* right)
+    CaretPointerNonsync<T>::CaretPointerNonsync(T* right)
     {
         if (right == NULL)
         {
@@ -268,10 +268,10 @@ namespace caret
     }
 
     template <typename T>
-    CaretPointer<T>& CaretPointer<T>::operator=(const CaretPointer<T>& right)
+    CaretPointerNonsync<T>& CaretPointerNonsync<T>::operator=(const CaretPointerNonsync<T>& right)
     {
         if (this == &right) return *this;//short circuit self assignment
-        CaretPointer<T> temp(right);//copy construct from it, takes care type checking
+        CaretPointerNonsync<T> temp(right);//copy construct from it, takes care type checking
         _caret_pointer_impl::CaretPointerShare* tempShare = temp.m_share;//swap the members
         T* tempPointer = temp.m_pointer;
         temp.m_share = m_share;
@@ -282,9 +282,9 @@ namespace caret
     }
 
     template <typename T> template <typename T2>
-    CaretPointer<T>& CaretPointer<T>::operator=(const CaretPointer<T2>& right)
+    CaretPointerNonsync<T>& CaretPointerNonsync<T>::operator=(const CaretPointerNonsync<T2>& right)
     {//self asignment won't hit this operator=
-        CaretPointer<T> temp(right);//copy construct from it, takes care of type checking
+        CaretPointerNonsync<T> temp(right);//copy construct from it, takes care of type checking
         _caret_pointer_impl::CaretPointerShare* tempShare = temp.m_share;//swap the members
         T* tempPointer = temp.m_pointer;
         temp.m_share = m_share;
@@ -295,9 +295,9 @@ namespace caret
     }
 
     template <typename T>
-    void CaretPointer<T>::grabNew(T* right)
+    void CaretPointerNonsync<T>::grabNew(T* right)
     {
-        CaretPointer<T> temp(right);//construct from the pointer
+        CaretPointerNonsync<T> temp(right);//construct from the pointer
         _caret_pointer_impl::CaretPointerShare* tempShare = temp.m_share;//swap the members
         T* tempPointer = temp.m_pointer;
         temp.m_share = m_share;
@@ -307,7 +307,7 @@ namespace caret
     }
     
     template <typename T>
-    CaretPointer<T>::~CaretPointer()
+    CaretPointerNonsync<T>::~CaretPointerNonsync()
     {
         if (m_share == NULL) return;
         --(m_share->m_refCount);
@@ -319,7 +319,7 @@ namespace caret
     }
 
     template <typename T>
-    int64_t CaretPointer<T>::getReferenceCount() const
+    int64_t CaretPointerNonsync<T>::getReferenceCount() const
     {
         if (m_share == NULL)
         {
@@ -329,7 +329,7 @@ namespace caret
     }
 
     template <typename T>
-    T* CaretPointer<T>::releasePointer()
+    T* CaretPointerNonsync<T>::releasePointer()
     {
         if (m_share == NULL) return NULL;
         m_share->m_doNotDelete = true;
@@ -338,14 +338,14 @@ namespace caret
     
     //NOTE:begin sync pointer functions
     template <typename T>
-    CaretPointerSync<T>::CaretPointerSync()
+    CaretPointer<T>::CaretPointer()
     {
         m_share = NULL;
         m_pointer = NULL;
     }
 
     template <typename T>
-    CaretPointerSync<T>::CaretPointerSync(const CaretPointerSync<T>& right)
+    CaretPointer<T>::CaretPointer(const CaretPointer<T>& right)
     {//don't need to lock self during constructor
         CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
         if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
@@ -361,7 +361,7 @@ namespace caret
     }
 
     template <typename T> template <typename T2>
-    CaretPointerSync<T>::CaretPointerSync(const CaretPointerSync<T2>& right)
+    CaretPointer<T>::CaretPointer(const CaretPointer<T2>& right)
     {//don't need to lock self during constructor
         CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
         if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
@@ -377,7 +377,7 @@ namespace caret
     }
 
     template <typename T>
-    CaretPointerSync<T>::CaretPointerSync(T* right)
+    CaretPointer<T>::CaretPointer(T* right)
     {//don't need to lock self during constructor
         if (right == NULL)
         {
@@ -396,10 +396,10 @@ namespace caret
     }
 
     template <typename T>
-    CaretPointerSync<T>& CaretPointerSync<T>::operator=(const CaretPointerSync<T>& right)
+    CaretPointer<T>& CaretPointer<T>::operator=(const CaretPointer<T>& right)
     {
         if (this == &right) return *this;//short circuit self assignment
-        CaretPointerSync<T> temp(right);//copy construct from it, takes care of locking and type checking
+        CaretPointer<T> temp(right);//copy construct from it, takes care of locking and type checking
         _caret_pointer_impl::CaretPointerSyncShare* tempShare = temp.m_share;//prepare to swap the members
         T* tempPointer = temp.m_pointer;
         CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
@@ -411,9 +411,9 @@ namespace caret
     }
 
     template <typename T> template <typename T2>
-    CaretPointerSync<T>& CaretPointerSync<T>::operator=(const CaretPointerSync<T2>& right)
+    CaretPointer<T>& CaretPointer<T>::operator=(const CaretPointer<T2>& right)
     {//self asignment won't hit this operator=
-        CaretPointerSync<T> temp(right);//copy construct from it, takes care of locking and type checking
+        CaretPointer<T> temp(right);//copy construct from it, takes care of locking and type checking
         _caret_pointer_impl::CaretPointerSyncShare* tempShare = temp.m_share;//prepare to swap the members
         T* tempPointer = temp.m_pointer;
         CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
@@ -425,9 +425,9 @@ namespace caret
     }
 
     template <typename T>
-    void CaretPointerSync<T>::grabNew(T* right)
+    void CaretPointer<T>::grabNew(T* right)
     {
-        CaretPointerSync<T> temp(right);//construct from the pointer
+        CaretPointer<T> temp(right);//construct from the pointer
         _caret_pointer_impl::CaretPointerSyncShare* tempShare = temp.m_share;//prepare to swap the members
         T* tempPointer = temp.m_pointer;
         CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
@@ -438,7 +438,7 @@ namespace caret
     }
     
     template <typename T>
-    CaretPointerSync<T>::~CaretPointerSync()
+    CaretPointer<T>::~CaretPointer()
     {//access during destructor is programmer error, don't lock self
         if (m_share == NULL) return;
         bool deleteShare = false;
@@ -458,7 +458,7 @@ namespace caret
     }
 
     template <typename T>
-    int64_t CaretPointerSync<T>::getReferenceCount() const
+    int64_t CaretPointer<T>::getReferenceCount() const
     {
         CaretMutexLocker locked(&m_mutex);//lock so that m_share can't be deleted in the middle
         if (m_share == NULL)
@@ -469,7 +469,7 @@ namespace caret
     }
 
     template <typename T>
-    T* CaretPointerSync<T>::releasePointer()
+    T* CaretPointer<T>::releasePointer()
     {
         CaretMutexLocker locked(&m_mutex);//lock to keep m_share and m_pointer coherent until after return - must return the pointer that was released
         if (m_share == NULL) return NULL;
@@ -479,7 +479,7 @@ namespace caret
 
     //NOTE:begin array functions
     template <typename T>
-    CaretArray<T>::CaretArray()
+    CaretArrayNonsync<T>::CaretArrayNonsync()
     {
         m_share = NULL;
         m_pointer = NULL;
@@ -487,7 +487,7 @@ namespace caret
     }
 
     template <typename T>
-    CaretArray<T>::CaretArray(const CaretArray<T>& right)
+    CaretArrayNonsync<T>::CaretArrayNonsync(const CaretArrayNonsync<T>& right)
     {
         m_share = right.m_share;
         m_pointer = right.m_pointer;
@@ -496,7 +496,7 @@ namespace caret
     }
 
     template <typename T> template <typename T2>
-    CaretArray<T>::CaretArray(const CaretArray<T2>& right)
+    CaretArrayNonsync<T>::CaretArrayNonsync(const CaretArrayNonsync<T2>& right)
     {
         m_share = right.m_share;
         m_pointer = right.m_pointer;
@@ -505,7 +505,7 @@ namespace caret
     }
 
     template <typename T>
-    CaretArray<T>::CaretArray(int64_t size)
+    CaretArrayNonsync<T>::CaretArrayNonsync(int64_t size)
     {
         if (size > 0)
         {
@@ -527,11 +527,167 @@ namespace caret
     }
 
     template <typename T>
-    CaretArray<T>::CaretArray(int64_t size, const T& initializer)
+    CaretArrayNonsync<T>::CaretArrayNonsync(int64_t size, const T& initializer)
     {
         if (size > 0)
         {
             m_share = new _caret_pointer_impl::CaretPointerShare();
+            try
+            {
+                m_pointer = new T[size];
+            } catch (...) {
+                delete m_share;
+                m_share = NULL;
+                throw;
+            }
+            m_size = size;
+            T* end = m_pointer + size, *iter = m_pointer;
+            do
+            {
+                *iter = initializer;//somewhat optimized, since this code will probably get used many places
+                ++iter;
+            } while (iter != end);
+        } else {
+            m_share = NULL;
+            m_pointer = NULL;
+            m_size = 0;
+        }
+    }
+    template <typename T>
+    CaretArrayNonsync<T>& CaretArrayNonsync<T>::operator=(const CaretArrayNonsync<T>& right)
+    {
+        CaretArrayNonsync<T> temp(right);
+        _caret_pointer_impl::CaretPointerShare* tempShare = temp.m_share;//swap the shares and fill members
+        T* tempPointer = temp.m_pointer;
+        int64_t tempSize = temp.m_size;
+        temp.m_share = m_share;
+        temp.m_pointer = m_pointer;
+        temp.m_size = m_size;
+        m_share = tempShare;
+        m_pointer = tempPointer;
+        m_size = tempSize;
+        return *this;//destructor of temp cleans up
+    }
+
+    template <typename T> template <typename T2>
+    CaretArrayNonsync<T>& CaretArrayNonsync<T>::operator=(const CaretArrayNonsync<T2>& right)
+    {
+        CaretArrayNonsync<T> temp(right);
+        _caret_pointer_impl::CaretPointerShare* tempShare = temp.m_share;//swap the shares and fill members
+        T* tempPointer = temp.m_pointer;
+        int64_t tempSize = temp.m_size;
+        temp.m_share = m_share;
+        temp.m_pointer = m_pointer;
+        temp.m_size = m_size;
+        m_share = tempShare;
+        m_pointer = tempPointer;
+        m_size = tempSize;
+        return *this;//destructor of temp cleans up
+    }
+
+    template <typename T>
+    CaretArrayNonsync<T>::~CaretArrayNonsync()
+    {
+        if (m_share == NULL) return;
+        --(m_share->m_refCount);
+        if (m_share->m_refCount == 0)
+        {
+            if (!m_share->m_doNotDelete) delete[] m_pointer;
+            delete m_share;
+        }
+    }
+
+    template <typename T>
+    int64_t CaretArrayNonsync<T>::getReferenceCount() const
+    {
+        if (m_share == NULL)
+        {
+            return 0;
+        }
+        return m_share->m_refCount;
+    }
+
+    template <typename T>
+    T* CaretArrayNonsync<T>::releasePointer()
+    {
+        if (m_share == NULL) return NULL;
+        m_share->m_doNotDelete = true;
+        return m_pointer;
+    }
+
+    //NOTE:begin sync array functions
+    template <typename T>
+    CaretArray<T>::CaretArray()
+    {
+        m_share = NULL;
+        m_pointer = NULL;
+        m_size = 0;
+    }
+
+    template <typename T>
+    CaretArray<T>::CaretArray(const CaretArray<T>& right)
+    {//don't need to lock self during constructor
+        CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
+        if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
+        {
+            m_share = NULL;
+            m_pointer = NULL;
+            m_size = 0;
+        } else {
+            CaretMutexLocker locked2(&(right.m_share->m_mutex));
+            ++(right.m_share->m_refCount);
+            m_share = right.m_share;//now our reference is counted and we have the share, we can unlock everything
+            m_pointer = right.m_pointer;
+            m_size = right.m_size;
+        }
+    }
+
+    template <typename T> template <typename T2>
+    CaretArray<T>::CaretArray(const CaretArray<T2>& right)
+    {//don't need to lock self during constructor
+        CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
+        if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
+        {
+            m_share = NULL;
+            m_pointer = NULL;
+            m_size = 0;
+        } else {
+            CaretMutexLocker locked2(&(right.m_share->m_mutex));
+            ++(right.m_share->m_refCount);
+            m_share = right.m_share;//now our reference is counted and we have the share, we can unlock everything
+            this->m_pointer = right.m_pointer;
+            m_size = right.m_size;
+        }
+    }
+
+    template <typename T>
+    CaretArray<T>::CaretArray(int64_t size)
+    {
+        if (size > 0)
+        {
+            m_share = new _caret_pointer_impl::CaretPointerSyncShare();
+            try
+            {
+                m_pointer = new T[size];
+            } catch (...) {
+                delete m_share;
+                m_share = NULL;
+                throw;
+            }
+            m_size = size;
+        } else {
+            m_share = NULL;
+            m_pointer = NULL;
+            m_size = 0;
+        }
+    }
+
+    template <typename T>
+    CaretArray<T>::CaretArray(int64_t size, const T& initializer)
+    {
+        if (size > 0)
+        {
+            m_share = new _caret_pointer_impl::CaretPointerSyncShare();
             try
             {
                 m_pointer = new T[size];
@@ -556,10 +712,11 @@ namespace caret
     template <typename T>
     CaretArray<T>& CaretArray<T>::operator=(const CaretArray<T>& right)
     {
-        CaretArray<T> temp(right);
-        _caret_pointer_impl::CaretPointerShare* tempShare = temp.m_share;//swap the shares and fill members
+        CaretArray<T> temp(right);//copy construct from it, takes care of locking
+        _caret_pointer_impl::CaretPointerSyncShare* tempShare = temp.m_share;//prepare to swap the shares and fill members
         T* tempPointer = temp.m_pointer;
         int64_t tempSize = temp.m_size;
+        CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
         temp.m_share = m_share;
         temp.m_pointer = m_pointer;
         temp.m_size = m_size;
@@ -572,10 +729,11 @@ namespace caret
     template <typename T> template <typename T2>
     CaretArray<T>& CaretArray<T>::operator=(const CaretArray<T2>& right)
     {
-        CaretArray<T> temp(right);
-        _caret_pointer_impl::CaretPointerShare* tempShare = temp.m_share;//swap the shares and fill members
+        CaretArray<T> temp(right);//copy construct from it, takes care of locking
+        _caret_pointer_impl::CaretPointerSyncShare* tempShare = temp.m_share;//prepare to swap the shares and fill members
         T* tempPointer = temp.m_pointer;
         int64_t tempSize = temp.m_size;
+        CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
         temp.m_share = m_share;
         temp.m_pointer = m_pointer;
         temp.m_size = m_size;
@@ -587,164 +745,6 @@ namespace caret
 
     template <typename T>
     CaretArray<T>::~CaretArray()
-    {
-        if (m_share == NULL) return;
-        --(m_share->m_refCount);
-        if (m_share->m_refCount == 0)
-        {
-            if (!m_share->m_doNotDelete) delete[] m_pointer;
-            delete m_share;
-        }
-    }
-
-    template <typename T>
-    int64_t CaretArray<T>::getReferenceCount() const
-    {
-        if (m_share == NULL)
-        {
-            return 0;
-        }
-        return m_share->m_refCount;
-    }
-
-    template <typename T>
-    T* CaretArray<T>::releasePointer()
-    {
-        if (m_share == NULL) return NULL;
-        m_share->m_doNotDelete = true;
-        return m_pointer;
-    }
-
-    //NOTE:begin sync array functions
-    template <typename T>
-    CaretArraySync<T>::CaretArraySync()
-    {
-        m_share = NULL;
-        m_pointer = NULL;
-        m_size = 0;
-    }
-
-    template <typename T>
-    CaretArraySync<T>::CaretArraySync(const CaretArraySync<T>& right)
-    {//don't need to lock self during constructor
-        CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
-        if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
-        {
-            m_share = NULL;
-            m_pointer = NULL;
-            m_size = 0;
-        } else {
-            CaretMutexLocker locked2(&(right.m_share->m_mutex));
-            ++(right.m_share->m_refCount);
-            m_share = right.m_share;//now our reference is counted and we have the share, we can unlock everything
-            m_pointer = right.m_pointer;
-            m_size = right.m_size;
-        }
-    }
-
-    template <typename T> template <typename T2>
-    CaretArraySync<T>::CaretArraySync(const CaretArraySync<T2>& right)
-    {//don't need to lock self during constructor
-        CaretMutexLocker locked(&(right.m_mutex));//don't let right modify its share until our reference is counted
-        if (right.m_share == NULL)//guarantees it won't be deleted, because right has a counted reference
-        {
-            m_share = NULL;
-            m_pointer = NULL;
-            m_size = 0;
-        } else {
-            CaretMutexLocker locked2(&(right.m_share->m_mutex));
-            ++(right.m_share->m_refCount);
-            m_share = right.m_share;//now our reference is counted and we have the share, we can unlock everything
-            this->m_pointer = right.m_pointer;
-            m_size = right.m_size;
-        }
-    }
-
-    template <typename T>
-    CaretArraySync<T>::CaretArraySync(int64_t size)
-    {
-        if (size > 0)
-        {
-            m_share = new _caret_pointer_impl::CaretPointerSyncShare();
-            try
-            {
-                m_pointer = new T[size];
-            } catch (...) {
-                delete m_share;
-                m_share = NULL;
-                throw;
-            }
-            m_size = size;
-        } else {
-            m_share = NULL;
-            m_pointer = NULL;
-            m_size = 0;
-        }
-    }
-
-    template <typename T>
-    CaretArraySync<T>::CaretArraySync(int64_t size, const T& initializer)
-    {
-        if (size > 0)
-        {
-            m_share = new _caret_pointer_impl::CaretPointerSyncShare();
-            try
-            {
-                m_pointer = new T[size];
-            } catch (...) {
-                delete m_share;
-                m_share = NULL;
-                throw;
-            }
-            m_size = size;
-            T* end = m_pointer + size, *iter = m_pointer;
-            do
-            {
-                *iter = initializer;//somewhat optimized, since this code will probably get used many places
-                ++iter;
-            } while (iter != end);
-        } else {
-            m_share = NULL;
-            m_pointer = NULL;
-            m_size = 0;
-        }
-    }
-    template <typename T>
-    CaretArraySync<T>& CaretArraySync<T>::operator=(const CaretArraySync<T>& right)
-    {
-        CaretArraySync<T> temp(right);//copy construct from it, takes care of locking
-        _caret_pointer_impl::CaretPointerSyncShare* tempShare = temp.m_share;//prepare to swap the shares and fill members
-        T* tempPointer = temp.m_pointer;
-        int64_t tempSize = temp.m_size;
-        CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
-        temp.m_share = m_share;
-        temp.m_pointer = m_pointer;
-        temp.m_size = m_size;
-        m_share = tempShare;
-        m_pointer = tempPointer;
-        m_size = tempSize;
-        return *this;//destructor of temp cleans up
-    }
-
-    template <typename T> template <typename T2>
-    CaretArraySync<T>& CaretArraySync<T>::operator=(const CaretArraySync<T2>& right)
-    {
-        CaretArraySync<T> temp(right);//copy construct from it, takes care of locking
-        _caret_pointer_impl::CaretPointerSyncShare* tempShare = temp.m_share;//prepare to swap the shares and fill members
-        T* tempPointer = temp.m_pointer;
-        int64_t tempSize = temp.m_size;
-        CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
-        temp.m_share = m_share;
-        temp.m_pointer = m_pointer;
-        temp.m_size = m_size;
-        m_share = tempShare;
-        m_pointer = tempPointer;
-        m_size = tempSize;
-        return *this;//destructor of temp cleans up
-    }
-
-    template <typename T>
-    CaretArraySync<T>::~CaretArraySync()
     {//access during destructor is programmer error, don't lock self
         if (m_share == NULL) return;
         bool deleteShare = false;
@@ -764,7 +764,7 @@ namespace caret
     }
 
     template <typename T>
-    int64_t CaretArraySync<T>::getReferenceCount() const
+    int64_t CaretArray<T>::getReferenceCount() const
     {
         CaretMutexLocker locked(&m_mutex);//lock to keep m_share from being deleted
         if (m_share == NULL)
@@ -775,7 +775,7 @@ namespace caret
     }
 
     template <typename T>
-    T* CaretArraySync<T>::releasePointer()
+    T* CaretArray<T>::releasePointer()
     {
         CaretMutexLocker locked(&m_mutex);//lock because m_pointer and m_share need to remain coherent
         if (m_share == NULL) return NULL;

@@ -54,14 +54,14 @@ void PointerTest::execute()
     CaretMutex messageMutex;//QString does NOT behave well under threading
     int deltrack1, deltrack2, deltrack3;
     {//scope to control when things get destroyed
-        CaretPointerSync<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
+        CaretPointer<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
         {
-            CaretPointerSync<const DelTestObj> myconstobj = myobj1;//check that pointer to const works, too
+            CaretPointer<const DelTestObj> myconstobj = myobj1;//check that pointer to const works, too
         }
         //cout << "pointers: " << myobj1.getPointer() << "\t" << myobj2.getPointer() << "\t" << myobj3.getPointer() << endl;
 #pragma omp CARET_PAR
         {
-            CaretPointerSync<DelTestObj> myScratch1, myScratch2, myScratch3;
+            CaretPointer<DelTestObj> myScratch1, myScratch2, myScratch3;
 #pragma omp CARET_FOR schedule(dynamic)
             for (int i = 0; i < ITERATIONS; ++i)
             {
@@ -123,13 +123,13 @@ void PointerTest::execute()
         setFailed("object deleted incorrect number of times (parallel)");
     }
     {//repeat with non-synchronized pointers and no parallel code
-        CaretPointer<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
+        CaretPointerNonsync<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
         {
-            CaretPointer<const DelTestObj> myconstobj = myobj1;//check that pointer to const works, too
+            CaretPointerNonsync<const DelTestObj> myconstobj = myobj1;//check that pointer to const works, too
         }
         //cout << "pointers: " << myobj1.getPointer() << "\t" << myobj2.getPointer() << "\t" << myobj3.getPointer() << endl;
         {
-            CaretPointer<DelTestObj> myScratch1, myScratch2, myScratch3;
+            CaretPointerNonsync<DelTestObj> myScratch1, myScratch2, myScratch3;
             for (int i = 0; i < ITERATIONS; ++i)
             {
                 myobj1 = myobj1;//ensure self assignment is detected and handled
