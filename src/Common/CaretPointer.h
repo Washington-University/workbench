@@ -104,7 +104,7 @@ namespace caret
 
         template <typename T>
         class CaretArrayBase : public CaretPointerCommon<T>
-        {//provides common functionality between just the 2 pointer types
+        {//provides common functionality between just the 2 array types
         protected:
             using CaretPointerCommon<T>::m_pointer;
             int64_t m_size;
