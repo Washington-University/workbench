@@ -26,6 +26,7 @@
 #include "ChartDataTypeEnum.h"
 #include "CaretPointer.h"
 #include "NiftiEnums.h"
+#include "PaletteNormalizationModeEnum.h"
 
 namespace caret {
 
@@ -354,6 +355,30 @@ namespace caret {
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const = 0;
         
         /**
+         * Get the palette normalization modes that are supported by the file.
+         *
+         * @param modesSupportedOut
+         *     Palette normalization modes supported by a file.  Will be
+         *     empty for files that are not mapped with a palette.  If there
+         *     is more than one suppported mode, the first mode in the
+         *     vector is assumed to be the default mode.
+         */
+        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) = 0;
+        
+        /**
+         * @return The palette normalization mode for the file.
+         */
+        virtual PaletteNormalizationModeEnum::Enum getPaletteNormalizationMode() const;
+
+        /**
+         * Set the palette normalization mode for the file.
+         *
+         * @param mode
+         *     New value for palette normalization mode.
+         */
+        virtual void setPaletteNormalizationMode(const PaletteNormalizationModeEnum::Enum mode);
+        
+        /**
          * Update coloring for all maps.
          *
          * @param paletteFile
@@ -431,6 +456,7 @@ namespace caret {
         
         CaretPointer<LabelDrawingProperties> m_labelDrawingProperties;
 
+        PaletteNormalizationModeEnum::Enum m_paletteNormalizationMode;
     };
 
 #ifdef __CARET_MAPPABLE_DATA_FILE_DECLARE__

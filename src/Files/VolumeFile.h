@@ -246,6 +246,8 @@ namespace caret {
         
         bool isMappedWithPalette() const;
         
+        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut);
+        
         PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
         
         const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const;

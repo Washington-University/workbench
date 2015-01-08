@@ -88,6 +88,8 @@ namespace caret {
                                          float graphX,
                                          float graphY);
         
+        void normalizationModeComboBoxActivated(int);
+        
     private:
         void updateEditorInternal(CaretMappableDataFile* caretMappableDataFile,
                                  const int32_t mapIndex);
@@ -98,7 +100,10 @@ namespace caret {
         void updateThresholdSection();
         QWidget* createHistogramSection();
         QWidget* createHistogramControlSection();
+        QWidget* createNormalizationControlSection();
         QWidget* createDataOptionsSection();
+        
+        void updateNormalizationControlSection();
         
         void updateAfterThresholdValuesChanged(const float lowThreshold,
                                                const float highThreshold);
@@ -166,6 +171,8 @@ namespace caret {
         QLabel* statisticsMaximumValueLabel;
         QLabel* statisticsMeanValueLabel;
         QLabel* statisticsStandardDeviationLabel;
+        
+        QComboBox* m_normalizationModeComboBox;
         
         QRadioButton* histogramAllRadioButton;
         QRadioButton* histogramMatchPaletteRadioButton;

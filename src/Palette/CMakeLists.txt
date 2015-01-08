@@ -23,6 +23,7 @@ PaletteColorMapping.h
 PaletteColorMappingSaxReader.h
 PaletteColorMappingXmlElements.h
 PaletteEnums.h
+PaletteNormalizationModeEnum.h
 PaletteScalarAndColor.h
 PaletteThresholdRangeModeEnum.h
 
@@ -30,6 +31,7 @@ Palette.cxx
 PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
 PaletteEnums.cxx
+PaletteNormalizationModeEnum.cxx
 PaletteScalarAndColor.cxx
 PaletteThresholdRangeModeEnum.cxx
 )

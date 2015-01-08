@@ -94,14 +94,25 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
     m_fileHistogram.grabNew(NULL);
     m_fileHistorgramLimitedValues.grabNew(NULL);
     
-    /** force an update of the class and name hierarchy */
+    /*
+     * Note: The first palette normalization mode is assumed to
+     * be the default mode.
+     */
+    m_paletteNormalizationModesSupported.clear();
+    
+    /* 
+     * Note: Force an update of the class and name hierarchy 
+     */
     m_forceUpdateOfGroupAndNameHierarchy = true;
+    
     switch (dataFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             m_dataReadingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+            // not yet !   m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_MAP_DATA;
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
@@ -116,6 +127,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_dataMappingAccessMethod       = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_colorMappingMethod            = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource     = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_histogramAndStatisticsMethod  = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
             m_fileMapDataType               = FILE_MAP_DATA_TYPE_MATRIX;
             break;
@@ -124,6 +136,8 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_MAP_DATA;
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
@@ -132,6 +146,8 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_MAP_DATA;
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
@@ -140,6 +156,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
@@ -148,6 +165,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
@@ -162,6 +180,8 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
@@ -170,6 +190,8 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
@@ -179,6 +201,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_dataMappingAccessMethod      = DATA_ACCESS_NONE;
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_histogramAndStatisticsMethod = HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA;
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
@@ -200,7 +223,15 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
                                    + " is not a CIFTI Mappable Data File."));
             break;
     }
-    
+
+    /*
+     * Note: The first palette normalization mode is assumed to 
+     * be the default mode.
+     */
+    if ( ! m_paletteNormalizationModesSupported.empty()) {
+        setPaletteNormalizationMode(m_paletteNormalizationModesSupported[0]);
+    }
+
     CaretAssert(m_dataReadingAccessMethod != DATA_ACCESS_METHOD_INVALID);
     CaretAssert(m_dataMappingAccessMethod != DATA_ACCESS_METHOD_INVALID);
     CaretAssert(m_colorMappingMethod      != COLOR_MAPPING_METHOD_INVALID);
@@ -1949,6 +1980,21 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex) const
     }
     
     return NULL;
+}
+
+/**
+ * Get the palette normalization modes that are supported by the file.
+ *
+ * @param modesSupportedOut
+ *     Palette normalization modes supported by a file.  Will be
+ *     empty for files that are not mapped with a palette.  If there
+ *     is more than one suppported mode, the first mode in the
+ *     vector is assumed to be the default mode.
+ */
+void
+CiftiMappableDataFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut)
+{
+    modesSupportedOut = m_paletteNormalizationModesSupported;
 }
 
 /**

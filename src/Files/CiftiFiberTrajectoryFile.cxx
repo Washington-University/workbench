@@ -695,6 +695,21 @@ CiftiFiberTrajectoryFile::getMapLabelTable(const int32_t /*mapIndex*/) const
 }
 
 /**
+ * Get the palette normalization modes that are supported by the file.
+ *
+ * @param modesSupportedOut
+ *     Palette normalization modes supported by a file.  Will be
+ *     empty for files that are not mapped with a palette.  If there
+ *     is more than one suppported mode, the first mode in the
+ *     vector is assumed to be the default mode.
+ */
+void
+CiftiFiberTrajectoryFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut)
+{
+    modesSupportedOut.clear();
+}
+
+/**
  * Update scalar coloring for a map.
  *
  * Note that some CIFTI files can be slow to color due to the need to

@@ -51,6 +51,8 @@ CaretMappableDataFile::CaretMappableDataFile(const DataFileTypeEnum::Enum dataFi
 : CaretDataFile(dataFileType)
 {
     m_labelDrawingProperties.grabNew(new LabelDrawingProperties());
+    
+    m_paletteNormalizationMode = PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA;
 }
 
 /**
@@ -93,9 +95,9 @@ CaretMappableDataFile::operator=(const CaretMappableDataFile& cmdf)
  * Assists with copying instances of this class.
  */
 void 
-CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile&)
+CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile& cmdf)
 {
-    
+    m_paletteNormalizationMode = cmdf.m_paletteNormalizationMode;
 }
 
 // note: method is documented in header file
@@ -299,6 +301,9 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
                                                                "m_labelDrawingProperties"));
     
     if (isMappedWithPalette()) {
+        sceneClass->addEnumeratedType<PaletteNormalizationModeEnum, PaletteNormalizationModeEnum::Enum>("m_paletteNormalizationMode",
+                                                                                                        m_paletteNormalizationMode);
+        
         if (sceneAttributes->isModifiedPaletteSettingsSavedToScene()) {
             std::vector<SceneClass*> pcmClassVector;
             
@@ -370,6 +375,14 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                                                sceneClass->getClass("m_labelDrawingProperties"));
     
     if (isMappedWithPalette()) {
+        std::vector<PaletteNormalizationModeEnum::Enum> paletteNormalizationModes;
+        getPaletteNormalizationModesSupported(paletteNormalizationModes);
+        if ( ! paletteNormalizationModes.empty()) {
+            const PaletteNormalizationModeEnum::Enum defValue = paletteNormalizationModes[0];
+            m_paletteNormalizationMode = sceneClass->getEnumeratedTypeValue<PaletteNormalizationModeEnum, PaletteNormalizationModeEnum::Enum>("m_paletteNormalizationMode",
+                                                                                                                                              defValue);
+        }
+        
         const int32_t numMaps = getNumberOfMaps();
         const SceneClassArray* pcmArray = sceneClass->getClassArray("savedPaletteColorMappingArray");
         if (pcmArray != NULL) {
@@ -922,6 +935,28 @@ const LabelDrawingProperties*
 CaretMappableDataFile::getLabelDrawingProperties() const
 {
     return m_labelDrawingProperties;
+}
+
+/**
+ * @return The palette normalization mode for the file.
+ * The default is NORMALIZATION_SELECTED_MAP_DATA.
+ */
+PaletteNormalizationModeEnum::Enum
+CaretMappableDataFile::getPaletteNormalizationMode() const
+{
+    return m_paletteNormalizationMode;
+}
+
+/**
+ * Set the palette normalization mode for the file.
+ *
+ * @param mode
+ *     New value for palette normalization mode.
+ */
+void
+CaretMappableDataFile::setPaletteNormalizationMode(const PaletteNormalizationModeEnum::Enum mode)
+{
+    m_paletteNormalizationMode = mode;
 }
 
 

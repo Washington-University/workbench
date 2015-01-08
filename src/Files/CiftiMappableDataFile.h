@@ -214,6 +214,8 @@ namespace caret {
                                                  const float mostNegativeValueInclusive,
                                                  const bool includeZeroValues);
         
+        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut);
+        
         virtual int64_t getUncompressedDataSizeInBytes() const;
         
         virtual const FastStatistics* getFileFastStatistics();
@@ -650,6 +652,11 @@ namespace caret {
          * Source of color palette (file or per map)
          */
         PaletteColorMappingSourceType m_paletteColorMappingSource;
+        
+        /*
+         * Supported palette normalization modes
+         */
+        std::vector<PaletteNormalizationModeEnum::Enum> m_paletteNormalizationModesSupported;
         
         /**
          * Method for computing histogram and statistic for palette mapped data.

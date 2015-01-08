@@ -144,6 +144,8 @@ namespace caret {
         
         virtual bool isMappedWithPalette() const;
         
+        virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut);
+
         virtual PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
         
         virtual const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const;

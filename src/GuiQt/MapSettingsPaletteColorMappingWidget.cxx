@@ -120,6 +120,8 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     
     QWidget* dataOptionsWidget = this->createDataOptionsSection();
     
+    QWidget* normalizationWidget = this->createNormalizationControlSection();
+    
     QWidget* paletteWidget = this->createPaletteSection();
 
     QWidget* thresholdWidget = this->createThresholdSection();
@@ -132,8 +134,9 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     leftLayout->addStretch();
     
     QVBoxLayout* optionsLayout = new QVBoxLayout();
+    optionsLayout->addWidget(normalizationWidget);
     optionsLayout->addWidget(dataOptionsWidget);
-    optionsLayout->addStretch(10000);
+    optionsLayout->addStretch(100);
     
     QWidget* bottomRightWidget = new QWidget();
     QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
@@ -1400,6 +1403,8 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
     
     this->updateHistogramPlot();
     
+    this->updateNormalizationControlSection();
+    
     this->paletteWidgetGroup->blockAllSignals(false);
 }
 
@@ -1889,6 +1894,110 @@ MapSettingsPaletteColorMappingWidget::setLayoutSpacingAndMargins(QLayout* layout
 {
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 5, 3);
 }
+
+/**
+ * @return The normalization control section.
+ */
+QWidget*
+MapSettingsPaletteColorMappingWidget::createNormalizationControlSection()
+{
+    m_normalizationModeComboBox = new QComboBox();
+    QObject::connect(m_normalizationModeComboBox, SIGNAL(activated(int)),
+                     this, SLOT(normalizationModeComboBoxActivated(int)));
+
+    /*
+     * Initially load with all modes so that the combo box can
+     * be set to a fixed size that allows display of all text
+     */
+    std::vector<PaletteNormalizationModeEnum::Enum> allModes;
+    PaletteNormalizationModeEnum::getAllEnums(allModes);
+    for (std::vector<PaletteNormalizationModeEnum::Enum>::iterator allModesIter = allModes.begin();
+         allModesIter != allModes.end();
+         allModesIter++) {
+        const PaletteNormalizationModeEnum::Enum normalMode = *allModesIter;
+        m_normalizationModeComboBox->addItem(PaletteNormalizationModeEnum::toGuiName(normalMode),
+                                                 (int)PaletteNormalizationModeEnum::toIntegerCode(normalMode));
+    }
+    
+    QGroupBox* groupBox = new QGroupBox("Data Normalization");
+    QVBoxLayout* layout = new QVBoxLayout(groupBox);
+    layout->addWidget(m_normalizationModeComboBox);
+    groupBox->setSizePolicy(QSizePolicy::Fixed,
+                            QSizePolicy::Fixed);
+    
+    return groupBox;
+}
+
+/**
+ * Update the normalization control section.
+ */
+void
+MapSettingsPaletteColorMappingWidget::updateNormalizationControlSection()
+{
+    m_normalizationModeComboBox->clear();
+    
+    std::vector<PaletteNormalizationModeEnum::Enum> validModes;
+    
+    if (this->caretMappableDataFile != NULL) {
+        this->caretMappableDataFile->getPaletteNormalizationModesSupported(validModes);
+        const int32_t numValidModes = static_cast<int32_t>(validModes.size());
+        if (numValidModes > 0) {
+            const PaletteNormalizationModeEnum::Enum selectedMode = this->caretMappableDataFile->getPaletteNormalizationMode();
+            int selectedModeIndex = -1;
+            
+            /*
+             * Loop through ALL modes so that the selections are always
+             * in a consistent order.
+             */
+            std::vector<PaletteNormalizationModeEnum::Enum> allModes;
+            PaletteNormalizationModeEnum::getAllEnums(allModes);
+            for (std::vector<PaletteNormalizationModeEnum::Enum>::iterator allModesIter = allModes.begin();
+                 allModesIter != allModes.end();
+                 allModesIter++) {
+                const PaletteNormalizationModeEnum::Enum normalMode = *allModesIter;
+                if (std::find(validModes.begin(),
+                              validModes.end(),
+                              normalMode) != validModes.end()) {
+                    if (selectedMode == normalMode) {
+                        selectedModeIndex = m_normalizationModeComboBox->count();
+                    }
+                    m_normalizationModeComboBox->addItem(PaletteNormalizationModeEnum::toGuiName(normalMode),
+                                                         (int)PaletteNormalizationModeEnum::toIntegerCode(normalMode));
+                }
+            }
+            
+            if (selectedModeIndex >= 0) {
+                m_normalizationModeComboBox->setCurrentIndex(selectedModeIndex);
+            }
+        }
+    }
+}
+
+/**
+ * Called when normalization combo box is changed by user.
+ */
+void
+MapSettingsPaletteColorMappingWidget::normalizationModeComboBoxActivated(int)
+{
+    if (this->caretMappableDataFile != NULL) {
+        
+        const int selectedIndex = m_normalizationModeComboBox->currentIndex();
+        if ((selectedIndex >= 0)
+            && (selectedIndex < m_normalizationModeComboBox->count())) {
+            const int32_t enumIntegerCode = m_normalizationModeComboBox->itemData(selectedIndex).toInt();
+            bool validFlag = false;
+            const PaletteNormalizationModeEnum::Enum mode = PaletteNormalizationModeEnum::fromIntegerCode(enumIntegerCode,
+                                                                                                          &validFlag);
+            if (validFlag) {
+                this->caretMappableDataFile->setPaletteNormalizationMode(mode);
+                this->updateEditorInternal(this->caretMappableDataFile,
+                                           this->mapFileIndex);
+                this->updateColoringAndGraphics();
+            }
+        }
+    }
+}
+
 
 /**
  * Called when the state of the apply all maps checkbox is changed.

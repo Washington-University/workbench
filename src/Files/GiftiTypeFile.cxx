@@ -625,6 +625,26 @@ GiftiTypeFile::isMappedWithPalette() const
 }
 
 /**
+ * Get the palette normalization modes that are supported by the file.
+ *
+ * @param modesSupportedOut
+ *     Palette normalization modes supported by a file.  Will be
+ *     empty for files that are not mapped with a palette.  If there
+ *     is more than one suppported mode, the first mode in the
+ *     vector is assumed to be the default mode.
+ */
+void
+GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut)
+{
+    modesSupportedOut.clear();
+    
+    if (getDataFileType() == DataFileTypeEnum::METRIC) {
+        modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+        // not yet !   m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
+    }
+}
+
+/**
  * Get the palette color mapping for the map at the given index.
  *
  * @param mapIndex
