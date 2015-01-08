@@ -51,7 +51,7 @@ OperationParameters* AlgorithmLabelToBorder::getParameters()
     ret->addBorderOutputParameter(3, "border-out", "the output border file");
     
     OptionalParameter* placeOpt = ret->createOptionalParameter(4, "-placement", "set how far along the edge border points are drawn");
-    placeOpt->addDoubleParameter(1, "fraction", "fraction along edge from inside node (default 0.33)");
+    placeOpt->addDoubleParameter(1, "fraction", "fraction along edge from inside vertex (default 0.33)");
     
     OptionalParameter* columnSelect = ret->createOptionalParameter(5, "-column", "select a single column");
     columnSelect->addStringParameter(1, "column", "the column number or name");
