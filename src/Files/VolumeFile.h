@@ -63,6 +63,11 @@ namespace caret {
             CaretPointer<FastStatistics> m_fastStatistics;
             CaretPointer<Histogram> m_histogram;
             CaretPointer<Histogram> m_histogramLimitedValues;
+            float m_histogramLimitedValuesMostPositiveValueInclusive;
+            float m_histogramLimitedValuesLeastPositiveValueInclusive;
+            float m_histogramLimitedValuesLeastNegativeValueInclusive;
+            float m_histogramLimitedValuesMostNegativeValueInclusive;
+            bool m_histogramLimitedValuesIncludeZeroValues;
             CaretPointer<GiftiMetaData> m_metadata;//NOTE: does not get saved currently!
         };
         
@@ -243,6 +248,8 @@ namespace caret {
                                                   const float leastNegativeValueInclusive,
                                                   const float mostNegativeValueInclusive,
                                                   const bool includeZeroValues);
+        
+        void getFileData(std::vector<float>& dataOut) const;
         
         bool isMappedWithPalette() const;
         

@@ -129,24 +129,6 @@ namespace caret {
             FILE_MAP_DATA_TYPE_MULTI_MAP
         };
         
-        /**
-         * Method for computation of histogram and statistics.
-         */
-        enum HistogramAndStatisticsMethod {
-            /**
-             * Invalid histogram and statistics computation method.
-             */
-            HISTOGRAM_AND_STATISTICS_INVALID,
-            /**
-             * Histogram and statistics are computed using all data in the file.
-             */
-            HISTOGRAM_AND_STATISTICS_USE_ALL_FILE_DATA,
-            /**
-             * Histogram and statistics are computed uniquely for each map.
-             */
-            HISTOGRAM_AND_STATISTICS_USE_MAP_DATA
-        };
-        
         CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFileType);
         
     public:
@@ -657,11 +639,6 @@ namespace caret {
          * Supported palette normalization modes
          */
         std::vector<PaletteNormalizationModeEnum::Enum> m_paletteNormalizationModesSupported;
-        
-        /**
-         * Method for computing histogram and statistic for palette mapped data.
-         */
-        HistogramAndStatisticsMethod m_histogramAndStatisticsMethod;
         
         /**
          * Type of data in the file's map(s).

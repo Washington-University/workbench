@@ -768,14 +768,26 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
     const float* metricDisplayData = metricFile->getValuePointerForColumn(displayColumn);
     const float* metricThresholdData = metricFile->getValuePointerForColumn(thresholdColumn);
     
-    const FastStatistics* fastStatistics = metricFile->getMapFastStatistics(displayColumn);
+    
+    FastStatistics* statistics = NULL;
+    switch (metricFile->getPaletteNormalizationMode()) {
+        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+            statistics = const_cast<FastStatistics*>(metricFile->getFileFastStatistics());
+            break;
+        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+            statistics = const_cast<FastStatistics*>(metricFile->getMapFastStatistics(displayColumn));
+            break;
+    }
+    CaretAssert(statistics);
+    
+    //const FastStatistics* statistics = metricFile->getMapFastStatistics(displayColumn);
     
     const Brain* brain = brainStructure->getBrain();
     const AString paletteName = paletteColorMapping->getSelectedPaletteName();
     const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
-    if ((fastStatistics != NULL)
+    if ((statistics != NULL)
         && (palette != NULL)) {
-        NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics, 
+        NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
                                                       paletteColorMapping, 
                                                       palette, 
                                                       metricDisplayData, 

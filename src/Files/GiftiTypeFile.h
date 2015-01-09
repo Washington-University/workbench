@@ -119,6 +119,8 @@ namespace caret {
         
         virtual GiftiMetaData* getMapMetaData(const int32_t mapIndex);
         
+        void getFileDataFloat(std::vector<float>& dataOut) const;
+        
         virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
         
         virtual const Histogram* getMapHistogram(const int32_t mapIndex);
@@ -167,6 +169,21 @@ namespace caret {
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);
         
         void initializeMembersGiftiTypeFile();
+        
+        /** Fast statistics used when statistics computed on all data in file */
+        CaretPointer<FastStatistics> m_fileFastStatistics;
+        
+        /** Histogram used when statistics computed on all data in file */
+        CaretPointer<Histogram> m_fileHistogram;
+        
+        /** Histogram with limited values used when statistics computed on all data in file */
+        CaretPointer<Histogram> m_fileHistorgramLimitedValues;
+        
+        float m_fileHistogramLimitedValuesMostPositiveValueInclusive;
+        float m_fileHistogramLimitedValuesLeastPositiveValueInclusive;
+        float m_fileHistogramLimitedValuesLeastNegativeValueInclusive;
+        float m_fileHistogramLimitedValuesMostNegativeValueInclusive;
+        bool m_fileHistogramLimitedValuesIncludeZeroValues;
         
     protected:
         GiftiFile* giftiFile;

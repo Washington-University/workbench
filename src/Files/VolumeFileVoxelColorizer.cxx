@@ -143,8 +143,23 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
         case SubvolumeAttributes::UNKNOWN:
         case SubvolumeAttributes::ANATOMY:
         case SubvolumeAttributes::FUNCTIONAL:
+        {
             CaretAssert(palette);
-            NodeAndVoxelColoring::colorScalarsWithPalette(m_volumeFile->getMapFastStatistics(mapIndex),
+
+            
+            FastStatistics* statistics = NULL;
+            switch (m_volumeFile->getPaletteNormalizationMode()) {
+                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                    statistics = const_cast<FastStatistics*>(m_volumeFile->getFileFastStatistics());
+                    break;
+                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                    statistics = const_cast<FastStatistics*>(m_volumeFile->getMapFastStatistics(mapIndex));
+                    break;
+            }
+            CaretAssert(statistics);
+            
+
+            NodeAndVoxelColoring::colorScalarsWithPalette(statistics, //m_volumeFile->getMapFastStatistics(mapIndex),
                                                           m_volumeFile->getMapPaletteColorMapping(mapIndex),
                                                           palette,
                                                           mapDataPointer,
@@ -153,6 +168,7 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
                                                           m_mapRGBA[mapIndex],
                                                           ignoreThresholding);
             m_mapColoringValid[mapIndex] = true;
+        }
             break;
         case SubvolumeAttributes::LABEL:
             if (m_voxelCountPerMap > 0) {

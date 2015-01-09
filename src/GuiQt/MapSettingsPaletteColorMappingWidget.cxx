@@ -221,10 +221,22 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                         break;
                     case PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP:
                     {
-                        const FastStatistics* stats = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
-                        if (stats != NULL) {
-                            minValue = stats->getMin();
-                            maxValue = stats->getMax();
+                        
+                        FastStatistics* statistics = NULL;
+                        switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
+                            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
+                                break;
+                            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
+                                break;
+                        }
+                        //CaretAssert(statistics);
+                        
+                        //const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
+                        if (statistics != NULL) {
+                            minValue = statistics->getMin();
+                            maxValue = statistics->getMax();
                             stepMin = minValue;
                             stepMax = maxValue;
                         }
@@ -1381,7 +1393,19 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
         
         float minValue  = 0.0;
         float maxValue  = 0.0;
-        const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
+        
+        FastStatistics* statistics = NULL;
+        switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
+                break;
+        }
+        //CaretAssert(statistics);
+        
+        //const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
         if (statistics != NULL) {
             minValue  = statistics->getMin();
             maxValue  = statistics->getMax();
@@ -1454,6 +1478,8 @@ MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statist
         CaretAssert(0);
     }
     
+    const PaletteNormalizationModeEnum::Enum normMode = this->caretMappableDataFile->getPaletteNormalizationMode();
+    
     /*
      * Remove data that is not displayed
      */
@@ -1470,15 +1496,37 @@ MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statist
             mostPos  = 0.0;
             leastPos = 0.0;
         }
-        ret = this->caretMappableDataFile->getMapHistogram(this->mapFileIndex, 
-                                                         mostPos, 
-                                                         leastPos, 
-                                                         leastNeg, 
-                                                         mostNeg, 
-                                                         isZeroIncluded);
+        
+        switch (normMode) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                ret = this->caretMappableDataFile->getFileHistogram(mostPos,
+                                                                    leastPos,
+                                                                    leastNeg,
+                                                                    mostNeg,
+                                                                    isZeroIncluded);
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                ret = this->caretMappableDataFile->getMapHistogram(this->mapFileIndex,
+                                                                   mostPos,
+                                                                   leastPos,
+                                                                   leastNeg,
+                                                                   mostNeg,
+                                                                   isZeroIncluded);
+                break;
+        }
     } else {
-        ret = caretMappableDataFile->getMapHistogram(this->mapFileIndex);
+        switch (normMode) {
+            case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                ret = caretMappableDataFile->getFileHistogram();
+                break;
+            case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                ret = caretMappableDataFile->getMapHistogram(this->mapFileIndex);
+                break;
+        }
     }
+    
+    CaretAssert(ret);
+    
     return ret;
 }
 
@@ -1494,18 +1542,30 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
      */
     this->thresholdPlot->detachItems();
     
-    const FastStatistics* fastStatistics = caretMappableDataFile->getMapFastStatistics(mapFileIndex);
+    
+    FastStatistics* statistics = NULL;
+    switch (this->caretMappableDataFile->getPaletteNormalizationMode()) {
+        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+            statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getFileFastStatistics());
+            break;
+        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+            statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
+            break;
+    }
+    //CaretAssert(statistics);
+    
+    //const FastStatistics* fastStatistics = caretMappableDataFile->getMapFastStatistics(mapFileIndex);
     if ((this->paletteColorMapping != NULL)
-        && (fastStatistics != NULL)) {
+        && (statistics != NULL)) {
         PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
         
         /*
          * Data values table
          */
-        const float statsMean   = fastStatistics->getMean();
-        const float statsStdDev = fastStatistics->getSampleStdDev();
-        const float statsMin    = fastStatistics->getMin();
-        const float statsMax    = fastStatistics->getMax();
+        const float statsMean   = statistics->getMean();
+        const float statsStdDev = statistics->getSampleStdDev();
+        const float statsMin    = statistics->getMin();
+        const float statsMax    = statistics->getMax();
         this->statisticsMeanValueLabel->setText(QString::number(statsMean, 'f', 4));
         this->statisticsStandardDeviationLabel->setText(QString::number(statsStdDev, 'f', 4));
         this->statisticsMaximumValueLabel->setText(QString::number(statsMax, 'f', 4));
@@ -1514,7 +1574,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         /*
          * Get data for this histogram.
          */
-        const Histogram* myHist = getHistogram(fastStatistics);
+        const Histogram* myHist = getHistogram(statistics);
         //const int64_t* histogram = const_cast<int64_t*>(statistics->getHistogram());
         float minValue, maxValue;
         myHist->getRange(minValue, maxValue);
@@ -1556,7 +1616,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             const Palette* palette = paletteFile->getPaletteByName(this->paletteColorMapping->getSelectedPaletteName());
             if (this->histogramUsePaletteColors->isChecked()
                 && (palette != NULL)) {
-                NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics, 
+                NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
                                                               paletteColorMapping, 
                                                               palette, 
                                                               dataValues, 

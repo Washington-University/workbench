@@ -2982,28 +2982,42 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                         WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode = overlay->getWholeBrainVoxelDrawingMode();
                         
                         if (mapFile->isMappedWithPalette()) {
-                            const FastStatistics* statistics = mapFile->getMapFastStatistics(mapIndex);
+                            FastStatistics* statistics = NULL;
+                            switch (mapFile->getPaletteNormalizationMode()) {
+                                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                                    statistics = const_cast<FastStatistics*>(mapFile->getFileFastStatistics());
+                                    break;
+                                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                                    statistics = const_cast<FastStatistics*>(mapFile->getMapFastStatistics(mapIndex));
+                                    break;
+                            }
+                            //CaretAssert(statistics);
+                            
                             PaletteColorMapping* paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
                             Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
-                            if ((statistics != NULL)
-                                && (palette != NULL)) {
-                                bool useIt = true;
-                                
-                                if (volumeDrawInfoOut.empty() == false) {
-                                    /*
-                                     * If previous volume is the same as this
-                                     * volume, there is no need to draw it twice.
-                                     */
-                                    const VolumeDrawInfo& vdi = volumeDrawInfoOut[volumeDrawInfoOut.size() - 1];
-                                    if ((vdi.volumeFile == vf) 
-                                        && (opacity >= 1.0)
-                                        && (mapIndex == vdi.mapIndex)
-                                        && (*paletteColorMapping == *vdi.paletteColorMapping)) {
-                                        useIt = false;
-                                    }
-                                }
-                                if (useIt) {
+                            if (palette != NULL) {
+                                /*
+                                 * Statistics may be NULL for a dense connectome file
+                                 * that does not have any data loaded by user
+                                 * clicking on surface/volume.
+                                 */
+                                if (statistics != NULL) {
+                                    bool useIt = true;
                                     
+                                    if (volumeDrawInfoOut.empty() == false) {
+                                        /*
+                                         * If previous volume is the same as this
+                                         * volume, there is no need to draw it twice.
+                                         */
+                                        const VolumeDrawInfo& vdi = volumeDrawInfoOut[volumeDrawInfoOut.size() - 1];
+                                        if ((vdi.volumeFile == vf)
+                                            && (opacity >= 1.0)
+                                            && (mapIndex == vdi.mapIndex)
+                                            && (*paletteColorMapping == *vdi.paletteColorMapping)) {
+                                            useIt = false;
+                                        }
+                                    }
+                                    if (useIt) {
                                         VolumeDrawInfo vdi(mapFile,
                                                            vf,
                                                            brain,
@@ -3013,6 +3027,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                                            mapIndex,
                                                            opacity);
                                         volumeDrawInfoOut.push_back(vdi);
+                                    }
                                 }
                             }
                             else {
@@ -5734,7 +5749,15 @@ BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
             const AString paletteName = pcm->getSelectedPaletteName();
             const Palette* palette = paletteFile->getPaletteByName(paletteName);
             if (palette != NULL) {
-                const FastStatistics* statistics = mapFiles[i]->getMapFastStatistics(mapIndex);
+                FastStatistics* statistics = NULL;
+                switch (mapFiles[i]->getPaletteNormalizationMode()) {
+                    case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                        statistics = const_cast<FastStatistics*>(mapFiles[i]->getFileFastStatistics());
+                        break;
+                    case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                        statistics = const_cast<FastStatistics*>(mapFiles[i]->getMapFastStatistics(mapIndex));
+                        break;
+                }
                 if (statistics != NULL) {
                     this->drawPalette(palette,
                                       pcm,

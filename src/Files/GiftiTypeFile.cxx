@@ -554,6 +554,60 @@ GiftiTypeFile::getUncompressedDataSizeInBytes() const
 }
 
 /**
+ * Get all data for a file that contains floats.  If the file is very
+ * large this method may take a large amount of time!
+ *
+ * @param dataOut
+ *    Output with all data for a float file.  Empty if no data in file
+ *    or data is not float.
+ */
+void
+GiftiTypeFile::getFileDataFloat(std::vector<float>& dataOut) const
+{
+    int64_t dataSize = 0;
+    
+    /*
+     * Get the size of the data
+     */
+    const int64_t numberOfDataArrays = this->giftiFile->getNumberOfDataArrays();
+    for (int64_t i = 0; i < numberOfDataArrays; i++) {
+        const GiftiDataArray* gda = this->giftiFile->getDataArray(i);
+        if (gda->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+            dataSize += gda->getTotalNumberOfElements();
+        }
+        else {
+            dataOut.clear();
+            return;
+        }
+    }
+    
+    if (dataSize <= 0) {
+        dataOut.clear();
+        return;
+    }
+    
+    dataOut.resize(dataSize);
+    int64_t dataOffset = 0;
+    
+    /*
+     * Copy the data.
+     */
+    for (int64_t i = 0; i < numberOfDataArrays; i++) {
+        const GiftiDataArray* gda = this->giftiFile->getDataArray(i);
+        const int64_t arraySize = gda->getTotalNumberOfElements();
+        const float* arrayPointer = gda->getDataPointerFloat();
+        
+        for (int64_t j = 0; j < arraySize; j++) {
+            CaretAssertVectorIndex(dataOut, dataOffset);
+            dataOut[dataOffset] = arrayPointer[j];
+            ++dataOffset;
+        }
+    }
+    
+    CaretAssert(dataOffset == static_cast<int64_t>(dataOut.size()));
+}
+
+/**
  * Get statistics describing the distribution of data
  * mapped with a color palette for all data within the file.
  *
@@ -564,7 +618,17 @@ GiftiTypeFile::getUncompressedDataSizeInBytes() const
 const FastStatistics*
 GiftiTypeFile::getFileFastStatistics()
 {
-    return NULL;
+    if (m_fileFastStatistics == NULL) {
+        std::vector<float> fileData;
+        getFileDataFloat(fileData);
+        if ( ! fileData.empty()) {
+            m_fileFastStatistics.grabNew(new FastStatistics());
+            m_fileFastStatistics->update(&fileData[0],
+                                         fileData.size());
+        }
+    }
+    
+    return m_fileFastStatistics;
 }
 
 /**
@@ -579,7 +643,16 @@ GiftiTypeFile::getFileFastStatistics()
 const Histogram*
 GiftiTypeFile::getFileHistogram()
 {
-    return NULL;
+    if (m_fileHistogram == NULL) {
+        std::vector<float> fileData;
+        getFileDataFloat(fileData);
+        if ( ! fileData.empty()) {
+            m_fileHistogram.grabNew(new Histogram());
+            m_fileHistogram->update(&fileData[0],
+                                    fileData.size());
+        }
+    }
+    return m_fileHistogram;
 }
 
 /**
@@ -608,7 +681,44 @@ GiftiTypeFile::getFileHistogram(const float mostPositiveValueInclusive,
                                            const float mostNegativeValueInclusive,
                                            const bool includeZeroValues)
 {
-    return NULL;
+    bool updateHistogramFlag = false;
+    if (m_fileHistorgramLimitedValues != NULL) {
+        if ((mostPositiveValueInclusive != m_fileHistogramLimitedValuesMostPositiveValueInclusive)
+            || (leastPositiveValueInclusive != m_fileHistogramLimitedValuesLeastPositiveValueInclusive)
+            || (leastNegativeValueInclusive != m_fileHistogramLimitedValuesLeastNegativeValueInclusive)
+            || (mostNegativeValueInclusive != m_fileHistogramLimitedValuesMostNegativeValueInclusive)
+            || (includeZeroValues != m_fileHistogramLimitedValuesIncludeZeroValues)) {
+            updateHistogramFlag = true;
+        }
+    }
+    else {
+        updateHistogramFlag = true;
+    }
+    
+    if (updateHistogramFlag) {
+        std::vector<float> fileData;
+        getFileDataFloat(fileData);
+        if ( ! fileData.empty()) {
+            if (m_fileHistorgramLimitedValues == NULL) {
+                m_fileHistorgramLimitedValues.grabNew(new Histogram());
+            }
+            m_fileHistorgramLimitedValues->update(&fileData[0],
+                                                  fileData.size(),
+                                                  mostPositiveValueInclusive,
+                                                  leastPositiveValueInclusive,
+                                                  leastNegativeValueInclusive,
+                                                  mostNegativeValueInclusive,
+                                                  includeZeroValues);
+            
+            m_fileHistogramLimitedValuesMostPositiveValueInclusive  = mostPositiveValueInclusive;
+            m_fileHistogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
+            m_fileHistogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
+            m_fileHistogramLimitedValuesMostNegativeValueInclusive  = mostNegativeValueInclusive;
+            m_fileHistogramLimitedValuesIncludeZeroValues           = includeZeroValues;
+        }
+    }
+    
+    return m_fileHistorgramLimitedValues;
 }
 
 /**
@@ -640,7 +750,7 @@ GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormaliz
     
     if (getDataFileType() == DataFileTypeEnum::METRIC) {
         modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
-        // not yet !   m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
+        modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
     }
 }
 

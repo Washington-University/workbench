@@ -619,6 +619,8 @@ void VolumeFile::validateMembers()
         }
     }
     
+    setPaletteNormalizationMode(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+    
     /*
      * Will handle colorization of voxel data.
      */
@@ -819,7 +821,24 @@ const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex)
     return m_brickAttributes[mapIndex].m_histogram;
 }
 
-const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex,
+/**
+ * Update the Histogram for limited values.
+ *
+ * @param data
+ *     Data for histogram.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ */
+const Histogram*
+VolumeFile::getMapHistogram(const int32_t mapIndex,
                                              const float mostPositiveValueInclusive,
                                              const float leastPositiveValueInclusive,
                                              const float leastNegativeValueInclusive,
@@ -828,18 +847,38 @@ const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex,
 {
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
     checkStatisticsValid();
+    const int64_t* dimensions = getDimensionsPtr();
+    
+    bool updateHistogramFlag = false;
+    
     if (m_brickAttributes[mapIndex].m_histogramLimitedValues == NULL)
     {
         m_brickAttributes[mapIndex].m_histogramLimitedValues.grabNew(new Histogram(100));
+        updateHistogramFlag = true;
     }
-    const int64_t* dimensions = getDimensionsPtr();
-    m_brickAttributes[mapIndex].m_histogramLimitedValues->update(getFrame(mapIndex), 
-                                                    dimensions[0] * dimensions[1] * dimensions[2],
-                                                    mostPositiveValueInclusive,
-                                                    leastPositiveValueInclusive,
-                                                    leastNegativeValueInclusive,
-                                                    mostNegativeValueInclusive,
-                                                    includeZeroValues);
+    else if ((mostPositiveValueInclusive != m_brickAttributes[mapIndex].m_histogramLimitedValuesMostPositiveValueInclusive)
+             || (leastPositiveValueInclusive != m_brickAttributes[mapIndex].m_histogramLimitedValuesLeastPositiveValueInclusive)
+             || (leastNegativeValueInclusive != m_brickAttributes[mapIndex].m_histogramLimitedValuesLeastNegativeValueInclusive)
+             || (mostNegativeValueInclusive != m_brickAttributes[mapIndex].m_histogramLimitedValuesMostNegativeValueInclusive)
+             || (includeZeroValues != m_brickAttributes[mapIndex].m_histogramLimitedValuesIncludeZeroValues)) {
+        updateHistogramFlag = true;
+    }
+    
+    if (updateHistogramFlag) {
+        m_brickAttributes[mapIndex].m_histogramLimitedValues->update(getFrame(mapIndex),
+                                                                     dimensions[0] * dimensions[1] * dimensions[2],
+                                                                     mostPositiveValueInclusive,
+                                                                     leastPositiveValueInclusive,
+                                                                     leastNegativeValueInclusive,
+                                                                     mostNegativeValueInclusive,
+                                                                     includeZeroValues);
+        m_brickAttributes[mapIndex].m_histogramLimitedValuesMostPositiveValueInclusive = mostPositiveValueInclusive;
+        m_brickAttributes[mapIndex].m_histogramLimitedValuesLeastPositiveValueInclusive = leastPositiveValueInclusive;
+        m_brickAttributes[mapIndex].m_histogramLimitedValuesLeastNegativeValueInclusive = leastNegativeValueInclusive;
+        m_brickAttributes[mapIndex].m_histogramLimitedValuesMostNegativeValueInclusive = mostNegativeValueInclusive;
+        m_brickAttributes[mapIndex].m_histogramLimitedValuesIncludeZeroValues = includeZeroValues;
+    }
+    
     return m_brickAttributes[mapIndex].m_histogramLimitedValues;
 }
 
@@ -877,8 +916,7 @@ VolumeFile::getFileFastStatistics()
 {
     if (m_fileFastStatistics == NULL) {
         std::vector<float> fileData;
-        CaretAssertMessage(0, "Need pointer to ALL volume data");
-        //getFileData(fileData);
+        getFileData(fileData);
         if ( ! fileData.empty()) {
             m_fileFastStatistics.grabNew(new FastStatistics());
             m_fileFastStatistics->update(&fileData[0],
@@ -903,8 +941,7 @@ VolumeFile::getFileHistogram()
 {
     if (m_fileHistogram == NULL) {
         std::vector<float> fileData;
-        CaretAssertMessage(0, "Need pointer to ALL volume data");
-        //getFileData(fileData);
+        getFileData(fileData);
         if ( ! fileData.empty()) {
             m_fileHistogram.grabNew(new Histogram());
             m_fileHistogram->update(&fileData[0],
@@ -956,8 +993,7 @@ VolumeFile::getFileHistogram(const float mostPositiveValueInclusive,
     
     if (updateHistogramFlag) {
         std::vector<float> fileData;
-        CaretAssertMessage(0, "Need pointer to ALL volume data");
-        //getFileData(fileData);
+        getFileData(fileData);
         if ( ! fileData.empty()) {
             if (m_fileHistorgramLimitedValues == NULL) {
                 m_fileHistorgramLimitedValues.grabNew(new Histogram());
@@ -979,6 +1015,44 @@ VolumeFile::getFileHistogram(const float mostPositiveValueInclusive,
     }
     
     return m_fileHistorgramLimitedValues;
+}
+
+/**
+ * Get all data for a volume file.  If the file is very
+ * large this method may take a large amount of time!
+ *
+ * @param dataOut
+ *    Output with all data for a file.  Empty if no data in file
+ *    or data is not float.
+ */
+void
+VolumeFile::getFileData(std::vector<float>& dataOut) const
+{
+    int64_t dimI, dimJ, dimK, dimTime, dimComp;
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    const int64_t mapSize     = dimI * dimJ * dimK * dimComp;
+    const int64_t numMaps     = dimTime;
+    const int64_t dataSize    = mapSize * numMaps;
+    
+    if (dataSize <= 0) {
+        dataOut.clear();
+        return;
+    }
+    
+    dataOut.resize(dataSize);
+    int64_t dataOffset = 0;
+    
+    for (int iMap = 0; iMap < numMaps; iMap++) {
+        const float* mapData = getFrame(iMap);
+        
+        for (int64_t i = 0; i < mapSize; i++) {
+            CaretAssertVectorIndex(dataOut, dataOffset);
+            dataOut[dataOffset] = mapData[i];
+            ++dataOffset;
+        }
+    }
+    
+    CaretAssert(dataOffset == static_cast<int64_t>(dataOut.size()));
 }
 
 /**
@@ -1008,7 +1082,7 @@ VolumeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizati
     modesSupportedOut.clear();
     
     modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
-    // not yet !   m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
+    modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
 }
 
 /**
