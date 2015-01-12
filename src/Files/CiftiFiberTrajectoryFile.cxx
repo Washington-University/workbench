@@ -615,11 +615,11 @@ CiftiFiberTrajectoryFile::getFileHistogram()
  *    not mapped using a palette).
  */
 const Histogram*
-CiftiFiberTrajectoryFile::getFileHistogram(const float mostPositiveValueInclusive,
-                                          const float leastPositiveValueInclusive,
-                                          const float leastNegativeValueInclusive,
-                                          const float mostNegativeValueInclusive,
-                                          const bool includeZeroValues)
+CiftiFiberTrajectoryFile::getFileHistogram(const float /*mostPositiveValueInclusive*/,
+                                          const float /*leastPositiveValueInclusive*/,
+                                          const float /*leastNegativeValueInclusive*/,
+                                          const float /*mostNegativeValueInclusive*/,
+                                          const bool /*includeZeroValues*/)
 {
     return NULL;
 }

@@ -231,9 +231,7 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                                 statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
                                 break;
                         }
-                        //CaretAssert(statistics);
                         
-                        //const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
                         if (statistics != NULL) {
                             minValue = statistics->getMin();
                             maxValue = statistics->getMax();
@@ -485,15 +483,6 @@ MapSettingsPaletteColorMappingWidget::thresholdLinkCheckBoxToggled(bool checked)
         
         updateAfterThresholdValuesChanged(lowValue,
                                           highValue);
-//        /*
-//         * Note: When linked is made "true", the palette color mapping
-//         * may update the threshold values so we need to update the
-//         * editor GUI.
-//         */
-//        updateThresholdControlsMinimumMaximumRangeValues();
-//        updateThresholdSection();
-//        updateHistogramPlot();
-//        updateColoringAndGraphics();
     }
 }
 
@@ -1135,27 +1124,6 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 2);
     colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 2);
 
-//    QWidget* colorMappingWidget = new QWidget();
-//    QGridLayout* colorMappingLayout = new QGridLayout(colorMappingWidget);
-//    this->setLayoutSpacingAndMargins(colorMappingLayout);
-//    colorMappingLayout->addWidget(this->scaleAutoRadioButton, 0, 0);
-//    colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 1);
-//    colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 2);
-//    colorMappingLayout->addWidget(new QLabel("Pos Max"), 1, 0, Qt::AlignRight);
-//    colorMappingLayout->addWidget(new QLabel("Pos Min"), 2, 0, Qt::AlignRight);
-//    colorMappingLayout->addWidget(new QLabel("Neg Min"), 3, 0, Qt::AlignRight);
-//    colorMappingLayout->addWidget(new QLabel("Neg Max"), 4, 0, Qt::AlignRight);
-//    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMaximumSpinBox, 1, 1);
-//    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMinimumSpinBox, 2, 1);
-//    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMinimumSpinBox, 3, 1);
-//    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMaximumSpinBox, 4, 1);
-//    colorMappingLayout->addWidget(this->scaleFixedPositiveMaximumSpinBox, 1, 2);
-//    colorMappingLayout->addWidget(this->scaleFixedPositiveMinimumSpinBox, 2, 2);
-//    colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 2);
-//    colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 2);
-//    colorMappingWidget->setFixedSize(colorMappingWidget->sizeHint());
-
-
     /*
      * Display Mode
      */
@@ -1193,8 +1161,6 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     displayModeLayout->addWidget(this->displayModeZeroCheckBox);
     displayModeLayout->addStretch();
     displayModeLayout->addWidget(this->displayModePositiveCheckBox);
-    //displayModeWidget->setFixedSize(displayModeWidget->sizeHint());
-
     
     /*
      * Layout widgets
@@ -1403,9 +1369,7 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
                 statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
                 break;
         }
-        //CaretAssert(statistics);
         
-        //const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
         if (statistics != NULL) {
             minValue  = statistics->getMin();
             maxValue  = statistics->getMax();
@@ -1552,9 +1516,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             statistics = const_cast<FastStatistics*>(this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex));
             break;
     }
-    //CaretAssert(statistics);
     
-    //const FastStatistics* fastStatistics = caretMappableDataFile->getMapFastStatistics(mapFileIndex);
     if ((this->paletteColorMapping != NULL)
         && (statistics != NULL)) {
         PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
@@ -1682,10 +1644,6 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             QVector<QPointF> samples;
             samples.push_back(QPointF(startValue, dataFrequency));
             samples.push_back(QPointF(stopValue, dataFrequency));
-            //samples.push_back(QPointF(startValue, 0));
-            //samples.push_back(QPointF(stopValue, 0));
-            //samples.push_back(QPointF(stopValue, dataFrequency));
-            //samples.push_back(QPointF(startValue, dataFrequency));
             
             QwtPlotCurve* curve = new QwtPlotCurve();
             curve->setRenderHint(QwtPlotItem::RenderAntialiased);
@@ -1722,7 +1680,6 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                      * Draw shaded region to left of minimum threshold
                      */
                     QVector<QPointF> minSamples;
-                    //minSamples.push_back(QPointF(dataValues[0], maxDataFrequency));
                     minSamples.push_back(QPointF(plotMinValue, maxDataFrequency));
                     minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
                     
@@ -1745,7 +1702,6 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                     QVector<QPointF> maxSamples;
                     maxSamples.push_back(QPointF(threshMaxValue, maxDataFrequency));
                     maxSamples.push_back(QPointF(plotMaxValue, maxDataFrequency));
-                    //maxSamples.push_back(QPointF(dataValues[numHistogramValues - 1], maxDataFrequency));
                     
                     QwtPlotCurve* maxBox = new QwtPlotCurve();
                     maxBox->setRenderHint(QwtPlotItem::RenderAntialiased);
@@ -1773,7 +1729,6 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                     QwtPlotCurve* minBox = new QwtPlotCurve();
                     minBox->setRenderHint(QwtPlotItem::RenderAntialiased);
                     minBox->setVisible(true);
-                    //minBox->setStyle(QwtPlotCurve::Dots);
                     
                     QColor minColor(100, 100, 255, 160);
                     minBox->setBrush(QBrush(minColor)); //, Qt::Dense4Pattern));
@@ -1786,8 +1741,6 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                 }
                     break;
             }
-            
-            //z = z - 1;
             
             const bool showLinesFlag = false;
             if (showLinesFlag) {
@@ -1931,16 +1884,6 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     
     this->updateHistogramPlot();
     
-//    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-//    
-//    if (assignToAllMaps) {
-//        this->caretMappableDataFile->updateScalarColoringForAllMaps(paletteFile);
-//    }
-//    else {
-//        this->caretMappableDataFile->updateScalarColoringForMap(this->mapFileIndex,
-//                                                             paletteFile);
-//    }
-    
     updateColoringAndGraphics();
 }
 
@@ -2067,8 +2010,6 @@ MapSettingsPaletteColorMappingWidget::normalizationModeComboBoxActivated(int)
 void 
 MapSettingsPaletteColorMappingWidget::applyAllMapsCheckBoxStateChanged(bool checked)
 {
-    //applyAndUpdate();
-    //const bool checked = (state == Qt::Checked);
     if (checked) {
         this->applySelections();
     }

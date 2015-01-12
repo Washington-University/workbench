@@ -38,11 +38,6 @@ namespace caret {
         
         virtual ~VolumeFileVoxelColorizer();
         
-//        void assignVoxelColorsForMapInBackground(const int32_t mapIndex,
-//                                                 const Palette* palette,
-//                                                 const VolumeFile* thresholdVolume,
-//                                                 const int32_t thresholdVolumeMapIndex);
-        
         void assignVoxelColorsForMap(const int32_t mapIndex,
                                      const Palette* palette,
                                      const VolumeFile* thresholdVolume,
@@ -74,12 +69,6 @@ namespace caret {
                                 uint8_t rgbaOut[4]) const;
         
         void clearVoxelColoringForMap(const int64_t mapIndex);
-        
-//        void setVoxelColorInMap(const int64_t i,
-//                                 const int64_t j,
-//                                 const int64_t k,
-//                                 const int64_t mapIndex,
-//                                 const float rgbaFloat[4]);
         
         void invalidateColoring();
         

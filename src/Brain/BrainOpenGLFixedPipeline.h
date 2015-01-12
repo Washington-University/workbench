@@ -117,12 +117,6 @@ namespace caret {
         virtual AString getStateOfOpenGL() const;
         
     private:
-//        enum ClippingDataType {
-//            CLIPPING_DATA_TYPE_FEATURES,
-//            CLIPPING_DATA_TYPE_SURFACE,
-//            CLIPPING_DATA_TYPE_,
-//            CLIPPI
-//        }
         class VolumeDrawInfo {
         public:
             VolumeDrawInfo(CaretMappableDataFile* mapFile,
@@ -165,13 +159,6 @@ namespace caret {
                                             const StructureEnum::Enum structure,
                                             FiberTrajectoryColorModel::Item* colorSource,
                                             FiberOrientationDisplayInfo& dispInfo);
-        
-//        void colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
-//                            const float* scalarValues,
-//                            const float* thresholdValues,
-//                            const int32_t numberOfScalars,
-//                            float* rgbaOut,
-//                            const bool ignoreThresholding);
 
         void drawModelInternal(Mode mode,
                                BrainOpenGLViewportContent* viewportContent);
@@ -300,9 +287,6 @@ namespace caret {
                                      ModelSurfaceMontage* surfaceMontageModel,
                                      const int32_t viewport[4]);
         
-        
-//        void setOrthographicProjection(const int32_t viewport[4],
-//                                       const Model::ViewingTransformIndex rotationMatrixIndex);
         
         void setOrthographicProjection(const int32_t viewport[4],
                                        const ProjectionViewTypeEnum::Enum projectionType);
@@ -447,10 +431,6 @@ namespace caret {
         void drawImage(const int viewport[4],
                        const ImageFile* imageFile);
         
-//        float modelSizeToPixelSize(const float modelSize);
-//        
-//        float pixelSizeToModelSize(const float pixelSize);
-        
         void setProjectionModeData(const float screenDepth,
                                           const float xyz[3],
                                           const StructureEnum::Enum structure,
@@ -582,8 +562,8 @@ namespace caret {
 #ifdef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
     bool BrainOpenGLFixedPipeline::s_staticInitialized = false;
     float BrainOpenGLFixedPipeline::COLOR_RED[3]   = { 1.0, 0.0, 0.0 };
-    float BrainOpenGLFixedPipeline::COLOR_GREEN[3]  = { 0.0, 1.0, 0.0 };
-    float BrainOpenGLFixedPipeline::COLOR_BLUE[3] = { 0.0, 0.0, 1.0 };
+    float BrainOpenGLFixedPipeline::COLOR_GREEN[3] = { 0.0, 1.0, 0.0 };
+    float BrainOpenGLFixedPipeline::COLOR_BLUE[3]  = { 0.0, 0.0, 1.0 };
 #endif //__BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
 } // namespace

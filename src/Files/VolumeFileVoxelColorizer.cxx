@@ -196,32 +196,6 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
                    + " milliseconds");
 }
 
-///**
-// * Assign voxel coloring for a map in the background.  This method will
-// * launch the assignment of voxel coloring in a separate thread and then
-// * return.
-// *
-// * @param mapIndex
-// *     Index of map.
-// * @param palette
-// *     Palette used for scalar color assignment.
-// * @param thresholdVolume
-// *     Volume that contains thresholding (if NULL indicates no thresholding).
-// * @param thresholdVolumeMapIndex
-// *     Index of map in thresholding volume.
-// */
-//void
-//VolumeFileVoxelColorizer::assignVoxelColorsForMapInBackground(const int32_t mapIndex,
-//                                                              const Palette* palette,
-//                                                              const VolumeFile* thresholdVolume,
-//                                                              const int32_t thresholdVolumeMapIndex)
-//{
-//    assignVoxelColorsForMap(mapIndex,
-//                            palette,
-//                            thresholdVolume,
-//                            thresholdVolumeMapIndex);
-//}
-
 /**
  * Invalidate the RGBA coloring for all maps.
  */
@@ -606,45 +580,3 @@ VolumeFileVoxelColorizer::clearVoxelColoringForMap(const int64_t mapIndex)
     }
 }
 
-/**
- * Set the RGBA coloring for a voxel in a map.
- *
- * @param i
- *    Parasaggital index
- * @param j
- *    Coronal index
- * @param k
- *    Axial index
- * @param mapIndex
- *    Index of map.
- * @param rgbaFloat
- *    RGBA color components for voxel.
- */
-//void
-//VolumeFileVoxelColorizer::setVoxelColorInMap(const int64_t i,
-//                                             const int64_t j,
-//                                             const int64_t k,
-//                                             const int64_t mapIndex,
-//                                             const float rgbaFloat[4])
-//
-//{
-//    /*
-//     * Pointer to maps RGBA values
-//     */
-//    CaretAssertVectorIndex(m_mapRGBA, mapIndex);
-//    uint8_t* mapRGBA = m_mapRGBA[mapIndex];
-//    int64_t rgbaOffset = m_volumeFile->getIndex(i,
-//                                                j,
-//                                                k,
-//                                                mapIndex);
-//    rgbaOffset *= 4;
-//    CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
-//    mapRGBA[rgbaOffset]   = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
-//    mapRGBA[rgbaOffset+1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
-//    mapRGBA[rgbaOffset+2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
-//    float alpha = rgbaFloat[3];
-//    if (alpha < 0.0) {
-//        alpha = 0.0;
-//    }
-//    mapRGBA[rgbaOffset+3] = static_cast<uint8_t>(alpha * 255.0);
-//}

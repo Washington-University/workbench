@@ -1693,15 +1693,6 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                                                             barycentricAreas, 
                                                             barycentricNodes, 
                                                             surface->getNumberOfNodes());
-                                /*
-                                this->modeProjectionData->setStructure(surface->getStructure());
-                                SurfaceProjectionBarycentric* barycentric =
-                                    this->modeProjectionData->getBarycentricProjection();
-                                barycentric->setProjectionSurfaceNumberOfNodes(surface->getNumberOfNodes());
-                                barycentric->setTriangleAreas(barycentricAreas);
-                                barycentric->setTriangleNodes(barycentricNodes);
-                                barycentric->setValid(true);
-                                */
                             }
                         }
                     }
@@ -2307,9 +2298,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
      * Draw lines
      */
     if (drawLines
-        && (numPointsToDraw > 1)) {    
-        //const float lineWidthInPixels = this->modelSizeToPixelSize(lineWidth);
-        //this->setLineWidth(lineWidthInPixels);
+        && (numPointsToDraw > 1)) {
         this->setLineWidth(lineWidth);
         
         this->disableLighting();
@@ -4422,18 +4411,16 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
         underlayVolumeFile->getVoxelSpaceBoundingBox(volumeBoundingBox);
         volumeBoundingBox.getCenter(center);
     }
-//    else {
-        if (leftSurface != NULL) {
-            leftSurface->getBoundingBox()->getCenter(center);
+    if (leftSurface != NULL) {
+        leftSurface->getBoundingBox()->getCenter(center);
+        center[0] = 0.0;
+    }
+    else {
+        if (rightSurface != NULL) {
+            rightSurface->getBoundingBox()->getCenter(center);
             center[0] = 0.0;
         }
-        else {
-            if (rightSurface != NULL) {
-                rightSurface->getBoundingBox()->getCenter(center);
-                center[0] = 0.0;
-            }
-        }
-//    }
+    }
 
     /*
      * Use a surface (if available) to set the orthographic projection size
@@ -5316,56 +5303,28 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
     float xPos = 0.0;
     float yPos = 0.0;
     
-//    switch (dsi->getImagePositionMode()) {
-//        case DisplaySettingsImages::IMAGE_POSITION_MODE_CENTER_OF_WINDOW:
-//        {
-//            const float imageCenterX = image->width() * 0.5;
-//            const float imageCenterY = image->height() * 0.5;
-//            const float windowCenterX = viewport[2] * 0.5;
-//            const float windowCenterY = viewport[3] * 0.5;
-//            xPos = windowCenterX - imageCenterX;
-//            yPos = windowCenterY - imageCenterY;
-//            
-//            if (xScale < yScale) {
-//                pixelZoom = xScale;
-//            }
-//            else {
-//                pixelZoom = yScale;
-//            }
-//            xPos = windowCenterX - (imageCenterX * pixelZoom);
-//            xPos = std::max(0.0f, xPos);
-//            yPos = windowCenterY - (imageCenterY * pixelZoom);
-//            yPos = std::max(0.0f, yPos);
-//        }
-//            break;
-//        case DisplaySettingsImages::IMAGE_POSITION_MODE_SCALE_TO_WINDOW:
-//        {
-            bool centerImageX = false, centerImageY = false;
-            if (xScale < yScale) {
-                pixelZoom = xScale;
-                centerImageY = true;
-            }
-            else {
-                pixelZoom = yScale;
-                centerImageX = true;
-            }
-            
-            if (centerImageY) {
-                // center image vertically
-                const float ySize = imageHeight * pixelZoom;
-                const float margin = viewport[3] - ySize;
-                yPos = margin * 0.5;
-            }
-            if (centerImageX) {
-                // center image horizontally
-                const float xSize = imageWidth * pixelZoom;
-                const float margin = viewport[3] - xSize;
-                xPos = margin * 0.5;
-            }
-            
-//        }
-//            break;
-//    }
+    bool centerImageX = false, centerImageY = false;
+    if (xScale < yScale) {
+        pixelZoom = xScale;
+        centerImageY = true;
+    }
+    else {
+        pixelZoom = yScale;
+        centerImageX = true;
+    }
+    
+    if (centerImageY) {
+        // center image vertically
+        const float ySize = imageHeight * pixelZoom;
+        const float margin = viewport[3] - ySize;
+        yPos = margin * 0.5;
+    }
+    if (centerImageX) {
+        // center image horizontally
+        const float xSize = imageWidth * pixelZoom;
+        const float margin = viewport[3] - xSize;
+        xPos = margin * 0.5;
+    }
     
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -5574,42 +5533,6 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
         BrainOpenGLPrimitiveDrawing::drawQuads(coords,
                                                normals,
                                                rgba);
-////        drawTextWindowCoords(windowX,
-////                             windowY,
-////                             text,
-////                             alignmentX,
-////                             alignmentY,
-////                             textStyle,
-////                             fontHeight);
-//        
-//        const int textX = (vpLeftX + vpRightX) / 2.0;
-//        const int textY = (vpBottomY + vpTopY) / 2.0;
-//        drawTextWindowCoords(textX,  //windowX,
-//                             textY,  //windowY,
-//                             text,
-//                             alignmentX,
-//                             alignmentY,
-//                             textStyle,
-//                             fontHeight);
-//        const int textAX = (vpRightX - vpLeftX)   / 2.0;
-//        const int textAY = (vpTopY   - vpBottomY) / 2.0;
-//        drawTextWindowCoords(textAX,  //windowX,
-//                             textAY,  //windowY,
-//                             "A",
-//                             alignmentX,
-//                             alignmentY,
-//                             textStyle,
-//                             fontHeight);
-//        
-//        const int textBX = (vpRightX - vpLeftX)   / 2.0;
-//        const int textBY = (vpTopY   - vpBottomY) / 2.0;
-//        drawTextWindowCoords(textAX,  //windowX,
-//                             textAY,  //windowY,
-//                             "B",
-//                             alignmentX,
-//                             alignmentY,
-//                             textStyle,
-//                             fontHeight);
         glPopMatrix();
         
         glMatrixMode(GL_PROJECTION);
@@ -6187,82 +6110,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     return;
 }
 
-///**
-// * Since OpenGL draws lines/points in pixels, map window coordinates to
-// * model coordinates to estimate the line width or points size in pixels
-// * for a line width or point size that is in model coordinates.
-// * @param modelSize
-// *    Size in model coordinates.
-// * @return
-// *    Size converted to pixels.
-// */
-//float 
-//BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
-//{
-//    float pixelSize = modelSize;
-//    
-//    GLdouble modelview[16];
-//    GLdouble projection[16];
-//    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
-//    glGetDoublev(GL_PROJECTION_MATRIX, projection);
-//    
-//    GLint viewport[4];
-//    glGetIntegerv(GL_VIEWPORT, 
-//                  viewport);
-//    
-//    GLdouble windowA[3] = { viewport[0], viewport[1], 0.0 };
-//    GLdouble windowB[3] = { viewport[0] + viewport[2] - 1, viewport[1] + viewport[3] - 1, 0.0 };
-//    GLdouble modelA[3], modelB[3];
-//    if (gluUnProject(windowA[0], 
-//                     windowA[1], 
-//                     windowA[2], 
-//                     modelview, 
-//                     projection, 
-//                     viewport, 
-//                     &modelA[0], 
-//                     &modelA[1], 
-//                     &modelA[2]) == GL_TRUE) {
-//        if (gluUnProject(windowB[0], 
-//                         windowB[1], 
-//                         windowB[2], 
-//                         modelview, 
-//                         projection, 
-//                         viewport,
-//                         &modelB[0], 
-//                         &modelB[1], 
-//                         &modelB[2]) == GL_TRUE) {
-//            const double modelDist = MathFunctions::distance3D(modelA, modelB);
-//            const double windowDist = MathFunctions::distance3D(windowA, windowB);
-//            
-//            const float scaling = windowDist / modelDist;
-//            
-//            pixelSize *= scaling;
-//        }
-//    }
-//    return pixelSize;
-//}
-//
-///**
-// * Convert pixels into model size.
-// * 
-// * @param pixelSize
-// *    The pixel size
-// * @return
-// *    Model size coordinate space value
-// */
-//float
-//BrainOpenGLFixedPipeline::pixelSizeToModelSize(const float pixelSize)
-//{
-//    float modelSize = 1.0;
-//    
-//    const float value = modelSizeToPixelSize(pixelSize);
-//    if (value > 0) {
-//        modelSize /= value;
-//    }
-//    
-//    return modelSize;
-//}
-
 /**
  * @return A string containing the state of OpenGL (depth testing, lighting, etc.)
  */
@@ -6356,7 +6203,6 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* 
     this->mapFile = mapFile;
     this->volumeFile = volumeFile;
     this->brain = brain;
-//    this->volumeType = volumeFile->getVolumeType();
     this->paletteColorMapping = paletteColorMapping;
     this->wholeBrainVoxelDrawingMode = wholeBrainVoxelDrawingMode;
     this->mapIndex = mapIndex;

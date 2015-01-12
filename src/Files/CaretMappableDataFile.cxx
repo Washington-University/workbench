@@ -544,8 +544,6 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
         }
     }
     
-//    bool showMapFlag = ((isMappedWithLabelTable() || isMappedWithPalette())
-//                              && (isSurfaceMappable() || isVolumeMappable()));
     bool showMapFlag = (isMappedWithLabelTable() || isMappedWithPalette());
    
     /*
@@ -567,10 +565,8 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     
     if (showMapFlag) {
         const int32_t numMaps = getNumberOfMaps();
-//        if (isSurfaceMappable()) {
-            dataFileInformation.addNameAndValue("Number of Maps",
+        dataFileInformation.addNameAndValue("Number of Maps",
                                                 numMaps);
-//        }
         
         if (numMaps > 0) {
             int columnCount = 0;

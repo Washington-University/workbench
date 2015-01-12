@@ -1500,37 +1500,6 @@ VolumeFile::clearVoxelColoringForMap(const int64_t mapIndex)
 }
 
 /**
- * Set the RGBA coloring for a voxel in a map.
- * Does nothing if coloring is not enabled.
- *
- * @param i
- *    Parasaggital index
- * @param j
- *    Coronal index
- * @param k
- *    Axial index
- * @param mapIndex
- *    Index of map.
- * @param rgba
- *    RGBA color components for voxel.
- */
-//void
-//VolumeFile::setVoxelColorInMap(const int64_t i,
-//                         const int64_t j,
-//                         const int64_t k,
-//                         const int64_t mapIndex,
-//                         const float rgba[4])
-//
-//{
-//    if (s_voxelColoringEnabled == false) {
-//        return;
-//    }
-//    CaretAssert(m_voxelColorizer);
-//    
-//    m_voxelColorizer->setVoxelColorInMap(i, j, k, mapIndex, rgba);
-//}
-
-/**
  * Get the minimum and maximum values from ALL maps in this file.
  * Note that not all files (due to size of file) are able to provide
  * the minimum and maximum values from the file.  The return value
@@ -1803,7 +1772,7 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
                                                  + AString::number(i + 1)
                                                  + "]"),
                                                 AString::number(dims[i]));
-        }//*/
+        }
     }
     else {
         int64_t dimI, dimJ, dimK, dimMaps, dimComponents;

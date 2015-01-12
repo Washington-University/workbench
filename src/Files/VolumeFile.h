@@ -311,12 +311,6 @@ namespace caret {
         
         void clearVoxelColoringForMap(const int64_t mapIndex);
         
-//        void setVoxelColorInMap(const int64_t i,
-//                                 const int64_t j,
-//                                 const int64_t k,
-//                                 const int64_t mapIndex,
-//                                 const float rgba[4]);
-        
         virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                              float& dataRangeMaximumOut) const;
         

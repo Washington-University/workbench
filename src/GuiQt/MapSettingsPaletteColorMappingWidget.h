@@ -164,7 +164,6 @@ namespace caret {
         
         QCheckBox* thresholdLinkCheckBox;
 
-        //QwtPlot* thresholdPlot;
         WuQwtPlot* thresholdPlot;
         
         QLabel* statisticsMinimumValueLabel;
