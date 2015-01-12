@@ -198,7 +198,7 @@ namespace caret {
         
         virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut);
         
-        virtual int64_t getUncompressedDataSizeInBytes() const;
+        virtual int64_t getDataSizeUncompressedInBytes() const;
         
         virtual const FastStatistics* getFileFastStatistics();
         

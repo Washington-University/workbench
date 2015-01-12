@@ -1518,7 +1518,7 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex,
  * file size cannot be computed.
  */
 int64_t
-CiftiMappableDataFile::getUncompressedDataSizeInBytes() const
+CiftiMappableDataFile::getDataSizeUncompressedInBytes() const
 {
     int64_t dataSize = 0;
     

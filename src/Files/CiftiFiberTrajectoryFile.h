@@ -87,7 +87,7 @@ namespace caret {
                                                  const float mostNegativeValueInclusive,
                                                  const bool includeZeroValues);
         
-        virtual int64_t getUncompressedDataSizeInBytes() const;
+        virtual int64_t getDataSizeUncompressedInBytes() const;
         
         virtual const FastStatistics* getFileFastStatistics();
         

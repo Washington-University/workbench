@@ -539,7 +539,7 @@ const Histogram* GiftiTypeFile::getMapHistogram(const int32_t mapIndex,
  * file size cannot be computed.
  */
 int64_t
-GiftiTypeFile::getUncompressedDataSizeInBytes() const
+GiftiTypeFile::getDataSizeUncompressedInBytes() const
 {
     const int32_t numDataArrays = getNumberOfMaps();
     

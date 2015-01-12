@@ -53,6 +53,7 @@
 #include "FastStatistics.h"
 #include "GuiManager.h"
 #include "Histogram.h"
+#include "MathFunctions.h"
 #include "NodeAndVoxelColoring.h"
 #include "NumericTextFormatting.h"
 #include "Palette.h"
@@ -63,6 +64,7 @@
 #include "WuQWidgetObjectGroup.h"
 #include "WuQDoubleSlider.h"
 #include "WuQFactory.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQwtPlot.h"
 
@@ -1994,10 +1996,44 @@ MapSettingsPaletteColorMappingWidget::normalizationModeComboBoxActivated(int)
             const PaletteNormalizationModeEnum::Enum mode = PaletteNormalizationModeEnum::fromIntegerCode(enumIntegerCode,
                                                                                                           &validFlag);
             if (validFlag) {
-                this->caretMappableDataFile->setPaletteNormalizationMode(mode);
-                this->updateEditorInternal(this->caretMappableDataFile,
-                                           this->mapFileIndex);
-                this->updateColoringAndGraphics();
+                if (mode != this->caretMappableDataFile->getPaletteNormalizationMode()) {
+                    bool doItFlag = true;
+                    if (mode == PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA) {
+                        /*
+                         * When files are "large", using all file data may take
+                         * a very long time so allow the user to cancel.
+                         */
+                        const int64_t megabyte = 1048576;
+                        const int64_t warningDataSize = 100 * megabyte;
+                        const int64_t dataSize = this->caretMappableDataFile->getDataSizeUncompressedInBytes();
+                        
+                        if (dataSize > warningDataSize) {
+                            const AString message("File size is very large ("
+                                                  + FileInformation::fileSizeToStandardUnits(dataSize)
+                                                  + ").  This operation may take a long time.");
+                            if (WuQMessageBox::warningOkCancel(m_normalizationModeComboBox,
+                                                               message)) {
+                                doItFlag = true;
+                            }
+                            else {
+                                doItFlag = false;
+                            }
+                        }
+                    }
+                    
+                    if (doItFlag) {
+                        CursorDisplayScoped cursor;
+                        cursor.showCursor(Qt::WaitCursor);
+                        
+                        this->caretMappableDataFile->setPaletteNormalizationMode(mode);
+                        this->updateEditorInternal(this->caretMappableDataFile,
+                                                   this->mapFileIndex);
+                        this->updateColoringAndGraphics();
+                    }
+                    else {
+                        this->updateNormalizationControlSection();
+                    }
+                }
             }
         }
     }

@@ -888,7 +888,7 @@ VolumeFile::getMapHistogram(const int32_t mapIndex,
  * file size cannot be computed.
  */
 int64_t
-VolumeFile::getUncompressedDataSizeInBytes() const
+VolumeFile::getDataSizeUncompressedInBytes() const
 {
     int64_t dimI, dimJ, dimK, dimTime, dimComp;
     getDimensions(dimI, dimJ, dimK, dimTime, dimComp);

@@ -206,7 +206,7 @@ namespace caret {
          * and loaded into RAM.  A negative value indicates that the
          * file size cannot be computed.
          */
-        virtual int64_t getUncompressedDataSizeInBytes() const = 0;
+        virtual int64_t getDataSizeUncompressedInBytes() const = 0;
         
         /**
          * Get statistics describing the distribution of data

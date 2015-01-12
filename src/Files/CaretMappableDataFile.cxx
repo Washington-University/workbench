@@ -501,7 +501,7 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     
-    const int64_t dataSizeInBytes = getUncompressedDataSizeInBytes();
+    const int64_t dataSizeInBytes = getDataSizeUncompressedInBytes();
     if (dataSizeInBytes >= 0) {
         dataFileInformation.addNameAndValue("Data Size",
                                             FileInformation::fileSizeToStandardUnits(dataSizeInBytes));

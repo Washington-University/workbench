@@ -561,7 +561,7 @@ CiftiFiberTrajectoryFile::getMapHistogram(const int32_t /*mapIndex*/,
  * file size cannot be computed.
  */
 int64_t
-CiftiFiberTrajectoryFile::getUncompressedDataSizeInBytes() const
+CiftiFiberTrajectoryFile::getDataSizeUncompressedInBytes() const
 {
     return -1;
 }
