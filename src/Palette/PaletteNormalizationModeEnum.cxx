@@ -108,11 +108,11 @@ PaletteNormalizationModeEnum::initialize()
 
     enumData.push_back(PaletteNormalizationModeEnum(NORMALIZATION_ALL_MAP_DATA, 
                                     "NORMALIZATION_ALL_MAP_DATA", 
-                                    "Data From All Maps In File"));
+                                    "All Maps In File"));
     
     enumData.push_back(PaletteNormalizationModeEnum(NORMALIZATION_SELECTED_MAP_DATA, 
                                     "NORMALIZATION_SELECTED_MAP_DATA", 
-                                    "Data From Selected Map In File"));
+                                    "Selected Map In File"));
     
 }
 
@@ -370,4 +370,23 @@ PaletteNormalizationModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, 
         std::sort(allGuiNames.begin(), allGuiNames.end());
     }
 }
+
+AString
+PaletteNormalizationModeEnum::getEnumToolTopInHTML()
+{
+    const AString msg("<HTML><BODY>"
+                      "Normalization controls how data values are mapped to the color palette.  "
+                      "The data's most negative, zero, and most positive values are mapped to "
+                      "the palette's -1.0, 0.0, and 1.0 colors.<br><br>"
+                      "<B>" + toGuiName(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA) + "</B><br>"
+                      + "   Uses data from all maps within the file and results in identical data "
+                      "values from any map in the file receiving identical coloring.<br><br>"
+                      "<B>" + toGuiName(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA) + "</B><br>"
+                      + "   Uses data from the selected map and so identical data values "
+                      " in different maps may receive different coloring.<br>"
+                      "</BODY></HTML>");
+    
+    return msg;
+}
+
 

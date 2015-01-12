@@ -1922,6 +1922,8 @@ MapSettingsPaletteColorMappingWidget::createNormalizationControlSection()
                                                  (int)PaletteNormalizationModeEnum::toIntegerCode(normalMode));
     }
     
+    m_normalizationModeComboBox->setToolTip(PaletteNormalizationModeEnum::getEnumToolTopInHTML());
+    
     QGroupBox* groupBox = new QGroupBox("Data Normalization");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->addWidget(m_normalizationModeComboBox);

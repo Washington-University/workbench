@@ -35,9 +35,9 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Use data from all maps in file for normalization */
         NORMALIZATION_ALL_MAP_DATA,
-        /** */
+        /** Use data from selected map for normalization */
         NORMALIZATION_SELECTED_MAP_DATA
     };
 
@@ -62,6 +62,8 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static AString getEnumToolTopInHTML();
+    
 private:
     PaletteNormalizationModeEnum(const Enum enumValue, 
                  const AString& name,
