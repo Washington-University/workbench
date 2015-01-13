@@ -61,6 +61,7 @@ OperationParameters* OperationCiftiStats::getParameters()
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-roi", "only consider data inside an roi");
     roiOpt->addCiftiParameter(1, "roi-cifti", "the roi, as a cifti file");
+    roiOpt->createOptionalParameter(2, "-match-maps", "each column of input uses the corresponding column from the roi file");
     
     ret->createOptionalParameter(6, "-show-map-name", "print column index and name before each output");
     
@@ -93,7 +94,7 @@ namespace
                     toUse.push_back(data[i]);
                 }
             }
-            if (toUse.empty()) throw OperationException("roi contains no vertices");
+            if (toUse.empty()) throw OperationException("roi column is empty");
             return ReductionOperation::reduce(toUse.data(), toUse.size(), myop);
         }
     }
@@ -117,7 +118,7 @@ namespace
                 }
             }
         }
-        if (toUse.empty()) throw OperationException("roi contains no vertices");
+        if (toUse.empty()) throw OperationException("roi is empty");
         sort(toUse.begin(), toUse.end());
         const float index = percent / 100.0f * (toUse.size() - 1);
         if (index <= 0) return toUse[0];
@@ -163,16 +164,27 @@ void OperationCiftiStats::useParameters(OperationParameters* myParams, ProgressO
         if (useColumn < 0 || useColumn >= numCols) throw OperationException("invalid column specified");
     }
     vector<float> roiData;
+    bool matchColumnMode = false;
+    CiftiFile* roiCifti = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
     if (roiOpt->m_present)
     {
-        CiftiFile* roiCifti = roiOpt->getCifti(1);
+        roiCifti = roiOpt->getCifti(1);
         if (!roiCifti->getCiftiXML().getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(*(myXML.getMap(CiftiXML::ALONG_COLUMN))))
         {
             throw OperationException("roi cifti does not match input cifti along columns");
         }
         roiData.resize(colLength);
-        roiCifti->getColumn(roiData.data(), 0);//we are only getting one column, so go ahead and do it in on-disk mode
+        if (roiOpt->getOptionalParameter(2)->m_present)
+        {
+            if (myXML.getMap(CiftiXML::ALONG_ROW)->getLength() != roiCifti->getCiftiXML().getMap(CiftiXML::ALONG_ROW)->getLength())
+            {
+                throw OperationException("-match-maps specified, but roi has different number of columns than input");
+            }
+            matchColumnMode = true;
+        } else {
+            roiCifti->getColumn(roiData.data(), 0);//we are only getting one column, so go ahead and do it in on-disk mode
+        }
     }
     bool showMapName = myParams->getOptionalParameter(6)->m_present;
     const CiftiMappingType* rowMap = myXML.getMap(CiftiXML::ALONG_ROW);
@@ -180,9 +192,17 @@ void OperationCiftiStats::useParameters(OperationParameters* myParams, ProgressO
     if (useColumn == -1)
     {
         myInput->convertToInMemory();//we will be getting all columns, so read it all in first
+        if (matchColumnMode)
+        {
+            roiCifti->convertToInMemory();//ditto
+        }
         for (int i = 0; i < numCols; ++i)
         {
             myInput->getColumn(colScratch.data(), i);
+            if (matchColumnMode)
+            {
+                roiCifti->getColumn(roiData.data(), i);
+            }
             float result;
             if (reduceOpt->m_present)
             {
@@ -201,6 +221,10 @@ void OperationCiftiStats::useParameters(OperationParameters* myParams, ProgressO
         }
     } else {
         myInput->getColumn(colScratch.data(), useColumn);
+        if (matchColumnMode)
+        {
+            roiCifti->getColumn(roiData.data(), useColumn);
+        }
         float result;
         if (reduceOpt->m_present)
         {

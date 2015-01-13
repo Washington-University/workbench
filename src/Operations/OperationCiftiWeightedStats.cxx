@@ -73,6 +73,7 @@ OperationParameters* OperationCiftiWeightedStats::getParameters()
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-roi", "only consider data inside an roi");
     roiOpt->addCiftiParameter(1, "roi-cifti", "the roi, as a cifti file");
+    roiOpt->createOptionalParameter(2, "-match-maps", "each column of input uses the corresponding column from the roi file");
     
     ret->createOptionalParameter(6, "-mean", "compute weighted mean");
     
@@ -122,7 +123,7 @@ namespace
                     break;
                 }
             }
-            if (!haveData) throw OperationException("roi contains no voxels");
+            if (!haveData) throw OperationException("roi column is empty");
         }
         switch(myop)
         {
@@ -325,16 +326,27 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
         if (useColumn < 0 || useColumn >= numCols) throw OperationException("invalid column specified");
     }
     vector<float> roiData;
+    bool matchColumnMode = false;
+    CiftiFile* myRoi = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
     if (roiOpt->m_present)
     {
-        CiftiFile* myRoi = roiOpt->getCifti(1);
+        myRoi = roiOpt->getCifti(1);
         if (!myXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(*(myRoi->getCiftiXML().getMap(CiftiXML::ALONG_COLUMN))))
         {
             throw OperationException("roi cifti has incompatible mapping along column");
         }
         roiData.resize(colLength);
-        myRoi->getColumn(roiData.data(), 0);//ditto
+        if (roiOpt->getOptionalParameter(2)->m_present)
+        {
+            if (myXML.getMap(CiftiXML::ALONG_ROW)->getLength() != myRoi->getCiftiXML().getMap(CiftiXML::ALONG_ROW)->getLength())
+            {
+                throw OperationException("-match-maps specified, but roi has different number of columns than input");
+            }
+            matchColumnMode = true;
+        } else {
+            myRoi->getColumn(roiData.data(), 0);//again, while on disk if we are using only one column
+        }
     }
     bool haveOp = false;
     OperationType myop;
@@ -378,6 +390,10 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
     if (useColumn == -1)
     {
         myInput->convertToInMemory();//we will be getting all columns, so read it all in first
+        if (matchColumnMode)
+        {
+            myRoi->convertToInMemory();//ditto
+        }
         if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS)
         {
             const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
@@ -386,6 +402,10 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
             for (int64_t i = 0; i < numCols; ++i)
             {
                 myInput->getColumn(inColumn.data(), i);
+                if (matchColumnMode)
+                {
+                    myRoi->getColumn(roiData.data(), i);
+                }
                 if (showMapName)
                 {
                     cout << AString::number(i + 1) << ": " << rowMap->getIndexName(i) << ":" << endl;
@@ -460,12 +480,16 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
             }
         }
     } else {
+        myInput->getColumn(inColumn.data(), useColumn);
+        if (matchColumnMode)
+        {
+            myRoi->getColumn(roiData.data(), useColumn);
+        }
         if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS)
         {
             const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
             vector<CiftiBrainModelsMap::ModelInfo> myModels = myDenseMap.getModelInfo();
             int numModels = (int)myModels.size();
-            myInput->getColumn(inColumn.data(), useColumn);
             if (showMapName)
             {
                 cout << AString::number(useColumn + 1) << ": " << rowMap->getIndexName(useColumn) << ":" << endl;
@@ -519,7 +543,6 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
             resultsstr << setprecision(7) << result;
             cout << "VOLUME: " << resultsstr.str() << endl;
         } else {
-            myInput->getColumn(inColumn.data(), useColumn);
             float result;
             if (roiData.empty())
             {

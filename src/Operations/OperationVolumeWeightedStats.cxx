@@ -57,6 +57,7 @@ OperationParameters* OperationVolumeWeightedStats::getParameters()
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(4, "-roi", "only consider data inside an roi");
     roiOpt->addVolumeParameter(1, "roi-volume", "the roi, as a volume file");
+    roiOpt->createOptionalParameter(2, "-match-maps", "each subvolume of input uses the corresponding subvolume from the roi file");
     
     ret->createOptionalParameter(5, "-mean", "compute weighted mean");
     
@@ -287,6 +288,7 @@ void OperationVolumeWeightedStats::useParameters(OperationParameters* myParams, 
         subvol = input->getMapIndexFromNameOrNumber(subvolOpt->getString(1));
         if (subvol < 0) throw OperationException("invalid column specified");
     }
+    bool matchSubvolMode = false;
     VolumeFile* myRoi = NULL;
     const float* roiData = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(4);
@@ -294,7 +296,16 @@ void OperationVolumeWeightedStats::useParameters(OperationParameters* myParams, 
     {
         myRoi = roiOpt->getVolume(1);
         if (!input->matchesVolumeSpace(myRoi)) throw OperationException("roi doesn't match volume space of input");
-        roiData = myRoi->getFrame();
+        if (roiOpt->getOptionalParameter(2)->m_present)
+        {
+            if (myRoi->getDimensions()[3] != dims[3])
+            {
+                throw OperationException("-match-maps specified, but roi has different number of subvolumes than input");
+            }
+            matchSubvolMode = true;
+        } else {
+            roiData = myRoi->getFrame();
+        }
     }
     bool haveOp = false;
     OperationType myop;
@@ -338,6 +349,10 @@ void OperationVolumeWeightedStats::useParameters(OperationParameters* myParams, 
     {
         for (int i = 0; i < numMaps; ++i)
         {//store result before printing anything, in case it throws while computing
+            if (matchSubvolMode)
+            {
+                roiData = myRoi->getFrame(i);
+            }
             float result;
             if (weightData != NULL)
             {
@@ -351,6 +366,10 @@ void OperationVolumeWeightedStats::useParameters(OperationParameters* myParams, 
             cout << resultsstr.str() << endl;
         }
     } else {
+        if (matchSubvolMode)
+        {
+            roiData = myRoi->getFrame(subvol);
+        }
         float result;
         if (weightData != NULL)
         {

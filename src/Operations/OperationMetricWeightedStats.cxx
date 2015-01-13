@@ -61,6 +61,7 @@ OperationParameters* OperationMetricWeightedStats::getParameters()
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-roi", "only consider data inside an roi");
     roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
+    roiOpt->createOptionalParameter(2, "-match-maps", "each column of input uses the corresponding column from the roi file");
     
     ret->createOptionalParameter(6, "-mean", "compute weighted mean");
     
@@ -201,6 +202,7 @@ void OperationMetricWeightedStats::useParameters(OperationParameters* myParams, 
     LevelProgress myProgress(myProgObj);
     MetricFile* input = myParams->getMetric(1);
     int numNodes = input->getNumberOfNodes();
+    int numCols = input->getNumberOfColumns();
     vector<float> areaData;
     const float* useWeights = NULL;
     OptionalParameter* areaSurfOpt = myParams->getOptionalParameter(2);
@@ -227,6 +229,7 @@ void OperationMetricWeightedStats::useParameters(OperationParameters* myParams, 
         column = input->getMapIndexFromNameOrNumber(columnOpt->getString(1));
         if (column < 0) throw OperationException("invalid column specified");
     }
+    bool matchColumnMode = false;
     MetricFile* myRoi = NULL;
     const float* roiData = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
@@ -234,7 +237,16 @@ void OperationMetricWeightedStats::useParameters(OperationParameters* myParams, 
     {
         myRoi = roiOpt->getMetric(1);
         if (myRoi->getNumberOfNodes() != numNodes) throw OperationException("roi doesn't match input in number of vertices");
-        roiData = myRoi->getValuePointerForColumn(0);
+        if (roiOpt->getOptionalParameter(2)->m_present)
+        {
+            if (myRoi->getNumberOfColumns() != numCols)
+            {
+                throw OperationException("-match-maps specified, but roi has different number of columns than input");
+            }
+            matchColumnMode = true;
+        } else {
+            roiData = myRoi->getValuePointerForColumn(0);
+        }
     }
     bool haveOp = false;
     OperationType myop;
@@ -273,11 +285,14 @@ void OperationMetricWeightedStats::useParameters(OperationParameters* myParams, 
     }
     if (!haveOp) throw OperationException("you must specify an operation");
     bool showMapName = myParams->getOptionalParameter(10)->m_present;
-    int numCols = input->getNumberOfColumns();
     if (column == -1)
     {
         for (int i = 0; i < numCols; ++i)
         {//store result before printing anything, in case it throws while computing
+            if (matchColumnMode)
+            {
+                roiData = myRoi->getValuePointerForColumn(i);
+            }
             const float result = doOperation(input->getValuePointerForColumn(i), useWeights, numNodes, myop, roiData, argument);
             if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
             stringstream resultsstr;
@@ -285,6 +300,10 @@ void OperationMetricWeightedStats::useParameters(OperationParameters* myParams, 
             cout << resultsstr.str() << endl;
         }
     } else {
+        if (matchColumnMode)
+        {
+            roiData = myRoi->getValuePointerForColumn(column);
+        }
         const float result = doOperation(input->getValuePointerForColumn(column), useWeights, numNodes, myop, roiData, argument);
         if (showMapName) cout << AString::number(column + 1) << ": " << input->getMapName(column) << ": ";
         stringstream resultsstr;

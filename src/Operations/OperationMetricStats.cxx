@@ -61,6 +61,7 @@ OperationParameters* OperationMetricStats::getParameters()
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-roi", "only consider data inside an roi");
     roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
+    roiOpt->createOptionalParameter(2, "-match-maps", "each column of input uses the corresponding column from the roi file");
     
     ret->createOptionalParameter(6, "-show-map-name", "print map index and name before each output");
     
@@ -129,6 +130,7 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
     LevelProgress myProgress(myProgObj);
     MetricFile* input = myParams->getMetric(1);
     int numNodes = input->getNumberOfNodes();
+    int numCols = input->getNumberOfColumns();
     OptionalParameter* reduceOpt = myParams->getOptionalParameter(2);
     OptionalParameter* percentileOpt = myParams->getOptionalParameter(3);
     if (reduceOpt->m_present == percentileOpt->m_present)//use == as logical xor
@@ -155,6 +157,7 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
         column = input->getMapIndexFromNameOrNumber(columnOpt->getString(1));
         if (column < 0) throw OperationException("invalid column specified");
     }
+    bool matchColumnMode = false;
     MetricFile* myRoi = NULL;
     const float* roiData = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
@@ -162,16 +165,28 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
     {
         myRoi = roiOpt->getMetric(1);
         if (myRoi->getNumberOfNodes() != numNodes) throw OperationException("roi doesn't match input in number of vertices");
-        roiData = myRoi->getValuePointerForColumn(0);
+        if (roiOpt->getOptionalParameter(2)->m_present)
+        {
+            if (myRoi->getNumberOfColumns() != numCols)
+            {
+                throw OperationException("-match-maps specified, but roi has different number of columns than input");
+            }
+            matchColumnMode = true;
+        } else {
+            roiData = myRoi->getValuePointerForColumn(0);
+        }
     }
     bool showMapName = myParams->getOptionalParameter(6)->m_present;
-    int numCols = input->getNumberOfColumns();
     if (column == -1)
     {
         if (reduceOpt->m_present)
         {
             for (int i = 0; i < numCols; ++i)
             {//store result before printing anything, in case it throws while computing
+                if (matchColumnMode)
+                {
+                    roiData = myRoi->getValuePointerForColumn(i);
+                }
                 const float result = reduce(input->getValuePointerForColumn(i), numNodes, myop, roiData);
                 if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
                 stringstream resultsstr;
@@ -182,6 +197,10 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
             CaretAssert(percentileOpt->m_present);
             for (int i = 0; i < numCols; ++i)
             {//store result before printing anything, in case it throws while computing
+                if (matchColumnMode)
+                {
+                    roiData = myRoi->getValuePointerForColumn(i);
+                }
                 const float result = percentile(input->getValuePointerForColumn(i), numNodes, percent, roiData);
                 if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
                 stringstream resultsstr;
@@ -191,6 +210,10 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
         }
     } else {
         CaretAssert(column >= 0 && column < numCols);
+        if (matchColumnMode)
+        {
+            roiData = myRoi->getValuePointerForColumn(column);
+        }
         if (reduceOpt->m_present)
         {
             const float result = reduce(input->getValuePointerForColumn(column), numNodes, myop, roiData);

@@ -61,6 +61,7 @@ OperationParameters* OperationVolumeStats::getParameters()
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-roi", "only consider data inside an roi");
     roiOpt->addVolumeParameter(1, "roi-volume", "the roi, as a volume file");
+    roiOpt->createOptionalParameter(2, "-match-maps", "each subvolume of input uses the corresponding subvolume from the roi file");
     
     ret->createOptionalParameter(6, "-show-map-name", "print map index and name before each output");
     
@@ -157,6 +158,7 @@ void OperationVolumeStats::useParameters(OperationParameters* myParams, Progress
         subvol = input->getMapIndexFromNameOrNumber(subvolOpt->getString(1));
         if (subvol < 0) throw OperationException("invalid column specified");
     }
+    bool matchSubvolMode = false;
     VolumeFile* myRoi = NULL;
     const float* roiData = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
@@ -164,7 +166,16 @@ void OperationVolumeStats::useParameters(OperationParameters* myParams, Progress
     {
         myRoi = roiOpt->getVolume(1);
         if (!input->matchesVolumeSpace(myRoi)) throw OperationException("roi doesn't match volume space of input");
-        roiData = myRoi->getFrame();
+        if (roiOpt->getOptionalParameter(2)->m_present)
+        {
+            if (myRoi->getDimensions()[3] != dims[3])
+            {
+                throw OperationException("-match-maps specified, but roi has different number of subvolumes than input");
+            }
+            matchSubvolMode = true;
+        } else {
+            roiData = myRoi->getFrame();
+        }
     }
     bool showMapName = myParams->getOptionalParameter(6)->m_present;
     int numMaps = input->getNumberOfMaps();
@@ -174,6 +185,10 @@ void OperationVolumeStats::useParameters(OperationParameters* myParams, Progress
         {
             for (int i = 0; i < numMaps; ++i)
             {//store result before printing anything, in case it throws while computing
+                if (matchSubvolMode)
+                {
+                    roiData = myRoi->getFrame(i);
+                }
                 const float result = reduce(input->getFrame(i), frameSize, myop, roiData);
                 if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
                 stringstream resultsstr;
@@ -184,6 +199,10 @@ void OperationVolumeStats::useParameters(OperationParameters* myParams, Progress
             CaretAssert(percentileOpt->m_present);
             for (int i = 0; i < numMaps; ++i)
             {//store result before printing anything, in case it throws while computing
+                if (matchSubvolMode)
+                {
+                    roiData = myRoi->getFrame(i);
+                }
                 const float result = percentile(input->getFrame(i), frameSize, percent, roiData);
                 if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
                 stringstream resultsstr;
@@ -193,6 +212,10 @@ void OperationVolumeStats::useParameters(OperationParameters* myParams, Progress
         }
     } else {
         CaretAssert(subvol >= 0 && subvol < numMaps);
+        if (matchSubvolMode)
+        {
+            roiData = myRoi->getFrame(subvol);
+        }
         if (reduceOpt->m_present)
         {
             const float result = reduce(input->getFrame(subvol), frameSize, myop, roiData);
