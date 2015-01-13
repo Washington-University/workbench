@@ -180,14 +180,10 @@ EventMapYokingValidation::validateCompatibility(const CaretMappableDataFile* car
          iter != m_yokedFileInfo.end();
          iter++) {
         const YokedFileInfo& yfi = *iter;
+        numberOfYokedFilesOut++;
         
-        if (caretMapFile != yfi.m_mapFile) {
-            
-            numberOfYokedFilesOut++;
-            
-            if (yfi.m_numberOfMaps != numberOfMaps) {
-                messageOut.appendWithNewLine("   " + yfi.m_infoText);
-            }
+        if (yfi.m_numberOfMaps != numberOfMaps) {
+            messageOut.appendWithNewLine("   " + yfi.m_infoText);
         }
     }
     
