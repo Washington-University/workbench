@@ -21,12 +21,14 @@
 
 #include "FastStatistics.h"
 #include "CaretPointer.h"
+
+#include <algorithm>
 #include <cmath>
 
 using namespace caret;
 using namespace std;
 
-const int NUM_BUCKETS_PERCENTILE_HIST = 100000;//100,000 to temporarily overcome somewhat extreme outliers while I think of a better fix
+const int64_t NUM_BUCKETS_PERCENTILE_HIST = 10000;//10,000 maximum to deal with some outliers outliers until I think of a better fix
 
 FastStatistics::FastStatistics()
 {
@@ -124,8 +126,9 @@ void FastStatistics::update(const float* data, const int64_t& dataCount)
             m_stdDevSample = sqrt(sum2 / (totalGood - 1));
         }
     }
-    m_negPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, negatives, m_negCount);
-    m_posPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, positives, m_posCount);
+    int usebuckets = min(NUM_BUCKETS_PERCENTILE_HIST, dataCount);
+    m_negPercentHist.update(usebuckets, negatives, m_negCount);
+    m_posPercentHist.update(usebuckets, positives, m_posCount);
 }
 
 void FastStatistics::update(const float* data, const int64_t& dataCount, const float& minThreshInclusive, const float& maxThreshInclusive)
@@ -197,8 +200,9 @@ void FastStatistics::update(const float* data, const int64_t& dataCount, const f
             m_stdDevSample = sqrt(sum2 / (totalGood - 1));
         }
     }
-    m_negPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, negatives, m_negCount);//10,000 will probably allow us to approximate the percentiles pretty closely, and eats only 80K of memory each
-    m_posPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, positives, m_posCount);
+    int usebuckets = min(NUM_BUCKETS_PERCENTILE_HIST, dataCount);
+    m_negPercentHist.update(usebuckets, negatives, m_negCount);//10,000 will probably allow us to approximate the percentiles pretty closely, and eats only 80K of memory each
+    m_posPercentHist.update(usebuckets, positives, m_posCount);
 }
 
 float FastStatistics::getApproxNegativePercentile(const float& percent) const
