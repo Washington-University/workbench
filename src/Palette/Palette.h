@@ -21,14 +21,13 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
+#include <vector>
 
+#include "CaretAssert.h"
 #include "CaretObject.h"
 #include "TracksModificationInterface.h"
 
-#include <stdint.h>
-
-#include <AString.h>
-#include <vector>
 
 namespace caret {
 
@@ -60,12 +59,29 @@ namespace caret {
         
         void setName(const AString& name);
         
-        int32_t getNumberOfScalarsAndColors() const;
+        /**
+         * Get the number of scalars and colors.
+         *
+         * @return - number of scalars and colors.
+         *
+         */
+        inline int32_t getNumberOfScalarsAndColors() const {
+            return this->paletteScalars.size();
+        }
         
-        PaletteScalarAndColor* getScalarAndColor(const int32_t index) const;
+        /**
+         * Get a scalar and color for the specified index.
+         *
+         * @param index - index of scalar and color.
+         * @return  Reference to item at index or null if invalid index.
+         *
+         */
+        inline PaletteScalarAndColor* getScalarAndColor(const int32_t indx) const {
+            CaretAssertVectorIndex(this->paletteScalars, indx);
+            return this->paletteScalars[indx];
+        }
         
-        void addScalarAndColor(
-                               const float scalar,
+        void addScalarAndColor(const float scalar,
                                const AString& colorName);
         
         void insertScalarAndColor(
@@ -76,8 +92,7 @@ namespace caret {
         
         void getMinMax(float& minOut, float& maxOut) const;
         
-        void getPaletteColor(
-                             const float scalar,
+        void getPaletteColor(const float scalar,
                              const bool interpolateColorFlag,
                              float rgbaOut[4]) const;
         
@@ -116,7 +131,7 @@ namespace caret {
 #ifdef __PALETTE_DEFINE__
     const AString Palette::GRAY_INTERP_PALETTE_NAME = "Gray_Interp";
     const AString Palette::GRAY_INTERP_POSITIVE_PALETTE_NAME = "Gray_Interp_Positive";
-    const AString Palette::NONE_COLOR_NAME = "none";
+    //const AString Palette::NONE_COLOR_NAME = "none";
     const AString Palette::ROY_BIG_BL_PALETTE_NAME = "ROY-BIG-BL";
 #endif // __PALETTE_DEFINE__
 } // namespace

@@ -25,7 +25,6 @@
 #include "Palette.h"
 #undef __PALETTE_DEFINE__
 
-//#include "PaletteFile.h"
 #include "PaletteScalarAndColor.h"
 
 using namespace caret;
@@ -144,32 +143,6 @@ Palette::setName(const AString& name)
         this->name = name;
         this->setModified();
     }
-}
-
-/**
- * Get the number of scalars and colors.
- * 
- * @return - number of scalars and colors.
- *
- */
-int32_t
-Palette::getNumberOfScalarsAndColors() const
-{
-    return this->paletteScalars.size();
-}
-
-/**
- * Get a scalar and color for the specified index.
- * 
- * @param index - index of scalar and color.
- * @return  Reference to item at index or null if invalid index.
- *
- */
-PaletteScalarAndColor*
-Palette::getScalarAndColor(const int32_t indx) const
-{
-    CaretAssertVectorIndex(this->paletteScalars, indx);
-    return this->paletteScalars[indx];
 }
 
 /**
@@ -292,9 +265,9 @@ Palette::getPaletteColor(
                     }
                 }
                 
-                //
-                // Always interpolate if there are only two colors
-                //
+                /*
+                 * Always interpolate if there are only two colors
+                 */
                 if (numScalarColors == 2) {
                     interpolateColorFlag = true;
                 }
@@ -312,11 +285,10 @@ Palette::getPaletteColor(
                     float offset = scalar - psacBelow->getScalar();
                     float percentAbove = offset / totalDiff;
                     float percentBelow = 1.0f - percentAbove;
-                    if (psacBelow->getColorName() != Palette::NONE_COLOR_NAME) {
-                        float rgbaAbove[4];
-                        psac->getColor(rgbaAbove);
-                        float rgbaBelow[4];
-                        psacBelow->getColor(rgbaBelow);
+                    if ( ! psacBelow->isNoneColor()) {
+                        const float* rgbaAbove = psac->getColor();
+                        const float* rgbaBelow = psacBelow->getColor();
+                        
                         rgbaOut[0] = (percentAbove * rgbaAbove[0]
                                       + percentBelow * rgbaBelow[0]);
                         rgbaOut[1] = (percentAbove * rgbaAbove[1]
@@ -326,7 +298,7 @@ Palette::getPaletteColor(
                     }
                 }
             }
-            else if (psac->getColorName() == Palette::NONE_COLOR_NAME) {
+            else if (psac->isNoneColor()) {
                 rgbaOut[3] = 0.0f;
             }
         }

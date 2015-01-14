@@ -53,15 +53,28 @@ private:
     void initializeMembersPaletteScalarAndColor();
 
 public:
-    float getScalar() const;
+    /**
+     * @return The scalar
+     */
+    inline float getScalar() const { return this->scalar; }
 
     void setScalar(const float scalar);
 
-    AString getColorName() const;
-
+    /**
+     * Get the name of the color.
+     * @return
+     *   Name of the color assigned to the scalar.
+     */
+    inline const AString& getColorName() const {
+        return this->colorName; 
+    }
+    
     void setColorName(const AString& colorName);
                       
-    const float* getColor() const;
+    /**
+     * @return float array with red, green, blue, alpha color components ranging 0 to 1.
+     */
+    inline const float* getColor() const { return rgba; }
     
     void getColor(float rgbaOut[4]) const;
     
@@ -75,8 +88,12 @@ public:
 
     bool isModified() const;
 
-    bool isNoneColor() const;
-    
+    /**
+     * @return Is the color the 'none' color meaning
+     * that no coloring is applied?
+     */
+    inline bool isNoneColor() const { return this->noneColorFlag; }
+
 private:
     /** has this object been modified. (DO NOT CLONE) */
     bool modifiedFlag;
@@ -84,11 +101,13 @@ private:
     /** the scalar value */
     float scalar;
 
-    /** the color's name */
+    /** the color's name, use the setName() method so that none color flag is updated */
     AString colorName;
     
     /** the color's rgba components */
     float rgba[4];
+    
+    bool noneColorFlag;
 
 };
 

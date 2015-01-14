@@ -37,7 +37,7 @@ PaletteScalarAndColor::PaletteScalarAndColor(
 {
     this->initializeMembersPaletteScalarAndColor();
     this->scalar = scalar;
-    this->colorName = colorName;
+    setColorName(colorName);
 }
 
 /**
@@ -79,6 +79,7 @@ PaletteScalarAndColor::copyHelper(const PaletteScalarAndColor& o)
 {
     this->scalar = o.scalar;
     this->colorName = o.colorName;
+    this->noneColorFlag = o.noneColorFlag;
     this->rgba[0] = o.rgba[0];
     this->rgba[1] = o.rgba[1];
     this->rgba[2] = o.rgba[2];
@@ -92,21 +93,11 @@ PaletteScalarAndColor::initializeMembersPaletteScalarAndColor()
     this->modifiedFlag = false;
     this->scalar = 0.0f;
     this->colorName = "";
+    this->noneColorFlag = false;
     this->rgba[0] = 1.0f;
     this->rgba[1] = 1.0f;
     this->rgba[2] = 1.0f;
     this->rgba[3] = 1.0f;
-}
-/**
- * Get the scalar.
- * 
- * @return  The scalar.
- *
- */
-float
-PaletteScalarAndColor::getScalar() const
-{
-    return this->scalar;
 }
 
 /**
@@ -125,17 +116,6 @@ PaletteScalarAndColor::setScalar(const float scalar)
 }
 
 /**
- * Get the name of the color.
- * @return
- *   Name of the color assigned to the scalar.
- */
-AString 
-PaletteScalarAndColor::getColorName() const 
-{ 
-    return this->colorName; 
-}
-
-/**
  * Set the name of the color for this scalar.
  * @param colorName
  *    New name for color.
@@ -145,20 +125,9 @@ PaletteScalarAndColor::setColorName(const AString& colorName)
 {
     if (this->colorName != colorName) {
         this->colorName = colorName;
+        this->noneColorFlag = (colorName == "none");
         this->setModified();
     }
-}
-
-/**
- * Get the RGBA components of the color. 
- * @return
- *    float array with red, green, blue, alpha
- * components ranging 0 to 1.
- */
-const float* 
-PaletteScalarAndColor::getColor() const 
-{ 
-    return rgba; 
 }
 
 /**
@@ -249,16 +218,3 @@ PaletteScalarAndColor::isModified() const
 {
     return this->modifiedFlag;
 }
-
-/**
- * @return Is the color the 'none' color meaning
- * that no coloring is applied?
- */
-bool 
-PaletteScalarAndColor::isNoneColor() const
-{
-    const bool isNone = (this->colorName == "none");
-    return isNone;
-}
-
-
