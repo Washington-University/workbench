@@ -44,6 +44,7 @@
 #include "EventOverlaySettingsEditorDialogRequest.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FileInformation.h"
 #include "FilePathNamePrefixCompactor.h"
 #include "GuiManager.h"
 #include "MapYokingGroupComboBox.h"
@@ -697,6 +698,25 @@ OverlayViewController::updateViewController(Overlay* overlay)
         }
     }
     
+    /*
+     * Update tooltips with full path to file and name of map
+     * as names may be too long to fit into combo boxes
+     */
+    AString fileComboBoxToolTip("Select file for this overlay");
+    AString nameComboBoxToolTip("Select map by its name");
+    if (selectedFile != NULL) {
+        FileInformation fileInfo(selectedFile->getFileName());
+        fileComboBoxToolTip.append(":\n"
+                                + fileInfo.getFileName()
+                                + "\n"
+                                + fileInfo.getPathName());
+        
+        nameComboBoxToolTip.append(":\n"
+                                   + this->mapNameComboBox->currentText());
+    }
+    this->fileComboBox->setToolTip(fileComboBoxToolTip);
+    this->mapNameComboBox->setToolTip(nameComboBoxToolTip);
+
     /*
      * Make sure items are enabled at the appropriate time
      */
