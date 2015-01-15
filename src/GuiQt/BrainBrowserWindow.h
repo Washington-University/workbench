@@ -140,6 +140,7 @@ namespace caret {
         void processRecordMovie();
         void processEditPreferences();
         void processCloseAllFiles();
+        void processCloseWindow();
         void processExitProgram();
         void processMoveAllTabsToOneWindow();
         void processViewFullScreenSelected();
@@ -256,6 +257,8 @@ namespace caret {
         
         void setViewTileTabs(const bool newStatus);
         
+        bool isMacOptionKeyDown() const;
+        
         /** Index of this window */
         int32_t m_browserWindowIndex;
         
@@ -282,6 +285,9 @@ namespace caret {
         QAction* m_closeTabAction;
         
         QAction* m_closeWindowAction;
+        AString m_closeWindowActionConfirmTitle;
+        AString m_closeWindowActionNoConfirmTitle;
+        bool m_closeWithoutConfirmationFlag;
         
         QAction* m_captureImageAction;
 
@@ -340,6 +346,8 @@ namespace caret {
         QMenu* m_moveSelectedTabToWindowMenu;
         
         QMenu* m_recentSpecFileMenu;
+        AString m_recentSpecFileMenuOpenConfirmTitle;
+        AString m_recentSpecFileMenuLoadNoConfirmTitle;
         
         BrainBrowserWindowOrientedToolBox* m_overlayHorizontalToolBox;
         BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;
@@ -357,7 +365,7 @@ namespace caret {
         
         WindowComponentStatus m_defaultWindowComponentStatus;
         WindowComponentStatus m_normalWindowComponentStatus;
-                
+        
         static bool s_firstWindowFlag;
         
         friend class BrainBrowserWindowToolBar;

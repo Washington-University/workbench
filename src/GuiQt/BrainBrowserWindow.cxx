@@ -320,6 +320,12 @@ BrainBrowserWindow::getBrowserWindowIndex() const
 void 
 BrainBrowserWindow::closeEvent(QCloseEvent* event)
 {
+    if (m_closeWithoutConfirmationFlag) {
+        m_closeWithoutConfirmationFlag = false;
+        event->accept();
+        return;
+    }
+    
     /*
      * The GuiManager may warn user about closing the 
      * window and the user may cancel closing of the window.
@@ -361,7 +367,7 @@ BrainBrowserWindow::keyPressEvent(QKeyEvent* event)
      * According to the documentation, if the key event was not acted upon,
      * pass it on the base class implementation.
      */
-    if (keyEventWasProcessed == false) {
+    if ( ! keyEventWasProcessed) {
         QMainWindow::keyPressEvent(event);
     }
 }
@@ -511,13 +517,16 @@ BrainBrowserWindow::createActions()
                                 m_toolbar,
                                 SLOT(closeSelectedTab()));
     
-    m_closeWindowAction = 
-    WuQtUtilities::createAction("Close Window",
+    m_closeWithoutConfirmationFlag = false;
+    m_closeWindowActionConfirmTitle  = "Close Window...";
+    m_closeWindowActionNoConfirmTitle = "Close Window";
+    m_closeWindowAction =
+    WuQtUtilities::createAction(m_closeWindowActionConfirmTitle,
                                 "Close the window",
                                 Qt::CTRL + Qt::SHIFT + Qt::Key_W,
                                 this,
                                 this,
-                                SLOT(close()));
+                                SLOT(processCloseWindow()));
     
     m_captureImageAction =
     WuQtUtilities::createAction("Capture Image...",
@@ -862,7 +871,11 @@ BrainBrowserWindow::createMenuFile()
     menu->addSeparator();
     menu->addAction(m_openFileAction);
     menu->addAction(m_openLocationAction);
-    m_recentSpecFileMenu = menu->addMenu("Open Recent Spec File");
+    
+    m_recentSpecFileMenuOpenConfirmTitle = "Open Recent Spec File";
+    m_recentSpecFileMenuLoadNoConfirmTitle = "Load All Files in Recent Spec File";
+
+    m_recentSpecFileMenu = menu->addMenu(m_recentSpecFileMenuOpenConfirmTitle);
     QObject::connect(m_recentSpecFileMenu, SIGNAL(aboutToShow()),
                      this, SLOT(processRecentSpecFileMenuAboutToBeDisplayed()));
     QObject::connect(m_recentSpecFileMenu, SIGNAL(triggered(QAction*)),
@@ -944,7 +957,52 @@ BrainBrowserWindow::processOverlayVerticalToolBoxVisibilityChanged(bool visible)
 void 
 BrainBrowserWindow::processFileMenuAboutToShow()
 {
+    if (isMacOptionKeyDown()) {
+        m_closeWindowAction->setText(m_closeWindowActionNoConfirmTitle);
+        m_recentSpecFileMenu->setTitle(m_recentSpecFileMenuLoadNoConfirmTitle);
+    }
+    else {
+        m_closeWindowAction->setText(m_closeWindowActionConfirmTitle);
+        m_recentSpecFileMenu->setTitle(m_recentSpecFileMenuOpenConfirmTitle);
+    }
 }
+
+void
+BrainBrowserWindow::processCloseWindow()
+{
+    if (m_closeWindowAction->text() == m_closeWindowActionConfirmTitle) {
+        /*
+         * When confirming, just use close slot and it will result
+         * in confirmation dialog being displayed.
+         */
+        m_closeWithoutConfirmationFlag = false;
+        close();
+    }
+    else if (m_closeWindowAction->text() == m_closeWindowActionNoConfirmTitle) {
+        m_closeWithoutConfirmationFlag = true;
+        close();
+    }
+    else {
+        CaretAssert(0);
+    }
+}
+
+/**
+ * @return Is the Option Key down on a Mac.
+ * Always returns false if not a Mac.
+ */
+bool
+BrainBrowserWindow::isMacOptionKeyDown() const
+{
+    bool keyDown = false;
+    
+#ifdef CARET_OS_MACOSX
+    keyDown = (QApplication::queryKeyboardModifiers() == Qt::AltModifier);
+#endif  // CARET_OS_MACOSX
+    
+    return keyDown;
+}
+
 
 /**
  * Called when Open Recent Spec File Menu is about to be displayed
@@ -1017,16 +1075,22 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
         try {
             specFile.readFile(specFileName);
             
-            if (GuiManager::get()->processShowOpenSpecFileDialog(&specFile,
-                                              this)) {
+            if (m_recentSpecFileMenu->title() == m_recentSpecFileMenuOpenConfirmTitle) {
+                if (GuiManager::get()->processShowOpenSpecFileDialog(&specFile,
+                                                                     this)) {
+                    m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+                }
+            }
+            else if (m_recentSpecFileMenu->title() == m_recentSpecFileMenuLoadNoConfirmTitle) {
+                std::vector<AString> fileNamesToLoad;
+                fileNamesToLoad.push_back(specFileName);
+                loadFilesFromCommandLine(fileNamesToLoad,
+                                         BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
                 m_toolbar->addDefaultTabsAfterLoadingSpecFile();
             }
-//            Brain* brain = GuiManager::get()->getBrain();
-//            if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
-//                                                                &specFile,
-//                                                                this)) {
-//                m_toolbar->addDefaultTabsAfterLoadingSpecFile();
-//            }            
+            else {
+                CaretAssert(0);
+            }
         }
         catch (const DataFileException& e) {
             //errorMessages += e.whatString();
