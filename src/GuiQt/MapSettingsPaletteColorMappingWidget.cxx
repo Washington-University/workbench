@@ -1450,7 +1450,7 @@ MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statist
      * Remove data that is not displayed
      */
     bool isZeroIncluded = true;
-    const Histogram* ret;
+    const Histogram* ret = NULL;
     if (matchFlag) {
         isZeroIncluded = this->displayModeZeroCheckBox->isChecked();
         
