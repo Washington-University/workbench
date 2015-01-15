@@ -97,6 +97,10 @@ namespace caret {
         
         void menuReloadFileTriggered();
         
+        void menuCopyFileNameToClipBoard();
+        
+        void menuCopyMapNameToClipBoard();
+        
         void menuConstructionAboutToShow();
         
     private:

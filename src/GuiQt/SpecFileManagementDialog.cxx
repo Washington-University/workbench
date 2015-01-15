@@ -1972,7 +1972,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
     m_filesTableWidget->setRangeSelected(QTableWidgetSelectionRange(rowIndex, m_COLUMN_OPTIONS_TOOLBUTTON,
                                                                     rowIndex, m_COLUMN_OPTIONS_TOOLBUTTON), false);
     
-    const AString copyPathText("Copy Path and Filename to Clipboard");
+    const AString copyPathText("Copy Path and File Name to Clipboard");
     
     if (rowIndex == m_specFileTableRowIndex) {
         QMenu menu;

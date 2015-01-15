@@ -20,7 +20,9 @@
 /*LICENSE_END*/
 
 #include <QAction>
+#include <QApplication>
 #include <QCheckBox>
+#include <QClipboard>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFrame>
@@ -812,6 +814,16 @@ OverlayViewController::createConstructionMenu(QWidget* parent)
                                                      this,
                                                      SLOT(menuReloadFileTriggered()));
     
+    menu->addSeparator();
+    
+    menu->addAction("Copy Path and File Name to Clipboard",
+                    this,
+                    SLOT(menuCopyFileNameToClipBoard()));
+    
+    menu->addAction("Copy Map Name to Clipboard",
+                    this,
+                    SLOT(menuCopyMapNameToClipBoard()));
+    
     return menu;
     
 }
@@ -887,6 +899,47 @@ void
 OverlayViewController::menuMoveOverlayUpTriggered()
 {
     emit requestMoveOverlayUp(m_overlayIndex);
+}
+
+/**
+ * Copy the file name to the clip board.
+ */
+void
+OverlayViewController::menuCopyFileNameToClipBoard()
+{
+    if (this->overlay != NULL) {
+        CaretMappableDataFile* caretDataFile = NULL;
+        int32_t mapIndex = -1;
+        this->overlay->getSelectionData(caretDataFile,
+                                        mapIndex);
+        
+        if (caretDataFile != NULL) {
+            QApplication::clipboard()->setText(caretDataFile->getFileName().trimmed(),
+                                               QClipboard::Clipboard);
+        }
+    }
+}
+
+/**
+ * Copy the map name to the clip board.
+ */
+void
+OverlayViewController::menuCopyMapNameToClipBoard()
+{
+    if (this->overlay != NULL) {
+        CaretMappableDataFile* caretDataFile = NULL;
+        int32_t mapIndex = -1;
+        this->overlay->getSelectionData(caretDataFile,
+                                        mapIndex);
+        
+        if (caretDataFile != NULL) {
+            if ((mapIndex >= 0)
+                && (mapIndex < caretDataFile->getNumberOfMaps())) {
+                QApplication::clipboard()->setText(caretDataFile->getMapName(mapIndex).trimmed(),
+                                                   QClipboard::Clipboard);
+            }
+        }
+    }
 }
 
 /**
