@@ -29,6 +29,7 @@
 #include "Vector3D.h"
 #include "VolumeFile.h"
 
+#include <cstdlib>
 #include <map>
 
 using namespace caret;
@@ -75,6 +76,8 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     volumeAllOpt->addVolumeOutputParameter(1, "volume-out", "the output volume");
     OptionalParameter* volumeAllRoiOpt = volumeAllOpt->createOptionalParameter(2, "-roi", "also output the roi of which voxels have data");
     volumeAllRoiOpt->addVolumeOutputParameter(1, "roi-out", "the roi output volume");
+    OptionalParameter* volumeAllLabelOpt = volumeAllOpt->createOptionalParameter(4, "-label", "output a volume label file indicating the location of structures");
+    volumeAllLabelOpt->addVolumeOutputParameter(1, "label-out", "the label output volume");
     volumeAllOpt->createOptionalParameter(3, "-crop", "crop volume to the size of the data rather than using the original volume size");
     
     AString helpText = AString("You must specify -metric, -volume-all, -volume, or -label for this command to do anything.  ") +
@@ -174,8 +177,14 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
             roiOut = volumeAllRoiOpt->getOutputVolume(1);
         }
         bool cropVol = volumeAllOpt->getOptionalParameter(3)->m_present;
+        VolumeFile* labelOut = NULL;
+        OptionalParameter* volumeAllLabelOpt = volumeAllOpt->getOptionalParameter(4);
+        if (volumeAllLabelOpt->m_present)
+        {
+            labelOut = volumeAllLabelOpt->getOutputVolume(1);
+        }
         int64_t offset[3];
-        AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, volOut, offset, roiOut, cropVol);
+        AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, volOut, offset, roiOut, cropVol, labelOut);
     }
 }
 
@@ -474,7 +483,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
 }
 
 AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir, VolumeFile* volOut, int64_t offsetOut[3],
-                                               VolumeFile* roiOut, const bool& cropVol): AbstractAlgorithm(myProgObj)
+                                               VolumeFile* roiOut, const bool& cropVol, VolumeFile* labelOut): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
@@ -485,9 +494,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
     const int64_t* myDims = myBrainMap.getVolumeSpace().getDims();
     vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
-    vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getFullVolumeMap();
     vector<int64_t> newdims;
-    int64_t numVoxels = (int64_t)myMap.size();
     if (cropVol)
     {
         newdims.resize(3);
@@ -500,11 +507,31 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         offsetOut[1] = 0;
         offsetOut[2] = 0;
     }
+    if (labelOut != NULL)
+    {
+        labelOut->reinitialize(newdims, mySform, 1, SubvolumeAttributes::LABEL);
+        labelOut->setValueAllVoxels(0.0f);//unlabeled key defaults to 0
+        vector<StructureEnum::Enum> volStructs = myBrainMap.getVolumeStructureList();
+        GiftiLabelTable structureTable;
+        for (int i = 0; i < (int)volStructs.size(); ++i)
+        {
+            const int32_t structKey = structureTable.addLabel(StructureEnum::toName(volStructs[i]), rand() & 255, rand() & 255, rand() & 255, 255);
+            const vector<int64_t>& voxelList = myBrainMap.getVoxelList(volStructs[i]);
+            int64_t structVoxels = (int64_t)voxelList.size();
+            for (int64_t j = 0; j < structVoxels; j += 3)
+            {
+                labelOut->setValue(structKey, voxelList[j] - offsetOut[0], voxelList[j + 1] - offsetOut[1], voxelList[j + 2] - offsetOut[2]);
+            }
+        }
+        *(labelOut->getMapLabelTable(0)) = structureTable;
+    }
     if (roiOut != NULL)
     {
         roiOut->reinitialize(newdims, mySform);
         roiOut->setValueAllVoxels(0.0f);
     }
+    vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getFullVolumeMap();
+    int64_t numVoxels = (int64_t)myMap.size();
     CaretArray<float> rowScratch(rowSize);
     if (myDir == CiftiXML::ALONG_COLUMN)
     {

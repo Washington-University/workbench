@@ -36,18 +36,19 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
-                                               const StructureEnum::Enum& myStruct, MetricFile* metricOut, MetricFile* roiOut = NULL);
+                               const StructureEnum::Enum& myStruct, MetricFile* metricOut, MetricFile* roiOut = NULL);
         AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
-                                               const StructureEnum::Enum& myStruct, LabelFile* labelOut, MetricFile* roiOut = NULL);
+                               const StructureEnum::Enum& myStruct, LabelFile* labelOut, MetricFile* roiOut = NULL);
         AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
-                                               const StructureEnum::Enum& myStruct, VolumeFile* volOut, int64_t offsetOut[3],
-                                               VolumeFile* roiOut = NULL, const bool& cropVol = true);
+                               const StructureEnum::Enum& myStruct, VolumeFile* volOut, int64_t offsetOut[3],
+                               VolumeFile* roiOut = NULL, const bool& cropVol = true);
         AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
-                                               VolumeFile* volOut, int64_t offsetOut[3], VolumeFile* roiOut = NULL, const bool& cropVol = true);
+                               VolumeFile* volOut, int64_t offsetOut[3], VolumeFile* roiOut = NULL,
+                               const bool& cropVol = true, VolumeFile* labelOut = NULL);
         static void getCroppedVolSpace(const CiftiFile* ciftiIn, const int& myDir, const StructureEnum::Enum& myStruct, int64_t dimsOut[3],
                                        std::vector<std::vector<float> >& sformOut, int64_t offsetOut[3]);
         static void getCroppedVolSpaceAll(const CiftiFile* ciftiIn, const int& myDir, int64_t dimsOut[3],
-                                       std::vector<std::vector<float> >& sformOut, int64_t offsetOut[3]);
+                                          std::vector<std::vector<float> >& sformOut, int64_t offsetOut[3]);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

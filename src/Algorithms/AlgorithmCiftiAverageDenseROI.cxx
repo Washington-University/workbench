@@ -80,7 +80,7 @@ OperationParameters* AlgorithmCiftiAverageDenseROI::getParameters()
     
     ret->setHelpText(
         AString("Averages rows for each map of the ROI(s), across all files.  ") +
-        "ROIs are always treated as weighting functions, including negative values.  " +
+        "ROI maps are treated as weighting functions, including negative values.  " +
         "For efficiency, ensure that everything that is not intended to be used is zero in the ROI map.  " +
         "If -cifti-roi is specified, -left-roi, -right-roi, -cerebellum-roi, and -vol-roi must not be specified.  " +
         "If multiple non-cifti ROI files are specified, they must have the same number of columns."
@@ -308,7 +308,7 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     LevelProgress myProgress(myProgObj);
     int numCifti = (int)ciftiList.size();
     if (numCifti < 1) throw AlgorithmException("no cifti files specified to average");
-    const CiftiXML& baseXML = ciftiList[0]->getCiftiXML(), roiXML = ciftiROI->getCiftiXML();
+    const CiftiXML& baseXML = ciftiList[0]->getCiftiXML(), &roiXML = ciftiROI->getCiftiXML();
     if (baseXML.getNumberOfDimensions() != 2 || roiXML.getNumberOfDimensions() != 2) throw AlgorithmException("this operation currently only supports 2D cifti");
     if (baseXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("inputs must have brain models along columns");
     const CiftiBrainModelsMap& baseBrainModels = baseXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
