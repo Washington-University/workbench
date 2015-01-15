@@ -213,9 +213,102 @@ Palette::getMinMax(float& minOut, float& maxOut) const
     }    
 }
 
+///**
+// * Get the RGBA (4) colors in the range of zero to one.
+// * 
+// * @param scalar - scalar for which color is sought.
+// * @param interpolateColorFlag - interpolate the color between scalars.
+// * @return Array of 4 containing color components ranging zero to one.
+// *
+// */
+//void
+//Palette::getPaletteColor(
+//                   const float scalarIn,
+//                   const bool interpolateColorFlagIn,
+//                   float rgbaOut[4]) const
+//{
+//    rgbaOut[0] = 0.0f;
+//    rgbaOut[1] = 0.0f;
+//    rgbaOut[2] = 0.0f;
+//    rgbaOut[3] = 1.0f;
+//    
+//    bool interpolateColorFlag = interpolateColorFlagIn;
+//    
+//    float scalar = scalarIn;
+//    if (scalar < -1.0) scalar = -1.0;
+//    if (scalar >  1.0) scalar = 1.0;
+//    
+//    int numScalarColors = this->getNumberOfScalarsAndColors();
+//    if (numScalarColors > 0) {
+//        
+//        int paletteIndex = -1;
+//        if (numScalarColors == 1) {
+//            paletteIndex = 0;
+//            interpolateColorFlag = false;
+//        }
+//        else {
+//            if (scalar >= this->getScalarAndColor(0)->getScalar()) {
+//                paletteIndex = 0;
+//                interpolateColorFlag = false;
+//            }
+//            else if (scalar <=
+//                     this->getScalarAndColor(numScalarColors - 1)->getScalar()) {
+//                paletteIndex = numScalarColors - 1;
+//                interpolateColorFlag = false;
+//            }
+//            else {
+//                for (int i = 1; i < numScalarColors; i++) {
+//                    const PaletteScalarAndColor* psac = this->getScalarAndColor(i);
+//                    if (scalar > psac->getScalar()) {
+//                        paletteIndex = i - 1;
+//                        break;
+//                    }
+//                }
+//                
+//                /*
+//                 * Always interpolate if there are only two colors
+//                 */
+//                if (numScalarColors == 2) {
+//                    interpolateColorFlag = true;
+//                }
+//            }
+//        }
+//        if (paletteIndex >= 0) {
+//            const PaletteScalarAndColor* psac = this->getScalarAndColor(paletteIndex);
+//            psac->getColor(rgbaOut);
+//            if (interpolateColorFlag &&
+//                (paletteIndex < (numScalarColors - 1))) {
+//                const PaletteScalarAndColor* psacBelow =
+//                    this->getScalarAndColor(paletteIndex + 1);
+//                float totalDiff = psac->getScalar() - psacBelow->getScalar();
+//                if (totalDiff != 0.0) {
+//                    float offset = scalar - psacBelow->getScalar();
+//                    float percentAbove = offset / totalDiff;
+//                    float percentBelow = 1.0f - percentAbove;
+//                    if ( ! psacBelow->isNoneColor()) {
+//                        const float* rgbaAbove = psac->getColor();
+//                        const float* rgbaBelow = psacBelow->getColor();
+//                        
+//                        rgbaOut[0] = (percentAbove * rgbaAbove[0]
+//                                      + percentBelow * rgbaBelow[0]);
+//                        rgbaOut[1] = (percentAbove * rgbaAbove[1]
+//                                      + percentBelow * rgbaBelow[1]);
+//                        rgbaOut[2] = (percentAbove * rgbaAbove[2]
+//                                      + percentBelow * rgbaBelow[2]);
+//                    }
+//                }
+//            }
+//            else if (psac->isNoneColor()) {
+//                rgbaOut[3] = 0.0f;
+//            }
+//        }
+//    }
+//}
+
+
 /**
  * Get the RGBA (4) colors in the range of zero to one.
- * 
+ *
  * @param scalar - scalar for which color is sought.
  * @param interpolateColorFlag - interpolate the color between scalars.
  * @return Array of 4 containing color components ranging zero to one.
@@ -223,10 +316,32 @@ Palette::getMinMax(float& minOut, float& maxOut) const
  */
 void
 Palette::getPaletteColor(
-                   const float scalarIn,
-                   const bool interpolateColorFlagIn,
-                   float rgbaOut[4]) const
+                         const float scalarIn,
+                         const bool interpolateColorFlagIn,
+                         float rgbaOut[4]) const
 {
+    /*
+     * When the number of colors in a palette is small, the
+     * binary search algorithm may be slower than the linear
+     * algorithm.  It is moderately faster for large palettes
+     * such as those from FSL with 256 colors.
+     *
+     * The linear search could be improved by starting at the bottom
+     * when the data value is negative.
+     *
+     * N   Log2(N)
+     * 1     0
+     * 2     1
+     * 3     1.6
+     * 4     2
+     * 5     2.3
+     * 6     2.6
+     * 7     2.8
+     * 8     3
+     * 9     3.2
+     */
+    const bool doBinarySearchFlag = true;
+    
     rgbaOut[0] = 0.0f;
     rgbaOut[1] = 0.0f;
     rgbaOut[2] = 0.0f;
@@ -241,36 +356,91 @@ Palette::getPaletteColor(
     int numScalarColors = this->getNumberOfScalarsAndColors();
     if (numScalarColors > 0) {
         
-        int paletteIndex = -1;
+        int32_t highDataIndex = 0;
+        int32_t lowDataIndex  = numScalarColors - 1;
+        int32_t paletteIndex = -1;
+        
         if (numScalarColors == 1) {
             paletteIndex = 0;
             interpolateColorFlag = false;
         }
         else {
-            if (scalar >= this->getScalarAndColor(0)->getScalar()) {
+            if (scalar >= this->getScalarAndColor(highDataIndex)->getScalar()) {
                 paletteIndex = 0;
                 interpolateColorFlag = false;
             }
-            else if (scalar <=
-                     this->getScalarAndColor(numScalarColors - 1)->getScalar()) {
+            else if (scalar <= this->getScalarAndColor(lowDataIndex)->getScalar()) {
                 paletteIndex = numScalarColors - 1;
                 interpolateColorFlag = false;
             }
+            else if (numScalarColors == 2) {
+                paletteIndex = 0;
+                interpolateColorFlag = true;
+            }
             else {
-                for (int i = 1; i < numScalarColors; i++) {
-                    const PaletteScalarAndColor* psac = this->getScalarAndColor(i);
-                    if (scalar > psac->getScalar()) {
-                        paletteIndex = i - 1;
-                        break;
+                if (doBinarySearchFlag) {
+                    /*
+                     * Binary Search
+                     * NOTE: The palette orders the scalars in DESCENDING ORDER
+                     */
+                    int32_t binaryPaletteIndex = -1;
+                    const int32_t maximumIndex = numScalarColors - 1;
+                    
+                    bool loopFlag = true;
+                    while (loopFlag) {
+                        int32_t midIndex = (lowDataIndex + highDataIndex) / 2;
+                        if (midIndex <= 0) {
+                            binaryPaletteIndex = 0;
+                            loopFlag = false;
+                        }
+                        else if (midIndex >= maximumIndex) {
+                            binaryPaletteIndex = maximumIndex;
+                            loopFlag = false;
+                        }
+                        else {
+                            const float midScalar = this->getScalarAndColor(midIndex)->getScalar();
+                            if (scalar <= midScalar) {
+                                const float nextScalar = this->getScalarAndColor(midIndex + 1)->getScalar();
+                                if (scalar > nextScalar) {
+                                    binaryPaletteIndex = midIndex;
+                                    loopFlag = false;
+                                }
+                                else {
+                                    highDataIndex = midIndex;
+                                }
+                            }
+                            else {
+                                lowDataIndex = midIndex;
+                            }
+                        }
+                    }
+                    
+                    paletteIndex = binaryPaletteIndex;
+                }
+                else {
+                    /*
+                     * Linear Search
+                     */
+                    for (int32_t i = 1; i < numScalarColors; i++) {
+                        const PaletteScalarAndColor* psac = this->getScalarAndColor(i);
+                        if (scalar > psac->getScalar()) {
+                            paletteIndex = i - 1;
+                            break;
+                        }
                     }
                 }
                 
-                /*
-                 * Always interpolate if there are only two colors
-                 */
-                if (numScalarColors == 2) {
-                    interpolateColorFlag = true;
-                }
+                //                    if (paletteIndex != binaryPaletteIndex) {
+                //                        std::cout << "FAILED palette indices correct="
+                //                        << paletteIndex << " binary-index=" << binaryPaletteIndex << std::endl;
+                //                    }
+                
+//                /*
+//                 * Always interpolate if there are only two colors
+//                 */
+//                if (numScalarColors == 2) {
+//                    interpolateColorFlag = true;
+//                }
             }
         }
         if (paletteIndex >= 0) {
@@ -278,8 +448,7 @@ Palette::getPaletteColor(
             psac->getColor(rgbaOut);
             if (interpolateColorFlag &&
                 (paletteIndex < (numScalarColors - 1))) {
-                const PaletteScalarAndColor* psacBelow =
-                    this->getScalarAndColor(paletteIndex + 1);
+                const PaletteScalarAndColor* psacBelow = this->getScalarAndColor(paletteIndex + 1);
                 float totalDiff = psac->getScalar() - psacBelow->getScalar();
                 if (totalDiff != 0.0) {
                     float offset = scalar - psacBelow->getScalar();
