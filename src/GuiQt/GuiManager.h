@@ -35,6 +35,7 @@
 
 class QAction;
 class QDialog;
+class QMenu;
 class QWidget;
 class MovieDialog;
 
@@ -171,6 +172,11 @@ namespace caret {
         void helpDialogWasClosed();
         void sceneDialogWasClosed();
         
+//        void macDockWindowMenuAboutToShow();
+//        void macDockWindowMenuTriggered(QAction*);
+        
+        void macDockMenuTriggered(QAction*);
+        
     private:
         GuiManager(QObject* parent = 0);
         
@@ -198,6 +204,16 @@ namespace caret {
         void addNonModalDialog(QWidget* dialog);
         
         void addParentLessNonModalDialog(QWidget* dialog);
+        
+        void createMacDockMenu();
+        
+        bool m_macDockMenuHasBeenCreatedFlag;
+        
+//        QMenu* m_macDockMenuWindowMenu;
+//        
+//        std::vector<QAction*> m_macDocMenuWindowActions;
+        
+        QAction* m_macDockMenuNewWindowAction;
         
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
