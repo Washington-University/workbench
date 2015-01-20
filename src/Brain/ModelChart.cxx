@@ -1042,8 +1042,12 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                     chartData->restoreFromScene(sceneAttributes, chartDataClass);
                     
                     restoredChartData.push_back(QSharedPointer<ChartData>(chartData));
+                    
+//                    const ChartDataSource* chartDataSource = chartData->getChartDataSource();
+//                    if (chartDataSource != NULL) {
+//                        std::cout << "RESTORING: " << qPrintable(chartDataSource->getDescription()) << std::endl;
+//                    }
                 }
-                
             }
         }
     }
