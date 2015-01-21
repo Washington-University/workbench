@@ -28,12 +28,17 @@
 #include "EventListenerInterface.h"
 
 class QCheckBox;
+class QGridLayout;
+class QLabel;
+class QMenu;
+class QSignalMapper;
 class QSpinBox;
-class QTableWidget;
+class QToolButton;
 
 
 namespace caret {
 
+    class CaretColorEnumComboBox;
     class ChartModel;
     
     class ChartHistoryViewController : public QWidget, public EventListenerInterface {
@@ -65,7 +70,11 @@ namespace caret {
         
         void maximumDisplayedSpinBoxValueChanged(int);
         
-        void chartDataTableCellChanged(int, int);
+        void chartDataCheckBoxSignalMapped(int);
+        
+        void chartDataColorComboBoxSignalMapped(int);
+        
+        void chartDataConstructionToolButtonSignalMapped(int);
         
     private:
         // ADD_NEW_MEMBERS_HERE
@@ -77,32 +86,38 @@ namespace caret {
         void getSelectedChartModelAndTab(ChartModel* &chartModelOut,
                                          int32_t& tabIndexOut);
         
+        const Qt::Orientation m_orientation;
+        
         const int32_t m_browserWindowIndex;
         
         QCheckBox* m_averageCheckBox;
         
-        QTableWidget* m_chartDataTableWidget;
-        
         QSpinBox* m_maximumDisplayedSpinBox;
         
-        static const int32_t COLUMN_CHART_DATA_CHECKBOX;
-        static const int32_t COLUMN_CHART_DATA_NAME;
-        static const int32_t COLUMN_CHART_DATA_COLOR;
-        static const int32_t COLUMN_COUNT;
+        QGridLayout* m_chartDataGridLayout;
         
-//        QGridLayout* m_gridLayout;
-//        
-//        QSignalMapper* m_signalMapperFileEnableCheckBox;
-//        
-//        static int COLUMN_ENABLE_CHECKBOX;
-//        static int COLUMN_NAME_LINE_EDIT;
+        std::vector<QCheckBox*> m_chartDataCheckBoxes;
+        std::vector<QToolButton*> m_chartDataContructionToolButtons;
+        std::vector<CaretColorEnumComboBox*> m_chartDataColorComboBoxes;
+        std::vector<QLabel*> m_chartDataNameLabels;
+        
+        QSignalMapper* m_chartDataCheckBoxesSignalMapper;
+        QSignalMapper* m_chartDataColorComboBoxesSignalMapper;
+        QSignalMapper* m_chartDataColorConstructionButtonSignalMapper;
+        
+        static const int32_t COLUMN_CHART_DATA_CHECKBOX;
+        static const int32_t COLUMN_CHART_DATA_CONSTRUCTION;
+        static const int32_t COLUMN_CHART_DATA_COLOR;
+        static const int32_t COLUMN_CHART_DATA_NAME;
+        static const int32_t COLUMN_COUNT;
     };
     
 #ifdef __CHART_HISTORY_VIEW_CONTROLLER_DECLARE__
-    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_CHECKBOX = 0;
-    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_COLOR    = 1;
-    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_NAME     = 2;
-    const int32_t ChartHistoryViewController::COLUMN_COUNT               = 3;
+    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_CHECKBOX     = 0;
+    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_CONSTRUCTION = 1;
+    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_COLOR        = 2;
+    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_NAME         = 3;
+    const int32_t ChartHistoryViewController::COLUMN_COUNT                   = 4;
 #endif // __CHART_HISTORY_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

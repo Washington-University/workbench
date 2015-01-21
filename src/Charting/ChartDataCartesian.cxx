@@ -382,6 +382,18 @@ ChartDataCartesian::getColor() const
 }
 
 /**
+ * Set the color for the chart.
+ *
+ * @param color
+ *    New color for chart.
+ */
+void
+ChartDataCartesian::setColor(const CaretColorEnum::Enum color)
+{
+    m_color = color;
+}
+
+/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes

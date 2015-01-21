@@ -60,6 +60,8 @@ namespace caret {
         
         CaretColorEnum::Enum getColor() const;
         
+        void setColor(const CaretColorEnum::Enum color);
+        
         float getTimeStartInSecondsAxisX() const;
         
         void setTimeStartInSecondsAxisX(const float timeStart);

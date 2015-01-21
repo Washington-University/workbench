@@ -19,15 +19,16 @@
  */
 /*LICENSE_END*/
 
-#include <QBrush>
-#include <QHBoxLayout>
-#include <QHeaderView>
-#include <QLabel>
-#include <QPushButton>
+#include <QAction>
 #include <QCheckBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QMenu>
+#include <QPushButton>
+#include <QSignalMapper>
 #include <QSpinBox>
-#include <QTableWidget>
-#include <QTableWidgetItem>
+#include <QToolButton>
+
 
 #define __CHART_HISTORY_VIEW_CONTROLLER_DECLARE__
 #include "ChartHistoryViewController.h"
@@ -36,6 +37,7 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretColorEnumComboBox.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
 #include "ChartModelDataSeries.h"
@@ -65,6 +67,7 @@ ChartHistoryViewController::ChartHistoryViewController(const Qt::Orientation ori
                                                        const int32_t browserWindowIndex,
                                                        QWidget* parent)
 : QWidget(parent),
+m_orientation(orientation),
 m_browserWindowIndex(browserWindowIndex)
 {
     m_averageCheckBox = new QCheckBox("Show Average");
@@ -85,7 +88,7 @@ m_browserWindowIndex(browserWindowIndex)
                                          "Remove all charts of the selected type in this tab");
     
     QLabel* maximumDisplayedLabel = new QLabel("Show last ");
-    m_maximumDisplayedSpinBox = new QSpinBox();
+    m_maximumDisplayedSpinBox = new QSpinBox(); 
     m_maximumDisplayedSpinBox->setMinimum(1);
     m_maximumDisplayedSpinBox->setMaximum(1000);
     QObject::connect(m_maximumDisplayedSpinBox, SIGNAL(valueChanged(int)),
@@ -98,14 +101,37 @@ m_browserWindowIndex(browserWindowIndex)
                                          "Maximum number of charts of the selected type "
                                          "displayed in this tab");
     
-    m_chartDataTableWidget = new QTableWidget();
-    m_chartDataTableWidget->horizontalHeader()->hide();
-    m_chartDataTableWidget->verticalHeader()->hide();
-    m_chartDataTableWidget->setGridStyle(Qt::NoPen);
-    m_chartDataTableWidget->setColumnCount(COLUMN_COUNT);
-
-    QObject::connect(m_chartDataTableWidget, SIGNAL(cellChanged(int,int)),
-                     this, SLOT(chartDataTableCellChanged(int,int)));
+    m_chartDataCheckBoxesSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_chartDataCheckBoxesSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(chartDataCheckBoxSignalMapped(int)));
+    
+    m_chartDataColorComboBoxesSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_chartDataColorComboBoxesSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(chartDataColorComboBoxSignalMapped(int)));
+    
+    m_chartDataColorConstructionButtonSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_chartDataColorConstructionButtonSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(chartDataConstructionToolButtonSignalMapped(int)));
+    
+    QWidget* chartDataWidget = new QWidget();
+    m_chartDataGridLayout = new QGridLayout(chartDataWidget);
+    m_chartDataGridLayout->setHorizontalSpacing(6);
+    m_chartDataGridLayout->setVerticalSpacing(2);
+    m_chartDataGridLayout->setContentsMargins(0, 0, 0, 0);
+    m_chartDataGridLayout->setColumnStretch(COLUMN_CHART_DATA_CHECKBOX,     0);
+    m_chartDataGridLayout->setColumnStretch(COLUMN_CHART_DATA_CONSTRUCTION, 0);
+    m_chartDataGridLayout->setColumnStretch(COLUMN_CHART_DATA_COLOR,        0);
+    m_chartDataGridLayout->setColumnStretch(COLUMN_CHART_DATA_NAME,       100);
+    
+    m_chartDataGridLayout->addWidget(new QLabel("On"),
+                                     0, COLUMN_CHART_DATA_CHECKBOX,
+                                     Qt::AlignHCenter);
+    m_chartDataGridLayout->addWidget(new QLabel("Move"),
+                                     0, COLUMN_CHART_DATA_CONSTRUCTION,
+                                     Qt::AlignHCenter);
+    m_chartDataGridLayout->addWidget(new QLabel("Color"),
+                                     0, COLUMN_CHART_DATA_COLOR,
+                                     Qt::AlignHCenter);
     
     QVBoxLayout* leftOrTopLayout = new QVBoxLayout();
     leftOrTopLayout->addWidget(m_averageCheckBox);
@@ -114,14 +140,19 @@ m_browserWindowIndex(browserWindowIndex)
     leftOrTopLayout->addStretch();
     
     QVBoxLayout* rightOrBottomLayout = new QVBoxLayout();
-    rightOrBottomLayout->addWidget(m_chartDataTableWidget);
+    rightOrBottomLayout->addWidget(chartDataWidget);
     rightOrBottomLayout->addStretch();
     
-    switch (orientation) {
+    switch (m_orientation) {
         case Qt::Horizontal:
         {
+            m_chartDataGridLayout->addWidget(new QLabel("Name"),
+                                             0, COLUMN_CHART_DATA_NAME,
+                                             Qt::AlignHCenter);
+            
             QHBoxLayout* layout = new QHBoxLayout(this);
             layout->addLayout(leftOrTopLayout, 0);
+            layout->addWidget(WuQtUtilities::createVerticalLineWidget());
             layout->addLayout(rightOrBottomLayout, 100);
             layout->addStretch();
         }
@@ -146,49 +177,6 @@ m_browserWindowIndex(browserWindowIndex)
 ChartHistoryViewController::~ChartHistoryViewController()
 {
     EventManager::get()->removeAllEventsFromListener(this);
-}
-
-/**
- * Called when the content of a cell changes.
- * Update corresponding item in the spec file.
- *
- * @param rowIndex
- *    The row of the cell that was clicked.
- * @param columnIndex
- *    The columnof the cell that was clicked.
- */
-void
-ChartHistoryViewController::chartDataTableCellChanged(int rowIndex, int columnIndex)
-{
-    QTableWidgetItem* item = m_chartDataTableWidget->item(rowIndex, columnIndex);
-    if (item != NULL) {
-        if (columnIndex == COLUMN_CHART_DATA_CHECKBOX) {
-            bool isSelected = WuQtUtilities::checkStateToBool(item->checkState());
-            
-            ChartModel* chartModel = NULL;
-            int32_t tabIndex = -1;
-            getSelectedChartModelAndTab(chartModel,
-                                        tabIndex);
-            if (chartModel == NULL) {
-                return;
-            }
-            
-            switch (chartModel->getChartSelectionMode()) {
-                case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
-                    break;
-                case ChartSelectionModeEnum::CHART_SELECTION_MODE_SINGLE:
-                    isSelected = true;
-                    break;
-            }
-            
-            std::vector<ChartData*> chartDataVector = chartModel->getAllChartDatas();
-            CaretAssertVectorIndex(chartDataVector, rowIndex);
-            chartDataVector[rowIndex]->setSelected(tabIndex,
-                                                   isSelected);
-            
-            updateAfterSelectionsChanged();
-        }
-    }
 }
 
 /**
@@ -298,97 +286,118 @@ ChartHistoryViewController::updateHistoryViewController()
     const std::vector<ChartData*> chartDataVector = chartModel->getAllChartDatas();
     const int32_t numData = static_cast<int32_t>(chartDataVector.size());
 
-    m_chartDataTableWidget->setRowCount(numData);
-    
-    /*
-     * Load the table widget
-     */
-    m_chartDataTableWidget->blockSignals(true);
-    for (int32_t i = 0; i < numData; i++) {
-        const ChartData* chartData = chartDataVector[i];
-        
-        const ChartDataSource* dataSource = chartData->getChartDataSource();
-        const AString name = dataSource->getDescription();
-        
-        /*
-         * Update checked status
-         */
-        QTableWidgetItem* checkItem = m_chartDataTableWidget->item(i,
-                                                                   COLUMN_CHART_DATA_CHECKBOX);
-        if (checkItem == NULL) {
-            checkItem = new QTableWidgetItem();
-            checkItem->setFlags(checkItem->flags()
-                                | Qt::ItemIsUserCheckable);
-            m_chartDataTableWidget->setItem(i,
-                                            COLUMN_CHART_DATA_CHECKBOX,
-                                            checkItem);
-        }
-        
-        if (chartData->isSelected(tabIndex)) {
-            checkItem->setCheckState(Qt::Checked);
-        }
-        else {
-            checkItem->setCheckState(Qt::Unchecked);
-        }
-        
-        /*
-         * Update name
-         */
-        QTableWidgetItem* nameItem = m_chartDataTableWidget->item(i,
-                                                                  COLUMN_CHART_DATA_NAME);
-        if (nameItem == NULL) {
+    const int32_t numWidgetRows = static_cast<int32_t>(m_chartDataCheckBoxes.size());
+    const int32_t maxItems = std::max(numData,
+                                      numWidgetRows);
+    for (int32_t i = 0; i < maxItems; i++) {
+        if (i >= static_cast<int32_t>(m_chartDataCheckBoxes.size())) {
             /*
-             * Create name item and do not allow the user 
-             * to edit or select it
+             * Checkbox
              */
-            nameItem = new QTableWidgetItem();
-            nameItem->setFlags(nameItem->flags()
-                                & ( ~ Qt::ItemIsEditable));
-            nameItem->setFlags(nameItem->flags()
-                                & ( ~ Qt::ItemIsSelectable));
-            m_chartDataTableWidget->setItem(i,
-                                            COLUMN_CHART_DATA_NAME,
-                                            nameItem);
-        }
-        nameItem->setText(name);
-        
-        /*
-         * Update color
-         */
-        QTableWidgetItem* colorItem = m_chartDataTableWidget->item(i,
-                                                                   COLUMN_CHART_DATA_COLOR);
-        if (colorItem == NULL) {
+            QCheckBox* checkBox = new QCheckBox(" ");
+            QObject::connect(checkBox, SIGNAL(clicked(bool)),
+                             m_chartDataCheckBoxesSignalMapper, SLOT(map()));
+            m_chartDataCheckBoxesSignalMapper->setMapping(checkBox, i);
+            m_chartDataCheckBoxes.push_back(checkBox);
+
             /*
-             * Create color item and do not allow the user
-             * to edit or select it
+             * Construction Tool Button
              */
-            colorItem = new QTableWidgetItem();
-            colorItem->setFlags(colorItem->flags()
-                               & ( ~ Qt::ItemIsEditable));
-            colorItem->setFlags(colorItem->flags()
-                                & ( ~ Qt::ItemIsSelectable));
-            m_chartDataTableWidget->setItem(i,
-                                            COLUMN_CHART_DATA_COLOR,
-                                            colorItem);
-            colorItem->setText("   ");
+            QIcon constructionIcon;
+            const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
+                                                                       constructionIcon);
+            QToolButton* constructionToolButton = new QToolButton();
+            if (constructionIconValid) {
+                constructionToolButton->setIcon(constructionIcon);
+            }
+            else {
+                constructionToolButton->setText("M");
+            }
+            m_chartDataContructionToolButtons.push_back(constructionToolButton);
+            QObject::connect(constructionToolButton, SIGNAL(clicked()),
+                             m_chartDataColorConstructionButtonSignalMapper, SLOT(map()));
+            m_chartDataColorConstructionButtonSignalMapper->setMapping(constructionToolButton, i);
+            
+            /*
+             * Color
+             */
+            CaretColorEnumComboBox* colorComboBox = new CaretColorEnumComboBox(this);
+            QObject::connect(colorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                             m_chartDataColorComboBoxesSignalMapper, SLOT(map()));
+            m_chartDataColorComboBoxesSignalMapper->setMapping(colorComboBox, i);
+            m_chartDataColorComboBoxes.push_back(colorComboBox);
+            
+            /*
+             * Label
+             */
+            m_chartDataNameLabels.push_back(new QLabel());
+            
+            /*
+             * Layout
+             */
+            const int widgetIndex = static_cast<int>(m_chartDataCheckBoxes.size()) - 1;
+            CaretAssertVectorIndex(m_chartDataCheckBoxes, widgetIndex);
+            
+            const int row = m_chartDataGridLayout->rowCount();
+            m_chartDataGridLayout->addWidget(m_chartDataCheckBoxes[widgetIndex],
+                                             row, COLUMN_CHART_DATA_CHECKBOX);
+            m_chartDataGridLayout->addWidget(constructionToolButton,
+                                             row, COLUMN_CHART_DATA_CONSTRUCTION);
+            m_chartDataGridLayout->addWidget(m_chartDataColorComboBoxes[widgetIndex]->getWidget(),
+                                             row, COLUMN_CHART_DATA_COLOR);
+            switch (m_orientation) {
+                case Qt::Horizontal:
+                {
+                    m_chartDataGridLayout->addWidget(m_chartDataNameLabels[widgetIndex],
+                                                     row, COLUMN_CHART_DATA_NAME);
+                }
+                    break;
+                case Qt::Vertical:
+                {
+                    const int nextRow = m_chartDataGridLayout->rowCount();
+                    m_chartDataGridLayout->addWidget(m_chartDataNameLabels[widgetIndex],
+                                                     nextRow, COLUMN_CHART_DATA_CHECKBOX,
+                                                     1, COLUMN_COUNT,
+                                                     Qt::AlignLeft);
+                }
+                    break;
+            }
         }
         
-        /**
-         * Use the background color from the name's item
-         * as the default color.
-         */
-        QColor chartColor = nameItem->background().color();
-        const ChartDataCartesian* chartDataCartesian = dynamic_cast<const ChartDataCartesian*>(chartData);
-        if (chartDataCartesian != NULL) {
-            const CaretColorEnum::Enum color = chartDataCartesian->getColor();
-            const float* rgb = CaretColorEnum::toRGB(color);
-            chartColor.setRgbF(rgb[0], rgb[1], rgb[2]);
+        CaretAssertVectorIndex(m_chartDataCheckBoxes, i);
+        CaretAssertVectorIndex(m_chartDataContructionToolButtons, i);
+        CaretAssertVectorIndex(m_chartDataColorComboBoxes, i);
+        CaretAssertVectorIndex(m_chartDataNameLabels, i);
+        
+        QCheckBox* checkBox = m_chartDataCheckBoxes[i];
+        QToolButton* constructToolButton = m_chartDataContructionToolButtons[i];
+        CaretColorEnumComboBox* colorComboBox = m_chartDataColorComboBoxes[i];
+        QLabel* nameLabel = m_chartDataNameLabels[i];
+        
+        bool showRowFlag = false;
+        if (i < numData) {
+            showRowFlag = true;
+
+            const ChartData* chartData = chartDataVector[i];
+            const ChartDataCartesian* chartDataCartesian = dynamic_cast<const ChartDataCartesian*>(chartData);
+            const ChartDataSource* dataSource = chartData->getChartDataSource();
+            
+            checkBox->setChecked(chartData->isSelected(tabIndex));
+            if (chartDataCartesian != NULL) {
+                colorComboBox->setSelectedColor(chartDataCartesian->getColor());
+                colorComboBox->getWidget()->setEnabled(true);
+            }
+            else {
+                colorComboBox->getWidget()->setEnabled(false);
+            }
+            nameLabel->setText(dataSource->getDescription());
         }
-        colorItem->setBackground(QBrush(chartColor));
+        
+        checkBox->setVisible(showRowFlag);
+        constructToolButton->setVisible(showRowFlag);
+        colorComboBox->getWidget()->setVisible(showRowFlag);
+        nameLabel->setVisible(showRowFlag);
     }
-    m_chartDataTableWidget->blockSignals(false);
-    
-    m_chartDataTableWidget->resizeColumnsToContents();
     
     /*
      * Update averaging.
@@ -449,6 +458,114 @@ ChartHistoryViewController::getSelectedChartModelAndTab(ChartModel* &chartModelO
     }
 }
 
+/**
+ * Called when a check box is changed.
+ *
+ * @param indx
+ *    Index of checkbox.
+ */
+void
+ChartHistoryViewController::chartDataCheckBoxSignalMapped(int indx)
+{
+    CaretAssertVectorIndex(m_chartDataCheckBoxes, indx);
+    ChartModel* chartModel = NULL;
+    int32_t tabIndex = -1;
+    getSelectedChartModelAndTab(chartModel,
+                                tabIndex);
+    if (chartModel == NULL) {
+        return;
+    }
+    
+    std::vector<ChartData*> chartDataVector = chartModel->getAllChartDatas();
+    CaretAssertVectorIndex(chartDataVector, indx);
+    chartDataVector[indx]->setSelected(tabIndex,
+                                       m_chartDataCheckBoxes[indx]->isChecked());
+    
+    updateAfterSelectionsChanged();
+}
+
+/**
+ * Called when a check box is changed.
+ *
+ * @param indx
+ *    Index of checkbox.
+ */
+void
+ChartHistoryViewController::chartDataColorComboBoxSignalMapped(int indx)
+{
+    CaretAssertVectorIndex(m_chartDataColorComboBoxes, indx);
+    ChartModel* chartModel = NULL;
+    int32_t tabIndex = -1;
+    getSelectedChartModelAndTab(chartModel,
+                                tabIndex);
+    if (chartModel == NULL) {
+        return;
+    }
+    
+    std::vector<ChartData*> chartDataVector = chartModel->getAllChartDatas();
+    CaretAssertVectorIndex(chartDataVector, indx);
+    ChartDataCartesian* chartDataCartesian = dynamic_cast<ChartDataCartesian*>(chartDataVector[indx]);
+    if (chartDataCartesian != NULL) {
+        chartDataCartesian->setColor(m_chartDataColorComboBoxes[indx]->getSelectedColor());
+    }
+    
+    updateAfterSelectionsChanged();
+}
+
+/**
+ * Called when construction tool button is clicked
+ *
+ * @param indx
+ *    Index of tool button.
+ */
+void
+ChartHistoryViewController::chartDataConstructionToolButtonSignalMapped(int indx)
+{
+    CaretAssertVectorIndex(m_chartDataContructionToolButtons, indx);
+
+    ChartModel* chartModel = NULL;
+    int32_t tabIndex = -1;
+    getSelectedChartModelAndTab(chartModel,
+                                tabIndex);
+    if (chartModel == NULL) {
+        return;
+    }
+    
+    std::vector<ChartData*> chartDataVector = chartModel->getAllChartDatas();
+    const int32_t numCharts = static_cast<int32_t>(chartDataVector.size());
+    
+    QMenu menu(m_chartDataContructionToolButtons[indx]);
+    
+    QAction* moveUpAction = NULL;
+    if (indx > 0) {
+        moveUpAction = menu.addAction("Move Chart Up");
+    }
+    
+    QAction* moveDownAction = NULL;
+    if (indx < (numCharts - 1)) {
+        moveDownAction = menu.addAction("Move Chart Down");
+    }
+    
+    QAction* removeAction = menu.addAction("Remove Chart");
+    
+    QAction* selectedAction = menu.exec(m_chartDataContructionToolButtons[indx]->mapToGlobal(QPoint(0,0)));
+    if (selectedAction != NULL) {
+        if (selectedAction == moveUpAction) {
+            chartModel->moveChartDataAtIndexToOneLowerIndex(indx);
+        }
+        else if (selectedAction == moveDownAction) {
+            chartModel->moveChartDataAtIndexToOneHigherIndex(indx);
+        }
+        else if (selectedAction == removeAction) {
+            chartModel->removeChartAtIndex(indx);
+        }
+        else {
+            CaretAssertMessage(0, "Has a new action been added but not processed?");
+        }
+        
+        this->updateHistoryViewController();
+    }
+}
 
 /**
  * Receive an event.

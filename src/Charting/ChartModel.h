@@ -75,6 +75,12 @@ namespace caret {
         
         const ChartData* getChartDataAtIndex(const int32_t chartDataIndex) const;
         
+        void moveChartDataAtIndexToOneLowerIndex(const int32_t chartDataIndex);
+        
+        void moveChartDataAtIndexToOneHigherIndex(const int32_t chartDataIndex);
+        
+        void removeChartAtIndex(const int32_t chartDataIndex);
+        
         /**
          * @return Is an average of data supported?
          */

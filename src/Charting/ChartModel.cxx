@@ -27,6 +27,7 @@
 #include "CaretLogger.h"
 #include "ChartAxis.h"
 #include "ChartData.h"
+#include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -209,15 +210,6 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
     m_chartDatas = obj.m_chartDatas;
     
     ChartData* selectedChartData = NULL;
-//    for (std::deque<ChartData*>::const_iterator iter = obj.m_chartDatas.begin();
-//         iter != obj.m_chartDatas.end();
-//         iter++) {
-//        ChartData* cd = *iter;
-////        if (cd->isSelected()) {
-////            selectedChartData = cd;
-////        }
-//        m_chartDatas.push_back(cd->clone());
-//    }
 
     switch (m_chartSelectionMode) {
         case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
@@ -296,14 +288,23 @@ ChartModel::isEmpty() const
 void
 ChartModel::addChartData(const QSharedPointer<ChartData>& chartData)
 {
-//    switch (m_selectionMode) {
-//        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-//            chartData->setSelected(false);
-//            break;
-//        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
-//            chartData->setSelected(true);
-//            break;
-//    }
+    /*
+     * If the display is limited to one chart and both the chart
+     * in deque and the chart to add are both cartesian charts,
+     * copy the chart color.
+     */
+    if (getMaximumNumberOfChartDatasToDisplay() == 1) {
+        if ( ! m_chartDatas.empty()) {
+            ChartData* firstChartData = getChartDataAtIndex(0);
+            ChartDataCartesian* cartesianChart = dynamic_cast<ChartDataCartesian*>(firstChartData);
+            if (cartesianChart != NULL) {
+                ChartDataCartesian* newCartesianChart = dynamic_cast<ChartDataCartesian*>(chartData.data());
+                if (newCartesianChart != NULL) {
+                    newCartesianChart->setColor(cartesianChart->getColor());
+                }
+            }
+        }
+    }
     
     m_chartDatas.push_front(chartData);
     
@@ -341,19 +342,13 @@ ChartModel::updateUsingMaximumNumberOfChartDatasToDisplay()
             bool haveSelectedItem = false;
             const int32_t numData = static_cast<int32_t>(m_chartDatas.size());
             for (int32_t i = 0; i < numData; i++) {
-//                if (m_chartDatas[i]->isSelected()) {
-//                    haveSelectedItem = true;
-//                    break;
-//                }
             }
             
             /*
              * If no item selected, selected oldest
              */
             if ( ! haveSelectedItem) {
-//                const int32_t lastIndex = numData - 1;
                 if (numData >= 0) {
-//                    m_chartDatas[lastIndex]->setSelected(true);
                 }
             }
         }
@@ -370,17 +365,10 @@ ChartModel::getAllChartDatas() const
 {
     std::vector<const ChartData*> datasOut;
     
-//    int32_t counter = 0;
-    
     for (std::deque<QSharedPointer<ChartData> >::const_iterator iter = m_chartDatas.begin();
          iter != m_chartDatas.end();
          iter++) {
         datasOut.push_back(iter->data());
-        
-//        counter++;
-//        if (counter >= m_maximumNumberOfChartDatasToDisplay) {
-//            break;
-//        }
     }
     
     return datasOut;
@@ -394,17 +382,10 @@ ChartModel::getAllChartDatas()
 {
     std::vector<ChartData*> datasOut;
     
-    //    int32_t counter = 0;
-    
     for (std::deque<QSharedPointer<ChartData> >::const_iterator iter = m_chartDatas.begin();
          iter != m_chartDatas.end();
          iter++) {
         datasOut.push_back(iter->data());
-        
-        //        counter++;
-        //        if (counter >= m_maximumNumberOfChartDatasToDisplay) {
-        //            break;
-        //        }
     }
     
     return datasOut;
@@ -420,8 +401,6 @@ ChartModel::getAllSelectedChartDatas(const int32_t tabIndex) const
 {
     std::vector<const ChartData*> datasOut;
     
-    //    int32_t counter = 0;
-    
     for (std::deque<QSharedPointer<ChartData> >::const_iterator iter = m_chartDatas.begin();
          iter != m_chartDatas.end();
          iter++) {
@@ -429,11 +408,6 @@ ChartModel::getAllSelectedChartDatas(const int32_t tabIndex) const
         if (cd->isSelected(tabIndex)) {
             datasOut.push_back(cd);
         }
-        
-        //        counter++;
-        //        if (counter >= m_maximumNumberOfChartDatasToDisplay) {
-        //            break;
-        //        }
     }
     
     return datasOut;
@@ -479,6 +453,71 @@ ChartModel::getChartDataAtIndex(const int32_t chartDataIndex) const
                            chartDataIndex);
     return m_chartDatas[chartDataIndex].data();
 }
+
+/**
+ * Move the chart data at the given index by swapping with the chart
+ * data at (chartDataIndex - 1).
+ *
+ * @param chartDataIndex
+ *    Index of the chart data.
+ */
+void
+ChartModel::moveChartDataAtIndexToOneLowerIndex(const int32_t chartDataIndex)
+{
+    CaretAssertVectorIndex(m_chartDatas,
+                           chartDataIndex);
+    
+    if (chartDataIndex > 0) {
+        std::swap(m_chartDatas[chartDataIndex],
+                  m_chartDatas[chartDataIndex - 1]);
+        updateAfterChartDataHasBeenAddedOrRemoved();
+    }
+}
+
+/**
+ * Move the chart data at the given index by swapping with the chart
+ * data at (chartDataIndex + 1).
+ *
+ * @param chartDataIndex
+ *    Index of the chart data.
+ */
+void
+ChartModel::moveChartDataAtIndexToOneHigherIndex(const int32_t chartDataIndex)
+{
+    CaretAssertVectorIndex(m_chartDatas,
+                           chartDataIndex);
+    
+    if (chartDataIndex < (static_cast<int32_t>(m_chartDatas.size()) - 1)) {
+        std::swap(m_chartDatas[chartDataIndex],
+                  m_chartDatas[chartDataIndex + 1]);
+        updateAfterChartDataHasBeenAddedOrRemoved();
+    }
+}
+
+/**
+ * Remove the chart data at the given index.
+ *
+ * @param chartDataIndex
+ *    Index of the chart data.
+ */
+void
+ChartModel::removeChartAtIndex(const int32_t chartDataIndex)
+{
+    CaretAssertVectorIndex(m_chartDatas,
+                           chartDataIndex);
+    
+    const int32_t lastIndex = m_chartDatas.size() - 1;
+    
+    for (int32_t i = chartDataIndex; i < lastIndex; i++) {
+        CaretAssertVectorIndex(m_chartDatas, (i + 1));
+        m_chartDatas[i] = m_chartDatas[i + 1];
+    }
+    
+    m_chartDatas.resize(m_chartDatas.size() - 1);
+    
+    updateAfterChartDataHasBeenAddedOrRemoved();
+}
+
 
 /**
  * @return Is average chart data display selected.
