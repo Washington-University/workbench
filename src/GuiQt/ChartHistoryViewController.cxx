@@ -536,14 +536,14 @@ ChartHistoryViewController::chartDataConstructionToolButtonSignalMapped(int indx
     
     QMenu menu(m_chartDataContructionToolButtons[indx]);
     
-    QAction* moveUpAction = NULL;
-    if (indx > 0) {
-        moveUpAction = menu.addAction("Move Chart Up");
+    QAction* moveUpAction = menu.addAction("Move Chart Up");
+    if (indx <= 0) {
+        moveUpAction->setEnabled(false);
     }
     
-    QAction* moveDownAction = NULL;
-    if (indx < (numCharts - 1)) {
-        moveDownAction = menu.addAction("Move Chart Down");
+    QAction* moveDownAction = menu.addAction("Move Chart Down");
+    if (indx >= (numCharts - 1)) {
+        moveDownAction->setEnabled(false);
     }
     
     QAction* removeAction = menu.addAction("Remove Chart");
