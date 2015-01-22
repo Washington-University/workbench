@@ -543,9 +543,7 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     
     if ( ! m_macDockMenuHasBeenCreatedFlag) {
         m_macDockMenuHasBeenCreatedFlag = true;
-#ifdef CARET_OS_MACOSX
         createMacDockMenu();
-#endif // CARET_OS_MACOSX
     }
     
     return bbw;
@@ -560,7 +558,11 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
 void
 GuiManager::createMacDockMenu()
 {
+#ifdef CARET_OS_MACOSX
+
 //    /*
+//     * Apparently the Mac Doc Menu is fixed once it is created
+//     *
 //     * Put windows on a sub-menu.  The aboutToShow() signal does not get
 //     * triggered for the dock menu.  Maybe the menu items are moved to
 //     * to the dock menu
@@ -589,11 +591,8 @@ GuiManager::createMacDockMenu()
     
 //    macDockMenu->addMenu(m_macDockMenuWindowMenu);
     
-    /*
-     * Not in Qt Header Files.
-     * See http://qt-project.org/doc/qt-4.8/exportedfunctions.html
-     */
     qt_mac_set_dock_menu(macDockMenu);
+#endif // CARET_OS_MACOSX
 }
 
 ///**
