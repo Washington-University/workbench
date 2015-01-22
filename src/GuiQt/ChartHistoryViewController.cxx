@@ -563,7 +563,7 @@ ChartHistoryViewController::chartDataConstructionToolButtonSignalMapped(int indx
             CaretAssertMessage(0, "Has a new action been added but not processed?");
         }
         
-        this->updateHistoryViewController();
+        this->updateAfterSelectionsChanged();
     }
 }
 
