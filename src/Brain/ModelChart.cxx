@@ -29,6 +29,7 @@
 #include "ChartAxis.h"
 #include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CaretDataFileSelectionModel.h"
+#include "CaretLogger.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartableLineSeriesRowColumnInterface.h"
 #include "ChartableMatrixInterface.h"
@@ -1024,7 +1025,7 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
-     * Restore the chart data
+     * Restore the chart data.
      */
     std::vector<QSharedPointer<ChartData> > restoredChartData;
     const SceneClassArray* chartDataArray = sceneClass->getClassArray("chartDataArray");
@@ -1039,14 +1040,44 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                 if ((chartDataType != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID)
                     && (chartDataClass != NULL)) {
                     ChartData* chartData = ChartData::newChartDataForChartDataType(chartDataType);
+                    CaretAssert(chartData);
+                    
+                    /*
+                     * The chart's points are saved in the scene and this
+                     * function call restores the points.  This is part of
+                     * the original implementation.  However, it was decided
+                     * that the when the scene is restored, the data should
+                     * be loaded from the file to reflect any changes made
+                     * to the data file.  But, we still load the chart points
+                     * saved to the scene in case the file is missing.
+                     */
                     chartData->restoreFromScene(sceneAttributes, chartDataClass);
                     
+                    /*
+                     * Now load the chart data from the file using the 
+                     * information in the chart's data source.  If this is
+                     * successful, then overwrite the chart data points 
+                     * that were loaded from the scene file.
+                     *
+                     * Also need to copy the unique identifier so that
+                     * the chart data goes to the correct model.
+                     */
+                    ChartData* newChartData = loadCartesianChartWhenRestoringScene(chartData);
+                    if (newChartData != NULL) {
+                        newChartData->setUniqueIdentifier(chartData->getUniqueIdentifier());
+                        delete chartData;
+                        chartData = newChartData;
+                    }
+                    else {
+                        const AString msg("FAILED to load line chart data from file for "
+                                          + chartData->getChartDataSource()->getDescription()
+                                          + " so chart points from scene will be used.  If content of the file "
+                                          " has changed since the scene was created, the chart may not be accurate.");
+                        sceneAttributes->addToErrorMessage(msg);
+                        CaretLogWarning(msg);
+                    }
+
                     restoredChartData.push_back(QSharedPointer<ChartData>(chartData));
-                    
-//                    const ChartDataSource* chartDataSource = chartData->getChartDataSource();
-//                    if (chartDataSource != NULL) {
-//                        std::cout << "RESTORING: " << qPrintable(chartDataSource->getDescription()) << std::endl;
-//                    }
                 }
             }
         }
@@ -1054,18 +1085,28 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
     
     /*
      * Have chart models restore pointers to chart data
+     * The chart models use shared pointers are used since the chart 
+     * data may be in multiple tabs.  User may remove the charts
+     * from some tabs but not others and shared pointers make management
+     * easier.
      */
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartModelDataSeries[i]->restoreChartDataFromScene(restoredChartData);
+        m_chartModelDataSeries[i]->restoreChartDataFromScene(sceneAttributes,
+                                                             restoredChartData);
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartModelFrequencySeries[i]->restoreChartDataFromScene(restoredChartData);
+        m_chartModelFrequencySeries[i]->restoreChartDataFromScene(sceneAttributes,
+                                                                  restoredChartData);
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartModelTimeSeries[i]->restoreChartDataFromScene(restoredChartData);
+        m_chartModelTimeSeries[i]->restoreChartDataFromScene(sceneAttributes,
+                                                             restoredChartData);
     }
     
-    
+    /*
+     * The chart data are also saved here as weak pointers so
+     * that they can be saved to a scene only one time.  If 
+     */
     for (std::vector<QSharedPointer<ChartData> >::iterator rcdIter = restoredChartData.begin();
          rcdIter != restoredChartData.end();
          rcdIter++) {
@@ -1105,6 +1146,165 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
         }
     }
 }
+
+/**
+ * Load the cartesian chart data using the given chart data source.
+ *
+ * @param chartData
+ *    ChartData that is cast to ChartDataCartesian and if successful,
+ *    the chart is duplicated using data from files.
+ * @return
+ *    Pointer to successfully loaded chart data or NULL if not found or error.
+ */
+ChartData*
+ModelChart::loadCartesianChartWhenRestoringScene(const ChartData* chartData)
+{
+    CaretAssert(chartData);
+    
+    ChartDataCartesian* chartDataOut = NULL;
+    
+    const ChartDataCartesian* cartesianChart = dynamic_cast<const ChartDataCartesian*>(chartData);
+    if (cartesianChart != NULL) {
+        const ChartDataTypeEnum::Enum chartDataType = cartesianChart->getChartDataType();
+
+        std::vector<ChartableLineSeriesInterface*> chartableDataFiles;
+        m_brain->getAllChartableLineSeriesDataFiles(chartableDataFiles);
+        
+        for (std::vector<ChartableLineSeriesInterface*>::iterator iter = chartableDataFiles.begin();
+             iter != chartableDataFiles.end();
+             iter++) {
+            
+            ChartableLineSeriesBrainordinateInterface* chartableBrainFile = dynamic_cast<ChartableLineSeriesBrainordinateInterface*>(*iter);
+            ChartableLineSeriesRowColumnInterface* chartableRowColumnFile = dynamic_cast<ChartableLineSeriesRowColumnInterface*>(*iter);
+            
+            if (chartableBrainFile != NULL) {
+                if (chartableBrainFile->isLineSeriesChartDataTypeSupported(chartDataType)) {
+                    CaretMappableDataFile* chartMapFile = chartableBrainFile->getLineSeriesChartCaretMappableDataFile();
+                    CaretAssert(chartMapFile);
+                    
+                    const ChartDataSource* chartDataSource = cartesianChart->getChartDataSource();
+                    CaretAssert(chartDataSource);
+                    
+                    const AString chartMapFileName = chartMapFile->getFileName();
+                    const AString chartSourceFileName = chartDataSource->getChartableFileName();
+                    
+                    if (chartMapFileName == chartSourceFileName) {
+                        const ChartDataSourceModeEnum::Enum sourceMode = chartDataSource->getDataSourceMode();
+                        
+                        switch (sourceMode) {
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+                                break;
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW:
+                            {
+                                CaretAssert(0);
+                            }
+                                break;
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
+                            {
+                                AString structureName;
+                                int32_t surfaceNumberOfNodes = -1;
+                                int32_t nodeIndex = -1;
+                                chartDataSource->getSurfaceNode(structureName,
+                                                                surfaceNumberOfNodes,
+                                                                nodeIndex);
+                                
+                                bool structureNameValid = false;
+                                const StructureEnum::Enum structure = StructureEnum::fromName(structureName,
+                                                                                              &structureNameValid);
+                                
+                                chartDataOut = chartableBrainFile->loadLineSeriesChartDataForSurfaceNode(structure,
+                                                                                                     nodeIndex);
+                            }
+                                break;
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE:
+                            {
+                                AString structureName;
+                                int32_t surfaceNumberOfNodes = -1;
+                                std::vector<int32_t> nodeIndices;
+                                chartDataSource->getSurfaceNodeAverage(structureName,
+                                                                       surfaceNumberOfNodes,
+                                                                       nodeIndices);
+                                
+                                bool structureNameValid = false;
+                                const StructureEnum::Enum structure = StructureEnum::fromName(structureName,
+                                                                                              &structureNameValid);
+                                
+                                chartDataOut = chartableBrainFile->loadAverageLineSeriesChartDataForSurfaceNodes(structure,
+                                                                                                             nodeIndices);
+                            }
+                                break;
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
+                            {
+                                float voxelXYZ[3];
+                                chartDataSource->getVolumeVoxel(voxelXYZ);
+                                
+                                chartDataOut= chartableBrainFile->loadLineSeriesChartDataForVoxelAtCoordinate(voxelXYZ);
+                            }
+                                break;
+                        }
+                    }
+                }
+            }
+            
+            if (chartableRowColumnFile != NULL) {
+                if (chartableRowColumnFile->isLineSeriesChartDataTypeSupported(chartDataType)) {
+                    CaretMappableDataFile* chartMapFile = chartableRowColumnFile->getLineSeriesChartCaretMappableDataFile();
+                    CaretAssert(chartMapFile);
+                    
+                    const ChartDataSource* chartDataSource = cartesianChart->getChartDataSource();
+                    CaretAssert(chartDataSource);
+                    
+                    const AString chartMapFileName = chartMapFile->getFileName();
+                    const AString chartSourceFileName = chartDataSource->getChartableFileName();
+                    
+                    if (chartMapFileName == chartSourceFileName) {
+                        const ChartDataSourceModeEnum::Enum sourceMode = chartDataSource->getDataSourceMode();
+                        
+                        switch (sourceMode) {
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+                                break;
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_FILE_ROW:
+                            {
+                                AString chartFileName;
+                                int32_t fileRowIndex;
+                                chartDataSource->getFileRow(chartFileName,
+                                                            fileRowIndex);
+                                
+                                chartDataOut = chartableRowColumnFile->loadLineSeriesChartDataForRow(fileRowIndex);
+                            }
+                                break;
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
+                            {
+                                CaretAssert(0);
+                            }
+                                break;
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE:
+                            {
+                                CaretAssert(0);
+                            }
+                                break;
+                            case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
+                            {
+                                CaretAssert(0);
+                            }
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (chartDataOut != NULL) {
+        /*
+         * Copy the source of the chart (node, surface, voxel, etc)
+         */
+        chartDataOut->getChartDataSource()->copy(chartData->getChartDataSource());
+    }
+    
+    return chartDataOut;
+}
+
 
 
 /**

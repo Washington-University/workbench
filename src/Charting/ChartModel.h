@@ -125,7 +125,8 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
-        void restoreChartDataFromScene(std::vector<QSharedPointer<ChartData> >& restoredChartData);
+        void restoreChartDataFromScene(const SceneAttributes* sceneAttributes,
+                                       std::vector<QSharedPointer<ChartData> >& restoredChartData);
         
         // ADD_NEW_METHODS_HERE
 

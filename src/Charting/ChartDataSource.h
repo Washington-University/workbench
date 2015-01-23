@@ -41,6 +41,8 @@ namespace caret {
         
         ChartDataSource& operator=(const ChartDataSource&);
         
+        void copy(const ChartDataSource* copyFrom);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

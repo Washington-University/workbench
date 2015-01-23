@@ -303,6 +303,18 @@ ChartData::getUniqueIdentifier() const
 }
 
 /**
+ * Set the unique identifier.
+ *
+ * @param uniqueIdentifier
+ *    The new unique identifier.
+ */
+void
+ChartData::setUniqueIdentifier(const AString& uniqueIdentifier)
+{
+    m_uniqueIdentifier = uniqueIdentifier;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

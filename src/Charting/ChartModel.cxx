@@ -961,7 +961,8 @@ ChartModel::restoreFromScene(const SceneAttributes* sceneAttributes,
  *     Chart data restored from scenes.
  */
 void
-ChartModel::restoreChartDataFromScene(std::vector<QSharedPointer<ChartData> >& restoredChartData)
+ChartModel::restoreChartDataFromScene(const SceneAttributes* sceneAttributes,
+                                      std::vector<QSharedPointer<ChartData> >& restoredChartData)
 {
     const int32_t numChartUniqueIDsFromScene = static_cast<int32_t>(m_chartDataUniqueIDsRestoredFromScene.size());
     if (numChartUniqueIDsFromScene > 0) {
@@ -990,8 +991,10 @@ ChartModel::restoreChartDataFromScene(std::vector<QSharedPointer<ChartData> >& r
         for (int32_t i = 0; i < numChartUniqueIDsFromScene; i++) {
             QSharedPointer<ChartData> cd = chartDataVector[i];
             if (cd.isNull()) {
-                CaretLogSevere("Failed to restore chart with Unique ID: "
-                               + m_chartDataUniqueIDsRestoredFromScene[i]);
+                const AString msg("Failed to restore chart with Unique ID: "
+                                  + m_chartDataUniqueIDsRestoredFromScene[i]);
+                sceneAttributes->addToErrorMessage(msg);
+                CaretLogSevere(msg);
             }
             else {
                 addChartData(cd);

@@ -65,6 +65,8 @@ namespace caret {
         
         AString getUniqueIdentifier() const;
         
+        void setUniqueIdentifier(const AString& uniqueIdentifier);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

@@ -121,6 +121,19 @@ ChartDataSource::operator=(const ChartDataSource& obj)
 }
 
 /**
+ * Copy the given data source to me.
+ * 
+ * @param copyFrom
+ *     Chart data source that is copied to me.
+ */
+void
+ChartDataSource::copy(const ChartDataSource* copyFrom)
+{
+    CaretAssert(copyFrom);
+    copyHelperChartDataSource(*copyFrom);
+}
+
+/**
  * Helps with copying an object of this type.
  * @param obj
  *    Object that is copied.

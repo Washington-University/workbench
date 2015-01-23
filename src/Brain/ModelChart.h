@@ -39,6 +39,7 @@ namespace caret {
     class CaretDataFileSelectionModel;
     class ChartData;
     class ChartDataCartesian;
+    class ChartDataSource;
     class ChartableLineSeriesBrainordinateInterface;
     class ChartableLineSeriesInterface;
     class ChartableLineSeriesRowColumnInterface;
@@ -158,6 +159,7 @@ namespace caret {
         
         void getTabsAndLineSeriesChartFilesForLineChartLoading(std::map<ChartableLineSeriesInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const;
         
+        ChartData* loadCartesianChartWhenRestoringScene(const ChartData* chartData);
 
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;
