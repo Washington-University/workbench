@@ -1300,6 +1300,10 @@ ModelChart::loadCartesianChartWhenRestoringScene(const ChartData* chartData)
          * Copy the source of the chart (node, surface, voxel, etc)
          */
         chartDataOut->getChartDataSource()->copy(chartData->getChartDataSource());
+        const ChartDataCartesian* chartCartData = dynamic_cast<const ChartDataCartesian*>(chartData);
+        if (chartCartData != NULL) {
+            chartDataOut->setColor(chartCartData->getColor());
+        }
     }
     
     return chartDataOut;
