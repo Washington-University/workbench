@@ -260,14 +260,14 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
                     structName = "left";
                     break;
                 case StructureEnum::CORTEX_RIGHT:
-                    surfOpt = leftSurfOpt;
-                    metricOpt = leftMetricOpt;
-                    structName = "left";
+                    surfOpt = rightSurfOpt;
+                    metricOpt = rightMetricOpt;
+                    structName = "right";
                     break;
                 case StructureEnum::CEREBELLUM:
-                    surfOpt = leftSurfOpt;
-                    metricOpt = leftMetricOpt;
-                    structName = "left";
+                    surfOpt = cerebSurfOpt;
+                    metricOpt = cerebMetricOpt;
+                    structName = "cerebellum";
                     break;
                 default:
                     throw OperationException("unsupported surface structure: " + StructureEnum::toName(surfStructs[i]));
@@ -301,12 +301,15 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
                 throw OperationException("no area data specified for " + structName + " surface");
             }
         }
-        float voxelVolume = myDenseMap.getVolumeSpace().getVoxelVolume();
-        vector<CiftiBrainModelsMap::VolumeMap> volMap = myDenseMap.getFullVolumeMap();
-        int64_t volMapSize = (int64_t)volMap.size();
-        for (int64_t i = 0; i < volMapSize; ++i)
+        if (myDenseMap.hasVolumeData())
         {
-            combinedWeights[volMap[i].m_ciftiIndex] = voxelVolume;
+            float voxelVolume = myDenseMap.getVolumeSpace().getVoxelVolume();
+            vector<CiftiBrainModelsMap::VolumeMap> volMap = myDenseMap.getFullVolumeMap();
+            int64_t volMapSize = (int64_t)volMap.size();
+            for (int64_t i = 0; i < volMapSize; ++i)
+            {
+                combinedWeights[volMap[i].m_ciftiIndex] = voxelVolume;
+            }
         }
     }
     if (ciftiWeightOpt->m_present)
@@ -438,26 +441,29 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
                 }
                 vector<CiftiBrainModelsMap::VolumeMap> volMap = myDenseMap.getFullVolumeMap();
                 int64_t mapSize = (int64_t)volMap.size();
-                vector<float> volData(mapSize), weightVolData(mapSize), roiVolData(mapSize);
-                for (int64_t j = 0; j < mapSize; ++j)
+                if (mapSize > 0)
                 {
-                    volData[j] = inColumn[volMap[j].m_ciftiIndex];
-                    weightVolData[j] = combinedWeights[volMap[j].m_ciftiIndex];
-                    if (!roiData.empty())
+                    vector<float> volData(mapSize), weightVolData(mapSize), roiVolData(mapSize);
+                    for (int64_t j = 0; j < mapSize; ++j)
                     {
-                        roiVolData[j] = roiData[volMap[j].m_ciftiIndex];
+                        volData[j] = inColumn[volMap[j].m_ciftiIndex];
+                        weightVolData[j] = combinedWeights[volMap[j].m_ciftiIndex];
+                        if (!roiData.empty())
+                        {
+                            roiVolData[j] = roiData[volMap[j].m_ciftiIndex];
+                        }
                     }
+                    float result;
+                    if (roiData.empty())
+                    {
+                        result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, NULL, argument);
+                    } else {
+                        result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, roiVolData.data(), argument);
+                    }
+                    stringstream resultsstr;
+                    resultsstr << setprecision(7) << result;
+                    cout << "VOLUME: " << resultsstr.str() << endl;
                 }
-                float result;
-                if (roiData.empty())
-                {
-                    result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, NULL, argument);
-                } else {
-                    result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, roiVolData.data(), argument);
-                }
-                stringstream resultsstr;
-                resultsstr << setprecision(7) << result;
-                cout << "VOLUME: " << resultsstr.str() << endl;
             }
         } else {
             for (int64_t i = 0; i < numCols; ++i)
@@ -522,26 +528,29 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
             }
             vector<CiftiBrainModelsMap::VolumeMap> volMap = myDenseMap.getFullVolumeMap();
             int64_t mapSize = (int64_t)volMap.size();
-            vector<float> volData(mapSize), weightVolData(mapSize), roiVolData(mapSize);
-            for (int64_t j = 0; j < mapSize; ++j)
+            if (mapSize > 0)
             {
-                volData[j] = inColumn[volMap[j].m_ciftiIndex];
-                weightVolData[j] = combinedWeights[volMap[j].m_ciftiIndex];
-                if (!roiData.empty())
+                vector<float> volData(mapSize), weightVolData(mapSize), roiVolData(mapSize);
+                for (int64_t j = 0; j < mapSize; ++j)
                 {
-                    roiVolData[j] = roiData[volMap[j].m_ciftiIndex];
+                    volData[j] = inColumn[volMap[j].m_ciftiIndex];
+                    weightVolData[j] = combinedWeights[volMap[j].m_ciftiIndex];
+                    if (!roiData.empty())
+                    {
+                        roiVolData[j] = roiData[volMap[j].m_ciftiIndex];
+                    }
                 }
+                float result;
+                if (roiData.empty())
+                {
+                    result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, NULL, argument);
+                } else {
+                    result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, roiVolData.data(), argument);
+                }
+                stringstream resultsstr;
+                resultsstr << setprecision(7) << result;
+                cout << "VOLUME: " << resultsstr.str() << endl;
             }
-            float result;
-            if (roiData.empty())
-            {
-                result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, NULL, argument);
-            } else {
-                result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, roiVolData.data(), argument);
-            }
-            stringstream resultsstr;
-            resultsstr << setprecision(7) << result;
-            cout << "VOLUME: " << resultsstr.str() << endl;
         } else {
             float result;
             if (roiData.empty())
