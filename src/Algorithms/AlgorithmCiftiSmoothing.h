@@ -33,10 +33,9 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut,
-                                const SurfaceFile* myLeftSurf = NULL, const MetricFile* myLeftAreas = NULL,
-                                const SurfaceFile* myRightSurf = NULL, const MetricFile* myRightAreas = NULL,
-                                const SurfaceFile* myCerebSurf = NULL, const MetricFile* myCerebAreas = NULL,
-                                const CiftiFile* roiCifti = NULL, bool fixZerosVol = false, bool fixZerosSurf = false);
+                                const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
+                                const CiftiFile* roiCifti = NULL, bool fixZerosVol = false, bool fixZerosSurf = false,
+                                const MetricFile* myLeftAreas = NULL, const MetricFile* myRightAreas = NULL, const MetricFile* myCerebAreas = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

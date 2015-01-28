@@ -142,14 +142,16 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     }
     bool fixZerosVol = myParams->getOptionalParameter(10)->m_present;
     bool fixZerosSurf = myParams->getOptionalParameter(11)->m_present;
-    AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut, myLeftSurf, myLeftAreas, myRightSurf, myRightAreas, myCerebSurf, myCerebAreas, roiCifti, fixZerosVol, fixZerosSurf);
+    AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut,
+                            myLeftSurf, myRightSurf, myCerebSurf,
+                            roiCifti, fixZerosVol, fixZerosSurf,
+                            myLeftAreas, myRightAreas, myCerebAreas);
 }
 
 AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut,
-                                                 const SurfaceFile* myLeftSurf, const MetricFile* myLeftAreas,
-                                                 const SurfaceFile* myRightSurf, const MetricFile* myRightAreas,
-                                                 const SurfaceFile* myCerebSurf, const MetricFile* myCerebAreas,
-                                                 const CiftiFile* roiCifti, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
+                                                 const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
+                                                 const CiftiFile* roiCifti, bool fixZerosVol, bool fixZerosSurf,
+                                                 const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
@@ -215,7 +217,7 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         }
         if (myAreas != NULL && myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
         {
-            throw AlgorithmException(surfType + " surface and vertex area metric have different number of nodes");
+            throw AlgorithmException(surfType + " surface and vertex area metric have different number of vertices");
         }
     }
     myCiftiOut->setCiftiXML(myXML);

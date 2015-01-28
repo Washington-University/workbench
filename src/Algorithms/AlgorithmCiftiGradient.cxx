@@ -53,12 +53,18 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
     
     OptionalParameter* leftSurfOpt = ret->createOptionalParameter(4, "-left-surface", "specify the left surface to use");
     leftSurfOpt->addSurfaceParameter(1, "surface", "the left surface file");
+    OptionalParameter* leftCorrAreasOpt = leftSurfOpt->createOptionalParameter(2, "-left-corrected-areas", "vertex areas to use instead of computing them from the left surface");
+    leftCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* rightSurfOpt = ret->createOptionalParameter(5, "-right-surface", "specify the right surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
+    OptionalParameter* rightCorrAreasOpt = rightSurfOpt->createOptionalParameter(2, "-right-corrected-areas", "vertex areas to use instead of computing them from the right surface");
+    rightCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
-    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(6, "-cerebellum-surface", "specify the cerebellum surface to use");
-    cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
+    OptionalParameter* cerebSurfOpt = ret->createOptionalParameter(6, "-cerebellum-surface", "specify the cerebellum surface to use");
+    cerebSurfOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
+    OptionalParameter* cerebCorrAreasOpt = cerebSurfOpt->createOptionalParameter(2, "-cerebellum-corrected-areas", "vertex areas to use instead of computing them from the cerebellum surface");
+    cerebCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(7, "-surface-presmooth", "smooth on the surface before computing the gradient");
     presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
@@ -91,20 +97,36 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
     }
     CiftiFile* myCiftiOut = myParams->getOutputCifti(3);
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
+    MetricFile* myLeftAreas = NULL, *myRightAreas = NULL, *myCerebAreas = NULL;
     OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(4);
     if (leftSurfOpt->m_present)
     {
         myLeftSurf = leftSurfOpt->getSurface(1);
+        OptionalParameter* leftCorrAreasOpt = leftSurfOpt->getOptionalParameter(2);
+        if (leftCorrAreasOpt->m_present)
+        {
+            myLeftAreas = leftCorrAreasOpt->getMetric(1);
+        }
     }
     OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(5);
     if (rightSurfOpt->m_present)
     {
         myRightSurf = rightSurfOpt->getSurface(1);
+        OptionalParameter* rightCorrAreasOpt = rightSurfOpt->getOptionalParameter(2);
+        if (rightCorrAreasOpt->m_present)
+        {
+            myRightAreas = rightCorrAreasOpt->getMetric(1);
+        }
     }
     OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(6);
     if (cerebSurfOpt->m_present)
     {
         myCerebSurf = cerebSurfOpt->getSurface(1);
+        OptionalParameter* cerebCorrAreasOpt = cerebSurfOpt->getOptionalParameter(2);
+        if (cerebCorrAreasOpt->m_present)
+        {
+            myCerebAreas = cerebCorrAreasOpt->getMetric(1);
+        }
     }
     float surfKern = -1.0f;
     OptionalParameter* presmoothSurfOpt = myParams->getOptionalParameter(7);
@@ -119,12 +141,16 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
         volKern = (float)presmoothVolOpt->getDouble(1);
     }
     bool outputAverage = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmCiftiGradient(myProgObj, myCifti, myDir, myCiftiOut, surfKern, volKern, myLeftSurf, myRightSurf, myCerebSurf, outputAverage);//executes the algorithm
+    AlgorithmCiftiGradient(myProgObj, myCifti, myDir, myCiftiOut, surfKern, volKern,
+                           myLeftSurf, myRightSurf, myCerebSurf, outputAverage,
+                           myLeftAreas, myRightAreas, myCerebAreas);
 }
 
 AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir,
-                                               CiftiFile* myCiftiOut, const float& surfKern, const float& volKern, SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf,
-                                               SurfaceFile* myCerebSurf, bool outputAverage) : AbstractAlgorithm(myProgObj)
+                                               CiftiFile* myCiftiOut, const float& surfKern, const float& volKern,
+                                               SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf, SurfaceFile* myCerebSurf,
+                                               bool outputAverage,
+                                               const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
@@ -156,19 +182,23 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
         SurfaceFile* mySurf = NULL;
+        const MetricFile* myAreas = NULL;
         AString surfType;
         switch (surfaceList[whichStruct])
         {
             case StructureEnum::CORTEX_LEFT:
                 mySurf = myLeftSurf;
+                myAreas = myLeftAreas;
                 surfType = "left";
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 mySurf = myRightSurf;
+                myAreas = myRightAreas;
                 surfType = "right";
                 break;
             case StructureEnum::CEREBELLUM:
                 mySurf = myCerebSurf;
+                myAreas = myCerebAreas;
                 surfType = "cerebellum";
                 break;
             default:
@@ -191,28 +221,36 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
                 throw AlgorithmException(surfType + " surface has the wrong number of vertices");
             }
         }
+        if (myAreas != NULL && myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
+        {
+            throw AlgorithmException(surfType + " surface and vertex area metric have different number of vertices");
+        }
     }
     myCiftiOut->setCiftiXML(myNewXML);
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
         SurfaceFile* mySurf = NULL;
+        const MetricFile* myAreas = NULL;
         switch (surfaceList[whichStruct])
         {
             case StructureEnum::CORTEX_LEFT:
                 mySurf = myLeftSurf;
+                myAreas = myLeftAreas;
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 mySurf = myRightSurf;
+                myAreas = myRightAreas;
                 break;
             case StructureEnum::CEREBELLUM:
                 mySurf = myCerebSurf;
+                myAreas = myCerebAreas;
                 break;
             default:
                 break;
         }
         MetricFile myMetric, myRoi, myMetricOut;
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &myRoi);
-        AlgorithmMetricGradient(NULL, mySurf, &myMetric, &myMetricOut, NULL, surfKern, &myRoi);
+        AlgorithmMetricGradient(NULL, mySurf, &myMetric, &myMetricOut, NULL, surfKern, &myRoi, false, -1, myAreas);
         if (outputAverage)
         {
             int numNodes = myMetricOut.getNumberOfNodes(), numCols = myMetricOut.getNumberOfColumns();
