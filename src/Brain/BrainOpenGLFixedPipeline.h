@@ -336,7 +336,7 @@ namespace caret {
         void setViewportAndOrthographicProjection(const int32_t viewport[4],
                                                   const  ProjectionViewTypeEnum::Enum projectionType);
         
-        void setViewportAndOrthographicProjectionForVolume(const int32_t viewport[4],
+        void setViewportAndOrthographicProjectionForWholeBrainVolume(const int32_t viewport[4],
                                                            const  ProjectionViewTypeEnum::Enum projectionType,
                                                            const VolumeMappableInterface* volume);
         

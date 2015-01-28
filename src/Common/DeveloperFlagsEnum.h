@@ -35,14 +35,16 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** enable parcel reordering */
         FLAG_PARCEL_REORDERING,
-        /** */
+        /** enable volume culling */
         FLAG_VOLUME_CULLING,
-        /** */
+        /** enable volume quad drawing */
         FLAG_VOLUME_QUADS,
-        /** */
-        FLAG_VOLUME_CENTERING
+        /** enable volume centering */
+        FLAG_VOLUME_CENTERING,
+        /** enable model scaling for default lateral view*/
+        FLAG_WB_491_MODEL_SCALING_LATERAL_VIEW
     };
 
 

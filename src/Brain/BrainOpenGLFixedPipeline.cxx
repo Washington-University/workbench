@@ -649,7 +649,7 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjection(const int32_t vie
  *    Volume for use in setting orthographic projection.
  */
 void
-BrainOpenGLFixedPipeline::setViewportAndOrthographicProjectionForVolume(const int32_t viewport[4],
+BrainOpenGLFixedPipeline::setViewportAndOrthographicProjectionForWholeBrainVolume(const int32_t viewport[4],
                                                                         const  ProjectionViewTypeEnum::Enum projectionType,
                                                                         const VolumeMappableInterface* volume)
 {
@@ -4439,7 +4439,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                                                                  anySurface);
     }
     else if (underlayVolumeFile != NULL) {
-        this->setViewportAndOrthographicProjectionForVolume(viewport,
+        this->setViewportAndOrthographicProjectionForWholeBrainVolume(viewport,
                                                             ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL,
                                                             underlayVolumeFile);
     }
@@ -4691,9 +4691,57 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
 {
     CaretAssert(boundingBox);
     
-    const float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
-                                                    boundingBox->getDifferenceY()),
-                                           boundingBox->getDifferenceZ()) / 2.0;
+    /*
+     * For a cortical surface, this largest dimension is the Y-Axis.
+     * This worked correctly when the default view was dorsal with
+     * the anterior pole at the top of the display and the posterior
+     * pole at the bottom of the display.
+     */
+    float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
+                                              boundingBox->getDifferenceY()),
+                                              boundingBox->getDifferenceZ()) / 2.0;
+    
+    /*
+     * The default view was changed to a lateral view and the above
+     * code results in problems during some window resize operations.
+     * But, the Z-difference of a flat surface is zero.
+     *
+     * See also BrowserTabContent::restoreFromScene() that tries to make
+     * old scenes compatible with this new scaling.
+     */
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_WB_491_MODEL_SCALING_LATERAL_VIEW)) {
+        const float zDiff = boundingBox->getDifferenceZ();
+        if (zDiff != 0.0) {
+            modelHalfHeight = zDiff / 2.0;
+            
+            const float yDiff = boundingBox->getDifferenceY();
+            if ((yDiff > 0.0)
+                && (viewport[2] > 0.0)) {
+                /*
+                 * Note Z is vertical, Y is horizontal when viewed
+                 */
+                const float surfaceAspectRatio  = zDiff / yDiff;
+                const float viewportAspectRatio = (static_cast<float>(viewport[3])
+                                                   / static_cast<float>(viewport[2]));
+                
+                if (viewportAspectRatio > surfaceAspectRatio) {
+                    const float modelHalfWidth = yDiff / 2.0;
+                    modelHalfHeight = modelHalfWidth * viewportAspectRatio;
+                }
+                else {
+                    // original:  modelHalfHeight = zDiff / 2.0;
+                    //modelHalfHeight *= surfaceAspectRatio;
+                    //modelHalfHeight /= surfaceAspectRatio;
+                    //modelHalfHeight *= viewportAspectRatio;
+                    //modelHalfHeight /= viewportAspectRatio;
+                    
+                    //const float modelHalfWidth = yDiff / 2.0;
+                    //modelHalfHeight = modelHalfWidth / viewportAspectRatio;
+                }
+            }
+        }
+    }
+    
     const float orthoHeight = modelHalfHeight * 1.02;
     
     setOrthographicProjectionWithHeight(viewport,

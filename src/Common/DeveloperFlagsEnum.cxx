@@ -106,6 +106,9 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
         case FLAG_VOLUME_CENTERING:
             this->flagStatus = true;
             break;
+        case FLAG_WB_491_MODEL_SCALING_LATERAL_VIEW:
+            this->flagStatus = true;
+            break;
     }
 }
 
@@ -142,6 +145,10 @@ DeveloperFlagsEnum::initialize()
     enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_CENTERING,
                                           "FLAG_VOLUME_CENTERING",
                                           "Volume Centering"));
+    
+    enumData.push_back(DeveloperFlagsEnum(FLAG_WB_491_MODEL_SCALING_LATERAL_VIEW,
+                                          "FLAG_WB_491_MODEL_SCALING_LATERAL_VIEW",
+                                          "WB-491 Scale for Default Lateral View"));
     
 }
 
