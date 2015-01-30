@@ -21,19 +21,21 @@
  */
 /*LICENSE_END*/
 
-#include "StructureEnum.h"
-#include "WuQDialogModal.h"
+#include "EventListenerInterface.h"
+#include "WuQDialogNonModal.h"
 
-class QComboBox;
+class QLabel;
 class QRadioButton;
 class QSpinBox;
 
 namespace caret {
 
+    class CaretDataFileSelectionComboBox;
+    class CaretDataFileSelectionModel;
     class CaretMappableDataFile;
     class StructureEnumComboBox;
     
-    class IdentifyBrainordinateDialog : public WuQDialogModal {
+    class IdentifyBrainordinateDialog : public WuQDialogNonModal, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -42,8 +44,12 @@ namespace caret {
         
         virtual ~IdentifyBrainordinateDialog();
         
+        virtual void updateDialog();
+        
+        virtual void receiveEvent(Event* event);
+        
     protected:
-        virtual void okButtonClicked();
+        virtual void applyButtonClicked();
         
     private:
         IdentifyBrainordinateDialog(const IdentifyBrainordinateDialog&);
@@ -67,37 +73,26 @@ namespace caret {
         
         StructureEnumComboBox* m_vertexStructureComboBox;
         
+        QLabel* m_vertexStructureLabel;
+        
         QSpinBox* m_vertexIndexSpinBox;
+        
+        QLabel* m_vertexIndexLabel;
         
         QRadioButton* m_ciftiFileRadioButton;
         
-        QComboBox* m_ciftiFileComboBox;
+        QLabel* m_ciftiFileLabel;
+        
+        CaretDataFileSelectionComboBox* m_ciftiFileComboBox;
 
+        CaretDataFileSelectionModel* m_ciftiFileSelectionModel;
+        
+        QLabel* m_ciftiFileRowIndexLabel;
+        
         QSpinBox* m_ciftiFileRowIndexSpinBox;
-        
-        static StructureEnum::Enum s_lastSelectedStructure;
-        
-        static int32_t s_lastSelectedVertexIndex;
-        
-        static CaretMappableDataFile* s_lastSelectedCaretMappableDataFile;
-        
-        static int64_t s_lastSelectedCiftiRowIndex;
-        
-        static Mode s_lastMode;
-        
     };
     
 #ifdef __IDENTIFY_BRAINORDINATE_DIALOG_DECLARE__
-    StructureEnum::Enum IdentifyBrainordinateDialog::s_lastSelectedStructure;
-    
-    int32_t IdentifyBrainordinateDialog::s_lastSelectedVertexIndex = 0;
-    
-    CaretMappableDataFile* IdentifyBrainordinateDialog::s_lastSelectedCaretMappableDataFile = NULL;
-    
-    int64_t IdentifyBrainordinateDialog::s_lastSelectedCiftiRowIndex = -1;
-    
-    IdentifyBrainordinateDialog::Mode IdentifyBrainordinateDialog::s_lastMode = IdentifyBrainordinateDialog::MODE_NONE;
-    
 #endif // __IDENTIFY_BRAINORDINATE_DIALOG_DECLARE__
 
 } // namespace

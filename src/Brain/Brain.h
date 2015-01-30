@@ -319,6 +319,9 @@ namespace caret {
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                              const bool includeSpecFile = false) const;
         
+        void getAllDataFilesWithDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                             std::vector<CaretDataFile*>& caretDataFilesOut) const;
+        
         void getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
                                              std::vector<CaretDataFile*>& caretDataFilesOut) const;
         

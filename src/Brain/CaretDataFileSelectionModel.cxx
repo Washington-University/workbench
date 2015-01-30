@@ -66,8 +66,7 @@ m_brain(brain)
     CaretAssert(brain);
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_dataFileType = DataFileTypeEnum::UNKNOWN;
-    
+    m_dataFileTypes.clear();
 }
 
 /**
@@ -93,7 +92,29 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileType(Brain* brain,
 {
     CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
                                                                          FILE_MODE_DATA_FILE_TYPE_ENUM);
-    model->m_dataFileType = dataFileType;
+    model->m_dataFileTypes.push_back(dataFileType);
+    
+    return model;
+}
+
+/**
+ * Create a new instance of a Caret Data File Selection Model that
+ * selects files of the given Data File Types from the given Brain.
+ *
+ * @param brain
+ *    Brain from which files are obtained.
+ * @param dataFileTypes
+ *    Types of the data file.
+ */
+CaretDataFileSelectionModel*
+CaretDataFileSelectionModel::newInstanceForCaretDataFileType(Brain* brain,
+                                                             const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
+{
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
+                                                                         FILE_MODE_DATA_FILE_TYPE_ENUM);
+    model->m_dataFileTypes.insert(model->m_dataFileTypes.end(),
+                                  dataFileTypes.begin(),
+                                  dataFileTypes.end());
     
     return model;
 }
@@ -185,9 +206,9 @@ CaretDataFileSelectionModel::operator=(const CaretDataFileSelectionModel& obj)
 void 
 CaretDataFileSelectionModel::copyHelperCaretDataFileSelectionModel(const CaretDataFileSelectionModel& obj)
 {
-    m_brain        = obj.m_brain;
-    m_dataFileType = obj.m_dataFileType;
-    m_selectedFile = obj.m_selectedFile;
+    m_brain         = obj.m_brain;
+    m_dataFileTypes = obj.m_dataFileTypes;
+    m_selectedFile  = obj.m_selectedFile;
     m_overrideOfAvailableFilesValid = obj.m_overrideOfAvailableFilesValid;
     m_overrideOfAvailableFiles      = obj.m_overrideOfAvailableFiles;
 }
@@ -239,8 +260,8 @@ CaretDataFileSelectionModel::getAvailableFiles() const
     switch (m_fileMode) {
         case FILE_MODE_DATA_FILE_TYPE_ENUM:
         {
-            m_brain->getAllDataFilesWithDataFileType(m_dataFileType,
-                                                     caretDataFiles);
+            m_brain->getAllDataFilesWithDataFileTypes(m_dataFileTypes,
+                                                      caretDataFiles);
         }
             break;
         case FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE:

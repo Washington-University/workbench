@@ -38,6 +38,9 @@ namespace caret {
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileType(Brain* brain,
                                                                             const DataFileTypeEnum::Enum dataFileType);
         
+        static CaretDataFileSelectionModel* newInstanceForCaretDataFileType(Brain* brain,
+                                                                            const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
+        
         static CaretDataFileSelectionModel* newInstanceForChartableMatrixParcelInterface(Brain* brain);
         
         static CaretDataFileSelectionModel* newInstanceForChartableMatrixSeriesInterface(Brain* brain);
@@ -123,7 +126,7 @@ namespace caret {
         
         Brain* m_brain;
         
-        DataFileTypeEnum::Enum m_dataFileType;
+        std::vector<DataFileTypeEnum::Enum> m_dataFileTypes;
         
         mutable CaretDataFile* m_selectedFile;
         

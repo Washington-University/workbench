@@ -5720,16 +5720,16 @@ Brain::getAllMappableDataFileWithDataFileType(const DataFileTypeEnum::Enum dataF
 }
 
 /**
- * Get all CaretDataFiles of the given data file type.
+ * Get all CaretDataFiles of the given data file types.
  *
- * @param dataFileType
- *     Type of data file.
+ * @param dataFileTypes
+ *     Types of data files.
  * @param caretDataFilesOut
  *     Data file of the given data file type that were found.
  */
 void
-Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
-                                     std::vector<CaretDataFile*>& caretDataFilesOut) const
+Brain::getAllDataFilesWithDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                      std::vector<CaretDataFile*>& caretDataFilesOut) const
 {
     caretDataFilesOut.clear();
     
@@ -5741,10 +5741,46 @@ Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType
          iter != allDataFiles.end();
          iter++) {
         CaretDataFile* cdf = *iter;
-        if (cdf->getDataFileType() == dataFileType) {
+        if (std::find(dataFileTypes.begin(),
+                      dataFileTypes.end(),
+                      cdf->getDataFileType()) != dataFileTypes.end()) {
             caretDataFilesOut.push_back(cdf);
         }
     }
+}
+
+/**
+ * Get all CaretDataFiles of the given data file type.
+ *
+ * @param dataFileType
+ *     Type of data file.
+ * @param caretDataFilesOut
+ *     Data file of the given data file type that were found.
+ */
+void
+Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
+                                     std::vector<CaretDataFile*>& caretDataFilesOut) const
+{
+    std::vector<DataFileTypeEnum::Enum> dataFileTypes;
+    dataFileTypes.push_back(dataFileType);
+    
+    getAllDataFilesWithDataFileTypes(dataFileTypes,
+                                     caretDataFilesOut);
+
+//    caretDataFilesOut.clear();
+//    
+//    std::vector<CaretDataFile*> allDataFiles;
+//    getAllDataFiles(allDataFiles,
+//                    true);
+//    
+//    for (std::vector<CaretDataFile*>::iterator iter = allDataFiles.begin();
+//         iter != allDataFiles.end();
+//         iter++) {
+//        CaretDataFile* cdf = *iter;
+//        if (cdf->getDataFileType() == dataFileType) {
+//            caretDataFilesOut.push_back(cdf);
+//        }
+//    }
 }
 
 

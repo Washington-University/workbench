@@ -43,6 +43,9 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param parent
+ *    Parent of combo box.
  */
 CaretDataFileSelectionComboBox::CaretDataFileSelectionComboBox(QObject* parent)
 : WuQWidget(parent)

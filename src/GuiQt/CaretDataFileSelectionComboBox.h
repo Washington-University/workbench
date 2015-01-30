@@ -23,6 +23,7 @@
 
 #include <vector>
 
+#include "DataFileTypeEnum.h"
 #include "WuQWidget.h"
 
 class QComboBox;

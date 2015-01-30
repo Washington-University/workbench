@@ -26,7 +26,6 @@
 using namespace caret;
 
 #include <QButtonGroup>
-#include <QComboBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QRadioButton>
@@ -35,6 +34,8 @@ using namespace caret;
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionComboBox.h"
+#include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CaretMappableDataFile.h"
@@ -71,72 +72,42 @@ using namespace caret;
  * Constructor.
  */
 IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
-: WuQDialogModal("Identify Brainordinate",
-                 parent)
+: WuQDialogNonModal("Identify Brainordinate",
+                    parent)
 {
-    Brain* brain = GuiManager::get()->getBrain();
-    std::vector<CaretMappableDataFile*> caretMappableFiles;
-    brain->getAllMappableDataFiles(caretMappableFiles);
+    const int INDEX_SPIN_BOX_WIDTH = 100;
     
     /*
      * Surface Vertex widgets
      */
     m_vertexRadioButton = new QRadioButton("Surface Vertex");
     
-    QLabel* vertexStructureLabel = new QLabel("Structure");
+    m_vertexStructureLabel = new QLabel("Structure");
     m_vertexStructureComboBox = new StructureEnumComboBox(this);
     m_vertexStructureComboBox->listOnlyValidStructures();
-    m_vertexStructureComboBox->setSelectedStructure(s_lastSelectedStructure);
     
-    QLabel* vertexIndexLabel = new QLabel("Vertex Index");
+    m_vertexIndexLabel = new QLabel("Vertex Index");
     m_vertexIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0,
                                                                 std::numeric_limits<int>::max(),
                                                                 1);
-    m_vertexIndexSpinBox->setValue(s_lastSelectedVertexIndex);
-    
-    /*
-     * Disable surface option if no surfaces loaded
-     */
-    if (m_vertexStructureComboBox->count() == 0) {
-        m_vertexRadioButton->setEnabled(false);
-        vertexStructureLabel->setEnabled(false);
-        m_vertexStructureComboBox->getWidget()->setEnabled(false);
-        vertexIndexLabel->setEnabled(false);
-        m_vertexIndexSpinBox->setEnabled(false);
-    }
+    m_vertexIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
     
     /*
      * CIFTI file row widgets
      */
     m_ciftiFileRadioButton = new QRadioButton("Cifti File Row");
     
-    QLabel* ciftiFileLabel = new QLabel("File");
-    m_ciftiFileComboBox = WuQFactory::newComboBox();
+    std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
+    DataFileTypeEnum::getAllEnums(allDataFileTypes);
     
-    QLabel* ciftiFileRowIndexLabel = new QLabel("Row Index");
-    m_ciftiFileRowIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0,
-                                                                      std::numeric_limits<int>::max(),
-                                                                      1);
-    m_ciftiFileRowIndexSpinBox->setValue(s_lastSelectedCiftiRowIndex);
-    
-    /*
-     * Button group to keep radio buttons mutually exclusive
-     */
-    QButtonGroup* buttGroup = new QButtonGroup(this);
-    buttGroup->addButton(m_vertexRadioButton);
-    buttGroup->addButton(m_ciftiFileRadioButton);
-    
-    /*
-     * Load CIFTI files into combo box but only those that
-     * have brainordinates mapped to the rows
-     */
-    int32_t defaultIndex = -1;
-    const int32_t numCiftiFiles = static_cast<int32_t>(caretMappableFiles.size());
-    for (int32_t i = 0; i < numCiftiFiles; i++) {
-        CaretMappableDataFile* mapFile = caretMappableFiles[i];
-        const DataFileTypeEnum::Enum dataFileType = mapFile->getDataFileType();
-        
+    std::vector<DataFileTypeEnum::Enum> supportedDataFileTypes;
+
+    for (std::vector<DataFileTypeEnum::Enum>::iterator dtIter = allDataFileTypes.begin();
+         dtIter != allDataFileTypes.end();
+         dtIter++) {
+        const DataFileTypeEnum::Enum dataFileType = *dtIter;
         bool useIt = false;
+        
         switch (dataFileType) {
             case DataFileTypeEnum::BORDER:
                 break;
@@ -196,31 +167,31 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
         }
         
         if (useIt) {
-            const AString name = mapFile->getFileNameNoPath();
-            
-            if (mapFile == s_lastSelectedCaretMappableDataFile) {
-                defaultIndex = m_ciftiFileComboBox->count();
-            }
-            
-            m_ciftiFileComboBox->addItem(name,
-                                         qVariantFromValue((void*)mapFile));
+            supportedDataFileTypes.push_back(dataFileType);
         }
     }
     
-    if (defaultIndex >= 0) {
-        m_ciftiFileComboBox->setCurrentIndex(defaultIndex);
-    }
+    /*
+     *
+     */
+    m_ciftiFileLabel = new QLabel("File");
+    m_ciftiFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(GuiManager::get()->getBrain(),
+                                                                                             supportedDataFileTypes);
+    m_ciftiFileComboBox = new CaretDataFileSelectionComboBox(this);
+    
+    m_ciftiFileRowIndexLabel = new QLabel("Row Index");
+    m_ciftiFileRowIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0,
+                                                                      std::numeric_limits<int>::max(),
+                                                                      1);
+    m_ciftiFileRowIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
     
     /*
-     * Disable CIFTI option if no CIFTI files loaded
+     * Button group to keep radio buttons mutually exclusive
      */
-    if (m_ciftiFileComboBox->count() == 0) {
-        ciftiFileLabel->setEnabled(false);
-        m_ciftiFileComboBox->setEnabled(false);
-        m_ciftiFileComboBox->setEnabled(false);
-        ciftiFileRowIndexLabel->setEnabled(false);
-        m_ciftiFileRowIndexSpinBox->setEnabled(false);
-    }
+    QButtonGroup* buttGroup = new QButtonGroup(this);
+    buttGroup->addButton(m_vertexRadioButton);
+    buttGroup->addButton(m_ciftiFileRadioButton);
+    
     
     QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
@@ -232,35 +203,28 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     int row = gridLayout->rowCount();
     gridLayout->addWidget(m_vertexRadioButton, row, 0, 1, 3);
     row++;
-    gridLayout->addWidget(vertexStructureLabel, row, 1);
+    gridLayout->addWidget(m_vertexStructureLabel, row, 1);
     gridLayout->addWidget(m_vertexStructureComboBox->getWidget(), row, 2);
     row++;
-    gridLayout->addWidget(vertexIndexLabel, row, 1);
-    gridLayout->addWidget(m_vertexIndexSpinBox, row, 2);
+    gridLayout->addWidget(m_vertexIndexLabel, row, 1);
+    gridLayout->addWidget(m_vertexIndexSpinBox, row, 2, Qt::AlignLeft);
     row++;
     gridLayout->setRowMinimumHeight(row, 10);
     row++;
     gridLayout->addWidget(m_ciftiFileRadioButton, row, 0, 1, 3);
     row++;
-    gridLayout->addWidget(ciftiFileLabel, row, 1);
-    gridLayout->addWidget(m_ciftiFileComboBox, row, 2);
+    gridLayout->addWidget(m_ciftiFileLabel, row, 1);
+    gridLayout->addWidget(m_ciftiFileComboBox->getWidget(), row, 2);
     row++;
-    gridLayout->addWidget(ciftiFileRowIndexLabel, row, 1);
-    gridLayout->addWidget(m_ciftiFileRowIndexSpinBox, row, 2);
+    gridLayout->addWidget(m_ciftiFileRowIndexLabel, row, 1);
+    gridLayout->addWidget(m_ciftiFileRowIndexSpinBox, row, 2, Qt::AlignLeft);
     
     setCentralWidget(widget,
                      WuQDialog::SCROLL_AREA_NEVER);
 
-    switch (s_lastMode) {
-        case MODE_CIFTI_ROW:
-            m_ciftiFileRadioButton->setChecked(true);
-            break;
-        case MODE_NONE:
-            break;
-        case MODE_SURFACE_VERTEX:
-            m_vertexRadioButton->setChecked(true);
-            break;
-    }
+    updateDialog();
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -268,14 +232,65 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
  */
 IdentifyBrainordinateDialog::~IdentifyBrainordinateDialog()
 {
-    
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
- * Gets called when OK button is clicked.
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
  */
 void
-IdentifyBrainordinateDialog::okButtonClicked()
+IdentifyBrainordinateDialog::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiEvent);
+        
+        updateDialog();
+    }
+}
+
+/**
+ * Update the dialog.
+ */
+void
+IdentifyBrainordinateDialog::updateDialog()
+{
+    m_ciftiFileComboBox->updateComboBox(m_ciftiFileSelectionModel);
+    
+    //m_vertexStructureComboBox->setSelectedStructure(s_lastSelectedStructure);
+
+    /*
+     * Disable surface option if no surfaces loaded
+     */
+    if (m_vertexStructureComboBox->count() == 0) {
+        m_vertexRadioButton->setEnabled(false);
+        m_vertexStructureLabel->setEnabled(false);
+        m_vertexStructureComboBox->getWidget()->setEnabled(false);
+        m_vertexIndexLabel->setEnabled(false);
+        m_vertexIndexSpinBox->setEnabled(false);
+    }
+    
+    /*
+     * Disable CIFTI option if no CIFTI files loaded
+     */
+    if (m_ciftiFileSelectionModel->getAvailableFiles().empty()) {
+        m_ciftiFileRadioButton->setEnabled(false);
+        m_ciftiFileLabel->setEnabled(false);
+        m_ciftiFileComboBox->getWidget()->setEnabled(false);
+        m_ciftiFileRowIndexLabel->setEnabled(false);
+        m_ciftiFileRowIndexSpinBox->setEnabled(false);
+    }
+}
+
+
+/**
+ * Gets called when Apply button is clicked.
+ */
+void
+IdentifyBrainordinateDialog::applyButtonClicked()
 {
     Brain* brain = GuiManager::get()->getBrain();
     
@@ -285,21 +300,20 @@ IdentifyBrainordinateDialog::okButtonClicked()
     selectionManager->reset();
     
     if (m_vertexRadioButton->isChecked()) {
-        s_lastMode = MODE_SURFACE_VERTEX;
-        s_lastSelectedStructure   = m_vertexStructureComboBox->getSelectedStructure();
-        s_lastSelectedVertexIndex = m_vertexIndexSpinBox->value();
+        const StructureEnum::Enum selectedStructure   = m_vertexStructureComboBox->getSelectedStructure();
+        const int32_t selectedVertexIndex = m_vertexIndexSpinBox->value();
         
-        BrainStructure* bs = brain->getBrainStructure(s_lastSelectedStructure,
+        BrainStructure* bs = brain->getBrainStructure(selectedStructure,
                                                       false);
         if (bs != NULL) {
-            if (s_lastSelectedVertexIndex < bs->getNumberOfNodes()) {
+            if (selectedVertexIndex < bs->getNumberOfNodes()) {
                 Surface* surface = bs->getVolumeInteractionSurface();
                 if (surface != NULL) {
                     SelectionItemSurfaceNode* nodeID = selectionManager->getSurfaceNodeIdentification();
                     nodeID->setBrain(brain);
-                    nodeID->setNodeNumber(s_lastSelectedVertexIndex);
+                    nodeID->setNodeNumber(selectedVertexIndex);
                     nodeID->setSurface(surface);
-                    const float* fxyz = surface->getCoordinate(s_lastSelectedVertexIndex);
+                    const float* fxyz = surface->getCoordinate(selectedVertexIndex);
                     const double xyz[3] = { fxyz[0], fxyz[1], fxyz[2] };
                     nodeID->setModelXYZ(xyz);
                     GuiManager::get()->processIdentification(-1,
@@ -308,200 +322,115 @@ IdentifyBrainordinateDialog::okButtonClicked()
                 }
                 else {
                     errorMessage = ("PROGRAM ERROR: Volume Interaction Surface not found for structure "
-                                    + StructureEnum::toName(s_lastSelectedStructure));
+                                    + StructureEnum::toName(selectedStructure));
                 }
             }
             else {
                 errorMessage = ("Vertex Index "
-                                + AString::number(s_lastSelectedVertexIndex)
+                                + AString::number(selectedVertexIndex)
                                 + " is out of range.  Maximum vertex index is "
                                 + AString::number(bs->getNumberOfNodes()));
             }
         }
         else {
             errorMessage = ("Structure "
-                            + StructureEnum::toName(s_lastSelectedStructure)
+                            + StructureEnum::toName(selectedStructure)
                             + " not found.");
         }
     }
     else if (m_ciftiFileRadioButton->isChecked()) {
-        s_lastMode = MODE_CIFTI_ROW;
-        const int indx = m_ciftiFileComboBox->currentIndex();
-        if (indx >= 0) {
-            void* ptr = m_ciftiFileComboBox->itemData(indx).value<void*>();
-            s_lastSelectedCaretMappableDataFile = (CaretMappableDataFile*)ptr;
+        CaretDataFile* dataFile = m_ciftiFileSelectionModel->getSelectedFile();
+        if (dataFile != NULL) {
+            CiftiMappableDataFile*    ciftiMapFile  = dynamic_cast<CiftiMappableDataFile*>(dataFile);
+            CiftiFiberTrajectoryFile* ciftiTrajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(dataFile);
             
-            s_lastSelectedCiftiRowIndex = m_ciftiFileRowIndexSpinBox->value();
+            const int32_t selectedCiftiRowIndex = m_ciftiFileRowIndexSpinBox->value();
             
-            CiftiFiberTrajectoryFile* ciftiTrajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(s_lastSelectedCaretMappableDataFile);
-            CiftiMappableDataFile* ciftiMapFile = dynamic_cast<CiftiMappableDataFile*>(s_lastSelectedCaretMappableDataFile);
-            
-                try {
-                    StructureEnum::Enum surfaceStructure;
-                    int32_t surfaceNodeIndex;
-                    int32_t surfaceNumberOfNodes;
-                    bool surfaceNodeValid;
-                    int64_t voxelIJK[3];
-                    float voxelXYZ[3];
-                    bool voxelValid;
-                    if (ciftiMapFile != NULL) {
-                        ciftiMapFile->getBrainordinateFromRowIndex(s_lastSelectedCiftiRowIndex,
-                                                                   surfaceStructure,
-                                                                   surfaceNodeIndex,
-                                                                   surfaceNumberOfNodes,
-                                                                   surfaceNodeValid,
-                                                                   voxelIJK,
-                                                                   voxelXYZ,
-                                                                   voxelValid);
+            try {
+                StructureEnum::Enum surfaceStructure;
+                int32_t surfaceNodeIndex;
+                int32_t surfaceNumberOfNodes;
+                bool surfaceNodeValid = false;
+                int64_t voxelIJK[3];
+                float voxelXYZ[3];
+                bool voxelValid = false;
+                if (ciftiMapFile != NULL) {
+                    ciftiMapFile->getBrainordinateFromRowIndex(selectedCiftiRowIndex,
+                                                               surfaceStructure,
+                                                               surfaceNodeIndex,
+                                                               surfaceNumberOfNodes,
+                                                               surfaceNodeValid,
+                                                               voxelIJK,
+                                                               voxelXYZ,
+                                                               voxelValid);
+                }
+                else if (ciftiTrajFile != NULL) {
+                    ciftiTrajFile->getBrainordinateFromRowIndex(selectedCiftiRowIndex,
+                                                                surfaceStructure,
+                                                                surfaceNodeIndex,
+                                                                surfaceNumberOfNodes,
+                                                                surfaceNodeValid,
+                                                                voxelIJK,
+                                                                voxelXYZ,
+                                                                voxelValid);
+                }
+                else {
+                    errorMessage = "Neither CIFTI Mappable nor CIFTI Trajectory file.  Has new file type been added?";
+                }
+                
+                SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+                idManager->reset();
+                idManager->setAllSelectionsEnabled(true);
+                
+                if (surfaceNodeValid) {
+                    SelectionItemSurfaceNode* surfaceID = idManager->getSurfaceNodeIdentification();
+                    const Surface* surface = brain->getVolumeInteractionSurfaceForStructure(surfaceStructure);
+                    if (surface != NULL) {
+                        if ((surfaceNodeIndex >= 0)
+                            && (surfaceNodeIndex < surface->getNumberOfNodes())) {
+                            surfaceID->setSurface(const_cast<Surface*>(surface));
+                            surfaceID->setBrain(brain);
+                            const float* xyz = surface->getCoordinate(surfaceNodeIndex);
+                            const double doubleXYZ[3] = { xyz[0], xyz[1], xyz[2] };
+                            surfaceID->setModelXYZ(doubleXYZ);
+                            surfaceID->setNodeNumber(surfaceNodeIndex);
+                            
+                            GuiManager::get()->processIdentification(-1, // invalid tab index
+                                                                     selectionManager,
+                                                                     this);
+                        }
+                        else {
+                            errorMessage = ("Surface vertex index "
+                                            + AString::number(surfaceNodeIndex)
+                                            + " is not valid for surface "
+                                            + surface->getFileNameNoPath());
+                        }
                     }
-                    else if (ciftiTrajFile != NULL) {
-                        ciftiTrajFile->getBrainordinateFromRowIndex(s_lastSelectedCiftiRowIndex,
-                                                                   surfaceStructure,
-                                                                   surfaceNodeIndex,
-                                                                   surfaceNumberOfNodes,
-                                                                   surfaceNodeValid,
-                                                                   voxelIJK,
-                                                                   voxelXYZ,
-                                                                   voxelValid);
-                    }
-                    else {
-                        errorMessage = "Neither CIFTI Mappable nor CIFTI Trajectory file.  Has new file type been added?";
+                    else{
+                        errorMessage = ("No surfaces are loaded for structure "
+                                        + StructureEnum::toGuiName(surfaceStructure));
                     }
                     
-                    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
-                    idManager->reset();
-                    idManager->setAllSelectionsEnabled(true);
+                }
+                else if (voxelValid) {
+                    SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
+                    voxelID->setBrain(brain);
+                    voxelID->setEnabledForSelection(true);
+                    voxelID->setVoxelIdentification(brain,
+                                                    ciftiMapFile,
+                                                    voxelIJK,
+                                                    0.0);
+                    const double doubleXYZ[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
+                    voxelID->setModelXYZ(doubleXYZ);
                     
-                    if (surfaceNodeValid) {
-                        SelectionItemSurfaceNode* surfaceID = idManager->getSurfaceNodeIdentification();
-                        const Surface* surface = brain->getVolumeInteractionSurfaceForStructure(surfaceStructure);
-                        if (surface != NULL) {
-                            if ((surfaceNodeIndex >= 0)
-                                && (surfaceNodeIndex < surface->getNumberOfNodes())) {
-                                surfaceID->setSurface(const_cast<Surface*>(surface));
-                                surfaceID->setBrain(brain);
-                                const float* xyz = surface->getCoordinate(surfaceNodeIndex);
-                                const double doubleXYZ[3] = { xyz[0], xyz[1], xyz[2] };
-                                surfaceID->setModelXYZ(doubleXYZ);
-                                surfaceID->setNodeNumber(surfaceNodeIndex);
-                                
-                                GuiManager::get()->processIdentification(-1, // invalid tab index
-                                                                         selectionManager,
-                                                                         this);
-                            }
-                            else {
-                                errorMessage = ("Surface vertex index "
-                                                + AString::number(surfaceNodeIndex)
-                                                + " is not valid for surface "
-                                                + surface->getFileNameNoPath());
-                            }
-                        }
-                        else{
-                            errorMessage = ("No surfaces are loaded for structure "
-                                            + StructureEnum::toGuiName(surfaceStructure));
-                        }
-                        
-                    }
-                    else if (voxelValid) {
-                        SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
-                        voxelID->setBrain(brain);
-                        voxelID->setEnabledForSelection(true);
-                        voxelID->setVoxelIdentification(brain,
-                                                        ciftiMapFile,
-                                                        voxelIJK,
-                                                        0.0);
-                        const double doubleXYZ[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
-                        voxelID->setModelXYZ(doubleXYZ);
-                        
-                        GuiManager::get()->processIdentification(-1, // invalid tab index
-                                                                 selectionManager,
-                                                                 this);
-                    }
+                    GuiManager::get()->processIdentification(-1, // invalid tab index
+                                                             selectionManager,
+                                                             this);
                 }
-                catch (const DataFileException& dfe) {
-                    errorMessage = dfe.whatString();
-                }
-//            }
-//            else if (trajFile != NULL) {
-//                try {
-//                    trajFile->loadDataForRowIndex(s_lastSelectedCiftiRowIndex);
-//                }
-//                catch (const DataFileException& dfe) {
-//                    errorMessage = ("Error loading data for row "
-//                                    + AString::number(s_lastSelectedCiftiRowIndex)
-//                                    + ": "
-//                                    + dfe.whatString());
-//                }
-//            }
-//            else {
-//                CaretAssertMessage(0,
-//                                   "Neither matrix nor trajectory file.  Has new file type been added?");
-//            }
-            
-//            if (errorMessage.isEmpty()) {
-//                if (ciftiMapFile != NULL) {
-//                    try {
-//                        StructureEnum::Enum surfaceStructure;
-//                        int32_t surfaceNodeIndex;
-//                        int32_t surfaceNumberOfNodes;
-//                        bool surfaceNodeValid;
-//                        int64_t voxelIJK[3];
-//                        float voxelXYZ[3];
-//                        bool voxelValid;
-//                        ciftiMapFile->getBrainordinateFromRowIndex(s_lastSelectedCiftiRowIndex,
-//                                                                   surfaceStructure,
-//                                                                   surfaceNodeIndex,
-//                                                                   surfaceNumberOfNodes,
-//                                                                   surfaceNodeValid,
-//                                                                   voxelIJK,
-//                                                                   voxelXYZ,
-//                                                                   voxelValid);
-//                        
-//                        if (surfaceNodeValid) {
-//                            IdentifiedItemNode* identifiedNode = new IdentifiedItemNode("",
-//                                                                                        surfaceStructure,
-//                                                                                        surfaceNumberOfNodes,
-//                                                                                        surfaceNodeIndex);
-//                            IdentificationManager* idManager = brain->getIdentificationManager();
-//                            idManager->addIdentifiedItem(identifiedNode);
-//                            
-//                            informationMessage.appendWithNewLine(ciftiMapFile->getFileNameNoPath()
-//                                                                 + " node index="
-//                                                                 + AString::number(surfaceNodeIndex)
-//                                                                 + " row index="
-//                                                                 + AString::number(s_lastSelectedCiftiRowIndex)
-//                                                                 + " structure="
-//                                                                 + StructureEnum::toGuiName(surfaceStructure));
-//                        }
-//                        else if (voxelValid) {
-//                            informationMessage.appendWithNewLine(ciftiMapFile->getFileNameNoPath()
-//                                                                 + " voxel IJK=("
-//                                                                 + AString::fromNumbers(voxelIJK, 3, ",")
-//                                                                 + ") XYZ=("
-//                                                                 + AString::fromNumbers(voxelXYZ, 3, ",")
-//                                                                 + ") row index="
-//                                                                 + AString::number(s_lastSelectedCiftiRowIndex));
-//                            
-//                            EventIdentificationHighlightLocation idLocation(-1, // ALL tabs,
-//                                                                            voxelXYZ,
-//                                                                            EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
-//                            EventManager::get()->sendEvent(idLocation.getPointer());
-//                        }
-//                    }
-//                    catch (const DataFileException& dfe) {
-//                        errorMessage = dfe.whatString();
-//                    }
-//                }
-//            }
-//            
-//            if ( ! informationMessage.isEmpty()) {
-//                IdentifiedItem* textItem = new IdentifiedItem();
-//                textItem->appendText(informationMessage);
-//                IdentificationManager* idManager = brain->getIdentificationManager();
-//                idManager->addIdentifiedItem(textItem);
-//                EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
-//            }
-//        }
+            }
+            catch (const DataFileException& dfe) {
+                errorMessage = dfe.whatString();
+            }
         }
     }
     else {
@@ -511,16 +440,12 @@ IdentifyBrainordinateDialog::okButtonClicked()
                         + m_ciftiFileRadioButton->text());
     }
     
-//    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
-    
     if (errorMessage.isEmpty() == false) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
         return;
     }
     
-    WuQDialogModal::okButtonClicked();
+    WuQDialogNonModal::applyButtonClicked();
 }
 
