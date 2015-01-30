@@ -1028,6 +1028,88 @@ CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile()
 }
 
 /**
+ * Get the brainordinate from the given row.
+ *
+ * @param rowIndex
+ *     Index of the row.
+ * @param surfaceStructureOut
+ *     Will contain structure of surface if row is a surface node.
+ * @param surfaceNodeIndexOut
+ *     Will contain index of surface node if row is a surface node.
+ * @param surfaceNumberOfNodesOut
+ *     Will contain surfaces number of nodes if row is a surface node.
+ * @param surfaceNodeValidOut
+ *     Will be true upon exit if the row corresponded to a surface node.
+ * @param voxelIJKOut
+ *     Will contain the voxel's IJK indices if row is a surface node.
+ * @param voxelXYZOut
+ *     Will contain the voxel's XYZ coordinate if row is a surface node.
+ * @param voxelValidOut
+ *     Will be true upon exit if the row corresponded to a surface node.
+ * @throw DataFileException
+ *     If the rows are not for brainordinates or the row index is invalid.
+ */
+void
+CiftiFiberTrajectoryFile::getBrainordinateFromRowIndex(const int64_t rowIndex,
+                                                    StructureEnum::Enum& surfaceStructureOut,
+                                                    int32_t& surfaceNodeIndexOut,
+                                                    int32_t& surfaceNumberOfNodesOut,
+                                                    bool& surfaceNodeValidOut,
+                                                    int64_t voxelIJKOut[3],
+                                                    float voxelXYZOut[3],
+                                                    bool& voxelValidOut) const
+{
+    surfaceNodeValidOut = false;
+    voxelValidOut       = false;
+    
+    if (m_sparseFile == NULL) {
+        return;
+    }
+    
+    const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+    
+    if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) {
+        throw DataFileException(getFileName(),
+                                "File does not have brainordinate data for rows.");
+        return;
+    }
+    
+    const CiftiBrainModelsMap& brainMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+
+    const int numRows = ciftiXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
+
+    if ((rowIndex < 0)
+        || (rowIndex >= numRows)) {
+        throw DataFileException(getFileName(),
+                                "Row index "
+                                + AString::number(rowIndex)
+                                + " is invalid.  Number of rows is "
+                                + AString::number(numRows));
+    }
+    
+    const CiftiBrainModelsMap::IndexInfo indexInfo = brainMap.getInfoForIndex(rowIndex);
+    
+    switch (indexInfo.m_type) {
+        case CiftiBrainModelsMap::SURFACE:
+            surfaceStructureOut     = indexInfo.m_structure;
+            surfaceNodeIndexOut     = indexInfo.m_surfaceNode;
+            surfaceNumberOfNodesOut = brainMap.getSurfaceNumberOfNodes(surfaceStructureOut);
+            surfaceNodeValidOut     = true;
+            break;
+        case CiftiBrainModelsMap::VOXELS:
+        {
+            const VolumeSpace& colSpace = brainMap.getVolumeSpace();
+            voxelIJKOut[0] = indexInfo.m_ijk[0];
+            voxelIJKOut[1] = indexInfo.m_ijk[1];
+            voxelIJKOut[2] = indexInfo.m_ijk[2];
+            colSpace.indexToSpace(voxelIJKOut, voxelXYZOut);
+            voxelValidOut = true;
+        }
+            break;
+    }
+}
+
+/**
  * Load data for the given surface node.
  * @param structure
  *    Structure in which surface node is located.

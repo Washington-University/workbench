@@ -116,6 +116,15 @@ namespace caret {
         
         virtual void writeFile(const AString& filename);
         
+        void getBrainordinateFromRowIndex(const int64_t rowIndex,
+                                          StructureEnum::Enum& surfaceStructureOut,
+                                          int32_t& surfaceNodeIndexOut,
+                                          int32_t& surfaceNumberOfNodesOut,
+                                          bool& surfaceNodeValidOut,
+                                          int64_t voxelIJKOut[3],
+                                          float voxelXYZOut[3],
+                                          bool& voxelValidOut) const;
+        
         int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t surfaceNumberOfNodes,
                                     const int32_t nodeIndex);

@@ -2561,7 +2561,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
     }
-}
+} // tabIndex
 
 
 

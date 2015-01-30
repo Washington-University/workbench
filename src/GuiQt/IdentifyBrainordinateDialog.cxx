@@ -159,8 +159,10 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                useIt = true;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                useIt = true;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
@@ -331,52 +333,18 @@ IdentifyBrainordinateDialog::okButtonClicked()
             
             s_lastSelectedCiftiRowIndex = m_ciftiFileRowIndexSpinBox->value();
             
-            CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(s_lastSelectedCaretMappableDataFile);
-            CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(s_lastSelectedCaretMappableDataFile);
-            
+            CiftiFiberTrajectoryFile* ciftiTrajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(s_lastSelectedCaretMappableDataFile);
             CiftiMappableDataFile* ciftiMapFile = dynamic_cast<CiftiMappableDataFile*>(s_lastSelectedCaretMappableDataFile);
             
-            AString informationMessage;
-            
-            if (matrixFile != NULL) {
                 try {
-                    matrixFile->loadDataForRowIndex(s_lastSelectedCiftiRowIndex);
-                    matrixFile->updateScalarColoringForMap(0,
-                                                           brain->getPaletteFile());
-                }
-                catch (const DataFileException& dfe) {
-                    errorMessage = ("Error loading data for row "
-                                    + AString::number(s_lastSelectedCiftiRowIndex)
-                                    + ": "
-                                    + dfe.whatString());
-                }
-            }
-            else if (trajFile != NULL) {
-                try {
-                    trajFile->loadDataForRowIndex(s_lastSelectedCiftiRowIndex);
-                }
-                catch (const DataFileException& dfe) {
-                    errorMessage = ("Error loading data for row "
-                                    + AString::number(s_lastSelectedCiftiRowIndex)
-                                    + ": "
-                                    + dfe.whatString());
-                }
-            }
-            else {
-                CaretAssertMessage(0,
-                                   "Neither matrix nor trajectory file.  Has new file type been added?");
-            }
-            
-            if (errorMessage.isEmpty()) {
-                if (ciftiMapFile != NULL) {
-                    try {
-                        StructureEnum::Enum surfaceStructure;
-                        int32_t surfaceNodeIndex;
-                        int32_t surfaceNumberOfNodes;
-                        bool surfaceNodeValid;
-                        int64_t voxelIJK[3];
-                        float voxelXYZ[3];
-                        bool voxelValid;
+                    StructureEnum::Enum surfaceStructure;
+                    int32_t surfaceNodeIndex;
+                    int32_t surfaceNumberOfNodes;
+                    bool surfaceNodeValid;
+                    int64_t voxelIJK[3];
+                    float voxelXYZ[3];
+                    bool voxelValid;
+                    if (ciftiMapFile != NULL) {
                         ciftiMapFile->getBrainordinateFromRowIndex(s_lastSelectedCiftiRowIndex,
                                                                    surfaceStructure,
                                                                    surfaceNodeIndex,
@@ -385,59 +353,155 @@ IdentifyBrainordinateDialog::okButtonClicked()
                                                                    voxelIJK,
                                                                    voxelXYZ,
                                                                    voxelValid);
-                        
-                        if (surfaceNodeValid) {
-                            IdentifiedItemNode* identifiedNode = new IdentifiedItemNode("",
-                                                                                        surfaceStructure,
-                                                                                        surfaceNumberOfNodes,
-                                                                                        surfaceNodeIndex);
-                            IdentificationManager* idManager = brain->getIdentificationManager();
-                            idManager->addIdentifiedItem(identifiedNode);
-                            
-                            informationMessage.appendWithNewLine(ciftiMapFile->getFileNameNoPath()
-                                                                 + " node index="
-                                                                 + AString::number(surfaceNodeIndex)
-                                                                 + " row index="
-                                                                 + AString::number(s_lastSelectedCiftiRowIndex)
-                                                                 + " structure="
-                                                                 + StructureEnum::toGuiName(surfaceStructure));
-                        }
-                        else if (voxelValid) {
-//                            SelectionItemVoxel* voxelID = selectionManager->getVoxelIdentification();
-//                            voxelID->setBrain(brain);
-//                            const double xyz[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
-//                            voxelID->setModelXYZ(xyz);
-//                            voxelID->setVoxelIdentification(brain, ciftiMapFile, voxelIJK, 0.0);
-//                            GuiManager::get()->processIdentification(-1,
-//                                                                     selectionManager,
-//                                                                     this);
-                            informationMessage.appendWithNewLine(ciftiMapFile->getFileNameNoPath()
-                                                                 + " voxel IJK=("
-                                                                 + AString::fromNumbers(voxelIJK, 3, ",")
-                                                                 + ") XYZ=("
-                                                                 + AString::fromNumbers(voxelXYZ, 3, ",")
-                                                                 + ") row index="
-                                                                 + AString::number(s_lastSelectedCiftiRowIndex));
-                            
-                            EventIdentificationHighlightLocation idLocation(-1, // ALL tabs,
-                                                                            voxelXYZ,
-                                                                            EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
-                            EventManager::get()->sendEvent(idLocation.getPointer());
-                        }
                     }
-                    catch (const DataFileException& dfe) {
-                        errorMessage = dfe.whatString();
+                    else if (ciftiTrajFile != NULL) {
+                        ciftiTrajFile->getBrainordinateFromRowIndex(s_lastSelectedCiftiRowIndex,
+                                                                   surfaceStructure,
+                                                                   surfaceNodeIndex,
+                                                                   surfaceNumberOfNodes,
+                                                                   surfaceNodeValid,
+                                                                   voxelIJK,
+                                                                   voxelXYZ,
+                                                                   voxelValid);
+                    }
+                    else {
+                        errorMessage = "Neither CIFTI Mappable nor CIFTI Trajectory file.  Has new file type been added?";
+                    }
+                    
+                    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+                    idManager->reset();
+                    idManager->setAllSelectionsEnabled(true);
+                    
+                    if (surfaceNodeValid) {
+                        SelectionItemSurfaceNode* surfaceID = idManager->getSurfaceNodeIdentification();
+                        const Surface* surface = brain->getVolumeInteractionSurfaceForStructure(surfaceStructure);
+                        if (surface != NULL) {
+                            if ((surfaceNodeIndex >= 0)
+                                && (surfaceNodeIndex < surface->getNumberOfNodes())) {
+                                surfaceID->setSurface(const_cast<Surface*>(surface));
+                                surfaceID->setBrain(brain);
+                                const float* xyz = surface->getCoordinate(surfaceNodeIndex);
+                                const double doubleXYZ[3] = { xyz[0], xyz[1], xyz[2] };
+                                surfaceID->setModelXYZ(doubleXYZ);
+                                surfaceID->setNodeNumber(surfaceNodeIndex);
+                                
+                                GuiManager::get()->processIdentification(-1, // invalid tab index
+                                                                         selectionManager,
+                                                                         this);
+                            }
+                            else {
+                                errorMessage = ("Surface vertex index "
+                                                + AString::number(surfaceNodeIndex)
+                                                + " is not valid for surface "
+                                                + surface->getFileNameNoPath());
+                            }
+                        }
+                        else{
+                            errorMessage = ("No surfaces are loaded for structure "
+                                            + StructureEnum::toGuiName(surfaceStructure));
+                        }
+                        
+                    }
+                    else if (voxelValid) {
+                        SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
+                        voxelID->setBrain(brain);
+                        voxelID->setEnabledForSelection(true);
+                        voxelID->setVoxelIdentification(brain,
+                                                        ciftiMapFile,
+                                                        voxelIJK,
+                                                        0.0);
+                        const double doubleXYZ[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
+                        voxelID->setModelXYZ(doubleXYZ);
+                        
+                        GuiManager::get()->processIdentification(-1, // invalid tab index
+                                                                 selectionManager,
+                                                                 this);
                     }
                 }
-            }
+                catch (const DataFileException& dfe) {
+                    errorMessage = dfe.whatString();
+                }
+//            }
+//            else if (trajFile != NULL) {
+//                try {
+//                    trajFile->loadDataForRowIndex(s_lastSelectedCiftiRowIndex);
+//                }
+//                catch (const DataFileException& dfe) {
+//                    errorMessage = ("Error loading data for row "
+//                                    + AString::number(s_lastSelectedCiftiRowIndex)
+//                                    + ": "
+//                                    + dfe.whatString());
+//                }
+//            }
+//            else {
+//                CaretAssertMessage(0,
+//                                   "Neither matrix nor trajectory file.  Has new file type been added?");
+//            }
             
-            if ( ! informationMessage.isEmpty()) {
-                IdentifiedItem* textItem = new IdentifiedItem();
-                textItem->appendText(informationMessage);
-                IdentificationManager* idManager = brain->getIdentificationManager();
-                idManager->addIdentifiedItem(textItem);
-                EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
-            }
+//            if (errorMessage.isEmpty()) {
+//                if (ciftiMapFile != NULL) {
+//                    try {
+//                        StructureEnum::Enum surfaceStructure;
+//                        int32_t surfaceNodeIndex;
+//                        int32_t surfaceNumberOfNodes;
+//                        bool surfaceNodeValid;
+//                        int64_t voxelIJK[3];
+//                        float voxelXYZ[3];
+//                        bool voxelValid;
+//                        ciftiMapFile->getBrainordinateFromRowIndex(s_lastSelectedCiftiRowIndex,
+//                                                                   surfaceStructure,
+//                                                                   surfaceNodeIndex,
+//                                                                   surfaceNumberOfNodes,
+//                                                                   surfaceNodeValid,
+//                                                                   voxelIJK,
+//                                                                   voxelXYZ,
+//                                                                   voxelValid);
+//                        
+//                        if (surfaceNodeValid) {
+//                            IdentifiedItemNode* identifiedNode = new IdentifiedItemNode("",
+//                                                                                        surfaceStructure,
+//                                                                                        surfaceNumberOfNodes,
+//                                                                                        surfaceNodeIndex);
+//                            IdentificationManager* idManager = brain->getIdentificationManager();
+//                            idManager->addIdentifiedItem(identifiedNode);
+//                            
+//                            informationMessage.appendWithNewLine(ciftiMapFile->getFileNameNoPath()
+//                                                                 + " node index="
+//                                                                 + AString::number(surfaceNodeIndex)
+//                                                                 + " row index="
+//                                                                 + AString::number(s_lastSelectedCiftiRowIndex)
+//                                                                 + " structure="
+//                                                                 + StructureEnum::toGuiName(surfaceStructure));
+//                        }
+//                        else if (voxelValid) {
+//                            informationMessage.appendWithNewLine(ciftiMapFile->getFileNameNoPath()
+//                                                                 + " voxel IJK=("
+//                                                                 + AString::fromNumbers(voxelIJK, 3, ",")
+//                                                                 + ") XYZ=("
+//                                                                 + AString::fromNumbers(voxelXYZ, 3, ",")
+//                                                                 + ") row index="
+//                                                                 + AString::number(s_lastSelectedCiftiRowIndex));
+//                            
+//                            EventIdentificationHighlightLocation idLocation(-1, // ALL tabs,
+//                                                                            voxelXYZ,
+//                                                                            EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
+//                            EventManager::get()->sendEvent(idLocation.getPointer());
+//                        }
+//                    }
+//                    catch (const DataFileException& dfe) {
+//                        errorMessage = dfe.whatString();
+//                    }
+//                }
+//            }
+//            
+//            if ( ! informationMessage.isEmpty()) {
+//                IdentifiedItem* textItem = new IdentifiedItem();
+//                textItem->appendText(informationMessage);
+//                IdentificationManager* idManager = brain->getIdentificationManager();
+//                idManager->addIdentifiedItem(textItem);
+//                EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
+//            }
+//        }
         }
     }
     else {
@@ -447,12 +511,9 @@ IdentifyBrainordinateDialog::okButtonClicked()
                         + m_ciftiFileRadioButton->text());
     }
     
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
 //    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addConnectivity().getPointer());
 //    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
     
     if (errorMessage.isEmpty() == false) {
         WuQMessageBox::errorOk(this,
