@@ -248,6 +248,7 @@ IdentifyBrainordinateDialog::receiveEvent(Event* event)
         EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(uiEvent);
         
+        uiEvent->setEventProcessed();
         updateDialog();
     }
 }
