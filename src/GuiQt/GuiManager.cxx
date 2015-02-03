@@ -79,6 +79,7 @@
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
 #include "OverlaySettingsEditorDialog.h"
+#include "MacDockMenu.h"
 #include "MovieDialog.h"
 #include "PaletteColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
@@ -101,14 +102,6 @@
 #include "VolumeMappableInterface.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
-
-#ifdef CARET_OS_MACOSX
-    /*
-     * Not in Qt Header Files.
-     * See http://qt-project.org/doc/qt-4.8/exportedfunctions.html
-     */
-    extern void qt_mac_set_dock_menu(QMenu *menu);
-#endif // CARET_OS_MACOSX
 
 #include "CaretAssert.h"
 
@@ -458,7 +451,8 @@ GuiManager::getActiveBrowserWindow() const
                 return bbw;
             }
         }
-    }    
+    }
+    
     return firstWindowFound;
 }
 
@@ -543,119 +537,10 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     
     if ( ! m_macDockMenuHasBeenCreatedFlag) {
         m_macDockMenuHasBeenCreatedFlag = true;
-        createMacDockMenu();
+        MacDockMenu::createUpdateMacDockMenu();
     }
     
     return bbw;
-}
-
-/**
- * Create the Menu that is displayed in the wb_view icon in Mac's Dock.
- *
- * This menu gets displayed when the user control-clicks the wb_view icon in
- * the dock or holds the left mouse button down over the icon.
- */
-void
-GuiManager::createMacDockMenu()
-{
-#ifdef CARET_OS_MACOSX
-
-//    /*
-//     * Apparently the Mac Doc Menu is fixed once it is created
-//     *
-//     * Put windows on a sub-menu.  The aboutToShow() signal does not get
-//     * triggered for the dock menu.  Maybe the menu items are moved to
-//     * to the dock menu
-//     */
-//    m_macDockMenuWindowMenu = new QMenu("Windows");
-//    QObject::connect(m_macDockMenuWindowMenu, SIGNAL(aboutToShow()),
-//                     this, SLOT(macDockWindowMenuAboutToShow()));
-//    QObject::connect(m_macDockMenuWindowMenu, SIGNAL(triggered(QAction*)),
-//                     this, SLOT(macDockWindowMenuTriggered(QAction*)));
-//    
-//    for (int32_t iWindow = 0; iWindow < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; iWindow++) {
-//        QAction* action = m_macDockMenuWindowMenu->addAction("Window "
-//                                                   + QString::number(iWindow + 1));
-//        action->setData((int)iWindow);
-//        m_macDocMenuWindowActions.push_back(action);
-//    }
-    
-    /*
-     * Create Mac Dock Menu
-     */
-    QMenu* macDockMenu = new QMenu;
-    QObject::connect(macDockMenu, SIGNAL(triggered(QAction*)),
-                     this, SLOT(macDockMenuTriggered(QAction*)));
-    
-    m_macDockMenuNewWindowAction = macDockMenu->addAction("New Window");
-    
-//    macDockMenu->addMenu(m_macDockMenuWindowMenu);
-    
-    qt_mac_set_dock_menu(macDockMenu);
-#endif // CARET_OS_MACOSX
-}
-
-///**
-// * Called when the wb_view Mac Dock menu is about to show.
-// */
-//void
-//GuiManager::macDockWindowMenuAboutToShow()
-//{
-//    std::cout << "mac doc window menu about to show: " << std::endl;
-//    
-//    for (int32_t iWindow = 0; iWindow < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; iWindow++) {
-//        bool validWindowIndex = false;
-//        if (iWindow < static_cast<int32_t>(m_brainBrowserWindows.size())) {
-//            if (m_brainBrowserWindows[iWindow] != NULL) {
-//                validWindowIndex = true;
-//                m_macDocMenuWindowActions[iWindow]->setText(m_brainBrowserWindows[iWindow]->windowTitle());
-//            }
-//        }
-//        
-//        CaretAssertVectorIndex(m_macDocMenuWindowActions, iWindow);
-//        m_macDocMenuWindowActions[iWindow]->setVisible(validWindowIndex);
-//    }
-//}
-
-///**
-// * Called when an item is selected from the Mac Dock Window Menu
-// */
-//void
-//GuiManager::macDockWindowMenuTriggered(QAction* action)
-//{
-//    std::cout << "Window Action: " << qPrintable(action->text()) << std::endl;
-//}
-
-/**
- * Called when an item is selected from the Mac Dock Menu
- */
-void
-GuiManager::macDockMenuTriggered(QAction* action)
-{
-    if (action == m_macDockMenuNewWindowAction) {
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
-                                        true);
-        EventBrowserWindowNew eventNewBrowser(getActiveBrowserWindow(), NULL);
-        EventManager::get()->sendEvent(eventNewBrowser.getPointer());
-        if (eventNewBrowser.isError()) {
-            QMessageBox::critical(getActiveBrowserWindow(),
-                                  "",
-                                  eventNewBrowser.getErrorMessage());
-            return;
-        }
-        const int32_t newWindowIndex = eventNewBrowser.getBrowserWindowCreated()->getBrowserWindowIndex();
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(newWindowIndex).getPointer());
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
-                                        false);
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(newWindowIndex).getPointer());
-        
-        
-        
-//        EventManager::get()->sendEvent(EventBrowserWindowNew(getActiveBrowserWindow(),
-//                                                             NULL).getPointer());
-//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        
-    }
 }
 
 /**

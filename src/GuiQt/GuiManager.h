@@ -172,11 +172,6 @@ namespace caret {
         void helpDialogWasClosed();
         void sceneDialogWasClosed();
         
-//        void macDockWindowMenuAboutToShow();
-//        void macDockWindowMenuTriggered(QAction*);
-        
-        void macDockMenuTriggered(QAction*);
-        
     private:
         GuiManager(QObject* parent = 0);
         
@@ -205,13 +200,7 @@ namespace caret {
         
         void addParentLessNonModalDialog(QWidget* dialog);
         
-        void createMacDockMenu();
-        
         bool m_macDockMenuHasBeenCreatedFlag;
-        
-//        QMenu* m_macDockMenuWindowMenu;
-//        
-//        std::vector<QAction*> m_macDocMenuWindowActions;
         
         QAction* m_macDockMenuNewWindowAction;
         

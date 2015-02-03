@@ -123,6 +123,8 @@ namespace caret {
         
         virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
         
+        static int32_t loadRecentSpecFileMenu(QMenu* recentSpecFileMenu);
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);

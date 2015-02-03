@@ -85,6 +85,7 @@ InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
 LabelSelectionViewController.h
 MacApplication.h
+MacDockMenu.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
@@ -233,6 +234,7 @@ InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
 LabelSelectionViewController.h
 MacApplication.h
+MacDockMenu.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
@@ -381,6 +383,7 @@ InformationDisplayDialog.cxx
 InformationDisplayPropertiesDialog.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx
+MacDockMenu.cxx
 MapSettingsFiberTrajectoryWidget.cxx
 MapSettingsLabelsWidget.cxx
 MapSettingsLayerWidget.cxx

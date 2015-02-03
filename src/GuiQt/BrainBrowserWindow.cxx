@@ -1008,11 +1008,34 @@ BrainBrowserWindow::isMacOptionKeyDown() const
  * Called when Open Recent Spec File Menu is about to be displayed
  * and creates the content of the menu.
  */
-void 
+void  
 BrainBrowserWindow::processRecentSpecFileMenuAboutToBeDisplayed()
 {
     m_recentSpecFileMenu->clear();
     
+    const int32_t numRecentSpecFiles = BrainBrowserWindow::loadRecentSpecFileMenu(m_recentSpecFileMenu);
+    
+    if (numRecentSpecFiles > 0) {
+        m_recentSpecFileMenu->addSeparator();
+        QAction* action = new QAction("Clear Menu",
+                                      m_recentSpecFileMenu);
+        action->setData("CLEAR_CLEAR");
+        m_recentSpecFileMenu->addAction(action);
+    }
+}
+
+/**
+ * Load a menu with recent spec files.  This method only ADDS
+ * items to the menu, nothing is removed or cleared.
+ *
+ * @param recentSpecFileMenu
+ *    Menu to which recent spec files are added.
+ * @return
+ *    Returns the number of recent spec files added to the menu.
+ */
+int32_t
+BrainBrowserWindow::loadRecentSpecFileMenu(QMenu* recentSpecFileMenu)
+{
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     std::vector<AString> recentSpecFiles;
     prefs->getPreviousSpecFiles(recentSpecFiles);
@@ -1037,18 +1060,17 @@ BrainBrowserWindow::processRecentSpecFileMenuAboutToBeDisplayed()
         }
         
         QAction* action = new QAction(actionName,
-                                      m_recentSpecFileMenu);
+                                      recentSpecFileMenu);
+        /*
+         * If this "setData()" action changes you will need to update:
+         * (1) BrainBrowserWindow::processRecentSpecFileMenuSelection
+         * (2) MacDockMenu::menuActionTriggered
+         */
         action->setData(actionFullPath);
-        m_recentSpecFileMenu->addAction(action);
-    } 
-    
-    if (numRecentSpecFiles > 0) {
-        m_recentSpecFileMenu->addSeparator();
-        QAction* action = new QAction("Clear Menu",
-                                      m_recentSpecFileMenu);
-        action->setData("CLEAR_CLEAR");
-        m_recentSpecFileMenu->addAction(action);
+        recentSpecFileMenu->addAction(action);
     }
+    
+    return numRecentSpecFiles;
 }
 
 /**
@@ -1069,7 +1091,7 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
         return;
     }
     
-    if (specFileName.isEmpty() == false) {
+    if ( ! specFileName.isEmpty()) {
         
         SpecFile specFile;
         try {
