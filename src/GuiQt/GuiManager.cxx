@@ -60,6 +60,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventHelpViewerDisplay.h"
 #include "EventIdentificationHighlightLocation.h"
+#include "EventMacDockMenuUpdate.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventModelGetAll.h"
@@ -226,6 +227,7 @@ GuiManager::GuiManager(QObject* parent)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ALERT_USER);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAC_DOCK_MENU_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW);
@@ -384,6 +386,8 @@ GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindo
                 this->reparentNonModalDialogs(brainBrowserWindow);
             }
         }
+        
+        EventManager::get()->sendEvent(EventMacDockMenuUpdate().getPointer());
     }
     
     return isBrowserWindowAllowedToClose;
@@ -954,6 +958,16 @@ GuiManager::receiveEvent(Event* event)
         const int h = std::min(bbw->height(), 
                                preferredMaxHeight);
         bbw->resize(w, h);
+        
+        EventManager::get()->sendEvent(EventMacDockMenuUpdate().getPointer());
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAC_DOCK_MENU_UPDATE) {
+        EventMacDockMenuUpdate* macDockMenuEvent = dynamic_cast<EventMacDockMenuUpdate*>(event);
+        CaretAssert(event);
+        
+        MacDockMenu::createUpdateMacDockMenu();
+        
+        macDockMenuEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS) {
         EventUpdateInformationWindows* infoEvent =

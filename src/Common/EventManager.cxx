@@ -495,6 +495,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION:
         case EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL:
         case EventTypeEnum::EVENT_IMAGE_CAPTURE:
+        case EventTypeEnum::EVENT_MAC_DOCK_MENU_UPDATE:
         case EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP:
         case EventTypeEnum::EVENT_MAP_YOKING_VALIDATION:
         case EventTypeEnum::EVENT_MODEL_ADD:

@@ -58,6 +58,7 @@
 #include "ElapsedTimer.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventDataFileRead.h"
+#include "EventMacDockMenuUpdate.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -2391,6 +2392,8 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     if (sceneFileWasLoaded) {
         GuiManager::get()->processShowSceneDialog(this);
     }
+    
+    EventManager::get()->sendEvent(EventMacDockMenuUpdate().getPointer());
     
     return successFlag;
 }

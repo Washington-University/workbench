@@ -1,5 +1,5 @@
-#ifndef __MAC_DOCK_MENU_H__
-#define __MAC_DOCK_MENU_H__
+#ifndef __EVENT_MAC_DOCK_MENU_UPDATE_H__
+#define __EVENT_MAC_DOCK_MENU_UPDATE_H__
 
 /*LICENSE_START*/
 /*
@@ -22,50 +22,34 @@
 /*LICENSE_END*/
 
 
-#include <QMenu>
+#include "Event.h"
 
 
 
 namespace caret {
 
-    class MacDockMenu : public QMenu {
+    class EventMacDockMenuUpdate : public Event {
         
-        Q_OBJECT
-
     public:
-        static void createUpdateMacDockMenu();
-    
-        virtual ~MacDockMenu();
+        EventMacDockMenuUpdate();
+        
+        virtual ~EventMacDockMenuUpdate();
         
 
         // ADD_NEW_METHODS_HERE
 
-    private slots:
-        
-        void menuActionTriggered(QAction*);
-        
     private:
-        MacDockMenu(QWidget* parent = 0);
-        
-        MacDockMenu(const MacDockMenu&);
+        EventMacDockMenuUpdate(const EventMacDockMenuUpdate&);
 
-        MacDockMenu& operator=(const MacDockMenu&);
-        
-        void createNewBrowserWindow();
-        
-        QAction* m_newBrowserWindowAction;
-        
-        std::vector<QAction*> m_recentSpecFileActions;
-        
-        std::vector<QAction*> m_browserWindowActions;
+        EventMacDockMenuUpdate& operator=(const EventMacDockMenuUpdate&);
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __MAC_DOCK_MENU_DECLARE__
+#ifdef __EVENT_MAC_DOCK_MENU_UPDATE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __MAC_DOCK_MENU_DECLARE__
+#endif // __EVENT_MAC_DOCK_MENU_UPDATE_DECLARE__
 
 } // namespace
-#endif  //__MAC_DOCK_MENU_H__
+#endif  //__EVENT_MAC_DOCK_MENU_UPDATE_H__

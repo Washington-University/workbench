@@ -208,6 +208,7 @@ EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventHelpViewerDisplay.h
 EventImageCapture.h
+EventMacDockMenuUpdate.h
 EventOperatingSystemRequestOpenDataFile.h
 EventOverlaySettingsEditorDialogRequest.h
 EventPaletteColorMappingEditorDialogRequest.h
@@ -357,6 +358,7 @@ EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventHelpViewerDisplay.cxx
 EventImageCapture.cxx
+EventMacDockMenuUpdate.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
 EventOverlaySettingsEditorDialogRequest.cxx
 EventPaletteColorMappingEditorDialogRequest.cxx
