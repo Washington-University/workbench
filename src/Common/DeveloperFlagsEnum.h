@@ -35,8 +35,7 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** enable volume quad drawing */
-        FLAG_VOLUME_QUADS
+        DEVELOPER_FLAG_UNUSED
     };
 
     ~DeveloperFlagsEnum();

@@ -92,8 +92,8 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
      * Initialization (true/false) of enums as desired
      */
     switch (this->enumValue) {
-        case FLAG_VOLUME_QUADS:
-            this->flagStatus = true;
+        case DEVELOPER_FLAG_UNUSED:
+            this->flagStatus = false;
             break;
     }
 }
@@ -116,9 +116,9 @@ DeveloperFlagsEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_QUADS,
-                                          "FLAG_VOLUME_QUADS",
-                                          "Volume Quad Drawing"));
+    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_UNUSED,
+                                          "DEVELOPER_FLAG_UNUSED",
+                                          "Developer flag unused"));
 }
 
 /**

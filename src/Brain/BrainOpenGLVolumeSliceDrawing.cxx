@@ -3925,27 +3925,26 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
      * mode and choose the drawing mode that requires the smallest number
      * of bytes.
      */
+    
+    /*
+     * Each vertex requires 28 bytes
+     *   (3 float xyz, 3 float normal xyz + 4 bytes color).
+     *
+     * Single quads uses four vertices per quad.
+     *
+     * Index quads requires four 4-byte ints for the quad's indices.
+     */
+    const int64_t bytesPerVertex = 28;
+    const int64_t totalVertexBytes = ((numberOfColumns + 1)
+                                      * (numberOfRows + 1)
+                                      * bytesPerVertex);
+    const int64_t singleQuadBytes = (validVoxelCount * bytesPerVertex * 4);
+    const int64_t indexQuadBytes = (totalVertexBytes
+                                    + (16 * validVoxelCount));
+    
     bool drawWithQuadIndicesFlag = false;
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_QUADS)) {
-        /*
-         * Each vertex requires 28 bytes
-         *   (3 float xyz, 3 float normal xyz + 4 bytes color).
-         *
-         * Single quads uses four vertices per quad.
-         * 
-         * Index quads requires four 4-byte ints for the quad's indices.
-         */
-        const int64_t bytesPerVertex = 28;
-        const int64_t totalVertexBytes = ((numberOfColumns + 1)
-                                          * (numberOfRows + 1)
-                                          * bytesPerVertex);
-        const int64_t singleQuadBytes = (validVoxelCount * bytesPerVertex * 4);
-        const int64_t indexQuadBytes = (totalVertexBytes
-                                        + (16 * validVoxelCount));
-        
-        if (indexQuadBytes < singleQuadBytes) {
-            drawWithQuadIndicesFlag = true;
-        }
+    if (indexQuadBytes < singleQuadBytes) {
+        drawWithQuadIndicesFlag = true;
     }
     
     if (drawWithQuadIndicesFlag) {
