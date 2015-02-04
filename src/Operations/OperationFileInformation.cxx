@@ -26,7 +26,9 @@
 #include "CaretDataFileHelper.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
+#include "CiftiMappableDataFile.h"
 #include "DataFileContentInformation.h"
+#include "DataFileException.h"
 #include "OperationFileInformation.h"
 #include "OperationException.h"
 
@@ -73,7 +75,7 @@ OperationFileInformation::getParameters()
     ret->createOptionalParameter(4, "-only-number-of-maps", "suppress normal output, print the number of maps");
 
     ret->createOptionalParameter(5, "-only-map-names", "suppress normal output, print the names of all maps");
-
+    
     AString helpText("List information about the content of a data file.  "
                      "Only one -only option may be specified.  "
                      "The information listed when no -only option is present is dependent upon the type of data file.");
@@ -110,7 +112,36 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     
     bool preferOnDisk = (!showMapInformationFlag || countOnlys != 0);
 
-    CaretPointer<CaretDataFile> caretDataFile(CaretDataFileHelper::readAnyCaretDataFile(dataFileName, preferOnDisk));
+    CaretPointer<CaretDataFile> caretDataFile;
+    try {
+        caretDataFile.grabNew(CaretDataFileHelper::readAnyCaretDataFile(dataFileName, preferOnDisk));
+    }
+    catch (const DataFileException& dfe) {
+        /*
+         * If the name ends with ".nii" but was rejected by VolumeFile, it could be
+         * an unsupported CIFTI file type.
+         */
+        if (dataFileName.endsWith(".nii")) {
+            try {
+                DataFileContentInformation dataFileContentInformation;
+                CiftiMappableDataFile::getDataFileContentInformationForGenericCiftiFile(dataFileName,
+                                                                                        dataFileContentInformation);
+                
+                cout << qPrintable(dataFileContentInformation.getInformationInString()) << endl;
+            }
+            catch (const DataFileException& dfe2) {
+                throw DataFileException(dfe.whatString()
+                                        + "\n"
+                                        + "Also unsuccessful trying to read as generic CIFTI file.");
+            }
+            
+            return;
+            
+        }
+        else {
+            throw dfe;
+        }
+    }
     
     if (onlyTimestep)
     {

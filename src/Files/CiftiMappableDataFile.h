@@ -144,6 +144,9 @@ namespace caret {
         static void addCiftiXmlToDataFileContentInformation(DataFileContentInformation& dataFileInformation,
                                                             const CiftiXML& ciftiXML);
         
+        static void getDataFileContentInformationForGenericCiftiFile(const AString& filename,
+                                                                     DataFileContentInformation& dataFileInformation);
+        
         virtual void clear();
         
         virtual bool isEmpty() const;

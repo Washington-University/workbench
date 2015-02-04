@@ -4925,6 +4925,17 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                 case CiftiMappingType::BRAIN_MODELS:
                 {
                     const CiftiBrainModelsMap& bmm = ciftiXML.getBrainModelsMap(alongType);
+                    
+                    dataFileInformation.addNameAndValue("    Has Volume Data",
+                                                        bmm.hasVolumeData());
+                    
+                    if (bmm.hasVolumeData()) {
+                        const VolumeSpace volumeSpace = bmm.getVolumeSpace();
+                        const int64_t* dims = volumeSpace.getDims();
+                        dataFileInformation.addNameAndValue("    Volume Dims",
+                                                            AString::fromNumbers(dims, 3, ","));
+                    }
+                    
                     std::vector<CiftiBrainModelsMap::ModelInfo> modelInfo = bmm.getModelInfo();//allows us to visit the models in the order they are in the file
                     for (int i = 0; i < (int)modelInfo.size(); ++i)
                     {
@@ -4952,6 +4963,14 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                     
                     dataFileInformation.addNameAndValue("    Has Volume Data",
                                                         cpm.hasVolumeData());
+                    
+                    if (cpm.hasVolumeData()) {
+                        const VolumeSpace volumeSpace = cpm.getVolumeSpace();
+                        const int64_t* dims = volumeSpace.getDims();
+                        dataFileInformation.addNameAndValue("    Volume Dims",
+                                                            AString::fromNumbers(dims, 3, ","));
+                    }
+                    
                     
                     const std::vector<StructureEnum::Enum> surfaceStructures = cpm.getParcelSurfaceStructures();
                     for (std::vector<StructureEnum::Enum>::const_iterator surfaceIter = surfaceStructures.begin();
@@ -5018,6 +5037,37 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
             }
         }
     }    
+}
+
+/**
+ * Get information about the content of a generic CIFTI file that is
+ * not a Workbench supported CIFTI file type.
+ *
+ * @param filename
+ *     Name of the file.
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+CiftiMappableDataFile::getDataFileContentInformationForGenericCiftiFile(const AString& filename,
+                                                                        DataFileContentInformation& dataFileInformation)
+{
+    CiftiFile ciftiFile(filename);
+    const CiftiXML& ciftiXML = ciftiFile.getCiftiXML();
+    
+    std::vector<int64_t> dims = ciftiXML.getDimensions();
+    const int32_t numDims = static_cast<int32_t>(dims.size());
+    int64_t dataSizeInBytes = 1;
+    for (int32_t i = 0; i < numDims; i++) {
+        dataSizeInBytes *= dims[i];
+    }
+    dataSizeInBytes *= sizeof(float);
+
+    dataFileInformation.addNameAndValue("Name", filename);
+    dataFileInformation.addNameAndValue("Type", AString("Connectivity Unknown (Could be Unsupported CIFTI File)"));
+    dataFileInformation.addNameAndValue("Data Size", FileInformation::fileSizeToStandardUnits(dataSizeInBytes));
+    CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
+                                                                   ciftiXML);
 }
 
 
