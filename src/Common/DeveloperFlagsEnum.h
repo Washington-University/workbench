@@ -36,11 +36,8 @@ public:
      */
     enum Enum {
         /** enable volume quad drawing */
-        FLAG_VOLUME_QUADS,
-        /** enable volume centering */
-        FLAG_VOLUME_CENTERING,
+        FLAG_VOLUME_QUADS
     };
-
 
     ~DeveloperFlagsEnum();
 

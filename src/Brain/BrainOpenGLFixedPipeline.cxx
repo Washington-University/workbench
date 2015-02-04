@@ -3083,9 +3083,7 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CENTERING)) {
-                useNewDrawingFlag = true;
-            }
+            useNewDrawingFlag = true;
             break;
     }
     
