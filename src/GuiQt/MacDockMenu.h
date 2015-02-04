@@ -59,12 +59,14 @@ namespace caret {
         
         std::vector<QAction*> m_browserWindowActions;
         
+        static MacDockMenu* s_previousMacDockMenu;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __MAC_DOCK_MENU_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    MacDockMenu* MacDockMenu::s_previousMacDockMenu = NULL;
 #endif // __MAC_DOCK_MENU_DECLARE__
 
 } // namespace

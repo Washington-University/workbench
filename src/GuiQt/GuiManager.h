@@ -200,10 +200,6 @@ namespace caret {
         
         void addParentLessNonModalDialog(QWidget* dialog);
         
-        bool m_macDockMenuHasBeenCreatedFlag;
-        
-        QAction* m_macDockMenuNewWindowAction;
-        
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
         

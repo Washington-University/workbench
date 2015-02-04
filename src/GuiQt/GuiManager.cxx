@@ -128,7 +128,6 @@ GuiManager::GuiManager(QObject* parent)
     this->nameOfApplication = "Connectome Workbench";
     //this->brainOpenGL = NULL;
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
-    m_macDockMenuHasBeenCreatedFlag = false;
     
     m_bugReportDialog = NULL;
     m_clippingPlanesDialog = NULL;
@@ -538,11 +537,6 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     bbw->show();
     
     bbw->resetGraphicsWidgetMinimumSize();
-    
-    if ( ! m_macDockMenuHasBeenCreatedFlag) {
-        m_macDockMenuHasBeenCreatedFlag = true;
-        MacDockMenu::createUpdateMacDockMenu();
-    }
     
     return bbw;
 }

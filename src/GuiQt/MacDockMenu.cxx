@@ -126,6 +126,7 @@ MacDockMenu::MacDockMenu(QWidget* parent)
  */
 MacDockMenu::~MacDockMenu()
 {
+    std::cout << "Deleting Mac Dock Menu" << std::endl;
 }
 
 /**
@@ -185,6 +186,10 @@ MacDockMenu::menuActionTriggered(QAction* action)
 void
 MacDockMenu::createUpdateMacDockMenu()
 {
+    const bool DISABLE_DOCK_MENU = true;
+    if (DISABLE_DOCK_MENU) {
+        return;
+    }
 #ifdef CARET_OS_MACOSX
     BrainBrowserWindow* browserWindow = GuiManager::get()->getActiveBrowserWindow();
     if (browserWindow == NULL) {
@@ -200,7 +205,14 @@ MacDockMenu::createUpdateMacDockMenu()
      * which could result in a "double delete".  In Qt 4.8.x,
      * the code does not show the menu being deleted at
      * any time but if that changes a crash would result.
+     *
+     * Another problem is that selection from the Dock
+     * menu may cause the Dock menu to get recreated.
      */
+//    if (s_previousMacDockMenu != NULL) {
+//        delete s_previousMacDockMenu;
+//    }
+//    s_previousMacDockMenu = menu;
 #endif // CARET_OS_MACOSX
 
 }
