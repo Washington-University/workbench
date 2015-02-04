@@ -35,8 +35,6 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** enable volume culling */
-        FLAG_VOLUME_CULLING,
         /** enable volume quad drawing */
         FLAG_VOLUME_QUADS,
         /** enable volume centering */

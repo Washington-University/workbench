@@ -722,7 +722,8 @@ OldBrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSlic
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             if (m_modelVolume != NULL) {
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_VOLUME_CULLING)) {
+                const bool cullingFlag = true;
+                if (cullingFlag) {
                     drawOrthogonalSliceWithCulling(sliceViewPlane,
                                                    sliceCoordinates,
                                                    slicePlane);
