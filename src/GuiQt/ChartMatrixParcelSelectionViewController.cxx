@@ -1005,9 +1005,7 @@ ChartMatrixParcelSelectionViewController::updateMatrixParcelChartWidget(Brain* /
         m_matrixParcelColorBarAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
         m_matrixParcelSettingsAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
         
-        const bool showParcelGUI = DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_PARCEL_REORDERING);
-        m_parcelRemappingGroupBox->setVisible(showParcelGUI);
-        
+        m_parcelRemappingGroupBox->setVisible(true);
     }
     
     m_parcelRemappingGroupBox->setEnabled(chartableMatrixParcelInterface != NULL);

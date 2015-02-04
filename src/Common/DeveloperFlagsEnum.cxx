@@ -31,9 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::DeveloperFlagsEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \brief Flags used during development.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -94,9 +92,6 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
      * Initialization (true/false) of enums as desired
      */
     switch (this->enumValue) {
-        case FLAG_PARCEL_REORDERING:
-            this->flagStatus = true;
-            break;
         case FLAG_VOLUME_CULLING:
             this->flagStatus = true;
             break;
@@ -130,11 +125,7 @@ DeveloperFlagsEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(DeveloperFlagsEnum(FLAG_PARCEL_REORDERING, 
-                                    "FLAG_PARCEL_REORDERING", 
-                                    "Parcel Reordering Enabled"));
-    
-    enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_CULLING, 
+    enumData.push_back(DeveloperFlagsEnum(FLAG_VOLUME_CULLING,
                                     "FLAG_VOLUME_CULLING", 
                                     "Volume Culling Enabled"));
     

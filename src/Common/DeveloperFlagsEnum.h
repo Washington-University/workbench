@@ -35,8 +35,6 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** enable parcel reordering */
-        FLAG_PARCEL_REORDERING,
         /** enable volume culling */
         FLAG_VOLUME_CULLING,
         /** enable volume quad drawing */
