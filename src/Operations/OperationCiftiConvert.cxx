@@ -29,10 +29,13 @@
 #include "GiftiFile.h"
 #include "VolumeFile.h"
 
+#include <fstream>
+#include <string>
 #include <limits>
 #include <vector>
 
 #include <QFile>
+#include <QStringList>
 
 using namespace caret;
 using namespace std;
@@ -61,7 +64,7 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fgresetTimeOpt = fromGiftiExt->createOptionalParameter(3, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the gifti file");
     fgresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
     fgresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
-    fromGiftiExt->createOptionalParameter(4, "-reset-scalars", "reset mapping along rows to scalars");
+    fromGiftiExt->createOptionalParameter(4, "-reset-scalars", "reset mapping along rows to scalars, taking length from the gifti file");
     OptionalParameter* fromGiftiReplace = fromGiftiExt->createOptionalParameter(5, "-replace-binary", "replace data with a binary file");
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
@@ -78,15 +81,32 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fnresetTimeOpt = fromNifti->createOptionalParameter(4, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the nifti file");
     fnresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
     fnresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
-    fromNifti->createOptionalParameter(5, "-reset-scalars", "reset mapping along rows to scalars");
+    fromNifti->createOptionalParameter(5, "-reset-scalars", "reset mapping along rows to scalars, taking length from the nifti file");
+    
+    OptionalParameter* toText = ret->createOptionalParameter(5, "-to-text", "convert to a plain text file");
+    toText->addCiftiParameter(1, "cifti-in", "the input cifti file");
+    toText->addStringParameter(2, "text-out", "output - the output text file");
+    OptionalParameter* toTextColDelimOpt = toText->createOptionalParameter(3, "-col-delim", "choose string to put between elements in a row");
+    toTextColDelimOpt->addStringParameter(1, "delim-string", "the string to use (default is a tab character)");
+    
+    OptionalParameter* fromText = ret->createOptionalParameter(6, "-from-text", "convert from plain text to cifti");
+    fromText->addStringParameter(1, "text-in", "the input text file");
+    fromText->addCiftiParameter(2, "cifti-template", "a cifti file with the dimension(s) and mapping(s) that should be used");
+    fromText->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
+    OptionalParameter* fromTextColDelimOpt = fromText->createOptionalParameter(4, "-col-delim", "specify string that is between elements in a row");
+    fromTextColDelimOpt->addStringParameter(1, "delim-string", "the string to use (default is any whitespace)");
+    OptionalParameter* ftresetTimeOpt = fromText->createOptionalParameter(5, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the text file");
+    ftresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
+    ftresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
+    fromText->createOptionalParameter(6, "-reset-scalars", "reset mapping along rows to scalars, taking length from the text file");
     
     ret->setHelpText(
         AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
         "If you want to write an existing CIFTI file with a different CIFTI version, see -file-convert, and its -cifti-version-convert option.  " +
         "If you want part of the CIFTI file as a metric, label, or volume file, see -cifti-separate.  " +
         "If you want to create a CIFTI file from metric and/or volume files, see the -cifti-create-* commands.  " +
-        "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, or -from-nifti.  " +
-        "The -transpose option to -from-gifti-ext is needed if the binary file is in column-major order."
+        "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, -from-nifti, -to-text, or -from-text.  " +
+        "The -transpose option to -from-gifti-ext is needed if the replacement binary file is in column-major order."
     );
     return ret;
 }
@@ -99,10 +119,14 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
     OptionalParameter* fromGiftiExt = myParams->getOptionalParameter(2);
     OptionalParameter* toNifti = myParams->getOptionalParameter(3);
     OptionalParameter* fromNifti = myParams->getOptionalParameter(4);
+    OptionalParameter* toText = myParams->getOptionalParameter(5);
+    OptionalParameter* fromText = myParams->getOptionalParameter(6);
     if (toGiftiExt->m_present) ++modes;
     if (fromGiftiExt->m_present) ++modes;
     if (toNifti->m_present) ++modes;
     if (fromNifti->m_present) ++modes;
+    if (toText->m_present) ++modes;
+    if (fromText->m_present) ++modes;
     if (modes != 1)
     {
         throw OperationException("you must specify exactly one conversion mode");
@@ -315,8 +339,8 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         int64_t numRows = outXML.getDimensionLength(CiftiXML::ALONG_COLUMN), numCols = outXML.getDimensionLength(CiftiXML::ALONG_ROW);
         if (myDims[3] != numCols)
         {
-            throw OperationException("input nifti has the wrong size for row length (nifti says " + AString::number(myDims[3]) +
-                                     ", cifti XML says " + AString::number(numCols));
+            throw OperationException("input nifti has the different size than cifti template for row length (nifti says " + AString::number(myDims[3]) +
+                                     ", cifti XML says " + AString::number(numCols) + ")");
         }
         if (numRows > myDims[0] * myDims[1] * myDims[2])
         {
@@ -332,6 +356,109 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                 rowscratch[j] = myNiftiIn->getFrame(j)[i];
             }
             myCiftiOut->setRow(rowscratch.data(), i);
+        }
+    }
+    if (toText->m_present)
+    {
+        CiftiFile* ciftiIn = toText->getCifti(1);
+        AString textOutName = toText->getString(2);
+        AString delim = "\t";
+        OptionalParameter* colDelimOpt = toText->getOptionalParameter(3);
+        if (colDelimOpt->m_present)
+        {
+            delim = colDelimOpt->getString(1);
+            if (delim.isEmpty()) throw OperationException("delimiter string must not be empty");//catch some possible stupid mistakes
+        }
+        const CiftiXML& myXML = ciftiIn->getCiftiXML();
+        if (myXML.getNumberOfDimensions() != 2) throw OperationException("conversion only supported for 2D cifti");
+        if (myXML.getDimensionLength(0) < 1) throw OperationException("input cifti has zero-length rows");
+        vector<int64_t> dims = myXML.getDimensions();
+        vector<float> scratchRow(dims[0]);
+        fstream textOut(textOutName.toLocal8Bit().constData(), fstream::out | fstream::trunc | fstream::binary);//write the same file, no newline translation, regardless of OS
+        for (int64_t i = 0; i < dims[1]; ++i)
+        {
+            ciftiIn->getRow(scratchRow.data(), i);
+            textOut << AString::number(scratchRow[0]);
+            for (int64_t j = 1; j < dims[0]; ++j)
+            {
+                textOut << delim << AString::number(scratchRow[j]);
+            }
+            textOut << "\n";
+        }
+    }
+    if (fromText->m_present)
+    {
+        AString textInName = fromText->getString(1);
+        CiftiFile* ciftiTemplate = fromText->getCifti(2);
+        CiftiFile* ciftiOut = fromText->getOutputCifti(3);
+        AString delim = "";//empty is special value for "any whitespace"
+        OptionalParameter* colDelimOpt = fromText->getOptionalParameter(4);
+        if (colDelimOpt->m_present)
+        {
+            delim = colDelimOpt->getString(1);
+            if (delim.isEmpty()) throw OperationException("delimiter string must not be empty");
+        }
+        CiftiXML outXML = ciftiTemplate->getCiftiXML();
+        if (outXML.getNumberOfDimensions() != 2) throw OperationException("conversion only supported for 2D cifti");
+        int64_t numRows = outXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
+        fstream textIn(textInName.toLocal8Bit().constData(), fstream::in);//do newline translation on input
+        string templine;//need to extract a row from the file first to set the row length
+        if (!getline(textIn, templine)) throw OperationException("failed to read from input text file");
+        QStringList entries;
+        if (delim.isEmpty())
+        {
+            entries = QString(templine.c_str()).split(QRegExp("\\s+"), QString::SkipEmptyParts);
+        } else {
+            entries = QString(templine.c_str()).split(delim, QString::SkipEmptyParts);
+        }
+        if (numRows < 1) throw OperationException("template cifti file has no data");//this probably throws an exception in CiftiFile, but double check
+        int textRowLength = entries.size();
+        OptionalParameter* fnresetTimeOpt = fromText->getOptionalParameter(5);
+        if (fnresetTimeOpt->m_present)
+        {
+            CiftiSeriesMap newMap;
+            newMap.setLength(textRowLength);
+            newMap.setStep(fnresetTimeOpt->getDouble(1));
+            newMap.setStart(fnresetTimeOpt->getDouble(2));
+            outXML.setMap(CiftiXML::ALONG_ROW, newMap);
+        }
+        if (fromText->getOptionalParameter(6)->m_present)
+        {
+            if (fnresetTimeOpt->m_present) throw OperationException("only one of -reset-timepoints and -reset-scalars may be specified");
+            CiftiScalarsMap newMap;
+            newMap.setLength(textRowLength);
+            outXML.setMap(CiftiXML::ALONG_ROW, newMap);
+        }
+        if (textRowLength != outXML.getDimensionLength(CiftiXML::ALONG_ROW))
+        {
+            throw OperationException("text file has different row length than cifti template (text file says " + AString::number(textRowLength) +
+                                     ", cifti XML says " + AString::number(outXML.getDimensionLength(CiftiXML::ALONG_ROW)) + ")");
+        }
+        ciftiOut->setCiftiXML(outXML);
+        vector<float> temprow(textRowLength);
+        bool ok = false;
+        for (int i = 0; i < textRowLength; ++i)
+        {
+            temprow[i] = entries[i].toFloat(&ok);
+            if (!ok) throw OperationException("failed to convert text to number: '" + entries[i] + "'");
+        }
+        ciftiOut->setRow(temprow.data(), 0);
+        for (int64_t j = 1; j < numRows; ++j)
+        {
+            if (!getline(textIn, templine)) throw OperationException("failed to read from input text file (not enough rows)");
+            if (delim.isEmpty())
+            {
+                entries = QString(templine.c_str()).split(QRegExp("\\s+"), QString::SkipEmptyParts);
+            } else {
+                entries = QString(templine.c_str()).split(delim, QString::SkipEmptyParts);
+            }
+            if (entries.size() != textRowLength) throw OperationException("text file has inconsistent line length");
+            for (int i = 0; i < textRowLength; ++i)
+            {
+                temprow[i] = entries[i].toFloat(&ok);
+                if (!ok) throw OperationException("failed to convert text to number: '" + entries[i] + "'");
+            }
+            ciftiOut->setRow(temprow.data(), j);
         }
     }
 }
