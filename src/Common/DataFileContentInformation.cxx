@@ -46,6 +46,7 @@ DataFileContentInformation::DataFileContentInformation()
      * Initialize options
      */
     setOptionFlag(OPTION_SHOW_MAP_INFORMATION, true);
+    setOptionFlag(OPTION_SHOW_CIFTI_LABEL_MAPPING, false);
 }
 
 /**

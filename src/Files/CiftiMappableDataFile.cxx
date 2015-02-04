@@ -4878,6 +4878,8 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                                             dims[i]);
     }
     
+    const bool showLabelMappingsFlag = dataFileInformation.isOptionFlag(DataFileContentInformation::OPTION_SHOW_CIFTI_LABEL_MAPPING);
+    
     for (int32_t alongType = 0; alongType < numDims; alongType++) {
         AString alongName;
         CiftiMappingType::MappingType mapType = CiftiMappingType::BRAIN_MODELS;
@@ -4956,6 +4958,19 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                 }
                     break;
                 case CiftiMappingType::LABELS:
+                    if (showLabelMappingsFlag) {
+                        const CiftiLabelsMap& clm = ciftiXML.getLabelsMap(alongType);
+                        const int32_t numItems = clm.getLength();
+                        for (int32_t i = 0; i < numItems; i++) {
+                            dataFileInformation.addText("    Index="
+                                                        + AString::number(i)
+                                                        + " Name="
+                                                        + clm.getMapName(i)
+                                                        + "\n"
+                                                        + clm.getMapLabelTable(i)->toFormattedString("        ")
+                                                        + "\n");
+                        }
+                    }
                     break;
                 case CiftiMappingType::PARCELS:
                 {
@@ -5066,6 +5081,9 @@ CiftiMappableDataFile::getDataFileContentInformationForGenericCiftiFile(const AS
     dataFileInformation.addNameAndValue("Name", filename);
     dataFileInformation.addNameAndValue("Type", AString("Connectivity Unknown (Could be Unsupported CIFTI File)"));
     dataFileInformation.addNameAndValue("Data Size", FileInformation::fileSizeToStandardUnits(dataSizeInBytes));
+    
+    dataFileInformation.setOptionFlag(DataFileContentInformation::OPTION_SHOW_CIFTI_LABEL_MAPPING,
+                                      true);
     CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(dataFileInformation,
                                                                    ciftiXML);
 }

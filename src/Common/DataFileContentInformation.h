@@ -42,7 +42,11 @@ namespace caret {
             /**
              * Show information about each map for files that support maps.
              */
-            OPTION_SHOW_MAP_INFORMATION
+            OPTION_SHOW_MAP_INFORMATION,
+            /*
+             * Show detailed information about CIFTI Label Mappings
+             */
+            OPTION_SHOW_CIFTI_LABEL_MAPPING
         };
         
         DataFileContentInformation();
