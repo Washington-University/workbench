@@ -4709,35 +4709,23 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
      * See also BrowserTabContent::restoreFromScene() that tries to make
      * old scenes compatible with this new scaling.
      */
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_WB_491_MODEL_SCALING_LATERAL_VIEW)) {
-        const float zDiff = boundingBox->getDifferenceZ();
-        if (zDiff != 0.0) {
-            modelHalfHeight = zDiff / 2.0;
+    const float zDiff = boundingBox->getDifferenceZ();
+    if (zDiff != 0.0) {
+        modelHalfHeight = zDiff / 2.0;
+        
+        const float yDiff = boundingBox->getDifferenceY();
+        if ((yDiff > 0.0)
+            && (viewport[2] > 0.0)) {
+            /*
+             * Note Z is vertical, Y is horizontal when viewed
+             */
+            const float surfaceAspectRatio  = zDiff / yDiff;
+            const float viewportAspectRatio = (static_cast<float>(viewport[3])
+                                               / static_cast<float>(viewport[2]));
             
-            const float yDiff = boundingBox->getDifferenceY();
-            if ((yDiff > 0.0)
-                && (viewport[2] > 0.0)) {
-                /*
-                 * Note Z is vertical, Y is horizontal when viewed
-                 */
-                const float surfaceAspectRatio  = zDiff / yDiff;
-                const float viewportAspectRatio = (static_cast<float>(viewport[3])
-                                                   / static_cast<float>(viewport[2]));
-                
-                if (viewportAspectRatio > surfaceAspectRatio) {
-                    const float modelHalfWidth = yDiff / 2.0;
-                    modelHalfHeight = modelHalfWidth * viewportAspectRatio;
-                }
-                else {
-                    // original:  modelHalfHeight = zDiff / 2.0;
-                    //modelHalfHeight *= surfaceAspectRatio;
-                    //modelHalfHeight /= surfaceAspectRatio;
-                    //modelHalfHeight *= viewportAspectRatio;
-                    //modelHalfHeight /= viewportAspectRatio;
-                    
-                    //const float modelHalfWidth = yDiff / 2.0;
-                    //modelHalfHeight = modelHalfWidth / viewportAspectRatio;
-                }
+            if (viewportAspectRatio > surfaceAspectRatio) {
+                const float modelHalfWidth = yDiff / 2.0;
+                modelHalfHeight = modelHalfWidth * viewportAspectRatio;
             }
         }
     }

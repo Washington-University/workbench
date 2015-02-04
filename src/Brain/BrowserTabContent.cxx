@@ -2823,70 +2823,68 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
      *
      * See also: BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox()
      */
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::FLAG_WB_491_MODEL_SCALING_LATERAL_VIEW)) {
-        if (sceneClass->getVersionNumber() < 4) {
-            Surface* surface = NULL;
-            switch (getSelectedModelType()) {
-                case ModelTypeEnum::MODEL_TYPE_CHART:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_INVALID:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                {
-                    ModelSurface* modelSurface = getDisplayedSurfaceModel();
-                    if (modelSurface != NULL) {
-                        surface = modelSurface->getSurface();
-                    }
+    if (sceneClass->getVersionNumber() < 4) {
+        Surface* surface = NULL;
+        switch (getSelectedModelType()) {
+            case ModelTypeEnum::MODEL_TYPE_CHART:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            {
+                ModelSurface* modelSurface = getDisplayedSurfaceModel();
+                if (modelSurface != NULL) {
+                    surface = modelSurface->getSurface();
                 }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                {
-                    ModelSurfaceMontage* modelMontage = getDisplayedSurfaceMontageModel();
-                    if (modelMontage != NULL) {
-                        std::vector<SurfaceMontageViewport*> surfaceMontageViewports;
-                        modelMontage->getSurfaceMontageViewportsForDrawing(getTabNumber(),
-                                                                           surfaceMontageViewports);
-                        
-                        for (std::vector<SurfaceMontageViewport*>::iterator iter = surfaceMontageViewports.begin();
-                             iter != surfaceMontageViewports.end();
-                             iter++) {
-                            SurfaceMontageViewport* smv = *iter;
-                            if (smv->getSurface() != NULL) {
-                                surface = smv->getSurface();
-                                break;
-                            }
-                        }
-                    }
-                }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                {
-                    ModelWholeBrain* modelWholeBrain = getDisplayedWholeBrainModel();
-                    if (modelWholeBrain != NULL) {
-                        std::vector<Surface*> allSurfaces = modelWholeBrain->getSelectedSurfaces(getTabNumber());
-                        if ( ! allSurfaces.empty()) {
-                            surface = allSurfaces[0];
-                        }
-                    }
-                }
-                    break;
             }
-            
-            if (surface != NULL) {
-                if (surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
-                    const BoundingBox* boundingBox = surface->getBoundingBox();
-                    const float zDiff = boundingBox->getDifferenceZ();
-                    const float maxDim =  std::max(std::max(boundingBox->getDifferenceX(),
-                                                            boundingBox->getDifferenceY()),
-                                                   zDiff);
-                    if (zDiff > 0.0) {
-                        const float scaleAdjustment = zDiff / maxDim;  //maxDim / zDiff;
-                        float scaling = getScaling();
-                        scaling *= scaleAdjustment;
-                        setScaling(scaling);
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            {
+                ModelSurfaceMontage* modelMontage = getDisplayedSurfaceMontageModel();
+                if (modelMontage != NULL) {
+                    std::vector<SurfaceMontageViewport*> surfaceMontageViewports;
+                    modelMontage->getSurfaceMontageViewportsForDrawing(getTabNumber(),
+                                                                       surfaceMontageViewports);
+                    
+                    for (std::vector<SurfaceMontageViewport*>::iterator iter = surfaceMontageViewports.begin();
+                         iter != surfaceMontageViewports.end();
+                         iter++) {
+                        SurfaceMontageViewport* smv = *iter;
+                        if (smv->getSurface() != NULL) {
+                            surface = smv->getSurface();
+                            break;
+                        }
                     }
+                }
+            }
+                break;
+            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            {
+                ModelWholeBrain* modelWholeBrain = getDisplayedWholeBrainModel();
+                if (modelWholeBrain != NULL) {
+                    std::vector<Surface*> allSurfaces = modelWholeBrain->getSelectedSurfaces(getTabNumber());
+                    if ( ! allSurfaces.empty()) {
+                        surface = allSurfaces[0];
+                    }
+                }
+            }
+                break;
+        }
+        
+        if (surface != NULL) {
+            if (surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
+                const BoundingBox* boundingBox = surface->getBoundingBox();
+                const float zDiff = boundingBox->getDifferenceZ();
+                const float maxDim =  std::max(std::max(boundingBox->getDifferenceX(),
+                                                        boundingBox->getDifferenceY()),
+                                               zDiff);
+                if (zDiff > 0.0) {
+                    const float scaleAdjustment = zDiff / maxDim;  //maxDim / zDiff;
+                    float scaling = getScaling();
+                    scaling *= scaleAdjustment;
+                    setScaling(scaling);
                 }
             }
         }

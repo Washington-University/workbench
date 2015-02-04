@@ -41,8 +41,6 @@ public:
         FLAG_VOLUME_QUADS,
         /** enable volume centering */
         FLAG_VOLUME_CENTERING,
-        /** enable model scaling for default lateral view*/
-        FLAG_WB_491_MODEL_SCALING_LATERAL_VIEW
     };
 
 
