@@ -53,93 +53,26 @@ CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionM
                                                                                      const DataFileTypeEnum::Enum dataFileType)
 : CaretObject()
 {
-    m_brain = brain;
-    m_dataFileType = dataFileType;
-    
-    bool isMappableFile = false;
-    switch (dataFileType) {
-        case DataFileTypeEnum::BORDER:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::FOCI:
-            break;
-        case DataFileTypeEnum::IMAGE:
-            break;
-        case DataFileTypeEnum::LABEL:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::METRIC:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::PALETTE:
-            break;
-        case DataFileTypeEnum::RGBA:
-            isMappableFile = true;
-            break;
-        case DataFileTypeEnum::SCENE:
-            break;
-        case DataFileTypeEnum::SPECIFICATION:
-            break;
-        case DataFileTypeEnum::SURFACE:
-            break;
-        case DataFileTypeEnum::UNKNOWN:
-            break;
-        case DataFileTypeEnum::VOLUME:
-            break;
-    }
-    CaretAssert(isMappableFile);
-    if ( ! isMappableFile) {
-        CaretLogSevere(DataFileTypeEnum::toGuiName(dataFileType)
-                       + " is not a valid mappable data file.");
-    }
-    
-    m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(brain,
-                                                                                                 dataFileType);
-    m_selectedMapIndex = -1;
-    
-    m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_caretDataFileSelectionModel",
-                          "CaretDataFileSelectionModel",
-                          m_caretDataFileSelectionModel);
-    m_sceneAssistant->add("m_selectedMapIndex",
-                          &m_selectedMapIndex);
+    std::vector<DataFileTypeEnum::Enum> dataFileTypesVector;
+    dataFileTypesVector.push_back(dataFileType);
+    performConstruction(brain,
+                        dataFileTypesVector);
+}
+
+/**
+ * Constructor for multiple types of files.
+ *
+ * @param brain
+ *    Brain from which files are obtained.
+ * @param dataFileTypes
+ *    Types of data files available for selection.
+ */
+CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(Brain* brain,
+                                                                                     const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
+: CaretObject()
+{
+    performConstruction(brain,
+                        dataFileTypes);
 }
 
 /**
@@ -149,6 +82,114 @@ CaretMappableDataFileAndMapSelectionModel::~CaretMappableDataFileAndMapSelection
 {
     delete m_caretDataFileSelectionModel;
     delete m_sceneAssistant;
+}
+
+/**
+ * Finish construction for an instance of this class.
+ *
+ * @param brain
+ *    Brain from which files are obtained.
+ * @param dataFileTypes
+ *    Types of data files available for selection.
+ */
+void
+CaretMappableDataFileAndMapSelectionModel::performConstruction(Brain* brain,
+                                                               const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
+{
+    m_brain = brain;
+    m_dataFileTypes = dataFileTypes;
+    
+    for (std::vector<DataFileTypeEnum::Enum>::const_iterator typeIter = dataFileTypes.begin();
+         typeIter != dataFileTypes.end();
+         typeIter++) {
+        const DataFileTypeEnum::Enum dataFileType = *typeIter;
+        
+        bool isMappableFile = false;
+        switch (dataFileType) {
+            case DataFileTypeEnum::BORDER:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::IMAGE:
+                break;
+            case DataFileTypeEnum::LABEL:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::METRIC:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::PALETTE:
+                break;
+            case DataFileTypeEnum::RGBA:
+                isMappableFile = true;
+                break;
+            case DataFileTypeEnum::SCENE:
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                break;
+            case DataFileTypeEnum::SURFACE:
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                break;
+            case DataFileTypeEnum::VOLUME:
+                break;
+        }
+        CaretAssert(isMappableFile);
+        if ( ! isMappableFile) {
+            CaretLogSevere(DataFileTypeEnum::toGuiName(dataFileType)
+                           + " is not a valid mappable data file.");
+        }
+    }
+    
+    m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(brain,
+                                                                                                 dataFileTypes);
+    m_selectedMapIndex = -1;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_caretDataFileSelectionModel",
+                          "CaretDataFileSelectionModel",
+                          m_caretDataFileSelectionModel);
+    m_sceneAssistant->add("m_selectedMapIndex",
+                          &m_selectedMapIndex);
+    
 }
 
 /**
@@ -295,16 +336,29 @@ void
 CaretMappableDataFileAndMapSelectionModel::setSelectedFile(CaretMappableDataFile* selectedFile)
 {
     if (selectedFile != NULL) {
-        if (selectedFile->getDataFileType() != m_dataFileType) {
+        const DataFileTypeEnum::Enum fileType = selectedFile->getDataFileType();
+        if (std::find(m_dataFileTypes.begin(),
+                      m_dataFileTypes.end(),
+                      fileType) == m_dataFileTypes.end()) {
+            AString validFileTypeNames;
+            for (std::vector<DataFileTypeEnum::Enum>::const_iterator typeIter = m_dataFileTypes.begin();
+                 typeIter != m_dataFileTypes.end();
+                 typeIter++) {
+                const DataFileTypeEnum::Enum dataFileType = *typeIter;
+                validFileTypeNames.append(DataFileTypeEnum::toName(dataFileType) + " ");
+            }
+
+            
             const AString msg("Attempting to set file that is of type "
-                              + DataFileTypeEnum::toGuiName(selectedFile->getDataFileType())
-                              + " but model is for type "
-                              + DataFileTypeEnum::toGuiName(m_dataFileType));
+                              + DataFileTypeEnum::toGuiName(fileType)
+                              + " but model is for type(s) "
+                              + validFileTypeNames);
             CaretAssertMessage(0, msg);
             CaretLogSevere(msg);
             return;
         }
     }
+    
     m_caretDataFileSelectionModel->setSelectedFile(selectedFile);
 }
 

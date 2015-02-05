@@ -1,0 +1,126 @@
+
+/*LICENSE_START*/
+/*
+ *  Copyright (C) 2015 Washington University School of Medicine
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+/*LICENSE_END*/
+
+#define __CIFTI_PARCEL_SELECTION_COMBO_BOX_DECLARE__
+#include "CiftiParcelSelectionComboBox.h"
+#undef __CIFTI_PARCEL_SELECTION_COMBO_BOX_DECLARE__
+
+#include <QComboBox>
+
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "CiftiParcelsMap.h"
+
+using namespace caret;
+
+
+    
+/**
+ * \class caret::CiftiParcelSelectionComboBox 
+ * \brief ComboBox for selection of a Parcel from a CiftiParcelsMap.
+ * \ingroup GuiQt
+ */
+
+/**
+ * Constructor.
+ */
+CiftiParcelSelectionComboBox::CiftiParcelSelectionComboBox(QObject* parent)
+: WuQWidget(parent)
+{
+    m_comboBox = new QComboBox();
+    
+    QObject::connect(m_comboBox, SIGNAL(activated(const QString&)),
+                     this, SIGNAL(parcelNameSelected(const QString&)));
+}
+
+/**
+ * Destructor.
+ */
+CiftiParcelSelectionComboBox::~CiftiParcelSelectionComboBox()
+{
+}
+
+/**
+ * @return The QComboBox for adding to a layout, enalbling, etc.
+ */
+QWidget*
+CiftiParcelSelectionComboBox::getWidget()
+{
+    return m_comboBox;
+}
+
+/**
+ * Update the combo box with the given parcels map.  If NULL,
+ * combo box will be empty.
+ *
+ * @param parcelsMap
+ *    Parcels map inserted into combo box.
+ */
+void
+CiftiParcelSelectionComboBox::updateComboBox(const CiftiParcelsMap* parcelsMap)
+{
+    const QString selectedParcelName = m_comboBox->currentText();
+    m_comboBox->clear();
+    
+    if (parcelsMap != NULL) {
+        QStringList parcelNamesList;
+        const std::vector<CiftiParcelsMap::Parcel>& allParcels = parcelsMap->getParcels();
+        for (std::vector<CiftiParcelsMap::Parcel>::const_iterator parcelIter = allParcels.begin();
+             parcelIter != allParcels.end();
+             parcelIter++) {
+            parcelNamesList.append(parcelIter->m_name);
+        }
+        
+        parcelNamesList.sort();
+        
+        m_comboBox->addItems(parcelNamesList);
+        if ( ! selectedParcelName.isEmpty()) {
+            setSelectedParcelName(selectedParcelName);
+        }
+    }
+}
+
+/**
+ * @return Name of selected parcel.
+ */
+AString
+CiftiParcelSelectionComboBox::getSelectedParcelName()
+{
+    return m_comboBox->currentText();
+}
+
+/**
+ * Set the selected parcel to the parcel with the given name.
+ */
+void
+CiftiParcelSelectionComboBox::setSelectedParcelName(const QString& parcelName)
+{
+    const int32_t parcelNameIndex = m_comboBox->findText(parcelName);
+    if (parcelNameIndex >= 0) {
+        m_comboBox->setCurrentIndex(parcelNameIndex);
+    }
+    else {
+        CaretLogWarning("Parcel named \""
+                        + parcelName
+                        + "\" is not valid name in CiftiParcelSelectionComboBox");
+    }
+}
+

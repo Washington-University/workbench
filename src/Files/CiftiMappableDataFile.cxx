@@ -1744,6 +1744,22 @@ CiftiMappableDataFile::getCiftiParcelsMapForBrainordinateMapping() const
 }
 
 /**
+ * Get the CIFTI parcels map used for data loading.
+ *
+ * @return
+ *     Pointer to the map's Cifti Parcels Map or NULL if the file is not
+ *     loaded using parcels.
+ */
+const CiftiParcelsMap*
+CiftiMappableDataFile::getCiftiParcelsMapForLoading() const
+{
+    CaretAssert((m_dataReadingDirectionForCiftiXML == CiftiXML::ALONG_ROW)
+                || (m_dataReadingDirectionForCiftiXML == CiftiXML::ALONG_COLUMN));
+    
+    return getCiftiParcelsMapForDirection(m_dataReadingDirectionForCiftiXML);
+}
+
+/**
  * Get the CIFTI parcels for the given direction.
  *
  * @param direction

@@ -219,6 +219,8 @@ namespace caret {
         
         const CiftiParcelsMap* getCiftiParcelsMapForBrainordinateMapping() const;
         
+        const CiftiParcelsMap* getCiftiParcelsMapForLoading() const;
+        
         const CiftiParcelsMap* getCiftiParcelsMapForDirection(const int direction) const;
         
         virtual bool isMappedWithLabelTable() const;

@@ -62,6 +62,7 @@ ChartMatrixSeriesSelectionViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
 CiftiConnectivityMatrixViewController.h
+CiftiParcelSelectionComboBox.h
 ClippingPlanesDialog.h
 ColorEditorWidget.h
 CustomViewDialog.h
@@ -130,6 +131,7 @@ WuQDialogNonModal.h
 WuQDoubleSlider.h
 WuQEventBlockingFilter.h
 WuQGridLayoutGroup.h
+WuQGroupBoxExclusiveWidget.h
 WuQImageLabel.h
 WuQListWidget.h
 WuQMessageBox.h
@@ -190,6 +192,7 @@ ChartMatrixSeriesSelectionViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
 CiftiConnectivityMatrixViewController.h
+CiftiParcelSelectionComboBox.h
 ClippingPlanesDialog.h
 ColorEditorWidget.h
 CursorDisplayScoped.h
@@ -289,6 +292,7 @@ WuQDoubleSlider.h
 WuQEventBlockingFilter.h
 WuQFactory.h
 WuQGridLayoutGroup.h
+WuQGroupBoxExclusiveWidget.h
 WuQImageLabel.h
 WuQListWidget.h
 WuQMessageBox.h
@@ -341,6 +345,7 @@ ChartMatrixSeriesSelectionViewController.cxx
 ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx
 CiftiConnectivityMatrixViewController.cxx
+CiftiParcelSelectionComboBox.cxx
 ClippingPlanesDialog.cxx
 ColorEditorWidget.cxx
 CursorDisplayScoped.cxx
@@ -439,6 +444,7 @@ WuQDoubleSlider.cxx
 WuQEventBlockingFilter.cxx
 WuQFactory.cxx
 WuQGridLayoutGroup.cxx
+WuQGroupBoxExclusiveWidget.cxx
 WuQImageLabel.cxx
 WuQListWidget.cxx
 WuQMessageBox.cxx

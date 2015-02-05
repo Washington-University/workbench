@@ -52,6 +52,10 @@ namespace caret {
                                                   const Options options,
                                                   QObject* parent);
         
+        CaretMappableDataFileAndMapSelectorObject(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                  const Options options,
+                                                  QObject* parent);
+        
         void updateFileAndMapSelector(CaretMappableDataFileAndMapSelectionModel* model);
         
         CaretMappableDataFileAndMapSelectionModel* getModel();

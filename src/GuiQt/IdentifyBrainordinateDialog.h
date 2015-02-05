@@ -32,7 +32,9 @@ namespace caret {
 
     class CaretDataFileSelectionComboBox;
     class CaretDataFileSelectionModel;
+    class CaretMappableDataFileAndMapSelectorObject;
     class CaretMappableDataFile;
+    class CiftiParcelSelectionComboBox;
     class StructureEnumComboBox;
     
     class IdentifyBrainordinateDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -60,9 +62,13 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+    private slots:
+        void slotParcelFileOrMapSelectionChanged();
+        
     private:
         enum Mode {
             MODE_NONE,
+            MODE_CIFTI_PARCEL,
             MODE_CIFTI_ROW,
             MODE_SURFACE_VERTEX
         };
@@ -79,17 +85,35 @@ namespace caret {
         
         QLabel* m_vertexIndexLabel;
         
-        QRadioButton* m_ciftiFileRadioButton;
+        QRadioButton* m_ciftiRowFileRadioButton;
         
-        QLabel* m_ciftiFileLabel;
+        QLabel* m_ciftiRowFileLabel;
         
-        CaretDataFileSelectionComboBox* m_ciftiFileComboBox;
+        CaretDataFileSelectionComboBox* m_ciftiRowFileComboBox;
 
-        CaretDataFileSelectionModel* m_ciftiFileSelectionModel;
+        CaretDataFileSelectionModel* m_ciftiRowFileSelectionModel;
         
-        QLabel* m_ciftiFileRowIndexLabel;
+        QLabel* m_ciftiRowFileIndexLabel;
         
-        QSpinBox* m_ciftiFileRowIndexSpinBox;
+        QSpinBox* m_ciftiRowFileIndexSpinBox;
+        
+        QRadioButton* m_ciftiParcelFileRadioButton;
+        
+        QLabel* m_ciftiParcelFileLabel;
+        
+        QLabel* m_ciftiParcelFileMapLabel;
+        
+        QWidget* m_ciftiParcelFileComboBox;
+        
+        QWidget* m_ciftiParcelFileMapSpinBox;
+        
+        QWidget* m_ciftiParcelFileMapComboBox;
+        
+        QLabel* m_ciftiParcelFileParcelLabel;
+        
+        CiftiParcelSelectionComboBox* m_ciftiParcelFileParcelNameComboBox;
+        
+        CaretMappableDataFileAndMapSelectorObject* m_ciftiParcelFileSelector;
     };
     
 #ifdef __IDENTIFY_BRAINORDINATE_DIALOG_DECLARE__

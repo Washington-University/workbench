@@ -72,7 +72,7 @@ CaretMappableDataFileAndMapSelectorObject::CaretMappableDataFileAndMapSelectorOb
  * data file type.
  *
  * @param dataFileType
- *    Type 
+ *    File type for selection
  * @param options
  *    Options for this instance.
  * @param parent
@@ -86,6 +86,31 @@ CaretMappableDataFileAndMapSelectorObject::CaretMappableDataFileAndMapSelectorOb
     
     m_model = new CaretMappableDataFileAndMapSelectionModel(GuiManager::get()->getBrain(),
                                                             dataFileType);
+    
+    initializeConstruction(options);
+    
+    m_needToDestroyModelFlag = true;
+}
+
+/**
+ * Constructor that creates a selection object with a model for the selected
+ * data file types.
+ *
+ * @param dataFileTypes
+ *    File types for selection
+ * @param options
+ *    Options for this instance.
+ * @param parent
+ *    Parent of this instance.
+ */
+CaretMappableDataFileAndMapSelectorObject::CaretMappableDataFileAndMapSelectorObject(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                                                     const Options options,
+                                                                                     QObject* parent)
+: QObject(parent)
+{
+    
+    m_model = new CaretMappableDataFileAndMapSelectionModel(GuiManager::get()->getBrain(),
+                                                            dataFileTypes);
     
     initializeConstruction(options);
     
