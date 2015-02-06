@@ -29,7 +29,6 @@ namespace caret {
 
     class BrainBrowserWindow;
     class HyperLinkTextBrowser;
-    class IdentifyBrainordinateDialog;
     class InformationDisplayPropertiesDialog;
     
     class InformationDisplayDialog : public WuQDialogNonModal, public EventListenerInterface, public SceneableInterface {
@@ -61,8 +60,6 @@ namespace caret {
         
         void showPropertiesDialog();
         
-        void identifyBrainordinateTriggered();
-        
     private:
         InformationDisplayDialog(const InformationDisplayDialog&);
 
@@ -73,8 +70,6 @@ namespace caret {
         QAction* m_contralateralIdentificationAction;
         
         QString m_informationText;
-        
-        IdentifyBrainordinateDialog* m_identifyBrainordinateDialog;
         
         InformationDisplayPropertiesDialog* m_propertiesDialog;
     };

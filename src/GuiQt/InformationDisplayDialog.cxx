@@ -37,7 +37,6 @@
 #include "GuiManager.h"
 #include "HyperLinkTextBrowser.h"
 #include "IdentificationManager.h"
-#include "IdentifyBrainordinateDialog.h"
 #include "InformationDisplayPropertiesDialog.h"
 #include "SceneClass.h"
 #include "SceneWindowGeometry.h"
@@ -73,7 +72,6 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
     this->setApplyButtonText("");
     
     m_propertiesDialog = NULL;
-    m_identifyBrainordinateDialog = NULL;
     
     m_informationTextBrowser = new HyperLinkTextBrowser();
     m_informationTextBrowser->setLineWrapMode(QTextEdit::NoWrap);
@@ -108,13 +106,7 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
                                                           this,
                                                           this,
                                                           SLOT(showPropertiesDialog()));
-    
-    QAction* identifySurfaceAction = WuQtUtilities::createAction("Select\nBrainordinate",
-                                                                 "Enter a brainordinate for identification",
-                                                                 this,
-                                                                 this,
-                                                                 SLOT(identifyBrainordinateTriggered()));
-    
+        
     QObject::connect(m_informationTextBrowser, SIGNAL(copyAvailable(bool)),
                      copyAction, SLOT(setEnabled(bool)));
     copyAction->setEnabled(false);
@@ -138,7 +130,6 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
     idToolBarRight->addSeparator();
     idToolBarRight->addAction(settingsAction);
     idToolBarRight->addSeparator();
-    idToolBarRight->addAction(identifySurfaceAction);
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
@@ -326,19 +317,5 @@ InformationDisplayDialog::showPropertiesDialog()
         m_propertiesDialog = new InformationDisplayPropertiesDialog(this);
     }
     m_propertiesDialog->show();
-}
-
-/**
- * Allow user to identify a brainordinate by structure/node index.
- */
-void
-InformationDisplayDialog::identifyBrainordinateTriggered()
-{
-    if (m_identifyBrainordinateDialog == NULL) {
-        m_identifyBrainordinateDialog = new IdentifyBrainordinateDialog(this);
-        m_identifyBrainordinateDialog->setSaveWindowPositionForNextTime(true);
-    }
-    
-    m_identifyBrainordinateDialog->show();
 }
 

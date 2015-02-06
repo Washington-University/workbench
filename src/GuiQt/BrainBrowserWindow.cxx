@@ -647,7 +647,7 @@ BrainBrowserWindow::createActions()
                                 SLOT(processTileWindows()));
     
     m_informationDialogAction =
-    WuQtUtilities::createAction("Information Window",
+    WuQtUtilities::createAction("Information...",
                                 "Show the Informaiton Window",
                                 this,
                                 guiManager,
@@ -1579,6 +1579,17 @@ BrainBrowserWindow::createMenuWindow()
     menu->addAction(m_moveTabsFromAllWindowsToOneWindowAction);
     menu->addMenu(m_moveSelectedTabToWindowMenu);
     menu->addSeparator();
+    
+    /*
+     * Cannot use the Identify action since it sets the "checkable" attribute
+     * and this will add checkbox and checkmark to the menu.  In addition,
+     * using the identify action would also hide the help viewer if it is
+     * displayed and we don't want that.
+     */
+    QAction* identifyAction = GuiManager::get()->getIdentifyBrainordinateDialogDisplayAction();
+    menu->addAction(identifyAction->text(),
+                    this, SLOT(processShowIdentifyBrainordinateDialog()));
+    
     menu->addAction(m_informationDialogAction);
     menu->addAction(GuiManager::get()->getSceneDialogDisplayAction());
     menu->addSeparator();
@@ -1632,6 +1643,25 @@ BrainBrowserWindow::processShowHelpInformation()
         helpAction->blockSignals(false);
     }
     helpAction->trigger();
+}
+
+void
+BrainBrowserWindow::processShowIdentifyBrainordinateDialog()
+{
+    /*
+     * Always display the identify dialog when selected from the menu.
+     * Even if the identify dialog is active it may be under other windows
+     * so triggering it will cause it to display.
+     */
+    GuiManager::get()->showHideIdentfyBrainordinateDialog(true,
+                                                          this);
+//    QAction* identifyAction = GuiManager::get()->getIdentifyBrainordinateDialogDisplayAction();
+//    if (identifyAction->isChecked()) {
+//        identifyAction->blockSignals(true);
+//        identifyAction->setChecked(false);
+//        identifyAction->blockSignals(false);
+//    }
+//    identifyAction->trigger();
 }
 
 /**

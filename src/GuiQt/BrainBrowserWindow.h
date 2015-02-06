@@ -149,6 +149,7 @@ namespace caret {
         void processViewTileTabs();
         void processViewTileTabsConfigurationDialog();
         void processShowHelpInformation();
+        void processShowIdentifyBrainordinateDialog();
         
         void processMoveOverlayToolBoxToLeft();
         void processMoveOverlayToolBoxToBottom();

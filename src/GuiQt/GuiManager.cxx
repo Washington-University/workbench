@@ -76,6 +76,7 @@
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
 #include "IdentificationStringBuilder.h"
+#include "IdentifyBrainordinateDialog.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
@@ -135,6 +136,7 @@ GuiManager::GuiManager(QObject* parent)
     this->imageCaptureDialog = NULL;
     this->movieDialog = NULL;
     m_informationDisplayDialog = NULL;
+    m_identifyBrainordinateDialog = NULL;
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
     m_helpViewerDialog = NULL;
@@ -160,7 +162,7 @@ GuiManager::GuiManager(QObject* parent)
                                 "when new information is available",
                                 this,
                                 this,
-                                SLOT(showHideInfoWindowSelected(bool))); 
+                                SLOT(showHideInfoWindowSelected(bool)));
     if (infoDisplayIconValid) {
         m_informationDisplayDialogEnabledAction->setIcon(infoDisplayIcon);
         m_informationDisplayDialogEnabledAction->setIconVisibleInMenu(false);
@@ -175,6 +177,32 @@ GuiManager::GuiManager(QObject* parent)
     this->showHideInfoWindowSelected(m_informationDisplayDialogEnabledAction->isChecked());
     m_informationDisplayDialogEnabledAction->setIconText("Info"); 
     m_informationDisplayDialogEnabledAction->blockSignals(false);
+    
+    /*
+     * Identify brainordinate window
+     */
+    QIcon identifyDisplayIcon;
+    const bool identifyDisplayIconValid =
+    WuQtUtilities::loadIcon(":/ToolBar/identify.png",
+                            identifyDisplayIcon);
+    m_identifyBrainordinateDialogEnabledAction =
+    WuQtUtilities::createAction("Identify...",
+                                "Enables display of the Identify Brainordinate Window",
+                                this,
+                                this,
+                                SLOT(showIdentifyBrainordinateDialogActionToggled(bool)));
+    if (identifyDisplayIconValid) {
+        m_identifyBrainordinateDialogEnabledAction->setIcon(identifyDisplayIcon);
+        m_identifyBrainordinateDialogEnabledAction->setIconVisibleInMenu(false);
+    }
+    else {
+        m_identifyBrainordinateDialogEnabledAction->setIconText("ID");
+    }
+    
+    m_identifyBrainordinateDialogEnabledAction->blockSignals(true);
+    m_identifyBrainordinateDialogEnabledAction->setCheckable(true);
+    m_identifyBrainordinateDialogEnabledAction->setChecked(false);
+    m_identifyBrainordinateDialogEnabledAction->blockSignals(false);
     
     /*
      * Scene dialog action
@@ -1544,6 +1572,17 @@ GuiManager::getInformationDisplayDialogEnabledAction()
 }
 
 /**
+ * @return The action that indicates the enabled status
+ * for display of the identify brainordinate dialog.
+ */
+QAction*
+GuiManager::getIdentifyBrainordinateDialogDisplayAction()
+{
+    return m_identifyBrainordinateDialogEnabledAction;
+}
+
+
+/**
  * Show the information window.
  */
 void 
@@ -1607,6 +1646,94 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
             m_informationDisplayDialog->activateWindow();
         }
     }
+}
+
+/**
+ * Show/hide the identify dialog.
+ *
+ * @param status
+ *     Status (true/false) to display dialog.
+ */
+void
+GuiManager::showIdentifyBrainordinateDialogActionToggled(bool status)
+{
+    showHideIdentfyBrainordinateDialog(status,
+                          NULL);
+}
+
+/**
+ * Show or hide the identify brainordinate dialog.
+ *
+ * @param status
+ *     True means show, false means hide.
+ * @param parentBrainBrowserWindow
+ *     If this is not NULL, and the help dialog needs to be created,
+ *     use this window as the parent and place the dialog next to this
+ *     window.
+ */
+void
+GuiManager::showHideIdentfyBrainordinateDialog(const bool status,
+                                  BrainBrowserWindow* parentBrainBrowserWindow)
+{
+    bool dialogWasCreated = false;
+    
+    QWidget* moveWindowParent = parentBrainBrowserWindow;
+    
+    if (status) {
+        if (m_identifyBrainordinateDialog == NULL) {
+            BrainBrowserWindow* idDialogParent = parentBrainBrowserWindow;
+            if (idDialogParent == NULL) {
+                idDialogParent = getActiveBrowserWindow();
+            }
+            
+            m_identifyBrainordinateDialog = new IdentifyBrainordinateDialog(idDialogParent);
+            //m_identifyBrainordinateDialog->setSaveWindowPositionForNextTime(true);
+            this->addNonModalDialog(m_identifyBrainordinateDialog);
+            QObject::connect(m_identifyBrainordinateDialog, SIGNAL(dialogWasClosed()),
+                             this, SLOT(identifyBrainordinateDialogWasClosed()));
+            
+            dialogWasCreated = true;
+            
+            /*
+             * If there was no parent dialog for placement of the help
+             * dialog and there is only one browser window, use the browser
+             * for placement of the help dialog.
+             */
+            if (moveWindowParent == NULL) {
+                if (getAllOpenBrainBrowserWindows().size() == 1) {
+                    moveWindowParent = idDialogParent;
+                }
+            }
+        }
+        
+        m_identifyBrainordinateDialog->show();
+        m_identifyBrainordinateDialog->activateWindow();
+    }
+    else {
+        m_identifyBrainordinateDialog->close();
+    }
+    
+    if (dialogWasCreated) {
+        if (moveWindowParent != NULL) {
+            WuQtUtilities::moveWindowToSideOfParent(moveWindowParent,
+                                                    m_identifyBrainordinateDialog);
+        }
+    }
+    
+    m_identifyBrainordinateDialogEnabledAction->blockSignals(true);
+    m_identifyBrainordinateDialogEnabledAction->setChecked(status);
+    m_identifyBrainordinateDialogEnabledAction->blockSignals(false);
+}
+
+/**
+ * Gets called when the identify dialog is closed.
+ */
+void
+GuiManager::identifyBrainordinateDialogWasClosed()
+{
+    m_identifyBrainordinateDialogEnabledAction->blockSignals(true);
+    m_identifyBrainordinateDialogEnabledAction->setChecked(false);
+    m_identifyBrainordinateDialogEnabledAction->blockSignals(false);
 }
 
 /**

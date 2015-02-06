@@ -216,9 +216,11 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QToolButton* informationDialogToolButton = new QToolButton();
     informationDialogToolButton->setDefaultAction(GuiManager::get()->getInformationDisplayDialogEnabledAction());
     
+    QToolButton* identifyDialogToolButton = new QToolButton();
+    identifyDialogToolButton->setDefaultAction(GuiManager::get()->getIdentifyBrainordinateDialogDisplayAction());
+    
     QToolButton* helpDialogToolButton = new QToolButton();
     helpDialogToolButton->setDefaultAction(GuiManager::get()->getHelpViewerDialogDisplayAction());
-    helpDialogToolButton->setFixedSize(informationDialogToolButton->sizeHint()); // same size buttons
     
     QToolButton* sceneDialogToolButton = new QToolButton();
     sceneDialogToolButton->setDefaultAction(GuiManager::get()->getSceneDialogDisplayAction());
@@ -260,6 +262,17 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     layersToolBoxToolButton->setDefaultAction(layersToolBoxAction);
     
     /*
+     * Make all tool buttons the same height
+     */
+    WuQtUtilities::matchWidgetHeights(helpDialogToolButton,
+                                      informationDialogToolButton,
+                                      identifyDialogToolButton,
+                                      sceneDialogToolButton,
+                                      toolBarToolButton,
+                                      overlayToolBoxToolButton,
+                                      layersToolBoxToolButton);
+    
+    /*
      * Tab bar and controls at far right side of toolbar
      */
     this->tabBarWidget = new QWidget();
@@ -268,6 +281,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     tabBarLayout->addWidget(this->tabBar, 100);
     tabBarLayout->addWidget(helpDialogToolButton);
     tabBarLayout->addWidget(informationDialogToolButton);
+    tabBarLayout->addWidget(identifyDialogToolButton);
     tabBarLayout->addWidget(sceneDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
     tabBarLayout->addWidget(overlayToolBoxToolButton);
