@@ -856,9 +856,9 @@ GiftiFile::readFile(const AString& filename)
         int colNum  = e.getColumnNumber();
         
         std::ostringstream str;
-        str << "Parse Error while reading ";
+        str << "Parse error while reading";
         if ((lineNum >= 0) && (colNum >= 0)) {
-            str << " line/col ("
+            str << ", line/col ("
             << e.getLineNumber()
             << "/"
             << e.getColumnNumber()
