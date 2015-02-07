@@ -258,11 +258,11 @@ AlgorithmCiftiRestrictDenseMap::AlgorithmCiftiRestrictDenseMap(ProgressObject* m
     {
         if (!inMap.hasSurfaceData(StructureEnum::CEREBELLUM))
         {
-            throw AlgorithmException("left surface roi provided, but input has no left surface data");
+            throw AlgorithmException("cerebellum surface roi provided, but input has no left surface data");
         }
         if (cerebRoi->getNumberOfNodes() != inMap.getSurfaceNumberOfNodes(StructureEnum::CEREBELLUM))
         {
-            throw AlgorithmException("left surface roi has different number of vertices than input cifti");
+            throw AlgorithmException("cerebellum surface roi has different number of vertices than input cifti");
         }
     }
     if (volRoi != NULL)
