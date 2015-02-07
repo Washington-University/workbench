@@ -44,6 +44,7 @@ AlgorithmCiftiReduce.h
 AlgorithmCiftiReorder.h
 AlgorithmCiftiReplaceStructure.h
 AlgorithmCiftiResample.h
+AlgorithmCiftiRestrictDenseMap.h
 AlgorithmCiftiROIsFromExtrema.h
 AlgorithmCiftiSeparate.h
 AlgorithmCiftiSmoothing.h
@@ -142,6 +143,7 @@ AlgorithmCiftiReduce.cxx
 AlgorithmCiftiReorder.cxx
 AlgorithmCiftiReplaceStructure.cxx
 AlgorithmCiftiResample.cxx
+AlgorithmCiftiRestrictDenseMap.cxx
 AlgorithmCiftiROIsFromExtrema.cxx
 AlgorithmCiftiSeparate.cxx
 AlgorithmCiftiSmoothing.cxx

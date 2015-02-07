@@ -138,6 +138,7 @@
 #include "OperationCiftiMerge.h"
 #include "OperationCiftiPalette.h"
 #include "OperationCiftiResampleDconnMemory.h"
+#include "AlgorithmCiftiRestrictDenseMap.h"
 #include "OperationCiftiROIAverage.h"
 #include "OperationCiftiSeparateAll.h"
 #include "OperationCiftiStats.h"
@@ -279,6 +280,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReplaceStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiResample()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiRestrictDenseMap()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiROIsFromExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSeparate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSmoothing()));
