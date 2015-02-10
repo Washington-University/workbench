@@ -73,6 +73,9 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     OptionalParameter* exponentOpt = ret->createOptionalParameter(8, "-exponent", "use a different exponent in the weighting function");
     exponentOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (area / (distance ^ n)) as the weighting function (default 2)");
     
+    OptionalParameter* corrAreaOpt = ret->createOptionalParameter(11, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+        
     ret->setHelpText(
         AString("For all metric vertices that are designated as bad, if they neighbor a non-bad vertex with data or are within the specified distance of such a vertex, ") +
         "replace the value with a distance weighted average of nearby non-bad vertices that have data, otherwise set the value to zero.  " +
@@ -80,7 +83,9 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
         "If -nearest is specified, it will use the value from the closest non-bad vertex with data within range instead of a weighted average.\n\n" +
         "If -bad-vertex-roi is specified, only vertices with a positive value in the ROI are bad.  " +
         "If it is not specified, only vertices that have data, with a value of zero, are bad.  " +
-        "If -data-roi is not specified, all vertices are assumed to have data."
+        "If -data-roi is not specified, all vertices are assumed to have data.\n\n" +
+        
+        "Note that the -corrected-areas option uses an approximate correction for the change in distances along a group average surface."
     );
     return ret;
 }
@@ -122,11 +127,18 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
     {
         exponent = (float)exponentOpt->getDouble(1);
     }
-    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, dataRoi, columnNum, nearest, linear, exponent);
+    OptionalParameter* corrAreaOpt = myParams->getOptionalParameter(11);
+    MetricFile* corrAreas = NULL;
+    if (corrAreaOpt->m_present)
+    {
+        corrAreas = corrAreaOpt->getMetric(1);
+    }
+    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, dataRoi, columnNum, nearest, linear, exponent, corrAreas);
 }
 
 AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const float& distance, MetricFile* myMetricOut,
-                                             const MetricFile* badNodeRoi, const MetricFile* dataRoi, const int& columnNum, const bool& nearest, const bool& linear, const float& exponent) : AbstractAlgorithm(myProgObj)
+                                             const MetricFile* badNodeRoi, const MetricFile* dataRoi, const int& columnNum,
+                                             const bool& nearest, const bool& linear, const float& exponent, const MetricFile* corrAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (nearest && linear) throw AlgorithmException("cannot dilate in nearest and linear modes together");
@@ -143,6 +155,10 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
     {
         throw AlgorithmException("data roi number of vertices does not match");
     }
+    if (corrAreas != NULL && corrAreas->getNumberOfNodes() != numNodes)
+    {
+        throw AlgorithmException("corrected areas metric number of vertices does not match");
+    }
     if (columnNum < -1 || columnNum >= myMetric->getNumberOfColumns())
     {
         throw AlgorithmException("invalid column specified");
@@ -155,15 +171,22 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
     vector<pair<int, StencilElem> > myStencils;//because we need to iterate over it in parallel
     vector<pair<int, int> > myNearest;
     vector<float> colScratch(numNodes);
-    vector<float> myAreas;
-    mySurf->computeNodeAreas(myAreas);
+    vector<float> myAreasData;
+    const float* myAreas = NULL;
+    if (corrAreas == NULL)
+    {
+        mySurf->computeNodeAreas(myAreasData);
+        myAreas = myAreasData.data();
+    } else {
+        myAreas = corrAreas->getValuePointerForColumn(0);
+    }
     if (!linear && badNodeRoi != NULL)
     {
         if (nearest)
         {
-            precomputeNearest(myNearest, mySurf, badNodeRoi, dataRoi, distance);
+            precomputeNearest(myNearest, mySurf, badNodeRoi, dataRoi, corrAreas, distance);
         } else {
-            precomputeStencils(myStencils, mySurf, myAreas.data(), badNodeRoi, dataRoi, distance, exponent);
+            precomputeStencils(myStencils, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, exponent);
         }
     }
     if (columnNum == -1)
@@ -176,7 +199,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
             myMetricOut->setColumnName(thisCol, myMetric->getColumnName(thisCol));
             if (linear || badNodeRoi == NULL)
             {
-                processColumn(colScratch.data(), myInputData, mySurf, myAreas.data(), badNodeRoi, dataRoi, distance, nearest, linear, exponent);
+                processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
             } else {
                 if (nearest)
                 {
@@ -194,7 +217,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
         if (linear || badNodeRoi == NULL)
         {
-            processColumn(colScratch.data(), myInputData, mySurf, myAreas.data(), badNodeRoi, dataRoi, distance, nearest, linear, exponent);
+            processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
         } else {
             if (nearest)
             {
@@ -255,7 +278,8 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const int& numNodes
     }
 }
 
-void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInputData, const SurfaceFile* mySurf, const float* myAreas, const MetricFile* badNodeRoi, const MetricFile* dataRoi,
+void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInputData, const SurfaceFile* mySurf, const float* myAreas,
+                                          const MetricFile* badNodeRoi, const MetricFile* dataRoi, const MetricFile* corrAreas,
                                           const float& distance, const bool& nearest, const bool& linear, const float& exponent)
 {
     float cutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
@@ -296,10 +320,21 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
     }
     const float* badRoiData = NULL;
     if (badNodeRoi != NULL) badRoiData = badNodeRoi->getValuePointerForColumn(0);
+    CaretPointer<GeodesicHelperBase> correctedBase;
+    if (corrAreas != NULL)
+    {
+        correctedBase.grabNew(new GeodesicHelperBase(mySurf, corrAreas->getValuePointerForColumn(0)));//NOTE: myAreas also points to this when applicable
+    }
 #pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp;
+        if (corrAreas == NULL)
+        {
+            myGeoHelp = mySurf->getGeodesicHelper();
+        } else {
+            myGeoHelp.grabNew(new GeodesicHelper(correctedBase));
+        }
 #pragma omp CARET_FOR schedule(dynamic)
         for (int i = 0; i < numNodes; ++i)
         {
@@ -426,7 +461,7 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
                                     float divdist = distList[j] / closestDist;
                                     if (divdist > tolerance)//tricky: if closestDist is zero, this filters between NaN and inf, resulting in a straight average between nodes with 0 distance
                                     {
-                                        weight = myAreas[nodeList[j]] / pow(divdist, exponent);
+                                        weight = myAreas[nodeList[j]] / pow(divdist, exponent);//NOTE: myAreas has already been pointed to the right data with -corrected-areas
                                     } else {
                                         weight = myAreas[nodeList[j]] / pow(tolerance, exponent);
                                     }
@@ -451,7 +486,7 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
 }
 
 void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& myStencils, const SurfaceFile* mySurf, const float* myAreas,
-                                               const MetricFile* badNodeRoi, const MetricFile* dataRoi,
+                                               const MetricFile* badNodeRoi, const MetricFile* dataRoi, const MetricFile* corrAreas,
                                                const float& distance, const float& exponent)
 {
     CaretAssert(badNodeRoi != NULL);//because it should never be called if we don't know exactly what nodes we are replacing
@@ -505,10 +540,21 @@ void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& 
     }
     myStencils.resize(badCount);//initializes all stencils to have empty lists
     badCount = 0;
+    CaretPointer<GeodesicHelperBase> correctedBase;
+    if (corrAreas != NULL)
+    {
+        correctedBase.grabNew(new GeodesicHelperBase(mySurf, corrAreas->getValuePointerForColumn(0)));//NOTE: myAreas also points to this when applicable
+    }
 #pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp;
+        if (corrAreas == NULL)
+        {
+            myGeoHelp = mySurf->getGeodesicHelper();
+        } else {
+            myGeoHelp.grabNew(new GeodesicHelper(correctedBase));
+        }
 #pragma omp CARET_FOR schedule(dynamic)
         for (int i = 0; i < numNodes; ++i)
         {
@@ -555,7 +601,7 @@ void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& 
                             float divdist = distList[j] / closestDist;
                             if (divdist > tolerance)//tricky: if closestDist is zero, this filters between NaN and inf, resulting in a straight average between nodes with 0 distance
                             {
-                                weight = myAreas[nodeList[j]] / pow(divdist, exponent);
+                                weight = myAreas[nodeList[j]] / pow(divdist, exponent);//NOTE: myAreas has already been pointed to the right data with -corrected-areas
                             } else {
                                 weight = myAreas[nodeList[j]] / pow(tolerance, exponent);
                             }
@@ -573,7 +619,8 @@ void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& 
     }
 }
 
-void AlgorithmMetricDilate::precomputeNearest(vector<pair<int, int> >& myNearest, const SurfaceFile* mySurf, const MetricFile* badNodeRoi, const MetricFile* dataRoi, const float& distance)
+void AlgorithmMetricDilate::precomputeNearest(vector<pair<int, int> >& myNearest, const SurfaceFile* mySurf,
+                                              const MetricFile* badNodeRoi, const MetricFile* dataRoi, const MetricFile* corrAreas, const float& distance)
 {
     CaretAssert(badNodeRoi != NULL);//because it should never be called if we don't know exactly what nodes we are replacing
     const float* badNodeData = badNodeRoi->getValuePointerForColumn(0);
@@ -616,10 +663,21 @@ void AlgorithmMetricDilate::precomputeNearest(vector<pair<int, int> >& myNearest
     }
     myNearest.resize(badCount);
     badCount = 0;
+    CaretPointer<GeodesicHelperBase> correctedBase;
+    if (corrAreas != NULL)
+    {
+        correctedBase.grabNew(new GeodesicHelperBase(mySurf, corrAreas->getValuePointerForColumn(0)));//NOTE: myAreas also points to this when applicable
+    }
 #pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp;
+        if (corrAreas == NULL)
+        {
+            myGeoHelp = mySurf->getGeodesicHelper();
+        } else {
+            myGeoHelp.grabNew(new GeodesicHelper(correctedBase));
+        }
 #pragma omp CARET_FOR schedule(dynamic)
         for (int i = 0; i < numNodes; ++i)
         {
