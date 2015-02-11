@@ -423,7 +423,7 @@ pair<bool, AString> AlgorithmCiftiResample::checkForErrors(const CiftiFile* myCi
     return make_pair(false, AString());
 }
 
-namespace _algorithm_cifti_resample
+namespace
 {//so that we don't need these in the header file
     struct ResampleCache
     {//a place to stuff anything that can be precomputed or reused for applying to the same structure in multiple maps
@@ -629,8 +629,6 @@ namespace _algorithm_cifti_resample
         }
     }
 }
-
-using namespace _algorithm_cifti_resample;
 
 AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const int& direction, const CiftiFile* myTemplate, const int& templateDir,
                                                const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,

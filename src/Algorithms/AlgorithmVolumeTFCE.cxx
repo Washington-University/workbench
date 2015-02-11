@@ -187,7 +187,7 @@ void AlgorithmVolumeTFCE::processFrame(const VolumeFile* inVol, const int64_t& b
     }
 }
 
-namespace _algorithm_volume_tfce
+namespace
 {//hidden namespace just to make sure things don't collide
     struct Cluster
     {
@@ -241,8 +241,6 @@ namespace _algorithm_volume_tfce
         }
     }
 }
-
-using namespace _algorithm_volume_tfce;
 
 void AlgorithmVolumeTFCE::tfce(const VolumeFile* inVol, const int64_t& b, const int64_t& c, double* accumData, const float* roiData, const float& param_e, const float& param_h, const bool& negate)
 {

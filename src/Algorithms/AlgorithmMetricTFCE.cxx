@@ -217,7 +217,7 @@ void AlgorithmMetricTFCE::processColumn(const SurfaceFile* mySurf, const float* 
     }
 }
 
-namespace _algorithm_metric_tfce
+namespace
 {//hidden namespace just to make sure things don't collide
     struct Cluster
     {
@@ -271,8 +271,6 @@ namespace _algorithm_metric_tfce
         }
     }
 }
-
-using namespace _algorithm_metric_tfce;
 
 void AlgorithmMetricTFCE::tfce_pos(TopologyHelper* myHelper, const float* colData, double* accumData, const float* roiData, const float& param_e, const float& param_h, const float* areaData)
 {

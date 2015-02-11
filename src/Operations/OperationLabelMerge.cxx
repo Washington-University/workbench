@@ -64,7 +64,7 @@ OperationParameters* OperationLabelMerge::getParameters()
     return ret;
 }
 
-namespace _operation_label_merge
+namespace
 {//private namespace for helper functions
     void doRemap(const int32_t* input, const map<int32_t, int32_t>& remap, const int numElems, const int32_t& unlabeledValue, int32_t* output)
     {
@@ -80,8 +80,6 @@ namespace _operation_label_merge
         }
     }
 }
-
-using namespace _operation_label_merge;
 
 void OperationLabelMerge::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {

@@ -70,7 +70,7 @@ OperationParameters* OperationFileConvert::getParameters()
     return ret;
 }
 
-namespace _operation_file_convert//hide helpers in a file-specific namespace
+namespace //hide helpers in a file-specific namespace
 {
 //hidden templated function to do generic nifti reading and writing
     template<typename T>
@@ -117,7 +117,6 @@ namespace _operation_file_convert//hide helpers in a file-specific namespace
         }
     }
 }
-using namespace _operation_file_convert;
 
 void OperationFileConvert::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {

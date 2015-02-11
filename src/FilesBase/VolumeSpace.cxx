@@ -48,7 +48,7 @@ VolumeSpace::VolumeSpace(const int64_t dims[3], const vector<vector<float> >& sf
     setSpace(dims, sform);
 }
 
-VolumeSpace::VolumeSpace(const int64_t dims[3], const float sform[16])
+VolumeSpace::VolumeSpace(const int64_t dims[3], const float sform[12])
 {
     setSpace(dims, sform);
 }

@@ -23,13 +23,13 @@
 
 #include <stdint.h>
 
+
+namespace caret {
+
 /**
  * This class contains static methods for byte swapping data, typically used
  * when reading binary data files.
  */
-
-namespace caret {
-
     class ByteSwapping {
     private:
         ByteSwapping() { }
