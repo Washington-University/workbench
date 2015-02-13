@@ -784,9 +784,6 @@ IdentifyBrainordinateDialog::processCiftiParcelWidget(AString& errorMessageOut)
                     const CiftiParcelsMap* ciftiParcelsMap = connMatrixFile->getCiftiParcelsMapForLoading();
                     const int64_t parcelIndex = ciftiParcelsMap->getIndexFromNumberOrName(parcelName);
                     if (parcelIndex >= 0) {
-                        const std::vector<CiftiParcelsMap::Parcel>& allParcels = ciftiParcelsMap->getParcels();
-                        CaretAssertVectorIndex(allParcels, parcelIndex);
-                        
                         switch (connMatrixFile->getChartMatrixLoadingDimension()) {
                             case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
                                 selectionCiftiRowColumn->setFileColumn(connMatrixFile,
