@@ -129,6 +129,15 @@ namespace caret {
             FILE_MAP_DATA_TYPE_MULTI_MAP
         };
         
+        
+        /** How to read the file */
+        enum FileDataReadingType {
+            /** Read all data in the file */
+            FILE_READ_DATA_ALL,
+            /** Open the file but only read data as needed */
+            FILE_READ_DATA_AS_NEEDED
+        };
+
         CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFileType);
         
     public:
@@ -161,7 +170,7 @@ namespace caret {
         
         virtual const GiftiMetaData* getFileMetaData() const;
         
-//        virtual void setPreferOnDiskReading(const bool& prefer);
+        virtual void setPreferOnDiskReading(const bool& prefer);
         
         virtual void readFile(const AString& ciftiMapFileName);
         
@@ -613,6 +622,11 @@ namespace caret {
          * Point to the CIFTI file object.
          */
         CaretPointer<CiftiFile> m_ciftiFile;
+        
+        /**
+         * How to read data from the file
+         */
+        FileDataReadingType m_fileDataReadingType;
         
         /**
          * Method used when reading data from the file.

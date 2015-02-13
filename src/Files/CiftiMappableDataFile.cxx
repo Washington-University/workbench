@@ -73,6 +73,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
     m_ciftiFile.grabNew(NULL);
     m_voxelIndicesToOffset.grabNew(NULL);
     m_classNameHierarchy.grabNew(NULL);
+    m_fileDataReadingType = FILE_READ_DATA_ALL;
     
     m_containsSurfaceData = false;
     m_containsVolumeData = false;
@@ -213,6 +214,21 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             break;
     }
 
+    /*
+     * Data from matrix files is read as needed since
+     * Dense can be very large
+     */
+    switch (m_fileMapDataType) {
+        case FILE_MAP_DATA_TYPE_INVALID:
+            break;
+        case FILE_MAP_DATA_TYPE_MATRIX:
+            m_fileDataReadingType = FILE_READ_DATA_AS_NEEDED;
+            break;
+        case FILE_MAP_DATA_TYPE_MULTI_MAP:
+            m_fileDataReadingType = FILE_READ_DATA_ALL;
+            break;
+    }
+    
     /*
      * Note: The first palette normalization mode is assumed to 
      * be the default mode. The method called is in a parent class.
@@ -440,6 +456,34 @@ CiftiMappableDataFile::isEmpty() const
 }
 
 /**
+ * Set preference for reading.  Reading all data from a "matrix" type file
+ * is not supported and if requested, it will be ignored.
+ *
+ * @param prefer
+ *    When true, only header is read and no data is read.
+ *    When false, both header and all data is read.
+ */
+void
+CiftiMappableDataFile::setPreferOnDiskReading(const bool& prefer)
+{
+    if (prefer) {
+        m_fileDataReadingType = FILE_READ_DATA_AS_NEEDED;
+    }
+    else {
+        switch (m_fileMapDataType) {
+            case FILE_MAP_DATA_TYPE_INVALID:
+                break;
+            case FILE_MAP_DATA_TYPE_MATRIX:
+                CaretLogSevere("CIFTI Matrix files do not support reading of all data.");
+                break;
+            case FILE_MAP_DATA_TYPE_MULTI_MAP:
+                m_fileDataReadingType = FILE_READ_DATA_ALL;
+                break;
+        }
+    }
+}
+
+/**
  * @return structure file maps to.
  */
 StructureEnum::Enum
@@ -596,7 +640,14 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName)
                     break;
                 case FILE_MAP_DATA_TYPE_MULTI_MAP:
                     m_ciftiFile->openFile(ciftiMapFileName);
-                    m_ciftiFile->convertToInMemory();
+                    
+                    switch (m_fileDataReadingType) {
+                        case FILE_READ_DATA_ALL:
+                            m_ciftiFile->convertToInMemory();
+                            break;
+                        case FILE_READ_DATA_AS_NEEDED:
+                            break;
+                    }
                     break;
             }
         }
