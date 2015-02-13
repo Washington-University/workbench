@@ -92,7 +92,7 @@ CiftiParcelSelectionComboBox::updateComboBox(const CiftiParcelsMap* parcelsMap)
             sortedNames.insert(parcelIter->m_name);
         }
         
-        for (std::set<AString>::iterator iter = sortedNames.begin();
+        for (std::set<AString, AStringNaturalComparison>::iterator iter = sortedNames.begin();
              iter != sortedNames.end();
              iter++) {
             m_comboBox->addItem(*iter);

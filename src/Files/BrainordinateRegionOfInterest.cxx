@@ -73,7 +73,8 @@ BrainordinateRegionOfInterest::~BrainordinateRegionOfInterest()
  *    Object that is copied.
  */
 BrainordinateRegionOfInterest::BrainordinateRegionOfInterest(const BrainordinateRegionOfInterest& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperBrainordinateRegionOfInterest(obj);
 }
