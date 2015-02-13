@@ -4936,6 +4936,11 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                         const int64_t* dims = volumeSpace.getDims();
                         dataFileInformation.addNameAndValue("    Volume Dims",
                                                             AString::fromNumbers(dims, 3, ","));
+                        const std::vector<std::vector<float> >& sform = volumeSpace.getSform();
+                        dataFileInformation.addNameAndValue("    Volume Space",
+                                                            AString::fromNumbers(sform[0].data(), 4, ",") + ";" +
+                                                            AString::fromNumbers(sform[1].data(), 4, ",") + ";" +
+                                                            AString::fromNumbers(sform[2].data(), 4, ","));
                     }
                     
                     std::vector<CiftiBrainModelsMap::ModelInfo> modelInfo = bmm.getModelInfo();//allows us to visit the models in the order they are in the file

@@ -79,12 +79,13 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
     {
         CiftiFile cf(fileName);
         const CiftiXML& xml = cf.getCiftiXML();
-        AString xmlString = xml.writeXMLToString(xml.getParsedVersion());//rewrite with the same version that it was read with
+        AString xmlString = xml.writeXMLToString(xml.getParsedVersion());//rewrite with the same version that it was read with - maybe it should have an option?
         cout << xmlString << endl;
     }
     if(printMatrix)
     {
         CiftiFile cf(fileName);
+        if (cf.getCiftiXML().getNumberOfDimensions() != 2) throw OperationException("-print-matrix only supports 2D cifti");
         int64_t dim0 = cf.getNumberOfRows();
         int64_t dim1 = cf.getNumberOfColumns();
         vector<float> row(dim1);
