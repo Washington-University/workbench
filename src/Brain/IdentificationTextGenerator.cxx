@@ -47,6 +47,7 @@
 #include "SelectionItemChartDataSeries.h"
 #include "SelectionItemChartFrequencySeries.h"
 #include "SelectionItemChartMatrix.h"
+#include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -136,6 +137,9 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
     
     this->generateChartMatrixIdentificationText(idText,
                                                 idManager->getChartMatrixIdentification());
+    
+    this->generateCiftiConnectivityMatrixIdentificationText(idText,
+                                                            idManager->getCiftiConnectivityMatrixRowColumnIdentification());
     
     return idText.toString();
 }
@@ -662,6 +666,45 @@ IdentificationTextGenerator::generateChartMatrixIdentificationText(Identificatio
                            columnName);
             idText.addLine(true, "Value",
                            cellValue);
+        }
+    }
+}
+
+/**
+ * Generate identification text for a CIFTI Connectivity Matrix Row/Column
+ * @param idText
+ *     String builder for identification text.
+ * @param idCiftiConnMatrix
+ *     Information for CIFTI Connectivity Matrix Row/Column.
+ */
+void
+IdentificationTextGenerator::generateCiftiConnectivityMatrixIdentificationText(IdentificationStringBuilder& idText,
+                                                                               const SelectionItemCiftiConnectivityMatrixRowColumn* idCiftiConnMatrix) const
+{
+    if (idCiftiConnMatrix->isValid()) {
+        const CiftiMappableConnectivityMatrixDataFile* connMatrixFile = idCiftiConnMatrix->getCiftiConnectivityMatrixFile();
+        const int32_t rowIndex = idCiftiConnMatrix->getMatrixRowIndex();
+        const int32_t colIndex = idCiftiConnMatrix->getMatrixColumnIndex();
+        
+        AString boldText("MATRIX ROW/COLUMN");
+        idText.addLine(false,
+                       boldText,
+                       connMatrixFile->getFileNameNoPath());
+        
+        AString rowName = "DEVELOPMENT NEED ROW NAME !!!";
+        AString colName = "DEVELOPMENT NEED COL NAME !!!";
+        bool validData = true;
+        if (validData) {
+            if (rowIndex >= 0) {
+                idText.addLine(true,
+                               ("Row " + AString::number(rowIndex + 1)),
+                               rowName);
+            }
+            if (colIndex >= 0) {
+                idText.addLine(true,
+                               ("Column " + AString::number(colIndex + 1)),
+                               colName);
+            }
         }
     }
 }

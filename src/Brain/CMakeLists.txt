@@ -134,6 +134,7 @@ SelectionItemChartDataSeries.h
 SelectionItemChartFrequencySeries.h
 SelectionItemChartMatrix.h
 SelectionItemChartTimeSeries.h
+SelectionItemCiftiConnectivityMatrixRowColumn.h
 SelectionItemFocusSurface.h
 SelectionItemFocusVolume.h
 SelectionItemSurfaceNode.h
@@ -248,6 +249,7 @@ SelectionItemChartDataSeries.cxx
 SelectionItemChartFrequencySeries.cxx
 SelectionItemChartMatrix.cxx
 SelectionItemChartTimeSeries.cxx
+SelectionItemCiftiConnectivityMatrixRowColumn.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocusVolume.cxx
 SelectionItemSurfaceNode.cxx

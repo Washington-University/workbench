@@ -29,6 +29,7 @@ namespace caret {
 
     class Brain;
     class CiftiConnectivityMatrixParcelFile;
+    class CiftiMappableConnectivityMatrixDataFile;
     class SurfaceFile;
     
     class CiftiConnectivityMatrixDataFileManager
@@ -58,10 +59,16 @@ namespace caret {
                                             const std::vector<VoxelIJK>& voxelIndices);
 
         bool loadRowOrColumnFromParcelFile(Brain* brain,
-                                           CiftiConnectivityMatrixParcelFile* parcelFile,
+                                           CiftiConnectivityMatrixParcelFile* ciftiConnMatrixFile,
                                            const int32_t rowIndex,
                                            const int32_t columnIndex,
                                            std::vector<AString>& rowColumnInformationOut);
+        
+        bool loadRowOrColumnFromConnectivityMatrixFile(Brain* brain,
+                                                       CiftiMappableConnectivityMatrixDataFile* parcelFile,
+                                                       const int32_t rowIndex,
+                                                       const int32_t columnIndex,
+                                                       std::vector<AString>& rowColumnInformationOut);
         
         bool hasNetworkFiles(Brain* brain) const;
         

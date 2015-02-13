@@ -19,12 +19,15 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #define __CIFTI_PARCEL_SELECTION_COMBO_BOX_DECLARE__
 #include "CiftiParcelSelectionComboBox.h"
 #undef __CIFTI_PARCEL_SELECTION_COMBO_BOX_DECLARE__
 
 #include <QComboBox>
 
+#include "AStringNaturalComparison.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CiftiParcelsMap.h"
@@ -77,24 +80,44 @@ CiftiParcelSelectionComboBox::getWidget()
 void
 CiftiParcelSelectionComboBox::updateComboBox(const CiftiParcelsMap* parcelsMap)
 {
-    const QString selectedParcelName = m_comboBox->currentText();
+    QString selectedParcelName = m_comboBox->currentText();
     m_comboBox->clear();
     
     if (parcelsMap != NULL) {
-        QStringList parcelNamesList;
+        std::set<AString, AStringNaturalComparison> sortedNames;
         const std::vector<CiftiParcelsMap::Parcel>& allParcels = parcelsMap->getParcels();
         for (std::vector<CiftiParcelsMap::Parcel>::const_iterator parcelIter = allParcels.begin();
              parcelIter != allParcels.end();
              parcelIter++) {
-            parcelNamesList.append(parcelIter->m_name);
+            sortedNames.insert(parcelIter->m_name);
         }
         
-        parcelNamesList.sort();
-        
-        m_comboBox->addItems(parcelNamesList);
-        if ( ! selectedParcelName.isEmpty()) {
-            setSelectedParcelName(selectedParcelName);
+        for (std::set<AString>::iterator iter = sortedNames.begin();
+             iter != sortedNames.end();
+             iter++) {
+            m_comboBox->addItem(*iter);
         }
+        
+//        QStringList parcelNamesList = QStringList::fromSet(sortedNames);
+//        parcelNamesList.append(parcelIter->m_name);
+//        
+//        m_comboBox->addItems(parcelNamesList);
+        
+    }
+    
+    if ( ! selectedParcelName.isEmpty()) {
+        if (m_comboBox->findText(selectedParcelName) < 0) {
+            selectedParcelName = "";
+        }
+    }
+    if (selectedParcelName.isEmpty()) {
+        if (m_comboBox->count() > 0) {
+            selectedParcelName = m_comboBox->itemText(0);
+        }
+    }
+    
+    if ( ! selectedParcelName.isEmpty()) {
+        setSelectedParcelName(selectedParcelName);
     }
 }
 

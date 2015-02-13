@@ -95,6 +95,8 @@ namespace caret {
         bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut,
                                                     const StructureEnum::Enum &structure) const;
         
+        ChartMatrixLoadingDimensionEnum::Enum getChartMatrixLoadingDimension() const;
+        
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);
 
@@ -118,8 +120,6 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
         void resetLoadedRowDataToEmpty();
-        
-        ChartMatrixLoadingDimensionEnum::Enum getChartMatrixLoadingDimension() const;
         
         void setChartMatrixLoadingDimension(const ChartMatrixLoadingDimensionEnum::Enum matrixLoadingType);
         

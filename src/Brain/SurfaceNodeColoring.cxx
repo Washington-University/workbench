@@ -24,11 +24,13 @@
 #undef __SURFACE_NODE_COLORING_DECLARE__
 
 #include "Brain.h"
+#include "BrainordinateRegionOfInterest.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "EventBrowserTabGet.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
@@ -60,6 +62,7 @@
 #include "PaletteFile.h"
 #include "PaletteScalarAndColor.h"
 #include "RgbaFile.h"
+#include "SessionManager.h"
 #include "Surface.h"
 #include "TopologyHelper.h"
 
@@ -227,6 +230,57 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* model,
     if(rgbaColor) delete [] rgbaColor;
     
     return rgba;
+}
+
+/**
+ * Show brainordinate region of interest highlighting on the surface.
+ *
+ * @param brain
+ *     The brain.
+ * @param surface
+ *     Surface on which highlighting is displayed.
+ * @param rgbaNodeColors
+ *     Node coloring that is updated with highlighting.
+ */
+void
+SurfaceNodeColoring::showBrainordinateHighlightRegionOfInterest(const Brain* brain,
+                                                                const Surface* surface,
+                                                                float* rgbaNodeColors)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    uint8_t foregroundColorByte[4];
+    prefs->getColorForegroundSurfaceView(foregroundColorByte);
+    const float foregroundColor[4] = {
+        foregroundColorByte[0],
+        foregroundColorByte[1],
+        foregroundColorByte[2],
+        1.0
+    };
+    
+    const BrainordinateRegionOfInterest* roi = brain->getBrainordinateHighlightRegionOfInterest();
+    CaretAssert(roi);
+    
+    if (roi->isBrainordinateHighlightingEnabled()) {
+        const StructureEnum::Enum structure = surface->getStructure();
+        const int64_t surfaceNumberOfNodes = surface->getNumberOfNodes();
+        
+        if (roi->hasNodesForSurfaceStructure(structure, surfaceNumberOfNodes)) {
+            const std::vector<int64_t>& nodeIndices = roi->getNodesForSurfaceStructure(structure,
+                                                                                       surfaceNumberOfNodes);
+            for (std::vector<int64_t>::const_iterator nodeIter = nodeIndices.begin();
+                 nodeIter != nodeIndices.end();
+                 nodeIter++) {
+                const int64_t nodeIndex = *nodeIter;
+                const int64_t rgbaIndex = nodeIndex * 4;
+                CaretAssertArrayIndex(rgbaNodeColors, surfaceNumberOfNodes*4 , rgbaIndex + 3);
+                
+                rgbaNodeColors[rgbaIndex]   = foregroundColor[0];
+                rgbaNodeColors[rgbaIndex+1] = foregroundColor[1];
+                rgbaNodeColors[rgbaIndex+2] = foregroundColor[2];
+                rgbaNodeColors[rgbaIndex+3] = foregroundColor[3];
+            }
+        }
+    }
 }
 
 /**
@@ -484,6 +538,10 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
             rgbaNodeColors[i4+3] = opacity;
         }
     }
+    
+    showBrainordinateHighlightRegionOfInterest(brain,
+                                               surface,
+                                               rgbaNodeColors);
     
     delete[] overlayRGBV;
 }

@@ -92,6 +92,7 @@
 #include "SceneWindowGeometry.h"
 #include "SelectionManager.h"
 #include "SelectionItemChartMatrix.h"
+#include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
@@ -2459,6 +2460,25 @@ GuiManager::processIdentification(const int32_t tabIndex,
                         
                         updateGraphicsFlag = true;
                     }
+                }
+            }
+        }
+        
+        SelectionItemCiftiConnectivityMatrixRowColumn* idCiftiConnMatrix = selectionManager->getCiftiConnectivityMatrixRowColumnIdentification();
+        if (idCiftiConnMatrix != NULL) {
+            CiftiMappableConnectivityMatrixDataFile* matrixFile = idCiftiConnMatrix->getCiftiConnectivityMatrixFile();
+            if (matrixFile != NULL) {
+                const int32_t rowIndex = idCiftiConnMatrix->getMatrixRowIndex();
+                const int32_t columnIndex = idCiftiConnMatrix->getMatrixColumnIndex();
+                if ((rowIndex >= 0)
+                    || (columnIndex >= 0)) {
+                    ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(brain,
+                                                                                        matrixFile,
+                                                                                        rowIndex,
+                                                                                        columnIndex,
+                                                                                        ciftiLoadingInfo);
+                    updateGraphicsFlag = true;
+                
                 }
             }
         }

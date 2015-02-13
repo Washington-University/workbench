@@ -310,6 +310,10 @@ namespace caret {
                                                   int64_t culledLastVoxelIJKOut[3],
                                                   float voxelDeltaXYZOut[3]);
         
+        void showBrainordinateHighlightRegionOfInterest(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                        const float sliceCoordinates[3],
+                                                        const float sliceNormalVector[3]);
+        
         void processIdentification();
         
         void resetIdentification();

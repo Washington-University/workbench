@@ -29,6 +29,7 @@
 #include "BorderFile.h"
 #include "BorderPointFromSearch.h"
 #include "Brain.h"
+#include "BrainordinateRegionOfInterest.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretDataFileHelper.h"
@@ -204,6 +205,8 @@ Brain::Brain()
 
     m_identificationManager = new IdentificationManager();
     
+    m_brainordinateHighlightRegionOfInterest = new BrainordinateRegionOfInterest();
+    
     updateChartModel();
 }
 
@@ -244,6 +247,7 @@ Brain::~Brain()
 
     delete m_selectionManager;
     delete m_identificationManager;
+    delete m_brainordinateHighlightRegionOfInterest;
 }
 
 /**
@@ -601,6 +605,8 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_identificationManager->removeAllIdentifiedItems();
     m_selectionManager->reset();
     m_selectionManager->setLastSelectedItem(NULL);
+    
+    m_brainordinateHighlightRegionOfInterest->clear();
     
     if (m_modelChart != NULL) {
         m_modelChart->reset();
@@ -6502,6 +6508,9 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addClass(m_identificationManager->saveToScene(sceneAttributes,
                                                               "m_identificationManager"));
     
+    sceneClass->addClass(m_brainordinateHighlightRegionOfInterest->saveToScene(sceneAttributes,
+                                                                               "m_brainordinateHighlightRegionOfInterest"));
+    
     return sceneClass;
 }
 
@@ -6685,6 +6694,9 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
 
     m_identificationManager->restoreFromScene(sceneAttributes,
                                               sceneClass->getClass("m_identificationManager"));
+    
+    m_brainordinateHighlightRegionOfInterest->restoreFromScene(sceneAttributes,
+                                                               sceneClass->getClass("m_brainordinateHighlightRegionOfInterest"));
 }
 
 /**
@@ -6703,6 +6715,19 @@ IdentificationManager*
 Brain::getIdentificationManager()
 {
     return m_identificationManager;
+}
+
+/** Region of interest for highlighting brainordinates */
+BrainordinateRegionOfInterest*
+Brain::getBrainordinateHighlightRegionOfInterest()
+{
+    return m_brainordinateHighlightRegionOfInterest;
+}
+
+const BrainordinateRegionOfInterest*
+Brain::getBrainordinateHighlightRegionOfInterest() const
+{
+    return m_brainordinateHighlightRegionOfInterest;
 }
 
 /**

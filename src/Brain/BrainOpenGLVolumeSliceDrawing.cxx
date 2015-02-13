@@ -28,6 +28,7 @@
 #include "BoundingBox.h"
 #include "Brain.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
+#include "BrainordinateRegionOfInterest.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -1997,11 +1998,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
             const float units  = inverseSliceIndex * 1.0 + 1.0;
             glEnable(GL_POLYGON_OFFSET_FILL);
             glPolygonOffset(factor, units);
-            
-            //            if (iVol > 0) {
-            //                glEnable(GL_POLYGON_OFFSET_FILL);
-            //                glPolygonOffset(-1.0, -1.0);
-            //            }
         }
         
         /*
@@ -2019,11 +2015,170 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
                                   iVol,
                                   mapIndex,
                                   volumeDrawingOpacity);
-        
         glDisable(GL_POLYGON_OFFSET_FILL);
     }
+    
+    showBrainordinateHighlightRegionOfInterest(sliceViewPlane,
+                                               sliceCoordinates,
+                                               sliceNormalVector);
+    
     glDisable(GL_BLEND);
     glShadeModel(GL_SMOOTH);
+}
+
+/**
+ * Show brainordinate highlighting region of interest for the volume slice.
+ *
+ * @param sliceViewPlane
+ *     Slice plane viewed.
+ * @param sliceCoordinates
+ *     Coordinates of the slice.
+ * @param sliceNormalVector
+ *     Normal vector for the slice.
+ */
+void
+BrainOpenGLVolumeSliceDrawing::showBrainordinateHighlightRegionOfInterest(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                          const float sliceCoordinates[3],
+                                                                          const float sliceNormalVector[3])
+{
+    const BrainordinateRegionOfInterest* roi = m_brain->getBrainordinateHighlightRegionOfInterest();
+    if ( ! roi->hasVolumeVoxels()) {
+        return;
+    }
+    if ( ! roi->isBrainordinateHighlightingEnabled()) {
+        return;
+    }
+    
+    const std::vector<float>& voxelXYZ = roi->getVolumeVoxelsXYZ();
+    const int64_t numVoxels = static_cast<int64_t>(voxelXYZ.size() / 3);
+    if (numVoxels <= 0) {
+        return;
+    }
+
+    float voxelSize[3];
+    roi->getVolumeVoxelSize(voxelSize);
+    CaretAssert(voxelSize[0] >= 0.0);
+    CaretAssert(voxelSize[1] >= 0.0);
+    CaretAssert(voxelSize[2] >= 0.0);
+    float halfX = voxelSize[0] / 2.0;
+    float halfY = voxelSize[1] / 2.0;
+    float halfZ = voxelSize[2] / 2.0;
+    
+    int64_t axisIndex = 0;
+    float sliceMinCoord = 0.0;
+    float sliceMaxCoord = 0.0;
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            sliceMinCoord = sliceCoordinates[2] - halfZ;
+            sliceMaxCoord = sliceCoordinates[2] + halfZ;
+            axisIndex = 2;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            sliceMinCoord = sliceCoordinates[1] - halfY;
+            sliceMaxCoord = sliceCoordinates[1] + halfZ;
+            axisIndex = 1;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            sliceMinCoord = sliceCoordinates[0] - halfX;
+            sliceMaxCoord = sliceCoordinates[0] + halfX;
+            axisIndex = 0;
+            break;
+    }
+    
+    std::vector<float> quadsXYZ;
+    
+    for (int64_t i = 0; i < numVoxels; i++) {
+        const int64_t i3 = i * 3;
+        
+        if ((voxelXYZ[i3 + axisIndex] >= sliceMinCoord)
+            && (voxelXYZ[i3 + axisIndex] <= sliceMaxCoord)) {
+            CaretAssertVectorIndex(voxelXYZ, i3+2);
+            const float x = voxelXYZ[i3];
+            const float y = voxelXYZ[i3+1];
+            const float z = voxelXYZ[i3+2];
+            
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    quadsXYZ.push_back(x - halfX);
+                    quadsXYZ.push_back(y - halfY);
+                    quadsXYZ.push_back(sliceCoordinates[2]);
+                    quadsXYZ.push_back(x + halfX);
+                    quadsXYZ.push_back(y - halfY);
+                    quadsXYZ.push_back(sliceCoordinates[2]);
+                    quadsXYZ.push_back(x + halfX);
+                    quadsXYZ.push_back(y + halfY);
+                    quadsXYZ.push_back(sliceCoordinates[2]);
+                    quadsXYZ.push_back(x - halfX);
+                    quadsXYZ.push_back(y + halfY);
+                    quadsXYZ.push_back(sliceCoordinates[2]);
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    quadsXYZ.push_back(x - halfX);
+                    quadsXYZ.push_back(sliceCoordinates[1]);
+                    quadsXYZ.push_back(z - halfZ);
+                    quadsXYZ.push_back(x + halfX);
+                    quadsXYZ.push_back(sliceCoordinates[1]);
+                    quadsXYZ.push_back(z - halfZ);
+                    quadsXYZ.push_back(x + halfX);
+                    quadsXYZ.push_back(sliceCoordinates[1]);
+                    quadsXYZ.push_back(z + halfZ);
+                    quadsXYZ.push_back(x - halfX);
+                    quadsXYZ.push_back(sliceCoordinates[1]);
+                    quadsXYZ.push_back(z + halfZ);
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    quadsXYZ.push_back(sliceCoordinates[0]);
+                    quadsXYZ.push_back(y + halfY);
+                    quadsXYZ.push_back(z - halfZ);
+                    quadsXYZ.push_back(sliceCoordinates[0]);
+                    quadsXYZ.push_back(y - halfY);
+                    quadsXYZ.push_back(z - halfZ);
+                    quadsXYZ.push_back(sliceCoordinates[0]);
+                    quadsXYZ.push_back(y - halfY);
+                    quadsXYZ.push_back(z + halfZ);
+                    quadsXYZ.push_back(sliceCoordinates[0]);
+                    quadsXYZ.push_back(y + halfY);
+                    quadsXYZ.push_back(z + halfZ);
+                    break;
+            }
+        }
+    }
+    
+    const int64_t numVoxelsToDraw = (quadsXYZ.size() / 12);
+    CaretAssert((numVoxelsToDraw * 12) == static_cast<int64_t>(quadsXYZ.size()));
+    
+    const int64_t numCoords = (quadsXYZ.size()) / 3;
+    std::vector<float> voxelQuadNormals;
+    voxelQuadNormals.reserve(numVoxelsToDraw * 12);
+    std::vector<uint8_t> voxelQuadRgba;
+    voxelQuadRgba.reserve(numVoxelsToDraw * 16);
+    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    uint8_t foregroundColor[4];
+    prefs->getColorForegroundVolumeView(foregroundColor);
+    for (int32_t iNormalAndColor = 0; iNormalAndColor < numCoords; iNormalAndColor++) {
+        voxelQuadRgba.push_back(foregroundColor[0]);
+        voxelQuadRgba.push_back(foregroundColor[1]);
+        voxelQuadRgba.push_back(foregroundColor[2]);
+        voxelQuadRgba.push_back(255);
+        
+        voxelQuadNormals.push_back(sliceNormalVector[0]);
+        voxelQuadNormals.push_back(sliceNormalVector[1]);
+        voxelQuadNormals.push_back(sliceNormalVector[2]);
+    }
+    
+    CaretAssert(quadsXYZ.size() == voxelQuadNormals.size());
+    CaretAssert((numVoxelsToDraw * 16) == static_cast<int64_t>(voxelQuadRgba.size()));
+    
+    BrainOpenGLPrimitiveDrawing::drawQuads(quadsXYZ,
+                                           voxelQuadNormals,
+                                           voxelQuadRgba);
 }
 
 /**
@@ -2327,6 +2482,11 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
         
         glDisable(GL_POLYGON_OFFSET_FILL);
     }
+
+    showBrainordinateHighlightRegionOfInterest(sliceViewPlane,
+                                               sliceCoordinates,
+                                               sliceNormalVector);
+    
     glDisable(GL_BLEND);
     glShadeModel(GL_SMOOTH);
 }

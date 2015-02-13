@@ -153,6 +153,36 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
     return true;
 }
 
+bool
+CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromConnectivityMatrixFile(Brain* brain,
+                                               CiftiMappableConnectivityMatrixDataFile* ciftiConnMatrixFile,
+                                               const int32_t rowIndex,
+                                               const int32_t columnIndex,
+                                               std::vector<AString>& rowColumnInformationOut)
+{
+    PaletteFile* paletteFile = brain->getPaletteFile();
+    const int32_t mapIndex = 0;
+    
+    if (rowIndex >= 0) {
+        ciftiConnMatrixFile->loadDataForRowIndex(rowIndex);
+        ciftiConnMatrixFile->updateScalarColoringForMap(mapIndex,
+                                       paletteFile);
+        rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
+                                          + " row index="
+                                          + AString::number(rowIndex));
+    }
+    else if (columnIndex >= 0) {
+        ciftiConnMatrixFile->loadDataForColumnIndex(columnIndex);
+        ciftiConnMatrixFile->updateScalarColoringForMap(mapIndex,
+                                                        paletteFile);
+        rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
+                                          + " column index="
+                                          + AString::number(columnIndex));
+    }
+    
+    return true;
+}
+
 
 /**
  * Load data for the given surface node index.

@@ -24,6 +24,7 @@ BorderException.h
 BorderFile.h
 BorderPointFromSearch.h
 BorderTracingHelper.h
+BrainordinateRegionOfInterest.h
 CaretDataFile.h
 CaretDataFileHelper.h
 CaretMappableDataFile.h
@@ -133,6 +134,7 @@ Border.cxx
 BorderException.cxx
 BorderFile.cxx
 BorderTracingHelper.cxx
+BrainordinateRegionOfInterest.cxx
 CaretDataFile.cxx
 CaretDataFileHelper.cxx
 CaretMappableDataFile.cxx

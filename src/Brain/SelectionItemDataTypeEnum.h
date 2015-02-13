@@ -57,6 +57,8 @@ public:
         CHART_MATRIX,
         /** Time-Series Chart */
         CHART_TIME_SERIES,
+        /** CIFTI Connectivity Matrix Row or Column */
+        CIFTI_CONNECTIVITY_MATRIX_ROW_COLUMN,
         /** Focus on Surface */
         FOCUS_SURFACE,
         /** Focus on Volume */

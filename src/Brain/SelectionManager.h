@@ -33,6 +33,7 @@ namespace caret {
     class SelectionItemChartFrequencySeries;
     class SelectionItemChartMatrix;
     class SelectionItemChartTimeSeries;
+    class SelectionItemCiftiConnectivityMatrixRowColumn;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
     class SelectionItemSurfaceNode;
@@ -102,6 +103,10 @@ namespace caret {
         
         const SelectionItemChartTimeSeries* getChartTimeSeriesIdentification() const;
         
+        SelectionItemCiftiConnectivityMatrixRowColumn* getCiftiConnectivityMatrixRowColumnIdentification();
+        
+        const SelectionItemCiftiConnectivityMatrixRowColumn* getCiftiConnectivityMatrixRowColumnIdentification() const;
+        
         AString getIdentificationText(const Brain* brain) const;
         
         void filterSelections(const bool applySelectionBackgroundFiltering);
@@ -148,6 +153,8 @@ namespace caret {
         SelectionItemChartMatrix* m_chartMatrixIdentification;
         
         SelectionItemChartTimeSeries* m_chartTimeSeriesIdentification;
+        
+        SelectionItemCiftiConnectivityMatrixRowColumn* m_ciftiConnectivityMatrixRowColumnIdentfication;
         
         SelectionItemFocusSurface* m_surfaceFocusIdentification;
         

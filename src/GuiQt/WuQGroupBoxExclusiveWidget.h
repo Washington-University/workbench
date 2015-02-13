@@ -21,10 +21,14 @@
  */
 /*LICENSE_END*/
 
-
+#include <vector>
 #include <QWidget>
 
-
+class QAbstractButton;
+class QButtonGroup;
+class QFrame;
+class QGridLayout;
+class QRadioButton;
 
 namespace caret {
 
@@ -33,20 +37,72 @@ namespace caret {
         Q_OBJECT
 
     public:
-        WuQGroupBoxExclusiveWidget();
+        WuQGroupBoxExclusiveWidget(QWidget* parent = 0);
         
         virtual ~WuQGroupBoxExclusiveWidget();
         
+        int32_t addWidget(QWidget* widget,
+                          const QString& textLabel);
+        
+        int32_t count() const;
+        
+        int32_t currentIndex() const;
+        
+        QWidget* currentWidget() const;
 
+        int32_t indexOf(QWidget* widget) const;
+        
+        QWidget* widget(int32_t index) const;
+        
+        void setWidgetEnabled(int32_t index,
+                              const bool enabled);
+        
+        bool isWidgetEnabled(const int32_t index) const;
+        
         // ADD_NEW_METHODS_HERE
 
+    signals:
+        /**
+         * Emitted when the user changes the selected widget.
+         *
+         * @param 
+         *     Index of the selected widget.
+         */
+        void currentChanged(int32_t index);
+        
+    public slots:
+        void setCurrentIndex(int32_t index);
+        
+        void setCurrentWidget(QWidget* widget);
+        
+    private slots:
+        void radioButtonClicked(QAbstractButton* button);
+        
     private:
         WuQGroupBoxExclusiveWidget(const WuQGroupBoxExclusiveWidget&);
 
         WuQGroupBoxExclusiveWidget& operator=(const WuQGroupBoxExclusiveWidget&);
+
+        void updateSelectionWithValidWidget();
         
         // ADD_NEW_MEMBERS_HERE
 
+        struct WidgetData {
+            QWidget* m_widget;
+            
+            QFrame* m_frameBox;
+            
+            QRadioButton* m_radioButton;
+        };
+        
+        
+        std::vector<WidgetData> m_widgetDatas;
+        
+        QButtonGroup* m_radioButtonGroup;
+        
+        QGridLayout* m_widgetsGridLayout;
+        
+        mutable int32_t m_currentWidgetIndex;
     };
     
 #ifdef __WU_Q_GROUP_BOX_EXCLUSIVE_WIDGET_DECLARE__

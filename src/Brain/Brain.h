@@ -41,6 +41,7 @@ namespace caret {
     class Border;
     class BorderFile;
     class BorderPointFromSearch;
+    class BrainordinateRegionOfInterest;
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
@@ -377,6 +378,10 @@ namespace caret {
         IdentificationManager* getIdentificationManager();
 
         SelectionManager* getSelectionManager();
+        
+        BrainordinateRegionOfInterest* getBrainordinateHighlightRegionOfInterest();
+
+        const BrainordinateRegionOfInterest* getBrainordinateHighlightRegionOfInterest() const;
         
         void getCiftiShapeMap(CiftiBrainordinateScalarFile* &ciftiScalarShapeFileOut,
                               int32_t& ciftiScalarhapeFileMapIndexOut,
@@ -773,6 +778,9 @@ namespace caret {
         
         /** The loader of fiber orientation samples */
         FiberOrientationSamplesLoader* m_fiberOrientationSamplesLoader;
+        
+        /** Region of interest for highlighting brainordinates */
+        BrainordinateRegionOfInterest* m_brainordinateHighlightRegionOfInterest;
         
         std::map<DataFileTypeEnum::Enum, int32_t> m_duplicateFileNameCounter;
     };

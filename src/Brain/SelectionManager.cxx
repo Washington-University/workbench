@@ -36,6 +36,7 @@
 #include "SelectionItemChartFrequencySeries.h"
 #include "SelectionItemChartMatrix.h"
 #include "SelectionItemChartTimeSeries.h"
+#include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemSurfaceNode.h"
@@ -66,6 +67,7 @@ SelectionManager::SelectionManager()
     m_chartDataSeriesIdentification = new SelectionItemChartDataSeries();
     m_chartDataFrequencyIdentification = new SelectionItemChartFrequencySeries();
     m_chartMatrixIdentification     = new SelectionItemChartMatrix();
+    m_ciftiConnectivityMatrixRowColumnIdentfication = new SelectionItemCiftiConnectivityMatrixRowColumn();
     m_chartTimeSeriesIdentification = new SelectionItemChartTimeSeries();
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
@@ -80,6 +82,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_chartDataFrequencyIdentification);
     m_allSelectionItems.push_back(m_chartMatrixIdentification);
     m_allSelectionItems.push_back(m_chartTimeSeriesIdentification);
+    m_allSelectionItems.push_back(m_ciftiConnectivityMatrixRowColumnIdentfication);
     m_allSelectionItems.push_back(m_surfaceFocusIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentificationSymbol);
@@ -124,6 +127,8 @@ SelectionManager::~SelectionManager()
     m_chartMatrixIdentification = NULL;
     delete m_chartTimeSeriesIdentification;
     m_chartTimeSeriesIdentification = NULL;
+    delete m_ciftiConnectivityMatrixRowColumnIdentfication;
+    m_ciftiConnectivityMatrixRowColumnIdentfication = NULL;
     delete m_surfaceFocusIdentification;
     m_surfaceFocusIdentification = NULL;
     delete m_surfaceNodeIdentification;
@@ -614,7 +619,23 @@ SelectionManager::getChartMatrixIdentification() const
     return m_chartMatrixIdentification;
 }
 
+/**
+ * @return Identification for CIFTI Connectivity Matrix Row/Column.
+ */
+SelectionItemCiftiConnectivityMatrixRowColumn*
+SelectionManager::getCiftiConnectivityMatrixRowColumnIdentification()
+{
+    return m_ciftiConnectivityMatrixRowColumnIdentfication;
+}
 
+/**
+ * @return Identification for CIFTI Connectivity Matrix Row/Column.
+ */
+const SelectionItemCiftiConnectivityMatrixRowColumn*
+SelectionManager::getCiftiConnectivityMatrixRowColumnIdentification() const
+{
+    return m_ciftiConnectivityMatrixRowColumnIdentfication;
+}
 
 /**
  * @return Identification for time-series chart.

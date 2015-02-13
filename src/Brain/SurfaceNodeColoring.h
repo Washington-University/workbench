@@ -29,6 +29,7 @@
 
 namespace caret {
 
+    class Brain;
     class BrainStructure;
     class BrowserTabContent;
     class CiftiMappableConnectivityMatrixDataFile;
@@ -162,6 +163,10 @@ namespace caret {
                                     const std::vector<float>& labelIndices,
                                     const bool drawMedialWallFilledFlag,
                                     float* rgbv);
+        
+        void showBrainordinateHighlightRegionOfInterest(const Brain* brain,
+                                                        const Surface* surface,
+                                                        float* rgbaNodeColors);
     };
     
 #ifdef __SURFACE_NODE_COLORING_DECLARE__
