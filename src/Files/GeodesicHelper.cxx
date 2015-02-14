@@ -1006,7 +1006,7 @@ float GeodesicHelper::lineHeuristic(const Vector3D& pos, const Vector3D& linep1,
     }
 }
 
-void GeodesicHelper::aStarLine(const int32_t root, const int32_t endpoint, const Vector3D& linep1, const Vector3D& linep2, const bool& segment)
+void GeodesicHelper::aStarLine(const int32_t& root, const int32_t& endpoint, const Vector3D& linep1, const Vector3D& linep2, const bool& segment)
 {
     int32_t whichnode, whichneigh, numNeigh, numChanged = 0;
     float penaltyScale = 0.5f / m_myBase->m_avgNodeSpacing;//to prevent change in scale from changing the optimal path - 0.5f is ostensibly for averaging between endpoints, but is largely arbitrary
@@ -1037,6 +1037,53 @@ void GeodesicHelper::aStarLine(const int32_t root, const int32_t endpoint, const
                 {
                     remainEucl = (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
                     heurVal[whichneigh] = remainEucl + penaltyScale * lineHeuristic(nodeCoords[whichneigh], linep1, linep2, remainEucl, segment);
+                    output[whichneigh] = tempf;
+                    parent[whichneigh] = whichnode;
+                    changed[numChanged++] = whichneigh;//having a valid value will be the first marking, so set changed
+                    marked[whichneigh] |= 4;
+                    m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf + heurVal[whichneigh]);
+                } else if (tempf < output[whichneigh]) {
+                    m_active.changekey(m_heapIdent[whichneigh], tempf + heurVal[whichneigh]);
+                    output[whichneigh] = tempf;
+                    parent[whichneigh] = whichnode;
+                }
+            }
+        }
+    }
+    for (int32_t i = 0; i < numChanged; ++i)
+    {
+        marked[changed[i]] = 0;//minimize reinitialization of marked array
+    }
+}
+
+void GeodesicHelper::aStarData(const int32_t& root, const int32_t& endpoint, const float* data, const float& followStrength, const float* roiData)
+{//NOTE: for consistent behavior, data must not contain negatives (or anything non-numeric)
+    int32_t whichnode, whichneigh, numNeigh, numChanged = 0;
+    const int32_t* neighbors;
+    float tempf;
+    output[root] = 0.0f;
+    changed[numChanged++] = root;
+    marked[root] |= 4;//has value in output
+    parent[root] = -1;//idiom for end of path
+    m_active.clear();
+    heurVal[root] = (nodeCoords[root] - nodeCoords[endpoint]).length();//data could be zero all the way along the optimal path, so euclidean distance is the only consistent heuristic
+    m_heapIdent[root] = m_active.push(root, heurVal[root]);
+    while (!m_active.isEmpty())
+    {
+        whichnode = m_active.pop();//we use a modifiable heap, so we don't need to check for duplicates
+        marked[whichnode] |= 1;//frozen - will already be in changed list, due to being in heap
+        if (whichnode == endpoint) break;
+        neighbors = nodeNeighbors[whichnode].data();
+        numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        for (int32_t j = 0; j < numNeigh; ++j)
+        {
+            whichneigh = neighbors[j];
+            if ((roiData == NULL || roiData[whichneigh] > 0.0f) && !(marked[whichneigh] & 1))
+            {//skip floating point math if frozen or outside roi
+                tempf = output[whichnode] + distances[whichnode][j] * (1.0f + followStrength * (data[whichnode] + data[whichneigh]));//integrate 1 + strength * value to get distance plus path-integrated data
+                if (!(marked[whichneigh] & 4))
+                {
+                    heurVal[whichneigh] = (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
                     output[whichneigh] = tempf;
                     parent[whichneigh] = whichnode;
                     changed[numChanged++] = whichneigh;//having a valid value will be the first marking, so set changed
@@ -1162,6 +1209,79 @@ void GeodesicHelper::getPathAlongLineSegment(const int32_t root, const int32_t e
     CaretMutexLocker locked(&inUse);//let sanity checks fail without locking
     parent[endpoint] = -2;//sentinel value that DOESN'T mean end of path
     aStarLine(root, endpoint, linep1, linep2, true);
+    if (parent[endpoint] == -2)//check for invalid value
+    {
+        return;
+    }
+    vector<int32_t> tempReverse;
+    int32_t next = endpoint;
+    while (next != root)
+    {
+        tempReverse.push_back(next);
+        next = parent[next];
+    }
+    tempReverse.push_back(next);
+    int32_t tempSize = (int32_t)tempReverse.size();
+    for (int32_t i = tempSize - 1; i >= 0; --i)
+    {
+        int32_t tempNode = tempReverse[i];
+        pathNodesOut.push_back(tempNode);
+        pathDistsOut.push_back(output[tempNode]);
+    }
+}
+
+void GeodesicHelper::getPathFollowingData(const int32_t root, const int32_t endpoint, const float* data, vector<int32_t>& pathNodesOut, vector<float>& pathDistsOut,
+                                          const float& followStrength, const float* roiData, const bool& followMaximum)
+{
+    CaretAssert(root >= 0 && root < numNodes && endpoint >= 0 && endpoint < numNodes);
+    pathNodesOut.clear();
+    pathDistsOut.clear();
+    if (root < 0 || root >= numNodes || endpoint < 0 || endpoint >= numNodes)
+    {
+        return;
+    }
+    if (roiData != NULL && !(roiData[root] > 0.0f && roiData[endpoint] > 0.0f))
+    {
+        return;
+    }
+    vector<float> rescaledData(numNodes);
+    float minimum = 0.0f, maximum = 0.0f;
+    bool first = true;
+    for (int i = 0; i < numNodes; ++i)//first normalize contrast in the roi, so we are not sensitive to the absolute values of the data
+    {
+        if (roiData == NULL || roiData[i] > 0.0f)
+        {
+            if (first)
+            {
+                first = false;
+                minimum = data[i];
+                maximum = data[i];
+            } else {
+                if (data[i] < minimum) minimum = data[i];
+                if (data[i] > maximum) maximum = data[i];
+            }
+        }
+    }
+    if (minimum == maximum)//no contrast, will do simple shortest path
+    {
+        maximum = minimum + 1.0f;//so map it all to minimum value to prevent divide by 0
+    }
+    float range = maximum - minimum;
+    for (int i = 0; i < numNodes; ++i)
+    {
+        if (roiData == NULL || roiData[i] > 0.0f)
+        {
+            if (followMaximum)//also deal with follow minimum vs maximum
+            {
+                rescaledData[i] = (maximum - data[i]) / range;
+            } else {
+                rescaledData[i] = (data[i] - minimum) / range;
+            }
+        }
+    }
+    CaretMutexLocker locked(&inUse);//let sanity checks fail without locking
+    parent[endpoint] = -2;//sentinel value that DOESN'T mean end of path
+    aStarData(root, endpoint, rescaledData.data(), followStrength, roiData);
     if (parent[endpoint] == -2)//check for invalid value
     {
         return;

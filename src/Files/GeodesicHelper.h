@@ -81,7 +81,8 @@ namespace caret {
         void aStar(const int32_t root, const int32_t endpoint, bool smooth);//faster method for path
         float linePenalty(const Vector3D& pos, const Vector3D& linep1, const Vector3D& linep2, const bool& segment);
         float lineHeuristic(const Vector3D& pos, const Vector3D& linep1, const Vector3D& linep2, const float& remainEucl, const bool& segment);
-        void aStarLine(const int32_t root, const int32_t endpoint, const Vector3D& linep1, const Vector3D& linep2, const bool& segment);//to single endpoint, following line
+        void aStarLine(const int32_t& root, const int32_t& endpoint, const Vector3D& linep1, const Vector3D& linep2, const bool& segment);//to single endpoint, following line
+        void aStarData(const int32_t& root, const int32_t& endpoint, const float* data, const float& followStrength, const float* roiData);//to single endpoint, following data
     public:
         explicit GeodesicHelper(const CaretPointer<const GeodesicHelperBase>& baseIn);
         /// Get distances from root node, up to a geodesic distance cutoff (stops computing when no more nodes are within that distance)
@@ -116,6 +117,10 @@ namespace caret {
         
         ///get the distances and nodes along the path to a node - NOTE: does not do smooth distances, so that all nodes in the path are connected in the surface
         void getPathAlongLineSegment(const int32_t root, const int32_t endpoint, const Vector3D& linep1, const Vector3D& linep2, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut);
+        
+        ///path drawing by peaks or troughs of supplied data, controlled by followMaximum
+        void getPathFollowingData(const int32_t root, const int32_t endpoint, const float* data, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut,
+                                  const float& followStrength = 1.0f, const float* roiData = NULL, const bool& followMaximum = true);
         
         ///get just the closest node in the region and max distance given, returns -1 if no such node found - roi value of 0 means not in region, anything else is in region
         int32_t getClosestNodeInRoi(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smoothflag = true);
