@@ -248,10 +248,10 @@ BorderOptimizeDialog::createOptionsWidget()
  */
 bool
 BorderOptimizeDialog::run(std::vector<Border*>& borders,
-         std::vector<CaretMappableDataFile*>& dataFiles,
-         const float smoothingLevel,
-         const bool invertGradientFlag,
-         AString& errorMessageOut)
+                          std::vector<CaretMappableDataFile*>& dataFiles,
+                          const float smoothingLevel,
+                          const bool invertGradientFlag,
+                          AString& errorMessageOut)
 {
     /*
      * Returning false implies errors.
