@@ -331,6 +331,9 @@ namespace caret {
         void getAllMappableDataFileWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
                                                     std::vector<CaretMappableDataFile*>& caretMappableDataFilesOut) const;
         
+        void getAllMappableDataFileWithDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                    std::vector<CaretMappableDataFile*>& caretMappableDataFilesOut) const;
+        
         bool isFileValid(const CaretDataFile* caretDataFile) const;
 
         void getAllModifiedFiles(const std::vector<DataFileTypeEnum::Enum>& excludeTheseDataTypes,

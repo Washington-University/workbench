@@ -41,6 +41,7 @@
 #include "Border.h"
 #include "BorderEditingSelectionDialog.h"
 #include "BorderFile.h"
+#include "BorderOptimizeDialog.h"
 #include "BorderPointFromSearch.h"
 #include "BorderPropertiesEditorDialog.h"
 #include "Brain.h"
@@ -237,6 +238,9 @@ UserInputModeBordersWidget::modeComboBoxSelection(int indx)
 QWidget* 
 UserInputModeBordersWidget::createDrawOperationWidget()
 {
+    /*
+     * Draw
+     */
     const AString drawToolTipText = ("To draw a new border segment either click the mouse "
                                  "to discretely add border points or hold down the CTRL (Apple key on Mac) and SHIFT keys "
                                  "and move the mouse with the left mouse button down to continuously "
@@ -253,6 +257,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     QToolButton* drawToolButton = new QToolButton();
     drawToolButton->setDefaultAction(drawAction);
     
+    /*
+     * Erase
+     */
     const AString eraseToolTipText = ("To erase a section of a border, click the mouse twice, once "
                                       "at the beginning of the section that is to be removed and a "
                                       "second time at the end of the section. "
@@ -267,6 +274,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     QToolButton* eraseToolButton = new QToolButton();
     eraseToolButton->setDefaultAction(eraseAction);
     
+    /*
+     * Extend
+     */
     const AString extendToolTipText = ("To extend a border, move the mouse ANY point in the border and "
                                        "either click the mouse to discretely add points or hold down the CTRL (Apple key on Mac) and SHIFT keys "
                                        "and move the mouse with the left mouse button down to continuously add points. "
@@ -285,6 +295,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     QToolButton* extendToolButton = new QToolButton();
     extendToolButton->setDefaultAction(extendAction);
     
+    /*
+     * Replace
+     */
     const AString replaceToolTipText = ("To replace a section of a border, move the mouse to the "
                                         "start of the section that is being replaced.  Either click "
                                         "the mouse to discretely add points in the new section or hold down the CTRL (Apple key on Mac) and SHIFT keys "
@@ -303,6 +316,21 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     QToolButton* replaceToolButton = new QToolButton();
     replaceToolButton->setDefaultAction(replaceAction);
     
+    /*
+     * Optimize
+     */
+    const AString optimizeToolTipText("It's very complicated.");
+    QAction* optimizeAction = WuQtUtilities::createAction("Optimize",
+                                                          WuQtUtilities::createWordWrappedToolTipText(optimizeToolTipText),
+                                                          this);
+    optimizeAction->setCheckable(true);
+    optimizeAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_OPTIMIZE));
+    QToolButton* optimizeToolButton = new QToolButton();
+    optimizeToolButton->setDefaultAction(optimizeAction);
+    
+    /*
+     * Finish
+     */
     const AString finishToolTipText = ("The finish button must be pressed (holding down the Shift key "
                                        "and clicking the mouse is a shortcut to clicking the Finish "
                                        "button) to complete any of the border drawing operations.");
@@ -314,6 +342,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     QToolButton* finishToolButton = new QToolButton();
     finishToolButton->setDefaultAction(finishAction);
     
+    /*
+     * Undo
+     */
     QAction* undoAction = WuQtUtilities::createAction("Undo", 
                                                       "Remove (undo) the last point in the\n"
                                                       "drawn border segment.  If the button\n"
@@ -338,6 +369,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     m_undoFinishToolButton = new QToolButton();
     m_undoFinishToolButton->setDefaultAction(undoFinishAction);
     
+    /*
+     * Reset
+     */
     QAction* resetAction = WuQtUtilities::createAction("Reset",
                                                        "Remove all points in the unfinished border", 
                                                        this,
@@ -350,6 +384,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     this->drawOperationActionGroup->addAction(drawAction);
     this->drawOperationActionGroup->addAction(eraseAction);
     this->drawOperationActionGroup->addAction(extendAction);
+    this->drawOperationActionGroup->addAction(optimizeAction);
     this->drawOperationActionGroup->addAction(replaceAction);
     this->drawOperationActionGroup->setExclusive(true);
     QObject::connect(this->drawOperationActionGroup, SIGNAL(triggered(QAction*)),
@@ -361,6 +396,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     layout->addWidget(drawToolButton);
     layout->addWidget(eraseToolButton);
     layout->addWidget(extendToolButton);
+    layout->addWidget(optimizeToolButton);
     layout->addWidget(replaceToolButton);
     layout->addSpacing(10);
     layout->addWidget(finishToolButton);
@@ -530,6 +566,12 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
             }
         }
             break;
+        case UserInputModeBorders::DRAW_OPERATION_OPTIMIZE:
+            processBorderOptimization(displayGroup,
+                                      browserTabIndex,
+                                      surface,
+                                      this->inputModeBorders->borderBeingDrawnByOpenGL);
+            break;
         case UserInputModeBorders::DRAW_OPERATION_ERASE:
         case UserInputModeBorders::DRAW_OPERATION_EXTEND:
         case UserInputModeBorders::DRAW_OPERATION_REPLACE:
@@ -568,6 +610,9 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
 //                                                                                  nearestTolerance,
 //                                                                                  bordersFoundFromFile);
                         break;
+                    case UserInputModeBorders::DRAW_OPERATION_OPTIMIZE:
+                        CaretAssertToDoFatal();
+                        break;
                     case UserInputModeBorders::DRAW_OPERATION_REPLACE:
                         borderFile->findAllBordersWithPointsNearBothSegmentEndPoints(displayGroup,
                                                                                      browserTabIndex,
@@ -602,6 +647,9 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_EXTEND:
                         modeMessage = "Extend";
+                        break;
+                    case UserInputModeBorders::DRAW_OPERATION_OPTIMIZE:
+                        CaretAssert(0);
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_REPLACE:
                         modeMessage = "Replace segment in";
@@ -649,6 +697,9 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                         //border->reviseExtendFromEnd(surface,
                                         //                            this->inputModeBorders->borderBeingDrawnByOpenGL);
                                         break;
+                                    case UserInputModeBorders::DRAW_OPERATION_OPTIMIZE:
+                                        CaretAssert(0);
+                                        break;
                                     case UserInputModeBorders::DRAW_OPERATION_REPLACE:
                                         border->reviseReplaceSegment(surface,
                                                                      this->inputModeBorders->borderBeingDrawnByOpenGL);
@@ -694,6 +745,125 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
             break;
     }
 }
+
+/**
+ * Process the border optimization operation.
+ *
+ * @param surface
+ *     Surface on which border is drawn.
+ * @param borderDrawnByUser
+ *     Border drawn by the user.
+ */
+void
+UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::Enum displayGroup,
+                                                      const int32_t browserTabIndex,
+                                                      const Surface* surface,
+                                                      const Border* borderDrawnByUser)
+{
+    std::vector<int32_t> nodesInsideBorder;
+
+    try {
+        ProgressObject* myProgObj = NULL;
+        const bool inverseSelectionFlag = false;
+        
+        /*
+         * Find nodes inside border
+         */
+        AlgorithmNodesInsideBorder nib(myProgObj,
+                                       surface,
+                                       borderDrawnByUser,
+                                       inverseSelectionFlag,
+                                       nodesInsideBorder);
+    }
+    catch (const AlgorithmException& e) {
+        WuQMessageBox::errorOk(this, e.whatString());
+        return;
+    }
+    
+    if (nodesInsideBorder.empty()) {
+        WuQMessageBox::errorOk(this,
+                               ("No nodes were found inside the drawn border "
+                                + borderDrawnByUser->getName()));
+        return;
+    }
+    
+    Brain* brain = GuiManager::get()->getBrain();
+    const StructureEnum::Enum surfaceStructure = surface->getStructure();
+    const BrainStructure* brainStructure = brain->getBrainStructure(surfaceStructure, false);
+    if (brainStructure == NULL) {
+        WuQMessageBox::errorOk(this,
+                               "No files for surface structure "
+                               + StructureEnum::toGuiName(surfaceStructure));
+        return;
+    }
+    
+    
+    std::vector<DataFileTypeEnum::Enum> optimizeDataFileTypes;
+    optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE);
+    optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
+    optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
+    optimizeDataFileTypes.push_back(DataFileTypeEnum::METRIC);
+    
+    std::vector<CaretMappableDataFile*> optimizeDataFiles;
+    brain->getAllMappableDataFileWithDataFileTypes(optimizeDataFileTypes,
+                                                   optimizeDataFiles);
+    
+    /*
+     * Create a bool vector that indicates nodes inside border 
+     * from the node index.
+     */
+    const int32_t numberOfSurfaceNodes = surface->getNumberOfNodes();
+    std::vector<bool> nodeInROI(numberOfSurfaceNodes, false);
+    for (std::vector<int32_t>::const_iterator iter = nodesInsideBorder.begin();
+         iter != nodesInsideBorder.end();
+         iter++) {
+        const int32_t nodeIndex = *iter;
+        CaretAssertVectorIndex(nodeInROI, nodeIndex);
+        nodeInROI[nodeIndex] = true;
+    }
+    
+    /*
+     * Find borders inside region of interest
+     */
+    std::vector<Border*> bordersInsideRegionOfInterest;
+    const int32_t numberOfBorderFiles = brain->getNumberOfBorderFiles();
+    for (int32_t iFile = 0; iFile < numberOfBorderFiles; iFile++) {
+        const BorderFile* borderFile = brain->getBorderFile(iFile);
+        
+        std::vector<Border*> bordersInROI;
+        borderFile->findBordersInsideRegionOfInterest(displayGroup,
+                                                      browserTabIndex,
+                                                      surface,
+                                                      nodeInROI,
+                                                      bordersInROI);
+        
+        bordersInsideRegionOfInterest.insert(bordersInsideRegionOfInterest.end(),
+                                             bordersInROI.begin(),
+                                             bordersInROI.end());
+    }
+    
+    if (bordersInsideRegionOfInterest.empty()) {
+        WuQMessageBox::errorOk(this,
+                               "No borders were found inside the drawn border.");
+        return;
+    }
+    
+    
+    BorderOptimizeDialog bod(this,
+                             surface,
+                             bordersInsideRegionOfInterest,
+                             nodesInsideBorder,
+                             optimizeDataFiles);
+    if (bod.exec() == BorderOptimizeDialog::Accepted) {
+        
+    }
+    
+    /*
+     * Update all graphics windows to displayed changed borders
+     */
+    adjustViewActionTriggered();
+}
+
 
 /**
  * Called when Adjust View button is pressed.

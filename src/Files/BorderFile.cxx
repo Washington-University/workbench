@@ -841,6 +841,75 @@ BorderFile::findAllBordersWithPointsNearBothSegmentEndPoints(const DisplayGroupE
     }
 }
 
+/**
+ * Find ALL borders that have ANY points within the given
+ * region of interest.  Since all borders are projected to 
+ * the surface, 
+ *
+ * @param displayGroup
+ *    Display group in which border is tested for display.
+ * @param browserTabIndex
+ *    Tab index in which border is displayed.
+ * @param surfaceFile
+ *    Surface file used for unprojection of border points.
+ * @param nodesInROI
+ *    Indices if a node is inside (true) or outside (false) the ROI.
+ *    Number of elements MUST BE the number of nodes in the surface.
+ * @param bordersOut
+ *    Contains borders found to be in the ROI upon exit.
+ */
+void
+BorderFile::findBordersInsideRegionOfInterest(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t browserTabIndex,
+                                       const SurfaceFile* surfaceFile,
+                                       const std::vector<bool>& nodesInROI,
+                                       std::vector<Border*>& bordersOut) const
+{
+    CaretAssert(surfaceFile);
+    const int32_t surfaceNumberOfNodes = surfaceFile->getNumberOfNodes();
+    CaretAssert(surfaceNumberOfNodes == static_cast<int32_t>(nodesInROI.size()));
+    
+    bordersOut.clear();
+    
+    const StructureEnum::Enum surfaceStructure = surfaceFile->getStructure();
+    
+    BorderFile* nonConstBorderFile = const_cast<BorderFile*>(this);
+    
+    const int32_t numBorders = getNumberOfBorders();
+    for (int32_t borderIndex = 0; borderIndex < numBorders; borderIndex++) {
+        Border* border = m_borders[borderIndex];
+        if (nonConstBorderFile->isBorderDisplayed(displayGroup,
+                                                  browserTabIndex,
+                                                  border) == false) {
+            continue;
+        }
+        if (border->getStructure() == surfaceStructure) {
+            const int32_t numberOfPoints = border->getNumberOfPoints();
+            for (int32_t iPoint = 0; iPoint < numberOfPoints; iPoint++) {
+                const SurfaceProjectedItem* spi = border->getPoint(iPoint);
+                CaretAssert(spi);
+                const SurfaceProjectionBarycentric* bary = spi->getBarycentricProjection();
+                if (bary != NULL) {
+                    const int32_t* pointNodes = bary->getTriangleNodes();
+                    const int32_t p1 = pointNodes[0];
+                    const int32_t p2 = pointNodes[1];
+                    const int32_t p3 = pointNodes[2];
+                    if ((p1 < surfaceNumberOfNodes)
+                        && (p2 < surfaceNumberOfNodes)
+                        && (p3 < surfaceNumberOfNodes)) {
+                        if (nodesInROI[p1]
+                            || nodesInROI[p2]
+                            || nodesInROI[p3]) {
+                            bordersOut.push_back(border);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 /**
  * Add a border.  NOTE: This border file

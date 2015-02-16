@@ -24,6 +24,8 @@
 
 #include <QWidget>
 
+#include "DisplayGroupEnum.h"
+
 class QAction;
 class QActionGroup;
 class QComboBox;
@@ -103,6 +105,11 @@ namespace caret {
         void setLastEditedBorder(std::vector<BorderFileAndBorderMemento>& undoFinishBorders);
         
         void resetLastEditedBorder();
+        
+        void processBorderOptimization(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t browserTabIndex,
+                                       const Surface* surface,
+                                       const Border* borderDrawnByUser);
         
         QComboBox* modeComboBox;
         

@@ -29,6 +29,7 @@ SET(MOC_INPUT_HEADER_FILES
 AboutWorkbenchDialog.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
+BorderOptimizeDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
@@ -158,6 +159,7 @@ SET(SOURCE_FILES
 AboutWorkbenchDialog.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
+BorderOptimizeDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
@@ -311,6 +313,7 @@ WuQtUtilities.h
 AboutWorkbenchDialog.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
+BorderOptimizeDialog.cxx
 BorderPropertiesEditorDialog.cxx
 BorderSelectionViewController.cxx
 BrainBrowserWindow.cxx

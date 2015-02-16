@@ -42,6 +42,7 @@ namespace caret {
             DRAW_OPERATION_CREATE,
             DRAW_OPERATION_ERASE,
             DRAW_OPERATION_EXTEND,
+            DRAW_OPERATION_OPTIMIZE,
             DRAW_OPERATION_REPLACE
         };
         

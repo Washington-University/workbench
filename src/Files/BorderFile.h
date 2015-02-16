@@ -114,6 +114,12 @@ namespace caret {
                                                  const float maximumDistance,
                                                  std::vector<BorderPointFromSearch>& borderPointsOut) const;
         
+        void findBordersInsideRegionOfInterest(const DisplayGroupEnum::Enum displayGroup,
+                                               const int32_t browserTabIndex,
+                                               const SurfaceFile* surfaceFile,
+                                               const std::vector<bool>& nodesInROI,
+                                               std::vector<Border*>& bordersOut) const;
+        
         void addBorder(Border* border);
         
         void removeBorder(const int32_t indx);

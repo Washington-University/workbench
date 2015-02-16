@@ -384,7 +384,40 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
     
 }
 
-std::vector<int32_t> 
+/**
+ * Constructor for getting a vector containing indices of nodes inside
+ * the border.
+ *
+ * @param myProgObj
+ *
+ * @param surfaceFile
+ *    Surface file for nodes inside border.
+ * @param border
+ *    Border for which nodes inside are found.
+ * @param isInverseSelection
+ *    Invert the selection.
+ * @param assignToCiftiScalarMapIndex
+ *    Map index in cifti scalar file to which assigments are made for
+ *    nodes inside the border.
+ * @param assignLabelKey
+ *    Label key assigned to nodes within the border.
+ * @param ciftiLabelFileInOut
+ *    CIFTI label file that has map set with nodes inside border.
+ */
+AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
+                                                       const SurfaceFile* surfaceFile,
+                                                       const Border* border,
+                                                       const bool isInverseSelection,
+                                                       std::vector<int32_t>& nodesInsideBorderOut)
+: AbstractAlgorithm(myProgObj)
+{
+    CaretAssert(surfaceFile);
+    CaretAssert(border);
+    
+    nodesInsideBorderOut = this->findNodesInsideBorder(surfaceFile, border, isInverseSelection);
+}
+
+std::vector<int32_t>
 AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* mySurf, const Border* myBorder, const bool& inverse)
 {
     std::vector<int32_t> nodesInsideBorderOut;

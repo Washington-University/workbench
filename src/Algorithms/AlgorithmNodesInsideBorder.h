@@ -70,6 +70,12 @@ namespace caret {
                                    const int32_t assignLabelKey,
                                    LabelFile* labelFileInOut);
         
+        AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
+                                   const SurfaceFile* surfaceFile,
+                                   const Border* border,
+                                   const bool isInverseSelection,
+                                   std::vector<int32_t>& nodesInsideBorderOut);
+        
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, 
                                   ProgressObject* myProgObj);
