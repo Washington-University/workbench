@@ -367,8 +367,7 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
     CaretAssert(border);
     CaretAssert(ciftiLabelFileInOut);
     
-    std::vector<int32_t> nodesInsideBorder;
-    this->findNodesInsideBorder(surfaceFile, border, isInverseSelection);
+    std::vector<int32_t> nodesInsideBorder = this->findNodesInsideBorder(surfaceFile, border, isInverseSelection);
     
     std::vector<float> surfaceMapData(surfaceFile->getNumberOfNodes(),
                                       0.0);
