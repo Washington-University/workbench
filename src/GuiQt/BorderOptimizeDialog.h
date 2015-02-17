@@ -41,26 +41,43 @@ namespace caret {
         BorderOptimizeDialog(QWidget* parent,
                              const Surface* surface,
                              const std::vector<Border*>& bordersInsideROI,
+                             Border* borderEnclosingROI,
                              const std::vector<int32_t>& nodesInsideROI,
                              const std::vector<CaretMappableDataFile*>& optimizeDataFiles);
         
         virtual ~BorderOptimizeDialog();
         
+        void getSelectedBorders(std::vector<Border*>& selectedBordersOut) const;
 
         // ADD_NEW_METHODS_HERE
 
     protected:
-        void okButtonClicked();
+        virtual void okButtonClicked();
+        
+        virtual void cancelButtonClicked();
         
     private:
         BorderOptimizeDialog(const BorderOptimizeDialog&);
 
         BorderOptimizeDialog& operator=(const BorderOptimizeDialog&);
         
-        bool run(std::vector<Border*>& borders,
-                 std::vector<CaretMappableDataFile*>& dataFiles,
-                 const float smoothingLevel,
-                 const bool invertGradientFlag,
+        class UserSelections {
+        public:
+            UserSelections() {
+                m_valid = false;
+                m_borderEnclosingROI = NULL;
+            }
+            std::vector<Border*> m_borders;
+            Border* m_borderEnclosingROI;
+            std::vector<CaretMappableDataFile*> m_optimizeDataFiles;
+            std::vector<int32_t> m_nodesInsideROI;
+            float m_smoothingLevel;
+            bool m_invertedGradientFlag;
+            bool m_valid;
+        };
+        
+        bool run(const UserSelections& userSelections,
+                 AString& statisticsInformationOut,
                  AString& errorMessageOut);
         
         QWidget* createBorderSelectionWidget();
@@ -69,9 +86,15 @@ namespace caret {
         
         QWidget* createOptionsWidget();
         
+        void readUserSelectionsFromGUI(UserSelections& userSelectionsOut);
+        
+        void writeUserSelectionsToGUI(const UserSelections& userSelections);
+        
         const Surface* m_surface;
         
         const std::vector<Border*> m_bordersInsideROI;
+        
+        Border* m_borderEnclosingROI;
         
         const std::vector<int32_t> m_nodesInsideROI;
         
@@ -85,12 +108,13 @@ namespace caret {
         
         QDoubleSpinBox* m_smoothingLevelSpinBox;
         
+        static UserSelections s_savedUserSelections;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __BORDER_OPTIMIZE_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    BorderOptimizeDialog::UserSelections BorderOptimizeDialog::s_savedUserSelections;
 #endif // __BORDER_OPTIMIZE_DIALOG_DECLARE__
 
 } // namespace

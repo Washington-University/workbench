@@ -18,7 +18,11 @@
  */
 /*LICENSE_END*/
 
+#include "Brain.h"
 #include "EventUpdateInformationWindows.h"
+#include "GuiManager.h"
+#include "IdentificationManager.h"
+#include "IdentifiedItem.h"
 
 using namespace caret;
 /**
@@ -28,16 +32,35 @@ using namespace caret;
  */
 
 /**
- * Construct an event for display text in the information windows.
- * @param text
- *   Text that will be displayed.
+ * Construct an event for update of information window with
+ * content from the identification manager.  The given
+ * text will be added to the information manager prior to 
+ * update of information window.
+ *
+ * @param informationText
+ *   Next text that will be added to the information manager.
+ */
+EventUpdateInformationWindows::EventUpdateInformationWindows(const AString& informationText)
+: Event(EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS)
+{
+    if ( ! informationText.isEmpty()) {
+        IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
+        CaretAssert(idManager);
+        idManager->addIdentifiedItem(new IdentifiedItem(informationText));
+    }
+    
+    m_important = true;
+}
+
+/**
+ * Construct an event for update of information window with
+ * content from the identification manager.
  */
 EventUpdateInformationWindows::EventUpdateInformationWindows()
 : Event(EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS)
 {
     m_important = true;
 }
-
 /**
  *  Destructor.
  */

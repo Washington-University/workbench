@@ -720,23 +720,10 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                                errorMessage);
                     }
                     else {
+                        setLastEditedBorder(undoBorders);
                         this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
                     }
                     
-                    setLastEditedBorder(undoBorders);
-                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                
-                
-                    if ( ! errorMessage.isEmpty()) {
-                        WuQMessageBox::errorOk(this,
-                                               errorMessage);
-                    }
-                    else {
-                        this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
-                    }
-                    
-                    setLastEditedBorder(undoBorders);
                     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
                     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                 }
@@ -825,21 +812,26 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
     /*
      * Find borders inside region of interest
      */
+    std::map<Border*, BorderFile*> borderToBorderFileMap;
     std::vector<Border*> bordersInsideRegionOfInterest;
     const int32_t numberOfBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t iFile = 0; iFile < numberOfBorderFiles; iFile++) {
-        const BorderFile* borderFile = brain->getBorderFile(iFile);
+        BorderFile* borderFile = brain->getBorderFile(iFile);
         
-        std::vector<Border*> bordersInROI;
+        std::vector<Border*> bordersFromFileInROI;
         borderFile->findBordersInsideRegionOfInterest(displayGroup,
                                                       browserTabIndex,
                                                       surface,
                                                       nodeInROI,
-                                                      bordersInROI);
+                                                      bordersFromFileInROI);
         
-        bordersInsideRegionOfInterest.insert(bordersInsideRegionOfInterest.end(),
-                                             bordersInROI.begin(),
-                                             bordersInROI.end());
+        for (std::vector<Border*>::iterator bi = bordersFromFileInROI.begin();
+             bi != bordersFromFileInROI.end();
+             bi++) {
+            Border* border = *bi;
+            borderToBorderFileMap.insert(std::make_pair(border, borderFile));
+            bordersInsideRegionOfInterest.push_back(border);
+        }
     }
     
     if (bordersInsideRegionOfInterest.empty()) {
@@ -852,10 +844,34 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
     BorderOptimizeDialog bod(this,
                              surface,
                              bordersInsideRegionOfInterest,
+                             const_cast<Border*>(borderDrawnByUser),
                              nodesInsideBorder,
                              optimizeDataFiles);
     if (bod.exec() == BorderOptimizeDialog::Accepted) {
+        std::vector<Border*> modifiedBorders;
+        bod.getSelectedBorders(modifiedBorders);
         
+        /*
+         * Track modified borders so that changes can be 'undone' by 
+         * the user.
+         */
+        std::vector<BorderFileAndBorderMemento> undoBorders;
+        for (std::vector<Border*>::iterator mbi = modifiedBorders.begin();
+             mbi != modifiedBorders.end();
+             mbi++) {
+            Border* border = *mbi;
+            std::map<Border*, BorderFile*>::iterator mapIter = borderToBorderFileMap.find(border);
+            if (mapIter != borderToBorderFileMap.end()) {
+                BorderFile* borderFile = mapIter->second;
+                undoBorders.push_back(BorderFileAndBorderMemento(borderFile,
+                                                                 border));
+            }
+            else {
+                CaretAssertMessage(0, "PROGRAM ERROR: border file not found for border.");
+            }
+        }
+        
+        setLastEditedBorder(undoBorders);
     }
     
     /*

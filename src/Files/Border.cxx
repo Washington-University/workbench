@@ -832,9 +832,7 @@ Border::reviseExtendFromPointIndex(SurfaceFile* surfaceFile,
         tempBorder.addPoints(segment);
     }
     
-    saveBorderForUndoEditing();
-    
-    replacePoints(&tempBorder);
+    replacePointsWithUndoSaving(&tempBorder);
 }
 
 /**
@@ -961,9 +959,7 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
                              (endPointIndex + 1));
     }
     
-    saveBorderForUndoEditing();
-    
-    replacePoints(&tempBorder);
+    replacePointsWithUndoSaving(&tempBorder);
 }
 
 /**
@@ -1251,12 +1247,10 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
                                         newBorderSecondSegment.getNumberOfPoints());
                 }
                 
-                saveBorderForUndoEditing();
-                
                 /*
                  * Replace this border with the newly created border
                  */
-                replacePoints(&newBorder);
+                replacePointsWithUndoSaving(&newBorder);
             }
             else {
                 throw BorderException("Border replacement failed: First or last point in new segment failed to project.");
@@ -1489,6 +1483,19 @@ Border::getSegmentLength(SurfaceFile* surfaceFile,
     return segmentLength;
 }
 
+/**
+ * Replace the points in this border with points from the given border.
+ * An "undo" copy of the border is also created.
+ *
+ * @param border Border whose points are copied into this border.
+ */
+void
+Border::replacePointsWithUndoSaving(const Border* border)
+{
+    saveBorderForUndoEditing();
+    
+    replacePoints(border);
+}
 
 /**
  * Replace the points in this border with

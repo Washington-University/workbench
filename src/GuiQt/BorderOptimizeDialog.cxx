@@ -33,6 +33,8 @@
 #include "Border.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "EventManager.h"
+#include "EventUpdateInformationWindows.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -54,6 +56,8 @@ using namespace caret;
  *    Surface on which borders are drawn.
  * @param bordersInsideROI
  *    Borders inside the region of interest.
+ * @param borderEnclosingROI
+ *    Border that encloses the region of interest
  * @param nodesInsideROI
  *    Nodes inside the region of interest.
  * @param optimizeDataFiles
@@ -62,12 +66,14 @@ using namespace caret;
 BorderOptimizeDialog::BorderOptimizeDialog(QWidget* parent,
                                            const Surface* surface,
                                            const std::vector<Border*>& bordersInsideROI,
+                                           Border* borderEnclosingROI,
                                            const std::vector<int32_t>& nodesInsideROI,
                                            const std::vector<CaretMappableDataFile*>& optimizeDataFiles)
 : WuQDialogModal("Border Optimize",
                  parent),
 m_surface(surface),
 m_bordersInsideROI(bordersInsideROI),
+m_borderEnclosingROI(borderEnclosingROI),
 m_nodesInsideROI(nodesInsideROI),
 m_optimizeDataFiles(optimizeDataFiles)
 {
@@ -83,6 +89,8 @@ m_optimizeDataFiles(optimizeDataFiles)
     
     setCentralWidget(dialogWidget,
                      SCROLL_AREA_NEVER);
+    
+    writeUserSelectionsToGUI(s_savedUserSelections);
 }
 
 /**
@@ -100,26 +108,22 @@ BorderOptimizeDialog::okButtonClicked()
 {
     AString errorMessage;
     
-    std::vector<CaretMappableDataFile*> optimizeFiles;
-    const int32_t numOptimizeFileSelections = static_cast<int32_t>(m_optimizeDataFileCheckBoxes.size());
-    for (int32_t iFile = 0; iFile < numOptimizeFileSelections; iFile++) {
-        if (m_optimizeDataFileCheckBoxes[iFile]->isChecked()) {
-            optimizeFiles.push_back(m_optimizeDataFiles[iFile]);
-        }
-    }
+    UserSelections userSelections;
+    readUserSelectionsFromGUI(userSelections);
     
-    if (optimizeFiles.empty()) {
+    if (m_borderEnclosingROI == NULL) {
+        errorMessage.appendWithNewLine("Border enclosing region is invalid.");
+    }
+    if (m_borderEnclosingROI->getNumberOfPoints() < 3) {
+        errorMessage.appendWithNewLine("Border named "
+                                       + m_borderEnclosingROI->getName()
+                                       + " enclosing region is invalid must contain at least three points");
+    }
+    if (userSelections.m_optimizeDataFiles.empty()) {
         errorMessage.appendWithNewLine("No optimization data files are selected.");
     }
     
-    std::vector<Border*> optimizeBorders;
-    const int32_t numBorderFileSelections = static_cast<int32_t>(m_bordersInsideROI.size());
-    for (int32_t iBorder = 0; iBorder < numBorderFileSelections; iBorder++) {
-        if (m_borderCheckBoxes[iBorder]->isChecked()) {
-            optimizeBorders.push_back(m_bordersInsideROI[iBorder]);
-        }
-    }
-    if (optimizeBorders.empty()) {
+    if (userSelections.m_borders.empty()) {
         errorMessage.appendWithNewLine("No optimization border files are selected.");
     }
     
@@ -128,23 +132,122 @@ BorderOptimizeDialog::okButtonClicked()
         return;
     }
     
-    const float smoothing = m_smoothingLevelSpinBox->value();
-    
-    const bool invertGradientFlag = m_invertedGradientCheckBox->isChecked();
-    
-    if (run(optimizeBorders,
-            optimizeFiles,
-            smoothing,
-            invertGradientFlag,
+    AString statisticsInformation;
+    if (run(userSelections,
+            statisticsInformation,
             errorMessage)) {
+
+        /*
+         * Display the statistics information.
+         */
+        EventManager::get()->sendEvent(EventUpdateInformationWindows(statisticsInformation).getPointer());
+        
+        /*
+         * Save user's selections for next time.
+         */
+        readUserSelectionsFromGUI(s_savedUserSelections);
         
         /*
          * Success, allow dialog to close.
          */
         WuQDialogModal::okButtonClicked();
+        
+        return;
     }
 
     WuQMessageBox::errorOk(this, errorMessage);
+}
+
+/**
+ * Called when cancel button clicked.
+ */
+void
+BorderOptimizeDialog::cancelButtonClicked()
+{
+    readUserSelectionsFromGUI(s_savedUserSelections);
+    
+    /*
+     * Allow dialog to close.
+     */
+    WuQDialogModal::cancelButtonClicked();
+}
+
+/**
+ * Read the user selections from the GUI components.
+ *
+ * @param userSelectionsOut
+ *     Output containing user selections.
+ */
+void
+BorderOptimizeDialog::readUserSelectionsFromGUI(UserSelections& userSelectionsOut)
+{
+    userSelectionsOut.m_optimizeDataFiles.clear();
+    const int32_t numOptimizeFileSelections = static_cast<int32_t>(m_optimizeDataFileCheckBoxes.size());
+    for (int32_t iFile = 0; iFile < numOptimizeFileSelections; iFile++) {
+        if (m_optimizeDataFileCheckBoxes[iFile]->isChecked()) {
+            userSelectionsOut.m_optimizeDataFiles.push_back(m_optimizeDataFiles[iFile]);
+        }
+    }
+    getSelectedBorders(userSelectionsOut.m_borders);
+    userSelectionsOut.m_borderEnclosingROI = m_borderEnclosingROI;
+    userSelectionsOut.m_nodesInsideROI = m_nodesInsideROI;
+    userSelectionsOut.m_invertedGradientFlag = m_invertedGradientCheckBox->isChecked();
+    userSelectionsOut.m_smoothingLevel = m_smoothingLevelSpinBox->value();
+    userSelectionsOut.m_valid = true;
+}
+
+/**
+ * Write the user selections to the GUI.
+ *
+ * @param userSelections
+ *     The user's selections.
+ */
+void
+BorderOptimizeDialog::writeUserSelectionsToGUI(const UserSelections& userSelections)
+{
+    if (userSelections.m_valid) {
+        m_smoothingLevelSpinBox->setValue(userSelections.m_smoothingLevel);
+        m_invertedGradientCheckBox->setChecked(userSelections.m_invertedGradientFlag);
+        
+        for (uint32_t i = 0; i < m_bordersInsideROI.size(); i++) {
+            m_borderCheckBoxes[i]->setChecked(false);
+            if (std::find(userSelections.m_borders.begin(),
+                          userSelections.m_borders.end(),
+                          m_bordersInsideROI[i]) != userSelections.m_borders.end()) {
+                CaretAssertVectorIndex(m_borderCheckBoxes, i);
+                m_borderCheckBoxes[i]->setChecked(true);
+            }
+        }
+        
+        for (uint32_t i = 0; i < m_optimizeDataFiles.size(); i++) {
+            m_optimizeDataFileCheckBoxes[i]->setChecked(false);
+            if (std::find(userSelections.m_optimizeDataFiles.begin(),
+                          userSelections.m_optimizeDataFiles.end(),
+                          m_optimizeDataFiles[i]) != userSelections.m_optimizeDataFiles.end()) {
+                CaretAssertVectorIndex(m_optimizeDataFileCheckBoxes, i);
+                m_optimizeDataFileCheckBoxes[i]->setChecked(true);
+            }
+        }
+    }
+}
+
+/**
+ * Get borders that were selected by the user.
+ *
+ * @param selectedBordersOut
+ *     Output containing borders selected by the user.
+ */
+void
+BorderOptimizeDialog::getSelectedBorders(std::vector<Border*>& selectedBordersOut) const
+{
+    selectedBordersOut.clear();
+    
+    const int32_t numBorderFileSelections = static_cast<int32_t>(m_bordersInsideROI.size());
+    for (int32_t iBorder = 0; iBorder < numBorderFileSelections; iBorder++) {
+        if (m_borderCheckBoxes[iBorder]->isChecked()) {
+            selectedBordersOut.push_back(m_bordersInsideROI[iBorder]);
+        }
+    }
 }
 
 /**
@@ -215,6 +318,7 @@ BorderOptimizeDialog::createOptionsWidget()
     m_smoothingLevelSpinBox->setRange(0.0, 1.0);
     m_smoothingLevelSpinBox->setDecimals(2);
     m_smoothingLevelSpinBox->setValue(1.0);
+    m_smoothingLevelSpinBox->setSingleStep(0.01);
     
     QGroupBox* widget = new QGroupBox("Options");
     QGridLayout* layout = new QGridLayout(widget);
@@ -234,29 +338,64 @@ BorderOptimizeDialog::createOptionsWidget()
 /**
  * Run border optimization.
  *
- * @param borders
- *    The borders.
- * @param dataFiles
- *    The data files.
- * @param smoothingLevel,
- *    Smoothing level [0.0, 1.0].
- * @param invertGradientFlag
- *    Request inverted gradient.
+ * @param userSelections
+ *    Contains the user's selections.
+ * @param statisticsInformationOut
+ *    Contains statistics information upon exit.
  * @param errorMessageOut
- *    Contains error information.
- * @return True if successful, false if errors.
+ *    Contains error information upon exit.
+ * @return 
+ &    True if successful, false if errors.
  */
 bool
-BorderOptimizeDialog::run(std::vector<Border*>& borders,
-                          std::vector<CaretMappableDataFile*>& dataFiles,
-                          const float smoothingLevel,
-                          const bool invertGradientFlag,
+BorderOptimizeDialog::run(const UserSelections& userSelections,
+                          AString& statisticsInformationOut,
                           AString& errorMessageOut)
 {
+    statisticsInformationOut.clear();
+    errorMessageOut.clear();
+
+    /*
+     * Inputs for algorithm
+     *
+     * Pointers to borders selected by user for optimization. 
+     *     std:vector<Border*> userSelections.m_borders;
+     * Pointer to border enclosing ROI drawn by user
+     *     Border* userSelectionsOut.m_borderEnclosingROI;
+     * Ponters to data files used for border optimization.
+     *     std::vector<CaretMappableDataFile*> userSelections.m_optimizeDataFiles;
+     * Contains nodes found inside border drawn by the user.
+     *     std::vector<int32_t> userSelections.m_nodesInsideROI;
+     * Smoothing level ranging [0.0, 1.0]
+     *     float userSelections.m_smoothingLevel;
+     * Flag for inverted gradient.
+     *     bool  userSelections.m_invertedGradientFlag;
+     */
+     
+     
+    /*
+     * Modifying a border:
+     * 
+     * (1) Make a copy of the border
+     *
+     *     Border* borderCopy = new Border(*border)
+     *
+     * (2) Modify the 'copied' border
+     *
+     * (3) When modification is complete, calling this method
+     *     will first make an 'undo' copy of 'border' that is stored
+     *     inside of border and then replace the points in 'border'
+     *     with those from 'borderCopy'.   This will allow the
+     *     user to press the Border ToolBar's 'Undo Finish' button
+     *     if the changes are not acceptable.
+     * 
+     *     border->replacePointsWithUndoSaving(borderCopy)
+     */
+    
     /*
      * Returning false implies errors.
      */
-    errorMessageOut = "Something went wrong.";
+    errorMessageOut = "Implementation is missing.";
     return false;
 }
 

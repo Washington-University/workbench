@@ -33,6 +33,8 @@ namespace caret {
     public:
         EventUpdateInformationWindows();
         
+        EventUpdateInformationWindows(const AString& informationText);
+        
         virtual ~EventUpdateInformationWindows();
 
         EventUpdateInformationWindows* setNotImportant();

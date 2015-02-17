@@ -102,8 +102,8 @@ namespace caret {
         
         void removeLastPoint();
         
-        void replacePoints(const Border* border);
-        
+        void replacePointsWithUndoSaving(const Border* border);
+
         void reverse();
         
         void reviseExtendFromPointIndex(SurfaceFile* surfaceFile,
@@ -167,6 +167,8 @@ namespace caret {
         float getSegmentLength(SurfaceFile* surfaceFile,
                                  const int32_t startPointIndex,
                                  const int32_t endPointIndex);
+        
+        void replacePoints(const Border* border);
         
         void saveBorderForUndoEditing();
         
