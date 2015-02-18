@@ -40,6 +40,8 @@ public:
         EVENT_INVALID,
         /** Alert user about something */
         EVENT_ALERT_USER,
+        /** Inform that Brain has been reset (new spec or scene loaded) */
+        EVENT_BRAIN_RESET,
         /** Get all brain structures */
         EVENT_BRAIN_STRUCTURE_GET_ALL,
         /** Delete a browser tab. */

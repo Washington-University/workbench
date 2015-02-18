@@ -58,6 +58,7 @@
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
+#include "EventBrainReset.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventDataFileAdd.h"
@@ -613,6 +614,8 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     
     updateAfterFilesAddedOrRemoved();
+    
+    EventManager::get()->sendEvent(EventBrainReset(this).getPointer());
 }
 
 
