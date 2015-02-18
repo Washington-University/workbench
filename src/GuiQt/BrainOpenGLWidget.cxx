@@ -44,6 +44,7 @@
 #include "CaretPreferences.h"
 #include "CursorManager.h"
 #include "DummyFontTextRenderer.h"
+#include "EventBrainReset.h"
 #include "EventImageCapture.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
@@ -127,6 +128,8 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->mousePressX = -10000;
     this->mousePressY = -10000;
     this->mouseNewDraggingStartedFlag = false;
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
@@ -1055,7 +1058,13 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 void 
 BrainOpenGLWidget::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
+    if (event->getEventType() == EventTypeEnum::EVENT_BRAIN_RESET) {
+        EventBrainReset* brainResetEvent = dynamic_cast<EventBrainReset*>(event);
+        CaretAssert(brainResetEvent);
+        
+        this->borderBeingDrawn->clear();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
         EventGraphicsUpdateAllWindows* updateAllEvent =
             dynamic_cast<EventGraphicsUpdateAllWindows*>(event);
         CaretAssert(updateAllEvent);

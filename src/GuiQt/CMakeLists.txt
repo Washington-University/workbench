@@ -160,6 +160,7 @@ AboutWorkbenchDialog.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
+BorderOptimizeExecutor.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
@@ -314,6 +315,7 @@ AboutWorkbenchDialog.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
 BorderOptimizeDialog.cxx
+BorderOptimizeExecutor.cxx
 BorderPropertiesEditorDialog.cxx
 BorderSelectionViewController.cxx
 BrainBrowserWindow.cxx

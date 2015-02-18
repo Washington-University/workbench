@@ -88,7 +88,6 @@ UserInputModeBorders::UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
  */
 UserInputModeBorders::~UserInputModeBorders()
 {
-    
 }
 
 /**

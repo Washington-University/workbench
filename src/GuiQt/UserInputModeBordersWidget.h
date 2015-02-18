@@ -25,6 +25,7 @@
 #include <QWidget>
 
 #include "DisplayGroupEnum.h"
+#include "EventListenerInterface.h"
 
 class QAction;
 class QActionGroup;
@@ -35,12 +36,13 @@ class QToolButton;
 namespace caret {
 
     class BorderFile;
+    class BorderOptimizeDialog;
     class Border;
     class Brain;
     class Surface;
     class UserInputModeBorders;
     
-    class UserInputModeBordersWidget : public QWidget {
+    class UserInputModeBordersWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -50,6 +52,8 @@ namespace caret {
         
         virtual ~UserInputModeBordersWidget();
         
+        virtual void receiveEvent(Event* event);
+
         void updateWidget();
         
         void executeFinishOperation();
@@ -108,8 +112,8 @@ namespace caret {
         
         void processBorderOptimization(const DisplayGroupEnum::Enum displayGroup,
                                        const int32_t browserTabIndex,
-                                       const Surface* surface,
-                                       const Border* borderDrawnByUser);
+                                       Surface* surface,
+                                       Border* borderDrawnByUser);
         
         QComboBox* modeComboBox;
         
@@ -128,6 +132,8 @@ namespace caret {
         QString m_transformToolTipText;
         
         QToolButton* m_undoFinishToolButton;
+        
+        BorderOptimizeDialog* m_borderOptimizeDialog;
         
         std::vector<BorderFileAndBorderMemento> m_undoFinishBorders;
     };

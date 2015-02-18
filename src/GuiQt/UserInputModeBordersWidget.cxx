@@ -51,6 +51,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DisplayPropertiesBorders.h"
+#include "EventBrainReset.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -98,6 +99,8 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
                               "holding down the Ctrl key (Apple key on Macs)."
                               );
     
+    m_borderOptimizeDialog = NULL;
+    
     this->inputModeBorders = inputModeBorders;
     
     QLabel* nameLabel = new QLabel("Borders ");
@@ -124,6 +127,8 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     layout->addSpacing(10);
     layout->addWidget(this->operationStackedWidget);
     layout->addStretch();
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
 }
 
 /**
@@ -131,13 +136,33 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
  */
 UserInputModeBordersWidget::~UserInputModeBordersWidget()
 {
-    
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+UserInputModeBordersWidget::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_BRAIN_RESET) {
+        EventBrainReset* brainEvent = dynamic_cast<EventBrainReset*>(event);
+        CaretAssert(brainEvent);
+        
+        if (m_borderOptimizeDialog != NULL) {
+            delete m_borderOptimizeDialog;
+            m_borderOptimizeDialog = NULL;
+        }
+    }
 }
 
 /**
  * Update the contents of the widget.
  */
-void 
+void
 UserInputModeBordersWidget::updateWidget()
 {
     /*
@@ -744,8 +769,8 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
 void
 UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::Enum displayGroup,
                                                       const int32_t browserTabIndex,
-                                                      const Surface* surface,
-                                                      const Border* borderDrawnByUser)
+                                                      Surface* surface,
+                                                      Border* borderDrawnByUser)
 {
     std::vector<int32_t> nodesInsideBorder;
 
@@ -841,15 +866,16 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
     }
     
     
-    BorderOptimizeDialog bod(this,
-                             surface,
+    if (m_borderOptimizeDialog == NULL) {
+        m_borderOptimizeDialog = new BorderOptimizeDialog(this);
+    }
+    m_borderOptimizeDialog->updateDialog(surface,
                              bordersInsideRegionOfInterest,
                              const_cast<Border*>(borderDrawnByUser),
-                             nodesInsideBorder,
-                             optimizeDataFiles);
-    if (bod.exec() == BorderOptimizeDialog::Accepted) {
+                             nodesInsideBorder);
+    if (m_borderOptimizeDialog->exec() == BorderOptimizeDialog::Accepted) {
         std::vector<Border*> modifiedBorders;
-        bod.getSelectedBorders(modifiedBorders);
+        m_borderOptimizeDialog->getSelectedBorders(modifiedBorders);
         
         /*
          * Track modified borders so that changes can be 'undone' by 

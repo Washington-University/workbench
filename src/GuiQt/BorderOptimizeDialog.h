@@ -21,16 +21,21 @@
  */
 /*LICENSE_END*/
 
+#include "BorderOptimizeExecutor.h"
+#include "DataFileTypeEnum.h"
 #include "WuQDialogModal.h"
 
 class QCheckBox;
 class QDoubleSpinBox;
-
+class QGridLayout;
+class QVBoxLayout;
 
 namespace caret {
 
     class Border;
+    class BorderOptimizeDataFileSelector;
     class CaretMappableDataFile;
+    class CaretMappableDataFileAndMapSelectorObject;
     class Surface;
     
     class BorderOptimizeDialog : public WuQDialogModal {
@@ -38,19 +43,17 @@ namespace caret {
         Q_OBJECT
 
     public:
-        BorderOptimizeDialog(QWidget* parent,
-                             const Surface* surface,
-                             const std::vector<Border*>& bordersInsideROI,
-                             Border* borderEnclosingROI,
-                             const std::vector<int32_t>& nodesInsideROI,
-                             const std::vector<CaretMappableDataFile*>& optimizeDataFiles);
+        BorderOptimizeDialog(QWidget* parent);
         
         virtual ~BorderOptimizeDialog();
         
         void getSelectedBorders(std::vector<Border*>& selectedBordersOut) const;
 
-        // ADD_NEW_METHODS_HERE
-
+        void updateDialog(Surface* surface,
+                          std::vector<Border*>& bordersInsideROI,
+                          Border* borderEnclosingROI,
+                          std::vector<int32_t>& nodesInsideROI);
+        
     protected:
         virtual void okButtonClicked();
         
@@ -61,60 +64,62 @@ namespace caret {
 
         BorderOptimizeDialog& operator=(const BorderOptimizeDialog&);
         
-        class UserSelections {
-        public:
-            UserSelections() {
-                m_valid = false;
-                m_borderEnclosingROI = NULL;
-            }
-            std::vector<Border*> m_borders;
-            Border* m_borderEnclosingROI;
-            std::vector<CaretMappableDataFile*> m_optimizeDataFiles;
-            std::vector<int32_t> m_nodesInsideROI;
-            float m_smoothingLevel;
-            bool m_invertedGradientFlag;
-            bool m_valid;
-        };
-        
-        bool run(const UserSelections& userSelections,
-                 AString& statisticsInformationOut,
-                 AString& errorMessageOut);
-        
         QWidget* createBorderSelectionWidget();
         
         QWidget* createDataFilesWidget();
         
         QWidget* createOptionsWidget();
         
-        void readUserSelectionsFromGUI(UserSelections& userSelectionsOut);
+        Surface* m_surface;
         
-        void writeUserSelectionsToGUI(const UserSelections& userSelections);
+        std::vector<Border*> m_bordersInsideROI;
         
-        const Surface* m_surface;
-        
-        const std::vector<Border*> m_bordersInsideROI;
+        QVBoxLayout* m_bordersInsideROILayout;
         
         Border* m_borderEnclosingROI;
         
-        const std::vector<int32_t> m_nodesInsideROI;
+        std::vector<int32_t> m_nodesInsideROI;
         
-        const std::vector<CaretMappableDataFile*> m_optimizeDataFiles;
+        std::vector<BorderOptimizeDataFileSelector*> m_optimizeDataFileSelectors;
         
         std::vector<QCheckBox*> m_borderCheckBoxes;
         
-        std::vector<QCheckBox*> m_optimizeDataFileCheckBoxes;
-        
-        QCheckBox* m_invertedGradientCheckBox;
-        
-        QDoubleSpinBox* m_smoothingLevelSpinBox;
-        
-        static UserSelections s_savedUserSelections;
-        // ADD_NEW_MEMBERS_HERE
+        std::vector<DataFileTypeEnum::Enum> m_optimizeDataFileTypes;
 
     };
     
+    class BorderOptimizeDataFileSelector : public QObject {
+        Q_OBJECT
+        
+    public:
+        BorderOptimizeDataFileSelector(const int32_t itemIndex,
+                                       const std::vector<DataFileTypeEnum::Enum>& optimizeDataFileTypes,
+                                       CaretMappableDataFile* defaultFile,
+                                       QGridLayout* gridLayout,
+                                       QObject* parent);
+        
+        ~BorderOptimizeDataFileSelector();
+        
+        void updateFileData();
+    
+        CaretPointer<BorderOptimizeExecutor::DataFileInfo> getSelections() const;
+        
+    public slots:
+        void selectionCheckBoxToggled(bool checked);
+        
+        void allMapsCheckBoxToggled(bool checked);
+        
+    public:
+        CaretMappableDataFileAndMapSelectorObject* m_mapFileAndIndexSelectorObject;
+        
+        QCheckBox*      m_allMapsCheckBox;
+        QCheckBox*      m_invertGradientCheckBox;
+        QCheckBox*      m_selectionCheckBox;
+        QDoubleSpinBox* m_smoothingSpinBox;
+        QDoubleSpinBox* m_weightSpinBox;
+    };
+
 #ifdef __BORDER_OPTIMIZE_DIALOG_DECLARE__
-    BorderOptimizeDialog::UserSelections BorderOptimizeDialog::s_savedUserSelections;
 #endif // __BORDER_OPTIMIZE_DIALOG_DECLARE__
 
 } // namespace
