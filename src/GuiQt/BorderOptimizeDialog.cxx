@@ -388,14 +388,14 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
                      this, SLOT(selectionCheckBoxToggled(bool)));
     
     m_smoothingSpinBox = new QDoubleSpinBox();
-    m_smoothingSpinBox->setRange(0.0, 1.0);
+    m_smoothingSpinBox->setRange(0.0, 1.0e6);
     m_smoothingSpinBox->setValue(1.0);
     m_smoothingSpinBox->setDecimals(2);
-    m_smoothingSpinBox->setSingleStep(0.01);
+    m_smoothingSpinBox->setSingleStep(1.0);
     
     m_weightSpinBox = new QDoubleSpinBox();
     m_weightSpinBox->setRange(0.0, 1.0);
-    m_weightSpinBox->setValue(1.0);
+    m_weightSpinBox->setValue(0.7);
     m_weightSpinBox->setDecimals(2);
     m_weightSpinBox->setSingleStep(0.01);
     
@@ -414,7 +414,7 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
                               row, COLUMN_SELECT,
                               2, 1,
                               Qt::AlignCenter);
-        gridLayout->addWidget(new QLabel("Smooth"),
+        gridLayout->addWidget(new QLabel("Smoothing (mm)"),
                               row, COLUMN_SMOOTH,
                               2, 1,
                               Qt::AlignCenter);
