@@ -3294,8 +3294,9 @@ CiftiMappableDataFile::getBrainordinateFromRowIndex(const int64_t rowIndex,
         throw DataFileException(getFileName(),
                                 "Row index "
                                 + AString::number(rowIndex)
-                                + " is invalid.  Number of rows is "
-                                + AString::number(m_ciftiFile->getNumberOfRows()));
+                                + " is out of range [0, "
+                                + AString::number(m_ciftiFile->getNumberOfRows() - 1)
+                                + "]");
     }
     
     const CiftiBrainModelsMap::IndexInfo indexInfo = brainMap.getInfoForIndex(rowIndex);

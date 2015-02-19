@@ -477,6 +477,7 @@ IdentifyBrainordinateDialog::createCiftiParcelWidget()
                                                            m_ciftiParcelFileMapSpinBox,
                                                            m_ciftiParcelFileMapComboBox);
     m_ciftiParcelFileMapSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
+    m_ciftiParcelFileMapSpinBox->setToolTip("Map indices start at one.");
     m_ciftiParcelFileParcelLabel = new QLabel("Parcel");
     m_ciftiParcelFileParcelNameComboBox = new CiftiParcelSelectionComboBox(this);
     
@@ -524,6 +525,7 @@ IdentifyBrainordinateDialog::createCiftiRowWidget(const std::vector<DataFileType
                                                                       std::numeric_limits<int>::max(),
                                                                       1);
     m_ciftiRowFileIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
+    m_ciftiRowFileIndexSpinBox->setToolTip("Row indices start at zero.");
     
     QWidget* widget = new QWidget();
     QGridLayout* ciftiRowLayout = new QGridLayout(widget);
@@ -554,6 +556,7 @@ IdentifyBrainordinateDialog::createSurfaceVertexlWidget()
                                                                 std::numeric_limits<int>::max(),
                                                                 1);
     m_vertexIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
+    m_vertexIndexSpinBox->setToolTip("Vertex indices start at zero.");
     
     QWidget* widget = new QWidget();
     QGridLayout* surfaceVertexLayout = new QGridLayout(widget);
@@ -622,6 +625,8 @@ IdentifyBrainordinateDialog::updateDialog()
     }
     
     m_ciftiRowFileComboBox->updateComboBox(m_ciftiRowFileSelectionModel);
+    
+    m_vertexStructureComboBox->listOnlyValidStructures();
     
     //m_vertexStructureComboBox->setSelectedStructure(s_lastSelectedStructure);
 
@@ -976,9 +981,11 @@ IdentifyBrainordinateDialog::processSurfaceVertexWidget(AString& errorMessageOut
         }
         else {
             errorMessageOut = ("Vertex Index "
-                            + AString::number(selectedVertexIndex)
-                            + " is out of range.  Maximum vertex index is "
-                            + AString::number(bs->getNumberOfNodes()));
+                               + AString::number(selectedVertexIndex)
+                               + " is out of range [0, "
+                               + AString::number(bs->getNumberOfNodes() - 1)
+                               + "] for "
+                               + StructureEnum::toGuiName(selectedStructure));
         }
     }
     else {
