@@ -42,6 +42,7 @@
 #include "EventManager.h"
 #include "EventUpdateInformationWindows.h"
 #include "GuiManager.h"
+#include "Surface.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -171,7 +172,17 @@ BorderOptimizeDialog::okButtonClicked()
 {
     AString errorMessage;
     
-    if (m_surface == NULL) {
+    Surface* primaryAnatomicalSurface = NULL;
+    if (m_surface != NULL) {
+        const StructureEnum::Enum structure = m_surface->getStructure();
+        Brain* brain = GuiManager::get()->getBrain();
+        primaryAnatomicalSurface = const_cast<Surface*>(brain->getVolumeInteractionSurfaceForStructure(structure));
+        if (primaryAnatomicalSurface == NULL) {
+            errorMessage.appendWithNewLine("No primary anatomical surface for structure "
+                                           + StructureEnum::toGuiName(structure));
+        }
+    }
+    else {
         errorMessage.appendWithNewLine("Surface is not valid.");
     }
     
@@ -216,7 +227,7 @@ BorderOptimizeDialog::okButtonClicked()
     BorderOptimizeExecutor::InputData algInput(selectedBorders,
                                        m_borderEnclosingROI,
                                        m_nodesInsideROI,
-                                       m_surface,
+                                       primaryAnatomicalSurface,
                                        dataFileSelections);
     
     AString statisticsInformation;
