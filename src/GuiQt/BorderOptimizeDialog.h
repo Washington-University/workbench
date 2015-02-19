@@ -59,6 +59,9 @@ namespace caret {
         
         virtual void cancelButtonClicked();
         
+    private slots:
+        void addDataFileRowToolButtonClicked();
+        
     private:
         BorderOptimizeDialog(const BorderOptimizeDialog&);
 
@@ -69,6 +72,8 @@ namespace caret {
         QWidget* createDataFilesWidget();
         
         QWidget* createOptionsWidget();
+        
+        void addDataFileRow(CaretMappableDataFile* mapFile);
         
         Surface* m_surface;
         
@@ -85,6 +90,8 @@ namespace caret {
         std::vector<QCheckBox*> m_borderCheckBoxes;
         
         std::vector<DataFileTypeEnum::Enum> m_optimizeDataFileTypes;
+        
+        QGridLayout* m_borderOptimizeDataFileGridLayout;
 
     };
     

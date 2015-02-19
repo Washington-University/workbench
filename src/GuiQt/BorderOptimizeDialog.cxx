@@ -23,12 +23,14 @@
 #include "BorderOptimizeDialog.h"
 #undef __BORDER_OPTIMIZE_DIALOG_DECLARE__
 
+#include <QAction>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QScrollArea>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "Border.h"
@@ -69,16 +71,11 @@ m_borderEnclosingROI(NULL)
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::METRIC);
     
-//    QLabel* nodesLabel = new QLabel("Nodes in ROI: "
-//                                    + AString::number(nodesInsideROI.size()));
-    
     const int STRETCH_NONE = 0;
     const int STRETCH_MAX  = 100;
     
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
-//    dialogLayout->addWidget(nodesLabel,
-//                            STRETCH_NONE);
     dialogLayout->addWidget(createBorderSelectionWidget(),
                             STRETCH_NONE);
     dialogLayout->addWidget(createDataFilesWidget(),
@@ -295,7 +292,7 @@ QWidget*
 BorderOptimizeDialog::createDataFilesWidget()
 {
     QWidget* widget = new QWidget();
-    QGridLayout* layout = new QGridLayout(widget);
+    m_borderOptimizeDataFileGridLayout = new QGridLayout(widget);
     
     std::vector<CaretMappableDataFile*> optimizeMapFiles;
     GuiManager::get()->getBrain()->getAllMappableDataFileWithDataFileTypes(m_optimizeDataFileTypes,
@@ -308,12 +305,13 @@ BorderOptimizeDialog::createDataFilesWidget()
         if (i < numMapFiles) {
             mapFile = optimizeMapFiles[i];
         }
-        BorderOptimizeDataFileSelector* selector = new BorderOptimizeDataFileSelector(i,
-                                                                                      m_optimizeDataFileTypes,
-                                                                                      mapFile,
-                                                                                      layout,
-                                                                                      this);
-        m_optimizeDataFileSelectors.push_back(selector);
+        addDataFileRow(mapFile);
+//        BorderOptimizeDataFileSelector* selector = new BorderOptimizeDataFileSelector(i,
+//                                                                                      m_optimizeDataFileTypes,
+//                                                                                      mapFile,
+//                                                                                      m_borderOptimizeDataFileGridLayout,
+//                                                                                      this);
+//        m_optimizeDataFileSelectors.push_back(selector);
     }
     
     QScrollArea* scrollArea = new QScrollArea();
@@ -322,11 +320,47 @@ BorderOptimizeDialog::createDataFilesWidget()
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     
+    QAction* addRowAction = new QAction("Add Row",
+                                        this);
+    QObject::connect(addRowAction, SIGNAL(triggered(bool)),
+                     this, SLOT(addDataFileRowToolButtonClicked()));
+    QToolButton* addRowToolButton = new QToolButton();
+    addRowToolButton->setDefaultAction(addRowAction);
+    
     QGroupBox* groupBox = new QGroupBox("Data Files");
     groupBox->setMinimumHeight(300);
     QVBoxLayout* groupBoxLayout = new QVBoxLayout(groupBox);
-    groupBoxLayout->addWidget(scrollArea);
+    groupBoxLayout->addWidget(scrollArea, 100);
+    groupBoxLayout->addWidget(addRowToolButton, 0, Qt::AlignLeft);
     return groupBox;
+}
+
+/**
+ * Add a data file row
+ *
+ * @param mapFile
+ *     If not NULL, the file selector is set to this file.
+ */
+void
+BorderOptimizeDialog::addDataFileRow(CaretMappableDataFile* mapFile)
+{
+    const int32_t index = static_cast<int32_t>(m_optimizeDataFileSelectors.size());
+    BorderOptimizeDataFileSelector* selector = new BorderOptimizeDataFileSelector(index,
+                                                                                  m_optimizeDataFileTypes,
+                                                                                  mapFile,
+                                                                                  m_borderOptimizeDataFileGridLayout,
+                                                                                  this);
+    m_optimizeDataFileSelectors.push_back(selector);
+    
+}
+
+/**
+ * Called when data file's Add Row button is clicked.
+ */
+void
+BorderOptimizeDialog::addDataFileRowToolButtonClicked()
+{
+    addDataFileRow(NULL);
 }
 
 /**
