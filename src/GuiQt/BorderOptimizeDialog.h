@@ -23,6 +23,7 @@
 
 #include "BorderOptimizeExecutor.h"
 #include "DataFileTypeEnum.h"
+#include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
 class QCheckBox;
@@ -37,6 +38,8 @@ namespace caret {
     class CaretMappableDataFile;
     class CaretMappableDataFileAndMapSelectorObject;
     class Surface;
+    class SurfaceSelectionModel;
+    class SurfaceSelectionViewController;
     
     class BorderOptimizeDialog : public WuQDialogModal {
         
@@ -62,6 +65,8 @@ namespace caret {
     private slots:
         void addDataFileRowToolButtonClicked();
         
+        void gradientComputatonSurfaceSelected(Surface* surface);
+        
     private:
         BorderOptimizeDialog(const BorderOptimizeDialog&);
 
@@ -72,6 +77,8 @@ namespace caret {
         QWidget* createDataFilesWidget();
         
         QWidget* createOptionsWidget();
+        
+        QWidget* createSurfaceSelectionWidget();
         
         void addDataFileRow(CaretMappableDataFile* mapFile);
         
@@ -92,7 +99,12 @@ namespace caret {
         std::vector<DataFileTypeEnum::Enum> m_optimizeDataFileTypes;
         
         QGridLayout* m_borderOptimizeDataFileGridLayout;
-
+        
+        StructureEnum::Enum m_surfaceSelectionStructure;
+        
+        SurfaceSelectionModel* m_surfaceSelectionModel;
+        
+        SurfaceSelectionViewController* m_surfaceSelectionControl;
     };
     
     class BorderOptimizeDataFileSelector : public QObject {

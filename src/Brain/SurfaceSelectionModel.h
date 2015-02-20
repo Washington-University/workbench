@@ -56,6 +56,8 @@ namespace caret {
         
         std::vector<Surface*> getAvailableSurfaces() const;
         
+        void updateModel() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -65,8 +67,6 @@ namespace caret {
         SurfaceSelectionModel(const SurfaceSelectionModel&);
 
         SurfaceSelectionModel& operator=(const SurfaceSelectionModel&);
-        
-        void updateSelection() const;
         
         mutable Surface* m_selectedSurface;
         

@@ -36,7 +36,7 @@ using namespace caret;
 
     
 /**
- * \class caret::SurfaceSelectionControl 
+ * \class caret::SurfaceSelectionViewController 
  * \brief Control for selecting surfaces.
  * \ingroup GuiQt
  *

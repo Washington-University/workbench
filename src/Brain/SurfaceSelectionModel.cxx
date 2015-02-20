@@ -96,7 +96,7 @@ SurfaceSelectionModel::~SurfaceSelectionModel()
 Surface* 
 SurfaceSelectionModel::getSurface()
 {
-    updateSelection();
+    updateModel();
     return m_selectedSurface;
 }
 
@@ -106,7 +106,7 @@ SurfaceSelectionModel::getSurface()
 const Surface* 
 SurfaceSelectionModel::getSurface() const
 {
-    updateSelection();
+    updateModel();
     return m_selectedSurface;
 }
 
@@ -301,10 +301,11 @@ SurfaceSelectionModel::getAvailableSurfaces() const
 }
 
 /**
- * Update the selected surface.
+ * Update the model.
+ * May be needed if the loaded surfaces change.
  */
 void
-SurfaceSelectionModel::updateSelection() const
+SurfaceSelectionModel::updateModel() const
 {
     std::vector<Surface*> surfaces = getAvailableSurfaces();
     

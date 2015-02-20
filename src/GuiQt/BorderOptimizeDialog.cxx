@@ -35,6 +35,7 @@
 
 #include "Border.h"
 #include "Brain.h"
+#include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
@@ -43,6 +44,8 @@
 #include "EventUpdateInformationWindows.h"
 #include "GuiManager.h"
 #include "Surface.h"
+#include "SurfaceSelectionModel.h"
+#include "SurfaceSelectionViewController.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -65,7 +68,9 @@ BorderOptimizeDialog::BorderOptimizeDialog(QWidget* parent)
 : WuQDialogModal("Border Optimize",
                  parent),
 m_surface(NULL),
-m_borderEnclosingROI(NULL)
+m_borderEnclosingROI(NULL),
+m_surfaceSelectionStructure(StructureEnum::INVALID),
+m_surfaceSelectionModel(NULL)
 {
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE);
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
@@ -77,12 +82,17 @@ m_borderEnclosingROI(NULL)
     
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
+    dialogLayout->addWidget(createSurfaceSelectionWidget(),
+                            STRETCH_NONE);
     dialogLayout->addWidget(createBorderSelectionWidget(),
                             STRETCH_NONE);
     dialogLayout->addWidget(createDataFilesWidget(),
                             STRETCH_MAX);
-    dialogLayout->addWidget(createOptionsWidget(),
-                            STRETCH_NONE);
+    QWidget* optionsWidget = createOptionsWidget();
+    if (optionsWidget != NULL) {
+        dialogLayout->addWidget(optionsWidget,
+                                STRETCH_NONE);
+    }
     
     setCentralWidget(dialogWidget,
                      SCROLL_AREA_NEVER);
@@ -93,7 +103,9 @@ m_borderEnclosingROI(NULL)
  */
 BorderOptimizeDialog::~BorderOptimizeDialog()
 {
-    std::cout << "Border optimize dialog deleted." << std::endl;
+    if (m_surfaceSelectionModel != NULL) {
+        delete m_surfaceSelectionModel;
+    }
 }
 
 /**
@@ -121,6 +133,47 @@ BorderOptimizeDialog::updateDialog(Surface* surface,
     m_bordersInsideROI   = bordersInsideROI;
     m_borderEnclosingROI = borderEnclosingROI;
     m_nodesInsideROI     = nodesInsideROI;
+    
+    /*
+     * Update surface selection.
+     * Will need to recreate model if the structure has changed.
+     */
+    const StructureEnum::Enum structure = m_surface->getStructure();
+    if (m_surfaceSelectionModel != NULL) {
+        if (structure != m_surfaceSelectionStructure) {
+            delete m_surfaceSelectionModel;
+            m_surfaceSelectionModel = NULL;
+            m_surfaceSelectionStructure = StructureEnum::INVALID;
+        }
+    }
+    if (m_surfaceSelectionModel == NULL) {
+        m_surfaceSelectionStructure = structure;
+        std::vector<SurfaceTypeEnum::Enum> allSurfaceTypes;
+        SurfaceTypeEnum::getAllEnums(allSurfaceTypes);
+        m_surfaceSelectionModel = new SurfaceSelectionModel(m_surfaceSelectionStructure,
+                                                            allSurfaceTypes);
+        
+        BrainStructure* bs = GuiManager::get()->getBrain()->getBrainStructure(m_surfaceSelectionStructure,
+                                                                              false);
+        if (bs != NULL) {
+            Surface* surface = bs->getPrimaryAnatomicalSurface();
+            if (surface != NULL) {
+                m_surfaceSelectionModel->updateModel();
+                m_surfaceSelectionModel->setSurface(const_cast<Surface*>(surface));
+            }
+        }
+    }
+    else {
+        m_surfaceSelectionModel->updateModel();
+    }
+    
+    if (m_surfaceSelectionModel != NULL) {
+        m_surfaceSelectionControl->updateControl(m_surfaceSelectionModel);
+        m_surfaceSelectionControl->getWidget()->setEnabled(true);
+    }
+    else {
+        m_surfaceSelectionControl->getWidget()->setEnabled(false);
+    }
     
     /*
      * Update borders inside ROI selections
@@ -172,18 +225,9 @@ BorderOptimizeDialog::okButtonClicked()
 {
     AString errorMessage;
     
-    Surface* primaryAnatomicalSurface = NULL;
-    if (m_surface != NULL) {
-        const StructureEnum::Enum structure = m_surface->getStructure();
-        Brain* brain = GuiManager::get()->getBrain();
-        primaryAnatomicalSurface = const_cast<Surface*>(brain->getPrimaryAnatomicalSurfaceForStructure(structure));
-        if (primaryAnatomicalSurface == NULL) {
-            errorMessage.appendWithNewLine("No primary anatomical surface for structure "
-                                           + StructureEnum::toGuiName(structure));
-        }
-    }
-    else {
-        errorMessage.appendWithNewLine("Surface is not valid.");
+    Surface* gradientComputationSurface = m_surfaceSelectionModel->getSurface();
+    if (gradientComputationSurface == NULL) {
+        errorMessage.appendWithNewLine("Gradient Computation Surface is not valid.");
     }
     
     if (m_borderEnclosingROI != NULL) {
@@ -227,7 +271,7 @@ BorderOptimizeDialog::okButtonClicked()
     BorderOptimizeExecutor::InputData algInput(selectedBorders,
                                        m_borderEnclosingROI,
                                        m_nodesInsideROI,
-                                       primaryAnatomicalSurface,
+                                       gradientComputationSurface,
                                        dataFileSelections);
     
     AString statisticsInformation;
@@ -331,7 +375,7 @@ BorderOptimizeDialog::createDataFilesWidget()
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     
-    QAction* addRowAction = new QAction("Add Row",
+    QAction* addRowAction = new QAction("Add New Data File Row",
                                         this);
     QObject::connect(addRowAction, SIGNAL(triggered(bool)),
                      this, SLOT(addDataFileRowToolButtonClicked()));
@@ -381,10 +425,36 @@ QWidget*
 BorderOptimizeDialog::createOptionsWidget()
 {
     
-    QGroupBox* widget = new QGroupBox("Options");
+//    QGroupBox* widget = new QGroupBox("Options");
+//    QGridLayout* layout = new QGridLayout(widget);
+//    
+//    return widget;
+    return NULL;
+}
+
+/**
+ * @return The options widget.
+ */
+QWidget*
+BorderOptimizeDialog::createSurfaceSelectionWidget()
+{
+    m_surfaceSelectionControl = new SurfaceSelectionViewController(this);
+    QObject::connect(m_surfaceSelectionControl, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(gradientComputatonSurfaceSelected(Surface*)));
+    
+    QGroupBox* widget = new QGroupBox("Gradient Computation Surface");
     QGridLayout* layout = new QGridLayout(widget);
+    layout->addWidget(m_surfaceSelectionControl->getWidget());
     
     return widget;
+}
+
+void
+BorderOptimizeDialog::gradientComputatonSurfaceSelected(Surface* surface)
+{
+    if (m_surfaceSelectionModel != NULL) {
+        m_surfaceSelectionModel->setSurface(surface);
+    }
 }
 
 /**
