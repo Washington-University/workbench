@@ -538,8 +538,38 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         WuQMessageBox::errorOk(this, "Error: Border points are on more than one structure.");
         return;
     }
-    if (this->inputModeBorders->borderBeingDrawnByOpenGL->getNumberOfPoints() < 2) {
-        WuQMessageBox::errorOk(this, "There must be at least two points in the border segment.");
+    
+    AString modeText;
+    int32_t minimumNumberOfBorderPoints = 2;
+    switch (this->inputModeBorders->getDrawOperation()) {
+        case UserInputModeBorders::DRAW_OPERATION_CREATE:
+            modeText = "creating a border.";
+            minimumNumberOfBorderPoints = 2;
+            break;
+        case UserInputModeBorders::DRAW_OPERATION_OPTIMIZE:
+            modeText = "optimizing borders.";
+            minimumNumberOfBorderPoints = 3;
+            break;
+        case UserInputModeBorders::DRAW_OPERATION_ERASE:
+            modeText = "erasing a segment in a border.";
+            minimumNumberOfBorderPoints = 2;
+            break;
+        case UserInputModeBorders::DRAW_OPERATION_EXTEND:
+            modeText = "extending a border.";
+            minimumNumberOfBorderPoints = 2;
+            break;
+        case UserInputModeBorders::DRAW_OPERATION_REPLACE:
+            modeText = "replacing points in a border.";
+            minimumNumberOfBorderPoints = 2;
+            break;
+    }
+    
+    if (this->inputModeBorders->borderBeingDrawnByOpenGL->getNumberOfPoints() < minimumNumberOfBorderPoints) {
+        WuQMessageBox::errorOk(this,
+                               ("There must be at least "
+                                + AString::number(minimumNumberOfBorderPoints)
+                                + " points when "
+                                + modeText));
         return;
     }
 
