@@ -1453,18 +1453,18 @@ BrainBrowserWindow::createMenuSurface()
                     this,
                     SLOT(processShowSurfacePropertiesDialog()));
     
-    menu->addAction("Volume Interaction...", 
+    menu->addAction("Primary Anatomical...", 
                     this, 
-                    SLOT(processSurfaceMenuVolumeInteraction()));
+                    SLOT(processSurfaceMenuPrimaryAnatomical()));
     
     return menu;
 }
 
 /**
- * Called when Volume Interaction is selected from the surface menu.
+ * Called when Primary Anatomical is selected from the surface menu.
  */
 void 
-BrainBrowserWindow::processSurfaceMenuVolumeInteraction()
+BrainBrowserWindow::processSurfaceMenuPrimaryAnatomical()
 {
     Brain* brain = GuiManager::get()->getBrain();
     const int32_t numBrainStructures = brain->getNumberOfBrainStructures();
@@ -1472,20 +1472,20 @@ BrainBrowserWindow::processSurfaceMenuVolumeInteraction()
         return;
     }
     
-    WuQDataEntryDialog ded("Volume Interaction Surfaces",
+    WuQDataEntryDialog ded("Primary Anatomical Surfaces",
                            this);
     std::vector<SurfaceSelectionViewController*> surfaceSelectionControls;
     for (int32_t i = 0; i < numBrainStructures; i++) {
         BrainStructure* bs = brain->getBrainStructure(i);
         SurfaceSelectionViewController* ssc = ded.addSurfaceSelectionViewController(StructureEnum::toGuiName(bs->getStructure()), 
                                                                                     bs);
-        ssc->setSurface(bs->getVolumeInteractionSurface());
+        ssc->setSurface(bs->getPrimaryAnatomicalSurface());
         surfaceSelectionControls.push_back(ssc);
     }
     if (ded.exec() == WuQDataEntryDialog::Accepted) {
         for (int32_t i = 0; i < numBrainStructures; i++) {
             BrainStructure* bs = brain->getBrainStructure(i);
-            bs->setVolumeInteractionSurface(surfaceSelectionControls[i]->getSurface());
+            bs->setPrimaryAnatomicalSurface(surfaceSelectionControls[i]->getSurface());
         }
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }

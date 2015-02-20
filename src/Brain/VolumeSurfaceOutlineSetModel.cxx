@@ -209,7 +209,7 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
     if (leftBrainStructure != NULL) {
         leftMidThickSurface = leftBrainStructure->getSurfaceContainingTextInName("midthick");
         if (leftMidThickSurface == NULL) {
-            leftMidThickSurface = leftBrainStructure->getVolumeInteractionSurface();
+            leftMidThickSurface = leftBrainStructure->getPrimaryAnatomicalSurface();
         }
         
         leftWhiteSurface    = leftBrainStructure->getSurfaceContainingTextInName("white");
@@ -224,7 +224,7 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
     if (rightBrainStructure != NULL) {
         rightMidThickSurface = rightBrainStructure->getSurfaceContainingTextInName("midthick");
         if (rightMidThickSurface == NULL) {
-            rightMidThickSurface = rightBrainStructure->getVolumeInteractionSurface();
+            rightMidThickSurface = rightBrainStructure->getPrimaryAnatomicalSurface();
         }
         
         rightWhiteSurface    = rightBrainStructure->getSurfaceContainingTextInName("white");

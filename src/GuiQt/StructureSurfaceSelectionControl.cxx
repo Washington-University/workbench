@@ -203,7 +203,7 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
     this->surfaceControllerSelector->getSelectableStructures(availableStructures);
     this->surfaceControllerSelector->getSelectableSurfaceModels(availableSurfaceModels);
     
-    Surface* volumeInteractionSurface = NULL;
+    Surface* primaryAnatomicalSurface = NULL;
     
     /*
      * Update the structure selection.
@@ -224,7 +224,7 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
         BrainStructure* brainStructure = GuiManager::get()->getBrain()->getBrainStructure(availableStructures[defaultStructureIndex],
                                                                                           false);
         if (brainStructure != NULL) {
-            volumeInteractionSurface = brainStructure->getVolumeInteractionSurface();
+            primaryAnatomicalSurface = brainStructure->getPrimaryAnatomicalSurface();
         }
     }
     
@@ -236,7 +236,7 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
     ModelSurface* selectedSurfaceController =
         this->surfaceControllerSelector->getSelectedSurfaceModel();
     int32_t defaultSurfaceIndex = -1;
-    int32_t volumeInteractionSurfaceIndex = -1;
+    int32_t primaryAnatomicalSurfaceIndex = -1;
     for (std::vector<ModelSurface*>::const_iterator iter = availableSurfaceModels.begin();
          iter != availableSurfaceModels.end();
          iter++) {
@@ -246,14 +246,14 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
         if (selectedSurfaceController == surfaceController) {
             defaultSurfaceIndex = this->surfaceControllerSelectionComboBox->count() - 1;
         }
-        if (surfaceController->getSurface() == volumeInteractionSurface) {
-            volumeInteractionSurfaceIndex = this->surfaceControllerSelectionComboBox->count() - 1;
+        if (surfaceController->getSurface() == primaryAnatomicalSurface) {
+            primaryAnatomicalSurfaceIndex = this->surfaceControllerSelectionComboBox->count() - 1;
         }
     }
     
     if (defaultSurfaceIndex < 0) {
-        if (volumeInteractionSurfaceIndex >= 0) {
-            defaultSurfaceIndex = volumeInteractionSurfaceIndex;
+        if (primaryAnatomicalSurfaceIndex >= 0) {
+            defaultSurfaceIndex = primaryAnatomicalSurfaceIndex;
         }
         else if (this->surfaceControllerSelectionComboBox->count() > 0) {
             defaultSurfaceIndex = 0;

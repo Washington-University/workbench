@@ -889,7 +889,7 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
             
             if (surfaceNodeValid) {
                 SelectionItemSurfaceNode* surfaceID = selectionManager->getSurfaceNodeIdentification();
-                const Surface* surface = brain->getVolumeInteractionSurfaceForStructure(surfaceStructure);
+                const Surface* surface = brain->getPrimaryAnatomicalSurfaceForStructure(surfaceStructure);
                 if (surface != NULL) {
                     if ((surfaceNodeIndex >= 0)
                         && (surfaceNodeIndex < surface->getNumberOfNodes())) {
@@ -961,7 +961,7 @@ IdentifyBrainordinateDialog::processSurfaceVertexWidget(AString& errorMessageOut
                                                   false);
     if (bs != NULL) {
         if (selectedVertexIndex < bs->getNumberOfNodes()) {
-            Surface* surface = bs->getVolumeInteractionSurface();
+            Surface* surface = bs->getPrimaryAnatomicalSurface();
             if (surface != NULL) {
                 SelectionItemSurfaceNode* nodeID = selectionManager->getSurfaceNodeIdentification();
                 nodeID->setBrain(brain);
@@ -975,7 +975,7 @@ IdentifyBrainordinateDialog::processSurfaceVertexWidget(AString& errorMessageOut
                                                          this);
             }
             else {
-                errorMessageOut = ("PROGRAM ERROR: Volume Interaction Surface not found for structure "
+                errorMessageOut = ("PROGRAM ERROR: Primary Anatomical Surface not found for structure "
                                 + StructureEnum::toName(selectedStructure));
             }
         }

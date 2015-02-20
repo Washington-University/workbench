@@ -67,7 +67,7 @@ BrainStructure::BrainStructure(Brain* brain,
     m_brain = brain;
     m_structure = structure;
     m_nodeAttributes = new BrainStructureNodeAttributes();
-    m_volumeInteractionSurface = NULL;
+    m_primaryAnatomicalSurface = NULL;
     
     std::vector<StructureEnum::Enum> overlaySurfaceStructures;
     overlaySurfaceStructures.push_back(m_structure);
@@ -526,45 +526,45 @@ BrainStructure::getSurfaces(std::vector<Surface*>& surfacesOut) const
     surfacesOut = m_surfaces;
 }
 
-
 /**
- * @return The surface used for volume interaction.
+ * @return The surface used for primary anatomical.
  * Returns NULL if no anatomical surfaces.
  */
 const Surface* 
-BrainStructure::getVolumeInteractionSurfacePrivate() const
+BrainStructure::getPrimaryAnatomicalSurfacePrivate() const
 {
     bool valid = false;
-    if (m_volumeInteractionSurface != NULL) {
+    if (m_primaryAnatomicalSurface != NULL) {
         const int32_t numSurfaces = getNumberOfSurfaces();
         for (int32_t i = 0; i < numSurfaces; i++) {
-            if (m_surfaces[i] == m_volumeInteractionSurface) {
+            if (m_surfaces[i] == m_primaryAnatomicalSurface) {
                 valid = true;
                 break;
             }
         }
     }
     if (valid) {
-        return m_volumeInteractionSurface;
+        return m_primaryAnatomicalSurface;
     }
-    m_volumeInteractionSurface = NULL;
+    m_primaryAnatomicalSurface = NULL;
     
     /*
      * Give preference to anatomical surfaces but if there are none
      * (perhaps the surface types are missing), use all surfaces.
      */
-    std::vector<Surface*> interactionSurfaces;
+    std::vector<Surface*> primaryAnatomicalSurfaces;
     getSurfacesOfType(SurfaceTypeEnum::ANATOMICAL, 
-                            interactionSurfaces);
-    if (interactionSurfaces.empty()) {
-        interactionSurfaces = m_surfaces;
+                            primaryAnatomicalSurfaces);
+    if (primaryAnatomicalSurfaces.empty()) {
+        primaryAnatomicalSurfaces = m_surfaces;
     }
     
-    if (interactionSurfaces.empty() == false) {
+    
+    if (primaryAnatomicalSurfaces.empty() == false) {
         /*
          * Default to first surface
          */
-        m_volumeInteractionSurface = interactionSurfaces[0];
+        m_primaryAnatomicalSurface = primaryAnatomicalSurfaces[0];
         
         /*
          * Now look for a surface with certain strings in their name
@@ -574,92 +574,133 @@ BrainStructure::getVolumeInteractionSurfacePrivate() const
         Surface* pialSurface         = NULL;
         Surface* anatomicalSurface   = NULL;
         Surface* fiducialSurface     = NULL;
-        const int32_t numSurfaces = static_cast<int32_t>(interactionSurfaces.size());
+        const int32_t numSurfaces = static_cast<int32_t>(primaryAnatomicalSurfaces.size());
+        
         for (int32_t i = 0; i < numSurfaces; i++) {
-            const AString name = interactionSurfaces[i]->getFileNameNoPath().toLower();
+            /*
+             * First, look for anatomical surfaces that are midthickness,
+             * gray/white, and pial.
+             */
+            if (primaryAnatomicalSurfaces[i]->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
+                const SecondarySurfaceTypeEnum::Enum secondType = primaryAnatomicalSurfaces[i]->getSecondaryType();
+                const AString name = primaryAnatomicalSurfaces[i]->getFileNameNoPath().toLower();
+                if (secondType == SecondarySurfaceTypeEnum::MIDTHICKNESS) {
+                    if (midThicknessSurface == NULL) {
+                        midThicknessSurface = primaryAnatomicalSurfaces[i];
+                    }
+                }
+                if (secondType == SecondarySurfaceTypeEnum::GRAY_WHITE) {
+                    if (whiteMatterSurface == NULL) {
+                        whiteMatterSurface = primaryAnatomicalSurfaces[i];
+                    }
+                }
+                if (secondType == SecondarySurfaceTypeEnum::PIAL) {
+                    if (pialSurface == NULL) {
+                        pialSurface = primaryAnatomicalSurfaces[i];
+                    }
+                }
+            }
+        }
+        
+        /*
+         * Since it is possible surfaces may not have valid types,
+         * perform an additional search using name substrings.
+         */
+        for (int32_t i = 0; i < numSurfaces; i++) {
+            const AString name = primaryAnatomicalSurfaces[i]->getFileNameNoPath().toLower();
             if (name.indexOf("midthick") >= 0) {
-                midThicknessSurface = interactionSurfaces[i];
+                if (midThicknessSurface == NULL) {
+                    midThicknessSurface = primaryAnatomicalSurfaces[i];
+                }
             }
             if (name.indexOf("white") >= 0) {
-                whiteMatterSurface = interactionSurfaces[i];
+                if (whiteMatterSurface == NULL) {
+                    whiteMatterSurface = primaryAnatomicalSurfaces[i];
+                }
             }
             if (name.indexOf("pial") >= 0) {
-                pialSurface = interactionSurfaces[i];
+                if (pialSurface == NULL) {
+                    pialSurface = primaryAnatomicalSurfaces[i];
+                }
             }
             if (name.indexOf("anatomical") >= 0) {
-                anatomicalSurface = interactionSurfaces[i];
+                if (anatomicalSurface == NULL) {
+                    anatomicalSurface = primaryAnatomicalSurfaces[i];
+                }
             }
             if (name.indexOf("fiducial") >= 0) {
-                fiducialSurface = interactionSurfaces[i];
+                if (fiducialSurface == NULL) {
+                    fiducialSurface = primaryAnatomicalSurfaces[i];
+                }
             }
         }
         
         if (midThicknessSurface != NULL) {
-            m_volumeInteractionSurface = midThicknessSurface;
+            m_primaryAnatomicalSurface = midThicknessSurface;
         }
         else if (whiteMatterSurface != NULL) {
-            m_volumeInteractionSurface = whiteMatterSurface;
+            m_primaryAnatomicalSurface = whiteMatterSurface;
         }
         else if (pialSurface != NULL) {
-            m_volumeInteractionSurface = pialSurface;
+            m_primaryAnatomicalSurface = pialSurface;
         }
         else if (anatomicalSurface != NULL) {
-            m_volumeInteractionSurface = anatomicalSurface;
+            m_primaryAnatomicalSurface = anatomicalSurface;
         }
         else if (fiducialSurface != NULL) {
-            m_volumeInteractionSurface = fiducialSurface;
+            m_primaryAnatomicalSurface = fiducialSurface;
         }
     }
     
-    if (m_volumeInteractionSurface != NULL) {
-        CaretLogFiner("Volume Interaction Surface for "
+    if (m_primaryAnatomicalSurface != NULL) {
+        CaretLogFiner("Primary Anatomical Surface for "
                       + StructureEnum::toGuiName(m_structure)
                       + ": " 
-                      + m_volumeInteractionSurface->getFileNameNoPath());
+                      + m_primaryAnatomicalSurface->getFileNameNoPath());
     }
     else {
-        CaretLogFiner("Volume Interaction Surface for "
+        CaretLogFiner("Primary Anatomical Surface for "
                       + StructureEnum::toGuiName(m_structure)
                       + " is invalid.");
     }
     
-    return m_volumeInteractionSurface;
+    return m_primaryAnatomicalSurface;
 }
 
 /**
- * @return The surface used for volume interaction.
+ * @return The surface used for primary anatomical.
  * Returns NULL if no anatomical surfaces.
  */
 const Surface* 
-BrainStructure::getVolumeInteractionSurface() const
+BrainStructure::getPrimaryAnatomicalSurface() const
 {
-    return getVolumeInteractionSurfacePrivate();
+    return getPrimaryAnatomicalSurfacePrivate();
 }
 
 /**
- * @return The surface used for volume interaction.
+ * @return The surface used for primary anatomical.
  * Returns NULL if no anatomical surfaces.
  */
 Surface* 
-BrainStructure::getVolumeInteractionSurface()
+BrainStructure::getPrimaryAnatomicalSurface()
 {
     /*
      * Kludge to avoid duplicated code and ease maintenance
      */
-    const Surface* constSurface = getVolumeInteractionSurfacePrivate();
+    const Surface* constSurface = getPrimaryAnatomicalSurfacePrivate();
     Surface* s = (Surface*)constSurface;
     return s;
 }
 
 /**
- * Set the volume interaction surface.
- * @param volumeInteractionSurface
- *    New volume interaction surface.
+ * Set the primary anatomical surface.
+ * @param primaryAnatomicalSurface
+ *    New primary anatomical surface.
  */
 void 
-BrainStructure::setVolumeInteractionSurface(Surface* volumeInteractionSurface)
+BrainStructure::setPrimaryAnatomicalSurface(Surface* primaryAnatomicalSurface)
 {
-    m_volumeInteractionSurface = volumeInteractionSurface;
+    m_primaryAnatomicalSurface = primaryAnatomicalSurface;
 }
 
 /**

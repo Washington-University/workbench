@@ -193,8 +193,8 @@ UserInputModeFoci::updateAfterFociChanged()
 }
 
 /**
- * Determine the structure for the given surface.  Find the volume interaction
- * surface for the structure and return it.  If no volume interaction surface
+ * Determine the structure for the given surface.  Find the primary anatomical
+ * surface for the structure and return it.  If no primary anatomical surface
  * is found, the return the surface that was passed in.
  */
 Surface*
@@ -204,7 +204,7 @@ UserInputModeFoci::getAnatomicalSurfaceForSurface(Surface* surface)
     const StructureEnum::Enum structure = surface->getStructure();
     BrainStructure* bs = brain->getBrainStructure(structure,
                                                   false);
-    Surface* anatSurf = bs->getVolumeInteractionSurface();
+    Surface* anatSurf = bs->getPrimaryAnatomicalSurface();
     if (anatSurf != NULL) {
         return anatSurf;
     }

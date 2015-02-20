@@ -2861,7 +2861,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
             BrainStructure* bs = brain->getBrainStructure(border->getStructure(),
                                                           false);
             if (bs != NULL) {
-                borderDrawInfo.anatomicalSurface = bs->getVolumeInteractionSurface();
+                borderDrawInfo.anatomicalSurface = bs->getPrimaryAnatomicalSurface();
             }
             
             this->drawBorder(borderDrawInfo);

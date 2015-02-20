@@ -97,7 +97,7 @@ FociProjectionDialog::okButtonClicked()
     cursor.showWaitCursor();
     
     Brain* brain = GuiManager::get()->getBrain();
-    std::vector<const SurfaceFile*> surfaceFiles = brain->getVolumeInteractionSurfaceFiles();
+    std::vector<const SurfaceFile*> surfaceFiles = brain->getPrimaryAnatomicalSurfaceFiles();
 
     SurfaceFile* leftSurfaceFile = NULL;
     SurfaceFile* rightSurfaceFile = NULL;

@@ -179,7 +179,7 @@ namespace caret {
         void processTileTabsMenuSelection(QAction*);
         
         void processSurfaceMenuInformation();
-        void processSurfaceMenuVolumeInteraction();
+        void processSurfaceMenuPrimaryAnatomical();
         
         void processConnectToAllenDataBase();
         void processConnectToConnectomeDataBase();

@@ -2310,7 +2310,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                     doubleXYZ[1],
                     doubleXYZ[2]
                 };
-                Surface* surface = brain->getVolumeInteractionSurfaceNearestCoordinate(voxelXYZ,
+                Surface* surface = brain->getPrimaryAnatomicalSurfaceNearestCoordinate(voxelXYZ,
                                                                                        3.0);
                 if (surface != NULL) {
                     const int nodeIndex = surface->closestNode(voxelXYZ);
@@ -2503,13 +2503,13 @@ GuiManager::processIdentification(const int32_t tabIndex,
             CaretAssert(brainStructure);
             
             float xyz[3];
-            const Surface* volumeInteractionSurface = brainStructure->getVolumeInteractionSurface();
-            if (volumeInteractionSurface != NULL) {
-                volumeInteractionSurface->getCoordinate(nodeIndex,
+            const Surface* primaryAnatomicalSurface = brainStructure->getPrimaryAnatomicalSurface();
+            if (primaryAnatomicalSurface != NULL) {
+                primaryAnatomicalSurface->getCoordinate(nodeIndex,
                                                         xyz);
             }
             else {
-                CaretLogWarning("No surface/volume interaction surface for "
+                CaretLogWarning("No surface/primary anatomical surface for "
                                 + StructureEnum::toGuiName(brainStructure->getStructure()));
                 xyz[0] = -10000000.0;
                 xyz[1] = -10000000.0;

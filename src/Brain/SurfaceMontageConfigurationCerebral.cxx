@@ -129,13 +129,13 @@ SurfaceMontageConfigurationCerebral::initializeSelectedSurfaces()
     Surface* leftAnatSurface = NULL;
     BrainStructure* leftBrainStructure = brainStructureEvent.getBrainStructureByStructure(StructureEnum::CORTEX_LEFT);
     if (leftBrainStructure != NULL) {
-        leftAnatSurface = leftBrainStructure->getVolumeInteractionSurface();
+        leftAnatSurface = leftBrainStructure->getPrimaryAnatomicalSurface();
     }
     
     Surface* rightAnatSurface = NULL;
     BrainStructure* rightBrainStructure = brainStructureEvent.getBrainStructureByStructure(StructureEnum::CORTEX_RIGHT);
     if (rightBrainStructure != NULL) {
-        rightAnatSurface = rightBrainStructure->getVolumeInteractionSurface();
+        rightAnatSurface = rightBrainStructure->getPrimaryAnatomicalSurface();
     }
     
     m_leftFirstSurfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);

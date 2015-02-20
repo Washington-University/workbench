@@ -571,7 +571,7 @@ FociPropertiesEditorDialog::okButtonClicked()
     if (m_projectCheckBox->isChecked()) {
         Brain* brain = GuiManager::get()->getBrain();
         
-        std::vector<const SurfaceFile*> surfaceFiles = brain->getVolumeInteractionSurfaceFiles();
+        std::vector<const SurfaceFile*> surfaceFiles = brain->getPrimaryAnatomicalSurfaceFiles();
         
         try {
             SurfaceProjector projector(surfaceFiles);

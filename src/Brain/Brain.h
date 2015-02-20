@@ -154,14 +154,14 @@ namespace caret {
         Surface* getSurfaceWithName(const AString& surfaceFileName,
                                     const bool useAbsolutePath);
         
-        const Surface* getVolumeInteractionSurfaceForStructure(const StructureEnum::Enum structure) const;
+        const Surface* getPrimaryAnatomicalSurfaceForStructure(const StructureEnum::Enum structure) const;
         
-        Surface* getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
+        Surface* getPrimaryAnatomicalSurfaceNearestCoordinate(const float xyz[3],
                                                               const float tolerance);
         
-        std::vector<const Surface*> getVolumeInteractionSurfaces() const;
+        std::vector<const Surface*> getPrimaryAnatomicalSurfaces() const;
         
-        std::vector<const SurfaceFile*> getVolumeInteractionSurfaceFiles() const;
+        std::vector<const SurfaceFile*> getPrimaryAnatomicalSurfaceFiles() const;
         
         int32_t getNumberOfVolumeFiles() const;
         

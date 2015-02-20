@@ -4333,28 +4333,28 @@ Brain::getSurfaceWithName(const AString& surfaceFileName,
 }
 
 /**
- * @return The volume interaction surfaces from all brain structures.
+ * @return The primary anatomical surfaces from all brain structures.
  */
 std::vector<const Surface*>
-Brain::getVolumeInteractionSurfaces() const
+Brain::getPrimaryAnatomicalSurfaces() const
 {
     std::vector<const Surface*> surfaces;
     
     const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
-        surfaces.push_back(m_brainStructures[i]->getVolumeInteractionSurface());
+        surfaces.push_back(m_brainStructures[i]->getPrimaryAnatomicalSurface());
     }
     
     return surfaces;
 }
 
 /**
- * @return The volume interaction surfaces from all brain structures.
+ * @return The primary anatomical surfaces from all brain structures.
  */
 std::vector<const SurfaceFile*>
-Brain::getVolumeInteractionSurfaceFiles() const
+Brain::getPrimaryAnatomicalSurfaceFiles() const
 {
-    std::vector<const Surface*> surfaces = getVolumeInteractionSurfaces();
+    std::vector<const Surface*> surfaces = getPrimaryAnatomicalSurfaces();
     std::vector<const SurfaceFile*> surfaceFiles;
     surfaceFiles.insert(surfaceFiles.end(),
                         surfaces.begin(),
@@ -4364,21 +4364,21 @@ Brain::getVolumeInteractionSurfaceFiles() const
 }
 
 /**
- * Get the volume interaction surface for the given structure.
+ * Get the primary anatomical surface for the given structure.
  *
  * @param structure
- *    Structure for which a volume interaction surface is requested.
+ *    Structure for which a primary anatomical surface is requested.
  * @return
- *    The volume interaction surface corresonding to the given structure.
+ *    The primary anatomical surface corresonding to the given structure.
  *    NULL may be returned if a surface is not available.
  */
 const Surface*
-Brain::getVolumeInteractionSurfaceForStructure(const StructureEnum::Enum structure) const
+Brain::getPrimaryAnatomicalSurfaceForStructure(const StructureEnum::Enum structure) const
 {
     const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
         if (m_brainStructures[i]->getStructure() == structure) {
-            return m_brainStructures[i]->getVolumeInteractionSurface();
+            return m_brainStructures[i]->getPrimaryAnatomicalSurface();
         }
     }
     
@@ -4387,7 +4387,7 @@ Brain::getVolumeInteractionSurfaceForStructure(const StructureEnum::Enum structu
 
 
 /**
- * Get the volume interaction surface nearest the given coordinate and
+ * Get the primary anatomical surface nearest the given coordinate and
  * within the given tolerance.
  *
  * @param xyz
@@ -4398,7 +4398,7 @@ Brain::getVolumeInteractionSurfaceForStructure(const StructureEnum::Enum structu
  *     Nearest surface or NULL if nearest surface not within tolerance.
  */
 Surface*
-Brain::getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
+Brain::getPrimaryAnatomicalSurfaceNearestCoordinate(const float xyz[3],
                                                       const float tolerance)
 {
     Surface* nearestSurface = NULL;
@@ -4408,7 +4408,7 @@ Brain::getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
     
     const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
-        Surface* surface = m_brainStructures[i]->getVolumeInteractionSurface();
+        Surface* surface = m_brainStructures[i]->getPrimaryAnatomicalSurface();
         const int32_t nodeIndex = surface->closestNode(xyz,
                                                 tolerance);
         if (nodeIndex >= 0) {
@@ -5100,14 +5100,14 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     m_paletteFile->clearModified();
     
     /*
-     * Reset the volume interaction surfaces since they can get set
+     * Reset the primary anatomical surfaces since they can get set
      * incorrectly when loading files
      */
     for (std::vector<BrainStructure*>::iterator bsi = m_brainStructures.begin();
          bsi != m_brainStructures.end();
          bsi++) {
         BrainStructure* bs = *bsi;
-        bs->setVolumeInteractionSurface(NULL);
+        bs->setPrimaryAnatomicalSurface(NULL);
     }
     
     /*

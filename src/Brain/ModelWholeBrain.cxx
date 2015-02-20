@@ -507,7 +507,7 @@ ModelWholeBrain::initializeSelectedSurfaces()
     const int32_t numberOfStructures = m_brain->getNumberOfBrainStructures();
     for (int32_t i = 0; i < numberOfStructures; i++) {
         const BrainStructure* brainStructure = m_brain->getBrainStructure(i);
-        Surface* surface = const_cast<Surface*>(brainStructure->getVolumeInteractionSurface());
+        Surface* surface = const_cast<Surface*>(brainStructure->getPrimaryAnatomicalSurface());
         if (surface != NULL) {
             const StructureEnum::Enum structure = brainStructure->getStructure();
             for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {

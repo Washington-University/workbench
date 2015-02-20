@@ -911,7 +911,7 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
 	
 	CiftiConnectivityMatrixParcelFile* parcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(ciftiConnectivityMatrixFile);
     if (parcelFile != NULL) {
-        const Surface* surface = brainStructure->getVolumeInteractionSurface();
+        const Surface* surface = brainStructure->getPrimaryAnatomicalSurface();
         CaretPointer<TopologyHelper> topologyHelper = surface->getTopologyHelper();
         
         std::set<int64_t> nodeSet;

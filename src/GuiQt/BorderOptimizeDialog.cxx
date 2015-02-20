@@ -176,7 +176,7 @@ BorderOptimizeDialog::okButtonClicked()
     if (m_surface != NULL) {
         const StructureEnum::Enum structure = m_surface->getStructure();
         Brain* brain = GuiManager::get()->getBrain();
-        primaryAnatomicalSurface = const_cast<Surface*>(brain->getVolumeInteractionSurfaceForStructure(structure));
+        primaryAnatomicalSurface = const_cast<Surface*>(brain->getPrimaryAnatomicalSurfaceForStructure(structure));
         if (primaryAnatomicalSurface == NULL) {
             errorMessage.appendWithNewLine("No primary anatomical surface for structure "
                                            + StructureEnum::toGuiName(structure));

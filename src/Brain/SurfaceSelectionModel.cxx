@@ -330,28 +330,28 @@ SurfaceSelectionModel::updateSelection() const
             BrainStructure* bs = brainStructureEvent.getBrainStructureByIndex(i);
             
             /*
-             * Use the volume interaction surface if it is acceptable
+             * Use the primary anatomical surface if it is acceptable
              */
-            Surface* volumeInteractionSurface = NULL;
+            Surface* primaryAnatomicalSurface = NULL;
             
             if (m_allowableStructures.empty()) {
-                volumeInteractionSurface = bs->getVolumeInteractionSurface();
+                primaryAnatomicalSurface = bs->getPrimaryAnatomicalSurface();
             }
             else {
                 const StructureEnum::Enum structure = bs->getStructure();
                 if (std::find(m_allowableStructures.begin(),
                               m_allowableStructures.end(),
                               structure) != m_allowableStructures.end()) {
-                    volumeInteractionSurface = bs->getVolumeInteractionSurface();
+                    primaryAnatomicalSurface = bs->getPrimaryAnatomicalSurface();
                     break;
                 }
             }
             
-            if (volumeInteractionSurface != NULL) {
+            if (primaryAnatomicalSurface != NULL) {
                 if (std::find(surfaces.begin(),
                               surfaces.end(),
-                              volumeInteractionSurface) != surfaces.end()) {
-                    m_selectedSurface = volumeInteractionSurface;
+                              primaryAnatomicalSurface) != surfaces.end()) {
+                    m_selectedSurface = primaryAnatomicalSurface;
                     break;
                 }
             }

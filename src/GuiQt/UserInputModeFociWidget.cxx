@@ -314,7 +314,7 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
                 if (brain->isFileValid(idSurface)) {
                     CaretAssert(idSurface);
                     const StructureEnum::Enum structure = idSurface->getStructure();
-                    const Surface* surface = brain->getVolumeInteractionSurfaceForStructure(structure);
+                    const Surface* surface = brain->getPrimaryAnatomicalSurfaceForStructure(structure);
                     if (surface != NULL) {
                         const int32_t nodeIndex = nodeID->getNodeNumber();
                         

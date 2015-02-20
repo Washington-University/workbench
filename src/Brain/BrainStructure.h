@@ -96,9 +96,9 @@ namespace caret {
         
         bool containsSurface(const Surface* surface);
         
-        const Surface* getVolumeInteractionSurface() const;
+        const Surface* getPrimaryAnatomicalSurface() const;
         
-        Surface* getVolumeInteractionSurface();
+        Surface* getPrimaryAnatomicalSurface();
         
         const Surface* getSurfaceContainingTextInName(const AString& text) const;
         
@@ -109,7 +109,7 @@ namespace caret {
         
         void getSurfaces(std::vector<Surface*>& surfacesOut) const;
         
-        void setVolumeInteractionSurface(Surface* surface);
+        void setPrimaryAnatomicalSurface(Surface* surface);
         
         Brain* getBrain();
         
@@ -165,7 +165,7 @@ namespace caret {
         void initializeOverlays();
         
     private:
-        const Surface* getVolumeInteractionSurfacePrivate() const;
+        const Surface* getPrimaryAnatomicalSurfacePrivate() const;
         
         const Surface* getSurfaceContainingTextInNamePrivate(const AString& text) const;
 
@@ -199,7 +199,7 @@ namespace caret {
         
         BrainStructureNodeAttributes* m_nodeAttributes;
         
-        mutable Surface* m_volumeInteractionSurface;
+        mutable Surface* m_primaryAnatomicalSurface;
     };
     
 #ifdef __BRAIN_STRUCTURE_DEFINE__

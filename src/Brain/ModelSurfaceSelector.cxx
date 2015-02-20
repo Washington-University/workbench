@@ -288,13 +288,13 @@ ModelSurfaceSelector::updateSelector()
                 m_selectedSurfaceModel = m_availableSurfaceModels[0];
                 
                 /*
-                 * Try to find and used the volume interaction surface.
+                 * Try to find and used the primary anatomical surface.
                  */
                 Brain* brain = m_selectedSurfaceModel->getBrain();
                 if (brain != NULL) {
                     BrainStructure* brainStructure = brain->getBrainStructure(m_selectedStructure, false);
                     if (brainStructure != NULL) {
-                        const Surface* volInteractSurface = brainStructure->getVolumeInteractionSurface();
+                        const Surface* volInteractSurface = brainStructure->getPrimaryAnatomicalSurface();
                         if (volInteractSurface != NULL) {
                             const int numSurfaceModels = static_cast<int32_t>(m_availableSurfaceModels.size());
                             for (int32_t i = 0; i < numSurfaceModels; i++) {
