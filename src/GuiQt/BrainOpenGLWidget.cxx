@@ -1063,6 +1063,8 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         CaretAssert(brainResetEvent);
         
         this->borderBeingDrawn->clear();
+        
+        brainResetEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
         EventGraphicsUpdateAllWindows* updateAllEvent =
