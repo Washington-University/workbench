@@ -50,6 +50,7 @@
 #include "OverlaySetArray.h"
 #include "RgbaFile.h"
 #include "SceneClass.h"
+#include "ScenePathName.h"
 #include "SessionManager.h"
 #include "Surface.h"
 
@@ -1428,6 +1429,12 @@ BrainStructure::saveToScene(const SceneAttributes* sceneAttributes,
                                                          lf->getFileNameNoPath()));
     }
     
+    const Surface* primAnatSurface = getPrimaryAnatomicalSurface();
+    if (primAnatSurface != NULL) {
+        sceneClass->addPathName("primaryAnatomicalSurface",
+                                primAnatSurface->getFileName());
+    }
+    
     return sceneClass;
 }
 
@@ -1477,5 +1484,23 @@ BrainStructure::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                                   labelClass);
         }
     }
+    
+    const ScenePathName* primAnatScenePathName = sceneClass->getPathName("primaryAnatomicalSurface");
+    if (primAnatScenePathName != NULL) {
+        const AString surfaceFileName = primAnatScenePathName->stringValue();
+        if ( ! surfaceFileName.isEmpty()) {
+            for (std::vector<Surface*>::iterator iter = m_surfaces.begin();
+                 iter != m_surfaces.end();
+                 iter++) {
+                Surface* surface = *iter;
+                CaretAssert(surface);
+                if (surface->getFileName() == surfaceFileName) {
+                    setPrimaryAnatomicalSurface(surface);
+                    break;
+                }
+            }
+        }
+    }
+    
 }
 
