@@ -1265,7 +1265,7 @@ void GeodesicHelper::getPathFollowingData(const int32_t root, const int32_t endp
     if (minimum == maximum)//no contrast, will do simple shortest path
     {
         maximum = minimum + 1.0f;//so map it all to minimum value to prevent divide by 0
-    }
+    }//doesn't matter what value it is mapped to if there is no contrast, rescaled data is integrated along path length, and path length is always a factor
     float range = maximum - minimum;
     for (int i = 0; i < numNodes; ++i)
     {

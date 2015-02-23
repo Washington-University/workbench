@@ -192,6 +192,21 @@ SurfaceProjectionBarycentric::getTriangleAreas() const
     return this->triangleAreas;
 }
 
+int32_t SurfaceProjectionBarycentric::getNodeWithLargestWeight() const
+{
+    int32_t ret = -1;
+    float largestWeight = 0.0f;//there must be a positive weight
+    for (int i = 0; i < 3; ++i)
+    {
+        if (triangleAreas[i] > largestWeight)
+        {
+            ret = triangleNodes[i];
+            largestWeight = triangleAreas[i];
+        }
+    }
+    return ret;
+}
+
 /**
  * Set the triangle areas.
  * 

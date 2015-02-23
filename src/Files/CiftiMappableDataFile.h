@@ -400,6 +400,11 @@ namespace caret {
         virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                              float& dataRangeMaximumOut) const;
         
+        bool getMapDataForSurface(const int32_t mapIndex,
+                                  const StructureEnum::Enum structure,
+                                  std::vector<float>& surfaceMapData,
+                                  std::vector<float>* roiData = NULL) const;
+        
         void setMapDataForSurface(const int32_t mapIndex,
                                   const StructureEnum::Enum structure,
                                   const std::vector<float> surfaceMapData);

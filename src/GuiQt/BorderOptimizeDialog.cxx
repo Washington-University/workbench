@@ -241,14 +241,14 @@ BorderOptimizeDialog::okButtonClicked()
         errorMessage.appendWithNewLine("Border enclosing region is invalid.");
     }
 
-    std::vector<CaretPointer<BorderOptimizeExecutor::DataFileInfo> > dataFileSelections;
+    std::vector<BorderOptimizeExecutor::DataFileInfo> dataFileSelections;
     for (std::vector<BorderOptimizeDataFileSelector*>::iterator fileIter = m_optimizeDataFileSelectors.begin();
          fileIter != m_optimizeDataFileSelectors.end();
          fileIter++) {
         BorderOptimizeDataFileSelector* selector = *fileIter;
         CaretPointer<BorderOptimizeExecutor::DataFileInfo> fileInfo = selector->getSelections();
         if (fileInfo != NULL) {
-            dataFileSelections.push_back(fileInfo);
+            dataFileSelections.push_back(*fileInfo);
         }
     }
     

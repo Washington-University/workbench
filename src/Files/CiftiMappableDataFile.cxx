@@ -5309,6 +5309,52 @@ CiftiMappableDataFile::helpLoadChartDataForSurfaceNode(const StructureEnum::Enum
     return chartData;
 }
 
+bool CiftiMappableDataFile::getMapDataForSurface(const int32_t mapIndex, const StructureEnum::Enum structure, std::vector<float>& surfaceMapData, std::vector<float>* roiData) const
+{
+    surfaceMapData.clear();//empty data is secondary hint at failure
+    CaretAssert(m_ciftiFile);
+    CaretAssertVectorIndex(m_mapContent, mapIndex);
+
+    const int32_t numCiftiNodes = getMappingSurfaceNumberOfNodes(structure);
+    if (numCiftiNodes < 1) return false;
+
+    std::vector<float> mapData;
+    getMapData(mapIndex, mapData);
+    /*
+     * Map data may be empty for connectivity matrix files with no rows loaded.
+     */
+    if (mapData.empty())
+    {
+        return false;
+    }
+    std::vector<int64_t> dataIndicesForNodes;
+    if (!getSurfaceDataIndicesForMappingToBrainordinates(structure, numCiftiNodes, dataIndicesForNodes))
+    {
+        return false;//currently should never happen, this currently works for parcellated files
+    }
+    
+    surfaceMapData.resize(numCiftiNodes, 0.0f);
+    if (roiData != NULL)
+    {
+        roiData->clear();//make sure all values get initialized before setting the roi nodes
+        roiData->resize(numCiftiNodes, 0.0f);
+    }
+    for (int32_t iNode = 0; iNode < numCiftiNodes; iNode++) {
+        CaretAssertVectorIndex(dataIndicesForNodes,
+                                iNode);
+        
+        const int64_t dataIndex = dataIndicesForNodes[iNode];
+        if (dataIndex >= 0) {
+            surfaceMapData[iNode] = mapData[dataIndex];
+            if (roiData != NULL)
+            {
+                (*roiData)[iNode] = mapData[dataIndex];
+            }
+        }
+    }
+    return true;
+}
+
 /**
  * Set the map data for the given structure.
  *

@@ -56,6 +56,8 @@ namespace caret {
         const float* getTriangleAreas() const;
         
         void setTriangleAreas(const float triangleAreas[3]);
+        
+        int32_t getNodeWithLargestWeight() const;
                 
         bool unprojectToSurface(const SurfaceFile& surfaceFile,
                                 float xyzOut[3],

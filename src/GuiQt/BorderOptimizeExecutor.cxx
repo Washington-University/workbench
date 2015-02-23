@@ -27,8 +27,19 @@
 #include "CaretAssert.h"
 #include "Surface.h"
 
-using namespace caret;
+#include "AlgorithmMetricGradient.h"
+#include "CaretLogger.h"
+#include "CiftiMappableDataFile.h"
+#include "GeodesicHelper.h"
+#include "MathFunctions.h"
+#include "MetricFile.h"
+#include "SurfaceFile.h"
+#include "SurfaceProjectedItem.h"
+#include "SurfaceProjectionBarycentric.h"
+#include "TopologyHelper.h"
 
+using namespace caret;
+using namespace std;
 
     
 /**
@@ -53,6 +64,119 @@ BorderOptimizeExecutor::BorderOptimizeExecutor()
  */
 BorderOptimizeExecutor::~BorderOptimizeExecutor()
 {
+}
+
+namespace
+{
+    void doCombination(SurfaceFile* computeSurf, const MetricFile* tempData, const MetricFile* tempROI, const float& smoothing,
+                       const MetricFile* correctedAreasMetric, const vector<int32_t>& roiNodes, const bool& invert, const float& mapStrength, vector<float>& combinedGradData)
+    {
+        MetricFile tempGrad;
+        AlgorithmMetricGradient(NULL, computeSurf, tempData, &tempGrad, NULL, smoothing, tempROI, false, 0, correctedAreasMetric);
+        const float* gradVals = tempGrad.getValuePointerForColumn(0);
+        float myMin = 0.0f, myMax = 0.0f;
+        bool first = true;
+        int numSelected = (int)roiNodes.size();
+        for (int i = 0; i < numSelected; ++i)//for normalizing, gather min/max
+        {
+            float tempVal = gradVals[roiNodes[i]];
+            if (MathFunctions::isNumeric(tempVal))
+            {
+                if (first)
+                {
+                    first = false;
+                    myMin = tempVal;
+                    myMax = tempVal;
+                } else {
+                    if (tempVal < myMin) myMin = tempVal;
+                    if (tempVal > myMax) myMax = tempVal;
+                }
+            }
+        }
+        if (myMin == myMax)//if no contrast, map it all to (post-inversion) minimum - also trips if no numeric data
+        {
+            if (invert)
+            {
+                myMin -= 1.0f;
+            } else {
+                myMax += 1.0f;
+            }
+        }
+        float myRange = myMax - myMin;
+        for (int i = 0; i < numSelected; ++i)//for normalizing, gather min/max
+        {
+            float tempVal = gradVals[roiNodes[i]];
+            if (MathFunctions::isNumeric(tempVal))
+            {
+                float toCombine;
+                if (invert)
+                {
+                    toCombine = (myMax - tempVal) / myRange;
+                } else {
+                    toCombine = (tempVal - myMin) / myRange;
+                }
+                combinedGradData[roiNodes[i]] *= 1.0f + mapStrength * (toCombine - 1.0f);//equals toCombine * mapStrength + 1.0f - mapStrength
+            } else {
+                combinedGradData[roiNodes[i]] *= 1.0f - mapStrength;
+            }
+        }
+    }
+    
+    bool extractSurfaceData(const CaretMappableDataFile* dataFile, const int32_t& mapIndex, const SurfaceFile* surface, const vector<int32_t>& roiNodes, MetricFile& dataOut, MetricFile& roiOut)
+    {
+        int numNodes = surface->getNumberOfNodes();
+        int numSelected = (int)roiNodes.size();
+        switch (dataFile->getDataFileType())
+        {
+            case DataFileTypeEnum::METRIC:
+            {
+                const MetricFile* metricFile = dynamic_cast<const MetricFile*>(dataFile);
+                CaretAssert(metricFile != NULL);
+                CaretAssert(metricFile->getNumberOfNodes() == surface->getNumberOfNodes());
+                dataOut.setValuesForColumn(0, metricFile->getValuePointerForColumn(mapIndex));
+                vector<float> drawnROI(numNodes, 0.0f);
+                for (int i = 0; i < numSelected; ++i) drawnROI[i] = 1.0f;
+                roiOut.setValuesForColumn(0, drawnROI.data());
+                return true;
+            }
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            {
+                const CiftiMappableDataFile* ciftiMappableFile = dynamic_cast<const CiftiMappableDataFile*>(dataFile);
+                CaretAssert(ciftiMappableFile != NULL);
+                CaretAssert(ciftiMappableFile->getMappingSurfaceNumberOfNodes(surface->getStructure()) == surface->getNumberOfNodes());
+                vector<float> surfData, ciftiRoi;
+                bool result = ciftiMappableFile->getMapDataForSurface(mapIndex, surface->getStructure(), surfData, &ciftiRoi);
+                CaretAssert(result);
+                dataOut.setValuesForColumn(0, surfData.data());
+                vector<float> maskedROI(numNodes, 0.0f);
+                for (int i = 0; i < numSelected; ++i)
+                {
+                    maskedROI[i] = ciftiRoi[i];
+                }
+                return true;
+            }
+            default:
+                CaretLogWarning("ignoring map " + AString::number(mapIndex) + " of data file of type " + DataFileTypeEnum::toName(dataFile->getDataFileType()));
+                return false;
+        }
+    }
+    
+    int getBorderPointNode(const Border* theBorder, const int& index)
+    {
+        CaretAssert(index >= 0 && index < theBorder->getNumberOfPoints());
+        const SurfaceProjectionBarycentric* thisBary = theBorder->getPoint(index)->getBarycentricProjection();
+        CaretAssert(thisBary != NULL && thisBary->isValid());
+        int thisNode = thisBary->getNodeWithLargestWeight();
+        CaretAssert(thisNode >= 0);
+        return thisNode;
+    }
+    
+    struct BorderRedrawInfo
+    {
+        int startpoint, endpoint;
+        int startnode, endnode;//redundant? could find node with largest weight again
+    };
 }
 
 /**
@@ -93,6 +217,213 @@ BorderOptimizeExecutor::run(const InputData& inputData,
      * Flag for inverted gradient.
      *     bool  userSelections.m_invertedGradientFlag;
      */
+    /*
+     * Returning false implies errors.
+     */
+    
+    SurfaceFile* computeSurf = inputData.m_surface;
+    const MetricFile* correctedAreasMetric = NULL;//TODO
+    int32_t numNodes = computeSurf->getNumberOfNodes();
+    int numSelected = (int)inputData.m_nodesInsideROI.size();
+    if (numSelected < 1)
+    {
+        errorMessageOut = "no nodes selected";
+        return false;
+    }
+    vector<float> roiData(numNodes, 0.0f);
+    for (int i = 0; i < numSelected; ++i)
+    {
+        roiData[inputData.m_nodesInsideROI[i]] = 1.0f;
+    }
+    int numBorders = (int)inputData.m_borders.size();
+    vector<BorderRedrawInfo> myRedrawInfo(numBorders);
+    for (int i = 0; i < numBorders; ++i)
+    {//find pieces of border to redraw, before doing gradient, so it can error early
+        Border* thisBorder = inputData.m_borders[i];
+        int numPoints = thisBorder->getNumberOfPoints();
+        int start, end;
+        if (thisBorder->isClosed())
+        {
+            if (numPoints < 3)//one outside, two inside will work
+            {
+                errorMessageOut = "Border '" + thisBorder->getName() + "' has too few points to adjust";
+                return false;
+            }
+            for (start = numPoints - 1; start >= 0; --start)//search backwards for a point outside the roi
+            {
+                if (!(roiData[getBorderPointNode(thisBorder, start)] > 0.0f)) break;
+            }
+            if (start == -1)//no points outside ROI
+            {
+                errorMessageOut = "Border '" + thisBorder->getName() + "' has no points outside the ROI";
+                return false;
+            }
+            int added;
+            for (added = 1; added < numPoints; ++added)//search forward from it to find the point inside the roi - if the above loop had to loop, this will end on the first iteration
+            {
+                int pointIndex = (start + added) % numPoints;//closed border requires mod arithmetic
+                if (roiData[getBorderPointNode(thisBorder, pointIndex)] > 0.0f) break;
+            }
+            if (added == numPoints)//no points inside ROI
+            {//NOTE: if multipart borders are used, and passed borders don't check the parts for being in/out, then this name is not unique
+                errorMessageOut = "Border '" + thisBorder->getName() + "' has no points inside the ROI";
+                return false;
+            }
+            start = (start + added) % numPoints;
+            for (added = 1; added < numPoints; ++added)
+            {
+                int pointIndex = (start + added) % numPoints;
+                if (!(roiData[getBorderPointNode(thisBorder, pointIndex)] > 0.0f)) break;
+            }
+            CaretAssert(added != numPoints);//we have points inside and outside roi, this search should have stopped
+            end = (start + added - 1) % numPoints;//we will check this for being equal to start later, first check for multiple sections
+            for (; added < numPoints; ++added)
+            {
+                int pointIndex = (start + added) % numPoints;
+                if (roiData[getBorderPointNode(thisBorder, pointIndex)] > 0.0f)
+                {
+                    errorMessageOut = "Border '" + thisBorder->getName() + "' has multiple sections inside the ROI";
+                    return false;
+                }
+            }
+            if (end == start)
+            {
+                errorMessageOut = "Border '" + thisBorder->getName() + "' has only one point inside the ROI";
+                return false;
+            }
+            if (getBorderPointNode(thisBorder, start) == getBorderPointNode(thisBorder, end))
+            {
+                errorMessageOut = "Border '" + thisBorder->getName() + "' enters and exits the ROI too close to the same vertex";
+                return false;
+            }
+        } else {//open border
+            if (numPoints < 2)//two, both inside, will work
+            {
+                errorMessageOut = "Border '" + thisBorder->getName() + "' has too few points to adjust";
+                return false;
+            }
+            for (start = 0; start < numPoints; ++start)//search for first point inside
+            {
+                if (roiData[getBorderPointNode(thisBorder, start)] > 0.0f) break;
+            }
+            if (start == numPoints)
+            {//NOTE: if multipart borders are used, and passed borders don't check the parts for being in/out, then this name is not unique
+                errorMessageOut = "Border '" + thisBorder->getName() + "' has no points inside the ROI";
+                return false;
+            }
+            for (end = start + 1; end < numPoints; ++end)//search for first point outside
+            {
+                if (!(roiData[getBorderPointNode(thisBorder, end)] > 0.0f)) break;
+            }
+            --end;//and subtract one to get inclusive range, also deals with == numPoints
+            for (int check = end + 2; check < numPoints; ++check)//look for a second piece inside
+            {
+                if (roiData[getBorderPointNode(thisBorder, check)] > 0.0f)
+                {
+                    errorMessageOut = "Border '" + thisBorder->getName() + "' has multiple sections inside the ROI";
+                    return false;
+                }
+            }
+        }
+        myRedrawInfo[i].startpoint = start;
+        myRedrawInfo[i].endpoint = end;
+        myRedrawInfo[i].startnode = getBorderPointNode(thisBorder, start);
+        myRedrawInfo[i].endnode = getBorderPointNode(thisBorder, end);
+    }
+    vector<float> combinedGradData(numNodes, 1.0f);
+    int numInputs = (int)inputData.m_dataFileInfo.size();
+    for (int i = 0; i < numInputs; ++i)
+    {
+        MetricFile tempData, tempROI;
+        tempData.setNumberOfNodesAndColumns(numNodes, 1);
+        tempROI.setNumberOfNodesAndColumns(numNodes, 1);
+        if (inputData.m_dataFileInfo[i].m_allMapsFlag)
+        {
+            for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
+            {
+                if (extractSurfaceData(inputData.m_dataFileInfo[i].m_mapFile, j, computeSurf, inputData.m_nodesInsideROI, tempData, tempROI))
+                {
+                    doCombination(computeSurf, &tempData, &tempROI, inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, inputData.m_nodesInsideROI,
+                                inputData.m_dataFileInfo[i].m_invertGradientFlag, inputData.m_dataFileInfo[i].m_weight, combinedGradData);
+                }
+            }
+        } else {
+            if (extractSurfaceData(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, computeSurf, inputData.m_nodesInsideROI, tempData, tempROI))
+            {
+                doCombination(computeSurf, &tempData, &tempROI, inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, inputData.m_nodesInsideROI,
+                            inputData.m_dataFileInfo[i].m_invertGradientFlag, inputData.m_dataFileInfo[i].m_weight, combinedGradData);
+            }
+        }
+    }
+    MetricFile combinedGrad;//TODO: provide as output
+    combinedGrad.setNumberOfNodesAndColumns(numNodes, 1);
+    combinedGrad.setValuesForColumn(0, combinedGradData.data());
+    CaretPointer<GeodesicHelper> myGeoHelp;
+    CaretPointer<GeodesicHelperBase> myGeoBase;
+    if (correctedAreasMetric != NULL)
+    {
+        myGeoBase.grabNew(new GeodesicHelperBase(computeSurf, correctedAreasMetric->getValuePointerForColumn(0)));
+        myGeoHelp.grabNew(new GeodesicHelper(myGeoBase));
+    } else {
+        myGeoHelp = computeSurf->getGeodesicHelper();
+    }
+    CaretPointer<TopologyHelper> myTopoHelp = computeSurf->getTopologyHelper();
+    for (int i = 0; i < numBorders; ++i)
+    {//TODO: draw new pieces and replace
+        vector<int32_t> nodes;
+        vector<float> dists;
+        myGeoHelp->getPathFollowingData(myRedrawInfo[i].startnode, myRedrawInfo[i].endnode, combinedGradData.data(), nodes, dists,
+                                        5.0f, roiData.data(), true);//TODO: following strength
+        if (nodes.empty())
+        {
+            errorMessageOut = "Unable to redraw border segment for border '" + inputData.m_borders[i]->getName() + "'";
+            return false;
+        }
+        Border modifiedBorder(*(inputData.m_borders[i]));
+        int numOrigPoints = inputData.m_borders[i]->getNumberOfPoints();
+        modifiedBorder.removeAllPoints();//keep name, color, class, etc
+        if (!(inputData.m_borders[i]->isClosed()))//if it is a closed border, start with the newly drawn section, for simplicity
+        {
+            for (int j = 0; j <= myRedrawInfo[i].startpoint; ++j)//include the original startpoint
+            {
+                modifiedBorder.addPoint(new SurfaceProjectedItem(*(inputData.m_borders[i]->getPoint(j))));
+            }
+        }
+        for (int j = 1; j < (int)nodes.size() - 1; ++j)//drop the closest node to the start and end points from the redrawn border
+        {
+            const vector<int32_t>& nodeTiles = myTopoHelp->getNodeTiles(nodes[j]);
+            CaretAssert(!nodeTiles.empty());
+            const int32_t* tileNodes = computeSurf->getTriangle(nodeTiles[0]);
+            int whichNode;
+            for (whichNode = 0; whichNode < 3; ++whichNode)
+            {
+                if (tileNodes[whichNode] == nodes[j]) break;
+            }
+            CaretAssert(whichNode < 3);//it should always find it
+            float weights[3] = { 0.0f, 0.0f, 0.0f };
+            weights[whichNode] = 1.0f;
+            SurfaceProjectedItem* myItem = new SurfaceProjectedItem();
+            myItem->getBarycentricProjection()->setTriangleNodes(tileNodes);
+            myItem->getBarycentricProjection()->setTriangleAreas(weights);
+            myItem->getBarycentricProjection()->setValid(true);
+            myItem->setStructure(computeSurf->getStructure());
+            modifiedBorder.addPoint(myItem);
+        }
+        if (inputData.m_borders[i]->isClosed())
+        {//mod arithmetic for closed borders
+            int numKeep = (numOrigPoints + myRedrawInfo[i].endpoint - myRedrawInfo[i].startpoint + 1) % numOrigPoints;//inclusive
+            for (int j = 0; j < numKeep; ++j)
+            {
+                modifiedBorder.addPoint(new SurfaceProjectedItem(*(inputData.m_borders[i]->getPoint((j + myRedrawInfo[i].startpoint) % numOrigPoints))));
+            }
+        } else {
+            for (int j = myRedrawInfo[i].endpoint; j < numOrigPoints; ++j)//include original endpoint
+            {
+                modifiedBorder.addPoint(new SurfaceProjectedItem(*(inputData.m_borders[i]->getPoint(j))));
+            }
+        }
+        inputData.m_borders[i]->replacePointsWithUndoSaving(&modifiedBorder);
+    }
     
     
     /*
@@ -114,11 +445,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
      *     border->replacePointsWithUndoSaving(borderCopy)
      */
     
-    /*
-     * Returning false implies errors.
-     */
-    errorMessageOut = "Implementation is missing.";
-    return false;
+    return true;
 }
 
 /**
@@ -140,21 +467,21 @@ BorderOptimizeExecutor::printInputs(const InputData& inputData)
     std::cout << "Optimizing Surface: " << qPrintable(inputData.m_surface->getFileNameNoPath()) << std::endl;
     std::cout << "Number of nodes in ROI: " << qPrintable(AString::number(inputData.m_nodesInsideROI.size())) << std::endl;
     std::cout << "Optimizing Data Files: " << std::endl;
-    for (std::vector<CaretPointer<DataFileInfo> >::const_iterator fi = inputData.m_dataFileInfo.begin();
+    for (std::vector<DataFileInfo>::const_iterator fi = inputData.m_dataFileInfo.begin();
          fi != inputData.m_dataFileInfo.end();
          fi++) {
-        CaretPointer<DataFileInfo> dfi = *fi;
-        std::cout << "    Name: " << qPrintable(dfi->m_mapFile->getFileNameNoPath()) << std::endl;
-        if (dfi->m_allMapsFlag) {
+        const DataFileInfo& dfi = *fi;
+        std::cout << "    Name: " << qPrintable(dfi.m_mapFile->getFileNameNoPath()) << std::endl;
+        if (dfi.m_allMapsFlag) {
             std::cout << "     Map: All Maps" << std::endl;
         }
         else {
-            std::cout << "     Map: " << qPrintable(AString::number(dfi->m_mapIndex))
-                  << "     " << qPrintable(dfi->m_mapFile->getMapName(dfi->m_mapIndex)) << std::endl;
+            std::cout << "     Map: " << qPrintable(AString::number(dfi.m_mapIndex))
+                  << "     " << qPrintable(dfi.m_mapFile->getMapName(dfi.m_mapIndex)) << std::endl;
         }
         
-        std::cout << "    Strength: " << dfi->m_weight << std::endl;
-        std::cout << "    Smoothing: " << dfi->m_smoothing << std::endl;
-        std::cout << "    Invert Gradient: " << AString::fromBool(dfi->m_invertGradientFlag) << std::endl;
+        std::cout << "    Strength: " << dfi.m_weight << std::endl;
+        std::cout << "    Smoothing: " << dfi.m_smoothing << std::endl;
+        std::cout << "    Invert Gradient: " << AString::fromBool(dfi.m_invertGradientFlag) << std::endl;
     }
 }

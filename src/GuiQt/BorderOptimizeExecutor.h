@@ -38,8 +38,7 @@ namespace caret {
         /**
          * Info about the data files
          */
-        class DataFileInfo {
-        public:
+        struct DataFileInfo {
             DataFileInfo(const CaretMappableDataFile* mapFile,
                          const int32_t mapIndex,
                          const bool allMapsFlag,
@@ -54,23 +53,22 @@ namespace caret {
             m_invertGradientFlag(invertGradientFlag) { }
             
             const CaretMappableDataFile* m_mapFile;
-            const int32_t                m_mapIndex;
-            const bool                   m_allMapsFlag;
-            const float                  m_smoothing;
-            const float                  m_weight;
-            const bool                   m_invertGradientFlag;
+            int32_t                m_mapIndex;
+            bool                   m_allMapsFlag;
+            float                  m_smoothing;
+            float                  m_weight;
+            bool                   m_invertGradientFlag;
         };
         
         /**
          * Update data for the algorithm
          */
-        class InputData {
-        public:
+        struct InputData {
             InputData(std::vector<Border*> borders,
                       const Border* borderEnclosingROI,
                       const std::vector<int32_t>& nodesInsideROI,
-                      const Surface* surface,
-                      const std::vector<CaretPointer<DataFileInfo> >& dataFileInfo)
+                      Surface* surface,
+                      const std::vector<DataFileInfo>& dataFileInfo)
             : m_borders(borders),
             m_borderEnclosingROI(borderEnclosingROI),
             m_nodesInsideROI(nodesInsideROI),
@@ -80,8 +78,8 @@ namespace caret {
             std::vector<Border*> m_borders;
             const Border* m_borderEnclosingROI;
             const std::vector<int32_t>& m_nodesInsideROI;
-            const Surface* m_surface;
-            const std::vector<CaretPointer<DataFileInfo> >& m_dataFileInfo;
+            Surface* m_surface;
+            const std::vector<DataFileInfo>& m_dataFileInfo;
         };
         
         BorderOptimizeExecutor();

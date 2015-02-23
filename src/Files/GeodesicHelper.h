@@ -120,7 +120,7 @@ namespace caret {
         
         ///path drawing by peaks or troughs of supplied data, controlled by followMaximum
         void getPathFollowingData(const int32_t root, const int32_t endpoint, const float* data, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut,
-                                  const float& followStrength = 1.0f, const float* roiData = NULL, const bool& followMaximum = true);
+                                  const float& followStrength = 5.0f, const float* roiData = NULL, const bool& followMaximum = true);
         
         ///get just the closest node in the region and max distance given, returns -1 if no such node found - roi value of 0 means not in region, anything else is in region
         int32_t getClosestNodeInRoi(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smoothflag = true);
