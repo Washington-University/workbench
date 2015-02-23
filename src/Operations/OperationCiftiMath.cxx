@@ -64,7 +64,7 @@ OperationParameters* OperationCiftiMath::getParameters()
     
     ret->createOptionalParameter(5, "-override-mapping-check", "don't check the mappings for compatibility, only check length");
     
-    AString myText = AString("This command evaluates <expression> at each (row, column) location independently.  ") +
+    AString myText = AString("This command evaluates <expression> at each matrix element independently.  ") +
                              "There must be at least one -var option (to get the output layout from), even if the <name> specified in it isn't used in <expression>.\n\n" +
                              "To select a single column from a 2D file (most cifti files are 2D), use -select 1 <index>, where <index> is 1-based.  " +
                              "To select a single row from a 2D file, use -select 2 <index>.  " +
