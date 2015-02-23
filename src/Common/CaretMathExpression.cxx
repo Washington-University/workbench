@@ -38,7 +38,7 @@ CaretMathExpression::CaretMathExpression(const AString& expression)
     {
         throw CaretException("extra characters on end of expression input: '" + m_input.mid(m_position) + "'");
     }
-    CaretLogInfo("parsed '" + expression + "' as '" + toString() + "'");
+    CaretLogFiner("parsed '" + expression + "' as '" + toString() + "'");
 }
 
 double CaretMathExpression::evaluate(const vector<float>& variableValues) const
@@ -926,7 +926,7 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::tryLiteral()
     if (!skipWhitespace()) throw CaretException("unexpected end of input, expected operand");//now, try literal
     int litstart = m_position, litend = m_position;
     if (m_input[litend] == '-' || m_input[litend] == '+') ++litend;//allow literals to start with - or + : however, - will not happen, due to unary - (which does that so that -2^-2 works as -(2^(-2))
-    bool havedot = false;
+    bool havedot = false, haveexp = false;
     while (litend < m_end)
     {
         QChar mychar = m_input[litend];
@@ -940,7 +940,9 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::tryLiteral()
             }
             continue;
         }
-        if (mychar == 'e' || mychar == 'E') {//scientific notation, don't manually test for multiple 'e', because '2e-3e' is subtraction of two variables
+        if (mychar == 'e' || mychar == 'E') {//scientific notation, don't throw on multiple 'e', because '2e-3e' is subtraction of two variables
+            if (haveexp) return CaretPointer<MathNode>();//but do stop early, as it won't be a literal
+            haveexp = true;
             ++litend;
             if (litend >= m_end) break;
             if (m_input[litend] == '-' || m_input[litend] == '+') ++litend;//allow + or - after e

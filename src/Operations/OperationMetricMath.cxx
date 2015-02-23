@@ -26,6 +26,8 @@
 #include "CaretMathExpression.h"
 #include "MetricFile.h"
 
+#include <iostream>
+
 using namespace caret;
 using namespace std;
 
@@ -75,6 +77,7 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     LevelProgress myProgress(myProgObj);
     AString expression = myParams->getString(1);
     CaretMathExpression myExpr(expression);
+    cout << "parsed '" + expression + "' as '" + myExpr.toString() + "'" << endl;
     vector<AString> myVarNames = myExpr.getVarNames();
     MetricFile* myMetricOut = myParams->getOutputMetric(2);
     const vector<ParameterComponent*>& myVarOpts = *(myParams->getRepeatableParameterInstances(3));
@@ -90,12 +93,17 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     int numVars = myVarNames.size();
     vector<MetricFile*> varMetrics(numVars, (MetricFile*)NULL);
     vector<int> metricColumns(numVars, -1);
-    if (numInputs == 0) throw OperationException("you must specify at least one input metric (-var), even if the expression doesn't use a variable");
-    int numNodes = myVarOpts[0]->getMetric(2)->getNumberOfNodes();
-    StructureEnum::Enum myStructure = myVarOpts[0]->getMetric(2)->getStructure();
+    if (numInputs == 0 && numVars == 0) throw OperationException("you must specify at least one input metric (-var), even if the expression doesn't use a variable");
+    int numNodes;
+    StructureEnum::Enum myStructure;
     int numColumns = -1;
     for (int i = 0; i < numInputs; ++i)
     {
+        if (i == 0)
+        {
+            numNodes = myVarOpts[0]->getMetric(2)->getNumberOfNodes();
+            myStructure = myVarOpts[0]->getMetric(2)->getStructure();
+        }
         AString varName = myVarOpts[i]->getString(1);
         double constVal;
         if (CaretMathExpression::getNamedConstant(varName, constVal))
@@ -160,13 +168,13 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
             CaretLogWarning("variable '" + varName + "' not used in expression");
         }
     }
-    if (numColumns == -1)
-    {
-        throw OperationException("all -var options used -repeat, there is no file to get number of desired output columns from");
-    }
     for (int i = 0; i < numVars; ++i)
     {
         if (varMetrics[i] == NULL) throw OperationException("no -var option specified for variable '" + myVarNames[i] + "'");
+    }
+    if (numColumns == -1)
+    {
+        throw OperationException("all -var options used -repeat, there is no file to get number of desired output columns from");
     }
     vector<float> values(numVars), colScratch(numNodes);
     vector<const float*> columnPointers(numVars);

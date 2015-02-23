@@ -28,6 +28,8 @@
 #include "CiftiXML.h"
 #include "MultiDimIterator.h"
 
+#include <iostream>
+
 using namespace caret;
 using namespace std;
 
@@ -80,6 +82,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     LevelProgress myProgress(myProgObj);
     AString expression = myParams->getString(1);
     CaretMathExpression myExpr(expression);
+    cout << "parsed '" + expression + "' as '" + myExpr.toString() + "'" << endl;
     vector<AString> myVarNames = myExpr.getVarNames();
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
     const vector<ParameterComponent*>& myVarOpts = *(myParams->getRepeatableParameterInstances(3));
@@ -95,7 +98,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
     vector<CiftiFile*> varCiftiFiles(numVars, (CiftiFile*)NULL);
-    if (numInputs == 0) throw OperationException("you must specify at least one input file (-var), even if the expression doesn't use a variable");
+    if (numInputs == 0 && numVars == 0) throw OperationException("you must specify at least one input file (-var), even if the expression doesn't use a variable");
     CiftiXML outXML;
     QString xmlText;
     vector<int64_t> outDims;//don't even assume 2 dimensions, in case someone makes a 1-d cifti

@@ -26,6 +26,8 @@
 #include "CaretMathExpression.h"
 #include "VolumeFile.h"
 
+#include <iostream>
+
 using namespace caret;
 using namespace std;
 
@@ -75,6 +77,7 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     LevelProgress myProgress(myProgObj);
     AString expression = myParams->getString(1);
     CaretMathExpression myExpr(expression);
+    cout << "parsed '" + expression + "' as '" + myExpr.toString() + "'" << endl;
     vector<AString> myVarNames = myExpr.getVarNames();
     VolumeFile* myVolOut = myParams->getOutputVolume(2);
     const vector<ParameterComponent*>& myVarOpts = *(myParams->getRepeatableParameterInstances(3));
@@ -90,13 +93,18 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     int numVars = myVarNames.size();
     vector<VolumeFile*> varVolumes(numVars, (VolumeFile*)NULL);
     vector<int> varSubvolumes(numVars, -1);
-    if (numInputs == 0) throw OperationException("you must specify at least one input volume (-var), even if the expression doesn't use a variable");
-    VolumeFile* first = myVarOpts[0]->getVolume(2);
-    const VolumeSpace& mySpace = first->getVolumeSpace();
+    if (numInputs == 0 && numVars == 0) throw OperationException("you must specify at least one input volume (-var), even if the expression doesn't use a variable");
+    VolumeFile* first;
+    VolumeSpace mySpace;
     vector<int64_t> outDims;
     int numSubvols = -1;
     for (int i = 0; i < numInputs; ++i)
     {
+        if (i == 0)
+        {
+            first = myVarOpts[0]->getVolume(2);
+            mySpace = first->getVolumeSpace();
+        }
         AString varName = myVarOpts[i]->getString(1);
         double constVal;
         if (CaretMathExpression::getNamedConstant(varName, constVal))
@@ -170,13 +178,13 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
             CaretLogWarning("variable '" + varName + "' not used in expression");
         }
     }
-    if (numSubvols == -1)
-    {
-        throw OperationException("all -var options used -repeat, there is no file to get number of desired output subvolumes from");
-    }
     for (int i = 0; i < numVars; ++i)
     {
         if (varVolumes[i] == NULL) throw OperationException("no -var option specified for variable '" + myVarNames[i] + "'");
+    }
+    if (numSubvols == -1)
+    {
+        throw OperationException("all -var options used -repeat, there is no file to get number of desired output subvolumes from");
     }
     int64_t frameSize = outDims[0] * outDims[1] * outDims[2];
     vector<float> values(numVars), outFrame(frameSize);

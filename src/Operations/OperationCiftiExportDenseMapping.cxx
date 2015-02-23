@@ -65,6 +65,7 @@ OperationParameters* OperationCiftiExportDenseMapping::getParameters()
     
     ret->setHelpText(
         AString("This command produces text files that describe the mapping from cifti indices to surface vertices or voxels.  ") +
+        "All indices are zero-based.  " +
         "The default format for -surface is lines of the form:\n\n" +
         "<cifti-index> <vertex>\n\n" +
         "The default format for -volume and -volume-all is lines of the form:\n\n" +
