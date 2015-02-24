@@ -30,6 +30,7 @@ namespace caret {
     
     class Border;
     class CaretMappableDataFile;
+    class MetricFile;
     class Surface;
     
     class BorderOptimizeExecutor : public CaretObject {
@@ -68,18 +69,25 @@ namespace caret {
                       const Border* borderEnclosingROI,
                       const std::vector<int32_t>& nodesInsideROI,
                       Surface* surface,
-                      const std::vector<DataFileInfo>& dataFileInfo)
+                      const std::vector<DataFileInfo>& dataFileInfo,
+                      const MetricFile* vertexAreasMetricFile,
+                      const float gradientFollowingStrength)
             : m_borders(borders),
             m_borderEnclosingROI(borderEnclosingROI),
             m_nodesInsideROI(nodesInsideROI),
             m_surface(surface),
-            m_dataFileInfo(dataFileInfo) { }
+            m_dataFileInfo(dataFileInfo),
+            m_vertexAreasMetricFile(vertexAreasMetricFile),
+            m_gradientFollowingStrength(gradientFollowingStrength)
+                { }
             
             std::vector<Border*> m_borders;
             const Border* m_borderEnclosingROI;
             const std::vector<int32_t>& m_nodesInsideROI;
             Surface* m_surface;
             const std::vector<DataFileInfo>& m_dataFileInfo;
+            const MetricFile* m_vertexAreasMetricFile;
+            const float m_gradientFollowingStrength;
         };
         
         BorderOptimizeExecutor();

@@ -25,7 +25,7 @@
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
 #include "SceneableInterface.h"
-
+#include "StructureEnum.h"
 
 namespace caret {
     class Brain;
@@ -38,8 +38,12 @@ namespace caret {
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileType(Brain* brain,
                                                                             const DataFileTypeEnum::Enum dataFileType);
         
-        static CaretDataFileSelectionModel* newInstanceForCaretDataFileType(Brain* brain,
+        static CaretDataFileSelectionModel* newInstanceForCaretDataFileTypes(Brain* brain,
                                                                             const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
+        
+        static CaretDataFileSelectionModel* newInstanceForCaretDataFileTypesInStructure(Brain* brain,
+                                                                             const StructureEnum::Enum structure,
+                                                                             const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
         
         static CaretDataFileSelectionModel* newInstanceForChartableMatrixParcelInterface(Brain* brain);
         
@@ -56,6 +60,8 @@ namespace caret {
         CaretDataFile* getSelectedFile();
         
         const CaretDataFile* getSelectedFile() const;
+        
+        StructureEnum::Enum getStructure() const;
         
         std::vector<CaretDataFile*> getAvailableFiles() const;
         
@@ -112,6 +118,7 @@ namespace caret {
         };
         
         CaretDataFileSelectionModel(Brain* brain,
+                                    const StructureEnum::Enum structure,
                                     const FileMode fileMode);
         
         void copyHelperCaretDataFileSelectionModel(const CaretDataFileSelectionModel& obj);
@@ -125,6 +132,8 @@ namespace caret {
         bool m_overrideOfAvailableFilesValid;
         
         Brain* m_brain;
+        
+        StructureEnum::Enum m_structure;
         
         std::vector<DataFileTypeEnum::Enum> m_dataFileTypes;
         

@@ -179,7 +179,7 @@ CaretMappableDataFileAndMapSelectionModel::performConstruction(Brain* brain,
         }
     }
     
-    m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(brain,
+    m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(brain,
                                                                                                  dataFileTypes);
     m_selectedMapIndex = -1;
     

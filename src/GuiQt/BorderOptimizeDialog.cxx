@@ -37,12 +37,15 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionComboBox.h"
+#include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
 #include "EventManager.h"
 #include "EventUpdateInformationWindows.h"
 #include "GuiManager.h"
+#include "MetricFile.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
@@ -70,7 +73,8 @@ BorderOptimizeDialog::BorderOptimizeDialog(QWidget* parent)
 m_surface(NULL),
 m_borderEnclosingROI(NULL),
 m_surfaceSelectionStructure(StructureEnum::INVALID),
-m_surfaceSelectionModel(NULL)
+m_surfaceSelectionModel(NULL),
+m_vertexAreasMetricFileSelectionModel(NULL)
 {
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE);
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
@@ -82,12 +86,14 @@ m_surfaceSelectionModel(NULL)
     
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
-    dialogLayout->addWidget(createSurfaceSelectionWidget(),
-                            STRETCH_NONE);
     dialogLayout->addWidget(createBorderSelectionWidget(),
                             STRETCH_NONE);
     dialogLayout->addWidget(createDataFilesWidget(),
                             STRETCH_MAX);
+    dialogLayout->addWidget(createSurfaceSelectionWidget(),
+                            STRETCH_NONE);
+    dialogLayout->addWidget(createVertexAreasMetricWidget(),
+                            STRETCH_NONE);
     QWidget* optionsWidget = createOptionsWidget();
     if (optionsWidget != NULL) {
         dialogLayout->addWidget(optionsWidget,
@@ -105,6 +111,9 @@ BorderOptimizeDialog::~BorderOptimizeDialog()
 {
     if (m_surfaceSelectionModel != NULL) {
         delete m_surfaceSelectionModel;
+    }
+    if (m_vertexAreasMetricFileSelectionModel != NULL) {
+        delete m_vertexAreasMetricFileSelectionModel;
     }
 }
 
@@ -173,6 +182,28 @@ BorderOptimizeDialog::updateDialog(Surface* surface,
     }
     else {
         m_surfaceSelectionControl->getWidget()->setEnabled(false);
+    }
+    /*
+     * Update metric selection model
+     * Will need to recreate if the structure has changed.
+     */
+    if (m_vertexAreasMetricFileSelectionModel != NULL) {
+        if (structure != m_vertexAreasMetricFileSelectionModel->getStructure()) {
+            delete m_vertexAreasMetricFileSelectionModel;
+            m_vertexAreasMetricFileSelectionModel = NULL;
+        }
+    }
+    if (m_vertexAreasMetricFileSelectionModel == NULL) {
+        std::vector<DataFileTypeEnum::Enum> metricDataTypes;
+        metricDataTypes.push_back(DataFileTypeEnum::METRIC);
+        m_vertexAreasMetricFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypesInStructure(GuiManager::get()->getBrain(),
+                                                                                                                         m_surfaceSelectionStructure,
+                                                                                                                         metricDataTypes);
+        m_vertexAreasMetricFileComboBox->updateComboBox(m_vertexAreasMetricFileSelectionModel);
+    }
+    
+    if (m_vertexAreasMetricFileSelectionModel != NULL) {
+        m_vertexAreasMetricFileComboBox->updateComboBox(m_vertexAreasMetricFileSelectionModel);
     }
     
     /*
@@ -268,11 +299,21 @@ BorderOptimizeDialog::okButtonClicked()
         return;
     }
     
+    MetricFile* vertexAreasMetricFile = NULL;
+    CaretDataFile* vertexAreaFile = m_vertexAreasMetricFileSelectionModel->getSelectedFile();
+    if (vertexAreaFile != NULL) {
+        vertexAreasMetricFile = dynamic_cast<MetricFile*>(vertexAreaFile);
+    }
+    
+    const float gradientFollowingStrength = m_gradientFollowingStrengthSpinBox->value();
+    
     BorderOptimizeExecutor::InputData algInput(selectedBorders,
-                                       m_borderEnclosingROI,
-                                       m_nodesInsideROI,
-                                       gradientComputationSurface,
-                                       dataFileSelections);
+                                               m_borderEnclosingROI,
+                                               m_nodesInsideROI,
+                                               gradientComputationSurface,
+                                               dataFileSelections,
+                                               vertexAreasMetricFile,
+                                               gradientFollowingStrength);
     
     AString statisticsInformation;
     if (BorderOptimizeExecutor::run(algInput,
@@ -419,17 +460,45 @@ BorderOptimizeDialog::addDataFileRowToolButtonClicked()
 }
 
 /**
+ * @return The metric vertex areas widget.
+ */
+QWidget*
+BorderOptimizeDialog::createVertexAreasMetricWidget()
+{
+    m_vertexAreasMetricFileComboBox = new CaretDataFileSelectionComboBox(this);
+    
+    QGroupBox* widget = new QGroupBox("Vertex Areas Metric File");
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+
+    layout->addWidget(m_vertexAreasMetricFileComboBox->getWidget());
+    
+    return widget;
+}
+
+
+/**
  * @return The options widget.
  */
 QWidget*
 BorderOptimizeDialog::createOptionsWidget()
 {
+    QLabel* gradientLabel = new QLabel("Graident Following Strength");
+    m_gradientFollowingStrengthSpinBox = new QDoubleSpinBox();
+    m_gradientFollowingStrengthSpinBox->setRange(0.0, 1.0e6);
+    m_gradientFollowingStrengthSpinBox->setDecimals(2);
+    m_gradientFollowingStrengthSpinBox->setSingleStep(1.0);
+    m_gradientFollowingStrengthSpinBox->setValue(5);
+
+    QHBoxLayout* gradientLayout = new QHBoxLayout();
+    gradientLayout->addWidget(gradientLabel);
+    gradientLayout->addWidget(m_gradientFollowingStrengthSpinBox);
+    gradientLayout->addStretch();
     
-//    QGroupBox* widget = new QGroupBox("Options");
-//    QGridLayout* layout = new QGridLayout(widget);
-//    
-//    return widget;
-    return NULL;
+    QGroupBox* widget = new QGroupBox("Options");
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(gradientLayout);
+    
+    return widget;
 }
 
 /**
@@ -443,7 +512,7 @@ BorderOptimizeDialog::createSurfaceSelectionWidget()
                      this, SLOT(gradientComputatonSurfaceSelected(Surface*)));
     
     QGroupBox* widget = new QGroupBox("Gradient Computation Surface");
-    QGridLayout* layout = new QGridLayout(widget);
+    QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(m_surfaceSelectionControl->getWidget());
     
     return widget;
@@ -504,15 +573,15 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
     
     m_smoothingSpinBox = new QDoubleSpinBox();
     m_smoothingSpinBox->setRange(0.0, 1.0e6);
-    m_smoothingSpinBox->setValue(1.0);
     m_smoothingSpinBox->setDecimals(2);
     m_smoothingSpinBox->setSingleStep(1.0);
+    m_smoothingSpinBox->setValue(1.0);
     
     m_weightSpinBox = new QDoubleSpinBox();
     m_weightSpinBox->setRange(0.0, 1.0);
-    m_weightSpinBox->setValue(0.7);
     m_weightSpinBox->setDecimals(2);
     m_weightSpinBox->setSingleStep(0.01);
+    m_weightSpinBox->setValue(0.7);
     
     int32_t columnCount = 0;
     const int32_t COLUMN_SELECT  = columnCount++;

@@ -473,10 +473,10 @@ BorderOptimizeExecutor::printInputs(const InputData& inputData)
         const DataFileInfo& dfi = *fi;
         std::cout << "    Name: " << qPrintable(dfi.m_mapFile->getFileNameNoPath()) << std::endl;
         if (dfi.m_allMapsFlag) {
-            std::cout << "     Map: All Maps" << std::endl;
+            std::cout << "    Map: All Maps" << std::endl;
         }
         else {
-            std::cout << "     Map: " << qPrintable(AString::number(dfi.m_mapIndex))
+            std::cout << "    Map: " << qPrintable(AString::number(dfi.m_mapIndex))
                   << "     " << qPrintable(dfi.m_mapFile->getMapName(dfi.m_mapIndex)) << std::endl;
         }
         
@@ -484,4 +484,8 @@ BorderOptimizeExecutor::printInputs(const InputData& inputData)
         std::cout << "    Smoothing: " << dfi.m_smoothing << std::endl;
         std::cout << "    Invert Gradient: " << AString::fromBool(dfi.m_invertGradientFlag) << std::endl;
     }
+    std::cout << "Vertex Areas Metric File: " << ((inputData.m_vertexAreasMetricFile != NULL)
+                                                  ? qPrintable(inputData.m_vertexAreasMetricFile->getFileNameNoPath())
+                                                  : "NULL") << std::endl;
+    std::cout << "Gradient Following Strength: " << inputData.m_gradientFollowingStrength << std::endl;
 }

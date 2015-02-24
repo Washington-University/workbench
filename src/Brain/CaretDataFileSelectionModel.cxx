@@ -52,14 +52,18 @@ using namespace caret;
  *
  * @param brain
  *    Brain containing the files.
+ * @param structure
+ *    Structure for the files.
  * @param fileMode
  *    File mode that indicates how files are chosen from the 'Brain'.
  */
 CaretDataFileSelectionModel::CaretDataFileSelectionModel(Brain* brain,
+                                                         const StructureEnum::Enum structure,
                                                          const FileMode fileMode)
 : CaretObject(),
 m_fileMode(fileMode),
-m_brain(brain)
+m_brain(brain),
+m_structure(structure)
 {
     m_overrideOfAvailableFilesValid = false;
     
@@ -91,6 +95,7 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileType(Brain* brain,
                                                              const DataFileTypeEnum::Enum dataFileType)
 {
     CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
+                                                                         StructureEnum::ALL,
                                                                          FILE_MODE_DATA_FILE_TYPE_ENUM);
     model->m_dataFileTypes.push_back(dataFileType);
     
@@ -107,10 +112,11 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileType(Brain* brain,
  *    Types of the data file.
  */
 CaretDataFileSelectionModel*
-CaretDataFileSelectionModel::newInstanceForCaretDataFileType(Brain* brain,
+CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(Brain* brain,
                                                              const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
 {
     CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
+                                                                         StructureEnum::ALL,
                                                                          FILE_MODE_DATA_FILE_TYPE_ENUM);
     model->m_dataFileTypes.insert(model->m_dataFileTypes.end(),
                                   dataFileTypes.begin(),
@@ -118,6 +124,36 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileType(Brain* brain,
     
     return model;
 }
+
+/**
+ * Create a new instance of a Caret Data File Selection Model that
+ * selects files of the given Data File Types for the given structure
+ * from the given Brain.
+ *
+ * @param brain
+ *    Brain from which files are obtained.
+ * @param structure
+ *    Structure for files.   Files with the identical structure are used
+ *    as well as those files with structure 'ALL'.
+ * @param dataFileTypes
+ *    Types of the data file.
+ */
+CaretDataFileSelectionModel*
+CaretDataFileSelectionModel::newInstanceForCaretDataFileTypesInStructure(Brain* brain,
+                                                                                const StructureEnum::Enum structure,
+                                                                                const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
+{
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
+                                                                         structure,
+                                                                         FILE_MODE_DATA_FILE_TYPE_ENUM);
+    model->m_dataFileTypes.insert(model->m_dataFileTypes.end(),
+                                  dataFileTypes.begin(),
+                                  dataFileTypes.end());
+    
+    return model;
+    
+}
+
 
 /**
  * Create a new instance of a Caret Data File Selection Model that
@@ -130,6 +166,7 @@ CaretDataFileSelectionModel*
 CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface(Brain* brain)
 {
     CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
+                                                                         StructureEnum::ALL,
                                                                          FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE);
     
     return model;
@@ -147,6 +184,7 @@ CaretDataFileSelectionModel*
 CaretDataFileSelectionModel::newInstanceForChartableMatrixSeriesInterface(Brain* brain)
 {
     CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
+                                                                         StructureEnum::ALL,
                                                                          FILE_MODE_CHARTABLE_MATRIX_SERIES_INTERFACE);
     
     return model;
@@ -160,6 +198,7 @@ CaretDataFileSelectionModel*
 CaretDataFileSelectionModel::newInstanceForMultiStructureBorderFiles(Brain* brain)
 {
     CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
+                                                                         StructureEnum::ALL,
                                                                          FILE_MODE_MULTI_STRUCTURE_BORDER_FILES);
     
     return model;
@@ -207,6 +246,7 @@ void
 CaretDataFileSelectionModel::copyHelperCaretDataFileSelectionModel(const CaretDataFileSelectionModel& obj)
 {
     m_brain         = obj.m_brain;
+    m_structure     = obj.m_structure;
     m_dataFileTypes = obj.m_dataFileTypes;
     m_selectedFile  = obj.m_selectedFile;
     m_overrideOfAvailableFilesValid = obj.m_overrideOfAvailableFilesValid;
@@ -316,7 +356,28 @@ CaretDataFileSelectionModel::getAvailableFiles() const
             break;
     }
 
-    return caretDataFiles;
+    if (m_structure == StructureEnum::ALL) {
+        return caretDataFiles;
+    }
+    
+    
+    std::vector<CaretDataFile*> caretDataFilesOut;
+    
+    for (std::vector<CaretDataFile*>::iterator iter = caretDataFiles.begin();
+         iter != caretDataFiles.end();
+         iter++) {
+        CaretDataFile* cdf = *iter;
+        const StructureEnum::Enum fileStructure = cdf->getStructure();
+        if ((fileStructure == StructureEnum::ALL)
+            || (fileStructure == StructureEnum::INVALID)) {
+            caretDataFilesOut.push_back(cdf);
+        }
+        else if (fileStructure == m_structure) {
+            caretDataFilesOut.push_back(cdf);
+        }
+    }
+    
+    return caretDataFilesOut;
 }
 
 /**
@@ -334,6 +395,15 @@ CaretDataFileSelectionModel::overrideAvailableDataFiles(std::vector<CaretDataFil
     m_overrideOfAvailableFilesValid = true;
 }
 
+
+/**
+ * @return Structure used in this model.
+ */
+StructureEnum::Enum
+CaretDataFileSelectionModel::getStructure() const
+{
+    return m_structure;
+}
 
 
 /**

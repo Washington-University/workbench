@@ -35,6 +35,8 @@ namespace caret {
 
     class Border;
     class BorderOptimizeDataFileSelector;
+    class CaretDataFileSelectionComboBox;
+    class CaretDataFileSelectionModel;
     class CaretMappableDataFile;
     class CaretMappableDataFileAndMapSelectorObject;
     class Surface;
@@ -76,6 +78,8 @@ namespace caret {
         
         QWidget* createDataFilesWidget();
         
+        QWidget* createVertexAreasMetricWidget();
+        
         QWidget* createOptionsWidget();
         
         QWidget* createSurfaceSelectionWidget();
@@ -105,6 +109,12 @@ namespace caret {
         SurfaceSelectionModel* m_surfaceSelectionModel;
         
         SurfaceSelectionViewController* m_surfaceSelectionControl;
+        
+        CaretDataFileSelectionComboBox* m_vertexAreasMetricFileComboBox;
+        
+        CaretDataFileSelectionModel* m_vertexAreasMetricFileSelectionModel;
+        
+        QDoubleSpinBox* m_gradientFollowingStrengthSpinBox;
     };
     
     class BorderOptimizeDataFileSelector : public QObject {
