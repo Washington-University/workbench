@@ -70,7 +70,11 @@ public:
         /** Surface Triangle */
         SURFACE_TRIANGLE,
         /** Volume Voxel */
-        VOXEL
+        VOXEL,
+        /** Voxel Editing */
+        VOXEL_EDITING,
+        /** Voxel identification symbol */
+        VOXEL_IDENTIFICATION_SYMBOL
     };
 
 

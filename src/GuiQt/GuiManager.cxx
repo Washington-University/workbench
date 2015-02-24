@@ -74,6 +74,7 @@
 #include "FociPropertiesEditorDialog.h"
 #include "HelpViewerDialog.h"
 #include "IdentifiedItemNode.h"
+#include "IdentifiedItemVoxel.h"
 #include "IdentificationManager.h"
 #include "IdentificationStringBuilder.h"
 #include "IdentifyBrainordinateDialog.h"
@@ -96,6 +97,7 @@
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
+#include "SelectionItemVoxelIdentificationSymbol.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileManagementDialog.h"
@@ -2276,17 +2278,26 @@ GuiManager::processIdentification(const int32_t tabIndex,
     std::vector<AString> ciftiLoadingInfo;
     
     const QString breakAndIndent("<br>&nbsp;&nbsp;&nbsp;&nbsp;");
-    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
-    if ((idSymbol->getSurface() != NULL)
-        && (idSymbol->getNodeNumber() >= 0)) {
-        const Surface* surface = idSymbol->getSurface();
+    SelectionItemSurfaceNodeIdentificationSymbol* nodeIdSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
+    SelectionItemVoxelIdentificationSymbol*  voxelIdSymbol = selectionManager->getVoxelIdentificationSymbol();
+    if ((nodeIdSymbol->getSurface() != NULL)
+        && (nodeIdSymbol->getNodeNumber() >= 0)) {
+        const Surface* surface = nodeIdSymbol->getSurface();
         const int32_t surfaceNumberOfNodes = surface->getNumberOfNodes();
-        const int32_t nodeIndex = idSymbol->getNodeNumber();
+        const int32_t nodeIndex = nodeIdSymbol->getNodeNumber();
         const StructureEnum::Enum structure = surface->getStructure();
         
         identificationManager->removeIdentifiedNodeItem(structure,
                                                         surfaceNumberOfNodes,
                                                         nodeIndex);
+        updateGraphicsFlag = true;
+        updateInformationFlag = true;
+    }
+    else if (voxelIdSymbol->isValid()) {
+        float voxelXYZ[3];
+        voxelIdSymbol->getVoxelXYZ(voxelXYZ);
+        identificationManager->removeIdentifiedVoxelItem(voxelXYZ);
+
         updateGraphicsFlag = true;
         updateInformationFlag = true;
     }
@@ -2543,6 +2554,11 @@ GuiManager::processIdentification(const int32_t tabIndex,
             if (volumeFile != NULL) {
                 float xyz[3];
                 volumeFile->indexToSpace(voxelIJK, xyz);
+                
+                if (identifiedItem == NULL) {
+                    identifiedItem = new IdentifiedItemVoxel(identificationMessage,
+                                                             xyz);
+                }
                 
                 if (issuedIdentificationLocationEvent == false) {
                     EventIdentificationHighlightLocation idLocation(tabIndex,

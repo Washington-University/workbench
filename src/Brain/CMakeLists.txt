@@ -116,6 +116,7 @@ IdentificationTextGenerator.h
 IdentificationWithColor.h
 IdentifiedItem.h
 IdentifiedItemNode.h
+IdentifiedItemVoxel.h
 Model.h
 ModelChart.h
 ModelSurface.h
@@ -143,6 +144,7 @@ SelectionItemSurfaceNodeIdentificationSymbol.h
 SelectionItemSurfaceTriangle.h
 SelectionItemVoxel.h
 SelectionItemVoxelEditing.h
+SelectionItemVoxelIdentificationSymbol.h
 SelectionManager.h
 SessionManager.h
 Surface.h
@@ -232,6 +234,7 @@ IdentificationTextGenerator.cxx
 IdentificationWithColor.cxx
 IdentifiedItem.cxx
 IdentifiedItemNode.cxx
+IdentifiedItemVoxel.cxx
 Model.cxx
 ModelChart.cxx
 ModelSurface.cxx
@@ -258,6 +261,7 @@ SelectionItemSurfaceNode.cxx
 SelectionItemSurfaceNodeIdentificationSymbol.cxx
 SelectionItemSurfaceTriangle.cxx
 SelectionItemVoxel.cxx
+SelectionItemVoxelIdentificationSymbol.cxx
 SelectionItemVoxelEditing.cxx
 SelectionManager.cxx
 SessionManager.cxx

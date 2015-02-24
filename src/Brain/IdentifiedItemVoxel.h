@@ -1,9 +1,9 @@
-#ifndef __IDENTIFIED_ITEM_NODE_H__
-#define __IDENTIFIED_ITEM_NODE_H__
+#ifndef __IDENTIFIED_ITEM_VOXEL_H__
+#define __IDENTIFIED_ITEM_VOXEL_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2015 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,93 +23,85 @@
 
 
 #include "IdentifiedItem.h"
-#include "StructureEnum.h"
+
+#include "SceneableInterface.h"
+
 
 namespace caret {
+    class SceneClassAssistant;
 
-    class IdentifiedItemNode : public IdentifiedItem {
+    class IdentifiedItemVoxel : public IdentifiedItem, public SceneableInterface {
         
     public:
-        IdentifiedItemNode();
+        IdentifiedItemVoxel(const AString& text,
+                            const float xyz[3]);
         
-        IdentifiedItemNode(const AString& text,
-                           const StructureEnum::Enum structure,
-                           const int32_t surfaceNumberOfNodes,
-                           const int32_t nodeIndex);
+        virtual ~IdentifiedItemVoxel();
         
-        virtual ~IdentifiedItemNode();
-        
-        IdentifiedItemNode(const IdentifiedItemNode& obj);
+        IdentifiedItemVoxel(const IdentifiedItemVoxel& obj);
 
-        IdentifiedItemNode& operator=(const IdentifiedItemNode& obj);
-        
-        // ADD_NEW_METHODS_HERE
+        IdentifiedItemVoxel& operator=(const IdentifiedItemVoxel& obj);
 
         virtual bool isValid() const;
         
-//        AString getText() const;
-        
-        StructureEnum::Enum getStructure() const;
-        
-        StructureEnum::Enum getContralateralStructure() const;
-        
-        void setContralateralStructure(const StructureEnum::Enum contralateralStructure);
-
-        int32_t getSurfaceNumberOfNodes() const;
-        
-        int32_t getNodeIndex() const;
+        void getXYZ(float xyzOut[3]) const;
         
         const float* getSymbolRGB() const;
         
-        const float* getContralateralSymbolRGB() const;
-        
         void getSymbolRGBA(uint8_t rgbaOut[4]) const;
-        
-        void getContralateralSymbolRGB(uint8_t rgbaOut[4]) const;
         
         float getSymbolSize() const;
         
         void setSymbolRGB(const float* rgb);
         
-        void setContralateralSymbolRGB(const float* rgb);
-        
         void setSymbolSize(const float symbolSize);
         
         virtual AString toString() const;
         
+
+        // ADD_NEW_METHODS_HERE
+
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
-        
+
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
-        
+
+          
+          
+          
+          
+          
+// If there will be sub-classes of this class that need to save
+// and restore data from scenes, these pure virtual methods can
+// be uncommented to force their implemetation by sub-classes.
+//    protected: 
+//        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+//                                             SceneClass* sceneClass) = 0;
+//
+//        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+//                                                  const SceneClass* sceneClass) = 0;
+
     private:
-        void copyHelperIdentifiedItemNode(const IdentifiedItemNode& obj);
+        void copyHelperIdentifiedItemVoxel(const IdentifiedItemVoxel& obj);
 
         void initializeMembers();
         
-        // ADD_NEW_MEMBERS_HERE
-        
-        StructureEnum::Enum m_structure;
-        
-        StructureEnum::Enum m_contralateralStructure;
-        
-        int32_t m_surfaceNumberOfNodes;
-        
-        int32_t m_nodeIndex;
+        float m_xyz[3];
         
         float m_symbolRGB[3];
-        
-        float m_contralateralSymbolRGB[3];
         
         float m_symbolSize;
         
         SceneClassAssistant* m_sceneAssistant;
+
+        // ADD_NEW_MEMBERS_HERE
+
     };
     
-#ifdef __IDENTIFIED_ITEM_NODE_DECLARE__
+#ifdef __IDENTIFIED_ITEM_VOXEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFIED_ITEM_NODE_DECLARE__
+#endif // __IDENTIFIED_ITEM_VOXEL_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFIED_ITEM_NODE_H__
+#endif  //__IDENTIFIED_ITEM_VOXEL_H__

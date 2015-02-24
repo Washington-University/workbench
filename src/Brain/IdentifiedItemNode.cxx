@@ -377,7 +377,8 @@ IdentifiedItemNode::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
     
     /*
-     * Save data in parent class.
+     * Save data in parent class.+
+     
      */
     saveMembers(sceneAttributes,
                 sceneClass);

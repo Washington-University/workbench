@@ -127,6 +127,14 @@ SelectionItemDataTypeEnum::initialize()
                                     "VOXEL", 
                                     "Voxel"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(VOXEL_EDITING,
+                                                 "VOXEL_EDITING",
+                                                 "Voxel Editing"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(VOXEL_IDENTIFICATION_SYMBOL,
+                                                 "VOXEL_IDENTIFICATION_SYMBOL",
+                                                 "Voxel Identification Symbol"));
+    
 }
 
 /**

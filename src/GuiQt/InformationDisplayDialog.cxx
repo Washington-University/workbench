@@ -96,7 +96,7 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
                                                       SLOT(copy()));
     
     QAction* removeIdSymbolAction = WuQtUtilities::createAction("RID",
-                                                                "Remove ID symbols from ALL surfaces",
+                                                                "Remove All ID symbols",
                                                                 this,
                                                                 this,
                                                                 SLOT(removeIdSymbols()));
@@ -259,6 +259,7 @@ InformationDisplayDialog::clearInformationText()
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->removeIdentificationText();
     updateDialog();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 
@@ -270,7 +271,8 @@ InformationDisplayDialog::removeIdSymbols()
 {
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->removeAllIdentifiedNodes();
+    idManager->removeAllIdentifiedSymbols();
+    updateDialog();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

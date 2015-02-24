@@ -295,6 +295,8 @@ namespace caret {
         void createObliqueTransformationMatrix(const float sliceCoordinates[3],
                                                Matrix4x4& obliqueTransformationMatrixOut);
         
+        void drawIdentificationSymbols(const Plane& plane);
+        
         void addVoxelToIdentification(const int32_t volumeIndex,
                                       const int32_t mapIndex,
                                       const int32_t voxelI,

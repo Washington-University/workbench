@@ -41,6 +41,7 @@ namespace caret {
     class SelectionItemSurfaceTriangle;
     class SelectionItemVoxel;
     class SelectionItemVoxelEditing;
+    class SelectionItemVoxelIdentificationSymbol;
     class IdentificationTextGenerator;
     class Surface;
     
@@ -82,6 +83,10 @@ namespace caret {
         const SelectionItemVoxel* getVoxelIdentification() const;
         
         SelectionItemVoxel* getVoxelIdentification();
+        
+        SelectionItemVoxelIdentificationSymbol* getVoxelIdentificationSymbol();
+        
+        const SelectionItemVoxelIdentificationSymbol* getVoxelIdentificationSymbol() const;
         
         SelectionItemVoxelEditing* getVoxelEditingIdentification();
         
@@ -169,6 +174,8 @@ namespace caret {
         IdentificationTextGenerator* m_idTextGenerator;
         
         SelectionItemVoxel* m_voxelIdentification;
+        
+        SelectionItemVoxelIdentificationSymbol* m_voxelIdentificationSymbol;
         
         SelectionItemVoxelEditing* m_voxelEditingIdentification;
         

@@ -44,7 +44,9 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
+#include "IdentificationManager.h"
 #include "IdentificationWithColor.h"
+#include "IdentifiedItemVoxel.h"
 #include "LabelDrawingProperties.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -54,6 +56,7 @@
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
+#include "SelectionItemVoxelIdentificationSymbol.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
 #include "Surface.h"
@@ -756,6 +759,15 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
             break;
     }
     
+    /*
+     * Process selection
+     */
+    if (m_identificationModeFlag) {
+        processIdentification();
+    }
+    
+    drawIdentificationSymbols(slicePlane);
+    
     if ( ! m_identificationModeFlag) {
         if (slicePlane.isValidPlane()) {
             drawLayers(sliceDrawingType,
@@ -767,13 +779,6 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
     }
     
     m_fixedPipelineDrawing->disableClippingPlanes();
-    
-    /*
-     * Process selection
-     */
-    if (m_identificationModeFlag) {
-        processIdentification();
-    }
     
     if (cullFaceOn) {
         glEnable(GL_CULL_FACE);
@@ -2022,6 +2027,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
                                                sliceCoordinates,
                                                sliceNormalVector);
     
+//    drawIdentificationSymbols(plane);
+    
     glDisable(GL_BLEND);
     glShadeModel(GL_SMOOTH);
 }
@@ -2180,6 +2187,99 @@ BrainOpenGLVolumeSliceDrawing::showBrainordinateHighlightRegionOfInterest(const 
                                            voxelQuadNormals,
                                            voxelQuadRgba);
 }
+
+/**
+ * Draw identification symbols on volume slice with the given plane.
+ *
+ * @param plane
+ *      The plane equation.
+ */
+void
+BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane)
+{
+    IdentificationManager* idManager = m_brain->getIdentificationManager();
+    
+    SelectionItemVoxelIdentificationSymbol* symbolID = m_brain->getSelectionManager()->getVoxelIdentificationSymbol();
+
+    const std::vector<IdentifiedItemVoxel> voxelIDs = idManager->getIdentifiedItemsForVolume();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            //EventManager::get()->sendEvent(colorsFromChartsEvent.getPointer());
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (symbolID->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    uint8_t rgba[4];
+    const int32_t numVoxelIdSymbols = static_cast<int32_t>(voxelIDs.size());
+    for (int32_t iVoxel = 0; iVoxel < numVoxelIdSymbols; iVoxel++) {
+        CaretAssertVectorIndex(voxelIDs, iVoxel);
+        const IdentifiedItemVoxel& voxel = voxelIDs[iVoxel];
+        float xyz[3];
+        voxel.getXYZ(xyz);
+        
+        const float symbolDiameter = voxel.getSymbolSize();
+        const float halfSymbolSize = symbolDiameter / 2.0;
+        
+        const float dist = plane.signedDistanceToPlane(xyz);
+        if (dist < halfSymbolSize) {
+            if (isSelect) {
+                m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
+                                                   SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
+                                                   iVoxel);
+                rgba[3] = 255;
+            }
+            else {
+                voxel.getSymbolRGBA(rgba);
+            }
+            
+            glPushMatrix();
+            glTranslatef(xyz[0], xyz[1], xyz[2]);
+            m_fixedPipelineDrawing->drawSphereWithDiameter(rgba,
+                                                           symbolDiameter);
+            glPopMatrix();
+        }
+    }
+    
+    if (isSelect) {
+        int voxelIdIndex = -1;
+        float depth = -1.0;
+        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
+                                         m_fixedPipelineDrawing->mouseX,
+                                         m_fixedPipelineDrawing->mouseY,
+                                         voxelIdIndex,
+                                         depth);
+        if (voxelIdIndex >= 0) {
+            if (symbolID->isOtherScreenDepthCloserToViewer(depth)) {
+                CaretAssertVectorIndex(voxelIDs, voxelIdIndex);
+                const IdentifiedItemVoxel& voxel = voxelIDs[voxelIdIndex];
+                float xyz[3];
+                voxel.getXYZ(xyz);
+                symbolID->setVoxelXYZ(xyz);
+                symbolID->setBrain(m_brain);
+                symbolID->setScreenDepth(depth);
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(symbolID, xyz);
+                CaretLogFine("Selected Vertex Identification Symbol: " + QString::number(voxelIdIndex));
+            }
+        }
+    }
+}
+
 
 /**
  * Draw an orthogonal slice with culling to avoid drawing
@@ -2486,6 +2586,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
     showBrainordinateHighlightRegionOfInterest(sliceViewPlane,
                                                sliceCoordinates,
                                                sliceNormalVector);
+    
+//    drawIdentificationSymbols(plane);
     
     glDisable(GL_BLEND);
     glShadeModel(GL_SMOOTH);

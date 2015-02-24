@@ -54,9 +54,14 @@ namespace caret {
         
         virtual AString toString() const;
 
+    protected:
+        SelectionItemVoxel(const SelectionItemDataTypeEnum::Enum itemDataType);
+        
     private:
         void copyHelperSelectionItemVoxel(const SelectionItemVoxel& idItem);
 
+        void resetPrivate();
+        
         VolumeMappableInterface* m_volumeFile;
         
         int64_t m_voxelIJK[3];

@@ -31,6 +31,7 @@ namespace caret {
 
     class IdentifiedItem;
     class IdentifiedItemNode;
+    class IdentifiedItemVoxel;
     class SceneClassAssistant;
     
     class IdentificationManager : public SceneableInterface {
@@ -47,15 +48,19 @@ namespace caret {
         std::vector<IdentifiedItemNode> getNodeIdentifiedItemsForSurface(const StructureEnum::Enum structure,
                                                                          const int32_t surfaceNumberOfNodes) const;
         
+        std::vector<IdentifiedItemVoxel> getIdentifiedItemsForVolume() const;
+        
         void removeIdentifiedNodeItem(const StructureEnum::Enum structure,
                                       const int32_t surfaceNumberOfNodes,
                                       const int32_t nodeIndex);
+        
+        void removeIdentifiedVoxelItem(const float xyz[3]);
         
         void removeIdentificationText();
         
         void removeAllIdentifiedItems();
         
-        void removeAllIdentifiedNodes();
+        void removeAllIdentifiedSymbols();
         
         bool isContralateralIdentificationEnabled() const;
         

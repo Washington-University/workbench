@@ -44,6 +44,7 @@
 #include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
+#include "SelectionItemVoxelIdentificationSymbol.h"
 #include "IdentificationTextGenerator.h"
 #include "Surface.h"
 
@@ -75,7 +76,8 @@ SelectionManager::SelectionManager()
     m_surfaceNodeIdentificationSymbol = new SelectionItemSurfaceNodeIdentificationSymbol();
     m_surfaceTriangleIdentification = new SelectionItemSurfaceTriangle();
     m_voxelIdentification = new SelectionItemVoxel();
-    m_voxelEditingIdentification= new SelectionItemVoxelEditing();
+    m_voxelIdentificationSymbol = new SelectionItemVoxelIdentificationSymbol();
+    m_voxelEditingIdentification = new SelectionItemVoxelEditing();
     
     m_allSelectionItems.push_back(m_surfaceBorderIdentification);
     m_allSelectionItems.push_back(m_chartDataSeriesIdentification);
@@ -88,6 +90,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_surfaceNodeIdentificationSymbol);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
     m_allSelectionItems.push_back(m_voxelIdentification);
+    m_allSelectionItems.push_back(m_voxelIdentificationSymbol);
     m_allSelectionItems.push_back(m_voxelEditingIdentification);
     m_allSelectionItems.push_back(m_volumeFocusIdentification);
     
@@ -141,6 +144,8 @@ SelectionManager::~SelectionManager()
     m_voxelIdentification = NULL;
     delete m_voxelEditingIdentification;
     m_voxelEditingIdentification = NULL;
+    delete m_voxelIdentificationSymbol;
+    m_voxelIdentificationSymbol = NULL;
     delete m_volumeFocusIdentification;
     m_volumeFocusIdentification = NULL;
     delete m_idTextGenerator;
@@ -253,6 +258,18 @@ SelectionManager::filterSelections(const bool applySelectionBackgroundFiltering)
         }
     }
     
+    if (m_voxelIdentificationSymbol->isValid()
+         && m_voxelIdentification->isValid()) {
+        const double depthDiff = (m_voxelIdentificationSymbol->getScreenDepth()
+                                  - m_voxelIdentification->getScreenDepth());
+        if (depthDiff > 0.01) {
+            m_voxelIdentificationSymbol->reset();
+        }
+        else {
+            m_voxelIdentification->reset();
+        }
+    }
+        
     if (applySelectionBackgroundFiltering) {
          clearDistantSelections();
     }
@@ -490,6 +507,24 @@ SelectionItemVoxel*
 SelectionManager::getVoxelIdentification()
 {
     return m_voxelIdentification;
+}
+
+/**
+ * @return Identification for voxel identification system.
+ */
+const SelectionItemVoxelIdentificationSymbol*
+SelectionManager::getVoxelIdentificationSymbol() const
+{
+    return m_voxelIdentificationSymbol;
+}
+
+/**
+ * @return Identification for voxels.
+ */
+SelectionItemVoxelIdentificationSymbol*
+SelectionManager::getVoxelIdentificationSymbol()
+{
+    return m_voxelIdentificationSymbol;
 }
 
 /**

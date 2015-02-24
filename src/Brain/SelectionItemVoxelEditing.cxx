@@ -42,7 +42,7 @@ using namespace caret;
  * Constructor.
  */
 SelectionItemVoxelEditing::SelectionItemVoxelEditing()
-: SelectionItemVoxel()
+: SelectionItemVoxel(SelectionItemDataTypeEnum::VOXEL_EDITING)
 {
     m_volumeFileForEditing = NULL;
 }

@@ -42,11 +42,27 @@ using namespace caret;
 SelectionItemVoxel::SelectionItemVoxel()
 : SelectionItem(SelectionItemDataTypeEnum::VOXEL)
 {
-    m_volumeFile = NULL;
-    m_voxelIJK[0] = -1;
-    m_voxelIJK[1] = -1;
-    m_voxelIJK[2] = -1;
+    /*
+     * Note: reset() is virtual so cannot call from constructor.
+     */
+    resetPrivate();
 }
+
+/**
+ * Constructor for child classes.
+ *
+ * @param itemDataType
+ *     The selection item data type for child class.
+ */
+SelectionItemVoxel::SelectionItemVoxel(const SelectionItemDataTypeEnum::Enum itemDataType)
+: SelectionItem(itemDataType)
+{
+    /*
+     * Note: reset() is virtual so cannot call from constructor.
+     */
+    resetPrivate();
+}
+
 
 /**
  * Destructor.
@@ -105,11 +121,22 @@ void
 SelectionItemVoxel::reset()
 {
     SelectionItem::reset();
+    
+    resetPrivate();
+}
+
+/**
+ * Reset this selection item.
+ */
+void
+SelectionItemVoxel::resetPrivate()
+{
     m_volumeFile = NULL;
     m_voxelIJK[0] = -1;
     m_voxelIJK[1] = -1;
     m_voxelIJK[2] = -1;
 }
+
 
 /**
  * @return The volume file.
