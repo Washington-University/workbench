@@ -156,6 +156,8 @@ UserInputModeBordersWidget::receiveEvent(Event* event)
             delete m_borderOptimizeDialog;
             m_borderOptimizeDialog = NULL;
         }
+        
+        brainEvent->setEventProcessed();
     }
 }
 
