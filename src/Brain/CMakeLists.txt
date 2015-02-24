@@ -62,8 +62,8 @@ BrainOpenGLShapeRing.h
 BrainOpenGLShapeSphere.h
 BrainOpenGLTextRenderInterface.h
 BrainOpenGLViewportContent.h
+BrainOpenGLVolumeObliqueSliceDrawing.h
 BrainOpenGLVolumeSliceDrawing.h
-OLD_BrainOpenGLVolumeSliceDrawing.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
@@ -182,8 +182,8 @@ BrainOpenGLShapeCylinder.cxx
 BrainOpenGLShapeRing.cxx
 BrainOpenGLShapeSphere.cxx
 BrainOpenGLViewportContent.cxx
+BrainOpenGLVolumeObliqueSliceDrawing.cxx
 BrainOpenGLVolumeSliceDrawing.cxx
-OLD_BrainOpenGLVolumeSliceDrawing.cxx
 BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx

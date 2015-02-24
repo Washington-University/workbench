@@ -40,8 +40,8 @@
 #include "Brain.h"
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
+#include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
-#include "OLD_BrainOpenGLVolumeSliceDrawing.h"
 #include "BrainOpenGLShapeCone.h"
 #include "BrainOpenGLShapeCube.h"
 #include "BrainOpenGLShapeCylinder.h"
@@ -3097,8 +3097,8 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
                                 viewport);
     }
     else {
-        OldBrainOpenGLVolumeSliceDrawing oldVolumeSliceDrawing;
-        oldVolumeSliceDrawing.draw(this,
+        BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
+        obliqueVolumeSliceDrawing.draw(this,
                                    browserTabContent,
                                    volumeDrawInfo,
                                    sliceDrawingType,
