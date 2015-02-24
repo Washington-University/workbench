@@ -355,9 +355,11 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             }
         }
     }
-    MetricFile combinedGrad;//TODO: provide as output
-    combinedGrad.setNumberOfNodesAndColumns(numNodes, 1);
-    combinedGrad.setValuesForColumn(0, combinedGradData.data());
+    if (inputData.m_combinedGradientDataOut != NULL)
+    {
+        inputData.m_combinedGradientDataOut->setNumberOfNodesAndColumns(numNodes, 1);
+        inputData.m_combinedGradientDataOut->setValuesForColumn(0, combinedGradData.data());
+    }
     CaretPointer<GeodesicHelper> myGeoHelp;
     CaretPointer<GeodesicHelperBase> myGeoBase;
     if (correctedAreasMetric != NULL)

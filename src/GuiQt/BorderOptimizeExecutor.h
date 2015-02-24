@@ -71,14 +71,16 @@ namespace caret {
                       Surface* surface,
                       const std::vector<DataFileInfo>& dataFileInfo,
                       const MetricFile* vertexAreasMetricFile,
-                      const float gradientFollowingStrength)
+                      const float gradientFollowingStrength,
+                      MetricFile* combinedGradientDataOut)
             : m_borders(borders),
             m_borderEnclosingROI(borderEnclosingROI),
             m_nodesInsideROI(nodesInsideROI),
             m_surface(surface),
             m_dataFileInfo(dataFileInfo),
             m_vertexAreasMetricFile(vertexAreasMetricFile),
-            m_gradientFollowingStrength(gradientFollowingStrength)
+            m_gradientFollowingStrength(gradientFollowingStrength),
+            m_combinedGradientDataOut(combinedGradientDataOut)
                 { }
             
             std::vector<Border*> m_borders;
@@ -88,6 +90,7 @@ namespace caret {
             const std::vector<DataFileInfo>& m_dataFileInfo;
             const MetricFile* m_vertexAreasMetricFile;
             const float m_gradientFollowingStrength;
+            MetricFile* m_combinedGradientDataOut;
         };
         
         BorderOptimizeExecutor();

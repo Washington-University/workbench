@@ -313,7 +313,8 @@ BorderOptimizeDialog::okButtonClicked()
                                                gradientComputationSurface,
                                                dataFileSelections,
                                                vertexAreasMetricFile,
-                                               gradientFollowingStrength);
+                                               gradientFollowingStrength,
+                                               NULL);
     
     AString statisticsInformation;
     if (BorderOptimizeExecutor::run(algInput,
