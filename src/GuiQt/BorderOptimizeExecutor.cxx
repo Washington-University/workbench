@@ -222,7 +222,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
      */
     
     SurfaceFile* computeSurf = inputData.m_surface;
-    const MetricFile* correctedAreasMetric = NULL;//TODO
+    const MetricFile* correctedAreasMetric = inputData.m_vertexAreasMetricFile;
     int32_t numNodes = computeSurf->getNumberOfNodes();
     int numSelected = (int)inputData.m_nodesInsideROI.size();
     if (numSelected < 1)
@@ -369,11 +369,11 @@ BorderOptimizeExecutor::run(const InputData& inputData,
     }
     CaretPointer<TopologyHelper> myTopoHelp = computeSurf->getTopologyHelper();
     for (int i = 0; i < numBorders; ++i)
-    {//TODO: draw new pieces and replace
+    {
         vector<int32_t> nodes;
         vector<float> dists;
         myGeoHelp->getPathFollowingData(myRedrawInfo[i].startnode, myRedrawInfo[i].endnode, combinedGradData.data(), nodes, dists,
-                                        5.0f, roiData.data(), true);//TODO: following strength
+                                        inputData.m_gradientFollowingStrength, roiData.data(), true);
         if (nodes.empty())
         {
             errorMessageOut = "Unable to redraw border segment for border '" + inputData.m_borders[i]->getName() + "'";
