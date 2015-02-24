@@ -59,7 +59,7 @@ namespace caret {
         
         float m_voxelXYZ[3];
         
-        bool m_voxelValid = false;
+        bool m_voxelValid;
         
         // ADD_NEW_MEMBERS_HERE
 

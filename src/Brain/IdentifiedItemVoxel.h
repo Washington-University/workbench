@@ -24,13 +24,11 @@
 
 #include "IdentifiedItem.h"
 
-#include "SceneableInterface.h"
-
 
 namespace caret {
     class SceneClassAssistant;
 
-    class IdentifiedItemVoxel : public IdentifiedItem, public SceneableInterface {
+    class IdentifiedItemVoxel : public IdentifiedItem{
         
     public:
         IdentifiedItemVoxel(const AString& text,
