@@ -721,12 +721,12 @@ CommandOperationManager::getCommandOperations()
 
 void CommandOperationManager::printHelpInfo()
 {
-    printVersionInfo();
+    cout << ApplicationInformation().getSummaryInformationInString("\n");
     //guide for wrap, assuming 80 columns:                                                  |
     cout << endl << "Information options:" << endl;
     cout << "   -help                       show this help info" << endl;
     cout << "   -arguments-help             explain how to read subcommand help info" << endl;
-    cout << "   -version                    show version information only" << endl;
+    cout << "   -version                    show extended version information" << endl;
     cout << "   -list-commands              list all processing subcommands" << endl;
     cout << "   -list-deprecated-commands   list deprecated subcommands" << endl;
     cout << "   -all-commands-help          show all processing subcommands and their help" << endl;

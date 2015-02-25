@@ -41,6 +41,8 @@ namespace caret {
         
         AString getAllInformationInString(const AString& separator) const;
         
+        AString getSummaryInformationInString(const AString& separator) const;
+        
         AString getCompiledWithDebugStatus() const;
         
         static ApplicationTypeEnum::Enum getApplicationType();

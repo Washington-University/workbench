@@ -46,8 +46,8 @@ ApplicationInformation::ApplicationInformation()
 { 
     this->name    = "Connectome Workbench";
     this->version = "1.0";
-    this->commit = "commit: @COMMIT@";
-    this->commitDate = "commit date: @COMMIT_DATE@";
+    this->commit = "Commit: @COMMIT@";
+    this->commitDate = "Commit Date: @COMMIT_DATE@";
 
 #ifdef NDEBUG
     this->compiledWithDebugOn = "Compiled Debug: NO";
@@ -165,6 +165,15 @@ ApplicationInformation::getAllInformationInString(const AString& separator) cons
         infoOut += separator;
     }
     
+    return infoOut;
+}
+
+AString
+ApplicationInformation::getSummaryInformationInString(const AString& separator) const
+{
+    AString infoOut = "Version: " + version + separator;
+    infoOut += commitDate + separator;
+    infoOut += operatingSystemName + separator;
     return infoOut;
 }
 
