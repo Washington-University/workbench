@@ -474,8 +474,15 @@ CommandOperationManager::~CommandOperationManager()
 void 
 CommandOperationManager::runCommand(ProgramParameters& parameters)
 {
-    vector<AString> globalOptionArgs;//not used yet
-    bool preventProvenance = getGlobalOption(parameters, "-disable-provenance", 0, globalOptionArgs);//check these BEFORE we test if we have a command switch
+    vector<AString> globalOptionArgs;
+    bool preventProvenance = getGlobalOption(parameters, "-disable-provenance", 0, globalOptionArgs);//check these BEFORE we test if we have a command switch, because they remove the switch and arguments from the ProgramParameters
+    if (getGlobalOption(parameters, "-logging", 1, globalOptionArgs))
+    {
+        bool valid = false;
+        const LogLevelEnum::Enum level = LogLevelEnum::fromName(globalOptionArgs[0], &valid);
+        if (!valid) throw CommandException("unrecognized logging level: '" + globalOptionArgs[0] + "'");
+        CaretLogger::getLogger()->setLevel(level);
+    }
 
     const uint64_t numberOfCommands = this->commandOperations.size();
     const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
@@ -558,9 +565,9 @@ bool CommandOperationManager::getGlobalOption(ProgramParameters& parameters, con
                 if (!parameters.hasNext())
                 {
                     throw CommandException("missing argument #" + AString::number(i + 1) + " to global option '" + optionString + "'");
-                    arguments.push_back(parameters.nextString("global option argument"));
-                    parameters.remove();
                 }
+                arguments.push_back(parameters.nextString("global option argument"));
+                parameters.remove();
             }
             parameters.setParameterIndex(0);
             return true;
@@ -706,7 +713,7 @@ CommandOperationManager::printAllCommandsMatching(const AString& partialSwitch)
  *   A vector containing the command operations.
  * Do not modify the returned value.
  */
-std::vector<CommandOperation*> 
+vector<CommandOperation*> 
 CommandOperationManager::getCommandOperations()
 {
     return this->commandOperations;
@@ -726,6 +733,14 @@ void CommandOperationManager::printHelpInfo()
     cout << "                                  info - VERY LONG" << endl;
     cout << endl << "Global options (can be added to any command):" << endl;
     cout << "   -disable-provenance         don't generate provenance info in output files" << endl;
+    cout << "   -logging <level>            set the logging level, valid values are:" << endl;
+    vector<LogLevelEnum::Enum> logLevels;
+    LogLevelEnum::getAllEnums(logLevels);
+    for (vector<LogLevelEnum::Enum>::iterator iter = logLevels.begin();
+         iter != logLevels.end();
+         iter++) {
+        cout << "            " << LogLevelEnum::toName(*iter) << endl;
+    }
     cout << endl;
     cout << "If the first argument is not recognized, all processing commands that start" << endl;
     cout << "   with the argument are displayed" << endl;
