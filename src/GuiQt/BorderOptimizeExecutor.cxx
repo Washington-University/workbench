@@ -135,7 +135,7 @@ namespace
                 CaretAssert(metricFile->getNumberOfNodes() == surface->getNumberOfNodes());
                 dataOut.setValuesForColumn(0, metricFile->getValuePointerForColumn(mapIndex));
                 vector<float> drawnROI(numNodes, 0.0f);
-                for (int i = 0; i < numSelected; ++i) drawnROI[i] = 1.0f;
+                for (int i = 0; i < numSelected; ++i) drawnROI[roiNodes[i]] = 1.0f;
                 roiOut.setValuesForColumn(0, drawnROI.data());
                 return true;
             }
@@ -152,8 +152,9 @@ namespace
                 vector<float> maskedROI(numNodes, 0.0f);
                 for (int i = 0; i < numSelected; ++i)
                 {
-                    maskedROI[i] = ciftiRoi[i];
+                    maskedROI[roiNodes[i]] = ciftiRoi[roiNodes[i]];
                 }
+                roiOut.setValuesForColumn(0, maskedROI.data());
                 return true;
             }
             default:

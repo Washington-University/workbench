@@ -5315,8 +5315,8 @@ bool CiftiMappableDataFile::getMapDataForSurface(const int32_t mapIndex, const S
     CaretAssert(m_ciftiFile);
     CaretAssertVectorIndex(m_mapContent, mapIndex);
 
-    const int32_t numCiftiNodes = getMappingSurfaceNumberOfNodes(structure);
-    if (numCiftiNodes < 1) return false;
+    const int32_t surfaceNumNodes = getMappingSurfaceNumberOfNodes(structure);
+    if (surfaceNumNodes < 1) return false;
 
     std::vector<float> mapData;
     getMapData(mapIndex, mapData);
@@ -5328,18 +5328,19 @@ bool CiftiMappableDataFile::getMapDataForSurface(const int32_t mapIndex, const S
         return false;
     }
     std::vector<int64_t> dataIndicesForNodes;
-    if (!getSurfaceDataIndicesForMappingToBrainordinates(structure, numCiftiNodes, dataIndicesForNodes))
+    if (!getSurfaceDataIndicesForMappingToBrainordinates(structure, surfaceNumNodes, dataIndicesForNodes))
     {
         return false;//currently should never happen, this currently works for parcellated files
     }
+    CaretAssert((int)dataIndicesForNodes.size() == surfaceNumNodes);
     
-    surfaceMapData.resize(numCiftiNodes, 0.0f);
+    surfaceMapData.resize(surfaceNumNodes, 0.0f);
     if (roiData != NULL)
     {
         roiData->clear();//make sure all values get initialized before setting the roi nodes
-        roiData->resize(numCiftiNodes, 0.0f);
+        roiData->resize(surfaceNumNodes, 0.0f);
     }
-    for (int32_t iNode = 0; iNode < numCiftiNodes; iNode++) {
+    for (int32_t iNode = 0; iNode < surfaceNumNodes; iNode++) {
         CaretAssertVectorIndex(dataIndicesForNodes,
                                 iNode);
         
@@ -5348,7 +5349,7 @@ bool CiftiMappableDataFile::getMapDataForSurface(const int32_t mapIndex, const S
             surfaceMapData[iNode] = mapData[dataIndex];
             if (roiData != NULL)
             {
-                (*roiData)[iNode] = mapData[dataIndex];
+                (*roiData)[iNode] = 1.0f;
             }
         }
     }
