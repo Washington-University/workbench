@@ -54,6 +54,8 @@ namespace caret {
         
         void getModifiedBorders(std::vector<Border*>& modifiedBordersOut) const;
 
+        bool isKeepBoundaryBorderSelected() const;
+        
         void updateDialog(const int32_t browserTabIndex,
                           Surface* surface,
                           std::vector<Border*>& bordersInsideROI,
@@ -69,6 +71,14 @@ namespace caret {
         void addDataFileRowToolButtonClicked();
         
         void gradientComputatonSurfaceSelected(Surface* surface);
+        
+        void bordersDisableAllSelected();
+        
+        void bordersEnableAllSelected();
+        
+        void dataFilesDisableAllSelected();
+        
+        void dataFilesEnableAllSelected();
         
     private:
         BorderOptimizeDialog(const BorderOptimizeDialog&);
@@ -86,6 +96,10 @@ namespace caret {
         QWidget* createSurfaceSelectionWidget();
         
         void addDataFileRow(CaretMappableDataFile* mapFile);
+        
+        void setAllBorderEnabledSelections(const bool status);
+        
+        void setAllDataFileEnabledSelections(const bool status);
         
         Surface* m_surface;
         
@@ -120,6 +134,8 @@ namespace caret {
         QDoubleSpinBox* m_gradientFollowingStrengthSpinBox;
         
         int32_t m_browserTabIndex;
+        
+        QCheckBox* m_keepRegionBorderCheckBox;
         
     };
     

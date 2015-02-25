@@ -930,6 +930,10 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
         }
         
         setLastEditedBorder(undoBorders);
+        
+        if ( ! m_borderOptimizeDialog->isKeepBoundaryBorderSelected()) {
+            this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
+        }
     }
     
     /*

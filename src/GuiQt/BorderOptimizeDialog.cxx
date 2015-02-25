@@ -43,6 +43,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
+#include "CursorDisplayScoped.h"
 #include "EventBrowserTabGet.h"
 #include "EventDataFileAdd.h"
 #include "EventManager.h"
@@ -67,6 +68,10 @@ using namespace caret;
  * \ingroup GuiQt
  */
 
+static const int STRETCH_NONE = 0;
+static const int STRETCH_MAX  = 100;
+
+
 /**
  * Constructor.
  *
@@ -87,9 +92,6 @@ m_browserTabIndex(-1)
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::METRIC);
-    
-    const int STRETCH_NONE = 0;
-    const int STRETCH_MAX  = 100;
     
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
@@ -265,6 +267,9 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
 void
 BorderOptimizeDialog::okButtonClicked()
 {
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     AString errorMessage;
     m_selectedBorders.clear();
     
@@ -321,6 +326,7 @@ BorderOptimizeDialog::okButtonClicked()
     }
     
     if ( ! errorMessage.isEmpty()) {
+        cursor.restoreCursor();
         WuQMessageBox::errorOk(this, errorMessage);
         return;
     }
@@ -354,8 +360,10 @@ BorderOptimizeDialog::okButtonClicked()
             resultsMetricFile->setMapName(0, metricFileMapName);
             EventDataFileAdd addDataFile(resultsMetricFile.releasePointer());
             EventManager::get()->sendEvent(addDataFile.getPointer());
-            infoMsg.appendWithNewLine("Results in "
-                                      + resultsMetricFile->getFileNameNoPath());
+            infoMsg.appendWithNewLine("Border Optimization Gradient results in file "
+                                      + resultsMetricFile->getFileNameNoPath()
+                                      + "   map "
+                                      + metricFileMapName);
 
             if (m_browserTabIndex >= 0) {
                 /*
@@ -393,6 +401,7 @@ BorderOptimizeDialog::okButtonClicked()
         return;
     }
     
+    cursor.restoreCursor();
     WuQMessageBox::errorOk(this, errorMessage);
 }
 
@@ -426,10 +435,67 @@ BorderOptimizeDialog::getModifiedBorders(std::vector<Border*>& modifiedBordersOu
 QWidget*
 BorderOptimizeDialog::createBorderSelectionWidget()
 {
-    QGroupBox* widget = new QGroupBox("Borders");
-    m_bordersInsideROILayout = new QVBoxLayout(widget);
+    m_bordersInsideROILayout = new QVBoxLayout();
     
+    QAction* diableAllAction = new QAction("Disable All",
+                                           this);
+    QObject::connect(diableAllAction, SIGNAL(triggered(bool)),
+                     this, SLOT(bordersDisableAllSelected()));
+    QToolButton* disableAllToolButton = new QToolButton();
+    disableAllToolButton->setDefaultAction(diableAllAction);
+    
+    QAction* enableAllAction = new QAction("Enable All",
+                                        this);
+    QObject::connect(enableAllAction, SIGNAL(triggered(bool)),
+                     this, SLOT(bordersEnableAllSelected()));
+    QToolButton* enableAllToolButton = new QToolButton();
+    enableAllToolButton->setDefaultAction(enableAllAction);
+    
+    QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    buttonsLayout->addWidget(enableAllToolButton);
+    buttonsLayout->addWidget(disableAllToolButton);
+    buttonsLayout->addStretch();
+    
+    QGroupBox* widget = new QGroupBox("Borders");
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(m_bordersInsideROILayout, STRETCH_MAX);
+    layout->addLayout(buttonsLayout, STRETCH_NONE);
     return widget;
+}
+
+/**
+ * Disable all borders.
+ */
+void
+BorderOptimizeDialog::bordersDisableAllSelected()
+{
+    setAllBorderEnabledSelections(false);
+}
+
+/**
+ * Enable all borders.
+ */
+void
+BorderOptimizeDialog::bordersEnableAllSelected()
+{
+    setAllBorderEnabledSelections(true);
+}
+
+/**
+ * Set the enable status of all borders to the given value.
+ *
+ * @param status
+ *    New status.
+ */
+void
+BorderOptimizeDialog::setAllBorderEnabledSelections(const bool status)
+{
+    for (std::vector<QCheckBox*>::iterator iter = m_borderCheckBoxes.begin();
+         iter != m_borderCheckBoxes.end();
+         iter++) {
+        QCheckBox* cb = *iter;
+        cb->setChecked(status);
+    }
 }
 
 /**
@@ -474,11 +540,31 @@ BorderOptimizeDialog::createDataFilesWidget()
     QToolButton* addRowToolButton = new QToolButton();
     addRowToolButton->setDefaultAction(addRowAction);
     
+    QAction* diableAllAction = new QAction("Disable All",
+                                           this);
+    QObject::connect(diableAllAction, SIGNAL(triggered(bool)),
+                     this, SLOT(dataFilesDisableAllSelected()));
+    QToolButton* disableAllToolButton = new QToolButton();
+    disableAllToolButton->setDefaultAction(diableAllAction);
+    
+    QAction* enableAllAction = new QAction("Enable All",
+                                           this);
+    QObject::connect(enableAllAction, SIGNAL(triggered(bool)),
+                     this, SLOT(dataFilesEnableAllSelected()));
+    QToolButton* enableAllToolButton = new QToolButton();
+    enableAllToolButton->setDefaultAction(enableAllAction);
+    
+    QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    buttonsLayout->addWidget(addRowToolButton);
+    buttonsLayout->addWidget(enableAllToolButton);
+    buttonsLayout->addWidget(disableAllToolButton);
+    buttonsLayout->addStretch();
+    
     QGroupBox* groupBox = new QGroupBox("Data Files");
     groupBox->setMinimumHeight(300);
     QVBoxLayout* groupBoxLayout = new QVBoxLayout(groupBox);
-    groupBoxLayout->addWidget(scrollArea, 100);
-    groupBoxLayout->addWidget(addRowToolButton, 0, Qt::AlignLeft);
+    groupBoxLayout->addWidget(scrollArea, STRETCH_MAX);
+    groupBoxLayout->addLayout(buttonsLayout, STRETCH_NONE);
     return groupBox;
 }
 
@@ -511,6 +597,42 @@ BorderOptimizeDialog::addDataFileRowToolButtonClicked()
 }
 
 /**
+ * Disable all borders.
+ */
+void
+BorderOptimizeDialog::dataFilesDisableAllSelected()
+{
+    setAllDataFileEnabledSelections(false);
+}
+
+/**
+ * Enable all borders.
+ */
+void
+BorderOptimizeDialog::dataFilesEnableAllSelected()
+{
+    setAllDataFileEnabledSelections(true);
+}
+
+/**
+ * Set the enable status of all borders to the given value.
+ *
+ * @param status
+ *    New status.
+ */
+void
+BorderOptimizeDialog::setAllDataFileEnabledSelections(const bool status)
+{
+    for (std::vector<BorderOptimizeDataFileSelector*>::iterator iter = m_optimizeDataFileSelectors.begin();
+         iter != m_optimizeDataFileSelectors.end();
+         iter++) {
+        BorderOptimizeDataFileSelector* dfs = *iter;
+        dfs->m_selectionCheckBox->setChecked(status);
+    }
+}
+
+
+/**
  * @return The metric vertex areas widget.
  */
 QWidget*
@@ -533,6 +655,9 @@ BorderOptimizeDialog::createVertexAreasMetricWidget()
 QWidget*
 BorderOptimizeDialog::createOptionsWidget()
 {
+    m_keepRegionBorderCheckBox = new QCheckBox("Keep Boundary Border");
+    m_keepRegionBorderCheckBox->setChecked(true);
+    
     QLabel* gradientLabel = new QLabel("Graident Following Strength");
     m_gradientFollowingStrengthSpinBox = new QDoubleSpinBox();
     m_gradientFollowingStrengthSpinBox->setRange(0.0, 1.0e6);
@@ -547,9 +672,19 @@ BorderOptimizeDialog::createOptionsWidget()
     
     QGroupBox* widget = new QGroupBox("Options");
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(m_keepRegionBorderCheckBox);
     layout->addLayout(gradientLayout);
     
     return widget;
+}
+
+/**
+ * @return Return keep boundary border selection status.
+ */
+bool
+BorderOptimizeDialog::isKeepBoundaryBorderSelected() const
+{
+    return m_keepRegionBorderCheckBox->isChecked();
 }
 
 /**
