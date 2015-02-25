@@ -231,9 +231,11 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         return false;
     }
     vector<float> roiData(numNodes, 0.0f);
+    vector<float> combinedGradData(numNodes, 0.0f);
     for (int i = 0; i < numSelected; ++i)
     {
         roiData[inputData.m_nodesInsideROI[i]] = 1.0f;
+        combinedGradData[inputData.m_nodesInsideROI[i]] = 1.0f;//also initialize only the inside-roi parts of the gradient combining function, leaving the outside 0
     }
     int numBorders = (int)inputData.m_borders.size();
     vector<BorderRedrawInfo> myRedrawInfo(numBorders);
@@ -330,7 +332,6 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         myRedrawInfo[i].startnode = getBorderPointNode(thisBorder, start);
         myRedrawInfo[i].endnode = getBorderPointNode(thisBorder, end);
     }
-    vector<float> combinedGradData(numNodes, 1.0f);
     int numInputs = (int)inputData.m_dataFileInfo.size();
     for (int i = 0; i < numInputs; ++i)
     {
