@@ -52,9 +52,10 @@ namespace caret {
         
         virtual ~BorderOptimizeDialog();
         
-        void getSelectedBorders(std::vector<Border*>& selectedBordersOut) const;
+        void getModifiedBorders(std::vector<Border*>& modifiedBordersOut) const;
 
-        void updateDialog(Surface* surface,
+        void updateDialog(const int32_t browserTabIndex,
+                          Surface* surface,
                           std::vector<Border*>& bordersInsideROI,
                           Border* borderEnclosingROI,
                           std::vector<int32_t>& nodesInsideROI);
@@ -90,6 +91,8 @@ namespace caret {
         
         std::vector<Border*> m_bordersInsideROI;
         
+        std::vector<Border*> m_selectedBorders;
+        
         QVBoxLayout* m_bordersInsideROILayout;
         
         Border* m_borderEnclosingROI;
@@ -115,6 +118,9 @@ namespace caret {
         CaretDataFileSelectionModel* m_vertexAreasMetricFileSelectionModel;
         
         QDoubleSpinBox* m_gradientFollowingStrengthSpinBox;
+        
+        int32_t m_browserTabIndex;
+        
     };
     
     class BorderOptimizeDataFileSelector : public QObject {

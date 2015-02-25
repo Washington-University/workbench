@@ -36,16 +36,22 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
+#include "EventBrowserTabGet.h"
+#include "EventDataFileAdd.h"
 #include "EventManager.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MetricFile.h"
+#include "OverlaySet.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
@@ -74,7 +80,8 @@ m_surface(NULL),
 m_borderEnclosingROI(NULL),
 m_surfaceSelectionStructure(StructureEnum::INVALID),
 m_surfaceSelectionModel(NULL),
-m_vertexAreasMetricFileSelectionModel(NULL)
+m_vertexAreasMetricFileSelectionModel(NULL),
+m_browserTabIndex(-1)
 {
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE);
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
@@ -120,6 +127,8 @@ BorderOptimizeDialog::~BorderOptimizeDialog()
 /**
  * Update the content of the dialog.
  *
+ * @param browserTabIndex
+ *    Index of browser tab in which borders are drawn.
  * @param surface
  *    Surface on which borders are drawn.
  * @param bordersInsideROI
@@ -130,7 +139,8 @@ BorderOptimizeDialog::~BorderOptimizeDialog()
  *    Nodes inside the region of interest.
  */
 void
-BorderOptimizeDialog::updateDialog(Surface* surface,
+BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
+                                   Surface* surface,
                                    std::vector<Border*>& bordersInsideROI,
                                    Border* borderEnclosingROI,
                                    std::vector<int32_t>& nodesInsideROI)
@@ -138,6 +148,7 @@ BorderOptimizeDialog::updateDialog(Surface* surface,
     CaretAssert(surface);
     CaretAssert(borderEnclosingROI);
     
+    m_browserTabIndex    = browserTabIndex;
     m_surface            = surface;
     m_bordersInsideROI   = bordersInsideROI;
     m_borderEnclosingROI = borderEnclosingROI;
@@ -255,6 +266,8 @@ void
 BorderOptimizeDialog::okButtonClicked()
 {
     AString errorMessage;
+    m_selectedBorders.clear();
+    
     
     Surface* gradientComputationSurface = m_surfaceSelectionModel->getSurface();
     if (gradientComputationSurface == NULL) {
@@ -287,10 +300,20 @@ BorderOptimizeDialog::okButtonClicked()
         errorMessage.appendWithNewLine("No optimization data files are selected.");
     }
     
-    std::vector<Border*> selectedBorders;
-    getSelectedBorders(selectedBorders);
+    /*
+     * Get borders selected by the user.
+     */
+    CaretAssert(m_bordersInsideROI.size() <= m_borderCheckBoxes.size());
+    const int32_t numBorderFileSelections = static_cast<int32_t>(m_bordersInsideROI.size());
+    for (int32_t iBorder = 0; iBorder < numBorderFileSelections; iBorder++) {
+        if (m_borderCheckBoxes[iBorder]->isVisible()) {
+            if (m_borderCheckBoxes[iBorder]->isChecked()) {
+                m_selectedBorders.push_back(m_bordersInsideROI[iBorder]);
+            }
+        }
+    }
     
-    if (selectedBorders.empty()) {
+    if (m_selectedBorders.empty()) {
         errorMessage.appendWithNewLine("No optimization border files are selected.");
     }
     
@@ -307,23 +330,56 @@ BorderOptimizeDialog::okButtonClicked()
     
     const float gradientFollowingStrength = m_gradientFollowingStrengthSpinBox->value();
     
-    BorderOptimizeExecutor::InputData algInput(selectedBorders,
+    CaretPointer<MetricFile> resultsMetricFile;
+    resultsMetricFile.grabNew(new MetricFile());
+    BorderOptimizeExecutor::InputData algInput(m_selectedBorders,
                                                m_borderEnclosingROI,
                                                m_nodesInsideROI,
                                                gradientComputationSurface,
                                                dataFileSelections,
                                                vertexAreasMetricFile,
                                                gradientFollowingStrength,
-                                               NULL);
+                                               resultsMetricFile);
     
     AString statisticsInformation;
     if (BorderOptimizeExecutor::run(algInput,
                                     statisticsInformation,
                                     errorMessage)) {
+        AString infoMsg;
+        if ( ! resultsMetricFile->isEmpty()) {
+            resultsMetricFile->setStructure(gradientComputationSurface->getStructure());
+            EventDataFileAdd addDataFile(resultsMetricFile.releasePointer());
+            EventManager::get()->sendEvent(addDataFile.getPointer());
+            infoMsg.appendWithNewLine("Results in "
+                                      + resultsMetricFile->getFileNameNoPath());
+
+            if (m_browserTabIndex >= 0) {
+                /*
+                 * Updating user interface will update content of overlay
+                 * so that metric file gets added.
+                 */
+                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                
+                EventBrowserTabGet browserTabEvent(m_browserTabIndex);
+                EventManager::get()->sendEvent(browserTabEvent.getPointer());
+                BrowserTabContent* tabContent = browserTabEvent.getBrowserTab();
+                if (tabContent != NULL) {
+                    OverlaySet* overlaySet = tabContent->getOverlaySet();
+                    CaretAssert(overlaySet);
+                    Overlay* overlay = overlaySet->getPrimaryOverlay();
+                    CaretAssert(overlay);
+                    overlay->setSelectionData(resultsMetricFile, 0);
+                    
+                    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+                }
+            }
+        }
+        
         /*
          * Display the statistics information.
          */
-        EventManager::get()->sendEvent(EventUpdateInformationWindows(statisticsInformation).getPointer());
+        infoMsg.appendWithNewLine(statisticsInformation);
+        EventManager::get()->sendEvent(EventUpdateInformationWindows(infoMsg).getPointer());
         
         /*
          * Success, allow dialog to close.
@@ -355,19 +411,9 @@ BorderOptimizeDialog::cancelButtonClicked()
  *     Output containing borders selected by the user.
  */
 void
-BorderOptimizeDialog::getSelectedBorders(std::vector<Border*>& selectedBordersOut) const
+BorderOptimizeDialog::getModifiedBorders(std::vector<Border*>& modifiedBordersOut) const
 {
-    selectedBordersOut.clear();
-    
-    CaretAssert(m_bordersInsideROI.size() <= m_borderCheckBoxes.size());
-    const int32_t numBorderFileSelections = static_cast<int32_t>(m_bordersInsideROI.size());
-    for (int32_t iBorder = 0; iBorder < numBorderFileSelections; iBorder++) {
-        if (m_borderCheckBoxes[iBorder]->isVisible()) {
-            if (m_borderCheckBoxes[iBorder]->isChecked()) {
-                selectedBordersOut.push_back(m_bordersInsideROI[iBorder]);
-            }
-        }
-    }
+    modifiedBordersOut = m_selectedBorders;
 }
 
 /**
@@ -599,9 +645,11 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
                               row, COLUMN_SELECT,
                               2, 1,
                               Qt::AlignCenter);
-        gridLayout->addWidget(new QLabel("Smoothing (mm)"),
+        gridLayout->addWidget(new QLabel("Smoothing"),
                               row, COLUMN_SMOOTH,
-                              2, 1,
+                              Qt::AlignCenter);
+        gridLayout->addWidget(new QLabel("Sigma (mm)"),
+                              row+1, COLUMN_SMOOTH,
                               Qt::AlignCenter);
         gridLayout->addWidget(new QLabel("Weight"),
                               row, COLUMN_WEIGHT,

@@ -896,18 +896,18 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
                                "No borders were found inside the drawn border.");
         return;
     }
-    
-    
+
     if (m_borderOptimizeDialog == NULL) {
         m_borderOptimizeDialog = new BorderOptimizeDialog(this);
     }
-    m_borderOptimizeDialog->updateDialog(surface,
+    m_borderOptimizeDialog->updateDialog(browserTabIndex,
+                                         surface,
                              bordersInsideRegionOfInterest,
                              const_cast<Border*>(borderDrawnByUser),
                              nodesInsideBorder);
     if (m_borderOptimizeDialog->exec() == BorderOptimizeDialog::Accepted) {
         std::vector<Border*> modifiedBorders;
-        m_borderOptimizeDialog->getSelectedBorders(modifiedBorders);
+        m_borderOptimizeDialog->getModifiedBorders(modifiedBorders);
         
         /*
          * Track modified borders so that changes can be 'undone' by 
@@ -935,6 +935,7 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
     /*
      * Update all graphics windows to displayed changed borders
      */
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     adjustViewActionTriggered();
 }
 
