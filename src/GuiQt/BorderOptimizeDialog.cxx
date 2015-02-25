@@ -303,12 +303,15 @@ BorderOptimizeDialog::okButtonClicked()
     /*
      * Get borders selected by the user.
      */
+    AString metricFileMapName;
     CaretAssert(m_bordersInsideROI.size() <= m_borderCheckBoxes.size());
     const int32_t numBorderFileSelections = static_cast<int32_t>(m_bordersInsideROI.size());
     for (int32_t iBorder = 0; iBorder < numBorderFileSelections; iBorder++) {
         if (m_borderCheckBoxes[iBorder]->isVisible()) {
             if (m_borderCheckBoxes[iBorder]->isChecked()) {
                 m_selectedBorders.push_back(m_bordersInsideROI[iBorder]);
+                metricFileMapName.append(m_bordersInsideROI[iBorder]->getName()
+                                         + " ");
             }
         }
     }
@@ -348,6 +351,7 @@ BorderOptimizeDialog::okButtonClicked()
         AString infoMsg;
         if ( ! resultsMetricFile->isEmpty()) {
             resultsMetricFile->setStructure(gradientComputationSurface->getStructure());
+            resultsMetricFile->setMapName(0, metricFileMapName);
             EventDataFileAdd addDataFile(resultsMetricFile.releasePointer());
             EventManager::get()->sendEvent(addDataFile.getPointer());
             infoMsg.appendWithNewLine("Results in "
