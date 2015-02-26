@@ -358,6 +358,17 @@ BorderOptimizeDialog::okButtonClicked()
         if ( ! resultsMetricFile->isEmpty()) {
             resultsMetricFile->setStructure(gradientComputationSurface->getStructure());
             resultsMetricFile->setMapName(0, metricFileMapName);
+            PaletteColorMapping* pcm = resultsMetricFile->getMapPaletteColorMapping(0);
+            pcm->setAutoScalePercentageNegativeMaximum(96.0);
+            pcm->setAutoScalePercentageNegativeMinimum(4.0);
+            pcm->setAutoScalePercentagePositiveMinimum(4.0);
+            pcm->setAutoScalePercentagePositiveMaximum(96.0);
+            pcm->setSelectedPaletteName("videen_style");
+            pcm->setDisplayNegativeDataFlag(false);
+            pcm->setDisplayZeroDataFlag(false);
+            pcm->setDisplayPositiveDataFlag(true);
+            pcm->setInterpolatePaletteFlag(true);
+            
             EventDataFileAdd addDataFile(resultsMetricFile.releasePointer());
             EventManager::get()->sendEvent(addDataFile.getPointer());
             infoMsg.appendWithNewLine("Border Optimization Gradient results in file "
