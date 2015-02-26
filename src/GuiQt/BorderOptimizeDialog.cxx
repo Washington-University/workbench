@@ -270,6 +270,8 @@ BorderOptimizeDialog::okButtonClicked()
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
     
+    preserveDialogSizeAndPositionWhenReOpened();
+    
     AString errorMessage;
     m_selectedBorders.clear();
     
@@ -422,11 +424,24 @@ BorderOptimizeDialog::okButtonClicked()
 void
 BorderOptimizeDialog::cancelButtonClicked()
 {
+    preserveDialogSizeAndPositionWhenReOpened();
+    
     /*
      * Allow dialog to close.
      */
     WuQDialogModal::cancelButtonClicked();
 }
+
+/**
+ * Make dialog appear in same place and size when repopened.
+ */
+void
+BorderOptimizeDialog::preserveDialogSizeAndPositionWhenReOpened()
+{
+    setSaveWindowPositionForNextTime("BorderOptimizeDialog");
+    setSizeOfDialogWhenDisplayed(size());
+}
+
 
 /**
  * Get borders that were selected by the user.

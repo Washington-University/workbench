@@ -101,6 +101,8 @@ namespace caret {
         
         void setAllDataFileEnabledSelections(const bool status);
         
+        void preserveDialogSizeAndPositionWhenReOpened();
+        
         Surface* m_surface;
         
         std::vector<Border*> m_bordersInsideROI;

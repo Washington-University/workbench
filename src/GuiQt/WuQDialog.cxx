@@ -672,6 +672,23 @@ WuQDialog::sizeHint () const
 }
 
 /**
+ * Set the size of the dialog for next time it is displayed.
+ * This must be called BEFORE displayng the dialog.
+ */
+void
+WuQDialog::setSizeOfDialogWhenDisplayed(const QSize& size)
+{
+    const int32_t w = size.width();
+    const int32_t h = size.height();
+    
+    if ((w > 0)
+        && (h > 0)) {
+        m_sizeHintWidth  = w;
+        m_sizeHintHeight = h;
+    }
+}
+
+/**
  * A scroll area's size hint is often larger than its content widget and in
  * this case the dialog will be too large with blank space in the scroll area.
  * This method will adjust the size of the dialog which in turn will shrink

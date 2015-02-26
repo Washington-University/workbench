@@ -104,6 +104,8 @@ namespace caret  {
         
         virtual QSize sizeHint() const;
 
+        void setSizeOfDialogWhenDisplayed(const QSize& size);
+        
     public slots:
 
         virtual bool close();
