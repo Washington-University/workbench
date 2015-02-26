@@ -148,17 +148,34 @@ IdentificationManager::getIdentificationText() const
 }
 
 /**
- * Remove all identification text.
+ * Remove all identification text.  Node and voxels items have their text
+ * removed and all other identification items are removed.
  */
 void
 IdentificationManager::removeIdentificationText()
 {
+    std::list<IdentifiedItem*> idItemsToKeep;
+    
     for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
         IdentifiedItem* item = *iter;
-        item->clearText();
+        IdentifiedItemNode* nodeItem   = dynamic_cast<IdentifiedItemNode*>(item);
+        IdentifiedItemVoxel* voxelItem = dynamic_cast<IdentifiedItemVoxel*>(item);
+        if ((nodeItem != NULL)
+            || (voxelItem != NULL)) {
+            item->clearText();
+            idItemsToKeep.push_back(item);
+        }
+        else {
+            if (m_mostRecentIdentifiedItem == item) {
+                m_mostRecentIdentifiedItem = NULL;
+            }
+            delete item;
+        }
     }
+    
+    m_identifiedItems = idItemsToKeep;
 }
 
 /**
@@ -329,12 +346,16 @@ IdentificationManager::removeAllIdentifiedItems()
 }
 
 /**
- * Remove all identification symbols.
+ * Remove all identification symbols while preserving text.
+ *
+ * Text from identification symbols for surface or volume are 
+ * inserted into new identified items and the symbol items
+ * are removed.
  */
 void
 IdentificationManager::removeAllIdentifiedSymbols()
 {
-    std::list<IdentifiedItem*> itemsToKeep;
+    std::list<IdentifiedItem*> idItemsToKeep;
     
     for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
@@ -342,24 +363,32 @@ IdentificationManager::removeAllIdentifiedSymbols()
         IdentifiedItem* item = *iter;
         IdentifiedItemNode* nodeItem   = dynamic_cast<IdentifiedItemNode*>(item);
         IdentifiedItemVoxel* voxelItem = dynamic_cast<IdentifiedItemVoxel*>(item);
-        if (nodeItem != NULL) {
-            if (m_mostRecentIdentifiedItem == nodeItem) {
+        IdentifiedItem* itemToKeep = NULL;
+        if ((nodeItem != NULL)
+            || (voxelItem != NULL)) {
+            if (m_mostRecentIdentifiedItem == item) {
                 m_mostRecentIdentifiedItem = NULL;
             }
-            delete nodeItem;
-        }
-        else if (voxelItem != NULL) {
-            if (m_mostRecentIdentifiedItem == voxelItem) {
-                m_mostRecentIdentifiedItem = NULL;
-            }
-            delete voxelItem;
+            
+            itemToKeep = new IdentifiedItem(item->getText());
+            delete item;
         }
         else {
-            itemsToKeep.push_back(item);
+            itemToKeep = item;
+        }
+        
+        if (itemToKeep != NULL) {
+            if (itemToKeep->getText().isEmpty()) {
+                delete itemToKeep;
+                itemToKeep = NULL;
+            }
+            else {
+                idItemsToKeep.push_back(itemToKeep);
+            }
         }
     }
     
-    m_identifiedItems = itemsToKeep;
+    m_identifiedItems = idItemsToKeep;
 }
 
 /**
