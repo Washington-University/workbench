@@ -207,7 +207,7 @@ CaretMappableDataFileAndMapSelectorObject::getWidgetsForAddingToLayout(QWidget* 
 void
 CaretMappableDataFileAndMapSelectorObject::updateContent()
 {
-    bool validFlag = false;
+    bool validMapsFlag = false;
     
     if (m_model != NULL) {
         CaretMappableDataFile* mapFile = m_model->getSelectedFile();
@@ -216,7 +216,7 @@ CaretMappableDataFileAndMapSelectorObject::updateContent()
             const int32_t mapIndex = m_model->getSelectedMapIndex();
             if ((mapIndex >= 0)
                 && (mapIndex < numMaps)) {
-                validFlag = true;
+                validMapsFlag = true;
                 
                 if (m_mapIndexSpinBox != NULL) {
                     m_mapIndexSpinBox->blockSignals(true);
@@ -240,13 +240,20 @@ CaretMappableDataFileAndMapSelectorObject::updateContent()
                 }
                 m_mapNameComboBox->setCurrentIndex(mapIndex);
             }
+            
+            /*
+             * Dense connectivity does not allow map selection.
+             */
+            if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
+                validMapsFlag = false;
+            }
         }
     }
     
     if (m_mapIndexSpinBox != NULL) {
-        m_mapIndexSpinBox->setEnabled(validFlag);
+        m_mapIndexSpinBox->setEnabled(validMapsFlag);
     }
-    m_mapNameComboBox->setEnabled(validFlag);
+    m_mapNameComboBox->setEnabled(validMapsFlag);
 }
 
 /**

@@ -901,14 +901,28 @@ BorderOptimizeDataFileSelector::updateFileData()
     QWidget* mapFileComboBox;
     QWidget* mapIndexSpinBox;
     QWidget* mapNameComboBox;
+    m_mapFileAndIndexSelectorObject->updateFileAndMapSelector(m_mapFileAndIndexSelectorObject->getModel());
     m_mapFileAndIndexSelectorObject->getWidgetsForAddingToLayout(mapFileComboBox,
                                                                  mapIndexSpinBox,
                                                                  mapNameComboBox);
-    const bool enableMapSelection = (widgetsEnabled
-                                     && ( ! m_allMapsCheckBox->isChecked()));
-    mapFileComboBox->setEnabled(widgetsEnabled);
-    mapIndexSpinBox->setEnabled(enableMapSelection);
-    mapNameComboBox->setEnabled(enableMapSelection);
+    /*
+     * Note: The selector will sometimes set the map selectors to enabled
+     * or disabled (such as a map-less file like DENSE (.dconn.nii) so we
+     * do not want to "enable" the map controls as it may enabled them
+     * after the selector update has disabled them.
+     */
+    if (widgetsEnabled) {
+        mapFileComboBox->setEnabled(true);
+        if (m_allMapsCheckBox->isChecked()) {
+            mapIndexSpinBox->setEnabled(false);
+            mapNameComboBox->setEnabled(false);
+        }
+    }
+    else {
+        mapFileComboBox->setEnabled(false);
+        mapIndexSpinBox->setEnabled(false);
+        mapNameComboBox->setEnabled(false);
+    }
 }
 
 /**
