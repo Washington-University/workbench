@@ -745,6 +745,8 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
     m_mapFileAndIndexSelectorObject = new CaretMappableDataFileAndMapSelectorObject(optimizeDataFileTypes,
                                                                                     CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
                                                                                     this);
+    QObject::connect(m_mapFileAndIndexSelectorObject, SIGNAL(selectionWasPerformed()),
+                     this, SLOT(mapFileSelectionChanged()));
     
     QWidget* mapFileComboBox;
     QWidget* mapIndexSpinBox;
@@ -898,32 +900,40 @@ BorderOptimizeDataFileSelector::updateFileData()
     m_invertGradientCheckBox->setEnabled(widgetsEnabled);
     m_allMapsCheckBox->setEnabled(widgetsEnabled);
     
-    QWidget* mapFileComboBox;
-    QWidget* mapIndexSpinBox;
-    QWidget* mapNameComboBox;
-    m_mapFileAndIndexSelectorObject->updateFileAndMapSelector(m_mapFileAndIndexSelectorObject->getModel());
-    m_mapFileAndIndexSelectorObject->getWidgetsForAddingToLayout(mapFileComboBox,
-                                                                 mapIndexSpinBox,
-                                                                 mapNameComboBox);
-    /*
-     * Note: The selector will sometimes set the map selectors to enabled
-     * or disabled (such as a map-less file like DENSE (.dconn.nii) so we
-     * do not want to "enable" the map controls as it may enabled them
-     * after the selector update has disabled them.
-     */
-    if (widgetsEnabled) {
-        mapFileComboBox->setEnabled(true);
-        if (m_allMapsCheckBox->isChecked()) {
-            mapIndexSpinBox->setEnabled(false);
-            mapNameComboBox->setEnabled(false);
+    CaretMappableDataFileAndMapSelectionModel* model = m_mapFileAndIndexSelectorObject->getModel();
+    m_mapFileAndIndexSelectorObject->updateFileAndMapSelector(model);
+    m_mapFileAndIndexSelectorObject->setEnabled(widgetsEnabled);
+    
+    updateAllMapsCheckBox();
+}
+
+/**
+ * Update the all maps checkbox.
+ * It is disabled if a Dense file is selected.
+ */
+void
+BorderOptimizeDataFileSelector::updateAllMapsCheckBox()
+{
+    m_allMapsCheckBox->setEnabled(true);
+    CaretMappableDataFileAndMapSelectionModel* model = m_mapFileAndIndexSelectorObject->getModel();
+    CaretMappableDataFile* mapFile = model->getSelectedFile();
+    if (mapFile != NULL) {
+        if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
+            m_allMapsCheckBox->setChecked(false);
+            m_allMapsCheckBox->setEnabled(false);
         }
     }
-    else {
-        mapFileComboBox->setEnabled(false);
-        mapIndexSpinBox->setEnabled(false);
-        mapNameComboBox->setEnabled(false);
-    }
 }
+
+/**
+ * Gets called when the map file selection changes.
+ */
+void
+BorderOptimizeDataFileSelector::mapFileSelectionChanged()
+{
+    updateAllMapsCheckBox();
+}
+
 
 /**
  * @return Selections made for data file.

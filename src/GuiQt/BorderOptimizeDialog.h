@@ -136,7 +136,6 @@ namespace caret {
         int32_t m_browserTabIndex;
         
         QCheckBox* m_keepRegionBorderCheckBox;
-        
     };
     
     class BorderOptimizeDataFileSelector : public QObject {
@@ -155,10 +154,15 @@ namespace caret {
     
         CaretPointer<BorderOptimizeExecutor::DataFileInfo> getSelections() const;
         
-    public slots:
+    private slots:
         void selectionCheckBoxToggled(bool checked);
         
         void allMapsCheckBoxToggled(bool checked);
+
+        void mapFileSelectionChanged();
+        
+    private:
+        void updateAllMapsCheckBox();
         
     public:
         CaretMappableDataFileAndMapSelectorObject* m_mapFileAndIndexSelectorObject;

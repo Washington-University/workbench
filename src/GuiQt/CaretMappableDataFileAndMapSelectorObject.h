@@ -65,6 +65,11 @@ namespace caret {
         void getWidgetsForAddingToLayout(QWidget* &mapFileComboBox,
                                          QWidget* &mapIndexSpinBox,
                                          QWidget* &mapNameComboBox);
+        
+        bool isEnabled() const;
+        
+        void setEnabled(const bool enabled);
+        
         // ADD_NEW_METHODS_HERE
     signals:
         void selectionWasPerformed();
@@ -94,6 +99,8 @@ namespace caret {
         QSpinBox* m_mapIndexSpinBox;
         
         QComboBox* m_mapNameComboBox;
+        
+        bool m_enabled;
         
         // ADD_NEW_MEMBERS_HERE
 

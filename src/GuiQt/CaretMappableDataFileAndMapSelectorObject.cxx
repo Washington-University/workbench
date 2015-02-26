@@ -137,6 +137,8 @@ CaretMappableDataFileAndMapSelectorObject::~CaretMappableDataFileAndMapSelectorO
 void
 CaretMappableDataFileAndMapSelectorObject::initializeConstruction(const Options options)
 {
+    m_enabled = true;
+    
     m_mapFileComboBox = new CaretDataFileSelectionComboBox(this);
     QObject::connect(m_mapFileComboBox, SIGNAL(fileSelected(CaretDataFile*)),
                      this, SLOT(mapFileComboBoxFileSelected(CaretDataFile*)));
@@ -207,11 +209,14 @@ CaretMappableDataFileAndMapSelectorObject::getWidgetsForAddingToLayout(QWidget* 
 void
 CaretMappableDataFileAndMapSelectorObject::updateContent()
 {
+    bool validFlag     = false;
     bool validMapsFlag = false;
     
     if (m_model != NULL) {
         CaretMappableDataFile* mapFile = m_model->getSelectedFile();
         if (mapFile != NULL) {
+            validFlag = true;
+            
             const int32_t numMaps  = mapFile->getNumberOfMaps();
             const int32_t mapIndex = m_model->getSelectedMapIndex();
             if ((mapIndex >= 0)
@@ -250,10 +255,16 @@ CaretMappableDataFileAndMapSelectorObject::updateContent()
         }
     }
     
+    const bool fileEnabledFlag = (validFlag
+                                  & m_enabled);
+    m_mapFileComboBox->getWidget()->setEnabled(fileEnabledFlag);
+    
+    const bool mapEnabledFlag = (validMapsFlag
+                                 && m_enabled);
     if (m_mapIndexSpinBox != NULL) {
-        m_mapIndexSpinBox->setEnabled(validMapsFlag);
+        m_mapIndexSpinBox->setEnabled(mapEnabledFlag);
     }
-    m_mapNameComboBox->setEnabled(validMapsFlag);
+    m_mapNameComboBox->setEnabled(mapEnabledFlag);
 }
 
 /**
@@ -307,5 +318,28 @@ CaretMappableDataFileAndMapSelectorObject::mapNameComboBoxActivated(int mapIndex
         
         emit selectionWasPerformed();
     }
-    
 }
+
+/**
+ * @return Is the selector's widgets enabled.
+ */
+bool
+CaretMappableDataFileAndMapSelectorObject::isEnabled() const
+{
+    return m_enabled;
+}
+
+/**
+ * Set the selector's widgets enabled.
+ *
+ * @enabled
+ *     New enabled status.
+ */
+void
+CaretMappableDataFileAndMapSelectorObject::setEnabled(const bool enabled)
+{
+    m_enabled = enabled;
+    updateContent();
+}
+
+
