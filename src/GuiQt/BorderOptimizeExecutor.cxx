@@ -405,7 +405,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
             {
                 if (extractGradientData(inputData.m_dataFileInfo[i].m_mapFile, j, computeSurf, inputData.m_nodesInsideROI,
-                                        inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, tempGradient, false, 3.0f))//TODO: skip gradient/smoothing flag, exclude distance
+                                        inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, tempGradient, false, 2.0f))//TODO: skip gradient/smoothing flag, exclude distance
                 {
                     doCombination(tempGradient, inputData.m_nodesInsideROI, inputData.m_dataFileInfo[i].m_invertGradientFlag,
                                   inputData.m_dataFileInfo[i].m_weight, combinedGradData);
@@ -413,7 +413,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             }
         } else {
             if (extractGradientData(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, computeSurf,
-                inputData.m_nodesInsideROI, inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, tempGradient, false, 3.0f))//TODO: skip gradient/smoothing flag, exclude distance
+                inputData.m_nodesInsideROI, inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, tempGradient, false, 2.0f))//TODO: skip gradient/smoothing flag, exclude distance
             {
                 doCombination(tempGradient, inputData.m_nodesInsideROI, inputData.m_dataFileInfo[i].m_invertGradientFlag,
                               inputData.m_dataFileInfo[i].m_weight, combinedGradData);
