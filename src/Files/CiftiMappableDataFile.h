@@ -442,6 +442,8 @@ namespace caret {
     
         virtual void getFileData(std::vector<float>& data) const;
         
+        const CiftiFile* getCiftiFile() const { return m_ciftiFile; }
+        
     protected:
         virtual bool getParcelLabelMapSurfaceNodeValue(const int32_t mapIndex,
                                             const StructureEnum::Enum structure,

@@ -28,7 +28,11 @@
 #include "Surface.h"
 
 #include "AlgorithmMetricGradient.h"
+#include "AlgorithmCiftiCorrelationGradient.h"
+#include "AlgorithmCiftiRestrictDenseMap.h"
+#include "AlgorithmCiftiSeparate.h"
 #include "CaretLogger.h"
+#include "CiftiFile.h"
 #include "CiftiMappableDataFile.h"
 #include "GeodesicHelper.h"
 #include "MathFunctions.h"
@@ -68,12 +72,9 @@ BorderOptimizeExecutor::~BorderOptimizeExecutor()
 
 namespace
 {
-    void doCombination(SurfaceFile* computeSurf, const MetricFile* tempData, const MetricFile* tempROI, const float& smoothing,
-                       const MetricFile* correctedAreasMetric, const vector<int32_t>& roiNodes, const bool& invert, const float& mapStrength, vector<float>& combinedGradData)
+    void doCombination(const MetricFile& gradient, const vector<int32_t>& roiNodes, const bool& invert, const float& mapStrength, vector<float>& combinedGradData)
     {
-        MetricFile tempGrad;
-        AlgorithmMetricGradient(NULL, computeSurf, tempData, &tempGrad, NULL, smoothing, tempROI, false, 0, correctedAreasMetric);
-        const float* gradVals = tempGrad.getValuePointerForColumn(0);
+        const float* gradVals = gradient.getValuePointerForColumn(0);
         float myMin = 0.0f, myMax = 0.0f;
         bool first = true;
         int numSelected = (int)roiNodes.size();
@@ -122,45 +123,107 @@ namespace
         }
     }
     
-    bool extractSurfaceData(const CaretMappableDataFile* dataFile, const int32_t& mapIndex, const SurfaceFile* surface, const vector<int32_t>& roiNodes, MetricFile& dataOut, MetricFile& roiOut)
+    bool extractGradientData(const CaretMappableDataFile* dataFile, const int32_t& mapIndex, SurfaceFile* surface, const vector<int32_t>& roiNodes,
+                             const float& smoothing, const MetricFile* correctedAreasMetric, MetricFile& gradientOut, const bool& skipGradient, const float& excludeDist)
     {
         int numNodes = surface->getNumberOfNodes();
         int numSelected = (int)roiNodes.size();
+        MetricFile tempData, tempRoi;
+        const MetricFile* useData = &tempData;
         switch (dataFile->getDataFileType())
         {
             case DataFileTypeEnum::METRIC:
             {
+                vector<float> drawnROI(numNodes, 0.0f);
+                for (int i = 0; i < numSelected; ++i) drawnROI[roiNodes[i]] = 1.0f;
+                tempRoi.setNumberOfNodesAndColumns(surface->getNumberOfNodes(), 1);
+                tempRoi.setValuesForColumn(0, drawnROI.data());
                 const MetricFile* metricFile = dynamic_cast<const MetricFile*>(dataFile);
                 CaretAssert(metricFile != NULL);
                 CaretAssert(metricFile->getNumberOfNodes() == surface->getNumberOfNodes());
-                dataOut.setValuesForColumn(0, metricFile->getValuePointerForColumn(mapIndex));
-                vector<float> drawnROI(numNodes, 0.0f);
-                for (int i = 0; i < numSelected; ++i) drawnROI[roiNodes[i]] = 1.0f;
-                roiOut.setValuesForColumn(0, drawnROI.data());
-                return true;
+                useData = metricFile;
+                break;
             }
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             {
+                tempData.setNumberOfNodesAndColumns(surface->getNumberOfNodes(), 1);
+                tempData.setStructure(surface->getStructure());
+                tempRoi.setNumberOfNodesAndColumns(surface->getNumberOfNodes(), 1);
                 const CiftiMappableDataFile* ciftiMappableFile = dynamic_cast<const CiftiMappableDataFile*>(dataFile);
                 CaretAssert(ciftiMappableFile != NULL);
                 CaretAssert(ciftiMappableFile->getMappingSurfaceNumberOfNodes(surface->getStructure()) == surface->getNumberOfNodes());
                 vector<float> surfData, ciftiRoi;
                 bool result = ciftiMappableFile->getMapDataForSurface(mapIndex, surface->getStructure(), surfData, &ciftiRoi);
                 CaretAssert(result);
-                dataOut.setValuesForColumn(0, surfData.data());
+                if (!result)
+                {
+                    CaretLogSevere("failed to get map data for map " + AString::number(mapIndex) + " of data file of type " + DataFileTypeEnum::toName(dataFile->getDataFileType()));
+                    return false;
+                }
+                tempData.setValuesForColumn(0, surfData.data());
                 vector<float> maskedROI(numNodes, 0.0f);
                 for (int i = 0; i < numSelected; ++i)
                 {
                     maskedROI[roiNodes[i]] = ciftiRoi[roiNodes[i]];
                 }
-                roiOut.setValuesForColumn(0, maskedROI.data());
+                tempRoi.setValuesForColumn(0, maskedROI.data());
+                break;
+            }
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            {
+                vector<float> drawnROI(numNodes, 0.0f);
+                for (int i = 0; i < numSelected; ++i) drawnROI[roiNodes[i]] = 1.0f;
+                tempRoi.setNumberOfNodesAndColumns(surface->getNumberOfNodes(), 1);
+                tempRoi.setValuesForColumn(0, drawnROI.data());
+                const CiftiMappableDataFile* ciftiMappableFile = dynamic_cast<const CiftiMappableDataFile*>(dataFile);
+                CaretAssert(ciftiMappableFile != NULL);
+                CaretAssert(ciftiMappableFile->getMappingSurfaceNumberOfNodes(surface->getStructure()) == surface->getNumberOfNodes());
+                const CiftiFile* dataCifti = ciftiMappableFile->getCiftiFile();
+                const MetricFile* leftRoi = NULL, *rightRoi = NULL, *cerebRoi = NULL;
+                const MetricFile* leftCorrAreas = NULL, *rightCorrAreas = NULL, *cerebCorrAreas = NULL;
+                SurfaceFile* leftSurf = NULL, *rightSurf = NULL, *cerebSurf = NULL;
+                switch (surface->getStructure())
+                {
+                    case StructureEnum::CORTEX_LEFT:
+                        leftRoi = &tempRoi;
+                        leftCorrAreas = correctedAreasMetric;
+                        leftSurf = surface;
+                        break;
+                    case StructureEnum::CORTEX_RIGHT:
+                        rightRoi = &tempRoi;
+                        rightCorrAreas = correctedAreasMetric;
+                        rightSurf = surface;
+                        break;
+                    case StructureEnum::CEREBELLUM:
+                        cerebRoi = &tempRoi;
+                        cerebCorrAreas = correctedAreasMetric;
+                        cerebSurf = surface;
+                        break;
+                    default:
+                        CaretAssert(false);
+                        break;
+                }
+                CiftiFile restrictCifti, corrGradCifti;
+                AlgorithmCiftiRestrictDenseMap(NULL, dataCifti, CiftiXML::ALONG_COLUMN, &restrictCifti, leftRoi, rightRoi, cerebRoi, NULL);
+                AlgorithmCiftiCorrelationGradient(NULL, &restrictCifti, &corrGradCifti, leftSurf, rightSurf, cerebSurf,
+                                                  leftCorrAreas, rightCorrAreas, cerebCorrAreas, smoothing, 0.0f, false, true, excludeDist);
+                AlgorithmCiftiSeparate(NULL, &corrGradCifti, CiftiXML::ALONG_COLUMN, surface->getStructure(), &gradientOut);
                 return true;
             }
             default:
                 CaretLogWarning("ignoring map " + AString::number(mapIndex) + " of data file of type " + DataFileTypeEnum::toName(dataFile->getDataFileType()));
                 return false;
         }
+        if (skipGradient)
+        {
+            gradientOut.setNumberOfNodesAndColumns(surface->getNumberOfNodes(), 1);
+            gradientOut.setStructure(surface->getStructure());
+            gradientOut.setValuesForColumn(0, useData->getValuePointerForColumn(0));
+        } else {
+            AlgorithmMetricGradient(NULL, surface, useData, &gradientOut, NULL, smoothing, &tempRoi, false, 0, correctedAreasMetric);
+        }
+        return true;
     }
     
     int getBorderPointNode(const Border* theBorder, const int& index)
@@ -336,30 +399,31 @@ BorderOptimizeExecutor::run(const InputData& inputData,
     int numInputs = (int)inputData.m_dataFileInfo.size();
     for (int i = 0; i < numInputs; ++i)
     {
-        MetricFile tempData, tempROI;
-        tempData.setNumberOfNodesAndColumns(numNodes, 1);
-        tempROI.setNumberOfNodesAndColumns(numNodes, 1);
+        MetricFile tempGradient;
         if (inputData.m_dataFileInfo[i].m_allMapsFlag)
         {
             for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
             {
-                if (extractSurfaceData(inputData.m_dataFileInfo[i].m_mapFile, j, computeSurf, inputData.m_nodesInsideROI, tempData, tempROI))
+                if (extractGradientData(inputData.m_dataFileInfo[i].m_mapFile, j, computeSurf, inputData.m_nodesInsideROI,
+                                        inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, tempGradient, false, 3.0f))//TODO: skip gradient/smoothing flag, exclude distance
                 {
-                    doCombination(computeSurf, &tempData, &tempROI, inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, inputData.m_nodesInsideROI,
-                                inputData.m_dataFileInfo[i].m_invertGradientFlag, inputData.m_dataFileInfo[i].m_weight, combinedGradData);
+                    doCombination(tempGradient, inputData.m_nodesInsideROI, inputData.m_dataFileInfo[i].m_invertGradientFlag,
+                                  inputData.m_dataFileInfo[i].m_weight, combinedGradData);
                 }
             }
         } else {
-            if (extractSurfaceData(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, computeSurf, inputData.m_nodesInsideROI, tempData, tempROI))
+            if (extractGradientData(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, computeSurf,
+                inputData.m_nodesInsideROI, inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, tempGradient, false, 3.0f))//TODO: skip gradient/smoothing flag, exclude distance
             {
-                doCombination(computeSurf, &tempData, &tempROI, inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, inputData.m_nodesInsideROI,
-                            inputData.m_dataFileInfo[i].m_invertGradientFlag, inputData.m_dataFileInfo[i].m_weight, combinedGradData);
+                doCombination(tempGradient, inputData.m_nodesInsideROI, inputData.m_dataFileInfo[i].m_invertGradientFlag,
+                              inputData.m_dataFileInfo[i].m_weight, combinedGradData);
             }
         }
     }
     if (inputData.m_combinedGradientDataOut != NULL)
     {
         inputData.m_combinedGradientDataOut->setNumberOfNodesAndColumns(numNodes, 1);
+        inputData.m_combinedGradientDataOut->setStructure(computeSurf->getStructure());
         inputData.m_combinedGradientDataOut->setValuesForColumn(0, combinedGradData.data());
     }
     CaretPointer<GeodesicHelper> myGeoHelp;
