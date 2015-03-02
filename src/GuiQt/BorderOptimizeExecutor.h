@@ -45,20 +45,27 @@ namespace caret {
                          const bool allMapsFlag,
                          const float smoothing,
                          const float weight,
-                         const bool invertGradientFlag)
+                         const bool invertGradientFlag,
+                         const bool& skipGradient,
+                         const float& corrGradExcludeDist)
             : m_mapFile(mapFile),
             m_mapIndex(mapIndex),
             m_allMapsFlag(allMapsFlag),
             m_smoothing(smoothing),
             m_weight(weight),
-            m_invertGradientFlag(invertGradientFlag) { }
+            m_invertGradientFlag(invertGradientFlag),
+            m_skipGradient(skipGradient),
+            m_corrGradExcludeDist(corrGradExcludeDist)
+                { }
             
             const CaretMappableDataFile* m_mapFile;
-            int32_t                m_mapIndex;
-            bool                   m_allMapsFlag;
-            float                  m_smoothing;
-            float                  m_weight;
-            bool                   m_invertGradientFlag;
+            int32_t m_mapIndex;
+            bool m_allMapsFlag;
+            float m_smoothing;
+            float m_weight;
+            bool m_invertGradientFlag;
+            bool m_skipGradient;
+            float m_corrGradExcludeDist;
         };
         
         /**
@@ -71,7 +78,7 @@ namespace caret {
                       Surface* surface,
                       const std::vector<DataFileInfo>& dataFileInfo,
                       const MetricFile* vertexAreasMetricFile,
-                      const float gradientFollowingStrength,
+                      const float& gradientFollowingStrength,
                       MetricFile* combinedGradientDataOut)
             : m_borders(borders),
             m_borderEnclosingROI(borderEnclosingROI),

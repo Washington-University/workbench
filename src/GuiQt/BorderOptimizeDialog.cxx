@@ -1075,7 +1075,9 @@ BorderOptimizeDataFileSelector::getSelections() const
                                                                         m_allMapsCheckBox->isChecked(),
                                                                         m_smoothingSpinBox->value(),
                                                                         m_weightSpinBox->value(),
-                                                                        m_invertGradientCheckBox->isChecked()));
+                                                                        m_invertGradientCheckBox->isChecked(),
+                                                                        m_skipGradientCheckBox->isChecked(),
+                                                                        m_exclusionDistanceSpinBox->value()));
             }
         }
     }
