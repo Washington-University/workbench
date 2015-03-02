@@ -71,6 +71,7 @@ using namespace caret;
 static const int STRETCH_NONE = 0;
 static const int STRETCH_MAX  = 100;
 
+static const bool DATA_FILES_IN_SCROLL_BARS = true;
 
 /**
  * Constructor.
@@ -97,8 +98,14 @@ m_browserTabIndex(-1)
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
     dialogLayout->addWidget(createBorderSelectionWidget(),
                             STRETCH_NONE);
-    dialogLayout->addWidget(createDataFilesWidget(),
+    if (DATA_FILES_IN_SCROLL_BARS) {
+        dialogLayout->addWidget(createDataFilesWidget(),
                             STRETCH_MAX);
+    }
+    else {
+        dialogLayout->addWidget(createDataFilesWidget(),
+                                STRETCH_NONE);
+    }
     dialogLayout->addWidget(createSurfaceSelectionWidget(),
                             STRETCH_NONE);
     dialogLayout->addWidget(createVertexAreasMetricWidget(),
@@ -109,8 +116,18 @@ m_browserTabIndex(-1)
                                 STRETCH_NONE);
     }
     
-    setCentralWidget(dialogWidget,
-                     SCROLL_AREA_NEVER);
+    if (DATA_FILES_IN_SCROLL_BARS) {
+        dialogLayout->addStretch();
+        setCentralWidget(dialogWidget,
+                         SCROLL_AREA_NEVER);
+    }
+    else {
+        setCentralWidget(dialogWidget,
+                         SCROLL_AREA_AS_NEEDED);
+        
+    }
+    
+    m_dialogWidget = dialogWidget;
 }
 
 /**
@@ -259,6 +276,8 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
         BorderOptimizeDataFileSelector* selector = *fileIter;
         selector->updateFileData();
     }
+    
+    m_dialogWidget->adjustSize();
 }
 
 /**
@@ -484,7 +503,7 @@ BorderOptimizeDialog::createBorderSelectionWidget()
     
     QGroupBox* widget = new QGroupBox("Borders");
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addLayout(m_bordersInsideROILayout, STRETCH_MAX);
+    layout->addLayout(m_bordersInsideROILayout, STRETCH_NONE);
     layout->addLayout(buttonsLayout, STRETCH_NONE);
     return widget;
 }
@@ -530,8 +549,16 @@ BorderOptimizeDialog::setAllBorderEnabledSelections(const bool status)
 QWidget*
 BorderOptimizeDialog::createDataFilesWidget()
 {
-    QWidget* widget = new QWidget();
-    m_borderOptimizeDataFileGridLayout = new QGridLayout(widget);
+    QWidget* gridWidget = new QWidget();
+    if (DATA_FILES_IN_SCROLL_BARS) {
+        gridWidget->setSizePolicy(gridWidget->sizePolicy().horizontalPolicy(),
+                                  QSizePolicy::Fixed);
+    }
+    else {
+//        gridWidget->setSizePolicy(gridWidget->sizePolicy().horizontalPolicy(),
+//                                  QSizePolicy::Fixed);
+    }
+    m_borderOptimizeDataFileGridLayout = new QGridLayout(gridWidget);
     
     std::vector<CaretMappableDataFile*> optimizeMapFiles;
     GuiManager::get()->getBrain()->getAllMappableDataFileWithDataFileTypes(m_optimizeDataFileTypes,
@@ -553,11 +580,19 @@ BorderOptimizeDialog::createDataFilesWidget()
 //        m_optimizeDataFileSelectors.push_back(selector);
     }
     
-    QScrollArea* scrollArea = new QScrollArea();
-    scrollArea->setWidget(widget);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    QWidget* widget = gridWidget;
+    if (DATA_FILES_IN_SCROLL_BARS) {
+        QScrollArea* scrollArea = new QScrollArea();
+        scrollArea->setWidget(gridWidget);
+        scrollArea->setWidgetResizable(true);
+        scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        
+        scrollArea->setSizePolicy(gridWidget->sizePolicy().horizontalPolicy(),
+                                  QSizePolicy::Preferred);
+        
+        widget = scrollArea;
+    }
     
     QAction* addRowAction = new QAction("Add New Data File Row",
                                         this);
@@ -587,9 +622,19 @@ BorderOptimizeDialog::createDataFilesWidget()
     buttonsLayout->addStretch();
     
     QGroupBox* groupBox = new QGroupBox("Data Files");
+    if ( ! DATA_FILES_IN_SCROLL_BARS) {
+        groupBox->setSizePolicy(groupBox->sizePolicy().horizontalPolicy(),
+                                QSizePolicy::Minimum);
+    }
+    
     groupBox->setMinimumHeight(300);
     QVBoxLayout* groupBoxLayout = new QVBoxLayout(groupBox);
-    groupBoxLayout->addWidget(scrollArea, STRETCH_MAX);
+    if (DATA_FILES_IN_SCROLL_BARS) {
+        groupBoxLayout->addWidget(widget, STRETCH_NONE);
+    }
+    else {
+        groupBoxLayout->addWidget(widget, STRETCH_MAX);
+    }
     groupBoxLayout->addLayout(buttonsLayout, STRETCH_NONE);
     return groupBox;
 }
@@ -780,10 +825,18 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
     
     m_invertGradientCheckBox = new QCheckBox("");
     
+    m_skipGradientCheckBox = new QCheckBox("");
+    
     m_selectionCheckBox = new QCheckBox("");
     m_selectionCheckBox->setChecked(true);
     QObject::connect(m_selectionCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(selectionCheckBoxToggled(bool)));
+    
+    m_exclusionDistanceSpinBox = new QDoubleSpinBox();
+    m_exclusionDistanceSpinBox->setRange(0, 1.0e6);
+    m_exclusionDistanceSpinBox->setDecimals(2);
+    m_exclusionDistanceSpinBox->setSingleStep(1.0);
+    m_exclusionDistanceSpinBox->setValue(2);
     
     m_smoothingSpinBox = new QDoubleSpinBox();
     m_smoothingSpinBox->setRange(0.0, 1.0e6);
@@ -799,9 +852,11 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
     
     int32_t columnCount = 0;
     const int32_t COLUMN_SELECT  = columnCount++;
+    const int32_t COLUMN_EXCLUDE = columnCount++;
     const int32_t COLUMN_SMOOTH  = columnCount++;
     const int32_t COLUMN_WEIGHT  = columnCount++;
     const int32_t COLUMN_INVERT  = columnCount++;
+    const int32_t COLUMN_SKIP    = columnCount++;
     const int32_t COLUMN_ALL_MAP = columnCount++;
     const int32_t COLUMN_MAP_INDEX = columnCount++;
     const int32_t COLUMN_MAP_NAME = columnCount++;
@@ -811,6 +866,12 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
         gridLayout->addWidget(new QLabel("Enable"),
                               row, COLUMN_SELECT,
                               2, 1,
+                              Qt::AlignCenter);
+        gridLayout->addWidget(new QLabel("Exclusion"),
+                              row, COLUMN_EXCLUDE,
+                              Qt::AlignCenter);
+        gridLayout->addWidget(new QLabel("Radius (mm)"),
+                              row+1, COLUMN_EXCLUDE,
                               Qt::AlignCenter);
         gridLayout->addWidget(new QLabel("Smoothing"),
                               row, COLUMN_SMOOTH,
@@ -828,6 +889,12 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
         gridLayout->addWidget(new QLabel("Gradient"),
                               row + 1, COLUMN_INVERT,
                               Qt::AlignHCenter);
+        gridLayout->addWidget(new QLabel("Skip"),
+                              row, COLUMN_SKIP,
+                              Qt::AlignHCenter);
+        gridLayout->addWidget(new QLabel("Gradient"),
+                              row + 1, COLUMN_SKIP,
+                              Qt::AlignHCenter);
         gridLayout->addWidget(new QLabel("All"),
                               row, COLUMN_ALL_MAP,
                               Qt::AlignCenter);
@@ -841,9 +908,11 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
         
         gridLayout->setVerticalSpacing(2);
         gridLayout->setColumnStretch(COLUMN_SELECT,     0);
+        gridLayout->setColumnStretch(COLUMN_EXCLUDE,    0);
         gridLayout->setColumnStretch(COLUMN_SMOOTH,     0);
         gridLayout->setColumnStretch(COLUMN_WEIGHT,     0);
         gridLayout->setColumnStretch(COLUMN_INVERT,     0);
+        gridLayout->setColumnStretch(COLUMN_SKIP,       0);
         gridLayout->setColumnStretch(COLUMN_ALL_MAP,    0);
         gridLayout->setColumnStretch(COLUMN_MAP_INDEX,  0);
         gridLayout->setColumnStretch(COLUMN_MAP_NAME,  100);
@@ -852,6 +921,10 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
     int row = gridLayout->rowCount();
     gridLayout->addWidget(m_selectionCheckBox,
                           row, COLUMN_SELECT,
+                          2, 1,
+                          Qt::AlignCenter);
+    gridLayout->addWidget(m_exclusionDistanceSpinBox,
+                          row, COLUMN_EXCLUDE,
                           2, 1,
                           Qt::AlignCenter);
     gridLayout->addWidget(m_smoothingSpinBox,
@@ -864,6 +937,10 @@ BorderOptimizeDataFileSelector::BorderOptimizeDataFileSelector(const int32_t ite
                           Qt::AlignCenter);
     gridLayout->addWidget(m_invertGradientCheckBox,
                           row, COLUMN_INVERT,
+                          2, 1,
+                          Qt::AlignCenter);
+    gridLayout->addWidget(m_skipGradientCheckBox,
+                          row, COLUMN_SKIP,
                           2, 1,
                           Qt::AlignCenter);
     gridLayout->addWidget(m_allMapsCheckBox,
@@ -913,11 +990,22 @@ BorderOptimizeDataFileSelector::updateFileData()
     m_smoothingSpinBox->setEnabled(widgetsEnabled);
     m_weightSpinBox->setEnabled(widgetsEnabled);
     m_invertGradientCheckBox->setEnabled(widgetsEnabled);
+    m_skipGradientCheckBox->setEnabled(widgetsEnabled);
     m_allMapsCheckBox->setEnabled(widgetsEnabled);
     
     CaretMappableDataFileAndMapSelectionModel* model = m_mapFileAndIndexSelectorObject->getModel();
     m_mapFileAndIndexSelectorObject->updateFileAndMapSelector(model);
     m_mapFileAndIndexSelectorObject->setEnabled(widgetsEnabled);
+    
+    bool denseFileFlag = false;
+    const CaretMappableDataFile* mapFile = model->getSelectedFile();
+    if (mapFile != NULL) {
+        if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
+            denseFileFlag = true;
+        }
+    }
+    m_exclusionDistanceSpinBox->setEnabled(widgetsEnabled
+                                           && denseFileFlag);
     
     updateAllMapsCheckBox();
 }
@@ -967,6 +1055,7 @@ BorderOptimizeDataFileSelector::getSelections() const
         if ((mapIndex >= 0)
             && (mapIndex < mapFile->getNumberOfMaps())) {
             if (m_selectionCheckBox->isChecked()) {
+                std::cout << "Need to add skip gradient and exclusion distance to BorderOptimizeExecutor::DataFileInfo" << std::endl;
                 dataOut.grabNew(new BorderOptimizeExecutor::DataFileInfo(mapFile,
                                                                         mapIndex,
                                                                         m_allMapsCheckBox->isChecked(),

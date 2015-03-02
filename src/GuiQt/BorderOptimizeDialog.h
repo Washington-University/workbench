@@ -103,6 +103,8 @@ namespace caret {
         
         void preserveDialogSizeAndPositionWhenReOpened();
         
+        QWidget* m_dialogWidget;
+        
         Surface* m_surface;
         
         std::vector<Border*> m_bordersInsideROI;
@@ -170,7 +172,9 @@ namespace caret {
         CaretMappableDataFileAndMapSelectorObject* m_mapFileAndIndexSelectorObject;
         
         QCheckBox*      m_allMapsCheckBox;
+        QDoubleSpinBox* m_exclusionDistanceSpinBox;
         QCheckBox*      m_invertGradientCheckBox;
+        QCheckBox*      m_skipGradientCheckBox;
         QCheckBox*      m_selectionCheckBox;
         QDoubleSpinBox* m_smoothingSpinBox;
         QDoubleSpinBox* m_weightSpinBox;
