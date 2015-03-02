@@ -98,6 +98,7 @@ m_browserTabIndex(-1)
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
     dialogLayout->addWidget(createBorderSelectionWidget(),
                             STRETCH_NONE);
+    
     if (DATA_FILES_IN_SCROLL_BARS) {
         dialogLayout->addWidget(createDataFilesWidget(),
                             STRETCH_MAX);
@@ -125,6 +126,12 @@ m_browserTabIndex(-1)
         setCentralWidget(dialogWidget,
                          SCROLL_AREA_AS_NEEDED);
         
+    }
+    
+    if (m_defaultDataFilesWidgetSize.width() > 300) {
+        QSize defaultSize = sizeHint();
+        defaultSize.setWidth(m_defaultDataFilesWidgetSize.width() + 100);
+        setSizeOfDialogWhenDisplayed(defaultSize);
     }
     
     m_dialogWidget = dialogWidget;
@@ -572,12 +579,6 @@ BorderOptimizeDialog::createDataFilesWidget()
             mapFile = optimizeMapFiles[i];
         }
         addDataFileRow(mapFile);
-//        BorderOptimizeDataFileSelector* selector = new BorderOptimizeDataFileSelector(i,
-//                                                                                      m_optimizeDataFileTypes,
-//                                                                                      mapFile,
-//                                                                                      m_borderOptimizeDataFileGridLayout,
-//                                                                                      this);
-//        m_optimizeDataFileSelectors.push_back(selector);
     }
     
     QWidget* widget = gridWidget;
@@ -636,6 +637,9 @@ BorderOptimizeDialog::createDataFilesWidget()
         groupBoxLayout->addWidget(widget, STRETCH_MAX);
     }
     groupBoxLayout->addLayout(buttonsLayout, STRETCH_NONE);
+    
+    m_defaultDataFilesWidgetSize = gridWidget->sizeHint();
+    
     return groupBox;
 }
 
@@ -1055,6 +1059,16 @@ BorderOptimizeDataFileSelector::getSelections() const
         if ((mapIndex >= 0)
             && (mapIndex < mapFile->getNumberOfMaps())) {
             if (m_selectionCheckBox->isChecked()) {
+                
+                /*
+                 * Tim - Here are the skip gradient and exclusion distance
+                 *       values for passing to the algorithm.
+                 *
+                 * bool value: m_skipGradientCheckBox->isChecked();
+                 * float value: m_exclusionDistanceSpinBox->value();
+                 *
+                 */
+                
                 std::cout << "Need to add skip gradient and exclusion distance to BorderOptimizeExecutor::DataFileInfo" << std::endl;
                 dataOut.grabNew(new BorderOptimizeExecutor::DataFileInfo(mapFile,
                                                                         mapIndex,

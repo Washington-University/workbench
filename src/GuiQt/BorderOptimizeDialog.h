@@ -140,6 +140,8 @@ namespace caret {
         int32_t m_browserTabIndex;
         
         QCheckBox* m_keepRegionBorderCheckBox;
+        
+        QSize m_defaultDataFilesWidgetSize;
     };
     
     class BorderOptimizeDataFileSelector : public QObject {
