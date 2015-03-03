@@ -202,8 +202,6 @@ SurfaceFile::validateDataArraysAfterReading()
     
     AString errorMessage;
     if (this->coordinateDataArray == NULL) {
-        if (errorMessage.isEmpty() == false) {
-        }
         errorMessage += "Unable to find coordinate data array which "
             " contains data type FLOAT32, Intent POINTSET, and two "
             " dimensions with the second dimension set to three.  ";
@@ -213,6 +211,28 @@ SurfaceFile::validateDataArraysAfterReading()
         " contains data type INT32, Intent TRIANGLE, and two "
         " dimensions with the second dimension set to three.";
     }
+    const int numTris = getNumberOfTriangles();//sanity check the triangle data array
+    const int32_t numNodes = this->getNumberOfNodes();
+    for (int i = 0; i < numTris; ++i)
+    {
+        const int32_t* thisTri = getTriangle(i);
+        for (int j = 0; j < 3; ++j)
+        {
+            if (thisTri[j] < 0 || thisTri[j] >= numNodes)
+            {
+                errorMessage += "Invalid vertex in triangle array: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]);
+                break;
+            }
+            for (int k = j + 1; k < 3; ++k)
+            {
+                if (thisTri[j] == thisTri[k])
+                {
+                    errorMessage += "Vertex used twice in one triangle: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]);
+                    break;
+                }
+            }
+        }
+    }
     if (errorMessage.isEmpty() == false) {
         throw DataFileException(getFileName(),
                                 errorMessage);
@@ -220,13 +240,12 @@ SurfaceFile::validateDataArraysAfterReading()
     
     this->computeNormals();
 
-    const int64_t numNodes = this->getNumberOfNodes();
     const uint64_t numColorComponents = numNodes * 4;
     
     if (numColorComponents != this->nodeColoring.size()) {
         this->nodeColoring.resize(numColorComponents);
         
-        for (int64_t i = 0; i < numNodes; i++) {
+        for (int32_t i = 0; i < numNodes; i++) {
             const int64_t i4 = i * 4;
             this->nodeColoring[i4]   = 0.75f;
             this->nodeColoring[i4+1] = 0.75f;

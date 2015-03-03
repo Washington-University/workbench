@@ -38,10 +38,8 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn, const float
 {
     CaretPointer<TopologyHelperBase> topoBase(new TopologyHelperBase(surfaceIn));
     TopologyHelper topoHelpIn(topoBase);//leave this building one privately, to not introduce even worse dependencies regarding SurfaceFile
+    m_corrAreaSmallestFactor = 1.0f;
     numNodes = surfaceIn->getNumberOfNodes();
-    FastStatistics nodeSpacingStats;
-    surfaceIn->getNodesSpacingStatistics(nodeSpacingStats);
-    m_avgNodeSpacing = nodeSpacingStats.getMean();
     nodeNeighbors.resize(numNodes);
     distances.resize(numNodes);
     nodeCoords.resize(numNodes);
@@ -59,6 +57,9 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn, const float
     }
     Vector3D tempvec;
     float tempf, abmag, efmag, cdmag;
+    double nodeSpacingAccum = 0.0f;//since we may be using corrected areas, find average node spacing manually
+    int32_t numEdges = 0;
+    bool firstCorrArea = true;//if all corrected vertex areas are significantly larger than 1, we can make A* faster by multiplying all euclidean distances by it, so find the actual smallest
     for (int32_t i = 0; i < numNodes; ++i)
     {//get neighbors
         vector<int32_t>& neighbors = nodeNeighbors[i];
@@ -74,16 +75,29 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn, const float
             distances[i][j] = tempvec.length();//precompute for speed in other calls
             if (correctedAreas != NULL)
             {
-                distances[i][j] *= (sqrtCorrAreas[i] + sqrtCorrAreas[neighbors[j]]) / (sqrtVertAreas[i] + sqrtVertAreas[neighbors[j]]);
+                float correctionFactor = (sqrtCorrAreas[i] + sqrtCorrAreas[neighbors[j]]) / (sqrtVertAreas[i] + sqrtVertAreas[neighbors[j]]);
+                if (firstCorrArea || correctionFactor < m_corrAreaSmallestFactor)
+                {
+                    m_corrAreaSmallestFactor = correctionFactor;//if this is zero anywhere, it just means that the euclidean part of the heuristic must be ignored (worst case, it does dijkstra)
+                    firstCorrArea = false;
+                }
+                distances[i][j] *= correctionFactor;
+            }
+            if (i < neighbors[j])
+            {
+                nodeSpacingAccum += distances[i][j];
+                ++numEdges;
             }
         }//so few floating point operations, this should turn out symmetric
     }
+    m_avgNodeSpacing = nodeSpacingAccum / numEdges;
     std::vector<int32_t> tempneigh2;
     std::vector<float> tempdist2;
     nodeNeighbors2.resize(numNodes);
     distances2.resize(numNodes);
+    neighbors2PathInfo.resize(numNodes);
     const vector<TopologyEdgeInfo>& myEdgeInfo = topoHelpIn.getEdgeInfo();
-    int numEdges = myEdgeInfo.size();
+    CaretAssert(numEdges == (int32_t)myEdgeInfo.size());//SurfaceFile checks for triangles with duplicated nodes
     for (int i = 0; i < numEdges; ++i)
     {
         if (myEdgeInfo[i].numTiles < 2)
@@ -99,11 +113,16 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn, const float
         Vector3D neigh2Coord = nodeCoords[neigh2Node];
         Vector3D baseCoord = nodeCoords[baseNode];
         Vector3D farCoord = nodeCoords[farNode];
+        CrawlInfo tempInfo;
+        tempInfo.edgeNodes[0] = neigh1Node;
+        tempInfo.edgeNodes[1] = neigh2Node;
         const int32_t num_reserve = 8;//uses 8 in case it is used on a mesh with haphazard topology
         nodeNeighbors2[baseNode].reserve(num_reserve);//reserve should be fast if capacity is already num_reserve, and better than reallocating at 2 and 4, if vector allocation is naive doubling
         nodeNeighbors2[farNode].reserve(num_reserve);//in the extremely rare case of a node with more than num_reserve neighbors, a second allocation plus copy isn't much of a cost
         distances2[baseNode].reserve(num_reserve);
         distances2[farNode].reserve(num_reserve);
+        neighbors2PathInfo[baseNode].reserve(num_reserve);
+        neighbors2PathInfo[farNode].reserve(num_reserve);
         Vector3D abhat = (neigh2Coord - neigh1Coord).normal(&abmag);//a is neigh1, b is neigh2, b - a = (vector)ab
         Vector3D ac = farCoord - neigh1Coord;//c is farnode, c - a = (vector)ac
         Vector3D ad = abhat * abhat.dot(ac);//d is the point on the shared edge that farnode (c) is closest to
@@ -119,15 +138,30 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn, const float
         Vector3D ah = eh - ea;//eh - ea = eh + ae = ae + eh = ah, vector from neigh1 to the point on shared edge the path goes through
         tempf = ah.dot(abhat);//get the component along ab so we can test that it is positive and less than |ab|
         if (tempf <= 0.0f || tempf >= abmag) continue;//tetralateral is concave or triangular (degenerate), our path is invalid or not shorter, so consider next edge
+        tempInfo.edgeWeight = 1.0f - tempf / abmag;//if tempf is almost zero, then the weight of point a (neigh1) is almost 1
         tempf = eg.length();//this is our path length
+        tempInfo.pieceDists[1] = eh.length();//we currently add things to farNode's neighbor info before baseNode's
         if (correctedAreas != NULL)//apply area correction approximation
         {
-            tempf *= (sqrtCorrAreas[baseNode] + sqrtCorrAreas[farNode]) / (sqrtVertAreas[baseNode] + sqrtVertAreas[farNode]);
-        }
+            float correctionFactor = (sqrtCorrAreas[baseNode] + sqrtCorrAreas[farNode]) / (sqrtVertAreas[baseNode] + sqrtVertAreas[farNode]);
+            if (correctionFactor < m_corrAreaSmallestFactor)
+            {
+                m_corrAreaSmallestFactor = correctionFactor;//if this is zero anywhere, it just means that the euclidean part of the heuristic must be ignored (worst case, it does dijkstra)
+            }
+            tempf *= correctionFactor;
+            tempInfo.pieceDists[1] *= correctionFactor;
+        }//for now, assume it only depends on the expansion of the endpoints, and affects each part equally
+        tempInfo.pieceDists[0] = tempf - tempInfo.pieceDists[1];
         nodeNeighbors2[farNode].push_back(baseNode);//record it at both ends, because we are looping through edges
         distances2[farNode].push_back(tempf);
+        neighbors2PathInfo[farNode].push_back(tempInfo);
+        
+        float tempf2 = tempInfo.pieceDists[0];//swap the piece distances around for the baseNode info
+        tempInfo.pieceDists[0] = tempInfo.pieceDists[1];
+        tempInfo.pieceDists[1] = tempf2;
         nodeNeighbors2[baseNode].push_back(farNode);
         distances2[baseNode].push_back(tempf);
+        neighbors2PathInfo[baseNode].push_back(tempInfo);
     }
 }
 
@@ -136,11 +170,14 @@ GeodesicHelper::GeodesicHelper(const CaretPointer<const GeodesicHelperBase>& bas
     m_myBase = baseIn;//copy the pointer so it doesn't get changed or deleted while we get its members
     //get references and info from base
     numNodes = m_myBase->numNodes;
+    m_avgNodeSpacing = m_myBase->m_avgNodeSpacing;
+    m_corrAreaSmallestFactor = m_myBase->m_corrAreaSmallestFactor;
     distances = m_myBase->distances.data();
     distances2 = m_myBase->distances2.data();
     nodeNeighbors = m_myBase->nodeNeighbors.data();
     nodeNeighbors2 = m_myBase->nodeNeighbors2.data();
     nodeCoords = m_myBase->nodeCoords.data();
+    neighbors2PathInfo = m_myBase->neighbors2PathInfo.data();
     //allocate private scratch space
     marked.resize(numNodes, 0);//initialize once, each internal function (dijkstra methods) tracks elements changed, and resets only those (except in the case of whole surface)
     m_heapIdent.resize(numNodes);//the idea is to make it faster for the more likely case of small areas of the surface for functions that have limits, by removing the runtime term based solely on surface size
@@ -916,7 +953,7 @@ void GeodesicHelper::aStar(const int32_t root, const int32_t endpoint, bool smoo
     parent[root] = -1;//idiom for end of path
     m_active.clear();
     float remainEucl = (nodeCoords[root] - nodeCoords[endpoint]).length();
-    heurVal[root] = remainEucl;
+    heurVal[root] = remainEucl * m_corrAreaSmallestFactor;
     m_heapIdent[root] = m_active.push(root, heurVal[root]);
     while (!m_active.isEmpty())
     {
@@ -933,7 +970,7 @@ void GeodesicHelper::aStar(const int32_t root, const int32_t endpoint, bool smoo
                 tempf = output[whichnode] + distances[whichnode][j];
                 if (!(marked[whichneigh] & 4))
                 {
-                    heurVal[whichneigh] = (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
+                    heurVal[whichneigh] = m_corrAreaSmallestFactor * (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
                     output[whichneigh] = tempf;
                     parent[whichneigh] = whichnode;
                     changed[numChanged++] = whichneigh;//having a valid value will be the first marking, so set changed
@@ -958,7 +995,7 @@ void GeodesicHelper::aStar(const int32_t root, const int32_t endpoint, bool smoo
                     tempf = output[whichnode] + distances2[whichnode][j];
                     if (!(marked[whichneigh] & 4))
                     {
-                        heurVal[whichneigh] = (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
+                        heurVal[whichneigh] = m_corrAreaSmallestFactor * (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
                         output[whichneigh] = tempf;
                         parent[whichneigh] = whichnode;
                         changed[numChanged++] = whichneigh;//having a valid value will be the first marking, so set changed
@@ -994,13 +1031,13 @@ float GeodesicHelper::lineHeuristic(const Vector3D& pos, const Vector3D& linep1,
     float tempf;//to make it consistent, assume it minimizes the line penalty by taking a straight line towards the line (segment), encountering the endpoint en route, or on the line (segment)
     if (segment)//the distance heuristic assumes a different path to make it consistent versus path length, and the sum of consistent heuristics is consistent for the sum of the penalties
     {
-        tempf = pos.distToLineSegment(linep1, linep2);
+        tempf = m_corrAreaSmallestFactor * pos.distToLineSegment(linep1, linep2);//all euclidean distances must be modified by the smallest area correction factor
     } else {
-        tempf = pos.distToLine(linep1, linep2);
+        tempf = m_corrAreaSmallestFactor * pos.distToLine(linep1, linep2);
     }
     if (remainEucl < tempf)
     {
-        return remainEucl * (2.0f * tempf - remainEucl);//hits the endpoint en route
+        return m_corrAreaSmallestFactor * remainEucl * (2.0f * tempf - remainEucl);//hits the endpoint en route
     } else {
         return tempf * tempf;//reaches the line (segment), then finds the endpoint with no additional penalty
     }
@@ -1009,7 +1046,7 @@ float GeodesicHelper::lineHeuristic(const Vector3D& pos, const Vector3D& linep1,
 void GeodesicHelper::aStarLine(const int32_t& root, const int32_t& endpoint, const Vector3D& linep1, const Vector3D& linep2, const bool& segment)
 {
     int32_t whichnode, whichneigh, numNeigh, numChanged = 0;
-    float penaltyScale = 0.5f / m_myBase->m_avgNodeSpacing;//to prevent change in scale from changing the optimal path - 0.5f is ostensibly for averaging between endpoints, but is largely arbitrary
+    float penaltyScale = 0.5f / m_avgNodeSpacing;//to prevent change in scale from changing the optimal path - 0.5f is ostensibly for averaging between endpoints, but is largely arbitrary
     const int32_t* neighbors;
     float tempf;
     output[root] = 0.0f;
@@ -1018,7 +1055,7 @@ void GeodesicHelper::aStarLine(const int32_t& root, const int32_t& endpoint, con
     parent[root] = -1;//idiom for end of path
     m_active.clear();
     float remainEucl = (nodeCoords[root] - nodeCoords[endpoint]).length();
-    heurVal[root] = remainEucl + penaltyScale * lineHeuristic(nodeCoords[root], linep1, linep2, remainEucl, segment);
+    heurVal[root] = m_corrAreaSmallestFactor * remainEucl + penaltyScale * lineHeuristic(nodeCoords[root], linep1, linep2, remainEucl, segment);
     m_heapIdent[root] = m_active.push(root, heurVal[root]);//to get consistent heuristic, assume it can take straight line to endpoint for total distance, and straight line to target line (segment) at the same time
     while (!m_active.isEmpty())
     {
@@ -1036,7 +1073,7 @@ void GeodesicHelper::aStarLine(const int32_t& root, const int32_t& endpoint, con
                 if (!(marked[whichneigh] & 4))
                 {
                     remainEucl = (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
-                    heurVal[whichneigh] = remainEucl + penaltyScale * lineHeuristic(nodeCoords[whichneigh], linep1, linep2, remainEucl, segment);
+                    heurVal[whichneigh] = m_corrAreaSmallestFactor * remainEucl + penaltyScale * lineHeuristic(nodeCoords[whichneigh], linep1, linep2, remainEucl, segment);
                     output[whichneigh] = tempf;
                     parent[whichneigh] = whichnode;
                     changed[numChanged++] = whichneigh;//having a valid value will be the first marking, so set changed
@@ -1056,7 +1093,7 @@ void GeodesicHelper::aStarLine(const int32_t& root, const int32_t& endpoint, con
     }
 }
 
-void GeodesicHelper::aStarData(const int32_t& root, const int32_t& endpoint, const float* data, const float& followStrength, const float* roiData)
+void GeodesicHelper::aStarData(const int32_t& root, const int32_t& endpoint, const float* data, const float& followStrength, const float* roiData, const bool& smooth)
 {//NOTE: for consistent behavior, data must not contain negatives (or anything non-numeric)
     int32_t whichnode, whichneigh, numNeigh, numChanged = 0;
     const int32_t* neighbors;
@@ -1066,7 +1103,7 @@ void GeodesicHelper::aStarData(const int32_t& root, const int32_t& endpoint, con
     marked[root] |= 4;//has value in output
     parent[root] = -1;//idiom for end of path
     m_active.clear();
-    heurVal[root] = (nodeCoords[root] - nodeCoords[endpoint]).length();//data could be zero all the way along the optimal path, so euclidean distance is the only consistent heuristic
+    heurVal[root] = m_corrAreaSmallestFactor * (nodeCoords[root] - nodeCoords[endpoint]).length();//data could be zero all the way along the optimal path, so euclidean distance is the only consistent heuristic
     m_heapIdent[root] = m_active.push(root, heurVal[root]);
     while (!m_active.isEmpty())
     {
@@ -1083,7 +1120,7 @@ void GeodesicHelper::aStarData(const int32_t& root, const int32_t& endpoint, con
                 tempf = output[whichnode] + distances[whichnode][j] * (1.0f + followStrength * (data[whichnode] + data[whichneigh]));//integrate 1 + strength * value to get distance plus path-integrated data
                 if (!(marked[whichneigh] & 4))
                 {
-                    heurVal[whichneigh] = (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
+                    heurVal[whichneigh] = m_corrAreaSmallestFactor * (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
                     output[whichneigh] = tempf;
                     parent[whichneigh] = whichnode;
                     changed[numChanged++] = whichneigh;//having a valid value will be the first marking, so set changed
@@ -1093,6 +1130,34 @@ void GeodesicHelper::aStarData(const int32_t& root, const int32_t& endpoint, con
                     m_active.changekey(m_heapIdent[whichneigh], tempf + heurVal[whichneigh]);
                     output[whichneigh] = tempf;
                     parent[whichneigh] = whichnode;
+                }
+            }
+        }
+        if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
+        {
+            neighbors = nodeNeighbors2[whichnode].data();
+            numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
+            const GeodesicHelperBase::CrawlInfo* pathInfo = neighbors2PathInfo[whichnode].data();
+            for (int32_t j = 0; j < numNeigh; ++j)
+            {
+                whichneigh = neighbors[j];
+                if ((roiData == NULL || roiData[whichneigh] > 0.0f) && !(marked[whichneigh] & 1))
+                {//skip floating point math if frozen or outside roi
+                    tempf = output[whichnode] + distances2[whichnode][j] + followStrength * (data[whichnode] * pathInfo[j].pieceDists[0] + data[whichneigh] * pathInfo[j].pieceDists[1]
+                                + distances2[whichnode][j] * (data[pathInfo[j].edgeNodes[0]] * pathInfo[j].edgeWeight + data[pathInfo[j].edgeNodes[1]] * (1.0f - pathInfo[j].edgeWeight)));
+                    if (!(marked[whichneigh] & 4))
+                    {
+                        heurVal[whichneigh] = m_corrAreaSmallestFactor * (nodeCoords[whichneigh] - nodeCoords[endpoint]).length();
+                        output[whichneigh] = tempf;
+                        parent[whichneigh] = whichnode;
+                        changed[numChanged++] = whichneigh;//having a valid value will be the first marking, so set changed
+                        marked[whichneigh] |= 4;
+                        m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf + heurVal[whichneigh]);
+                    } else if (tempf < output[whichneigh]) {
+                        m_active.changekey(m_heapIdent[whichneigh], tempf + heurVal[whichneigh]);
+                        output[whichneigh] = tempf;
+                        parent[whichneigh] = whichnode;
+                    }
                 }
             }
         }
@@ -1231,7 +1296,7 @@ void GeodesicHelper::getPathAlongLineSegment(const int32_t root, const int32_t e
 }
 
 void GeodesicHelper::getPathFollowingData(const int32_t root, const int32_t endpoint, const float* data, vector<int32_t>& pathNodesOut, vector<float>& pathDistsOut,
-                                          const float& followStrength, const float* roiData, const bool& followMaximum)
+                                          const float& followStrength, const float* roiData, const bool& followMaximum, const bool& smoothFlag)
 {
     CaretAssert(root >= 0 && root < numNodes && endpoint >= 0 && endpoint < numNodes);
     pathNodesOut.clear();
@@ -1281,7 +1346,7 @@ void GeodesicHelper::getPathFollowingData(const int32_t root, const int32_t endp
     }
     CaretMutexLocker locked(&inUse);//let sanity checks fail without locking
     parent[endpoint] = -2;//sentinel value that DOESN'T mean end of path
-    aStarData(root, endpoint, rescaledData.data(), followStrength, roiData);
+    aStarData(root, endpoint, rescaledData.data(), followStrength, roiData, smoothFlag);
     if (parent[endpoint] == -2)//check for invalid value
     {
         return;

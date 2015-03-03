@@ -41,14 +41,23 @@ namespace caret {
 
     class GeodesicHelperBase
     {//This does the neighbor computation, create a GeodesicHelper to contain the temporary arrays and actually do stuff
+    public:
+        struct CrawlInfo
+        {
+            int32_t edgeNodes[2];
+            float edgeWeight, pieceDists[2];
+        };
+    private:
         GeodesicHelperBase();//can't construct without arguments
         GeodesicHelperBase& operator=(const GeodesicHelperBase& right);//can't assign
         GeodesicHelperBase(const GeodesicHelperBase& right);//can't use copy constructor
         std::vector<std::vector<float> > distances, distances2;
         std::vector<std::vector<int32_t> > nodeNeighbors, nodeNeighbors2;
+        std::vector<std::vector<CrawlInfo> > neighbors2PathInfo;
         std::vector<Vector3D> nodeCoords;//for line-following and A*
         int32_t numNodes;
         float m_avgNodeSpacing;//to use for balancing line following penalty
+        float m_corrAreaSmallestFactor;//so that heuristics can be consistent despite corrected areas
     public:
         explicit GeodesicHelperBase(const SurfaceFile* surfaceIn, const float* correctedAreas = NULL);//NOTE: this is only an APPROXIMATE correction, use the real surface whenever possible
         friend class GeodesicHelper;//let it grab the private variables it needs
@@ -61,6 +70,7 @@ namespace caret {
         CaretMinHeap<int32_t, float> m_active;//save and reuse the allocated space
         const std::vector<float>* distances, *distances2;
         const std::vector<int32_t>* nodeNeighbors, *nodeNeighbors2;
+        const std::vector<GeodesicHelperBase::CrawlInfo>* neighbors2PathInfo;
         const Vector3D* nodeCoords;
         float* output;
         int32_t* parent;
@@ -69,6 +79,8 @@ namespace caret {
         std::vector<int32_t> marked, changed, parentStore;
         std::vector<int64_t> m_heapIdent;
         int32_t numNodes;
+        float m_avgNodeSpacing;
+        float m_corrAreaSmallestFactor;
         GeodesicHelper();//Don't allow construction without arguments
         GeodesicHelper& operator=(const GeodesicHelper& right);//can't assign
         GeodesicHelper(const GeodesicHelper&);//can't use copy constructor
@@ -82,7 +94,7 @@ namespace caret {
         float linePenalty(const Vector3D& pos, const Vector3D& linep1, const Vector3D& linep2, const bool& segment);
         float lineHeuristic(const Vector3D& pos, const Vector3D& linep1, const Vector3D& linep2, const float& remainEucl, const bool& segment);
         void aStarLine(const int32_t& root, const int32_t& endpoint, const Vector3D& linep1, const Vector3D& linep2, const bool& segment);//to single endpoint, following line
-        void aStarData(const int32_t& root, const int32_t& endpoint, const float* data, const float& followStrength, const float* roiData);//to single endpoint, following data
+        void aStarData(const int32_t& root, const int32_t& endpoint, const float* data, const float& followStrength, const float* roiData, const bool& smooth);//to single endpoint, following data
     public:
         explicit GeodesicHelper(const CaretPointer<const GeodesicHelperBase>& baseIn);
         /// Get distances from root node, up to a geodesic distance cutoff (stops computing when no more nodes are within that distance)
@@ -120,7 +132,7 @@ namespace caret {
         
         ///path drawing by peaks or troughs of supplied data, controlled by followMaximum
         void getPathFollowingData(const int32_t root, const int32_t endpoint, const float* data, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut,
-                                  const float& followStrength = 5.0f, const float* roiData = NULL, const bool& followMaximum = true);
+                                  const float& followStrength = 5.0f, const float* roiData = NULL, const bool& followMaximum = true, const bool& smoothFlag = false);
         
         ///get just the closest node in the region and max distance given, returns -1 if no such node found - roi value of 0 means not in region, anything else is in region
         int32_t getClosestNodeInRoi(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smoothflag = true);

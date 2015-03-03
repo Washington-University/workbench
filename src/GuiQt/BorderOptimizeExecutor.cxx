@@ -443,7 +443,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         vector<int32_t> nodes;
         vector<float> dists;
         myGeoHelp->getPathFollowingData(myRedrawInfo[i].startnode, myRedrawInfo[i].endnode, combinedGradData.data(), nodes, dists,
-                                        inputData.m_gradientFollowingStrength, roiData.data(), true);
+                                        inputData.m_gradientFollowingStrength, roiData.data(), true, true);
         if (nodes.empty())
         {
             errorMessageOut = "Unable to redraw border segment for border '" + inputData.m_borders[i]->getName() + "'";

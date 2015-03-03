@@ -31,11 +31,6 @@ namespace caret {
       TestInterface();//deny construction without arguments
       TestInterface& operator=(const TestInterface& right);//deny assignment
    protected:
-      void setFailed(const AString failMessage)
-      {
-         m_failed = true;
-         m_failMessage += failMessage + "\n";//append to previous messages
-      }
       TestInterface(const AString& identifier) : m_failMessage("")
       {
          m_identifier = identifier;
@@ -43,6 +38,11 @@ namespace caret {
          m_default_path = "../../wb_files";
       }
    public:
+      void setFailed(const AString failMessage)
+      {
+         m_failed = true;
+         m_failMessage += failMessage + "\n";//append to previous messages
+      }
       const AString& getIdentifier()
       {
          return m_identifier;

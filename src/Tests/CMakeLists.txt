@@ -20,6 +20,7 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Tests
 CiftiFileTest.h
+GeodesicHelperTest.h
 HttpTest.h
 HeapTest.h
 LookupTest.h
@@ -37,6 +38,7 @@ VolumeFileTest.h
 XnatTest.h
 
 CiftiFileTest.cxx
+GeodesicHelperTest.cxx
 HttpTest.cxx
 HeapTest.cxx
 LookupTest.cxx
