@@ -582,12 +582,15 @@ BorderOptimizeDialog::createDataFilesWidget()
     std::vector<CaretMappableDataFile*> optimizeMapFiles;
     GuiManager::get()->getBrain()->getAllMappableDataFileWithDataFileTypes(m_optimizeDataFileTypes,
                                                                            optimizeMapFiles);
-    const int32_t numMapFiles = static_cast<int32_t>(optimizeMapFiles.size());
+    const int32_t numberOfMapFiles = static_cast<int32_t>(optimizeMapFiles.size());
     
-    const int32_t maxFiles = 10;
-    for (int32_t i = 0; i < maxFiles; i++) {
+    const int32_t minimumDataFilesToShow = 10;
+    const int32_t numberOfFilesToShow = std::max(minimumDataFilesToShow,
+                                                 numberOfMapFiles);
+    for (int32_t i = 0; i < numberOfFilesToShow; i++) {
         CaretMappableDataFile* mapFile = NULL;
-        if (i < numMapFiles) {
+        if (i < numberOfMapFiles) {
+            CaretAssertVectorIndex(optimizeMapFiles, i);
             mapFile = optimizeMapFiles[i];
         }
         addDataFileRow(mapFile);
