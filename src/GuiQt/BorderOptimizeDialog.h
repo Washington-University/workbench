@@ -167,9 +167,6 @@ namespace caret {
 
         void mapFileSelectionChanged();
         
-    private:
-        void updateAllMapsCheckBox();
-        
     public:
         CaretMappableDataFileAndMapSelectorObject* m_mapFileAndIndexSelectorObject;
         

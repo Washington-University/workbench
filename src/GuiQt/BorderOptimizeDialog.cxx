@@ -991,44 +991,33 @@ BorderOptimizeDataFileSelector::updateFileData()
 {
     const bool widgetsEnabled = m_selectionCheckBox->isChecked();
     
-    m_smoothingSpinBox->setEnabled(widgetsEnabled);
-    m_weightSpinBox->setEnabled(widgetsEnabled);
+    m_allMapsCheckBox->setEnabled(widgetsEnabled);
+    m_exclusionDistanceSpinBox->setEnabled(widgetsEnabled);
     m_invertGradientCheckBox->setEnabled(widgetsEnabled);
     m_skipGradientCheckBox->setEnabled(widgetsEnabled);
-    m_allMapsCheckBox->setEnabled(widgetsEnabled);
+    m_smoothingSpinBox->setEnabled(widgetsEnabled);
+    m_weightSpinBox->setEnabled(widgetsEnabled);
     
     CaretMappableDataFileAndMapSelectionModel* model = m_mapFileAndIndexSelectorObject->getModel();
     m_mapFileAndIndexSelectorObject->updateFileAndMapSelector(model);
     m_mapFileAndIndexSelectorObject->setEnabled(widgetsEnabled);
     
-    bool denseFileFlag = false;
-    const CaretMappableDataFile* mapFile = model->getSelectedFile();
-    if (mapFile != NULL) {
-        if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
-            denseFileFlag = true;
-        }
-    }
-    m_exclusionDistanceSpinBox->setEnabled(widgetsEnabled
-                                           && denseFileFlag);
-    
-    updateAllMapsCheckBox();
-}
-
-/**
- * Update the all maps checkbox.
- * It is disabled if a Dense file is selected.
- */
-void
-BorderOptimizeDataFileSelector::updateAllMapsCheckBox()
-{
-    m_allMapsCheckBox->setEnabled(true);
-    CaretMappableDataFileAndMapSelectionModel* model = m_mapFileAndIndexSelectorObject->getModel();
-    CaretMappableDataFile* mapFile = model->getSelectedFile();
-    if (mapFile != NULL) {
-        if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
+    if (widgetsEnabled) {
+        const CaretMappableDataFile* mapFile = model->getSelectedFile();
+        const bool denseFileFlag = ((mapFile != NULL)
+                                    ? (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE)
+                                    : false);
+        if (denseFileFlag) {
             m_allMapsCheckBox->setChecked(false);
             m_allMapsCheckBox->setEnabled(false);
+            m_exclusionDistanceSpinBox->setEnabled(true);
+            m_skipGradientCheckBox->setChecked(false);
+            m_skipGradientCheckBox->setEnabled(false);
         }
+        else {
+            m_exclusionDistanceSpinBox->setEnabled(false);
+        }
+        m_allMapsCheckBox->setEnabled( ! denseFileFlag);
     }
 }
 
@@ -1038,7 +1027,7 @@ BorderOptimizeDataFileSelector::updateAllMapsCheckBox()
 void
 BorderOptimizeDataFileSelector::mapFileSelectionChanged()
 {
-    updateAllMapsCheckBox();
+    updateFileData();
 }
 
 
@@ -1059,17 +1048,6 @@ BorderOptimizeDataFileSelector::getSelections() const
         if ((mapIndex >= 0)
             && (mapIndex < mapFile->getNumberOfMaps())) {
             if (m_selectionCheckBox->isChecked()) {
-                
-                /*
-                 * Tim - Here are the skip gradient and exclusion distance
-                 *       values for passing to the algorithm.
-                 *
-                 * bool value: m_skipGradientCheckBox->isChecked();
-                 * float value: m_exclusionDistanceSpinBox->value();
-                 *
-                 */
-                
-                std::cout << "Need to add skip gradient and exclusion distance to BorderOptimizeExecutor::DataFileInfo" << std::endl;
                 dataOut.grabNew(new BorderOptimizeExecutor::DataFileInfo(mapFile,
                                                                         mapIndex,
                                                                         m_allMapsCheckBox->isChecked(),
