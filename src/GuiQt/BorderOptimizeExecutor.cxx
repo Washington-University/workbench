@@ -34,6 +34,7 @@
 #include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "CiftiMappableDataFile.h"
+#include "EventProgressUpdate.h"
 #include "GeodesicHelper.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
@@ -303,9 +304,21 @@ BorderOptimizeExecutor::run(const InputData& inputData,
     }
     int numBorders = (int)inputData.m_borders.size();
     vector<BorderRedrawInfo> myRedrawInfo(numBorders);
+    const int PROGRESS_MAX = 100;
+    const int SEGMENT_PROGRESS = 10;
+    const int COMPUTE_PROGRESS = 80;
+    const int DRAW_PROGRESS = 10;
     for (int i = 0; i < numBorders; ++i)
     {//find pieces of border to redraw, before doing gradient, so it can error early
         Border* thisBorder = inputData.m_borders[i];
+        EventProgressUpdate tempEvent(0, PROGRESS_MAX, (SEGMENT_PROGRESS * i) / numBorders,
+                                      "finding in-roi segment of border '" + thisBorder->getName() + "'");
+        EventManager::get()->sendEvent(&tempEvent);
+        if (tempEvent.isCancelled())
+        {
+            errorMessageOut = "cancelled by user";
+            return false;
+        }
         int numPoints = thisBorder->getNumberOfPoints();
         int start, end;
         if (thisBorder->isClosed())
@@ -399,6 +412,14 @@ BorderOptimizeExecutor::run(const InputData& inputData,
     int numInputs = (int)inputData.m_dataFileInfo.size();
     for (int i = 0; i < numInputs; ++i)
     {
+        EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + (COMPUTE_PROGRESS * i) / numInputs,
+                                      "processing data file '" + inputData.m_dataFileInfo[i].m_mapFile->getFileName() + "'");
+        EventManager::get()->sendEvent(&tempEvent);
+        if (tempEvent.isCancelled())
+        {
+            errorMessageOut = "cancelled by user";
+            return false;
+        }
         MetricFile tempGradient;
         if (inputData.m_dataFileInfo[i].m_allMapsFlag)
         {
@@ -440,6 +461,14 @@ BorderOptimizeExecutor::run(const InputData& inputData,
     CaretPointer<TopologyHelper> myTopoHelp = computeSurf->getTopologyHelper();
     for (int i = 0; i < numBorders; ++i)
     {
+        EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS + (DRAW_PROGRESS * i) / numBorders,
+                                      "redrawing segment of border '" + inputData.m_borders[i]->getName() + "'");
+        EventManager::get()->sendEvent(&tempEvent);
+        if (tempEvent.isCancelled())
+        {
+            errorMessageOut = "cancelled by user";
+            return false;
+        }
         vector<int32_t> nodes;
         vector<float> dists;
         myGeoHelp->getPathFollowingData(myRedrawInfo[i].startnode, myRedrawInfo[i].endnode, combinedGradData.data(), nodes, dists,
