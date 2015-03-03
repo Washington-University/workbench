@@ -415,11 +415,23 @@ BorderOptimizeDialog::okButtonClicked()
                 EventManager::get()->sendEvent(browserTabEvent.getPointer());
                 BrowserTabContent* tabContent = browserTabEvent.getBrowserTab();
                 if (tabContent != NULL) {
+                    /*
+                     * Create a new overlay at the top
+                     */
                     OverlaySet* overlaySet = tabContent->getOverlaySet();
                     CaretAssert(overlaySet);
+                    overlaySet->insertOverlayAbove(0);
+                    
+                    /*
+                     * Load the gradient metric file into the top-most
+                     * (should be the new) overlay.
+                     */
                     Overlay* overlay = overlaySet->getPrimaryOverlay();
                     CaretAssert(overlay);
                     overlay->setSelectionData(resultsMetricFile, 0);
+                    overlay->setEnabled(true);
+                    overlay->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+                    overlay->setOpacity(1.0);
                     
                     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
                 }
