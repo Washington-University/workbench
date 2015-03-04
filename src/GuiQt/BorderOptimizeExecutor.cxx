@@ -35,6 +35,7 @@
 #include "CiftiFile.h"
 #include "CiftiMappableDataFile.h"
 #include "EventProgressUpdate.h"
+#include "FileInformation.h"
 #include "GeodesicHelper.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
@@ -306,8 +307,10 @@ BorderOptimizeExecutor::run(const InputData& inputData,
     vector<BorderRedrawInfo> myRedrawInfo(numBorders);
     const int PROGRESS_MAX = 100;
     const int SEGMENT_PROGRESS = 10;
-    const int COMPUTE_PROGRESS = 80;
+    const int COMPUTE_PROGRESS = 75;
+    const int HELPER_PROGRESS = 5;
     const int DRAW_PROGRESS = 10;
+    CaretAssert(SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + DRAW_PROGRESS == PROGRESS_MAX);
     for (int i = 0; i < numBorders; ++i)
     {//find pieces of border to redraw, before doing gradient, so it can error early
         Border* thisBorder = inputData.m_borders[i];
@@ -413,7 +416,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
     for (int i = 0; i < numInputs; ++i)
     {
         EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + (COMPUTE_PROGRESS * i) / numInputs,
-                                      "processing data file '" + inputData.m_dataFileInfo[i].m_mapFile->getFileName() + "'");
+                                      "processing data file '" + FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getFileName() + "'");
         EventManager::get()->sendEvent(&tempEvent);
         if (tempEvent.isCancelled())
         {
@@ -449,6 +452,16 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         inputData.m_combinedGradientDataOut->setStructure(computeSurf->getStructure());
         inputData.m_combinedGradientDataOut->setValuesForColumn(0, combinedGradData.data());
     }
+    {
+        EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS,
+                                      "generating geodesic helper");
+        EventManager::get()->sendEvent(&tempEvent);
+        if (tempEvent.isCancelled())
+        {
+            errorMessageOut = "cancelled by user";
+            return false;
+        }
+    }
     CaretPointer<GeodesicHelper> myGeoHelp;
     CaretPointer<GeodesicHelperBase> myGeoBase;
     if (correctedAreasMetric != NULL)
@@ -461,7 +474,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
     CaretPointer<TopologyHelper> myTopoHelp = computeSurf->getTopologyHelper();
     for (int i = 0; i < numBorders; ++i)
     {
-        EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS + (DRAW_PROGRESS * i) / numBorders,
+        EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + (DRAW_PROGRESS * i) / numBorders,
                                       "redrawing segment of border '" + inputData.m_borders[i]->getName() + "'");
         EventManager::get()->sendEvent(&tempEvent);
         if (tempEvent.isCancelled())
