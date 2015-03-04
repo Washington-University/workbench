@@ -53,6 +53,7 @@
 #include "GuiManager.h"
 #include "MetricFile.h"
 #include "OverlaySet.h"
+#include "ProgressReportingDialog.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
@@ -293,9 +294,6 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
 void
 BorderOptimizeDialog::okButtonClicked()
 {
-    CursorDisplayScoped cursor;
-    cursor.showWaitCursor();
-    
     preserveDialogSizeAndPositionWhenReOpened();
     
     AString errorMessage;
@@ -354,10 +352,14 @@ BorderOptimizeDialog::okButtonClicked()
     }
     
     if ( ! errorMessage.isEmpty()) {
-        cursor.restoreCursor();
         WuQMessageBox::errorOk(this, errorMessage);
         return;
     }
+    
+    ProgressReportingDialog progressDialog("Border Optimization",
+                                           "",
+                                           this);
+    progressDialog.setValue(0);
     
     MetricFile* vertexAreasMetricFile = NULL;
     CaretDataFile* vertexAreaFile = m_vertexAreasMetricFileSelectionModel->getSelectedFile();
@@ -452,7 +454,6 @@ BorderOptimizeDialog::okButtonClicked()
         return;
     }
     
-    cursor.restoreCursor();
     WuQMessageBox::errorOk(this, errorMessage);
 }
 
