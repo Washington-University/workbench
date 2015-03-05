@@ -523,7 +523,11 @@ BorderPropertiesEditorDialog::okButtonClicked()
          * Close border
          */
         if (m_closedCheckBox->isChecked()) {
-            borderBeingEdited->addPointsToCloseBorderWithGeodesic(m_finishBorderSurfaceFile);    
+            borderBeingEdited->addPointsToCloseBorderWithGeodesic(m_finishBorderSurfaceFile);
+            borderBeingEdited->setClosed(true);
+        }
+        else {
+            borderBeingEdited->setClosed(false);
         }
         
         /*
