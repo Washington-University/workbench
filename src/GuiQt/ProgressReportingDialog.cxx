@@ -137,7 +137,7 @@ ProgressReportingDialog::ProgressReportingDialog(const AString& title,
                                                  Qt::WindowFlags f)
 : QProgressDialog(initialMessage,
                   "Cancel",
-                  50,
+                  0,
                   100,
                   parent,
                   f)

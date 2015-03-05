@@ -359,6 +359,7 @@ BorderOptimizeDialog::okButtonClicked()
     ProgressReportingDialog progressDialog("Border Optimization",
                                            "",
                                            this);
+    progressDialog.setMinimum(0);
     progressDialog.setValue(0);
     
     MetricFile* vertexAreasMetricFile = NULL;
