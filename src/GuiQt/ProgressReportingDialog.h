@@ -40,28 +40,10 @@ namespace caret {
                                 QWidget* parent,
                                 Qt::WindowFlags f = 0);
         
-//        static void run(QWidget* parent,
-//                        const AString& title,
-//                        QObject* receiver,
-//                        const char* method);
-
         static void runEvent(Event* event,
                              QWidget* parent,
                              const AString& title);
         
-//        static ProgressReportingInterface* showProgressDialog(QWidget* parent,
-//                                                              const AString& title);
-        
-//    signals:
-//        void startWithProgress(ProgressReportingInterface*);
-        
-    private:
-//        ProgressReportingDialog(ProgressReportingWithSlots* progressReporter,
-//                                const AString& title,
-//                                const AString& initialMessage,
-//                                QWidget* parent,
-//                                Qt::WindowFlags f = 0);
-
     public:
         virtual ~ProgressReportingDialog();
 

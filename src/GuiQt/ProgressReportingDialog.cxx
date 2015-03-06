@@ -68,57 +68,6 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param progressReporter
- *    Concrete instance of ProgressReportingInterface that is used to report
- *    progress.
- * @param title
- *    Title for dialog.
- * @param initialMessage
- *    Message that is first displayed.
- * @param parent
- *    Parent on which this progress dialog is displayed.
- * @param f
- *    Window flags.
- */
-//ProgressReportingDialog::ProgressReportingDialog(ProgressReportingWithSlots* progressReporter,
-//                                                 const AString& title,
-//                                                 const AString& initialMessage,
-//                                                 QWidget* parent,
-//                                                 Qt::WindowFlags f)
-//: QProgressDialog(initialMessage,
-//                  "Cancel",
-//                  50,
-//                  100,
-//                  parent,
-//                  f)
-//{
-//    CaretAssert(progressReporter);
-//    m_progressReporter = progressReporter;
-//    progressReporter->setParent(this);
-//    
-//    if (title.isEmpty() == false) {
-//        setWindowTitle(title);
-//    }
-//    
-//    const int minimumTimeInMillisecondsBeforeDialogDisplayed = 0;
-//    setMinimumDuration(minimumTimeInMillisecondsBeforeDialogDisplayed);
-//    
-//    QObject::connect(progressReporter, SIGNAL(reportProgressRange(const int, const int)),
-//                     this, SLOT(setRange(int, int)));
-//    
-//    QObject::connect(progressReporter, SIGNAL(reportProgressValue(const int)),
-//                     this, SLOT(setValue(int)));
-//    
-//    QObject::connect(progressReporter, SIGNAL(reportProgressMessage(const QString&)),
-//                     this, SLOT(setLabelText(const QString&)));
-//    
-//    QObject::connect(this, SIGNAL(canceled()),
-//                     progressReporter, SLOT(requestCancel()));
-//}
-
-/**
- * Constructor.
- *
  * User will need to send EventProgressUpdate events to update
  * this progress dialog.
  *
@@ -170,12 +119,6 @@ ProgressReportingDialog::ProgressReportingDialog(const AString& title,
  */
 ProgressReportingDialog::~ProgressReportingDialog()
 {
-    /**
-     * Note: Do not need to delete "m_progressReporter" because it
-     * is a child of this dialog and Qt will delete all children of
-     * the dialog.
-     */
-    //delete m_progressReporter;
 }
 
 /**
@@ -195,12 +138,6 @@ ProgressReportingDialog::runEvent(Event* event,
                                   QWidget* parent,
                                   const AString& title)
 {
-//    ProgressReportingFromEvent* progressReporterWithEvent = new ProgressReportingFromEvent(0);
-//    
-//    ProgressReportingDialog prd(progressReporterWithEvent,
-//                                title,
-//                                "",
-//                                parent);
     ProgressReportingDialog prd(title,
                                 "",
                                 parent);
@@ -210,79 +147,6 @@ ProgressReportingDialog::runEvent(Event* event,
     
     prd.setValue(prd.maximum());
 }
-
-/**
- * Run, using a signal, in a progress dialog.  Dialog will close after
- * event completes.
- *
- * @param parent
- *    Widget on which the dialog is displayed.
- * @param title
- *    If not empty, title is in window's title bar
- * @param receiver
- *    Receiver of the signal.
- * @param method
- *    Method that is called in the receiver.  It must accept one
- * parameters that is a pointer to ProgressReportingInterface.
- * eg:   slotName(ProgressReportingInterface*)
- * The user should then start the task and use the ProgressReportingInterface
- * to update the progress.  When the method finishes, executation will return
- * to this static method and processing will remove the progress dialog.
- */
-//void
-//ProgressReportingDialog::run(QWidget* parent,
-//                             const AString& title,
-//                             QObject* receiver,
-//                             const char* method)
-//{
-//    ProgressReportingWithSlots* progressReporterWithSlots = new ProgressReportingWithSlots(0);
-//    
-//    ProgressReportingDialog prd(progressReporterWithSlots,
-//                                title,
-//                                "",
-//                                parent);
-//    
-//    QObject::connect(&prd, SIGNAL(startWithProgress(ProgressReportingInterface*)),
-//                     receiver, method);
-//    
-//    prd.setValue(prd.maximum());
-//}
-
-/**
- * Show a progress dialog.  Use the returned progress interface to 
- * update the contents of the dialog.  When the progress value
- * is equal to the maximum progress value, the dialog will close
- * and and the progress interface that was returned will be deleted.
- *
- * @param parent
- *    Widget on which the dialog is displayed.
- * @param title
- *    If not empty, title is in window's title bar
- * @return
- *    An instance of a progress reporting interface.  DO NOT delete
- *    this object.  It will be deleted when the progress value is
- *    equal to the maximum progress value.
- */
-//ProgressReportingInterface*
-//ProgressReportingDialog::showProgressDialog(QWidget* parent,
-//                                            const AString& title)
-//{
-//    ProgressReportingWithSlots* progressReporterWithSlots = new ProgressReportingWithSlots(0);
-//    
-//    ProgressReportingDialog* prd = new ProgressReportingDialog(progressReporterWithSlots,
-//                                                               title,
-//                                                               "",
-//                                                               parent);
-////    prd->setAttribute(Qt::WA_DeleteOnClose);
-//    
-//    if (title.isEmpty() == false) {
-//        prd->setWindowTitle(title);
-//    }
-//    
-//    return progressReporterWithSlots;
-//}
-
-
 
 //=============================================================================
 /**
@@ -325,15 +189,22 @@ ProgressReportingFromEvent::receiveEvent(Event* event)
         const int progValue = progressEvent->getProgressValue();
         const AString progMessage = progressEvent->getProgressMessage();
         
+        /*
+         * Note: It appears that the content of the progress dialog
+         * only changes when the progress value is changed.  So, set
+         * the message prior to the progress value so that if the message
+         * changes, the message in the progress dialog will be updated
+         * when the progress value changes.
+         */
+        if (progMessage.isEmpty() == false) {
+            setProgressMessage(progMessage);
+        }
         if ((minProg >= 0) && (maxProg >= minProg)) {
             setProgressRange(minProg,
-                                     maxProg);
+                             maxProg);
         }
         if (progValue >= 0) {
             setProgressValue(progValue);
-        }
-        if (progMessage.isEmpty() == false) {
-            setProgressMessage(progMessage);
         }
         
         if (isCancelRequested()) {
