@@ -111,7 +111,7 @@ namespace FTGL
 #include <FTGL/FTBBox.h>
 #include <FTGL/FTBuffer.h>
 
-#include <FTGL/FTGlyph.h>
+#include <FTGL/FTGLGlyph.h>
 #include <FTGL/FTBitmapGlyph.h>
 #include <FTGL/FTBufferGlyph.h>
 #include <FTGL/FTExtrdGlyph.h>

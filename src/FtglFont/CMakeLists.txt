@@ -72,7 +72,7 @@ FTGL/FTGLOutlineFont.h
 FTGL/FTGLPixmapFont.h
 FTGL/FTGLPolygonFont.h
 FTGL/FTGLTextureFont.h
-FTGL/FTGlyph.h
+FTGL/FTGLGlyph.h
 FTGL/FTLayout.h
 FTGL/FTOutlineGlyph.h
 FTGL/FTPixmapGlyph.h
