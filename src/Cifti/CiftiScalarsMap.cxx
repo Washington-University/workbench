@@ -216,6 +216,10 @@ void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
                     m_name = xml.readElementText();//raises error if element encountered
                     if (xml.hasError()) return;
                     haveName = true;
+                } else if (name == "LabelTable") {
+                    CaretLogWarning("ignoring LabelTable in Cifti-1 Scalars mapping");
+                    xml.readElementText(QXmlStreamReader::SkipChildElements);//accept some malformed Cifti-1 files
+                    if (xml.hasError()) return;
                 } else {
                     throw CaretException("unexpected element in NamedMap: " + name.toString());
                 }
