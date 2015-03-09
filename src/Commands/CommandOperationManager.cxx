@@ -499,7 +499,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
     {
         printHelpInfo();
     } else if (commandSwitch == "-arguments-help") {
-        printArgumentsHelp(parameters.getProgramName());
+        printArgumentsHelp("wb_command");
     } else if (commandSwitch == "-version") {
         printVersionInfo();
     } else if (commandSwitch == "-list-commands") {
@@ -507,7 +507,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
     } else if (commandSwitch == "-list-deprecated-commands") {
         printDeprecatedCommands();
     } else if (commandSwitch == "-all-commands-help") {
-        printAllCommandsHelpInfo(parameters.getProgramName());
+        printAllCommandsHelpInfo("wb_command");
     } else {
         
         CommandOperation* operation = NULL;
@@ -542,7 +542,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         } else {
             if (!parameters.hasNext() && operation->takesParameters())
             {
-                cout << operation->getHelpInformation(parameters.getProgramName()) << endl;
+                cout << operation->getHelpInformation("wb_command") << endl;
             } else {
                 operation->execute(parameters, preventProvenance);
             }
