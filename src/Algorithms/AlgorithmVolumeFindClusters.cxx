@@ -64,7 +64,8 @@ OperationParameters* AlgorithmVolumeFindClusters::getParameters()
     startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
     
     ret->setHelpText(
-        AString("Outputs a volume with cluster labels for all voxels within a large enough cluster, and zeros elsewhere.  ") +
+        AString("Outputs a volume with nonzero integers for all voxels within a large enough cluster, and zeros elsewhere.  ") +
+        "The integers denote cluster membership (by default, first cluster found will use value 1, second cluster 2, etc).  " +
         "By default, values greater than <value-threshold> are considered to be in a cluster, use -less-than to test for values less than the threshold.  " +
         "To apply this as a mask to the data, or to do more complicated thresholding, see -volume-math."
     );
@@ -107,6 +108,10 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
                                                          const bool& lessThan, const VolumeFile* myRoi, const int& subvolNum, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (startVal == 0)
+    {
+        throw AlgorithmException("0 is not a valid cluster marking start value");
+    }
     const VolumeSpace& mySpace = volIn->getVolumeSpace();
     const float* roiFrame = NULL;
     if (myRoi != NULL)

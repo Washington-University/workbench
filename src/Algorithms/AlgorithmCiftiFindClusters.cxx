@@ -80,7 +80,9 @@ OperationParameters* AlgorithmCiftiFindClusters::getParameters()
     startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
     
     ret->setHelpText(
-        AString("The input cifti file must have a brain models mapping on the chosen dimension, columns for .dtseries, and either for .dconn.  ") +
+        AString("Outputs a cifti file with nonzero integers for all brainordinates within a large enough cluster, and zeros elsewhere.  ") +
+        "The integers denote cluster membership (by default, first cluster found will use value 1, second cluster 2, etc).  " +
+        "The input cifti file must have a brain models mapping on the chosen dimension, columns for .dtseries, and either for .dconn.  " +
         "The ROI should have a brain models mapping along columns, exactly matching the mapping of the chosen direction in the input file.  " +
         "Data outside the ROI is ignored."
     );
@@ -165,6 +167,10 @@ AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj
                                                        const CiftiFile* roiCifti, const bool& mergedVol, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (startVal == 0)
+    {
+        throw AlgorithmException("0 is not a valid cluster marking start value");
+    }
     const CiftiXML& myXML = myCifti->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
     if (myDir >= myXML.getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");

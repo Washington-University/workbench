@@ -69,7 +69,8 @@ OperationParameters* AlgorithmMetricFindClusters::getParameters()
     startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
     
     ret->setHelpText(
-        AString("Outputs a metric with cluster labels for all vertices within a large enough cluster, and zeros elsewhere.  ") +
+        AString("Outputs a metric with nonzero integers for all vertices within a large enough cluster, and zeros elsewhere.  ") +
+        "The integers denote cluster membership (by default, first cluster found will use value 1, second cluster 2, etc).  " +
         "By default, values greater than <value-threshold> are considered to be in a cluster, use -less-than to test for values less than the threshold.  " +
         "To apply this as a mask to the data, or to do more complicated thresholding, see -metric-math."
     );
@@ -119,6 +120,10 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
                                                          MetricFile* myMetricOut, const bool& lessThan, const MetricFile* myRoi, const MetricFile* myAreas, const int& columnNum, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (startVal == 0)
+    {
+        throw AlgorithmException("0 is not a valid cluster marking start value");
+    }
     int numNodes = mySurf->getNumberOfNodes();
     if (myMetric->getNumberOfNodes() != numNodes) throw AlgorithmException("metric does not match surface in number of vertices");
     const float* roiData = NULL;
