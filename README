@@ -31,7 +31,7 @@ make install
 
 It should be noted that wb_import, provided in the HCP binary releases of Connectome Workbench, is actually part of caret5 (http://brainvis.wustl.edu/wiki/index.php/Caret:Download).
 
-Connectome Workbench itself is copyright 2014 Washington University School of Medicine, licensed under GPLv2 or later, see LICENSE file
+Connectome Workbench itself is copyright 2014-2015 Washington University School of Medicine, licensed under GPLv2 or later, see LICENSE file
 
 Some included code/files are from third party sources, with the following licenses:
 
