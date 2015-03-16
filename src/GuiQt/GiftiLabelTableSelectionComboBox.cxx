@@ -241,8 +241,8 @@ GiftiLabelTableSelectionComboBox::updateContent(GiftiLabelTable* giftiLabelTable
     if (m_giftiLabelTable != NULL) {
         const int32_t unassignedKey = m_giftiLabelTable->getUnassignedLabelKey();
         
-        const std::set<int32_t> keySet = m_giftiLabelTable->getKeys();
-        for (std::set<int32_t>::const_iterator iter = keySet.begin();
+        const std::vector<int32_t> keySet = m_giftiLabelTable->getLabelKeysSortedByName();
+        for (std::vector<int32_t>::const_iterator iter = keySet.begin();
              iter != keySet.end();
              iter++) {
             const int32_t key = *iter;
