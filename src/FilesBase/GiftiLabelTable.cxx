@@ -426,6 +426,8 @@ GiftiLabelTable::deleteLabel(const int32_t key)
     if (iter != this->labelsMap.end()) {
         this->labelsMap.erase(iter);
         delete iter->second;
+        
+        setModified();
     }
 }
 
@@ -449,6 +451,7 @@ GiftiLabelTable::deleteLabel(const GiftiLabel* label)
          iter++) {
         if (iter->second == label) {
             this->labelsMap.erase(iter);
+            setModified();
             break;
         }
     }
