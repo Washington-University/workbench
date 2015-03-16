@@ -22,6 +22,7 @@
 #include "OperationException.h"
 
 #include "BorderFile.h"
+#include "CaretLogger.h"
 #include "DataFileTypeEnum.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -87,8 +88,30 @@ void OperationSetStructure::useParameters(OperationParameters* myParams, Progres
     LevelProgress myProgress(myProgObj);
     AString fileName = myParams->getString(1);
     AString structureName = myParams->getString(2);
+    OptionalParameter* surfType = myParams->getOptionalParameter(3);
+    OptionalParameter* secondaryType = myParams->getOptionalParameter(4);
     bool ok = false;
-    StructureEnum::Enum myStrucure = StructureEnum::fromName(structureName, &ok);
+    SurfaceTypeEnum::Enum mySurfType = SurfaceTypeEnum::UNKNOWN;//so compilers won't complain about uninitialized
+    if (surfType->m_present)
+    {
+        AString mySurfTypeName = surfType->getString(1);
+        mySurfType = SurfaceTypeEnum::fromName(mySurfTypeName, &ok);
+        if (!ok)
+        {
+            throw OperationException("unrecognized surface type");
+        }
+    }
+    SecondarySurfaceTypeEnum::Enum mySecondType = SecondarySurfaceTypeEnum::INVALID;
+    if (secondaryType->m_present)
+    {
+        AString mySecondaryName = secondaryType->getString(1);
+        mySecondType = SecondarySurfaceTypeEnum::fromName(mySecondaryName, &ok);
+        if (!ok)
+        {
+            throw OperationException("unrecognized secondary surface type");
+        }
+    }
+    StructureEnum::Enum myStructure = StructureEnum::fromName(structureName, &ok);
     if (!ok)
     {
         throw OperationException("unrecognized structure type");
@@ -102,31 +125,9 @@ void OperationSetStructure::useParameters(OperationParameters* myParams, Progres
     {
         case DataFileTypeEnum::SURFACE:
             {
-                OptionalParameter* surfType = myParams->getOptionalParameter(3);
-                SurfaceTypeEnum::Enum mySurfType = SurfaceTypeEnum::UNKNOWN;//so compilers won't complain about uninitialized
-                if (surfType->m_present)
-                {
-                    AString mySurfTypeName = surfType->getString(1);
-                    mySurfType = SurfaceTypeEnum::fromName(mySurfTypeName, &ok);
-                    if (!ok)
-                    {
-                        throw OperationException("unrecognized surface type");
-                    }
-                }
-                OptionalParameter* secondaryType = myParams->getOptionalParameter(4);
-                SecondarySurfaceTypeEnum::Enum mySecondType = SecondarySurfaceTypeEnum::INVALID;
-                if (secondaryType->m_present)
-                {
-                    AString mySecondaryName = secondaryType->getString(1);
-                    mySecondType = SecondarySurfaceTypeEnum::fromName(mySecondaryName, &ok);
-                    if (!ok)
-                    {
-                        throw OperationException("unrecognized secondary surface type");
-                    }
-                }
                 SurfaceFile mySurf;
                 mySurf.readFile(fileName);
-                mySurf.setStructure(myStrucure);
+                mySurf.setStructure(myStructure);
                 if (surfType->m_present)
                 {
                     mySurf.setSurfaceType(mySurfType);
@@ -140,25 +141,31 @@ void OperationSetStructure::useParameters(OperationParameters* myParams, Progres
             break;
         case DataFileTypeEnum::LABEL:
             {
+                if (surfType->m_present) CaretLogInfo("the -surface-type option is ignored with this file type");
+                if (secondaryType->m_present) CaretLogInfo("the -surface-secondary-type option is ignored with this file type");
                 LabelFile myLabel;
                 myLabel.readFile(fileName);
-                myLabel.setStructure(myStrucure);
+                myLabel.setStructure(myStructure);
                 myLabel.writeFile(fileName);
             }
             break;
         case DataFileTypeEnum::METRIC:
             {
+                if (surfType->m_present) CaretLogInfo("the -surface-type option is ignored with this file type");
+                if (secondaryType->m_present) CaretLogInfo("the -surface-secondary-type option is ignored with this file type");
                 MetricFile myMetric;
                 myMetric.readFile(fileName);
-                myMetric.setStructure(myStrucure);
+                myMetric.setStructure(myStructure);
                 myMetric.writeFile(fileName);
             }
             break;
         case DataFileTypeEnum::BORDER:
             {
+                if (surfType->m_present) CaretLogInfo("the -surface-type option is ignored with this file type");
+                if (secondaryType->m_present) CaretLogInfo("the -surface-secondary-type option is ignored with this file type");
                 BorderFile myBorder;
                 myBorder.readFile(fileName);
-                myBorder.setStructure(myStrucure);
+                myBorder.setStructure(myStructure);
                 myBorder.writeFile(fileName);
             }
             break;

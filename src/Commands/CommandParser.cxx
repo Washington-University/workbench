@@ -82,7 +82,7 @@ void CommandParser::executeOperation(ProgramParameters& parameters)
     vector<AString> uncheckedWarnings = myAlgParams->findUncheckedParams("the command");
     for (size_t i = 0; i < uncheckedWarnings.size(); ++i)
     {
-        CaretLogWarning(uncheckedWarnings[i]);
+        CaretLogWarning("developer warning: " + uncheckedWarnings[i]);
     }
     if (m_doProvenance) provenanceAfterOperation(myOutAssoc);
     //TODO: deallocate input files - give abstract parameter a virtual deallocate method? use CaretPointer and rely on reference counting?
