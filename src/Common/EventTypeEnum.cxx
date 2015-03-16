@@ -249,7 +249,11 @@ EventTypeEnum::initialize()
                                      "EVENT_SURFACES_GET", 
                                      "Get Surfaces"));
     
-    enumData.push_back(EventTypeEnum(EVENT_TOOLBOX_SELECTION_DISPLAY, 
+    enumData.push_back(EventTypeEnum(EVENT_SURFACE_STRUCTURES_VALID_GET,
+                                     "EVENT_SURFACE_STRUCTURES_VALID_GET",
+                                     "GGet valid surface strucutures and their number of node"));
+
+    enumData.push_back(EventTypeEnum(EVENT_TOOLBOX_SELECTION_DISPLAY,
                                      "EVENT_TOOLBOX_SELECTION_DISPLAY", 
                                      "Display or hide the selection toolbox"));
     

@@ -62,6 +62,7 @@ EventMapYokingSelectMap.h
 EventMapYokingValidation.h
 EventPaletteGetByName.h
 EventSurfaceColoringInvalidate.h
+EventSurfaceStructuresValidGet.h
 Fiber.h
 FiberOrientation.h
 FiberOrientationColoringTypeEnum.h
@@ -168,6 +169,7 @@ EventMapYokingSelectMap.cxx
 EventMapYokingValidation.cxx
 EventPaletteGetByName.cxx
 EventSurfaceColoringInvalidate.cxx
+EventSurfaceStructuresValidGet.cxx
 Fiber.cxx
 FiberOrientation.cxx
 FiberOrientationColoringTypeEnum.cxx

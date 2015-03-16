@@ -39,6 +39,7 @@
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventSurfacesGet.h"
+#include "EventSurfaceStructuresValidGet.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
 #include "SelectionManager.h"
@@ -87,6 +88,8 @@ BrainStructure::BrainStructure(Brain* brain,
                                           EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_SURFACES_GET);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_SURFACE_STRUCTURES_VALID_GET);
 }
 
 /**
@@ -1066,6 +1069,12 @@ BrainStructure::receiveEvent(Event* event)
             getSurfacesEvent->addSurface(getSurface(i));
         }
         getSurfacesEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_STRUCTURES_VALID_GET) {
+        EventSurfaceStructuresValidGet* structEvent = dynamic_cast<EventSurfaceStructuresValidGet*>(event);
+        CaretAssert(structEvent);
+
+        structEvent->addStructure(m_structure, getNumberOfNodes());
     }
 }
 

@@ -512,6 +512,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES:
         case EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE:
         case EventTypeEnum::EVENT_SURFACES_GET:
+        case EventTypeEnum::EVENT_SURFACE_STRUCTURES_VALID_GET:
         case EventTypeEnum::EVENT_TOOLBOX_SELECTION_DISPLAY:
         case EventTypeEnum::EVENT_USER_INTERFACE_UPDATE:
         case EventTypeEnum::EVENT_PROGRESS_UPDATE:

@@ -130,6 +130,8 @@ public:
         EVENT_SURFACE_COLORING_INVALIDATE,
         /** Get surfaces */
         EVENT_SURFACES_GET,
+        /** Get valid surface strucutures and their number of nodes */
+        EVENT_SURFACE_STRUCTURES_VALID_GET,
         /** Display/Hide the selection toolbox */
         EVENT_TOOLBOX_SELECTION_DISPLAY,
         /** Update the User-Interface */
