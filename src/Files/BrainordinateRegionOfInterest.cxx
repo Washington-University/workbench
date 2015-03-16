@@ -27,8 +27,13 @@
 
 #include "BoundingBox.h"
 #include "CaretAssert.h"
+#include "CiftiBrainordinateLabelFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CiftiParcelsMap.h"
+#include "EventSurfaceStructuresValidGet.h"
+#include "EventManager.h"
+#include "GiftiLabelTable.h"
+#include "LabelFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -384,6 +389,150 @@ BrainordinateRegionOfInterest::setBrainordinateHighlightingEnabled(const bool en
 {
     m_highlighingEnabled = enabled;
 }
+
+/**
+ * Set the region of interest to the brainordinates in the given named label
+ * from the labels used for loading data in the given CIFTI file.
+ *
+ * @param ciftiMappableDataFile
+ *     The CIFTI file.
+ * @param mapIndex
+ *     Index of the map.
+ * @param labelName
+ *     Name of the parcel.
+ * @param errorMessageOut
+ *     Will contain error message upon exit.
+ * @return
+ *     True if successful. If failure, false is returned and errorMessageOut
+ *     will contain cause of failure.
+ */
+bool
+BrainordinateRegionOfInterest::setWithLabelFileLabel(const CaretMappableDataFile* caretMappableDataFile,
+                           const int32_t mapIndex,
+                           const AString& labelName,
+                           AString& errorMessageOut)
+{
+    clear();
+    
+    errorMessageOut.clear();
+    
+    if (caretMappableDataFile == NULL) {
+        errorMessageOut = "File is not valid (NULL)";
+        return false;
+    }
+    
+    if ( ! caretMappableDataFile->isMappedWithLabelTable()) {
+        errorMessageOut = "File is not mapped with a label table.";
+        return false;
+    }
+    
+    if ((mapIndex < 0)
+        || (mapIndex >= caretMappableDataFile->getNumberOfMaps())) {
+        errorMessageOut = ("Map index="
+                           + AString::number(mapIndex)
+                           + " is invalid for file "
+                           + caretMappableDataFile->getFileNameNoPath());
+        return false;
+    }
+    
+    if (labelName.isEmpty()) {
+        errorMessageOut = "Label name is empty.";
+        return false;
+    }
+    
+    const GiftiLabelTable* labelTable = caretMappableDataFile->getMapLabelTable(mapIndex);
+    CaretAssert(labelTable);
+    if (labelTable != NULL) {
+        const int64_t labelKey = labelTable->getLabelKeyFromName(labelName);
+        if (labelKey < 0) {
+            errorMessageOut = ("Label "
+                               + labelName
+                               + " not found in label table.");
+            return false;
+        }
+        
+        const LabelFile* labelFile = dynamic_cast<const LabelFile*>(caretMappableDataFile);
+        const CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<const CiftiBrainordinateLabelFile*>(caretMappableDataFile);
+        if (labelFile != NULL) {
+            const StructureEnum::Enum structure = labelFile->getStructure();
+            int64_t surfaceNumberOfNodes = labelFile->getNumberOfNodes();
+            
+            std::vector<int32_t> nodeIndices;
+            labelFile->getNodeIndicesWithLabelKey(mapIndex, labelKey, nodeIndices);
+            
+            if (nodeIndices.empty()) {
+                errorMessageOut = ("No vertices found for label "
+                                   + labelName);
+                return false;
+            }
+            
+            std::vector<int64_t> nodeIndices64(nodeIndices.begin(),
+                                               nodeIndices.end());
+            setSurfaceNodes(structure,
+                            surfaceNumberOfNodes,
+                            nodeIndices64);
+            
+            return true;
+        }
+        else if (ciftiLabelFile != NULL) {
+            bool haveBrainordinatesFlag = false;
+            EventSurfaceStructuresValidGet structureNumberOfNodesEvent;
+            EventManager::get()->sendEvent(structureNumberOfNodesEvent.getPointer());
+            std::map<StructureEnum::Enum, int32_t> structNodes = structureNumberOfNodesEvent.getStructuresAndNumberOfNodes();
+            for (std::map<StructureEnum::Enum, int32_t>::iterator structNodeIter = structNodes.begin();
+                 structNodeIter != structNodes.end();
+                 structNodeIter++) {
+                const StructureEnum::Enum structure = structNodeIter->first;
+                const int32_t surfaceNumberOfNodes = structNodeIter->second;
+                std::vector<int32_t> nodeIndices;
+                ciftiLabelFile->getNodeIndicesWithLabelKey(structure,
+                                                           surfaceNumberOfNodes,
+                                                           mapIndex,
+                                                           labelKey,
+                                                           nodeIndices);
+                if ( ! nodeIndices.empty()) {
+                    std::vector<int64_t> nodeIndices64(nodeIndices.begin(),
+                                                       nodeIndices.end());
+                    setSurfaceNodes(structure,
+                                    surfaceNumberOfNodes,
+                                    nodeIndices64);
+                    haveBrainordinatesFlag = true;
+                }
+            }
+            
+            std::vector<float> voxelsXYZ;
+            ciftiLabelFile->getVoxelCoordinatesWithLabelKey(mapIndex,
+                                                            labelKey,
+                                                            voxelsXYZ);
+            if ( ! voxelsXYZ.empty()) {
+                m_voxelXYZ.insert(m_voxelXYZ.end(),
+                                  voxelsXYZ.begin(),
+                                  voxelsXYZ.end());
+                
+                ciftiLabelFile->getVoxelSpacing(m_voxelSize[0], m_voxelSize[1], m_voxelSize[2]);
+                m_voxelSize[0] = std::fabs(m_voxelSize[0]);
+                m_voxelSize[1] = std::fabs(m_voxelSize[1]);
+                m_voxelSize[2] = std::fabs(m_voxelSize[2]);
+                
+                haveBrainordinatesFlag = true;
+
+            }
+            
+            if (haveBrainordinatesFlag) {
+                return true;
+            }
+            
+            errorMessageOut = ("No brainordinates found for label "
+                               + labelName);
+            return false;
+        }
+    }
+    
+    errorMessageOut = (caretMappableDataFile->getFileNameNoPath()
+                       + " is not a label type file or not recognized as label file (programming error).");
+    return false;
+}
+
 
 /**
  * Set the region of interest to the brainordinates in the given named parcel

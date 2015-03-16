@@ -28,6 +28,7 @@
 #include "StructureEnum.h"
 
 namespace caret {
+    class CaretMappableDataFile;
     class CiftiMappableDataFile;
     class CiftiParcelsMap;
     class SceneClassAssistant;
@@ -70,6 +71,11 @@ namespace caret {
         
         void setBrainordinateHighlightingEnabled(const bool highlighting);
 
+        bool setWithLabelFileLabel(const CaretMappableDataFile* caretMappableDataFile,
+                                   const int32_t mapIndex,
+                                   const AString& labelName,
+                                   AString& errorMessageOut);
+        
         bool setWithCiftiParcelLoadingBrainordinates(const CiftiMappableDataFile* ciftiMappableDataFile,
                                                      const int32_t mapIndex,
                                                      const AString& parcelName,

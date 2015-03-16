@@ -691,8 +691,8 @@ IdentificationTextGenerator::generateCiftiConnectivityMatrixIdentificationText(I
                        boldText,
                        connMatrixFile->getFileNameNoPath());
         
-        AString rowName = "DEVELOPMENT NEED ROW NAME !!!";
-        AString colName = "DEVELOPMENT NEED COL NAME !!!";
+        AString rowName = "";
+        AString colName = "";
         bool validData = true;
         if (validData) {
             if (rowIndex >= 0) {

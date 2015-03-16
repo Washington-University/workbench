@@ -45,6 +45,10 @@ namespace caret {
                                          const int32_t labelKey,
                                          std::vector<VoxelIJK>& voxelIndicesOut) const;
         
+        void getVoxelCoordinatesWithLabelKey(const int32_t mapIndex,
+                                         const int32_t labelKey,
+                                         std::vector<float>& voxelXyzOut) const;
+        
     private:
         CiftiBrainordinateLabelFile(const CiftiBrainordinateLabelFile&);
 

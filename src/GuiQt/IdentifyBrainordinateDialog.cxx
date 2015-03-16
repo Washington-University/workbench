@@ -53,6 +53,7 @@ using namespace caret;
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
+#include "GiftiLabelTableSelectionComboBox.h"
 #include "GuiManager.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
@@ -74,216 +75,6 @@ using namespace caret;
 static const int INDEX_SPIN_BOX_WIDTH = 100;
 
 
-/**
- * \class caret::IdentifyBrainordinateDialog 
- * \brief Dialog that allows user to enter brainordinate and get info on it
- * \ingroup GuiQt
- */
-
-///**
-// * Constructor.
-// */
-//IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
-//: WuQDialogNonModal("Identify Brainordinate",
-//                    parent)
-//{
-//    const int INDEX_SPIN_BOX_WIDTH = 100;
-//    
-//    /*
-//     * Surface Vertex widgets
-//     */
-//    m_vertexRadioButton = new QRadioButton("Surface Vertex");
-//    
-//    m_vertexStructureLabel = new QLabel("Structure");
-//    m_vertexStructureComboBox = new StructureEnumComboBox(this);
-//    m_vertexStructureComboBox->listOnlyValidStructures();
-//    
-//    m_vertexIndexLabel = new QLabel("Vertex Index");
-//    m_vertexIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0,
-//                                                                std::numeric_limits<int>::max(),
-//                                                                1);
-//    m_vertexIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
-//    
-//    /*
-//     * CIFTI file row widgets
-//     */
-//    m_ciftiRowFileRadioButton = new QRadioButton("CIFTI File Row");
-//    
-//    std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
-//    DataFileTypeEnum::getAllEnums(allDataFileTypes);
-//    
-//    std::vector<DataFileTypeEnum::Enum> supportedCiftiRowFileTypes;
-//    std::vector<DataFileTypeEnum::Enum> supportedParcelFileTypes;
-//
-//    for (std::vector<DataFileTypeEnum::Enum>::iterator dtIter = allDataFileTypes.begin();
-//         dtIter != allDataFileTypes.end();
-//         dtIter++) {
-//        const DataFileTypeEnum::Enum dataFileType = *dtIter;
-//        bool ciftiParcelFlag = false;
-//        bool ciftiRowFlag = false;
-//        
-//        switch (dataFileType) {
-//            case DataFileTypeEnum::BORDER:
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_DENSE:
-//                ciftiRowFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-//                ciftiRowFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-//                ciftiParcelFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-//                ciftiParcelFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-//                ciftiParcelFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-//                ciftiParcelFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-//                ciftiParcelFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-//                ciftiRowFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-//                ciftiRowFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-//                ciftiRowFlag = true;
-//                break;
-//            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
-//                break;
-//            case DataFileTypeEnum::FOCI:
-//                break;
-//            case DataFileTypeEnum::LABEL:
-//                break;
-//            case DataFileTypeEnum::IMAGE:
-//                break;
-//            case DataFileTypeEnum::METRIC:
-//                break;
-//            case DataFileTypeEnum::PALETTE:
-//                break;
-//            case DataFileTypeEnum::RGBA:
-//                break;
-//            case DataFileTypeEnum::SCENE:
-//                break;
-//            case DataFileTypeEnum::SPECIFICATION:
-//                break;
-//            case DataFileTypeEnum::SURFACE:
-//                break;
-//            case DataFileTypeEnum::UNKNOWN:
-//                break;
-//            case DataFileTypeEnum::VOLUME:
-//                break;
-//        }
-//        
-//        if (ciftiParcelFlag) {
-//            supportedParcelFileTypes.push_back(dataFileType);
-//        }
-//        if (ciftiRowFlag) {
-//            supportedCiftiRowFileTypes.push_back(dataFileType);
-//        }
-//    }
-//    
-//    /*
-//     * CIFTI Row selection
-//     */
-//    m_ciftiParcelFileRadioButton = new QRadioButton("CIFTI File Parcel");
-//    m_ciftiRowFileLabel = new QLabel("File");
-//    m_ciftiRowFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(GuiManager::get()->getBrain(),
-//                                                                                             supportedCiftiRowFileTypes);
-//    m_ciftiRowFileComboBox = new CaretDataFileSelectionComboBox(this);
-//    
-//    m_ciftiRowFileIndexLabel = new QLabel("Row Index");
-//    m_ciftiRowFileIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0,
-//                                                                      std::numeric_limits<int>::max(),
-//                                                                      1);
-//    m_ciftiRowFileIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
-//    
-//    /*
-//     * CIFTI Parcel Widgets
-//     */
-//    m_ciftiParcelFileLabel = new QLabel("File");
-//    m_ciftiParcelFileMapLabel = new QLabel("Map");
-//    m_ciftiParcelFileSelector = new CaretMappableDataFileAndMapSelectorObject(supportedParcelFileTypes,
-//                                                                              CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
-//                                                                              this);
-//    QObject::connect(m_ciftiParcelFileSelector, SIGNAL(selectionWasPerformed()),
-//                     this, SLOT(slotParcelFileOrMapSelectionChanged()));
-//    
-//    
-//    m_ciftiParcelFileSelector->getWidgetsForAddingToLayout(m_ciftiParcelFileComboBox,
-//                                                           m_ciftiParcelFileMapSpinBox,
-//                                                           m_ciftiParcelFileMapComboBox);
-//    m_ciftiParcelFileParcelLabel = new QLabel("Parcel");
-//    m_ciftiParcelFileParcelNameComboBox = new CiftiParcelSelectionComboBox(this);
-//    
-//    /*
-//     * Button group to keep radio buttons mutually exclusive
-//     */
-//    QButtonGroup* buttGroup = new QButtonGroup(this);
-//    buttGroup->addButton(m_vertexRadioButton);
-//    buttGroup->addButton(m_ciftiParcelFileRadioButton);
-//    buttGroup->addButton(m_ciftiRowFileRadioButton);
-//    
-//    int columnCount = 0;
-//    const int COLUMN_RADIO_BUTTON = columnCount++;
-//    const int COLUMN_LABEL        = columnCount++;
-//    const int COLUMN_MAP_LEFT     = columnCount++;
-//    const int COLUMN_MAP_RIGHT    = columnCount++;
-//    QWidget* widget = new QWidget();
-//    QGridLayout* gridLayout = new QGridLayout(widget);
-//    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 4);
-//    gridLayout->setColumnStretch(COLUMN_RADIO_BUTTON, 0);
-//    gridLayout->setColumnStretch(COLUMN_LABEL, 0);
-//    gridLayout->setColumnStretch(COLUMN_MAP_LEFT, 0);
-//    gridLayout->setColumnStretch(COLUMN_MAP_RIGHT, 100);
-//    gridLayout->setColumnMinimumWidth(0, 20);
-//    int row = gridLayout->rowCount();
-//    gridLayout->addWidget(m_ciftiParcelFileRadioButton, row, COLUMN_RADIO_BUTTON, 1, 2);
-//    row++;
-//    gridLayout->addWidget(m_ciftiParcelFileLabel, row, COLUMN_LABEL);
-//    gridLayout->addWidget(m_ciftiParcelFileComboBox, row, COLUMN_MAP_LEFT, 1, 2);
-//    row++;
-//    gridLayout->addWidget(m_ciftiParcelFileMapLabel, row, COLUMN_LABEL);
-//    gridLayout->addWidget(m_ciftiParcelFileMapSpinBox, row, COLUMN_MAP_LEFT); //, Qt::AlignLeft);
-//    gridLayout->addWidget(m_ciftiParcelFileMapComboBox, row, COLUMN_MAP_RIGHT); //, Qt::AlignLeft);
-//    row++;
-//    gridLayout->addWidget(m_ciftiParcelFileParcelLabel, row, COLUMN_LABEL);
-//    gridLayout->addWidget(m_ciftiParcelFileParcelNameComboBox->getWidget(), row, COLUMN_MAP_LEFT, 1, 2);
-//    row++;
-//    gridLayout->addWidget(m_ciftiRowFileRadioButton, row, COLUMN_RADIO_BUTTON, 1, 2);
-//    row++;
-//    gridLayout->addWidget(m_ciftiRowFileLabel, row, COLUMN_LABEL);
-//    gridLayout->addWidget(m_ciftiRowFileComboBox->getWidget(), row, COLUMN_MAP_LEFT, 1, 2);
-//    row++;
-//    gridLayout->addWidget(m_ciftiRowFileIndexLabel, row, COLUMN_LABEL);
-//    gridLayout->addWidget(m_ciftiRowFileIndexSpinBox, row, COLUMN_MAP_LEFT);
-//    row++;
-//    gridLayout->addWidget(m_vertexRadioButton, row, COLUMN_RADIO_BUTTON, 1, 2);
-//    row++;
-//    gridLayout->addWidget(m_vertexStructureLabel, row, COLUMN_LABEL);
-//    gridLayout->addWidget(m_vertexStructureComboBox->getWidget(), row, COLUMN_MAP_LEFT, 1, 2);
-//    row++;
-//    gridLayout->addWidget(m_vertexIndexLabel, row, COLUMN_LABEL);
-//    gridLayout->addWidget(m_vertexIndexSpinBox, row, COLUMN_MAP_LEFT);
-//    row++;
-//    
-//    setCentralWidget(widget,
-//                     WuQDialog::SCROLL_AREA_NEVER);
-//
-//    updateDialog();
-//    
-//    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-//}
 
 /**
  * Constructor.
@@ -304,12 +95,14 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     DataFileTypeEnum::getAllEnums(allDataFileTypes);
     
     std::vector<DataFileTypeEnum::Enum> supportedCiftiRowFileTypes;
+    std::vector<DataFileTypeEnum::Enum> supportedLabelFileTypes;
     
     for (std::vector<DataFileTypeEnum::Enum>::iterator dtIter = allDataFileTypes.begin();
          dtIter != allDataFileTypes.end();
          dtIter++) {
         const DataFileTypeEnum::Enum dataFileType = *dtIter;
-        bool ciftiRowFlag = false;
+        bool ciftiRowFlag  = false;
+        bool labelFileFlag = false;
         ParcelSourceDimension parcelSourceDimension = PARCEL_SOURCE_INVALID_DIMENSION;
         
         switch (dataFileType) {
@@ -319,6 +112,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 ciftiRowFlag = true;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                labelFileFlag = true;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                 ciftiRowFlag = true;
@@ -331,6 +125,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 parcelSourceDimension = PARCEL_SOURCE_MAPPING_DIMENSION;
+                labelFileFlag = true;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                 parcelSourceDimension = PARCEL_SOURCE_MAPPING_DIMENSION;
@@ -354,6 +149,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::LABEL:
+                labelFileFlag = true;
                 break;
             case DataFileTypeEnum::IMAGE:
                 break;
@@ -383,12 +179,20 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
         if (ciftiRowFlag) {
             supportedCiftiRowFileTypes.push_back(dataFileType);
         }
+        if (labelFileFlag) {
+            supportedLabelFileTypes.push_back(dataFileType);
+        }
     }
     
     /*
      * CIFTI row widgets
      */
     m_ciftiRowWidget = createCiftiRowWidget(supportedCiftiRowFileTypes);
+    
+    /*
+     * Label files widget
+     */
+    m_labelFileWidgets.m_widget = createLabelFilesWidget(supportedLabelFileTypes);
     
     /*
      * CIFTI Parcel Widgets
@@ -398,6 +202,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     m_widgetBox = new WuQGroupBoxExclusiveWidget();
     m_widgetBox->addWidget(m_ciftiRowWidget, "Identify Brainordinate from CIFTI File Row");
     m_widgetBox->addWidget(m_ciftiParcelWidget, "Identify CIFTI File Parcel");
+    m_widgetBox->addWidget(m_labelFileWidgets.m_widget, "Identify Label");
     m_widgetBox->addWidget(m_surfaceVertexWidget, "Identify Surface Vertex");
     QObject::connect(m_widgetBox, SIGNAL(currentChanged(int32_t)),
                      this, SLOT(selectedWidgetChanged()));
@@ -538,6 +343,66 @@ IdentifyBrainordinateDialog::createCiftiRowWidget(const std::vector<DataFileType
 }
 
 /**
+ * Create and return the Label Files Widget
+ *
+ * @param supportedFileTypes
+ *    The supported file types for this widget.
+ * @return
+ *    The Label Files Row Widget
+ */
+QWidget*
+IdentifyBrainordinateDialog::createLabelFilesWidget(const std::vector<DataFileTypeEnum::Enum>& supportedFileTypes)
+{
+    int columnCount = 0;
+    const int COLUMN_LABEL        = columnCount++;
+    const int COLUMN_MAP_LEFT     = columnCount++;
+    const int COLUMN_MAP_RIGHT    = columnCount++;
+    
+    m_labelFileWidgets.m_fileLabel = new QLabel("File");
+    m_labelFileWidgets.m_fileMapLabel = new QLabel("Map");
+    
+    m_labelFileWidgets.m_fileSelector = new CaretMappableDataFileAndMapSelectorObject(supportedFileTypes,
+                                                                              CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
+                                                                              this);
+    QObject::connect(m_labelFileWidgets.m_fileSelector, SIGNAL(selectionWasPerformed()),
+                     this, SLOT(slotLabelFileOrMapSelectionChanged()));
+    
+    
+    m_labelFileWidgets.m_fileSelector->getWidgetsForAddingToLayout(m_labelFileWidgets.m_fileComboBox,
+                                                           m_labelFileWidgets.m_fileMapSpinBox,
+                                                           m_labelFileWidgets.m_fileMapComboBox);
+    m_labelFileWidgets.m_fileMapSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
+    m_labelFileWidgets.m_fileMapSpinBox->setToolTip("Map indices start at one.");
+    m_labelFileWidgets.m_fileLabellLabel = new QLabel("Label");
+    m_labelFileWidgets.m_fileLabelComboBox = new GiftiLabelTableSelectionComboBox(this);
+    
+    /*
+     * Widget and layout
+     */
+    QWidget* widget = new QWidget();
+    QGridLayout* labelWidgetLayout = new QGridLayout(widget);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabel, 0, COLUMN_LABEL);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileComboBox, 0, COLUMN_MAP_LEFT, 1, 2);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapLabel, 1, COLUMN_LABEL);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapSpinBox, 1, COLUMN_MAP_LEFT); //, Qt::AlignLeft);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapComboBox, 1, COLUMN_MAP_RIGHT); //, Qt::AlignLeft);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabellLabel, 2, COLUMN_LABEL);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabelComboBox->getWidget(), 2, COLUMN_MAP_LEFT, 1, 2);
+    
+    return widget;
+}
+
+/**
+ * Called when the user changes the label file or map.
+ */
+void
+IdentifyBrainordinateDialog::slotLabelFileOrMapSelectionChanged()
+{
+    updateDialog();
+}
+
+
+/**
  * @return Create a Surface Vertex Widget
  */
 QWidget*
@@ -624,31 +489,27 @@ IdentifyBrainordinateDialog::updateDialog()
         m_ciftiParcelFileParcelNameComboBox->updateComboBox(NULL);
     }
     
+    CaretMappableDataFileAndMapSelectionModel* labelFileModel = m_labelFileWidgets.m_fileSelector->getModel();
+    m_labelFileWidgets.m_fileSelector->updateFileAndMapSelector(labelFileModel);
+    CaretMappableDataFile* labelFile = labelFileModel->getSelectedFile();
+    bool labelTableComboBoxValid = false;
+    if (labelFile != NULL) {
+        const int32_t mapIndex = labelFileModel->getSelectedMapIndex();
+        if ((mapIndex >= 0)
+            && (mapIndex < labelFile->getNumberOfMaps())) {
+            GiftiLabelTable* labelTable = labelFile->getMapLabelTable(mapIndex);
+            m_labelFileWidgets.m_fileLabelComboBox->updateContent(labelTable);
+            labelTableComboBoxValid = true;
+        }
+    }
+    if ( ! labelTableComboBoxValid) {
+        m_labelFileWidgets.m_fileLabelComboBox->updateContent(NULL);
+    }
+    
+    
     m_ciftiRowFileComboBox->updateComboBox(m_ciftiRowFileSelectionModel);
     
     m_vertexStructureComboBox->listOnlyValidStructures();
-    
-    //m_vertexStructureComboBox->setSelectedStructure(s_lastSelectedStructure);
-
-//    /*
-//     * Disable surface option if no surfaces loaded
-//     */
-//    if (m_vertexStructureComboBox->count() == 0) {
-//        m_vertexStructureLabel->setEnabled(false);
-//        m_vertexStructureComboBox->getWidget()->setEnabled(false);
-//        m_vertexIndexLabel->setEnabled(false);
-//        m_vertexIndexSpinBox->setEnabled(false);
-//    }
-//    
-//    /*
-//     * Disable CIFTI option if no CIFTI files loaded
-//     */
-//    if (m_ciftiRowFileSelectionModel->getAvailableFiles().empty()) {
-//        m_ciftiRowFileLabel->setEnabled(false);
-//        m_ciftiRowFileComboBox->getWidget()->setEnabled(false);
-//        m_ciftiRowFileIndexLabel->setEnabled(false);
-//        m_ciftiRowFileIndexSpinBox->setEnabled(false);
-//    }
 }
 
 /**
@@ -689,6 +550,9 @@ IdentifyBrainordinateDialog::applyButtonClicked()
     }
     else if (m_ciftiRowWidget == selectedWidget) {
         processCiftiRowWidget(errorMessage);
+    }
+    else if (m_labelFileWidgets.m_widget == selectedWidget) {
+        processLabelFileWidget(errorMessage);
     }
     else {
         const QString msg("Choose one of the methods for identifying a brainordinate.");
@@ -736,7 +600,33 @@ IdentifyBrainordinateDialog::flashBrainordinateHighlightingRegionOfInterest(Brai
 }
 
 /**
- * Process user's selectons in the
+ * Process user's selectons in the Label File Widget
+ *
+ * @param errorMessageOut
+ *    Output containing error message.
+ */
+void
+IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    
+    CaretMappableDataFile* mapFile = m_labelFileWidgets.m_fileSelector->getModel()->getSelectedFile();
+    const int32_t mapIndex = m_labelFileWidgets.m_fileSelector->getModel()->getSelectedMapIndex();
+    if (mapFile != NULL) {
+        const AString labelName = m_labelFileWidgets.m_fileLabelComboBox->getSelectedLabelName();
+        
+        BrainordinateRegionOfInterest* brainROI = brain->getBrainordinateHighlightRegionOfInterest();
+        if (brainROI->setWithLabelFileLabel(mapFile,
+                                        mapIndex,
+                                        labelName,
+                                            errorMessageOut)) {
+            flashBrainordinateHighlightingRegionOfInterest(brainROI);
+        }
+    }
+}
+
+/**
+ * Process user's selectons in the CIFTI Parcel Widget
  *
  * @param errorMessageOut
  *    Output containing error message.

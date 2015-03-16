@@ -24,6 +24,7 @@
 #undef __CIFTI_BRAINORDINATE_LABEL_FILE_DECLARE__
 
 #include "CiftiFile.h"
+#include "CiftiLabelsMap.h"
 
 using namespace caret;
 
@@ -138,4 +139,43 @@ CiftiBrainordinateLabelFile::getVoxelIndicesWithLabelKey(const int32_t mapIndex,
     }
 }
 
-
+/**
+ * Get the voxel indices of all voxels in the given map with the given label key.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param labelKey
+ *    Key of the label.
+ * @param voxelXyzOut
+ *    Output containing coordinates of voxels with the given label key.
+ */
+void
+CiftiBrainordinateLabelFile::getVoxelCoordinatesWithLabelKey(const int32_t mapIndex,
+                                                             const int32_t labelKey,
+                                                             std::vector<float>& voxelXyzOut) const
+{
+    voxelXyzOut.clear();
+    std::vector<VoxelIJK> voxelIJK;
+    
+    getVoxelIndicesWithLabelKey(mapIndex,
+                                labelKey,
+                                voxelIJK);
+    if (voxelIJK.empty()) {
+        return;
+    }
+    const CiftiXML& myXML = m_ciftiFile->getCiftiXML();
+    
+    if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) {
+        return;
+    }
+    const VolumeSpace volumeSpace = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getVolumeSpace();
+    
+    const int64_t numVoxels = static_cast<int64_t>(voxelIJK.size());
+    for (int64_t i = 0; i < numVoxels; i++) {
+        float xyz[3];
+        volumeSpace.indexToSpace(voxelIJK[i].m_ijk, xyz);
+        voxelXyzOut.push_back(xyz[0]);
+        voxelXyzOut.push_back(xyz[1]);
+        voxelXyzOut.push_back(xyz[2]);
+    }
+}

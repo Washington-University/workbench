@@ -39,6 +39,7 @@ namespace caret {
     class CaretMappableDataFileAndMapSelectorObject;
     class CaretMappableDataFile;
     class CiftiParcelSelectionComboBox;
+    class GiftiLabelTableSelectionComboBox;
     class StructureEnumComboBox;
     class WuQGroupBoxExclusiveWidget;
     
@@ -70,6 +71,8 @@ namespace caret {
     private slots:
         void slotParcelFileOrMapSelectionChanged();
         
+        void slotLabelFileOrMapSelectionChanged();
+        
         void selectedWidgetChanged();
         
     private:
@@ -92,11 +95,15 @@ namespace caret {
         
         QWidget* createCiftiRowWidget(const std::vector<DataFileTypeEnum::Enum>& supportedFileTypes);
         
+        QWidget* createLabelFilesWidget(const std::vector<DataFileTypeEnum::Enum>& supportedFileTypes);
+        
         QWidget* createSurfaceVertexlWidget();
         
         void processCiftiParcelWidget(AString& errorMessageOut);
         
         void processCiftiRowWidget(AString& errorMessageOut);
+        
+        void processLabelFileWidget(AString& errorMessageOut);
         
         void processSurfaceVertexWidget(AString& errorMessageOut);
         
@@ -117,6 +124,30 @@ namespace caret {
         QLabel* m_vertexIndexLabel;
         
         QWidget* m_ciftiRowWidget;
+        
+        struct LabelFileWidgets {
+            QWidget* m_widget;
+            
+            CaretMappableDataFileAndMapSelectorObject* m_fileSelector;
+            
+            QLabel* m_fileLabel;
+            
+            QLabel* m_fileMapLabel;
+            
+            QWidget* m_fileComboBox;
+            
+            QWidget* m_fileMapSpinBox;
+            
+            QWidget* m_fileMapComboBox;
+            
+            QLabel* m_fileLabellLabel;
+            
+            GiftiLabelTableSelectionComboBox* m_fileLabelComboBox;
+        };
+        
+        LabelFileWidgets m_labelFileWidgets;
+        
+        
         
         QLabel* m_ciftiRowFileLabel;
         
