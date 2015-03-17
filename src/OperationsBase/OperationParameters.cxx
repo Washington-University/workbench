@@ -21,6 +21,7 @@
 #include "OperationParameters.h"
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 
 #include "BorderFile.h"
 #include "CiftiFile.h"
@@ -96,6 +97,7 @@ ParameterComponent::ParameterComponent(const ParameterComponent& rhs)
 OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& description)
 {
     CaretAssertMessage(checkUniqueOption(key), "optional parameter created with previously used key");
+    if (optionSwitch.isEmpty() || optionSwitch[0] != '-') CaretLogWarning("developer warning: option '" + optionSwitch + "' created, but does not start with dash");
     OptionalParameter* ret = new OptionalParameter(key, optionSwitch, description);
     m_optionList.push_back(ret);
     return ret;
@@ -104,6 +106,7 @@ OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key
 ParameterComponent* ParameterComponent::createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description)
 {
     CaretAssertMessage(checkUniqueRepeatable(key), "repeatable parameter created with previously used key");
+    if (optionSwitch.isEmpty() || optionSwitch[0] != '-') CaretLogWarning("developer warning: option '" + optionSwitch + "' created, but does not start with dash");
     RepeatableOption* newOpt = new RepeatableOption(key, optionSwitch, description);
     m_repeatableOptions.push_back(newOpt);
     return &(newOpt->m_template);

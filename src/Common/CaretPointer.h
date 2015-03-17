@@ -71,8 +71,7 @@ namespace caret
             bool operator==(const CaretPointerCommon<T2>& right) const { return m_pointer == right.m_pointer; }
             template <typename T2>
             bool operator!=(const CaretPointerCommon<T2>& right) const { return !(*this == right); }
-            operator T*&() { return m_pointer; }
-            operator T *const&() const { return m_pointer; }//const pointer functionality
+            operator T *const&() const { return m_pointer; }//never allow modifying the pointer, and also work when object is const
             template <typename T2> friend class CaretPointerCommon;//because for const compatibility, we need to access a different template's members
         };
 
@@ -90,13 +89,8 @@ namespace caret
                 CaretAssert(m_pointer != NULL);
                 return *(m_pointer);
             }
-            T*& operator->()
-            {
-                CaretAssert(m_pointer != NULL);
-                return m_pointer;
-            }
             T *const& operator->() const
-            {//maybe we can combine these?
+            {
                 CaretAssert(m_pointer != NULL);
                 return m_pointer;
             }
@@ -110,7 +104,6 @@ namespace caret
             int64_t m_size;
             CaretArrayBase() { }//prevent standalone use, initialize size with share in derived classes
         public:
-            T*& getArray() { return m_pointer; }
             T *const& getArray() const { return m_pointer; }
             template <typename I>
             T& operator[](const I& index)
@@ -149,7 +142,7 @@ namespace caret
         void grabNew(T* right);//substitute for operator= to bare pointer
         int64_t getReferenceCount() const;
         ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
-        T* releasePointer();
+        T*const& releasePointer();
         template <typename T2> friend class CaretPointerNonsync;//because for const compatibility, we need to access a different template's members
     };
 
@@ -172,7 +165,7 @@ namespace caret
         void grabNew(T* right);
         int64_t getReferenceCount() const;
         ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
-        T* releasePointer();
+        T*const& releasePointer();
         template <typename T2> friend class CaretPointer;
     };
 
@@ -196,7 +189,7 @@ namespace caret
         CaretArrayNonsync& operator=(const CaretArrayNonsync<T2>& right);
         int64_t getReferenceCount() const;
         ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
-        T* releasePointer();
+        T*const& releasePointer();
         template <typename T2> friend class CaretArrayNonsync;
     };
 
@@ -220,7 +213,7 @@ namespace caret
         CaretArray& operator=(const CaretArray<T2>& right);
         int64_t getReferenceCount() const;
         ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
-        T* releasePointer();
+        T*const& releasePointer();
         template <typename T2> friend class CaretArray;
     };
 
@@ -329,10 +322,12 @@ namespace caret
     }
 
     template <typename T>
-    T* CaretPointerNonsync<T>::releasePointer()
+    T*const& CaretPointerNonsync<T>::releasePointer()
     {
-        if (m_share == NULL) return NULL;
-        m_share->m_doNotDelete = true;
+        if (m_share != NULL)
+        {
+            m_share->m_doNotDelete = true;
+        }
         return m_pointer;
     }
     
@@ -469,11 +464,13 @@ namespace caret
     }
 
     template <typename T>
-    T* CaretPointer<T>::releasePointer()
+    T*const& CaretPointer<T>::releasePointer()
     {
         CaretMutexLocker locked(&m_mutex);//lock to keep m_share and m_pointer coherent until after return - must return the pointer that was released
-        if (m_share == NULL) return NULL;
-        m_share->m_doNotDelete = true;
+        if (m_share != NULL)
+        {
+            m_share->m_doNotDelete = true;
+        }
         return m_pointer;
     }
 
@@ -608,10 +605,12 @@ namespace caret
     }
 
     template <typename T>
-    T* CaretArrayNonsync<T>::releasePointer()
+    T*const& CaretArrayNonsync<T>::releasePointer()
     {
-        if (m_share == NULL) return NULL;
-        m_share->m_doNotDelete = true;
+        if (m_share != NULL)
+        {
+            m_share->m_doNotDelete = true;
+        }
         return m_pointer;
     }
 
@@ -775,11 +774,13 @@ namespace caret
     }
 
     template <typename T>
-    T* CaretArray<T>::releasePointer()
+    T*const& CaretArray<T>::releasePointer()
     {
         CaretMutexLocker locked(&m_mutex);//lock because m_pointer and m_share need to remain coherent
-        if (m_share == NULL) return NULL;
-        m_share->m_doNotDelete = true;
+        if (m_share != NULL)
+        {
+            m_share->m_doNotDelete = true;
+        }
         return m_pointer;
     }
 

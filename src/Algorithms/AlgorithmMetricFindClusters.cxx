@@ -22,6 +22,7 @@
 #include "AlgorithmException.h"
 
 #include "CaretLogger.h"
+#include "GeodesicHelper.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
@@ -68,6 +69,12 @@ OperationParameters* AlgorithmMetricFindClusters::getParameters()
     OptionalParameter* startOpt = ret->createOptionalParameter(10, "-start", "start labeling clusters from a value other than 1");
     startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
     
+    OptionalParameter* areaRatioOpt = ret->createOptionalParameter(11, "-area-ratio", "ignore clusters smaller than a given fraction of the largest cluster in map");
+    areaRatioOpt->addDoubleParameter(1, "ratio", "fraction of the largest cluster's size");
+    
+    OptionalParameter* distanceOpt = ret->createOptionalParameter(12, "-distance", "ignore clusters further than a given distance from the largest cluster");
+    distanceOpt->addDoubleParameter(1, "distance", "how far from the largest cluster a cluster can be, edge to edge, in mm");
+    
     ret->setHelpText(
         AString("Outputs a metric with nonzero integers for all vertices within a large enough cluster, and zeros elsewhere.  ") +
         "The integers denote cluster membership (by default, first cluster found will use value 1, second cluster 2, etc).  " +
@@ -113,11 +120,156 @@ void AlgorithmMetricFindClusters::useParameters(OperationParameters* myParams, P
     {
         startVal = (int)startOpt->getInteger(1);
     }
-    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, threshVal, minArea, myMetricOut, lessThan, myRoi, myAreas, columnNum, startVal);
+    OptionalParameter* areaRatioOpt = myParams->getOptionalParameter(11);
+    float areaRatio = -1.0f;
+    if (areaRatioOpt->m_present)
+    {
+        areaRatio = areaRatioOpt->getDouble(1);
+        if (areaRatio <= 0.0f)
+        {
+            throw AlgorithmException("area ratio must be positive");
+        }
+    }
+    OptionalParameter* distanceOpt = myParams->getOptionalParameter(12);
+    float distaceCutoff = -1.0f;
+    if (distanceOpt->m_present)
+    {
+        distaceCutoff = distanceOpt->getDouble(1);
+        if (distaceCutoff <= 0.0f)
+        {
+            throw AlgorithmException("distance cutoff must be positive");
+        }
+    }
+    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, threshVal, minArea, myMetricOut, lessThan, myRoi, myAreas, columnNum, startVal, NULL, areaRatio, distaceCutoff);
+}
+
+namespace
+{
+    struct Cluster
+    {
+        Cluster() { area = 0.0; }
+        vector<int32_t> members;
+        double area;
+    };
+    
+    void processColumn(const float* data, const float* roiData, const float* nodeAreas, TopologyHelper* myTopoHelp, GeodesicHelper* myGeoHelp,
+                       const float& threshVal, const float& minArea, const bool& lessThan, const float& areaRatio, const float& distaceCutoff,
+                       float* outData, int& markVal)
+    {
+        int numNodes = myTopoHelp->getNumberOfNodes();
+        vector<int> marked(numNodes, 0);
+        if (lessThan)
+        {
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if ((roiData == NULL || roiData[i] > 0.0f) && data[i] < threshVal)
+                {
+                    marked[i] = 1;
+                }
+            }
+        } else {
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if ((roiData == NULL || roiData[i] > 0.0f) && data[i] > threshVal)
+                {
+                    marked[i] = 1;
+                }
+            }
+        }
+        vector<Cluster> clusters;
+        float biggestSize = 0.0f;
+        int biggestCluster = -1;
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (marked[i])
+            {
+                Cluster newCluster;
+                newCluster.members.push_back(i);
+                marked[i] = 0;//unmark it when added to list to prevent multiples
+                for (int index = 0; index < (int)newCluster.members.size(); ++index)//NOTE: vector grows inside loop
+                {
+                    int node = newCluster.members[index];//keep list around so we can put it into the output immediately if it is large enough
+                    newCluster.area += nodeAreas[node];
+                    const vector<int32_t>& neighbors = myTopoHelp->getNodeNeighbors(node);
+                    int numNeigh = (int)neighbors.size();
+                    for (int n = 0; n < numNeigh; ++n)
+                    {
+                        const int32_t& neighbor = neighbors[n];
+                        if (marked[neighbor])
+                        {
+                            newCluster.members.push_back(neighbor);
+                            marked[neighbor] = 0;
+                        }
+                    }
+                }
+                if (newCluster.area > minArea)
+                {
+                    if (newCluster.area > biggestSize)
+                    {
+                        biggestSize = newCluster.area;
+                        biggestCluster = (int)clusters.size();
+                    }
+                    clusters.push_back(newCluster);
+                }
+            }
+        }
+        vector<int32_t> pathScratch;
+        vector<float> distScratch;
+        if (!clusters.empty() && biggestCluster == -1) CaretLogWarning("clusters found, but none have positive area, check your vertex areas for negatives");
+        if (biggestCluster != -1 && (distaceCutoff > 0.0f || areaRatio > 0.0f))
+        {
+            for (int i = 0; i < (int)clusters.size(); ++i)
+            {
+                if (i != biggestCluster)
+                {
+                    bool erase = false;
+                    if (areaRatio > 0.0f)
+                    {
+                        if ((clusters[i].area / biggestSize) > areaRatio)
+                        {
+                            erase = true;
+                        }
+                    }
+                    if (!erase && distaceCutoff > 0.0f)
+                    {
+                        CaretAssert(myGeoHelp != NULL);
+                        myGeoHelp->getPathBetweenNodeLists(clusters[i].members, clusters[biggestCluster].members, distaceCutoff, pathScratch, distScratch, true);
+                        if (pathScratch.empty())//empty path means no path found
+                        {
+                            erase = true;
+                        }
+                    }
+                    if (erase)
+                    {
+                        clusters.erase(clusters.begin() + i);//remove it
+                        --i;//don't skip a cluster
+                        if (biggestCluster > i) --biggestCluster;//don't lose track of the biggest cluster
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < (int)clusters.size(); ++i)
+        {
+            if (markVal == 0)
+            {
+                CaretLogInfo("skipping 0 for cluster marking");
+                ++markVal;
+            }
+            float tempVal = markVal;
+            if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
+            int numMembers = (int)clusters[i].members.size();
+            for (int index = 0; index < numMembers; ++index)
+            {
+                outData[clusters[i].members[index]] = tempVal;
+            }
+            ++markVal;
+        }
+    }
 }
 
 AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& threshVal, const float& minArea,
-                                                         MetricFile* myMetricOut, const bool& lessThan, const MetricFile* myRoi, const MetricFile* myAreas, const int& columnNum, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
+                                                         MetricFile* myMetricOut, const bool& lessThan, const MetricFile* myRoi, const MetricFile* myAreas,
+                                                         const int& columnNum, const int& startVal, int* endVal, const float& areaRatio, const float& distaceCutoff) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (startVal == 0)
@@ -150,7 +302,19 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
     } else {
         nodeAreas = myAreas->getValuePointerForColumn(0);
     }
-    CaretPointer<TopologyHelper> myHelp = mySurf->getTopologyHelper();
+    CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+    CaretPointer<GeodesicHelper> myGeoHelp;
+    CaretPointer<GeodesicHelperBase> myGeoBase;
+    if (distaceCutoff > 0.0f)//geodesic is only needed for distance cutoff
+    {
+        if (myAreas == NULL)
+        {
+            myGeoHelp = mySurf->getGeodesicHelper();
+        } else {
+            myGeoBase.grabNew(new GeodesicHelperBase(mySurf, myAreas->getValuePointerForColumn(0)));
+            myGeoHelp.grabNew(new GeodesicHelper(myGeoBase));
+        }
+    }
     vector<int> toSearch;
     int markVal = startVal;//give each cluster a different value, including across maps
     if (columnNum == -1)
@@ -162,67 +326,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
             myMetricOut->setColumnName(c, myMetric->getColumnName(c));
             vector<float> outData(numNodes, 0.0f);
             const float* data = myMetric->getValuePointerForColumn(c);
-            vector<int> marked(numNodes, 0);
-            if (lessThan)
-            {
-                for (int i = 0; i < numNodes; ++i)
-                {
-                    if ((roiData == NULL || roiData[i] > 0.0f) && data[i] < threshVal)
-                    {
-                        marked[i] = 1;
-                    }
-                }
-            } else {
-                for (int i = 0; i < numNodes; ++i)
-                {
-                    if ((roiData == NULL || roiData[i] > 0.0f) && data[i] > threshVal)
-                    {
-                        marked[i] = 1;
-                    }
-                }
-            }
-            for (int i = 0; i < numNodes; ++i)
-            {
-                if (marked[i])
-                {
-                    float area = 0.0f;
-                    toSearch.push_back(i);
-                    marked[i] = 0;//unmark it when added to list to prevent multiples
-                    for (int index = 0; index < (int)toSearch.size(); ++index)//NOTE: vector grows inside loop
-                    {
-                        int node = toSearch[index];//keep list around so we can put it into the output immediately if it is large enough
-                        area += nodeAreas[node];
-                        const vector<int32_t>& neighbors = myHelp->getNodeNeighbors(node);
-                        int numNeigh = (int)neighbors.size();
-                        for (int n = 0; n < numNeigh; ++n)
-                        {
-                            const int32_t& neighbor = neighbors[n];
-                            if (marked[neighbor])
-                            {
-                                toSearch.push_back(neighbor);
-                                marked[neighbor] = 0;
-                            }
-                        }
-                    }
-                    if (area > minArea)
-                    {
-                        if (markVal == 0)
-                        {
-                            CaretLogInfo("skipping 0 for cluster marking");
-                            ++markVal;
-                        }
-                        float tempVal = markVal;
-                        if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
-                        int clusterCount = (int)toSearch.size();
-                        for (int index = 0; index < clusterCount; ++index)
-                        {
-                            outData[toSearch[index]] = tempVal;
-                        }
-                        ++markVal;
-                    }
-                    toSearch.clear();
-                }
-            }
+            processColumn(data, roiData, nodeAreas, myTopoHelp, myGeoHelp, threshVal, minArea, lessThan, areaRatio, distaceCutoff, outData.data(), markVal);
             myMetricOut->setValuesForColumn(c, outData.data());
         }
     } else {
@@ -231,67 +335,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
         vector<float> outData(numNodes, 0.0f);
         const float* data = myMetric->getValuePointerForColumn(columnNum);
-        vector<int> marked(numNodes, 0);
-        if (lessThan)
-        {
-            for (int i = 0; i < numNodes; ++i)
-            {
-                if ((roiData == NULL || roiData[i] > 0.0f) && data[i] < threshVal)
-                {
-                    marked[i] = 1;
-                }
-            }
-        } else {
-            for (int i = 0; i < numNodes; ++i)
-            {
-                if ((roiData == NULL || roiData[i] > 0.0f) && data[i] > threshVal)
-                {
-                    marked[i] = 1;
-                }
-            }
-        }
-        for (int i = 0; i < numNodes; ++i)
-        {
-            if (marked[i])
-            {
-                float area = 0.0f;
-                toSearch.push_back(i);
-                marked[i] = 0;//unmark it when added to list to prevent multiples
-                for (int index = 0; index < (int)toSearch.size(); ++index)//NOTE: vector grows inside loop
-                {
-                    int node = toSearch[index];//keep list around so we can put it into the output immediately if it is large enough
-                    area += nodeAreas[node];
-                    const vector<int32_t>& neighbors = myHelp->getNodeNeighbors(node);
-                    int numNeigh = (int)neighbors.size();
-                    for (int n = 0; n < numNeigh; ++n)
-                    {
-                        const int32_t& neighbor = neighbors[n];
-                        if (marked[neighbor])
-                        {
-                            toSearch.push_back(neighbor);
-                            marked[neighbor] = 0;
-                        }
-                    }
-                }
-                if (area > minArea)
-                {
-                    if (markVal == 0)
-                    {
-                        CaretLogInfo("skipping 0 for cluster marking");
-                        ++markVal;
-                    }
-                    float tempVal = markVal;
-                    if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
-                    int clusterCount = (int)toSearch.size();
-                    for (int index = 0; index < clusterCount; ++index)
-                    {
-                        outData[toSearch[index]] = markVal;
-                    }
-                    ++markVal;
-                }
-                toSearch.clear();
-            }
-        }
+        processColumn(data, roiData, nodeAreas, myTopoHelp, myGeoHelp, threshVal, minArea, lessThan, areaRatio, distaceCutoff, outData.data(), markVal);
         myMetricOut->setValuesForColumn(0, outData.data());
     }
     if (endVal != NULL) *endVal = markVal;

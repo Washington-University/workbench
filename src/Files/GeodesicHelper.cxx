@@ -230,19 +230,44 @@ void GeodesicHelper::dijkstra(const int32_t root, const float maxdist, std::vect
     while (!m_active.isEmpty())
     {
         whichnode = m_active.pop();
-        if (!(marked[whichnode] & 1))
+        nodes.push_back(whichnode);
+        dists.push_back(output[whichnode]);
+        marked[whichnode] |= 1;//anything pulled from heap will already be marked as having a valid value (flag 4)
+        neighbors = nodeNeighbors[whichnode].data();
+        numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        for (j = 0; j < numNeigh; ++j)
         {
-            nodes.push_back(whichnode);
-            dists.push_back(output[whichnode]);
-            marked[whichnode] |= 1;//anything pulled from heap will already be marked as having a valid value (flag 4)
-            neighbors = nodeNeighbors[whichnode].data();
-            numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+            whichneigh = neighbors[j];
+            if (!(marked[whichneigh] & 1))
+            {//skip floating point math if frozen
+                tempf = output[whichnode] + distances[whichnode][j];//isn't precomputation wonderful
+                if (tempf <= maxdist)
+                {//keep it off the heap if it is too far
+                    if (!(marked[whichneigh] & 4))
+                    {
+                        marked[whichneigh] |= 4;
+                        changed[numChanged++] = whichneigh;
+                        output[whichneigh] = tempf;
+                        parent[whichneigh] = whichnode;
+                        m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
+                    } else if (tempf < output[whichneigh]) {
+                        output[whichneigh] = tempf;
+                        parent[whichneigh] = whichnode;
+                        m_active.changekey(m_heapIdent[whichneigh], tempf);
+                    }
+                }
+            }
+        }
+        if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
+        {
+            neighbors = nodeNeighbors2[whichnode].data();
+            numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
             for (j = 0; j < numNeigh; ++j)
             {
                 whichneigh = neighbors[j];
                 if (!(marked[whichneigh] & 1))
-                {//skip floating point math if marked
-                    tempf = output[whichnode] + distances[whichnode][j];//isn't precomputation wonderful
+                {//skip floating point math if frozen
+                    tempf = output[whichnode] + distances2[whichnode][j];
                     if (tempf <= maxdist)
                     {//keep it off the heap if it is too far
                         if (!(marked[whichneigh] & 4))
@@ -256,34 +281,6 @@ void GeodesicHelper::dijkstra(const int32_t root, const float maxdist, std::vect
                             output[whichneigh] = tempf;
                             parent[whichneigh] = whichnode;
                             m_active.changekey(m_heapIdent[whichneigh], tempf);
-                        }
-                    }
-                }
-            }
-            if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
-            {
-                neighbors = nodeNeighbors2[whichnode].data();
-                numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
-                for (j = 0; j < numNeigh; ++j)
-                {
-                    whichneigh = neighbors[j];
-                    if (!(marked[whichneigh] & 1))
-                    {//skip floating point math if marked
-                        tempf = output[whichnode] + distances2[whichnode][j];//isn't precomputation wonderful
-                        if (tempf <= maxdist)
-                        {//keep it off the heap if it is too far
-                            if (!(marked[whichneigh] & 4))
-                            {
-                                marked[whichneigh] |= 4;
-                                changed[numChanged++] = whichneigh;
-                                output[whichneigh] = tempf;
-                                parent[whichneigh] = whichnode;
-                                m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
-                            } else if (tempf < output[whichneigh]) {
-                                output[whichneigh] = tempf;
-                                parent[whichneigh] = whichnode;
-                                m_active.changekey(m_heapIdent[whichneigh], tempf);
-                            }
                         }
                     }
                 }
@@ -308,17 +305,38 @@ void GeodesicHelper::dijkstra(const int32_t root, bool smooth)
     while (!m_active.isEmpty())
     {
         whichnode = m_active.pop();
-        if (!(marked[whichnode] & 1))
+        marked[whichnode] |= 1;
+        neighbors = nodeNeighbors[whichnode].data();
+        numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        for (j = 0; j < numNeigh; ++j)
         {
-            marked[whichnode] |= 1;
-            neighbors = nodeNeighbors[whichnode].data();
-            numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+            whichneigh = neighbors[j];
+            if (!(marked[whichneigh] & 1))
+            {//skip floating point math if frozen
+                tempf = output[whichnode] + distances[whichnode][j];
+                if (!(marked[whichneigh] & 4))
+                {
+                    marked[whichneigh] |= 4;
+                    output[whichneigh] = tempf;
+                    parent[whichneigh] = whichnode;
+                    m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
+                } else if (tempf < output[whichneigh]) {
+                    output[whichneigh] = tempf;
+                    parent[whichneigh] = whichnode;
+                    m_active.changekey(m_heapIdent[whichneigh], tempf);
+                }
+            }
+        }
+        if (smooth)
+        {
+            neighbors = nodeNeighbors2[whichnode].data();
+            numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
             for (j = 0; j < numNeigh; ++j)
             {
                 whichneigh = neighbors[j];
                 if (!(marked[whichneigh] & 1))
-                {//skip floating point math if marked
-                    tempf = output[whichnode] + distances[whichnode][j];
+                {//skip floating point math if frozen
+                    tempf = output[whichnode] + distances2[whichnode][j];
                     if (!(marked[whichneigh] & 4))
                     {
                         marked[whichneigh] |= 4;
@@ -329,30 +347,6 @@ void GeodesicHelper::dijkstra(const int32_t root, bool smooth)
                         output[whichneigh] = tempf;
                         parent[whichneigh] = whichnode;
                         m_active.changekey(m_heapIdent[whichneigh], tempf);
-                    }
-                }
-            }
-            if (smooth)
-            {
-                neighbors = nodeNeighbors2[whichnode].data();
-                numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
-                for (j = 0; j < numNeigh; ++j)
-                {
-                    whichneigh = neighbors[j];
-                    if (!(marked[whichneigh] & 1))
-                    {//skip floating point math if marked
-                        tempf = output[whichnode] + distances2[whichnode][j];
-                        if (!(marked[whichneigh] & 4))
-                        {
-                            marked[whichneigh] |= 4;
-                            output[whichneigh] = tempf;
-                            parent[whichneigh] = whichnode;
-                            m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
-                        } else if (tempf < output[whichneigh]) {
-                            output[whichneigh] = tempf;
-                            parent[whichneigh] = whichnode;
-                            m_active.changekey(m_heapIdent[whichneigh], tempf);
-                        }
                     }
                 }
             }
@@ -699,21 +693,46 @@ void GeodesicHelper::dijkstra(const int32_t root, const std::vector<int32_t>& in
     while (remain && !m_active.isEmpty())
     {
         whichnode = m_active.pop();
-        if (!(marked[whichnode] & 1))
+        if (marked[whichnode] & 2)
         {
-            if (marked[whichnode] & 2)
-            {
-                --remain;
+            --remain;
+        }
+        marked[whichnode] |= 1;//anything pulled from heap will already be marked as having a valid value (flag 4), so already in changed list
+        neighbors = nodeNeighbors[whichnode].data();
+        numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        for (j = 0; j < numNeigh; ++j)
+        {
+            whichneigh = neighbors[j];
+            if (!(marked[whichneigh] & 1))
+            {//skip floating point math if frozen
+                tempf = output[whichnode] + distances[whichnode][j];//isn't precomputation wonderful
+                if (!(marked[whichneigh] & 4))
+                {
+                    if (!marked[whichneigh])
+                    {
+                        changed[numChanged++] = whichneigh;
+                    }
+                    marked[whichneigh] |= 4;
+                    output[whichneigh] = tempf;
+                    parent[whichneigh] = whichnode;
+                    m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
+                } else if (tempf < output[whichneigh]) {
+                    output[whichneigh] = tempf;
+                    parent[whichneigh] = whichnode;
+                    m_active.changekey(m_heapIdent[whichneigh], tempf);
+                }
             }
-            marked[whichnode] |= 1;//anything pulled from heap will already be marked as having a valid value (flag 4), so already in changed list
-            neighbors = nodeNeighbors[whichnode].data();
-            numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        }
+        if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
+        {
+            neighbors = nodeNeighbors2[whichnode].data();
+            numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
             for (j = 0; j < numNeigh; ++j)
             {
                 whichneigh = neighbors[j];
                 if (!(marked[whichneigh] & 1))
-                {//skip floating point math if marked
-                    tempf = output[whichnode] + distances[whichnode][j];//isn't precomputation wonderful
+                {//skip floating point math if frozen
+                    tempf = output[whichnode] + distances2[whichnode][j];
                     if (!(marked[whichneigh] & 4))
                     {
                         if (!marked[whichneigh])
@@ -731,34 +750,6 @@ void GeodesicHelper::dijkstra(const int32_t root, const std::vector<int32_t>& in
                     }
                 }
             }
-            if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
-            {
-                neighbors = nodeNeighbors2[whichnode].data();
-                numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
-                for (j = 0; j < numNeigh; ++j)
-                {
-                    whichneigh = neighbors[j];
-                    if (!(marked[whichneigh] & 1))
-                    {//skip floating point math if marked
-                        tempf = output[whichnode] + distances2[whichnode][j];//isn't precomputation wonderful
-                        if (!(marked[whichneigh] & 4))
-                        {
-                            if (!marked[whichneigh])
-                            {
-                                changed[numChanged++] = whichneigh;
-                            }
-                            marked[whichneigh] |= 4;
-                            output[whichneigh] = tempf;
-                            parent[whichneigh] = whichnode;
-                            m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
-                        } else if (tempf < output[whichneigh]) {
-                            output[whichneigh] = tempf;
-                            parent[whichneigh] = whichnode;
-                            m_active.changekey(m_heapIdent[whichneigh], tempf);
-                        }
-                    }
-                }
-            }
         }
     }
     for (i = 0; i < numChanged; ++i)
@@ -767,38 +758,81 @@ void GeodesicHelper::dijkstra(const int32_t root, const std::vector<int32_t>& in
     }
 }
 
-int32_t GeodesicHelper::closest(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smooth)
+int32_t GeodesicHelper::dijkstra(const vector<int32_t>& startList, const vector<int32_t>& endList, const float& maxDist, bool smooth)
 {
     int32_t i, j, whichnode, whichneigh, numNeigh, numChanged = 0, ret = -1;
     const int32_t* neighbors;
     float tempf;
-    output[root] = 0.0f;
-    changed[numChanged++] = root;
-    marked[root] |= 4;
-    parent[root] = -1;//idiom for end of path
     m_active.clear();
-    m_heapIdent[root] = m_active.push(root, 0.0f);
+    j = (int32_t)startList.size();
+    for (i = 0; i < j; ++i)
+    {
+        if (marked[startList[i]] == 0)
+        {
+            output[startList[i]] = 0.0f;
+            changed[numChanged++] = startList[i];
+            marked[startList[i]] = 4;//has valid value
+            parent[startList[i]] = -1;//idiom for end of path
+            m_heapIdent[startList[i]] = m_active.push(startList[i], 0.0f);
+        }
+    }
+    j = (int32_t)endList.size();
+    for (i = 0; i < j; ++i)
+    {
+        if (marked[endList[i]] == 0)
+        {
+            changed[numChanged++] = endList[i];
+            marked[endList[i]] = 8;//stopping point
+        }
+    }
     while (!m_active.isEmpty())
     {
         whichnode = m_active.pop();
-        if (!(marked[whichnode] & 1))//this test actually shouldn't be needed, due to heap with modifiable keys...
+        if ((marked[whichnode] & 8) != 0)//we have found the closest node in the endList, we are done
         {
-            if (roi[whichnode] != 0)//we have found the closest node in the roi to the root, we are done
-            {
-                distOut = output[whichnode];
-                ret = whichnode;
-                break;
+            ret = whichnode;
+            break;
+        }
+        marked[whichnode] |= 1;//anything pulled from heap will already be marked as having a valid value (flag 4), so already in changed list
+        neighbors = nodeNeighbors[whichnode].data();
+        numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        for (j = 0; j < numNeigh; ++j)
+        {
+            whichneigh = neighbors[j];
+            if (!(marked[whichneigh] & 1))
+            {//skip floating point math if frozen
+                tempf = output[whichnode] + distances[whichnode][j];
+                if (tempf <= maxDist)
+                {
+                    if (!(marked[whichneigh] & 4))
+                    {
+                        parent[whichneigh] = whichnode;
+                        if (!marked[whichneigh])
+                        {
+                            changed[numChanged++] = whichneigh;
+                        }
+                        marked[whichneigh] |= 4;
+                        output[whichneigh] = tempf;
+                        m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
+                    } else if (tempf < output[whichneigh]) {
+                        m_active.changekey(m_heapIdent[whichneigh], tempf);
+                        output[whichneigh] = tempf;
+                        parent[whichneigh] = whichnode;
+                    }
+                }
             }
-            marked[whichnode] |= 1;//anything pulled from heap will already be marked as having a valid value (flag 4), so already in changed list
-            neighbors = nodeNeighbors[whichnode].data();
-            numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        }
+        if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
+        {
+            neighbors = nodeNeighbors2[whichnode].data();
+            numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
             for (j = 0; j < numNeigh; ++j)
             {
                 whichneigh = neighbors[j];
                 if (!(marked[whichneigh] & 1))
                 {//skip floating point math if frozen
-                    tempf = output[whichnode] + distances[whichnode][j];//isn't precomputation wonderful
-                    if (tempf <= maxdist)
+                    tempf = output[whichnode] + distances2[whichnode][j];
+                    if (tempf <= maxDist)
                     {
                         if (!(marked[whichneigh] & 4))
                         {
@@ -818,33 +852,90 @@ int32_t GeodesicHelper::closest(const int32_t& root, const char* roi, const floa
                     }
                 }
             }
-            if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
-            {
-                neighbors = nodeNeighbors2[whichnode].data();
-                numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
-                for (j = 0; j < numNeigh; ++j)
+        }
+    }
+    for (i = 0; i < numChanged; ++i)
+    {
+        marked[changed[i]] = 0;//minimize reinitialization of arrays
+    }
+    return ret;
+}
+
+int32_t GeodesicHelper::closest(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smooth)
+{
+    int32_t i, j, whichnode, whichneigh, numNeigh, numChanged = 0, ret = -1;
+    const int32_t* neighbors;
+    float tempf;
+    output[root] = 0.0f;
+    changed[numChanged++] = root;
+    marked[root] |= 4;
+    parent[root] = -1;//idiom for end of path
+    m_active.clear();
+    m_heapIdent[root] = m_active.push(root, 0.0f);
+    while (!m_active.isEmpty())
+    {
+        whichnode = m_active.pop();
+        if (roi[whichnode] != 0)//we have found the closest node in the roi to the root, we are done
+        {
+            distOut = output[whichnode];
+            ret = whichnode;
+            break;
+        }
+        marked[whichnode] |= 1;//anything pulled from heap will already be marked as having a valid value (flag 4), so already in changed list
+        neighbors = nodeNeighbors[whichnode].data();
+        numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        for (j = 0; j < numNeigh; ++j)
+        {
+            whichneigh = neighbors[j];
+            if (!(marked[whichneigh] & 1))
+            {//skip floating point math if frozen
+                tempf = output[whichnode] + distances[whichnode][j];//isn't precomputation wonderful
+                if (tempf <= maxdist)
                 {
-                    whichneigh = neighbors[j];
-                    if (!(marked[whichneigh] & 1))
-                    {//skip floating point math if frozen
-                        tempf = output[whichnode] + distances2[whichnode][j];//isn't precomputation wonderful
-                        if (tempf <= maxdist)
+                    if (!(marked[whichneigh] & 4))
+                    {
+                        parent[whichneigh] = whichnode;
+                        if (!marked[whichneigh])
                         {
-                            if (!(marked[whichneigh] & 4))
+                            changed[numChanged++] = whichneigh;
+                        }
+                        marked[whichneigh] |= 4;
+                        output[whichneigh] = tempf;
+                        m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
+                    } else if (tempf < output[whichneigh]) {
+                        m_active.changekey(m_heapIdent[whichneigh], tempf);
+                        output[whichneigh] = tempf;
+                        parent[whichneigh] = whichnode;
+                    }
+                }
+            }
+        }
+        if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
+        {
+            neighbors = nodeNeighbors2[whichnode].data();
+            numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
+            for (j = 0; j < numNeigh; ++j)
+            {
+                whichneigh = neighbors[j];
+                if (!(marked[whichneigh] & 1))
+                {//skip floating point math if frozen
+                    tempf = output[whichnode] + distances2[whichnode][j];//isn't precomputation wonderful
+                    if (tempf <= maxdist)
+                    {
+                        if (!(marked[whichneigh] & 4))
+                        {
+                            parent[whichneigh] = whichnode;
+                            if (!marked[whichneigh])
                             {
-                                parent[whichneigh] = whichnode;
-                                if (!marked[whichneigh])
-                                {
-                                    changed[numChanged++] = whichneigh;
-                                }
-                                marked[whichneigh] |= 4;
-                                output[whichneigh] = tempf;
-                                m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
-                            } else if (tempf < output[whichneigh]) {
-                                m_active.changekey(m_heapIdent[whichneigh], tempf);
-                                output[whichneigh] = tempf;
-                                parent[whichneigh] = whichnode;
+                                changed[numChanged++] = whichneigh;
                             }
+                            marked[whichneigh] |= 4;
+                            output[whichneigh] = tempf;
+                            m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
+                        } else if (tempf < output[whichneigh]) {
+                            m_active.changekey(m_heapIdent[whichneigh], tempf);
+                            output[whichneigh] = tempf;
+                            parent[whichneigh] = whichnode;
                         }
                     }
                 }
@@ -872,22 +963,47 @@ int32_t GeodesicHelper::closest(const int32_t& root, const char* roi, bool smoot
     while (!m_active.isEmpty())
     {
         whichnode = m_active.pop();
-        if (!(marked[whichnode] & 1))//this test actually shouldn't be needed, due to heap with modifiable keys...
+        if (roi[whichnode] != 0)//we have found the closest node in the roi to the root, we are done
         {
-            if (roi[whichnode] != 0)//we have found the closest node in the roi to the root, we are done
-            {
-                ret = whichnode;
-                break;
+            ret = whichnode;
+            break;
+        }
+        marked[whichnode] |= 1;//anything pulled from heap will already be marked as having a valid value (flag 4), so already in changed list
+        neighbors = nodeNeighbors[whichnode].data();
+        numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        for (j = 0; j < numNeigh; ++j)
+        {
+            whichneigh = neighbors[j];
+            if (!(marked[whichneigh] & 1))
+            {//skip floating point math if frozen
+                tempf = output[whichnode] + distances[whichnode][j];//isn't precomputation wonderful
+                if (!(marked[whichneigh] & 4))
+                {
+                    parent[whichneigh] = whichnode;
+                    if (!marked[whichneigh])
+                    {
+                        changed[numChanged++] = whichneigh;
+                    }
+                    marked[whichneigh] |= 4;
+                    output[whichneigh] = tempf;
+                    m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
+                } else if (tempf < output[whichneigh]) {
+                    m_active.changekey(m_heapIdent[whichneigh], tempf);
+                    output[whichneigh] = tempf;
+                    parent[whichneigh] = whichnode;
+                }
             }
-            marked[whichnode] |= 1;//anything pulled from heap will already be marked as having a valid value (flag 4), so already in changed list
-            neighbors = nodeNeighbors[whichnode].data();
-            numNeigh = (int32_t)nodeNeighbors[whichnode].size();
+        }
+        if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
+        {
+            neighbors = nodeNeighbors2[whichnode].data();
+            numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
             for (j = 0; j < numNeigh; ++j)
             {
                 whichneigh = neighbors[j];
                 if (!(marked[whichneigh] & 1))
                 {//skip floating point math if frozen
-                    tempf = output[whichnode] + distances[whichnode][j];//isn't precomputation wonderful
+                    tempf = output[whichnode] + distances2[whichnode][j];//isn't precomputation wonderful
                     if (!(marked[whichneigh] & 4))
                     {
                         parent[whichneigh] = whichnode;
@@ -902,34 +1018,6 @@ int32_t GeodesicHelper::closest(const int32_t& root, const char* roi, bool smoot
                         m_active.changekey(m_heapIdent[whichneigh], tempf);
                         output[whichneigh] = tempf;
                         parent[whichneigh] = whichnode;
-                    }
-                }
-            }
-            if (smooth)//repeat with numNeighbors2, nodeNeighbors2, distance2
-            {
-                neighbors = nodeNeighbors2[whichnode].data();
-                numNeigh = (int32_t)nodeNeighbors2[whichnode].size();
-                for (j = 0; j < numNeigh; ++j)
-                {
-                    whichneigh = neighbors[j];
-                    if (!(marked[whichneigh] & 1))
-                    {//skip floating point math if frozen
-                        tempf = output[whichnode] + distances2[whichnode][j];//isn't precomputation wonderful
-                        if (!(marked[whichneigh] & 4))
-                        {
-                            parent[whichneigh] = whichnode;
-                            if (!marked[whichneigh])
-                            {
-                                changed[numChanged++] = whichneigh;
-                            }
-                            marked[whichneigh] |= 4;
-                            output[whichneigh] = tempf;
-                            m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
-                        } else if (tempf < output[whichneigh]) {
-                            m_active.changekey(m_heapIdent[whichneigh], tempf);
-                            output[whichneigh] = tempf;
-                            parent[whichneigh] = whichnode;
-                        }
                     }
                 }
             }
@@ -1214,6 +1302,38 @@ void GeodesicHelper::getPathToNode(const int32_t root, const int32_t endpoint, v
     vector<int32_t> tempReverse;
     int32_t next = endpoint;
     while (next != root)
+    {
+        tempReverse.push_back(next);
+        next = parent[next];
+    }
+    tempReverse.push_back(next);
+    int32_t tempSize = (int32_t)tempReverse.size();
+    for (int32_t i = tempSize - 1; i >= 0; --i)
+    {
+        int32_t tempNode = tempReverse[i];
+        pathNodesOut.push_back(tempNode);
+        pathDistsOut.push_back(output[tempNode]);
+    }
+}
+
+void GeodesicHelper::getPathBetweenNodeLists(const vector<int32_t>& startList, const vector<int32_t>& endList, const float& maxDist, vector<int32_t>& pathNodesOut, vector<float>& pathDistsOut, bool smoothflag)
+{
+    pathNodesOut.clear();
+    pathDistsOut.clear();
+    for (size_t i = 0; i < startList.size(); ++i)
+    {
+        if (startList[i] < 0 || startList[i] >= numNodes) return;
+    }
+    for (size_t i = 0; i < endList.size(); ++i)
+    {
+        if (endList[i] < 0 || endList[i] >= numNodes) return;
+    }
+    CaretMutexLocker locked(&inUse);//let sanity checks fail without locking
+    int32_t pathEnd = dijkstra(startList, endList, maxDist, smoothflag);//not sure if A* with a PointLocator would be any faster, so don't add a dependency
+    if (pathEnd == -1) return;//no path found
+    vector<int32_t> tempReverse;
+    int32_t next = pathEnd;
+    while (next != -1)//-1 is "parent" of start node
     {
         tempReverse.push_back(next);
         next = parent[next];

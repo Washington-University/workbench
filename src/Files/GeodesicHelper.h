@@ -86,8 +86,9 @@ namespace caret {
         GeodesicHelper(const GeodesicHelper&);//can't use copy constructor
         void dijkstra(const int32_t root, const float maxdist, std::vector<int32_t>& nodes, std::vector<float>& dists, bool smooth);//geodesic distance restricted
         void dijkstra(const int32_t root, bool smooth);//full surface
-        void alltoall(float** out, int32_t** parents, bool smooth);//must be fully allocated
         void dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth);//partial surface
+        int32_t dijkstra(const std::vector<int32_t>& startList, const std::vector<int32_t>& endList, const float& maxDist, bool smooth);//one path that connects lists
+        void alltoall(float** out, int32_t** parents, bool smooth);//must be fully allocated
         int32_t closest(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smooth);//just closest node
         int32_t closest(const int32_t& root, const char* roi, bool smooth);//just closest node
         void aStar(const int32_t root, const int32_t endpoint, bool smooth);//faster method for path
@@ -123,6 +124,9 @@ namespace caret {
         
         ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
         void getPathToNode(const int32_t root, const int32_t endpoint, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag = false);
+        
+        ///shortest path between two sets of nodes (for instance, clusters)
+        void getPathBetweenNodeLists(const std::vector<int32_t>& startList, const std::vector<int32_t>& endList, const float& maxDist, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag);
         
         ///get the distances and nodes along the path to a node - NOTE: does not do smooth distances, so that all nodes in the path are connected in the surface
         void getPathAlongLine(const int32_t root, const int32_t endpoint, const Vector3D& linep1, const Vector3D& linep2, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut);
