@@ -126,6 +126,8 @@ namespace caret {
         
         void setName(const AString& name);
         
+        AString getNameAndKeyForLabelEditor() const;
+        
         bool isSelected() const;
         
         void setSelected(const bool selected);

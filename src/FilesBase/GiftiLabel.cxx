@@ -423,6 +423,21 @@ GiftiLabel::setNamePrivate(const AString& name)
 }
 
 /**
+ * @return A string that contains both the key and name
+ * for use in the label editor.
+ */
+AString
+GiftiLabel::getNameAndKeyForLabelEditor() const
+{
+    const AString keyAndNameText(QString::number(this->key).rightJustified(4,
+                                                                           ' ',
+                                                                           false)
+                                 + ":   "
+                                 + (this->name));
+    return keyAndNameText;
+}
+
+/**
  * Is this label selected (for display)?
  *
  * @return  true if label selected for display, else false.
