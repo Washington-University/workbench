@@ -207,7 +207,7 @@ namespace
                         }
                         if ((int64_t)voxelList.size() >= minVoxels)
                         {
-                            if ((int64_t)voxelList.size() > biggestCount)
+                            if (voxelList.size() > biggestCount)
                             {
                                 biggestCount = voxelList.size();
                                 biggestCluster = (int64_t)clusters.size();
