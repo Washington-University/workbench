@@ -182,8 +182,7 @@ public:
     //void readFromXMLDOM(const Node* rootNode)
     //       ;
 
-    void readFromXmlString(const AString& s)
-           ;
+    void readFromXmlString(const AString& s);
 
     void readFromQXmlStreamReader(QXmlStreamReader& xml);
 
@@ -204,6 +203,9 @@ public:
 //    bool hasLabelsWithInvalidGroupNameHierarchy() const;
     
     int32_t generateUnusedKey() const;
+    
+    void changeLabelKey(const int32_t currentKey,
+                        const int32_t newKey);
     
     void exportToCaret5ColorFile(const AString& filename) const;
 

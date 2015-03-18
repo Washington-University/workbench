@@ -424,8 +424,9 @@ GiftiLabelTable::deleteLabel(const int32_t key)
    }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
+        GiftiLabel* gl = iter->second;
         this->labelsMap.erase(iter);
-        delete iter->second;
+        delete gl;
         
         setModified();
     }
@@ -1587,6 +1588,47 @@ GiftiLabelTable::getKeysAndNames(std::map<int32_t, AString>& keysAndNamesOut) co
         keysAndNamesOut.insert(std::make_pair(iter->first,
                                               gl->getName()));
     }
+}
+
+/**
+ * Change the key of a label from 'currentKey' to 'newKey'.
+ * If a label exists with 'newKey', the label with 'newKey' is removed.
+ *
+ * @param currentKey
+ *     Key currently used by the label.
+ * @param newKey
+ *     New key for the label.
+ */
+void
+GiftiLabelTable::changeLabelKey(const int32_t currentKey,
+                                const int32_t newKey)
+{
+    /*
+     * Remove a label that uses 'newKey'.
+     */
+    if (this->labelsMap.find(newKey) != this->labelsMap.end()) {
+        deleteLabel(newKey);
+    }
+    
+    /*
+     * Get the label with 'currentKey' and remove it from the map.
+     */
+    LABELS_MAP_ITERATOR currentLabelIter = this->labelsMap.find(currentKey);
+    if (currentLabelIter == this->labelsMap.end()) {
+        CaretLogSevere("Attempting to change label key for non-existent label with key="
+                       + AString::number(currentKey));
+        return;
+    }
+    GiftiLabel* label = currentLabelIter->second;
+    this->labelsMap.erase(currentKey);
+    
+    /*
+     * Change the lable's key from 'currentKey' to 'newKey'
+     * and add the label into the label's map.
+     */
+    label->setKey(newKey);
+    this->labelsMap.insert(std::make_pair(newKey,
+                                          label));
 }
 
 
