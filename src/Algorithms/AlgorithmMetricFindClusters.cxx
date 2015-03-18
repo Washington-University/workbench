@@ -66,14 +66,14 @@ OperationParameters* AlgorithmMetricFindClusters::getParameters()
     OptionalParameter* columnSelect = ret->createOptionalParameter(9, "-column", "select a single column");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
-    OptionalParameter* startOpt = ret->createOptionalParameter(10, "-start", "start labeling clusters from a value other than 1");
-    startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
-    
-    OptionalParameter* areaRatioOpt = ret->createOptionalParameter(11, "-area-ratio", "ignore clusters smaller than a given fraction of the largest cluster in map");
-    areaRatioOpt->addDoubleParameter(1, "ratio", "fraction of the largest cluster's size");
+    OptionalParameter* sizeRatioOpt = ret->createOptionalParameter(11, "-size-ratio", "ignore clusters smaller than a given fraction of the largest cluster in map");
+    sizeRatioOpt->addDoubleParameter(1, "ratio", "fraction of the largest cluster's area");
     
     OptionalParameter* distanceOpt = ret->createOptionalParameter(12, "-distance", "ignore clusters further than a given distance from the largest cluster");
     distanceOpt->addDoubleParameter(1, "distance", "how far from the largest cluster a cluster can be, edge to edge, in mm");
+    
+    OptionalParameter* startOpt = ret->createOptionalParameter(10, "-start", "start labeling clusters from a value other than 1");
+    startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
     
     ret->setHelpText(
         AString("Outputs a metric with nonzero integers for all vertices within a large enough cluster, and zeros elsewhere.  ") +
@@ -120,27 +120,27 @@ void AlgorithmMetricFindClusters::useParameters(OperationParameters* myParams, P
     {
         startVal = (int)startOpt->getInteger(1);
     }
-    OptionalParameter* areaRatioOpt = myParams->getOptionalParameter(11);
-    float areaRatio = -1.0f;
-    if (areaRatioOpt->m_present)
+    OptionalParameter* sizeRatioOpt = myParams->getOptionalParameter(11);
+    float sizeRatio = -1.0f;
+    if (sizeRatioOpt->m_present)
     {
-        areaRatio = areaRatioOpt->getDouble(1);
-        if (areaRatio <= 0.0f)
+        sizeRatio = sizeRatioOpt->getDouble(1);
+        if (sizeRatio <= 0.0f)
         {
             throw AlgorithmException("area ratio must be positive");
         }
     }
     OptionalParameter* distanceOpt = myParams->getOptionalParameter(12);
-    float distaceCutoff = -1.0f;
+    float distanceCutoff = -1.0f;
     if (distanceOpt->m_present)
     {
-        distaceCutoff = distanceOpt->getDouble(1);
-        if (distaceCutoff <= 0.0f)
+        distanceCutoff = distanceOpt->getDouble(1);
+        if (distanceCutoff <= 0.0f)
         {
             throw AlgorithmException("distance cutoff must be positive");
         }
     }
-    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, threshVal, minArea, myMetricOut, lessThan, myRoi, myAreas, columnNum, startVal, NULL, areaRatio, distaceCutoff);
+    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, threshVal, minArea, myMetricOut, lessThan, myRoi, myAreas, columnNum, startVal, NULL, sizeRatio, distanceCutoff);
 }
 
 namespace
@@ -153,7 +153,7 @@ namespace
     };
     
     void processColumn(const float* data, const float* roiData, const float* nodeAreas, TopologyHelper* myTopoHelp, GeodesicHelper* myGeoHelp,
-                       const float& threshVal, const float& minArea, const bool& lessThan, const float& areaRatio, const float& distaceCutoff,
+                       const float& threshVal, const float& minArea, const bool& lessThan, const float& areaRatio, const float& distanceCutoff,
                        float* outData, int& markVal)
     {
         int numNodes = myTopoHelp->getNumberOfNodes();
@@ -216,24 +216,24 @@ namespace
         vector<int32_t> pathScratch;
         vector<float> distScratch;
         if (!clusters.empty() && biggestCluster == -1) CaretLogWarning("clusters found, but none have positive area, check your vertex areas for negatives");
-        if (biggestCluster != -1 && (distaceCutoff > 0.0f || areaRatio > 0.0f))
+        if (biggestCluster != -1 && (distanceCutoff > 0.0f || areaRatio > 0.0f))
         {
-            for (int i = 0; i < (int)clusters.size(); ++i)
+            for (size_t i = 0; i < clusters.size(); ++i)
             {
-                if (i != biggestCluster)
+                if ((int)i != biggestCluster)
                 {
                     bool erase = false;
                     if (areaRatio > 0.0f)
                     {
-                        if ((clusters[i].area / biggestSize) > areaRatio)
+                        if ((clusters[i].area / biggestSize) < areaRatio)
                         {
                             erase = true;
                         }
                     }
-                    if (!erase && distaceCutoff > 0.0f)
+                    if (!erase && distanceCutoff > 0.0f)
                     {
                         CaretAssert(myGeoHelp != NULL);
-                        myGeoHelp->getPathBetweenNodeLists(clusters[i].members, clusters[biggestCluster].members, distaceCutoff, pathScratch, distScratch, true);
+                        myGeoHelp->getPathBetweenNodeLists(clusters[i].members, clusters[biggestCluster].members, distanceCutoff, pathScratch, distScratch, true);
                         if (pathScratch.empty())//empty path means no path found
                         {
                             erase = true;
@@ -243,12 +243,12 @@ namespace
                     {
                         clusters.erase(clusters.begin() + i);//remove it
                         --i;//don't skip a cluster
-                        if (biggestCluster > i) --biggestCluster;//don't lose track of the biggest cluster
+                        if (biggestCluster > (int)i) --biggestCluster;//don't lose track of the biggest cluster
                     }
                 }
             }
         }
-        for (int i = 0; i < (int)clusters.size(); ++i)
+        for (size_t i = 0; i < clusters.size(); ++i)
         {
             if (markVal == 0)
             {
@@ -269,7 +269,7 @@ namespace
 
 AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& threshVal, const float& minArea,
                                                          MetricFile* myMetricOut, const bool& lessThan, const MetricFile* myRoi, const MetricFile* myAreas,
-                                                         const int& columnNum, const int& startVal, int* endVal, const float& areaRatio, const float& distaceCutoff) : AbstractAlgorithm(myProgObj)
+                                                         const int& columnNum, const int& startVal, int* endVal, const float& areaRatio, const float& distanceCutoff) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (startVal == 0)
@@ -305,7 +305,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
     CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
     CaretPointer<GeodesicHelper> myGeoHelp;
     CaretPointer<GeodesicHelperBase> myGeoBase;
-    if (distaceCutoff > 0.0f)//geodesic is only needed for distance cutoff
+    if (distanceCutoff > 0.0f)//geodesic is only needed for distance cutoff
     {
         if (myAreas == NULL)
         {
@@ -326,7 +326,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
             myMetricOut->setColumnName(c, myMetric->getColumnName(c));
             vector<float> outData(numNodes, 0.0f);
             const float* data = myMetric->getValuePointerForColumn(c);
-            processColumn(data, roiData, nodeAreas, myTopoHelp, myGeoHelp, threshVal, minArea, lessThan, areaRatio, distaceCutoff, outData.data(), markVal);
+            processColumn(data, roiData, nodeAreas, myTopoHelp, myGeoHelp, threshVal, minArea, lessThan, areaRatio, distanceCutoff, outData.data(), markVal);
             myMetricOut->setValuesForColumn(c, outData.data());
         }
     } else {
@@ -335,7 +335,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
         vector<float> outData(numNodes, 0.0f);
         const float* data = myMetric->getValuePointerForColumn(columnNum);
-        processColumn(data, roiData, nodeAreas, myTopoHelp, myGeoHelp, threshVal, minArea, lessThan, areaRatio, distaceCutoff, outData.data(), markVal);
+        processColumn(data, roiData, nodeAreas, myTopoHelp, myGeoHelp, threshVal, minArea, lessThan, areaRatio, distanceCutoff, outData.data(), markVal);
         myMetricOut->setValuesForColumn(0, outData.data());
     }
     if (endVal != NULL) *endVal = markVal;

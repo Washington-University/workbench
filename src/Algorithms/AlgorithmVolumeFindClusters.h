@@ -34,7 +34,7 @@ namespace caret {
     public:
         AlgorithmVolumeFindClusters(ProgressObject* myProgObj, const VolumeFile* volIn, const float& threshValue, const float& minVolume,
                                     VolumeFile* volOut, const bool& lessThan = false, const VolumeFile* myRoi = NULL, const int& subvolNum = -1,
-                                    const int& startVal = 1, int* endVal = NULL);
+                                    const int& startVal = 1, int* endVal = NULL, const float& sizeRatio = -1.0f, const float& distanceCutoff = -1.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

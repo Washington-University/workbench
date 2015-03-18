@@ -38,7 +38,8 @@ namespace caret {
                                    const SurfaceFile* myLeftSurf = NULL, const MetricFile* myLeftAreas = NULL,
                                    const SurfaceFile* myRightSurf = NULL, const MetricFile* myRightAreas = NULL,
                                    const SurfaceFile* myCerebSurf = NULL, const MetricFile* myCerebAreas = NULL,
-                                   const CiftiFile* roiCifti = NULL, const bool& mergedVol = false, const int& startVal = 1, int* endVal = NULL);
+                                   const CiftiFile* roiCifti = NULL, const bool& mergedVol = false, const int& startVal = 1, int* endVal = NULL,
+                                   const float& surfSizeRatio = -1.0f, const float& volSizeRatio = -1.0f, const float& surfDistCutoff = -1.0f, const float& volDistCutoff = -1.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

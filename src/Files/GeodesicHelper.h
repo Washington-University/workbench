@@ -125,7 +125,7 @@ namespace caret {
         ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
         void getPathToNode(const int32_t root, const int32_t endpoint, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag = false);
         
-        ///shortest path between two sets of nodes (for instance, clusters)
+        ///shortest path between two sets of nodes (for instance, clusters), with distance limit
         void getPathBetweenNodeLists(const std::vector<int32_t>& startList, const std::vector<int32_t>& endList, const float& maxDist, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag);
         
         ///get the distances and nodes along the path to a node - NOTE: does not do smooth distances, so that all nodes in the path are connected in the surface

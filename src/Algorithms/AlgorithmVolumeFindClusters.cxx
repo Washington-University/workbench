@@ -21,7 +21,10 @@
 #include "AlgorithmVolumeFindClusters.h"
 #include "AlgorithmException.h"
 
+#include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPointer.h"
+#include "CaretPointLocator.h"
 #include "VolumeFile.h"
 #include "VoxelIJK.h"
 
@@ -59,6 +62,12 @@ OperationParameters* AlgorithmVolumeFindClusters::getParameters()
     
     OptionalParameter* subvolSelect = ret->createOptionalParameter(7, "-subvolume", "select a single subvolume");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
+    
+    OptionalParameter* sizeRatioOpt = ret->createOptionalParameter(9, "-size-ratio", "ignore clusters smaller than a given fraction of the largest cluster in map");
+    sizeRatioOpt->addDoubleParameter(1, "ratio", "fraction of the largest cluster's volume");
+    
+    OptionalParameter* distanceOpt = ret->createOptionalParameter(10, "-distance", "ignore clusters further than a given distance from the largest cluster");
+    distanceOpt->addDoubleParameter(1, "distance", "how far from the largest cluster a cluster can be, edge to edge, in mm");
     
     OptionalParameter* startOpt = ret->createOptionalParameter(8, "-start", "start labeling clusters from a value other than 1");
     startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
@@ -101,11 +110,186 @@ void AlgorithmVolumeFindClusters::useParameters(OperationParameters* myParams, P
     {
         startVal = (int)startOpt->getInteger(1);
     }
-    AlgorithmVolumeFindClusters(myProgObj, volIn, threshValue, minVolume, volOut, lessThan, myRoi, subvolNum, startVal);
+    OptionalParameter* sizeRatioOpt = myParams->getOptionalParameter(9);
+    float sizeRatio = -1.0f;
+    if (sizeRatioOpt->m_present)
+    {
+        sizeRatio = sizeRatioOpt->getDouble(1);
+        if (sizeRatio <= 0.0f)
+        {
+            throw AlgorithmException("volume ratio must be positive");
+        }
+    }
+    OptionalParameter* distanceOpt = myParams->getOptionalParameter(10);
+    float distaceCutoff = -1.0f;
+    if (distanceOpt->m_present)
+    {
+        distaceCutoff = distanceOpt->getDouble(1);
+        if (distaceCutoff <= 0.0f)
+        {
+            throw AlgorithmException("distance cutoff must be positive");
+        }
+    }
+    AlgorithmVolumeFindClusters(myProgObj, volIn, threshValue, minVolume, volOut, lessThan, myRoi, subvolNum, startVal, NULL, sizeRatio, distaceCutoff);
+}
+
+namespace
+{
+    void processSubvol(const float* inFrame, VolumeFile* volOut, const int64_t& outSubvol, const int64_t& outComponent, const float& threshValue, const float& minVolume,
+                       const bool& lessThan, const float* roiFrame, const float& sizeRatio, const float& distanceCutoff, int& markVal)
+    {
+        vector<int64_t> dims = volOut->getDimensions();
+        int64_t frameSize = dims[0] * dims[1] * dims[2];
+        const VolumeSpace& mySpace = volOut->getVolumeSpace();
+        Vector3D ivec, jvec, kvec, origin;
+        mySpace.getSpacingVectors(ivec, jvec, kvec, origin);
+        float voxelVolume = abs(ivec.dot(jvec.cross(kvec)));
+        int64_t minVoxels = (int64_t)ceil(minVolume / voxelVolume);
+        vector<VoxelIJK> neighbors;
+        neighbors.push_back(VoxelIJK(1, 0, 0));
+        neighbors.push_back(VoxelIJK(-1, 0, 0));
+        neighbors.push_back(VoxelIJK(0, 1, 0));
+        neighbors.push_back(VoxelIJK(0, -1, 0));
+        neighbors.push_back(VoxelIJK(0, 0, 1));
+        neighbors.push_back(VoxelIJK(0, 0, -1));
+        vector<char> marked(frameSize, 0);
+        if (lessThan)
+        {
+            for (int64_t i = 0; i < frameSize; ++i)
+            {
+                if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] < threshValue)
+                {
+                    marked[i] = 1;
+                }
+            }
+        } else {
+            for (int64_t i = 0; i < frameSize; ++i)
+            {
+                if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] > threshValue)
+                {
+                    marked[i] = 1;
+                }
+            }
+        }
+        vector<vector<VoxelIJK> > clusters;
+        size_t biggestCount = 0;
+        int64_t biggestCluster = -1;
+        for (int64_t k = 0; k < dims[2]; ++k)
+        {
+            for (int64_t j = 0; j < dims[1]; ++j)
+            {
+                for (int64_t i = 0; i < dims[0]; ++i)
+                {
+                    int64_t myIndex = mySpace.getIndex(i, j, k);
+                    if (marked[myIndex])
+                    {
+                        vector<VoxelIJK> voxelList;
+                        voxelList.push_back(VoxelIJK(i, j, k));
+                        marked[myIndex] = 0;//don't let voxels get duplicated in the list
+                        for (int64_t index = 0; index < (int64_t)voxelList.size(); ++index)//NOTE: vector grows inside loop
+                        {
+                            const VoxelIJK& thisVoxel = voxelList[index];
+                            for (int n = 0; n < (int)neighbors.size(); ++n)
+                            {
+                                VoxelIJK neighVox(thisVoxel.m_ijk[0] + neighbors[n].m_ijk[0],
+                                                    thisVoxel.m_ijk[1] + neighbors[n].m_ijk[1],
+                                                    thisVoxel.m_ijk[2] + neighbors[n].m_ijk[2]);
+                                if (mySpace.indexValid(neighVox.m_ijk))
+                                {
+                                    int64_t neighIndex = mySpace.getIndex(neighVox.m_ijk);
+                                    if (marked[neighIndex])
+                                    {
+                                        voxelList.push_back(neighVox);
+                                        marked[neighIndex] = 0;
+                                    }
+                                }
+                            }
+                        }
+                        if ((int64_t)voxelList.size() >= minVoxels)
+                        {
+                            if ((int64_t)voxelList.size() > biggestCount)
+                            {
+                                biggestCount = voxelList.size();
+                                biggestCluster = (int64_t)clusters.size();
+                            }
+                            clusters.push_back(voxelList);
+                        }
+                    }
+                }
+            }
+        }
+        if (!clusters.empty()) CaretAssert(biggestCluster != -1);
+        if (biggestCluster != -1 && (distanceCutoff > 0.0f || sizeRatio > 0.0f))
+        {
+            CaretPointer<CaretPointLocator> myLocator;
+            if (distanceCutoff > 0.0f)
+            {
+                vector<float> biggestCoords;//gather coordinates of biggest cluster voxels
+                biggestCoords.reserve(biggestCount * 3);
+                for (size_t i = 0; i < clusters[biggestCluster].size(); ++i)
+                {
+                    float thisCoord[3];
+                    mySpace.indexToSpace(clusters[biggestCluster][i].m_ijk, thisCoord);
+                    biggestCoords.push_back(thisCoord[0]);
+                    biggestCoords.push_back(thisCoord[1]);
+                    biggestCoords.push_back(thisCoord[2]);
+                }
+                myLocator.grabNew(new CaretPointLocator(biggestCoords.data(), biggestCoords.size()));
+            }
+            for (size_t i = 0; i < clusters.size(); ++i)
+            {
+                if ((int64_t)i != biggestCluster)
+                {
+                    bool erase = false;
+                    if (sizeRatio > 0.0f && ((float)clusters[i].size()) / biggestCount < sizeRatio)
+                    {
+                        erase = true;
+                    }
+                    if (!erase && distanceCutoff > 0.0f)
+                    {
+                        erase = true;//erase unless we find a point close enough to the biggest cluster
+                        for (size_t j = 0; j < clusters[i].size(); ++j)
+                        {
+                            float thisCoord[3];
+                            mySpace.indexToSpace(clusters[i][j].m_ijk, thisCoord);
+                            int32_t ret = myLocator->closestPointLimited(thisCoord, distanceCutoff);
+                            if (ret == -1)
+                            {
+                                erase = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (erase)
+                    {
+                        clusters.erase(clusters.begin() + i);//remove it
+                        --i;//don't skip a cluster
+                        if (biggestCluster > (int64_t)i) --biggestCluster;//don't lose track of the biggest cluster
+                    }
+                }
+            }
+        }
+        for (size_t i = 0; i < clusters.size(); ++i)
+        {
+            if (markVal == 0)
+            {
+                CaretLogInfo("skipping 0 for cluster marking");
+                ++markVal;
+            }
+            float tempVal = markVal;
+            if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
+            for (size_t index = 0; index < clusters[i].size(); ++index)
+            {
+                volOut->setValue(tempVal, clusters[i][index].m_ijk, outSubvol, outComponent);
+            }
+            ++markVal;
+        }
+    }
 }
 
 AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgObj, const VolumeFile* volIn, const float& threshValue, const float& minVolume, VolumeFile* volOut,
-                                                         const bool& lessThan, const VolumeFile* myRoi, const int& subvolNum, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
+                                                         const bool& lessThan, const VolumeFile* myRoi, const int& subvolNum, const int& startVal, int* endVal,
+                                                         const float& sizeRatio, const float& distanceCutoff) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (startVal == 0)
@@ -119,19 +303,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
         if (!mySpace.matches(myRoi->getVolumeSpace())) throw AlgorithmException("roi volume space does not match input");
         roiFrame = myRoi->getFrame();
     }
-    Vector3D ivec, jvec, kvec, origin;
-    mySpace.getSpacingVectors(ivec, jvec, kvec, origin);
-    float voxelVolume = abs(ivec.dot(jvec.cross(kvec)));
-    int64_t minVoxels = (int64_t)ceil(minVolume / voxelVolume);
     vector<int64_t> dims = volIn->getDimensions();
-    int64_t frameSize = dims[0] * dims[1] * dims[2];
-    vector<VoxelIJK> neighbors;
-    neighbors.push_back(VoxelIJK(1, 0, 0));
-    neighbors.push_back(VoxelIJK(-1, 0, 0));
-    neighbors.push_back(VoxelIJK(0, 1, 0));
-    neighbors.push_back(VoxelIJK(0, -1, 0));
-    neighbors.push_back(VoxelIJK(0, 0, 1));
-    neighbors.push_back(VoxelIJK(0, 0, -1));
     int markVal = startVal;
     if (subvolNum == -1)
     {
@@ -141,75 +313,8 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
         {
             for (int64_t s = 0; s < dims[3]; ++s)
             {
-                vector<char> marked(frameSize, 0);
                 const float* inFrame = volIn->getFrame(s, c);
-                if (lessThan)
-                {
-                    for (int64_t i = 0; i < frameSize; ++i)
-                    {
-                        if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] < threshValue)
-                        {
-                            marked[i] = 1;
-                        }
-                    }
-                } else {
-                    for (int64_t i = 0; i < frameSize; ++i)
-                    {
-                        if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] > threshValue)
-                        {
-                            marked[i] = 1;
-                        }
-                    }
-                }
-                for (int64_t k = 0; k < dims[2]; ++k)
-                {
-                    for (int64_t j = 0; j < dims[1]; ++j)
-                    {
-                        for (int64_t i = 0; i < dims[0]; ++i)
-                        {
-                            if (marked[volIn->getIndex(i, j, k)])
-                            {
-                                vector<VoxelIJK> voxelList;
-                                voxelList.push_back(VoxelIJK(i, j, k));
-                                marked[volIn->getIndex(i, j, k)] = 0;//don't let voxels get duplicated in the list
-                                for (int64_t index = 0; index < (int64_t)voxelList.size(); ++index)//NOTE: vector grows inside loop
-                                {
-                                    const VoxelIJK& thisVoxel = voxelList[index];
-                                    for (int n = 0; n < (int)neighbors.size(); ++n)
-                                    {
-                                        VoxelIJK neighVox(thisVoxel.m_ijk[0] + neighbors[n].m_ijk[0],
-                                                          thisVoxel.m_ijk[1] + neighbors[n].m_ijk[1],
-                                                          thisVoxel.m_ijk[2] + neighbors[n].m_ijk[2]);
-                                        if (volIn->indexValid(neighVox.m_ijk))
-                                        {
-                                            int64_t neighIndex = volIn->getIndex(neighVox.m_ijk);
-                                            if (marked[neighIndex])
-                                            {
-                                                voxelList.push_back(neighVox);
-                                                marked[neighIndex] = 0;
-                                            }
-                                        }
-                                    }
-                                }
-                                if ((int64_t)voxelList.size() >= minVoxels)
-                                {
-                                    if (markVal == 0)
-                                    {
-                                        CaretLogInfo("skipping 0 for cluster marking");
-                                        ++markVal;
-                                    }
-                                    float tempVal = markVal;
-                                    if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
-                                    for (int64_t index = 0; index < (int64_t)voxelList.size(); ++index)
-                                    {
-                                        volOut->setValue(tempVal, voxelList[index].m_ijk, s, c);
-                                    }
-                                    ++markVal;
-                                }
-                            }
-                        }
-                    }
-                }
+                processSubvol(inFrame, volOut, s, c, threshValue, minVolume, lessThan, roiFrame, sizeRatio, distanceCutoff, markVal);
             }
         }
     } else {
@@ -219,75 +324,8 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
         volOut->setValueAllVoxels(0.0f);
         for (int64_t c = 0; c < dims[4]; ++c)
         {
-            vector<char> marked(frameSize, 0);
             const float* inFrame = volIn->getFrame(subvolNum, c);
-            if (lessThan)
-            {
-                for (int64_t i = 0; i < frameSize; ++i)
-                {
-                    if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] < threshValue)
-                    {
-                        marked[i] = 1;
-                    }
-                }
-            } else {
-                for (int64_t i = 0; i < frameSize; ++i)
-                {
-                    if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] > threshValue)
-                    {
-                        marked[i] = 1;
-                    }
-                }
-            }
-            for (int64_t k = 0; k < dims[2]; ++k)
-            {
-                for (int64_t j = 0; j < dims[1]; ++j)
-                {
-                    for (int64_t i = 0; i < dims[0]; ++i)
-                    {
-                        if (marked[volIn->getIndex(i, j, k)])
-                        {
-                            vector<VoxelIJK> voxelList;
-                            voxelList.push_back(VoxelIJK(i, j, k));
-                            marked[volIn->getIndex(i, j, k)] = 0;//don't let voxels get duplicated in the list
-                            for (int64_t index = 0; index < (int64_t)voxelList.size(); ++index)//NOTE: vector grows inside loop
-                            {
-                                const VoxelIJK& thisVoxel = voxelList[index];
-                                for (int n = 0; n < (int)neighbors.size(); ++n)
-                                {
-                                    VoxelIJK neighVox(thisVoxel.m_ijk[0] + neighbors[n].m_ijk[0],
-                                                        thisVoxel.m_ijk[1] + neighbors[n].m_ijk[1],
-                                                        thisVoxel.m_ijk[2] + neighbors[n].m_ijk[2]);
-                                    if (volIn->indexValid(neighVox.m_ijk))
-                                    {
-                                        int64_t neighIndex = volIn->getIndex(neighVox.m_ijk);
-                                        if (marked[neighIndex])
-                                        {
-                                            voxelList.push_back(neighVox);
-                                            marked[neighIndex] = 0;
-                                        }
-                                    }
-                                }
-                            }
-                            if ((int64_t)voxelList.size() >= minVoxels)
-                            {
-                                if (markVal == 0)
-                                {
-                                    CaretLogInfo("skipping 0 for cluster marking");
-                                    ++markVal;
-                                }
-                                float tempVal = markVal;
-                                if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
-                                for (int64_t index = 0; index < (int64_t)voxelList.size(); ++index)
-                                {
-                                    volOut->setValue(tempVal, voxelList[index].m_ijk, 0, c);
-                                }
-                                ++markVal;
-                            }
-                        }
-                    }
-                }
-            }
+            processSubvol(inFrame, volOut, 0, c, threshValue, minVolume, lessThan, roiFrame, sizeRatio, distanceCutoff, markVal);
         }
     }
     if (endVal != NULL) *endVal = markVal;
