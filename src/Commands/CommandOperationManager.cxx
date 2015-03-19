@@ -725,7 +725,7 @@ void CommandOperationManager::printHelpInfo()
     //guide for wrap, assuming 80 columns:                                                  |
     cout << endl << "Information options:" << endl;
     cout << "   -help                       show this help info" << endl;
-    cout << "   -arguments-help             explain how to read subcommand help info" << endl;
+    cout << "   -arguments-help             explain the format of subcommand help info" << endl;
     cout << "   -version                    show extended version information" << endl;
     cout << "   -list-commands              list all processing subcommands" << endl;
     cout << "   -list-deprecated-commands   list deprecated subcommands" << endl;
@@ -741,6 +741,9 @@ void CommandOperationManager::printHelpInfo()
          iter++) {
         cout << "            " << LogLevelEnum::toName(*iter) << endl;
     }
+    cout << endl;
+    cout << "To get the help information on a processing subcommand, run it without any" << endl;
+    cout << "   additional arguments." << endl;
     cout << endl;
     cout << "If the first argument is not recognized, all processing commands that start" << endl;
     cout << "   with the argument are displayed" << endl;
