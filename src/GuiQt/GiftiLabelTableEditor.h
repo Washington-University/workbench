@@ -23,6 +23,7 @@
 
 #include <map>
 
+#include "CaretPointer.h"
 #include "WuQDialogModal.h"
 
 class QAction;
@@ -32,7 +33,7 @@ class QLineEdit;
 class QListWidget;
 class QListWidgetItem;
 class QPushButton;
-class QSpinBox;
+class QToolButton;
 
 namespace caret {
 
@@ -108,7 +109,7 @@ namespace caret {
         void newButtonClicked();
         void deleteButtonClicked();
         void undoButtonClicked();
-        void changeLabelKeyButtonClicked();
+        void changeLabelKeyLockButtonClicked();
         
 //        void listWidgetLabelSelected(int row);
         
@@ -140,6 +141,8 @@ namespace caret {
         
         void processApplyButton();
         
+        void allowLabelDataEditing(const bool allowEditingFlag);
+        
         QListWidget* m_labelSelectionListWidget;
         
         BorderFile* m_borderFile;
@@ -156,9 +159,9 @@ namespace caret {
         
         QLineEdit* m_labelNameLineEdit;
         
-        QSpinBox* m_keyValueSpinBox;
+        QLineEdit* m_keyValueLineEdit;
         
-        QPushButton* m_changeKeyValuePushButton;
+        QToolButton* m_changeKeyValueToolButton;
         
         AString m_lastSelectedLabelName;
         
@@ -183,12 +186,37 @@ namespace caret {
         
         static const AString s_SORT_COMBO_BOX_NAME_BY_NAME;
         
+        static bool s_displayKeyEditingWarningFlag;
+        
+        
+    };
+    
+    class ChangeLabelKeyDialog : public WuQDialogModal {
+        Q_OBJECT
+        
+    public:
+        ChangeLabelKeyDialog(GiftiLabelTable* giftiLabelTable,
+                             const GiftiLabel* giftiLabel,
+                             QWidget* parent);
+        
+        ~ChangeLabelKeyDialog();
+        
+//        int32_t getNewKeyValue() const;
+        
+    protected:
+        virtual void okButtonClicked();
+        
+    private:
+        GiftiLabelTable*  m_giftiLabelTable;
+        const GiftiLabel* m_giftiLabel;
+        QLineEdit* m_labelKeyLineEdit;
     };
     
 #ifdef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
     std::map<GiftiLabelTable*, GiftiLabelTableEditor::PreviousSelections> GiftiLabelTableEditor::s_previousSelections;
     const AString GiftiLabelTableEditor::s_SORT_COMBO_BOX_NAME_BY_KEY  = "Key";
     const AString GiftiLabelTableEditor::s_SORT_COMBO_BOX_NAME_BY_NAME = "Name";
+    bool GiftiLabelTableEditor::s_displayKeyEditingWarningFlag = true;
 #endif // __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
 
 } // namespace

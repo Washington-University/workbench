@@ -37,6 +37,7 @@
 #include <QVBoxLayout>
 #include <QToolButton>
 
+#include "ApplicationInformation.h"
 #include "BorderFile.h"
 #include "Brain.h"
 #include "CaretAssert.h"
@@ -51,6 +52,7 @@
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyItem.h"
 #include "GuiManager.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -267,21 +269,20 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
      * Key value editing
      */
     QLabel* keyLabel = NULL;
-    m_keyValueSpinBox = NULL;
-    m_changeKeyValuePushButton = NULL;
+    m_keyValueLineEdit = NULL;
+    m_changeKeyValueToolButton = NULL;
     if (options & OPTION_ADD_KEY_EDITING) {
         keyLabel = new QLabel("Key ");
-        m_keyValueSpinBox = new QSpinBox();
-        m_keyValueSpinBox->setMinimum(0);
-        m_keyValueSpinBox->setMaximum(999999999);
-        m_keyValueSpinBox->setSingleStep(1);
-        m_keyValueSpinBox->setMinimumWidth(100);
-        m_keyValueSpinBox->setAlignment(Qt::AlignRight);
-        m_keyValueSpinBox->setReadOnly(true);
-        m_changeKeyValuePushButton = WuQtUtilities::createPushButton("Change",
-                                                                     "Change the label's key value",
-                                                                     this,
-                                                                     SLOT(changeLabelKeyButtonClicked()));
+        m_keyValueLineEdit = new QLineEdit();
+        m_keyValueLineEdit->setFixedWidth(100);
+        m_keyValueLineEdit->setAlignment(Qt::AlignRight);
+        m_keyValueLineEdit->setReadOnly(true);
+        
+        m_changeKeyValueToolButton = new QToolButton();
+        m_changeKeyValueToolButton->setText("Change...");
+        m_changeKeyValueToolButton->setToolTip("Change a label's key");
+        QObject::connect(m_changeKeyValueToolButton, SIGNAL(clicked(bool)),
+                         this, SLOT(changeLabelKeyLockButtonClicked()));
     }
     
     /*
@@ -297,14 +298,14 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
                              0, 1, 1, 2);
     if (options & OPTION_ADD_KEY_EDITING) {
         CaretAssert(keyLabel);
-        CaretAssert(m_keyValueSpinBox);
-        CaretAssert(m_changeKeyValuePushButton);
+        CaretAssert(m_keyValueLineEdit);
+        CaretAssert(m_changeKeyValueToolButton);
         
         nameKeyLayout->addWidget(keyLabel,
                                  1, 0);
-        nameKeyLayout->addWidget(m_keyValueSpinBox,
+        nameKeyLayout->addWidget(m_keyValueLineEdit,
                                  1, 1);
-        nameKeyLayout->addWidget(m_changeKeyValuePushButton,
+        nameKeyLayout->addWidget(m_changeKeyValueToolButton,
                                  1, 2,
                                  Qt::AlignLeft);
     }
@@ -342,12 +343,12 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
     m_editingGroup->add(m_labelNameLineEdit);
     if (options & OPTION_ADD_KEY_EDITING) {
         CaretAssert(keyLabel);
-        CaretAssert(m_keyValueSpinBox);
-        CaretAssert(m_changeKeyValuePushButton);
+        CaretAssert(m_keyValueLineEdit);
+        CaretAssert(m_changeKeyValueToolButton);
         
         m_editingGroup->add(keyLabel);
-        m_editingGroup->add(m_keyValueSpinBox);
-        m_editingGroup->add(m_changeKeyValuePushButton);
+        m_editingGroup->add(m_keyValueLineEdit);
+        m_editingGroup->add(m_changeKeyValueToolButton);
     }
     m_editingGroup->add(m_colorEditorWidget);
     
@@ -493,8 +494,8 @@ GiftiLabelTableEditor::listWidgetLabelSelected()
         gl->getColor(rgba);
         m_colorEditorWidget->setColor(rgba);
         m_labelNameLineEdit->setText(gl->getName());
-        if (m_keyValueSpinBox != NULL) {
-            m_keyValueSpinBox->setValue(gl->getKey());
+        if (m_keyValueLineEdit != NULL) {
+            m_keyValueLineEdit->setText(AString::number(gl->getKey()));
         }
         
         m_lastSelectedLabelName = gl->getName();
@@ -509,12 +510,13 @@ GiftiLabelTableEditor::listWidgetLabelSelected()
     }
     else {
         m_lastSelectedLabelName = "";
-        if (m_keyValueSpinBox != NULL) {
-            m_keyValueSpinBox->setValue(-1);
+        if (m_keyValueLineEdit != NULL) {
+            m_keyValueLineEdit->setText("");
         }
     }
     
-    m_editingGroup->setEnabled(isEditingAllowed);
+    //m_editingGroup->setEnabled(isEditingAllowed);
+    allowLabelDataEditing(isEditingAllowed);
 }
 
 /**
@@ -669,9 +671,23 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedNameIn,
         m_labelSelectionListWidget->setCurrentRow(defaultIndex);
     }
     else {
-        m_editingGroup->setEnabled(false);
+        //m_editingGroup->setEnabled(false);
+        allowLabelDataEditing(false);
     }
 }
+
+/**
+ * Allow editing of label data.
+ *
+ * @param allowEditingFlag
+ *    If true allow editing of label data.
+ */
+void
+GiftiLabelTableEditor::allowLabelDataEditing(const bool allowEditingFlag)
+{
+    m_editingGroup->setEnabled(allowEditingFlag);
+}
+
 
 /**
  * Set the Icon color for the item.
@@ -758,12 +774,50 @@ GiftiLabelTableEditor::newButtonClicked()
 }
 
 /**
- * Called when change label key button is clicked.
+ * Called when change label key lock button is clicked.
+ *
+ * @param checked
+ *   Checked status of button.
  */
 void
-GiftiLabelTableEditor::changeLabelKeyButtonClicked()
+GiftiLabelTableEditor::changeLabelKeyLockButtonClicked()
 {
+    if (m_changeKeyValueToolButton == NULL) {
+        return;
+    }
     
+    const GiftiLabel* selectedLabel = getSelectedLabel();
+    if (selectedLabel == NULL) {
+        return;
+    }
+    
+    if (s_displayKeyEditingWarningFlag) {
+        s_displayKeyEditingWarningFlag = false;
+        
+        const AString text("Are you sure that you want to edit label keys?");
+        const AString infoText("Brainordinate values are not changed in the label type file\n"
+                               "and changing label keys may cause label data to display\n"
+                               "incorrectly.\n"
+                               "\n"
+                               "This warning will not be displayed again until "
+                               + ApplicationInformation().getName()
+                               + " is restarted.");
+        if ( ! WuQMessageBox::warningOkCancel(m_changeKeyValueToolButton,
+                                              text,
+                                              infoText)) {
+            return;
+        }
+    }
+    
+    const AString labelName = selectedLabel->getName();
+    ChangeLabelKeyDialog changeLabelDialog(m_giftiLableTable,
+                                           selectedLabel,
+                                           m_changeKeyValueToolButton);
+    if (changeLabelDialog.exec() == ChangeLabelKeyDialog::Accepted) {
+        loadLabels(labelName,
+                   false);
+        processApplyButton();
+    }
 }
 
 /**
@@ -847,19 +901,156 @@ GiftiLabelTableEditor::okButtonClicked()
     
     const GiftiLabel* gl = getSelectedLabel();
     const AString labelName = (gl != NULL) ? gl->getName() : "";
+    const AString sortingName = m_sortLabelsByComboBox->currentText();
     std::map<GiftiLabelTable*, PreviousSelections>::iterator lastEditIter = s_previousSelections.find(m_giftiLableTable);
     if (lastEditIter != s_previousSelections.end()) {
         PreviousSelections& ps = lastEditIter->second;
         ps.m_selectedLabelName = labelName;
-        ps.m_sortingName = m_sortLabelsByComboBox->currentText();
+        ps.m_sortingName       = sortingName;
     }
     else {
         PreviousSelections ps;
         ps.m_selectedLabelName = labelName;
-        ps.m_sortingName = m_sortLabelsByComboBox->currentText();
+        ps.m_sortingName       = sortingName;
         s_previousSelections.insert(std::make_pair(m_giftiLableTable, ps));
     }
 
     WuQDialogModal::okButtonClicked();
 }
+
+
+
+
+
+/* ==================================================================================================================== */
+
+/**
+ * Dialog for changing a label's key.
+ *
+ * @param giftiLabelTable
+ *     Label table that is being edited.
+ * @param giftiLabel
+ *     Label that may have its key changed.
+ * @param parent
+ *     Parent on which this dialog is displayed.
+ */
+ChangeLabelKeyDialog::ChangeLabelKeyDialog(GiftiLabelTable* giftiLabelTable,
+                                           const GiftiLabel* giftiLabel,
+                                           QWidget* parent)
+: WuQDialogModal("Change Label Key",
+                 parent),
+ m_giftiLabelTable(giftiLabelTable),
+ m_giftiLabel(giftiLabel)
+{
+    QLabel* nameLabel = new QLabel("Name: ");
+    QLabel* nameTextLabel = new QLabel(giftiLabel->getName());
+    
+    QLabel* keyLabel = new QLabel("Key: ");
+    QLabel* keyValueLabel = new QLabel(AString::number(giftiLabel->getKey()));
+    
+    QLabel* newKeyLabel = new QLabel("New Key: ");
+    m_labelKeyLineEdit = new QLineEdit();
+    m_labelKeyLineEdit->setFixedWidth(100);
+    m_labelKeyLineEdit->setValidator(new QIntValidator(0, 999999, m_labelKeyLineEdit));
+    m_labelKeyLineEdit->setText(keyValueLabel->text());
+    
+    QWidget* widget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(widget);
+    gridLayout->addWidget(nameLabel,
+                          0, 0);
+    gridLayout->addWidget(nameTextLabel,
+                          0, 1,
+                          Qt::AlignLeft);
+    gridLayout->addWidget(keyLabel,
+                          1, 0);
+    gridLayout->addWidget(keyValueLabel,
+                          1, 1,
+                          Qt::AlignLeft);
+    gridLayout->addWidget(newKeyLabel,
+                          2, 0);
+    gridLayout->addWidget(m_labelKeyLineEdit,
+                          2, 1,
+                          Qt::AlignLeft);
+    
+    setCentralWidget(widget,
+                     WuQDialog::SCROLL_AREA_NEVER);
+}
+
+/**
+ * Destructor.
+ */
+ChangeLabelKeyDialog::~ChangeLabelKeyDialog()
+{
+    
+}
+
+/**
+ * Called when ok button is clicked.
+ */
+void
+ChangeLabelKeyDialog::okButtonClicked()
+{
+    const AString keyText = m_labelKeyLineEdit->text().trimmed();
+    if ( ! keyText.isEmpty()) {
+        const int32_t newKey    = keyText.toInt();
+        const int32_t oldKey    = m_giftiLabel->getKey();
+        
+        if (newKey != oldKey) {
+            const AString oldKeyMsg("Any brainordinates assigned to \""
+                                    + m_giftiLabel->getName()
+                                    + "\" will no long receive any coloring since there is no longer a label matching the brainordinates' value.");
+            const GiftiLabel* newKeyLabel = m_giftiLabelTable->getLabel(newKey);
+            if (newKeyLabel != NULL) {
+                const AString msg("WARNING: Each label must have a unique key.\n"
+                                  "\n"
+                                  
+                                  "\n"
+                                  "\n"
+                                  "In addition:\n"
+                                  " (1)  A label named \""
+                                  + newKeyLabel->getName()
+                                  + "\" is assigned the key "
+                                  + AString::number(newKey)
+                                  + " and this label will be removed.\n\n"
+                                  " (2) Any brainordinates assigned to \""
+                                  + newKeyLabel->getName()
+                                  + "\" will be assigned to \""
+                                  + m_giftiLabel->getName()
+                                  + "\".\n\n"
+                                  + " (3) "
+                                  + oldKeyMsg);
+                if (WuQMessageBox::warningOkCancel(this,
+                                                   msg)) {
+                    m_giftiLabelTable->changeLabelKey(oldKey,
+                                                      newKey);
+                }
+                else {
+                    return;
+                }
+            }
+            else {
+                if (WuQMessageBox::warningOkCancel(this, ("WARNING: "
+                                                          + oldKeyMsg))) {
+                    m_giftiLabelTable->changeLabelKey(oldKey,
+                                                      newKey);
+                }
+                else {
+                    return;
+                }
+            }
+        }
+    }
+    
+    WuQDialogModal::okButtonClicked();
+}
+
+///**
+// *
+// */
+//int32_t
+//ChangeLabelKeyDialog::getNewKeyValue() const
+//{
+//    
+//}
+//
 

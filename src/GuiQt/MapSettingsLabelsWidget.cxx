@@ -184,8 +184,7 @@ MapSettingsLabelsWidget::editLabelTablePushButtonClicked()
                     GiftiLabelTableEditor labelTableEditor(mapFile,
                                                            mapIndex,
                                                            "Edit Labels",
-                                                           (GiftiLabelTableEditor::OPTION_ADD_APPLY_BUTTON
-                                                            | GiftiLabelTableEditor::OPTION_ADD_KEY_EDITING),
+                                                           GiftiLabelTableEditor::OPTION_ADD_APPLY_BUTTON,
                                                            this);
                     labelTableEditor.exec();
                 }
