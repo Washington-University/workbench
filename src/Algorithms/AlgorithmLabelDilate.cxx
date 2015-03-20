@@ -59,6 +59,9 @@ OperationParameters* AlgorithmLabelDilate::getParameters()
     OptionalParameter* columnSelect = ret->createOptionalParameter(6, "-column", "select a single column to dilate");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
+    OptionalParameter* corrAreaOpt = ret->createOptionalParameter(7, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+        
     ret->setHelpText(
         AString("Fills in label information for all vertices designated as bad, up to the specified distance away from other labels.  ") +
         "If -bad-vertex-roi is specified, all vertices, including those with the unlabeled key, are good, except for vertices with a positive value in the ROI.  " +
@@ -89,11 +92,17 @@ void AlgorithmLabelDilate::useParameters(OperationParameters* myParams, Progress
             throw AlgorithmException("invalid column specified");
         }
     }
-    AlgorithmLabelDilate(myProgObj, myLabel, mySurf, myDist, myLabelOut, badNodeRoi, columnNum);
+    OptionalParameter* corrAreaOpt = myParams->getOptionalParameter(7);
+    MetricFile* corrAreas = NULL;
+    if (corrAreaOpt->m_present)
+    {
+        corrAreas = corrAreaOpt->getMetric(1);
+    }
+    AlgorithmLabelDilate(myProgObj, myLabel, mySurf, myDist, myLabelOut, badNodeRoi, columnNum, corrAreas);
 }
 
 AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, float myDist, LabelFile* myLabelOut,
-                                           const MetricFile* badNodeRoi, int columnNum) : AbstractAlgorithm(myProgObj)
+                                           const MetricFile* badNodeRoi, int columnNum, const MetricFile* corrAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int32_t unusedLabel = myLabel->getLabelTable()->getUnassignedLabelKey();
@@ -111,6 +120,10 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
     {
         throw AlgorithmException("surface has wrong number of vertices for this label file");
     }
+    if (corrAreas != NULL && corrAreas->getNumberOfNodes() != numNodes)
+    {
+        throw AlgorithmException("corrected areas metric number of vertices does not match");
+    }
     CaretArray<int32_t> colScratch(numNodes);
     CaretArray<int> markArray(numNodes);
     if (badNodeRoi != NULL)
@@ -125,6 +138,11 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
                 markArray[i] = 1;
             }
         }
+    }
+    CaretPointer<GeodesicHelperBase> myCorrBase;
+    if (corrAreas != NULL)
+    {
+        myCorrBase.grabNew(new GeodesicHelperBase(mySurf, corrAreas->getValuePointerForColumn(0)));
     }
     if (columnNum == -1)
     {
@@ -150,7 +168,13 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
 #pragma omp CARET_PAR
             {
                 CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-                CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+                CaretPointer<GeodesicHelper> myGeoHelp;
+                if (corrAreas == NULL)
+                {
+                    myGeoHelp = mySurf->getGeodesicHelper();
+                } else {
+                    myGeoHelp.grabNew(new GeodesicHelper(myCorrBase));
+                }
 #pragma omp CARET_FOR schedule(dynamic)
                 for (int i = 0; i < numNodes; ++i)
                 {
@@ -230,8 +254,14 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
 #pragma omp CARET_PAR
         {
             CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-            CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
-    #pragma omp CARET_FOR schedule(dynamic)
+            CaretPointer<GeodesicHelper> myGeoHelp;
+            if (corrAreas == NULL)
+            {
+                myGeoHelp = mySurf->getGeodesicHelper();
+            } else {
+                myGeoHelp.grabNew(new GeodesicHelper(myCorrBase));
+            }
+#pragma omp CARET_FOR schedule(dynamic)
             for (int i = 0; i < numNodes; ++i)
             {
                 if (markArray[i] == 0)

@@ -154,13 +154,13 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
 AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
                                            const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
                                            const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
-                                           const CiftiFile* myRoi, const bool& nearest, const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
+                                           const CiftiFile* myBadRoi, const bool& nearest, const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CiftiXMLOld myXML = myCifti->getCiftiXMLOld();
     vector<StructureEnum::Enum> surfaceList, volumeList;
     if (myDir != CiftiXMLOld::ALONG_ROW && myDir != CiftiXMLOld::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti dilate");
-    if (myRoi != NULL && !myXML.mappingMatches(myDir, myRoi->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN)) throw AlgorithmException("roi has different brainordinate space than input");
+    if (myBadRoi != NULL && !myXML.mappingMatches(myDir, myBadRoi->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN)) throw AlgorithmException("bad brainordinate roi has different brainordinate space than input");
     if (!myXML.getStructureLists(myDir, surfaceList, volumeList))
     {
         throw AlgorithmException("specified direction does not contain brainordinates");
@@ -218,23 +218,23 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
             default:
                 break;
         }
-        MetricFile roiMetric, dataRoiMetric;
-        MetricFile* roiPtr = NULL;
-        if (myRoi != NULL)
+        MetricFile badRoiMetric, dataRoiMetric;
+        MetricFile* badRoiPtr = NULL;
+        if (myBadRoi != NULL)
         {
-            AlgorithmCiftiSeparate(NULL, myRoi, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &roiMetric);
-            roiPtr = &roiMetric;
+            AlgorithmCiftiSeparate(NULL, myBadRoi, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &badRoiMetric);
+            badRoiPtr = &badRoiMetric;
         }
         if (myXML.getMappingType(1 - myDir) == CIFTI_INDEX_TYPE_LABELS)
         {
             LabelFile myLabel, myLabelOut;
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myLabel);
-            AlgorithmLabelDilate(NULL, &myLabel, mySurf, surfDist, &myLabelOut, roiPtr);//TODO: use corrected areas
+            AlgorithmLabelDilate(NULL, &myLabel, mySurf, surfDist, &myLabelOut, badRoiPtr, -1, myCorrAreas);
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myLabelOut);
         } else {
             MetricFile myMetric, myMetricOut;
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &dataRoiMetric);
-            AlgorithmMetricDilate(NULL, &myMetric, mySurf, surfDist, &myMetricOut, roiPtr, &dataRoiMetric, -1, nearest, false, 2.0f, myCorrAreas);
+            AlgorithmMetricDilate(NULL, &myMetric, mySurf, surfDist, &myMetricOut, badRoiPtr, &dataRoiMetric, -1, nearest, false, 2.0f, myCorrAreas);
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
         }
     }
@@ -250,9 +250,9 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
             {
                 myMethod = AlgorithmVolumeDilate::NEAREST;
             }
-            if (myRoi != NULL)
+            if (myBadRoi != NULL)
             {
-                AlgorithmCiftiSeparate(NULL, myRoi, CiftiXMLOld::ALONG_COLUMN, &roiVol, offset, NULL, true);
+                AlgorithmCiftiSeparate(NULL, myBadRoi, CiftiXMLOld::ALONG_COLUMN, &roiVol, offset, NULL, true);
                 roiPtr = &roiVol;
             }
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, offset, NULL, true);
@@ -270,9 +270,9 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
             VolumeFile myVol, badRoiVol, myVolOut, dataRoiVol;
             VolumeFile* roiPtr = NULL;
             int64_t offset[3];
-            if (myRoi != NULL)
+            if (myBadRoi != NULL)
             {
-                AlgorithmCiftiSeparate(NULL, myRoi, CiftiXMLOld::ALONG_COLUMN, volumeList[whichStruct], &badRoiVol, offset, NULL, true);
+                AlgorithmCiftiSeparate(NULL, myBadRoi, CiftiXMLOld::ALONG_COLUMN, volumeList[whichStruct], &badRoiVol, offset, NULL, true);
                 roiPtr = &badRoiVol;
             }
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, volumeList[whichStruct], &myVol, offset, &dataRoiVol, true);

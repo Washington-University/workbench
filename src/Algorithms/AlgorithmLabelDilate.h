@@ -33,7 +33,7 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmLabelDilate(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, float myDist, LabelFile* myLabelOut,
-                             const MetricFile* badNodeRoi = NULL, int columnNum = -1);
+                             const MetricFile* badNodeRoi = NULL, int columnNum = -1, const MetricFile* corrAreas = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
