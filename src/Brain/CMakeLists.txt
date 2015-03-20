@@ -50,6 +50,7 @@ ADD_LIBRARY(Brain
 BorderDrawingTypeEnum.h
 Brain.h
 BrainOpenGL.h
+BrainOpenGLAnnotationDrawingFixedPipeline.h
 BrainOpenGLChartDrawingInterface.h
 BrainOpenGLChartDrawingFixedPipeline.h
 BrainOpenGLFixedPipeline.h
@@ -172,6 +173,7 @@ WholeBrainVoxelDrawingMode.h
 BorderDrawingTypeEnum.cxx
 Brain.cxx
 BrainOpenGL.cxx
+BrainOpenGLAnnotationDrawingFixedPipeline.cxx
 BrainOpenGLChartDrawingFixedPipeline.cxx
 BrainOpenGLFixedPipeline.cxx
 BrainOpenGLPrimitiveDrawing.cxx
@@ -292,6 +294,7 @@ WholeBrainVoxelDrawingMode.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/Annotations
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/Cifti

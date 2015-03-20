@@ -38,6 +38,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
@@ -516,6 +517,10 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
         
         m_brain = NULL;
     }
+    
+
+    BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+    annotationDrawing.drawWindowAnnotations();
     
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     

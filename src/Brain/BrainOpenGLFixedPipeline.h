@@ -553,6 +553,7 @@ namespace caret {
         static float COLOR_GREEN[3];
         static float COLOR_BLUE[3];
         
+        friend class BrainOpenGLAnnotationDrawingFixedPipeline;
         friend class BrainOpenGLChartDrawingFixedPipeline;
         friend class BrainOpenGLVolumeObliqueSliceDrawing;
         friend class BrainOpenGLVolumeSliceDrawing;

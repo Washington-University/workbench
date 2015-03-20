@@ -58,6 +58,7 @@ Operations
 Algorithms
 OperationsBase
 Brain
+Annotations
 ${FTGL_FONT_MODULE_FOR_LINKING}
 Files
 Palette

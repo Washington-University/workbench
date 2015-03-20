@@ -244,11 +244,11 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    const bool drawCrosshairsAtFontStartingCoordinate = false;
+    const bool drawCrosshairsAtFontStartingCoordinate = true;
     if (drawCrosshairsAtFontStartingCoordinate) {
         GLfloat savedRGBA[4];
         glGetFloatv(GL_CURRENT_COLOR, savedRGBA);
-        glColor3f(0.0, 0.0, 0.0);
+        glColor3f(1.0, 0.0, 0.0);
         glLineWidth(1.0);
         glPushMatrix();
         glTranslatef(windowX, windowY, 0.0);
@@ -294,6 +294,25 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     
     float textX = windowX + textOffsetX;
     float textY = windowY + textOffsetY;
+
+    if (drawCrosshairsAtFontStartingCoordinate) {
+        std::cout << "BBox: (" << lower.Xf() << " " << lower.Yf() << ") (" << upper.Xf() << ", " << upper.Yf() << ")" << std::endl;
+        
+        const float width  = upper.Xf() - lower.Xf();
+        const float height = upper.Yf() - lower.Yf();
+        
+        GLfloat savedRGBA[4];
+        glGetFloatv(GL_CURRENT_COLOR, savedRGBA);
+        glColor3f(1.0, 0.0, 1.0);
+        glLineWidth(1.0);
+        glPushMatrix();
+        //glTranslatef(windowX, windowY, 0.0);
+        glRectf(textX, textY, textX + width, textY + height);
+        glPopMatrix();
+        glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
+    }
+    
+    
     glRasterPos2f(textX,
                   textY);
 
