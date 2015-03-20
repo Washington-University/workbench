@@ -60,12 +60,18 @@ OperationParameters* AlgorithmCiftiDilate::getParameters()
     
     OptionalParameter* leftSurfOpt = ret->createOptionalParameter(6, "-left-surface", "specify the left surface to use");
     leftSurfOpt->addSurfaceParameter(1, "surface", "the left surface file");
+    OptionalParameter* leftCorrAreasOpt = leftSurfOpt->createOptionalParameter(2, "-left-corrected-areas", "vertex areas to use instead of computing them from the left surface");
+    leftCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* rightSurfOpt = ret->createOptionalParameter(7, "-right-surface", "specify the right surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
+    OptionalParameter* rightCorrAreasOpt = rightSurfOpt->createOptionalParameter(2, "-right-corrected-areas", "vertex areas to use instead of computing them from the right surface");
+    rightCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
-    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(8, "-cerebellum-surface", "specify the cerebellum surface to use");
-    cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
+    OptionalParameter* cerebSurfOpt = ret->createOptionalParameter(8, "-cerebellum-surface", "specify the cerebellum surface to use");
+    cerebSurfOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
+    OptionalParameter* cerebCorrAreasOpt = cerebSurfOpt->createOptionalParameter(2, "-cerebellum-corrected-areas", "vertex areas to use instead of computing them from the cerebellum surface");
+    cerebCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(9, "-bad-brainordinate-roi", "specify an roi of brainordinates to overwrite, rather than zeros");
     roiOpt->addCiftiParameter(1, "roi-cifti", "cifti dscalar or dtseries file, positive values denote brainordinates to have their values replaced");
@@ -78,6 +84,8 @@ OperationParameters* AlgorithmCiftiDilate::getParameters()
         AString("For all data values designated as bad, if they neighbor a good value or are within the specified distance of a good value in the same kind of model, ") +
         "replace the value with a distance weighted average of nearby good values, otherwise set the value to zero.  " +
         "If -nearest is specified, it will use the value from the closest good value within range instead of a weighted average.\n\n." +
+        "The -*-corrected-areas options are intended for dilating on group average surfaces, but it is only an approximate correction " +
+        "for the reduction of structure in a group average surface.\n\n" +
         "If -bad-brainordinate-roi is specified, all values, including those with value zero, are good, except for locations with a positive value in the ROI.  " +
         "If it is not specified, only values equal to zero are bad."
     );
@@ -101,20 +109,36 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
     float volDist = (float)myParams->getDouble(4);
     CiftiFile* myCiftiOut = myParams->getOutputCifti(5);
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
+    MetricFile* myLeftAreas = NULL, *myRightAreas = NULL, *myCerebAreas = NULL;
     OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(6);
     if (leftSurfOpt->m_present)
     {
         myLeftSurf = leftSurfOpt->getSurface(1);
+        OptionalParameter* leftCorrAreasOpt = leftSurfOpt->getOptionalParameter(2);
+        if (leftCorrAreasOpt->m_present)
+        {
+            myLeftAreas = leftCorrAreasOpt->getMetric(1);
+        }
     }
     OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(7);
     if (rightSurfOpt->m_present)
     {
         myRightSurf = rightSurfOpt->getSurface(1);
+        OptionalParameter* rightCorrAreasOpt = rightSurfOpt->getOptionalParameter(2);
+        if (rightCorrAreasOpt->m_present)
+        {
+            myRightAreas = rightCorrAreasOpt->getMetric(1);
+        }
     }
     OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(8);
     if (cerebSurfOpt->m_present)
     {
         myCerebSurf = cerebSurfOpt->getSurface(1);
+        OptionalParameter* cerebCorrAreasOpt = cerebSurfOpt->getOptionalParameter(2);
+        if (cerebCorrAreasOpt->m_present)
+        {
+            myCerebAreas = cerebCorrAreasOpt->getMetric(1);
+        }
     }
     CiftiFile* myRoi = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(9);
@@ -124,11 +148,12 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
     }
     bool nearest = myParams->getOptionalParameter(10)->m_present;
     bool mergedVolume = myParams->getOptionalParameter(11)->m_present;
-    AlgorithmCiftiDilate(myProgObj, myCifti, myDir, surfDist, volDist, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myRoi, nearest, mergedVolume);
+    AlgorithmCiftiDilate(myProgObj, myCifti, myDir, surfDist, volDist, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myLeftAreas, myRightAreas, myCerebAreas, myRoi, nearest, mergedVolume);
 }
 
 AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
                                            const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
+                                           const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
                                            const CiftiFile* myRoi, const bool& nearest, const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -175,16 +200,20 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
         const SurfaceFile* mySurf = NULL;
+        const MetricFile* myCorrAreas = NULL;
         switch (surfaceList[whichStruct])
         {
             case StructureEnum::CORTEX_LEFT:
                 mySurf = myLeftSurf;
+                myCorrAreas = myLeftAreas;
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 mySurf = myRightSurf;
+                myCorrAreas = myRightAreas;
                 break;
             case StructureEnum::CEREBELLUM:
                 mySurf = myCerebSurf;
+                myCorrAreas = myCerebAreas;
                 break;
             default:
                 break;
@@ -200,12 +229,12 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
         {
             LabelFile myLabel, myLabelOut;
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myLabel);
-            AlgorithmLabelDilate(NULL, &myLabel, mySurf, surfDist, &myLabelOut, roiPtr);
+            AlgorithmLabelDilate(NULL, &myLabel, mySurf, surfDist, &myLabelOut, roiPtr);//TODO: use corrected areas
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myLabelOut);
         } else {
             MetricFile myMetric, myMetricOut;
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &dataRoiMetric);
-            AlgorithmMetricDilate(NULL, &myMetric, mySurf, surfDist, &myMetricOut, roiPtr, &dataRoiMetric, -1, nearest);
+            AlgorithmMetricDilate(NULL, &myMetric, mySurf, surfDist, &myMetricOut, roiPtr, &dataRoiMetric, -1, nearest, false, 2.0f, myCorrAreas);
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
         }
     }
