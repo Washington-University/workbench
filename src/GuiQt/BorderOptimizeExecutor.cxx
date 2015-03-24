@@ -636,7 +636,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                         {
                             statisticsInformationOut += statsOut + ": " +
                                                         inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) +
-                                                        inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() +
+                                                        inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
                                                         FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n";
                         }
                     }
@@ -647,7 +647,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                     {
                         statisticsInformationOut += statsOut + ": " +
                                                     inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) +
-                                                    inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() +
+                                                    inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
                                                     FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n\n";
                     }
                 }
