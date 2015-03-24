@@ -38,8 +38,10 @@
 
 #include "MathFunctions.h"
 
+#include "CaretAssert.h"
 
 using namespace caret;
+using namespace std;
 
 MathFunctions::MathFunctions()
     : CaretObject()
@@ -1551,7 +1553,7 @@ uint32_t MathFunctions::gcd(uint32_t num1, uint32_t num2)
 
 bool MathFunctions::isInf(const float number)
 {
-    return (std::fabs(number) > 1.0f && number * 2.0f == number);
+    return (abs(number) > 1.0f && number * 2.0f == number);
 }
 
 bool MathFunctions::isNaN(const float number)
@@ -1897,3 +1899,29 @@ MathFunctions::round(const double value)
     return std::floor(value + 0.5f);
 }
 
+float MathFunctions::q_func(const float& x)
+{//when using c++11 or later, could use erfc instead of this approximation
+    if (x == 0.0f) return 0.5f;//below approximation is NaN for 0!
+    if (isInf(x))
+    {
+        if (x > 0.0f) return 0;//inf
+        return 1;//-inf
+    }
+    float ret;
+    if (x < 0.0f)
+    {
+        ret = 1.0f - (1.0f - exp(1.4f * x)) * exp(-x * x / 2) / (x * -1.135f * sqrt(2 * 3.1415926f));
+    } else {
+        ret = (1.0f - exp(-1.4f * x)) * exp(-x * x / 2) / (x * 1.135f * sqrt(2 * 3.1415926f));
+    }
+    //formula from http://en.wikipedia.org/wiki/Q-function
+    //references http://users.auth.gr/users/9/3/028239/public_html/pdf/Q_Approxim.pdf
+    //which gives formula and constants for erfc, need to substitute and simplify
+    //however, is wrong for negatives, so we substitute -x and subtract from 1
+    if (!isNumeric(ret))
+    {
+        CaretAssert(abs(x) < 0.00001f);//should only be possible for very small inputs, so check before returning the answer for 0
+        return 0.5f;
+    }
+    return ret;
+}

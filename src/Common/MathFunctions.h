@@ -355,6 +355,9 @@ public:
     
     static double round(const double value);
     
+    ///one minus cdf of standard normal distribution
+    static float q_func(const float& x);
+    
 };
 
 } // namespace

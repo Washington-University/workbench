@@ -591,6 +591,12 @@ FileInformation::getAbsolutePath() const
     return m_fileInfo.absolutePath();
 }
 
+AString FileInformation::getLastDirectory() const
+{
+    QStringList myList = getPathName().split('/', QString::SkipEmptyParts);//QT always uses /, even on windows
+    return myList[myList.size() - 1];
+}
+
 /**
  * Get a description of this object's content.
  * @return String describing this object's content.

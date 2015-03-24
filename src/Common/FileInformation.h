@@ -82,6 +82,8 @@ namespace caret {
         
         AString getAbsolutePath() const;
         
+        AString getLastDirectory() const;
+        
         void getFileComponents(AString& absolutePathOut,
                                AString& fileNameWithoutExtensionOut,
                                AString& extensionWithoutDotOut) const;
