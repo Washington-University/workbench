@@ -126,7 +126,6 @@ namespace caret {
         static AString fromNumbers(const double* array, const int64_t numberOfElements, const AString& separator);
         static AString fromBool(const bool b);
         
-    private:
         AString replaceHtmlSpecialCharactersWithEscapeCharacters() const;
     };
 }

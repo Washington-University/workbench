@@ -58,6 +58,7 @@
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
 #include "WuQMessageBox.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -444,7 +445,11 @@ BorderOptimizeDialog::okButtonClicked()
         /*
          * Display the statistics information.
          */
-        infoMsg.appendWithNewLine(statisticsInformation);
+        if ( ! statisticsInformation.isEmpty()) {
+            infoMsg.appendWithNewLine("");
+            infoMsg.appendWithNewLine(statisticsInformation);
+        }
+        infoMsg = infoMsg.replaceHtmlSpecialCharactersWithEscapeCharacters();
         EventManager::get()->sendEvent(EventUpdateInformationWindows(infoMsg).getPointer());
         
         /*
