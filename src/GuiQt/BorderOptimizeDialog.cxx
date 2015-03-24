@@ -405,7 +405,7 @@ BorderOptimizeDialog::okButtonClicked()
             EventManager::get()->sendEvent(addDataFile.getPointer());
             infoMsg.appendWithNewLine("Border Optimization Gradient results in file "
                                       + resultsMetricFile->getFileNameNoPath()
-                                      + "   map "
+                                      + "   Map Name: "
                                       + metricFileMapName);
 
             if (m_browserTabIndex >= 0) {
