@@ -51,7 +51,7 @@ namespace caret {
         std::vector<CaretArray<float> > m_tempRows;//reuse return values in getRow instead of reallocating
         std::vector<float> m_weights;
         std::vector<int> m_weightIndexes;
-        bool m_binaryWeights, m_weightedMode;
+        bool m_binaryWeights, m_weightedMode, m_noDemean;
         int m_cacheUsed;//reuse cache entries instead of reallocating them
         int m_numCols;
         const CiftiFile* m_inputCifti;//so that accesses work through the cache functions
@@ -62,21 +62,21 @@ namespace caret {
         const float* getRow(const int& ciftiIndex, float& rootResidSqr, const bool& mustBeCached = false);
         float* getTempRow();
         float correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2, const bool& fisherZ);
-        void init(const CiftiFile* input, const std::vector<float>* weights);
+        void init(const CiftiFile* input, const std::vector<float>* weights, const bool& noDemean);
         int numRowsForMem(const float& memLimitGB, bool& cacheFullInput);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut, const std::vector<float>* weights = NULL,
-                                  const bool& fisherZ = false, const float& memLimitGB = -1.0f);
+                                  const bool& fisherZ = false, const float& memLimitGB = -1.0f, const bool& noDemean = false);
         AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                   const MetricFile* leftRoi, const MetricFile* rightRoi = NULL, const MetricFile* cerebRoi = NULL,
                                   const VolumeFile* volRoi = NULL, const std::vector<float>* weights = NULL, const bool& fisherZ = false,
-                                  const float& memLimitGB = -1.0f);
+                                  const float& memLimitGB = -1.0f, const bool& noDemean = false);
         AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                   const CiftiFile* ciftiRoi,
-                                  const std::vector<float>* weights = NULL, const bool& fisherZ = false, const float& memLimitGB = -1.0f);
+                                  const std::vector<float>* weights = NULL, const bool& fisherZ = false, const float& memLimitGB = -1.0f, const bool& noDemean = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
