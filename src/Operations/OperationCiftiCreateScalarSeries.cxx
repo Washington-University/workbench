@@ -84,7 +84,7 @@ void OperationCiftiCreateScalarSeries::useParameters(OperationParameters* myPara
     }
     ifstream inputFile(inFileName.toLocal8Bit().constData());
     vector<vector<float> > inFileData;
-    if (!inputFile.good()) throw OperationException("failed to open input file");
+    if (!inputFile.good()) throw OperationException("failed to open input file '" + inFileName + "'");
     string inputLine;
     while (inputFile)
     {
