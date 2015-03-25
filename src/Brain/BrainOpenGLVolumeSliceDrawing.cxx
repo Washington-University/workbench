@@ -514,10 +514,13 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
      * Foreground color for slice coordinate text
      */
     const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    uint8_t foregroundRGB[3];
-    prefs->getColorForegroundVolumeView(foregroundRGB);
+    uint8_t foregroundRGBA[4];
+    prefs->getColorForegroundVolumeView(foregroundRGBA);
+    foregroundRGBA[3] = 255;
     const bool showCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
-    
+    uint8_t backgroundRGBA[4];
+    prefs->getColorBackgroundVolumeView(backgroundRGBA);
+    backgroundRGBA[3] = 255;
     
     /*
      * Determine a slice offset to selected slices is in
@@ -585,14 +588,17 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                                                    + "="
                                                    + AString::number(sliceCoord, 'f', montageCoordPrecision)
                                                    + "mm");
-                        glColor3ubv(foregroundRGB);
+                        BrainOpenGLTextAttributes textAttributes;
+                        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
+                        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+                        textAttributes.setStyle(BrainOpenGLTextAttributes::NORMAL);
+                        textAttributes.setFontHeight(12);
+                        textAttributes.setForegroundColor(foregroundRGBA);
+                        textAttributes.setBackgroundColor(backgroundRGBA);
                         m_fixedPipelineDrawing->drawTextWindowCoords((vpSizeX - 5),
                                                                      5,
                                                                      coordText,
-                                                                     BrainOpenGLTextRenderInterface::X_RIGHT,
-                                                                     BrainOpenGLTextRenderInterface::Y_BOTTOM,
-                                                                     BrainOpenGLTextRenderInterface::NORMAL,
-                                                                     12);
+                                                                     textAttributes);
                     }
                 }
                 sliceIndex -= sliceStep;
@@ -3708,37 +3714,32 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                    savedViewport[2],
                    savedViewport[3]);
         
-        glColor4fv(horizontalAxisRGBA);
-        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textLeftWindowXY[0],
+        BrainOpenGLTextAttributes textAttributes;
+        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
+        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+        textAttributes.setStyle(BrainOpenGLTextAttributes::BOLD);
+        textAttributes.setFontHeight(fontHeight);
+        textAttributes.setForegroundColor(horizontalAxisRGBA);
+        textAttributes.setBackgroundColor(backgroundRGBA);
+        
+        m_fixedPipelineDrawing->drawTextWindowCoords(textLeftWindowXY[0],
                                                                    textLeftWindowXY[1],
                                                                    horizontalLeftText,
-                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::BOLD,
-                                                                   fontHeight);
-        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textRightWindowXY[0],
+                                                                   textAttributes);
+        m_fixedPipelineDrawing->drawTextWindowCoords(textRightWindowXY[0],
                                                                    textRightWindowXY[1],
                                                                    horizontalRightText,
-                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::BOLD,
-                                                                   fontHeight);
+                                                                   textAttributes);
         
-        glColor4fv(verticalAxisRGBA);
-        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textBottomWindowXY[0],
+        textAttributes.setForegroundColor(verticalAxisRGBA);
+        m_fixedPipelineDrawing->drawTextWindowCoords(textBottomWindowXY[0],
                                                                    textBottomWindowXY[1],
                                                                    verticalBottomText,
-                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::BOLD,
-                                                                   fontHeight);
-        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textTopWindowXY[0],
+                                                                   textAttributes);
+        m_fixedPipelineDrawing->drawTextWindowCoords(textTopWindowXY[0],
                                                                    textTopWindowXY[1],
                                                                    verticalTopText,
-                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::BOLD,
-                                                                   fontHeight);
+                                                                   textAttributes);
     }
     
     if (depthEnabled) {
@@ -3996,10 +3997,14 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
                                                  axesCrosshairRadius);
         }
         
+        BrainOpenGLTextAttributes textAttributes;
+        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
+        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+        textAttributes.setFontHeight(14);
         if (drawLabelsFlag) {
-            glColor3fv(blue);
-            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMin, "I");
-            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMax, "S");
+            textAttributes.setForegroundColor(blue);
+            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMin, "I", textAttributes);
+            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMax, "S", textAttributes);
         }
         
         
@@ -4011,9 +4016,9 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         }
         
         if (drawLabelsFlag) {
-            glColor3fv(green);
-            m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMin, "L");
-            m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMax, "R");
+            textAttributes.setForegroundColor(green);
+            m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMin, "L", textAttributes);
+            m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMax, "R", textAttributes);
         }
         
         
@@ -4025,9 +4030,9 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         }
         
         if (drawLabelsFlag) {
-            glColor3fv(red);
-            m_fixedPipelineDrawing->drawTextModelCoords(paraTextMin, "P");
-            m_fixedPipelineDrawing->drawTextModelCoords(paraTextMax, "A");
+            textAttributes.setForegroundColor(red);
+            m_fixedPipelineDrawing->drawTextModelCoords(paraTextMin, "P", textAttributes);
+            m_fixedPipelineDrawing->drawTextModelCoords(paraTextMax, "A", textAttributes);
         }
     }
     glPopMatrix();

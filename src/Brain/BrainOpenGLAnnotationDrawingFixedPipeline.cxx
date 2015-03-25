@@ -72,14 +72,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::toString() const
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawWindowAnnotations()
 {
-    AnnotationText at;
-    at.setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-    at.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
-    at.setVerticalAlignment(AnnotationAlignVerticalEnum::TOP);
-    at.setXYZ(150, 100, 0);
-    at.setText("AaBbCcDd");
-    
-    drawTextAnnotation(at);
+//    AnnotationText at;
+//    at.setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+//    at.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
+//    at.setVerticalAlignment(AnnotationAlignVerticalEnum::TOP);
+//    at.setXYZ(150, 100, 0);
+//    at.setText("AaBbCcDd");
+//    
+//    drawTextAnnotation(at);
 }
 
 /**
@@ -93,38 +93,35 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextAnnotation(const AnnotationTe
 {
     const float* xyz = textAnnotation.getXYZ();
     
-    BrainOpenGLTextRenderInterface::TextAlignmentX alignX;
+    BrainOpenGLTextAttributes textAttributes;
     switch (textAnnotation.getHorizontalAlignment()) {
         case AnnotationAlignHorizontalEnum::CENTER:
-            alignX = BrainOpenGLTextRenderInterface::X_CENTER;
+            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
             break;
         case AnnotationAlignHorizontalEnum::LEFT:
-            alignX = BrainOpenGLTextRenderInterface::X_LEFT;
+            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
             break;
         case AnnotationAlignHorizontalEnum::RIGHT:
-            alignX = BrainOpenGLTextRenderInterface::X_RIGHT;
+            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
             break;
     }
-    BrainOpenGLTextRenderInterface::TextAlignmentY alignY;
     switch (textAnnotation.getVerticalAlignment()) {
         case AnnotationAlignVerticalEnum::CENTER:
-            alignY = BrainOpenGLTextRenderInterface::Y_CENTER;
+            textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
             break;
         case AnnotationAlignVerticalEnum::BOTTOM:
-            alignY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
+            textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
             break;
         case AnnotationAlignVerticalEnum::TOP:
-            alignY = BrainOpenGLTextRenderInterface::Y_TOP;
+            textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_TOP);
             break;
     }
-    BrainOpenGLTextRenderInterface::TextStyle style = BrainOpenGLTextRenderInterface::NORMAL;
-    int32_t height = 14;
+    textAttributes.setStyle(BrainOpenGLTextAttributes::NORMAL);
+    textAttributes.setFontHeight(14);
+    CaretAssertToDoWarning(); // need colors
     
     m_brainOpenGLFixedPipeline->drawTextWindowCoords(xyz[0],
                                                      xyz[1],
                                                      textAnnotation.getText(),
-                                                     alignX,
-                                                     alignY,
-                                                     style,
-                                                     height);
+                                                     textAttributes);
 }

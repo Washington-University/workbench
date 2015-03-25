@@ -49,8 +49,8 @@ BrainOpenGLWidgetTextRenderer::BrainOpenGLWidgetTextRenderer(QGLWidget* glWidget
 {
     m_glWidget = glWidget;
     
-    m_normalFont.initialize("Arial", NORMAL);
-    m_boldFont.initialize("Arial", BOLD);
+    m_normalFont.initialize("Arial", BrainOpenGLTextAttributes::NORMAL);
+    m_boldFont.initialize("Arial", BrainOpenGLTextAttributes::BOLD);
 }
 
 /**
@@ -81,37 +81,27 @@ BrainOpenGLWidgetTextRenderer::isValid() const
  *   Y-coordinate in the window at which bottom of text is placed.
  * @param text
  *   Text that is to be drawn.
- * @param alignment
- *   Alignment of text
- * @param textStyle
- *   Style of the text.
- * @param fontHeight
- *   Height of the text.
- * @param fontName
- *   Name of the font.
+ * @param textAttributes
+ *   Attributes for text drawing.
  */
-void 
+void
 BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
-                                                      const int windowX,
-                                                      const int windowY,
+                                                      const double windowX,
+                                                      const double windowY,
                                                       const QString& text,
-                                                      const TextAlignmentX alignmentX,
-                                                      const TextAlignmentY alignmentY,
-                                                      const TextStyle textStyle,
-                                                      const int fontHeight)
+                                                      const BrainOpenGLTextAttributes& textAttributes)
 {
-    int32_t width, height;
+    double width, height;
     getTextBoundsInPixels(width,
                           height,
                           text,
-                          textStyle,
-                          fontHeight);
+                          textAttributes);
     
     /*
      * Find font
      */
-    QFont* font = findFont(textStyle,
-                           fontHeight);
+    QFont* font = findFont(textAttributes.getStyle(),
+                           textAttributes.getFontHeight());
     if (font == NULL) {
         return;
     }
@@ -120,13 +110,13 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
      * X-Coordinate of text
      */
     int x = windowX + viewport[0];
-    switch (alignmentX) {
-        case X_LEFT:
+    switch (textAttributes.getHorizontalAlignment()) {
+        case BrainOpenGLTextAttributes::X_LEFT:
             break;
-        case X_CENTER:
+        case BrainOpenGLTextAttributes::X_CENTER:
             x -= width / 2;
             break;
-        case X_RIGHT:
+        case BrainOpenGLTextAttributes::X_RIGHT:
             x -= width;
             break;
     }
@@ -136,13 +126,13 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
      * Note that QGLWidget has origin at top left corner
      */
     int y = m_glWidget->height() - (windowY + viewport[1]);
-    switch (alignmentY) {
-        case Y_BOTTOM:
+    switch (textAttributes.getVerticalAlignment()) {
+        case BrainOpenGLTextAttributes::Y_BOTTOM:
             break;
-        case Y_CENTER:
+        case BrainOpenGLTextAttributes::Y_CENTER:
             y += height / 2;
             break;
-        case Y_TOP:
+        case BrainOpenGLTextAttributes::Y_TOP:
             y += height;
             break;
     }
@@ -151,6 +141,56 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
                            y,
                            text,
                            *font);
+}
+
+/**
+ * Draw vertical text at the given window coordinates.
+ *
+ * @param viewport
+ *   The current viewport.
+ * @param windowX
+ *   X-coordinate in the window of first text character
+ *   using the 'alignment'
+ * @param windowY
+ *   Y-coordinate in the window at which bottom of text is placed.
+ * @param text
+ *   Text that is to be drawn.
+ * @param alignment
+ *   Alignment of text
+ * @param textStyle
+ *   Style of the text.
+ * @param fontHeight
+ *   Height of the text.
+ * @param fontName
+ *   Name of the font.
+ */
+void
+BrainOpenGLWidgetTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
+                                                              const double windowX,
+                                                              const double windowY,
+                                                              const QString& text,
+                                                              const BrainOpenGLTextAttributes&  textAttributes)
+{
+    if (text.isEmpty()) {
+        return;
+    }
+    
+    QString textToDraw = text;
+    const int32_t numChars = textToDraw.length();
+    if (numChars > 1) {
+        for (int32_t i = 0; i < numChars; i++) {
+            textToDraw.append(text[i]);
+            if (i < (numChars - 1)) {
+                textToDraw.append("|");
+            }
+        }
+    }
+    
+    drawTextAtWindowCoords(viewport,
+                           windowX,
+                           windowY,
+                           textToDraw,
+                           textAttributes);
 }
 
 /**
@@ -164,26 +204,21 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
  *   Z-coordinate in model space.
  * @param text
  *   Text that is to be drawn.
- * @param textStyle
- *   Style of the text.
- * @param fontHeight
- *   Height of the text.
- * @param fontName
- *   Name of the font.
+ * @param textAttributes
+ *   Attributes for text drawing.
  */
-void 
+void
 BrainOpenGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
                                                      const double modelY,
                                                      const double modelZ,
                                                      const QString& text,
-                                                     const TextStyle textStyle,
-                                                     const int fontHeight)
+                                                     const BrainOpenGLTextAttributes& textAttributes)
 {
     /*
      * Find font
      */
-    QFont* font = findFont(textStyle,
-                           fontHeight);
+    QFont* font = findFont(textAttributes.getStyle(),
+                           textAttributes.getFontHeight());
     if (font == NULL) {
         return;
     }
@@ -205,22 +240,17 @@ BrainOpenGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
  *   Output containing height of text characters.
  * @param text
  *   Text that is to be drawn.
- * @param textStyle
- *   Style of the text.
- * @param fontHeight
- *   Height of the text.
- * @param fontName
- *   Name of the font.
+ * @param textAttributes
+ *   Attributes for text drawing.
  */
 void
-BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
-                                                     int32_t& heightOut,
+BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(double& widthOut,
+                                                     double& heightOut,
                                                      const QString& text,
-                                                     const TextStyle textStyle,
-                                                     const int fontHeight)
+                                                     const BrainOpenGLTextAttributes& textAttributes)
 {
-    QFont* font = findFont(textStyle,
-                           fontHeight);
+    QFont* font = findFont(textAttributes.getStyle(),
+                           textAttributes.getFontHeight());
     if (font == NULL) {
         return;
     }
@@ -240,19 +270,19 @@ BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
  * @return a font
  */
 QFont*
-BrainOpenGLWidgetTextRenderer::findFont(const TextStyle textStyle,
+BrainOpenGLWidgetTextRenderer::findFont(const BrainOpenGLTextAttributes::Style textStyle,
                                         const int fontHeight)
 
 {
     QFont* font = NULL;
     
     switch (textStyle) {
-        case BrainOpenGLTextRenderInterface::BOLD:
+        case BrainOpenGLTextAttributes::BOLD:
             if (m_boldFont.m_fontValid) {
                 font = m_boldFont.m_font;
             }
             break;
-        case BrainOpenGLTextRenderInterface::NORMAL:
+        case BrainOpenGLTextAttributes::NORMAL:
             if (m_normalFont.m_fontValid) {
                 font = m_normalFont.m_font;
             }
@@ -287,15 +317,15 @@ BrainOpenGLWidgetTextRenderer::FontData::~FontData() {
  */
 void
 BrainOpenGLWidgetTextRenderer::FontData::initialize(const AString& fontName,
-                                                    const TextStyle textStyle)
+                                                    const BrainOpenGLTextAttributes::Style textStyle)
 {
     m_font = new QFont(fontName);
     
     switch (textStyle) {
-        case BrainOpenGLTextRenderInterface::BOLD:
+        case BrainOpenGLTextAttributes::BOLD:
             m_font->setBold(true);
             break;
-        case BrainOpenGLTextRenderInterface::NORMAL:
+        case BrainOpenGLTextAttributes::NORMAL:
             break;
     }
     

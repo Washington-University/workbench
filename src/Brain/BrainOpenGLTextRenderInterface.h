@@ -26,6 +26,8 @@
 
 namespace caret {
 
+    class BrainOpenGLTextAttributes;
+
     /// An interface for a system that renders text in OpenGL commands
     class BrainOpenGLTextRenderInterface : public CaretObject {
         
@@ -36,40 +38,6 @@ namespace caret {
         BrainOpenGLTextRenderInterface() { }
         
     public:
-        /**
-         * Style of the text
-         */
-        enum TextStyle {
-            /** Bold text */
-            BOLD,
-            /** Normal text */
-            NORMAL
-        };
-        
-        /**
-         * Alignment of the text in X
-         */
-        enum TextAlignmentX {
-            /** Text is centered at X-coordinate */
-            X_CENTER,
-            /** First character starts at X-coordinate */
-            X_LEFT,
-            /** Last character ends at X-coordinate */
-            X_RIGHT
-        };
-        
-        /**
-         * Alignment of the text in Y
-         */
-        enum TextAlignmentY {
-            /** Bottom of characters is at Y-coordinate */
-            Y_BOTTOM,
-            /** Text is centered at Y-coordinate */
-            Y_CENTER,
-            /** Top of characters is at Y-coordinate */
-            Y_TOP
-        };
-        
         /**
          * Destructor.
          */
@@ -87,26 +55,17 @@ namespace caret {
          *   Y-coordinate in the window at which bottom of text is placed.
          * @param text
          *   Text that is to be drawn.
-         * @param alignmentX
-         *   Alignment of text in X
-         * @param alignmentY
-         *   Alignment of text in Y
-         * @param textStyle
-         *   Style of the text.
-         * @param fontHeight
-         *   Height of the text.
+         * @param textAttributes
+         *   Attributes for text drawing.
          */
         virtual void drawTextAtWindowCoords(const int viewport[4],
-                                            const int windowX,
-                                            const int windowY,
+                                            const double windowX,
+                                            const double windowY,
                                             const QString& text,
-                                            const TextAlignmentX alignmentX,
-                                            const TextAlignmentY alignmentY,
-                                            const TextStyle textStyle = NORMAL,
-                                            const int fontHeight = 14) = 0;
+                                            const BrainOpenGLTextAttributes& textAttributes) = 0;
         
         /**
-         * Draw text at the given window coordinates.
+         * Draw vertical text at the given window coordinates.
          *
          * @param viewport
          *   The current viewport.
@@ -117,41 +76,32 @@ namespace caret {
          *   Y-coordinate in the window at which bottom of text is placed.
          * @param text
          *   Text that is to be drawn.
-         * @param alignmentX
-         *   Alignment of text in X
-         * @param alignmentY
-         *   Alignment of text in Y
-         * @param textStyle
-         *   Style of the text.
-         * @param fontHeight
-         *   Height of the text.
+         * @param textAttributes
+         *   Attributes for text drawing.
          */
         virtual void drawVerticalTextAtWindowCoords(const int viewport[4],
-                                            const int windowX,
-                                            const int windowY,
-                                            const QString& text,
-                                            const TextAlignmentX alignmentX,
-                                            const TextAlignmentY alignmentY,
-                                            const TextStyle textStyle,
-                                            const int fontHeight)
-        {
-            const int32_t numChars = text.length();
-            int y = windowY + ((numChars * fontHeight) / 2.0);
-            
-            for (int32_t i = 0; i < text.length(); i++) {
-                drawTextAtWindowCoords(viewport,
-                                       windowX,
-                                       y,
-                                       text[i],
-                                       alignmentX,
-                                       alignmentY,
-                                       textStyle,
-                                       fontHeight);
-                y -= fontHeight;
-            }
-        }
+                                                    const double windowX,
+                                                    const double windowY,
+                                                    const QString& text,
+                                                    const BrainOpenGLTextAttributes&  textAttributes) = 0;
+//        {
+//            const int32_t numChars = text.length();
+//            int y = windowY + ((numChars * fontHeight) / 2.0);
+//            
+//            for (int32_t i = 0; i < text.length(); i++) {
+//                drawTextAtWindowCoords(viewport,
+//                                       windowX,
+//                                       y,
+//                                       text[i],
+//                                       alignmentX,
+//                                       alignmentY,
+//                                       textStyle,
+//                                       fontHeight);
+//                y -= fontHeight;
+//            }
+//        }
         
-       /**
+        /**
          * Draw text at the given model coordinates.
          *
          * @param modelX
@@ -162,20 +112,17 @@ namespace caret {
          *   Z-coordinate in model space.
          * @param text
          *   Text that is to be drawn.
-         * @param textStyle
-         *   Style of the text.
-         * @param fontHeight
-         *   Height of the text.
+         * @param textAttributes
+         *   Attributes for text drawing.
          */
         virtual void drawTextAtModelCoords(const double modelX,
                                            const double modelY,
                                            const double modelZ,
                                            const QString& text,
-                                           const TextStyle textStyle,
-                                           const int fontHeight) = 0;
+                                           const BrainOpenGLTextAttributes& textAttributes) = 0;
 
         /**
-         * Get the bounds of the text (in pixels) using the given text
+         * Get the bounds of text (in pixels) using the given text
          * attributes.
          *
          * @param widthOut
@@ -184,16 +131,13 @@ namespace caret {
          *   Output containing height of text characters.
          * @param text
          *   Text that is to be drawn.
-         * @param textStyle
-         *   Style of the text.
-         * @param fontHeight
-         *   Height of the text.
+         * @param textAttributes
+         *   Attributes for text drawing.
          */
-        virtual void getTextBoundsInPixels(int32_t& widthOut,
-                                           int32_t& heightOut,
+        virtual void getTextBoundsInPixels(double& widthOut,
+                                           double& heightOut,
                                            const QString& text,
-                                           const TextStyle textStyle,
-                                           const int fontHeight) = 0;
+                                           const BrainOpenGLTextAttributes& textAttributes) = 0;
         
         /**
          * @return The font system is valid.

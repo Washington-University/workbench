@@ -26,6 +26,7 @@
 
 #include "BrainConstants.h"
 #include "BrainOpenGL.h"
+#include "BrainOpenGLTextAttributes.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretVolumeExtension.h"
 #include "DisplayGroupEnum.h"
@@ -398,26 +399,17 @@ namespace caret {
         void drawTextWindowCoords(const int windowX,
                                   const int windowY,
                                   const QString& text,
-                                  const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
-                                  const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                  const BrainOpenGLTextRenderInterface::TextStyle textStyle,
-                                  const int fontHeight);
-        
-        void drawTextWindowCoordsWithBackground(const int windowX,
-                                      const int windowY,
-                                      const QString& text,
-                                      const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
-                                      const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                      const BrainOpenGLTextRenderInterface::TextStyle textStyle,
-                                      const int fontHeight);
+                                  const BrainOpenGLTextAttributes& textAttributes);
         
         void drawTextModelCoords(const double modelX,
                                  const double modelY,
                                  const double modelZ,
-                                 const QString& text);
+                                 const QString& text,
+                                 const BrainOpenGLTextAttributes& textAttributes);
         
         void drawTextModelCoords(const double modelXYZ[3],
-                                 const QString& text);
+                                 const QString& text,
+                                 const BrainOpenGLTextAttributes& textAttributes);
         
         void drawAllPalettes(Brain* brain);
         

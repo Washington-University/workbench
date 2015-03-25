@@ -21,10 +21,10 @@
  */
 /*LICENSE_END*/
 
-
+#include "BrainOpenGLTextAttributes.h"
 #include "BrainOpenGLTextRenderInterface.h"
 
-class FTPixmapFont;
+class FTFont;
 
 namespace caret {
 
@@ -37,54 +37,84 @@ namespace caret {
         
         bool isValid() const;
         
-        void drawTextAtWindowCoords(const int viewport[4],
-                                    const int windowX,
-                                    const int windowY,
-                                    const QString& text,
-                                    const TextAlignmentX alignmentX,
-                                    const TextAlignmentY alignmentY,
-                                    const TextStyle textStyle,
-                                    const int fontHeight);
+        virtual void drawTextAtWindowCoords(const int viewport[4],
+                                            const double windowX,
+                                            const double windowY,
+                                            const QString& text,
+                                            const BrainOpenGLTextAttributes& textAttributes);
+        
+        void drawVerticalTextAtWindowCoords(const int viewport[4],
+                                            const double windowX,
+                                            const double windowY,
+                                            const QString& text,
+                                            const BrainOpenGLTextAttributes&  textAttributes);
         
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,
                                    const double modelZ,
                                    const QString& text,
-                                   const TextStyle textStyle,
-                                   const int fontHeight);
+                                   const BrainOpenGLTextAttributes& textAttributes);
         
-        void getTextBoundsInPixels(int32_t& widthOut,
-                                   int32_t& heightOut,
+        void getTextBoundsInPixels(double& widthOut,
+                                   double& heightOut,
                                    const QString& text,
-                                   const TextStyle textStyle,
-                                   const int fontHeight);
+                                   const BrainOpenGLTextAttributes& textAttributes);
         
         virtual AString getName() const;
         
     private:
+        enum FontType {
+            FONT_TYPE_PIXMAP,
+            FONT_TYPE_TEXTURE
+        };
+        
         FtglFontTextRenderer(const FtglFontTextRenderer&);
 
         FtglFontTextRenderer& operator=(const FtglFontTextRenderer&);
         
-    private:
-        
-        FTPixmapFont* getFont(const TextStyle textStyle,
-                              const int fontHeight);
+        FTFont* getFont(const BrainOpenGLTextAttributes& textAttributes);
         
         class FontData {
         public:
+            enum PositionType {
+                POSITION_TYPE_MATRIX,
+                POSITION_TYPE_RASTER
+            };
+            
             FontData();
             
             ~FontData();
             
-            void initialize(const AString& fontFileName);
+            void initialize(const AString& fontFileName,
+                            const FontType fontType);
+            
+            PositionType m_positionType;
             
             QByteArray m_fontData;
             
-            FTPixmapFont* m_pixmapFont;
+            FTFont* m_font;
             
             bool m_valid;
         };
+        
+        struct CharInfo {
+            CharInfo(const QString& theChar,
+                     double x,
+                     double y) : m_char(theChar), m_x(x), m_y(y) { }
+            
+            const QString m_char;
+            const double m_x;
+            const double m_y;
+        };
+        
+        void getVerticalTextCharInfo(const QString& text,
+                                     const BrainOpenGLTextAttributes& textAttributes,
+                                     double& textWidthOut,
+                                     double& textHeightOut,
+                                     std::vector<CharInfo>& charInfoOut);
+        
+        void applyColoring(const BrainOpenGLTextAttributes& textAttributes,
+                           const double textBoundsBox[4]);
         
         void saveStateOfOpenGL();
         

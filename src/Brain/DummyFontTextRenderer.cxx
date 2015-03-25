@@ -77,6 +77,30 @@ DummyFontTextRenderer::isValid() const
  *   Y-coordinate in the window at which bottom of text is placed.
  * @param text
  *   Text that is to be drawn.
+ * @param textAttributes
+ *   Attributes for text drawing.
+ */
+void
+DummyFontTextRenderer::drawTextAtWindowCoords(const int* /*viewport[4]*/,
+                                             const double /*windowX*/,
+                                             const double /*windowY*/,
+                                              const QString& /*text*/,
+                                              const BrainOpenGLTextAttributes&  /*textAttributes */)
+{
+}
+
+/**
+ * Draw vertical text at the given window coordinates.
+ *
+ * @param viewport
+ *   The current viewport.
+ * @param windowX
+ *   X-coordinate in the window of first text character
+ *   using the 'alignment'
+ * @param windowY
+ *   Y-coordinate in the window at which bottom of text is placed.
+ * @param text
+ *   Text that is to be drawn.
  * @param alignment
  *   Alignment of text
  * @param textStyle
@@ -85,14 +109,11 @@ DummyFontTextRenderer::isValid() const
  *   Height of the text.
  */
 void
-DummyFontTextRenderer::drawTextAtWindowCoords(const int* /*viewport[4]*/,
-                                             const int /*windowX*/,
-                                             const int /*windowY*/,
-                                             const QString& /*text*/,
-                                             const TextAlignmentX /*alignmentX*/,
-                                             const TextAlignmentY /*alignmentY*/,
-                                             const TextStyle /*textStyle*/,
-                                             const int /*fontHeight*/)
+DummyFontTextRenderer::drawVerticalTextAtWindowCoords(const int* /*viewport[4]*/,
+                                                      const double /*windowX*/,
+                                                      const double /*windowY*/,
+                                                      const QString& /*text*/,
+                                                      const BrainOpenGLTextAttributes&  /*textAttributes */)
 {
 }
 
@@ -106,20 +127,16 @@ DummyFontTextRenderer::drawTextAtWindowCoords(const int* /*viewport[4]*/,
  *   Output containing height of text characters.
  * @param text
  *   Text that is to be drawn.
- * @param textStyle
- *   Style of the text.
- * @param fontHeight
- *   Height of the text.
+ * @param textAttributes
+ *   Attributes for text drawing.
  */
 void
-DummyFontTextRenderer::getTextBoundsInPixels(int32_t& /*widthOut*/,
-                                            int32_t& /*heightOut*/,
-                                            const QString& /*text*/,
-                                            const TextStyle /*textStyle*/,
-                                            const int /*fontHeight*/)
+DummyFontTextRenderer::getTextBoundsInPixels(double& /*widthOut*/,
+                                             double& /*heightOut*/,
+                                             const QString& /*text*/,
+                                             const BrainOpenGLTextAttributes&  /*textAttributes */)
 {
 }
-
 
 /**
  * Draw text at the given model coordinates.
@@ -132,18 +149,15 @@ DummyFontTextRenderer::getTextBoundsInPixels(int32_t& /*widthOut*/,
  *   Z-coordinate in model space.
  * @param text
  *   Text that is to be drawn.
- * @param textStyle
- *   Style of the text.
- * @param fontHeight
- *   Height of the text.
+ * @param textAttributes
+ *   Attributes for text drawing.
  */
 void
 DummyFontTextRenderer::drawTextAtModelCoords(const double /*modelX*/,
                                             const double /*modelY*/,
                                             const double /*modelZ*/,
-                                            const QString& /*text*/,
-                                            const TextStyle /*textStyle*/,
-                                            const int /*fontHeight*/)
+                                             const QString& /*text*/,
+                                             const BrainOpenGLTextAttributes&  /*textAttributes */)
 {
 }
 

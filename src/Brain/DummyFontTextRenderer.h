@@ -38,26 +38,27 @@ namespace caret {
         bool isValid() const;
         
         void drawTextAtWindowCoords(const int viewport[4],
-                                    const int windowX,
-                                    const int windowY,
+                                    const double windowX,
+                                    const double windowY,
                                     const QString& text,
-                                    const TextAlignmentX alignmentX,
-                                    const TextAlignmentY alignmentY,
-                                    const TextStyle textStyle,
-                                    const int fontHeight);
+                                    const BrainOpenGLTextAttributes& textAttributes);
+        
+        void drawVerticalTextAtWindowCoords(const int viewport[4],
+                                            const double windowX,
+                                            const double windowY,
+                                            const QString& text,
+                                            const BrainOpenGLTextAttributes& textAttributes);
         
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,
                                    const double modelZ,
                                    const QString& text,
-                                   const TextStyle textStyle,
-                                   const int fontHeight);
+                                   const BrainOpenGLTextAttributes& textAttributes);
         
-        void getTextBoundsInPixels(int32_t& widthOut,
-                                   int32_t& heightOut,
+        void getTextBoundsInPixels(double& widthOut,
+                                   double& heightOut,
                                    const QString& text,
-                                   const TextStyle textStyle,
-                                   const int fontHeight);
+                                   const BrainOpenGLTextAttributes& textAttributes);
         
         virtual AString getName() const;
 

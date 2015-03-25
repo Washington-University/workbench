@@ -5409,23 +5409,14 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
  *    Window Y-coordinate.
  * @param text
  *    Text that is to be drawn.
- * @param alignmentX
- *    X-alignment of text.
- * @param alignmentY
- *    Y-alignment of text.
- * @param textStyle
- *    Style of text.
- * @param fontHeight
- *    Height of font.  If negative, default is used.
+ * @param textAttributes
+ *    Attributes for drawing text.
  */
 void 
 BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
                                                const int windowY,
                                                const QString& text,
-                                               const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
-                                               const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                               const BrainOpenGLTextRenderInterface::TextStyle textStyle,
-                                               const int fontHeight)
+                                               const BrainOpenGLTextAttributes& textAttributes)
 {
     if (this->textRenderer != NULL) {
         GLint vp[4];
@@ -5440,162 +5431,7 @@ BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
                                                    windowX,
                                                    windowY,
                                                    text.trimmed(),
-                                                   alignmentX,
-                                                   alignmentY,
-                                                   textStyle,
-                                                   fontHeight);
-    }
-}
-
-/**
- * Draw text at the given window coordinates and occlude anything under
- * the text by drawing the text region with a background.
- *
- * @param windowX
- *    Window X-coordinate.
- * @param windowY
- *    Window Y-coordinate.
- * @param text
- *    Text that is to be drawn.
- * @param alignmentX
- *    X-alignment of text.
- * @param alignmentY
- *    Y-alignment of text.
- * @param textStyle
- *    Style of text.
- * @param fontHeight
- *    Height of font.  If negative, default is used.
- */
-void
-BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
-                                                             const int windowY,
-                                                             const QString& text,
-                                                             const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
-                                                             const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                                             const BrainOpenGLTextRenderInterface::TextStyle textStyle,
-                                                             const int fontHeight)
-{
-    if (this->textRenderer != NULL) {
-        
-        int32_t textWidth  = 0;
-        int32_t textHeight = 0;
-        this->textRenderer->getTextBoundsInPixels(textWidth,
-                                                  textHeight,
-                                                  text,
-                                                  textStyle,
-                                                  fontHeight);
-        //std::cout << "Text bounds: " << qPrintable(text) << ": " << textWidth << ", " << textHeight << std::endl;
-        
-        const int textCenter[2] = {
-            windowX,
-            windowY
-        };
-        
-        GLint savedViewport[4];
-        glGetIntegerv(GL_VIEWPORT, savedViewport);
-        
-        const int halfWidth = (textWidth + 3) / 2.0;
-        const int halfHeight = (textHeight + 3) / 2.0;
-        
-        int vpLeftX   = savedViewport[0] + textCenter[0] - halfWidth;
-        int vpRightX  = savedViewport[0] + textCenter[0] + halfWidth;
-        int vpBottomY = savedViewport[1] + textCenter[1] - halfHeight;
-        int vpTopY    = savedViewport[1] + textCenter[1] + halfHeight;
-        MathFunctions::limitRange(vpLeftX,
-                                  savedViewport[0],
-                                  savedViewport[0] + savedViewport[2]);
-        MathFunctions::limitRange(vpRightX,
-                                  savedViewport[0],
-                                  savedViewport[0] + savedViewport[2]);
-        MathFunctions::limitRange(vpBottomY,
-                                  savedViewport[1],
-                                  savedViewport[1] + savedViewport[3]);
-        MathFunctions::limitRange(vpTopY,
-                                  savedViewport[1],
-                                  savedViewport[1] + savedViewport[3]);
-        
-        const int vpSizeX = vpRightX - vpLeftX;
-        const int vpSizeY = vpTopY - vpBottomY;
-        glViewport(vpLeftX, vpBottomY, vpSizeX, vpSizeY);
-        
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-        
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-        
-        std::vector<uint8_t> rgba;
-        std::vector<float> coords, normals;
-        
-        coords.push_back(-1.0);
-        coords.push_back(-1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(m_backgroundColorByte[0]);
-        rgba.push_back(m_backgroundColorByte[1]);
-        rgba.push_back(m_backgroundColorByte[2]);
-        rgba.push_back(m_backgroundColorByte[3]);
-        
-        coords.push_back( 1.0);
-        coords.push_back(-1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(m_backgroundColorByte[0]);
-        rgba.push_back(m_backgroundColorByte[1]);
-        rgba.push_back(m_backgroundColorByte[2]);
-        rgba.push_back(m_backgroundColorByte[3]);
-        
-        coords.push_back( 1.0);
-        coords.push_back( 1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(m_backgroundColorByte[0]);
-        rgba.push_back(m_backgroundColorByte[1]);
-        rgba.push_back(m_backgroundColorByte[2]);
-        rgba.push_back(m_backgroundColorByte[3]);
-        
-        coords.push_back(-1.0);
-        coords.push_back( 1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(m_backgroundColorByte[0]);
-        rgba.push_back(m_backgroundColorByte[1]);
-        rgba.push_back(m_backgroundColorByte[2]);
-        rgba.push_back(m_backgroundColorByte[3]);
-        
-        
-        BrainOpenGLPrimitiveDrawing::drawQuads(coords,
-                                               normals,
-                                               rgba);
-        glPopMatrix();
-        
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        
-        glViewport(savedViewport[0],
-                   savedViewport[1],
-                   savedViewport[2],
-                   savedViewport[3]);
-        
-        drawTextWindowCoords(windowX,
-                             windowY,
-                             text,
-                             alignmentX,
-                             alignmentY,
-                             textStyle,
-                             fontHeight);
+                                                   textAttributes);
     }
 }
 
@@ -5609,20 +5445,22 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
  *    Model Z-coordinate.
  * @param text
  *    Text that is to be drawn.
+ * @param textAttributes
+ *    Attributes for drawing text.
  */
 void 
 BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
                                               const double modelY,
                                               const double modelZ,
-                                              const QString& text)
+                                              const QString& text,
+                                              const BrainOpenGLTextAttributes& textAttributes)
 {
     if (this->textRenderer != NULL) {
         this->textRenderer->drawTextAtModelCoords(modelX,
                                                   modelY,
                                                   modelZ,
                                                   text.trimmed(),
-                                                  BrainOpenGLTextRenderInterface::NORMAL,
-                                                  14);
+                                                  textAttributes);
     }
 }
 
@@ -5632,15 +5470,19 @@ BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
  *    Model XYZ coordinate.
  * @param text
  *    Text that is to be drawn.
+ * @param textAttributes
+ *    Attributes for drawing text.
  */
 void
 BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelXYZ[3],
-                                              const QString& text)
+                                              const QString& text,
+                                              const BrainOpenGLTextAttributes& textAttributes)
 {
     drawTextModelCoords(modelXYZ[0],
                         modelXYZ[1],
                         modelXYZ[2],
-                        text);
+                        text,
+                        textAttributes);
 }
 
 /**
@@ -6108,11 +5950,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                modelViewport[3]);
     
     /*
-     * Switch to the foreground color.
-     */
-    glColor3fv(m_foregroundColorFloat);
-    
-    /*
      * Account for margin around colorbar when calculating text locations
      */
     int textCenterX = colorbarViewportX - modelViewport[0] + (colorbarViewportWidth / 2);
@@ -6127,40 +5964,45 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     
     const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
     if (isNegativeDisplayed) {
-        this->drawTextWindowCoords(textLeftX, 
+        BrainOpenGLTextAttributes textAttributes;
+        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
+        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+        textAttributes.setFontHeight(12);
+        textAttributes.setForegroundColor(m_foregroundColorFloat);
+        this->drawTextWindowCoords(textLeftX,
                                    textY, 
                                    textLeft,
-                                   BrainOpenGLTextRenderInterface::X_LEFT,
-                                   BrainOpenGLTextRenderInterface::Y_BOTTOM,
-                                   BrainOpenGLTextRenderInterface::NORMAL,
-                                   12);
+                                   textAttributes);
     }
     if (isNegativeDisplayed
         || isZeroDisplayed
         || isPositiveDisplayed) {
-        BrainOpenGLTextRenderInterface::TextAlignmentX textAlignX = BrainOpenGLTextRenderInterface::X_CENTER;
+        BrainOpenGLTextAttributes textAttributes;
+        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
+        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
         if (isNegativeOnly) {
-            textAlignX = BrainOpenGLTextRenderInterface::X_RIGHT;
+            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
         }
         else if (isPositiveOnly) {
-            textAlignX = BrainOpenGLTextRenderInterface::X_LEFT;
+            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
         }
+        textAttributes.setFontHeight(12);
+        textAttributes.setForegroundColor(m_foregroundColorFloat);
         this->drawTextWindowCoords(textCenterX,
                                    textY, 
                                    textCenter,
-                                   textAlignX,
-                                   BrainOpenGLTextRenderInterface::Y_BOTTOM,
-                                   BrainOpenGLTextRenderInterface::NORMAL,
-                                   12);
+                                   textAttributes);
     }
     if (isPositiveDisplayed) {
+        BrainOpenGLTextAttributes textAttributes;
+        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
+        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+        textAttributes.setFontHeight(12);
+        textAttributes.setForegroundColor(m_foregroundColorFloat);
         this->drawTextWindowCoords(textRightX,
                                    textY, 
                                    textRight,
-                                   BrainOpenGLTextRenderInterface::X_RIGHT,
-                                   BrainOpenGLTextRenderInterface::Y_BOTTOM,
-                                   BrainOpenGLTextRenderInterface::NORMAL,
-                                   12);
+                                   textAttributes);
     }
     
     return;
