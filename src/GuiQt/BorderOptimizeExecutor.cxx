@@ -331,6 +331,11 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         
         printInputs(inputData);
         
+        if (inputData.m_borderPair.size() != 2)
+        {
+            errorMessageOut = "Border pair must have exactly two elements.";
+            return false;
+        }
         SurfaceFile* computeSurf = inputData.m_surface;
         const MetricFile* correctedAreasMetric = inputData.m_vertexAreasMetricFile;
         int32_t numNodes = computeSurf->getNumberOfNodes();
@@ -698,6 +703,13 @@ BorderOptimizeExecutor::printInputs(const InputData& inputData)
     std::cout << "Optimizing borders: " << std::endl;
     for (std::vector<Border*>::const_iterator bi = inputData.m_borders.begin();
          bi != inputData.m_borders.end();
+         bi++) {
+        std::cout << "    " << qPrintable((*bi)->getName()) << std::endl;
+    }
+   
+    std::cout << "Border pair: " << std::endl;
+    for (std::vector<Border*>::const_iterator bi = inputData.m_borderPair.begin();
+         bi != inputData.m_borderPair.end();
          bi++) {
         std::cout << "    " << qPrintable((*bi)->getName()) << std::endl;
     }

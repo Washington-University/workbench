@@ -181,7 +181,11 @@ if (CMAKE_COMPILER_IS_GNUCC)
 endif()
 ENDIF (NOT MSVC)
 
-# will set name of XCode project:  PROJECT(BorderOptProject C CXX)
+#
+# will set name of XCode project:  
+# disabled at this time
+#
+##PROJECT(BorderOptProject C CXX)
 
 FIND_PACKAGE(OpenSSL)
 IF(OPENSSL_FOUND)

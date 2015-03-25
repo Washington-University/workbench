@@ -34,6 +34,7 @@
 #include <QVBoxLayout>
 
 #include "Border.h"
+#include "BorderFile.h"
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -246,6 +247,11 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
     }
     
     /*
+     * Update border file selection
+     */
+    m_borderPairFileSelectionComboBox->updateComboBox(m_borderPairFileSelectionModel);
+    
+    /*
      * Update borders inside ROI selections
      */
     const int32_t numberOfBorders = static_cast<int32_t>(m_bordersInsideROI.size());
@@ -333,6 +339,12 @@ BorderOptimizeDialog::okButtonClicked()
     }
     
     /*
+     * "Pair" border file
+     */
+    const BorderFile* pairBorderFile = m_borderPairFileSelectionModel->getSelectedFileOfType<BorderFile>();
+    std::vector<Border*> pairedBorders;
+    
+    /*
      * Get borders selected by the user.
      */
     AString metricFileMapName;
@@ -341,21 +353,53 @@ BorderOptimizeDialog::okButtonClicked()
     for (int32_t iBorder = 0; iBorder < numBorderFileSelections; iBorder++) {
         if (m_borderCheckBoxes[iBorder]->isVisible()) {
             if (m_borderCheckBoxes[iBorder]->isChecked()) {
-                m_selectedBorders.push_back(m_bordersInsideROI[iBorder]);
-                metricFileMapName.append(m_bordersInsideROI[iBorder]->getName()
+                CaretAssertVectorIndex(m_bordersInsideROI, iBorder);
+                Border* border = m_bordersInsideROI[iBorder];
+                m_selectedBorders.push_back(border);
+                metricFileMapName.append(border->getName()
                                          + " ");
+                
+                if (pairBorderFile != NULL) {
+                    if (pairBorderFile->containsBorder(border)) {
+                        pairedBorders.push_back(border);
+                    }
+                }
             }
         }
     }
     
+    const int32_t numPairedBorders = static_cast<int32_t>(pairedBorders.size());
+    
     if (m_selectedBorders.empty()) {
         errorMessage.appendWithNewLine("No optimization border files are selected.");
+    }
+    else if (pairBorderFile == NULL) {
+        errorMessage.appendWithNewLine("Border pair file selection is invalid.");
+    }
+    else if (numPairedBorders != 2) {
+        errorMessage.appendWithNewLine("Two of the selected borders must be in the border pair file.");
+        if (pairedBorders.empty()) {
+            errorMessage.appendWithNewLine("None of the selected borders are in the border pair file.");
+        }
+        else {
+            errorMessage.appendWithNewLine("There are "
+                                           + AString::number(numPairedBorders)
+                                           + " selected borders in the border pair file.");
+            for (int32_t i = 0; i < numPairedBorders; i++) {
+                CaretAssertVectorIndex(pairedBorders, i);
+                errorMessage.appendWithNewLine("   "
+                                               + pairedBorders[i]->getName());
+            }
+        }
     }
     
     if ( ! errorMessage.isEmpty()) {
         WuQMessageBox::errorOk(this, errorMessage);
         return;
     }
+    
+    CaretAssertMessage((pairedBorders.size() == 2),
+                       "Must be exactly two borders in the border pair vector");
     
     ProgressReportingDialog progressDialog("Border Optimization",
                                            "",
@@ -374,6 +418,7 @@ BorderOptimizeDialog::okButtonClicked()
     CaretPointer<MetricFile> resultsMetricFile;
     resultsMetricFile.grabNew(new MetricFile());
     BorderOptimizeExecutor::InputData algInput(m_selectedBorders,
+                                               pairedBorders,
                                                m_borderEnclosingROI,
                                                m_nodesInsideROI,
                                                gradientComputationSurface,
@@ -506,6 +551,14 @@ BorderOptimizeDialog::getModifiedBorders(std::vector<Border*>& modifiedBordersOu
 QWidget*
 BorderOptimizeDialog::createBorderSelectionWidget()
 {
+    QLabel* borderPairLabel = new QLabel("Border Pair File");
+    m_borderPairFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(GuiManager::get()->getBrain(),
+                                                                                                   DataFileTypeEnum::BORDER);
+    m_borderPairFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+    QHBoxLayout* borderPairLayout = new QHBoxLayout();
+    borderPairLayout->addWidget(borderPairLabel, 0);
+    borderPairLayout->addWidget(m_borderPairFileSelectionComboBox->getWidget(), 100);
+    
     m_bordersInsideROILayout = new QVBoxLayout();
     
     QAction* diableAllAction = new QAction("Disable All",
@@ -529,6 +582,7 @@ BorderOptimizeDialog::createBorderSelectionWidget()
     
     QGroupBox* widget = new QGroupBox("Borders");
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(borderPairLayout);
     layout->addLayout(m_bordersInsideROILayout, STRETCH_NONE);
     layout->addLayout(buttonsLayout, STRETCH_NONE);
     return widget;

@@ -73,6 +73,7 @@ namespace caret {
          */
         struct InputData {
             InputData(std::vector<Border*> borders,
+                      std::vector<Border*> borderPair,
                       const Border* borderEnclosingROI,
                       const std::vector<int32_t>& nodesInsideROI,
                       Surface* surface,
@@ -81,6 +82,7 @@ namespace caret {
                       const float& gradientFollowingStrength,
                       MetricFile* combinedGradientDataOut)
             : m_borders(borders),
+            m_borderPair(borderPair),
             m_borderEnclosingROI(borderEnclosingROI),
             m_nodesInsideROI(nodesInsideROI),
             m_surface(surface),
@@ -91,6 +93,7 @@ namespace caret {
                 { }
             
             std::vector<Border*> m_borders;
+            std::vector<Border*> m_borderPair;
             const Border* m_borderEnclosingROI;
             const std::vector<int32_t>& m_nodesInsideROI;
             Surface* m_surface;
