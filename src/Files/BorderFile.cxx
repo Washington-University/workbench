@@ -543,6 +543,27 @@ BorderFile::getBorder(const int32_t indx)
 }
 
 /**
+ * Is the given border in this border file?
+ *
+ * @param border
+ *    The border being queried
+ * @return 
+ *     True if the border is in this file, else false.
+ */
+bool
+BorderFile::containsBorder(const Border* border) const
+{
+    if (std::find(m_borders.begin(),
+                  m_borders.end(),
+                  border) != m_borders.end()) {
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
  * Get the border at the given index.
  * @param indx
  *   Index of the border.

@@ -92,6 +92,8 @@ namespace caret {
         
         const Border* getBorder(const int32_t indx) const;
         
+        bool containsBorder(const Border* border) const;
+        
         void findAllBordersWithEndPointNearSegmentFirstPoint(const DisplayGroupEnum::Enum displayGroup,
                                                const int32_t browserTabIndex,
                                                const SurfaceFile* surfaceFile,
