@@ -87,6 +87,7 @@ BorderOptimizeDialog::BorderOptimizeDialog(QWidget* parent)
                  parent),
 m_surface(NULL),
 m_borderEnclosingROI(NULL),
+m_borderPairFileSelectionModel(NULL),
 m_surfaceSelectionStructure(StructureEnum::INVALID),
 m_surfaceSelectionModel(NULL),
 m_vertexAreasMetricFileSelectionModel(NULL),
@@ -150,6 +151,9 @@ BorderOptimizeDialog::~BorderOptimizeDialog()
     }
     if (m_vertexAreasMetricFileSelectionModel != NULL) {
         delete m_vertexAreasMetricFileSelectionModel;
+    }
+    if (m_borderPairFileSelectionModel != NULL) {
+        delete m_borderPairFileSelectionModel;
     }
 }
 
