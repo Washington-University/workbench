@@ -71,7 +71,7 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     
     ret->createOptionalParameter(5, "-fisher-z", "apply fisher small z transform (ie, artanh) to correlation");
     
-    ret->createOptionalParameter(7, "-no-demean", "instead of correlation, do dot product of rows, then normalize by variance");
+    ret->createOptionalParameter(7, "-no-demean", "instead of correlation, do dot product of rows, then normalize by diagonal");
     
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(6, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
