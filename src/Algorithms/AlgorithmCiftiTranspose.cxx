@@ -72,14 +72,17 @@ void AlgorithmCiftiTranspose::useParameters(OperationParameters* myParams, Progr
 AlgorithmCiftiTranspose::AlgorithmCiftiTranspose(ProgressObject* myProgObj, const CiftiFile* ciftiIn, CiftiFile* ciftiOut, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    CiftiXMLOld outXML = ciftiIn->getCiftiXMLOld();
-    if (outXML.getRowMappingType() == CIFTI_INDEX_TYPE_INVALID || outXML.getColumnMappingType() == CIFTI_INDEX_TYPE_INVALID)
+    const CiftiXML& inXML = ciftiIn->getCiftiXML();
+    if (inXML.getNumberOfDimensions() != 2)
     {
-        throw AlgorithmException("input cifti file does not have 2 dimensions");
-    }//TODO: check for cifti with 3 or more dimensions
-    outXML.swapMappings(CiftiXMLOld::ALONG_ROW, CiftiXMLOld::ALONG_COLUMN);
+        throw AlgorithmException("cifti transpose only supports 2D cifti");
+    }
+    CiftiXML outXML;
+    outXML.setNumberOfDimensions(2);
+    outXML.setMap(0, *(inXML.getMap(1)));
+    outXML.setMap(1, *(inXML.getMap(0)));
     ciftiOut->setCiftiXML(outXML);
-    int rowSize = outXML.getNumberOfColumns(), colSize = outXML.getNumberOfRows();
+    int rowSize = outXML.getDimensionLength(CiftiXML::ALONG_ROW), colSize = outXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
     int64_t outRowBytes = rowSize * sizeof(float);
     int numCacheRows = colSize;
     if (memLimitGB >= 0.0f)
