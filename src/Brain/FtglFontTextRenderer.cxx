@@ -83,12 +83,20 @@ using namespace caret;
     
 /**
  * \class caret::FtglFontTextRenderer 
- * \brief Text rendering using QGLWidget.
+ * \brief Text rendering using FTGL
+ * \ingroup Brain
  *
- * Draws text using methods in QGLWidget.
+ * Draws text using the FTGL library.  
+ *
+ * FTGL's Texture font is used for drawing text.  
+ * The texture font is positioned using the current OpenGL
+ * model view matrix which allows rotation and scaling.
  * 
- * @param glWidget
- *   QGLWidget that does the text rendering.
+ * There are other font types such as Pixmap font.  The
+ * pixmap font was used, but it cannot be rotated nor
+ * scaled.  In addition, the pixmmap font drawing
+ * requires a raster position and if the raster position 
+ * is slightly outside the viewport all text is clipped.
  */
 /**
  * Constructor.
@@ -139,17 +147,16 @@ FtglFontTextRenderer::getFont(const BrainOpenGLTextAttributes& textAttributes)
 {
 #ifdef HAVE_FREETYPE
     FTFont* font = NULL;
-    switch (textAttributes.getStyle()) {
-        case BrainOpenGLTextAttributes::BOLD:
-            if (m_boldFont.m_valid) {
-                font = m_boldFont.m_font;
-            }
-            break;
-        case BrainOpenGLTextAttributes::NORMAL:
-            if (m_normalFont.m_valid) {
-                font = m_normalFont.m_font;
-            }
-            break;
+    
+    if (textAttributes.isBoldEnabled()) {
+        if (m_boldFont.m_valid) {
+            font = m_boldFont.m_font;
+        }
+    }
+    else {
+        if (m_normalFont.m_valid) {
+            font = m_normalFont.m_font;
+        }
     }
     
     if (font != NULL) {
@@ -324,8 +331,9 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
 
     glPushMatrix();
     glLoadIdentity();
-    applyColoring(textAttributes,
-                  backgroundBounds);
+    applyBackgroundColoring(textAttributes,
+                            backgroundBounds);
+    applyForegroundColoring(textAttributes);
     
     glTranslated(textX,
                  textY,
@@ -496,28 +504,46 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
      * By default, coordinate is a bottom of first character
      */
     const double oneCharHeight = (textBoundsHeight / static_cast<double>(textCharsToDraw.size()));
-    double textOffsetY = 0;
+    double textOffsetY = 0.0;
+    double textBackgroundTopOffsetY = 0.0;
     switch (textAttributes.getVerticalAlignment()) {
         case BrainOpenGLTextAttributes::Y_BOTTOM:
             textOffsetY = textBoundsHeight - oneCharHeight;
+            textBackgroundTopOffsetY = textBoundsHeight;
             break;
         case BrainOpenGLTextAttributes::Y_CENTER:
             textOffsetY = (textBoundsHeight / 2.0) - (oneCharHeight / 2.0);
+            textBackgroundTopOffsetY = (textBoundsHeight / 2.0);
             break;
         case BrainOpenGLTextAttributes::Y_TOP:
             textOffsetY = -oneCharHeight;
+            textBackgroundTopOffsetY = 0.0;
             break;
     }
     
+//    const double backgroundBounds[4] = {
+//        windowX - (textBoundsWidth   / 2.0) + textOffsetX,
+//        windowY - (textBoundsHeight  / 2.0) + textOffsetY,
+//        windowX + (textBoundsWidth   / 2.0) + textOffsetX,
+//        windowY + (textBoundsHeight  / 2.0) + textOffsetY
+//    };
+    const double backMinX = windowX - (textBoundsWidth   / 2.0) + textOffsetX;
+    const double backMaxX = backMinX + textBoundsWidth;
+    
+    const double backMaxY = windowY + textBackgroundTopOffsetY;
+    const double backMinY = backMaxY - textBoundsHeight;
+//    const double backMinY = windowY  - textOffsetY;
+//    const double backMaxY = backMinY + textBoundsHeight;
     const double backgroundBounds[4] = {
-        windowX - (textBoundsWidth   / 2.0) + textOffsetX,
-        windowY - (textBoundsHeight  / 2.0) + textOffsetX,
-        windowX + (textBoundsWidth   / 2.0) + textOffsetY,
-        windowY + (textBoundsHeight  / 2.0) + textOffsetY
+        backMinX,
+        backMinY,
+        backMaxX,
+        backMaxY
     };
     
-    applyColoring(textAttributes,
-                  backgroundBounds);
+    applyBackgroundColoring(textAttributes,
+                            backgroundBounds);
+    applyForegroundColoring(textAttributes);
     
 //    GLint vp[4];
 //    glGetIntegerv(GL_VIEWPORT, vp);
@@ -727,7 +753,9 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
 //}
 
 /**
- * Apply the foreground and background colors.
+ * Apply the background coloring by drawing a rectangle in the background
+ * color that encloses the text.  If the background color is
+ * invalid (alpha => 0), no action is taken.
  *
  * @param textAttributes
  *   Attributes for text drawing.
@@ -735,10 +763,12 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
  *   Bounding box for text (min-x, min-y, max-x, max-y)
  */
 void
-FtglFontTextRenderer::applyColoring(const BrainOpenGLTextAttributes& textAttributes,
-                                    const double textBoundsBox[4])
+FtglFontTextRenderer::applyBackgroundColoring(const BrainOpenGLTextAttributes& textAttributes,
+                                              const double textBoundsBox[4])
 {
-    const float* backgroundColor = textAttributes.getBackgroundColor();
+    float backgroundColor[4];
+    textAttributes.getBackgroundColor(backgroundColor);
+    
     if (backgroundColor[3] > 0.0) {
         glColor4fv(backgroundColor);
         const double margin = 2;
@@ -747,12 +777,22 @@ FtglFontTextRenderer::applyColoring(const BrainOpenGLTextAttributes& textAttribu
                 textBoundsBox[2] + margin,
                 textBoundsBox[3] + margin);
     }
-    const float* foregroundColor = textAttributes.getForegroundColor();
-    
-    glColor4fv(foregroundColor);
 }
 
-
+/**
+ * Apply the foreground color.
+ *
+ * @param textAttributes
+ *   Attributes for text drawing.
+ * @param textBoundsBox
+ *   Bounding box for text (min-x, min-y, max-x, max-y)
+ */
+void
+FtglFontTextRenderer::applyForegroundColoring(const BrainOpenGLTextAttributes& textAttributes)
+{
+    const float* foregroundColor = textAttributes.getForegroundColor();
+    glColor4fv(foregroundColor);
+}
 
 /**
  * Get the bounds of the text (in pixels) using the given text
@@ -809,6 +849,18 @@ FtglFontTextRenderer::getTextBoundsInPixels(double& widthOut,
 /**
  * Get the character info for drawing vertical text which includes
  * position for each of the characters.
+ *
+ * @param text
+ *    Text that is to be drawn.
+ * @param textAttributes
+ *    Attributes for text drawing.
+ * @param widthOut
+ *    Output containing width of text characters.
+ * @param heightOut
+ *    Output containing height of text characters.
+ * @param charInfoOut
+ *    Contains each character and its X, Y position
+ *    for rendering vertically.
  */
 void
 FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
@@ -821,6 +873,7 @@ FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
     textWidthOut  = 0.0;
     textHeightOut = 0.0;
     
+#ifdef HAVE_FREETYPE
     const int32_t numChars = static_cast<int32_t>(text.size());
     
     FTFont* font = getFont(textAttributes);
@@ -855,6 +908,7 @@ FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
     }
     
     textHeightOut = std::fabs(y);
+#endif // HAVE_FREETYPE
 }
 
 

@@ -113,8 +113,10 @@ namespace caret {
                                      double& textHeightOut,
                                      std::vector<CharInfo>& charInfoOut);
         
-        void applyColoring(const BrainOpenGLTextAttributes& textAttributes,
-                           const double textBoundsBox[4]);
+        void applyForegroundColoring(const BrainOpenGLTextAttributes& textAttributes);
+        
+        void applyBackgroundColoring(const BrainOpenGLTextAttributes& textAttributes,
+                                     const double textBoundsBox[4]);
         
         void saveStateOfOpenGL();
         

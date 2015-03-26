@@ -103,12 +103,20 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     /*
      * If creating previous renderer failed, use QT for text.
      */
-    if (this->textRenderer == NULL){
-        this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
-        if ( ! this->textRenderer->isValid()) {
-            delete this->textRenderer;
-            this->textRenderer = NULL;
-            CaretLogWarning("Failed to create QT GL text renderer.");
+    if (this->textRenderer == NULL) {
+        /*
+         * NOTE: THERE ARE PROBLEMS WITH THE QT TEXT RENDERING CODE
+         * IN BrainOpenGLWidgetTextRenderer.cxx SO DO NOT ALLOW IT
+         * TO BE USED.
+         */
+        const bool enableQtGlTextRendererFlag = false;
+        if (enableQtGlTextRendererFlag) {
+            this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
+            if ( ! this->textRenderer->isValid()) {
+                delete this->textRenderer;
+                this->textRenderer = NULL;
+                CaretLogWarning("Failed to create QT GL text renderer.");
+            }
         }
     }
 

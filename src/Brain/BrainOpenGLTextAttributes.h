@@ -32,13 +32,10 @@ namespace caret {
         
     public:
         /**
-         * Style of the text
+         * Name of font.
          */
-        enum Style {
-            /** Bold text */
-            BOLD,
-            /** Normal text */
-            NORMAL
+        enum FontName {
+            ARIAL
         };
         
         /**
@@ -79,23 +76,65 @@ namespace caret {
         
         virtual ~BrainOpenGLTextAttributes();
         
-        /**
-         * @return The text style.
-         */
-        inline Style getStyle() const { return m_style; }
+        BrainOpenGLTextAttributes(const BrainOpenGLTextAttributes& obj);
+        
+        BrainOpenGLTextAttributes& operator=(const BrainOpenGLTextAttributes& obj);
+        
+        AString getFontRenderingEncodedName() const;
         
         /**
-         * Set the text style.
-         *
-         * @param style
-         *     New style.
+         * @return The text font name.
          */
-        inline void setStyle(const Style style) { m_style = style; }
+        inline FontName getFontName() const { return m_fontName; }
+        
+        /**
+         * Set the text font name.
+         *
+         * @param fontName
+         *     New font name.
+         */
+        inline void setFontName(const FontName fontName) { m_fontName = fontName; }
         
         /**
          * @return The horizontal alignment.
          */
         inline HorizontalAlignment getHorizontalAlignment() const { return m_horizontalAlignment; }
+        
+        /**
+         * Set bold enabled.
+         *
+         * @param enabled
+         *     New status for bold enabled.
+         */
+        inline void setBoldEnabled(const bool enabled) { m_boldEnabled = enabled; }
+        
+        /**
+         * @return
+         *    Is italic enabled ?
+         */
+        inline bool isItalicEnabled() const { return m_italicEnabled; }
+        
+        /**
+         * Set italic enabled.
+         *
+         * @param enabled
+         *     New status for italic enabled.
+         */
+        inline void setItalicEnabled(const bool enabled) { m_italicEnabled = enabled; }
+        
+        /**
+         * @return
+         *    Is underline enabled ?
+         */
+        inline bool isUnderlineEnabled() const { return m_underlineEnabled; }
+        
+        /**
+         * Set underline enabled.
+         *
+         * @param enabled
+         *     New status for underline enabled.
+         */
+        inline void setUnderlineEnabled(const bool enabled) { m_underlineEnabled = enabled; }
         
         /**
          * Set the horizontal alignment
@@ -173,12 +212,22 @@ namespace caret {
 
         virtual AString toString() const;
         
-    private:
-        BrainOpenGLTextAttributes(const BrainOpenGLTextAttributes&);
-
-        BrainOpenGLTextAttributes& operator=(const BrainOpenGLTextAttributes&);
+        /**
+         * @return 
+         *    Is bold enabled ?
+         */
+        inline bool isBoldEnabled() const { return m_boldEnabled; }
         
-        Style m_style;
+    private:
+        void copyHelperBrainOpenGLTextAttributes(const BrainOpenGLTextAttributes& obj);
+        
+        FontName m_fontName;
+        
+        bool m_boldEnabled;
+        
+        bool m_italicEnabled;
+        
+        bool m_underlineEnabled;
         
         HorizontalAlignment m_horizontalAlignment;
         

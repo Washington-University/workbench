@@ -36,24 +36,30 @@ using namespace caret;
 
 /**
  * Constructor that creates the attributes as: 
- * (1) font height = 14, 
- * (2) horizontal alighnment at left edge of first character
- * (3) vertical alignment at center of characters
- * (4) characters oriented left-to-right
- * (5) style = normal
- * (6) foreground color = white with alpha = 1.0
- * (7) background color = black with alpha = 0.0
- *        Background color is used when its alpha component is
- *        greater than zero.
+ * font name = ARIAL
+ * font height = 14,
+ * bold disabled
+ * italic disabled
+ * underline disabled.
+ * horizontal alighnment at left edge of first character
+ * vertical alignment at center of characters
+ * characters oriented left-to-right
+ * foreground color = white with alpha = 1.0
+ * background color = black with alpha = 0.0
+ *     Background color is used when its alpha component is
+ *     greater than zero.
  */
 BrainOpenGLTextAttributes::BrainOpenGLTextAttributes()
 : CaretObject()
 {
+    m_fontName            = ARIAL;
     m_fontHeight          = 14;
+    m_boldEnabled         = false;
+    m_italicEnabled       = false;
+    m_underlineEnabled    = false;
     m_horizontalAlignment = X_LEFT;
     m_verticalAlignment   = Y_CENTER;
     m_orientation         = LEFT_TO_RIGHT;
-    m_style               = NORMAL;
     
     m_colorForeground[0] = 1.0;
     m_colorForeground[1] = 1.0;
@@ -74,6 +80,63 @@ BrainOpenGLTextAttributes::~BrainOpenGLTextAttributes()
 }
 
 /**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+BrainOpenGLTextAttributes::BrainOpenGLTextAttributes(const BrainOpenGLTextAttributes& obj)
+: CaretObject(obj)
+{
+    this->copyHelperBrainOpenGLTextAttributes(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+BrainOpenGLTextAttributes&
+BrainOpenGLTextAttributes::operator=(const BrainOpenGLTextAttributes& obj)
+{
+    if (this != &obj) {
+        CaretObject::operator=(obj);
+        this->copyHelperBrainOpenGLTextAttributes(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+BrainOpenGLTextAttributes::copyHelperBrainOpenGLTextAttributes(const BrainOpenGLTextAttributes& obj)
+{
+    m_fontName            = obj.m_fontName;
+    m_fontHeight          = obj.m_fontHeight;
+    m_boldEnabled         = obj.m_boldEnabled;
+    m_italicEnabled       = obj.m_italicEnabled;
+    m_underlineEnabled    = obj.m_underlineEnabled;
+    m_horizontalAlignment = obj.m_horizontalAlignment;
+    m_verticalAlignment   = obj.m_verticalAlignment;
+    m_orientation         = obj.m_orientation;
+    
+    m_colorForeground[0] = obj.m_colorForeground[0];
+    m_colorForeground[1] = obj.m_colorForeground[1];
+    m_colorForeground[2] = obj.m_colorForeground[2];
+    m_colorForeground[3] = obj.m_colorForeground[3];
+    
+    m_colorBackground[0] = obj.m_colorBackground[0];
+    m_colorBackground[1] = obj.m_colorBackground[1];
+    m_colorBackground[2] = obj.m_colorBackground[2];
+    m_colorBackground[3] = obj.m_colorBackground[3];
+}
+
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -81,6 +144,25 @@ AString
 BrainOpenGLTextAttributes::toString() const
 {
     return "BrainOpenGLTextAttributes";
+}
+
+/**
+ * @return An encoded name that contains the
+ * name of the font, the font height, and the
+ * font style used by font rendering to provide
+ * a name for cached fonts.
+ */
+AString
+BrainOpenGLTextAttributes::getFontRenderingEncodedName() const
+{
+    AString encodedName;
+    
+    switch (m_fontName) {
+        case ARIAL:
+            break;
+    }
+    
+    return encodedName;
 }
 
 /**

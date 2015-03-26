@@ -116,7 +116,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextAnnotation(const AnnotationTe
             textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_TOP);
             break;
     }
-    textAttributes.setStyle(BrainOpenGLTextAttributes::NORMAL);
     textAttributes.setFontHeight(14);
     CaretAssertToDoWarning(); // need colors
     

@@ -3346,7 +3346,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         BrainOpenGLTextAttributes textAttributes;
         textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
         textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
-        textAttributes.setStyle(BrainOpenGLTextAttributes::BOLD);
+        textAttributes.setBoldEnabled(true);
         textAttributes.setFontHeight(fontHeight);
         textAttributes.setForegroundColor(horizontalAxisRGBA);
         textAttributes.setBackgroundColor(backgroundRGBA);
