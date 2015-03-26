@@ -52,9 +52,15 @@ OperationParameters* OperationConvertFiberOrientations::getParameters()
     fiberOpt->addVolumeParameter(5, "psi", "psi angle");
     fiberOpt->addVolumeParameter(6, "ka", "ka bingham parameter");
     fiberOpt->addVolumeParameter(7, "kb", "kb bingham parameter");
-    ret->setHelpText(
-        AString("Takes precomputed bingham parameters from volume files and converts them to the format workbench uses for display.")
-    );
+    AString myText = AString("Takes precomputed bingham parameters from volume files and converts them to the format workbench uses for display.  ") +
+        "The <label-volume> argument must be a label volume, where the labels use these strings:\n\n";
+    vector<StructureEnum::Enum> myStructureEnums;
+    StructureEnum::getAllEnums(myStructureEnums);
+    for (int i = 0; i < (int)myStructureEnums.size(); ++i)
+    {
+        myText += "\n" + StructureEnum::toName(myStructureEnums[i]);
+    }
+    ret->setHelpText(myText);
     return ret;
 }
 
@@ -62,6 +68,10 @@ void OperationConvertFiberOrientations::useParameters(OperationParameters* myPar
 {
     LevelProgress myProgress(myProgObj);
     VolumeFile* labelVol = myParams->getVolume(1);
+    if (labelVol->getType() != SubvolumeAttributes::LABEL)
+    {
+        throw OperationException("<label-volume> must have a label table, see -volume-label-import");
+    }
     CiftiFile* ciftiOut = myParams->getOutputCifti(2);
     const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(3));
     int numFibers = (int)myInstances.size();

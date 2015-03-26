@@ -81,9 +81,15 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
     int64_t numRows = ciftiIn->getNumberOfRows();
     int64_t numCols = ciftiIn->getNumberOfColumns();
     if (numCols < 1 || numRows < 1) throw AlgorithmException("input must have at least 1 column and 1 row");
-    CiftiXMLOld myOutXML = ciftiIn->getCiftiXMLOld();
-    myOutXML.resetRowsToScalars(1);
-    myOutXML.setMapNameForRowIndex(0, ReductionEnum::toName(myReduce));
+    CiftiXML myOutXML = ciftiIn->getCiftiXML();
+    if (myOutXML.getNumberOfDimensions() != 2)
+    {
+        throw AlgorithmException("cifti reduce only supports 2D cifti");
+    }
+    CiftiScalarsMap newMap;
+    newMap.setLength(1);
+    newMap.setMapName(0, ReductionEnum::toName(myReduce));
+    myOutXML.setMap(CiftiXML::ALONG_ROW, newMap);
     ciftiOut->setCiftiXML(myOutXML);
     vector<float> scratchRow(numCols), outCol(numRows);
     for (int64_t i = 0; i < numRows; ++i)
@@ -100,9 +106,15 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
     int64_t numRows = ciftiIn->getNumberOfRows();
     int64_t numCols = ciftiIn->getNumberOfColumns();
     if (numCols < 1 || numRows < 1) throw AlgorithmException("input must have at least 1 column and 1 row");
-    CiftiXMLOld myOutXML = ciftiIn->getCiftiXMLOld();
-    myOutXML.resetRowsToScalars(1);
-    myOutXML.setMapNameForRowIndex(0, ReductionEnum::toName(myReduce));
+    CiftiXML myOutXML = ciftiIn->getCiftiXML();
+    if (myOutXML.getNumberOfDimensions() != 2)
+    {
+        throw AlgorithmException("cifti reduce only supports 2D cifti");
+    }
+    CiftiScalarsMap newMap;
+    newMap.setLength(1);
+    newMap.setMapName(0, ReductionEnum::toName(myReduce));
+    myOutXML.setMap(CiftiXML::ALONG_ROW, newMap);
     ciftiOut->setCiftiXML(myOutXML);
     vector<float> scratchRow(numCols), outCol(numRows);
     for (int64_t i = 0; i < numRows; ++i)

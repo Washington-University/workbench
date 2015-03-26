@@ -58,7 +58,7 @@ OperationParameters* OperationEstimateFiberBinghams::getParameters()
     ret->addVolumeParameter(10, "label-volume", "volume of cifti structure labels");
     ret->addCiftiOutputParameter(11, "cifti-out", "output cifti fiber distributons file");
     AString myText = AString("This command does an estimation of a bingham distribution for each fiber orientation in each voxel which is ") +
-        "labeled with a name equal to a CIFTI structure identifier.  These identifiers must be one of the following for it to be used:\n";
+        "labeled a structure identifier.  These labelings come from the <label-volume> argument, which must have labels that match the following strings:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
