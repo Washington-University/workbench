@@ -33,6 +33,7 @@
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricFindClusters.h"
+#include "AlgorithmNodesInsideBorder.h"
 #include "BorderFile.h"
 #include "CaretLogger.h"
 #include "CiftiFile.h"
@@ -233,9 +234,12 @@ namespace
         return true;
     }
     
-    bool getStatisticsString(const CaretMappableDataFile* dataFile, const int32_t& mapIndex, const vector<int32_t> nodeLists[2], const StructureEnum::Enum& structure, AString& statsOut)
+    bool getStatisticsString(const CaretMappableDataFile* dataFile, const int32_t& mapIndex, const vector<int32_t> nodeLists[2],
+                             const SurfaceFile& surface, const CaretPointer<GeodesicHelper>& myGeoHelp, const float& excludeDist, AString& statsOut)
     {
-        vector<float> tempStatsStore;
+        vector<float> tempStatsStore, roiData;
+        StructureEnum::Enum structure = surface.getStructure();
+        int numNodes = surface.getNumberOfNodes();
         const float* statsData = NULL;
         switch (dataFile->getDataFileType())
         {
@@ -251,7 +255,7 @@ namespace
             {
                 const CiftiMappableDataFile* ciftiMappableFile = dynamic_cast<const CiftiMappableDataFile*>(dataFile);
                 CaretAssert(ciftiMappableFile != NULL);
-                bool result = ciftiMappableFile->getMapDataForSurface(mapIndex, structure, tempStatsStore);
+                bool result = ciftiMappableFile->getMapDataForSurface(mapIndex, structure, tempStatsStore, &roiData);
                 CaretAssert(result);
                 if (!result)
                 {
@@ -261,31 +265,152 @@ namespace
                 statsData = tempStatsStore.data();
                 break;
             }
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            {
+                const CiftiMappableDataFile* ciftiMappableFile = dynamic_cast<const CiftiMappableDataFile*>(dataFile);
+                CaretAssert(ciftiMappableFile != NULL);
+                const CiftiFile* dataCifti = ciftiMappableFile->getCiftiFile();
+                const CiftiXML& myXML = dataCifti->getCiftiXML();
+                const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+                CaretAssert(myDenseMap.hasSurfaceData(structure));//the GUI should filter by structure, right?
+                int64_t rowLength = myXML.getDimensionLength(CiftiXML::ALONG_ROW);
+                vector<vector<float> > data[2];
+                for (int i = 0; i < 2; ++i)
+                {
+                    data[i].resize(nodeLists[i].size());
+                    for (int j = 0; j < (int)nodeLists[i].size(); ++j)
+                    {
+                        int64_t index = myDenseMap.getIndexForNode(nodeLists[i][j], structure);
+                        if (index != -1)//roi can go outside the cifti ROI, ignore such vertices
+                        {
+                            data[i][j].resize(rowLength);//only allocate the ones inside the cifti ROI
+                            dataCifti->getRow(data[i][j].data(), index);
+                        }
+                    }
+                }
+                vector<float> samples[2][2];
+                for (int posSide = 0; posSide < 2; ++posSide)
+                {
+                    for (int i = 0; i < (int)nodeLists[posSide].size(); ++i)
+                    {
+                        if (!data[posSide][i].empty())
+                        {
+                            vector<int32_t> excludeNodes;
+                            vector<float> excludeDists;
+                            myGeoHelp->getNodesToGeoDist(nodeLists[posSide][i], excludeDist, excludeNodes, excludeDists);
+                            vector<char> excludeLookup(numNodes, 0);
+                            for (int j = 0; j < (int)excludeNodes.size(); ++j)
+                            {
+                                excludeLookup[excludeNodes[j]] = 1;
+                            }
+                            for (int side = 0; side < 2; ++side)
+                            {
+                                vector<double> averagerow(rowLength, 0.0);
+                                int count = 0;
+                                for (int j = 0; j < (int)nodeLists[side].size(); ++j)
+                                {
+                                    if (excludeLookup[nodeLists[side][j]] == 0 && !data[side][j].empty())
+                                    {
+                                        ++count;
+                                        for (int k = 0; k < rowLength; ++k)
+                                        {
+                                            averagerow[k] += data[side][j][k];
+                                        }
+                                    }
+                                }
+                                if (count != 0)
+                                {
+                                    double accum1 = 0.0, accum2 = 0.0;
+                                    for (int k = 0; k < rowLength; ++k)
+                                    {
+                                        averagerow[k] /= count;
+                                        accum1 += averagerow[k];
+                                        accum2 += data[posSide][i][k];
+                                    }
+                                    float mean1 = accum1 / rowLength, mean2 = accum2 / rowLength;
+                                    accum1 = 0.0, accum2 = 0.0;
+                                    double accum3 = 0.0;
+                                    for (int k = 0; k < rowLength; ++k)
+                                    {
+                                        float val1 = averagerow[k] - mean1, val2 = data[posSide][i][k] - mean2;
+                                        accum1 += val1 * val2;
+                                        accum2 += val1 * val1;
+                                        accum3 += val2 * val2;
+                                    }
+                                    double corrval = accum1 / sqrt(accum2 * accum3);
+                                    if (corrval >= 0.999999)  corrval = 0.999999;//prevent inf
+                                    if (corrval <= -0.999999)  corrval = -0.999999;//prevent -inf
+                                    samples[posSide][side].push_back(0.5f * log((1 + corrval)/(1 - corrval)));//fisher z transform
+                                }
+                            }
+                        }
+                    }
+                }
+                float tstats[2], cohen_ds[2], pvals[2];
+                for (int piece = 0; piece < 2; ++piece)
+                {
+                    int count[2];
+                    float mean[2], variance[2];
+                    for (int posSide = 0; posSide < 2; ++posSide)
+                    {
+                        count[posSide] = (int)samples[posSide][piece].size();
+                        if (count[posSide] < 2) return false;
+                        double accum = 0.0;
+                        for (int i = 0; i < count[posSide]; ++i)
+                        {
+                            accum += samples[posSide][piece][i];
+                        }
+                        mean[posSide] = accum / count[posSide];
+                        accum = 0.0;
+                        for (int i = 0; i < count[posSide]; ++i)
+                        {
+                            float tempf = samples[posSide][piece][i] - mean[posSide];
+                            accum += tempf * tempf;
+                        }
+                        variance[posSide] = accum / (count[posSide] - 1);
+                    }
+                    tstats[piece] = (mean[0] - mean[1]) / sqrt(variance[0] / count[0] + variance[1] / count[1]);//welch's t-test
+                    cohen_ds[piece] = (mean[0] - mean[1]) / sqrt(((count[0] - 1) * variance[0] + (count[1] - 1) * variance[1]) / (count[0] + count[1] - 2));
+                    pvals[piece] = 2.0f * MathFunctions::q_func(abs(tstats[piece]));//treat as 2-tailed z-stat, this isn't meant to be rigorous, and the t-test cdf is a pain
+                }
+                statsOut = "p1=" + AString::number(pvals[0], 'g', 3) + ", p2=" + AString::number(pvals[1], 'g', 3) +
+                           ", t1=" + AString::number(tstats[0], 'g', 3) + ", t2=" + AString::number(tstats[1], 'g', 3) +
+                           ", d1=" + AString::number(cohen_ds[0], 'g', 3) + ", d2=" + AString::number(cohen_ds[1], 'g', 3);
+                return true;
+            }
             default:
                 CaretLogWarning("statistics: ignoring data file of type " + DataFileTypeEnum::toName(dataFile->getDataFileType()));
                 return false;
         }
-        double accum;
         float mean[2], variance[2];
+        int count[2] = {0, 0};
         for (int piece = 0; piece < 2; ++piece)
         {
+            double accum = 0.0;
+            for (int i = 0; i < (int)nodeLists[piece].size(); ++i)
+            {
+                if (roiData.empty() || roiData[nodeLists[piece][i]] > 0.0f)
+                {
+                    accum += statsData[nodeLists[piece][i]];//weight by vertex area?  weighted welch's t-test, oh joy
+                    ++count[piece];
+                }
+            }
+            mean[piece] = accum / count[piece];
             accum = 0.0;
             for (int i = 0; i < (int)nodeLists[piece].size(); ++i)
             {
-                accum += statsData[nodeLists[piece][i]];//weight by vertex area?  weighted welch's t-test, oh joy
+                if (roiData.empty() || roiData[nodeLists[piece][i]] > 0.0f)
+                {
+                    float tempf = (statsData[nodeLists[piece][i]] - mean[piece]);
+                    accum += tempf * tempf;
+                }
             }
-            mean[piece] = accum / nodeLists[piece].size();
-            accum = 0.0;
-            for (int i = 0; i < (int)nodeLists[piece].size(); ++i)
-            {
-                float tempf = (statsData[nodeLists[piece][i]] - mean[piece]);
-                accum += tempf * tempf;
-            }
-            variance[piece] = accum / (nodeLists[piece].size() - 1);
+            variance[piece] = accum / (count[piece] - 1);
         }
-        float tstat = (mean[0] - mean[1]) / sqrt(variance[0] / nodeLists[0].size() + variance[1] / nodeLists[1].size());//welch's t-test
+        float tstat = (mean[0] - mean[1]) / sqrt(variance[0] / count[0] + variance[1] / count[1]);//welch's t-test
+        float cohen_d = (mean[0] - mean[1]) / sqrt(((count[0] - 1) * variance[0] + (count[1] - 1) * variance[1]) / (count[0] + count[1] - 2));
         float pval = 2.0f * MathFunctions::q_func(abs(tstat));//treat as 2-tailed z-stat, this isn't meant to be rigorous, and the t-test cdf is a pain
-        statsOut = "p=" + AString::number(pval, 'g', 3) + ", t=" + AString::number(tstat, 'g', 3);
+        statsOut = "p=" + AString::number(pval, 'g', 3) + ", t=" + AString::number(tstat, 'g', 3) + ", d=" + AString::number(cohen_d, 'g', 3);
         return true;
     }
     
@@ -356,10 +481,11 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         vector<BorderRedrawInfo> myRedrawInfo(numBorders);
         const int PROGRESS_MAX = 100;
         const int SEGMENT_PROGRESS = 10;
-        const int COMPUTE_PROGRESS = 75;
+        const int COMPUTE_PROGRESS = 55;
         const int HELPER_PROGRESS = 5;
         const int DRAW_PROGRESS = 10;
-        CaretAssert(SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + DRAW_PROGRESS == PROGRESS_MAX);
+        const int STATISTICS_PROGRESS = 20;
+        CaretAssert(SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + DRAW_PROGRESS + STATISTICS_PROGRESS == PROGRESS_MAX);
         stageString = "border segment locating";
         for (int i = 0; i < numBorders; ++i)
         {//find pieces of border to redraw, before doing gradient, so it can error early
@@ -467,7 +593,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         for (int i = 0; i < numInputs; ++i)
         {
             EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + (COMPUTE_PROGRESS * i) / numInputs,
-                                        "processing data file '" + FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getFileName() + "'");
+                                        "processing data file '" + inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + "'");
             EventManager::get()->sendEvent(&tempEvent);
             if (tempEvent.isCancelled())
             {
@@ -625,22 +751,69 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             CaretAssert(label < 3);
             if (label > 0) nodeLists[label - 1].push_back(i);
         }
-        statisticsInformationOut = "n1 = " + AString::number(nodeLists[0].size()) + ", n2 = " + AString::number(nodeLists[1].size()) + "\n\n";
-        if (nodeLists[0].size() < 2 || nodeLists[1].size() < 2)
+        vector<int32_t> orderedNodeLists[2];
+        if (nodeLists[0].size() >= nodeLists[1].size())
+        {
+            orderedNodeLists[0] = nodeLists[0];
+            orderedNodeLists[1] = nodeLists[1];
+        } else {
+            orderedNodeLists[0] = nodeLists[1];
+            orderedNodeLists[1] = nodeLists[0];
+        }
+        if (inputData.m_borderPair.size() != 2)
+        {
+            statisticsInformationOut = "n1=" + AString::number(orderedNodeLists[0].size()) + ", n2=" + AString::number(orderedNodeLists[1].size()) + "\n\n";
+        } else {
+            vector<int32_t> insideBorderNodes;
+            AlgorithmNodesInsideBorder(NULL, computeSurf, inputData.m_borderPair[0], false, insideBorderNodes);
+            vector<char> insideLookup(numNodes, 0);
+            for (int i = 0; i < (int)insideBorderNodes.size(); ++i)
+            {
+                insideLookup[insideBorderNodes[i]] = 1;
+            }
+            int counts[2] = {0, 0};
+            for (int whichList = 0; whichList < 2; ++whichList)
+            {
+                for (int i = 0; i < (int)orderedNodeLists[whichList].size(); ++i)
+                {
+                    if (insideLookup[orderedNodeLists[whichList][i]] != 0)
+                    {
+                        ++counts[whichList];
+                    }
+                }
+            }
+            if (counts[0] >= counts[1])
+            {
+                statisticsInformationOut += inputData.m_borderPair[0]->getName() + " n=" + AString::number(orderedNodeLists[0].size()) + ", " +
+                                            inputData.m_borderPair[1]->getName() + " n=" + AString::number(orderedNodeLists[1].size()) + "\n\n";
+            } else {
+                statisticsInformationOut += inputData.m_borderPair[1]->getName() + " n=" + AString::number(orderedNodeLists[0].size()) + ", " +
+                                            inputData.m_borderPair[0]->getName() + " n=" + AString::number(orderedNodeLists[1].size()) + "\n\n";
+            }
+        }
+        if (orderedNodeLists[0].size() < 2 || orderedNodeLists[1].size() < 2)
         {
             statisticsInformationOut += "roi pieces are too small for statistics";
         } else {
             for (int i = 0; i < numInputs; ++i)
             {
+                EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + DRAW_PROGRESS + (STATISTICS_PROGRESS * i) / numInputs,
+                                            "computing statistics on file '" + inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + "'");
+                EventManager::get()->sendEvent(&tempEvent);
+                if (tempEvent.isCancelled())
+                {
+                    errorMessageOut = "cancelled by user";
+                    return false;
+                }
                 if (inputData.m_dataFileInfo[i].m_allMapsFlag)
                 {
                     for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
                     {
                         AString statsOut;
-                        if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, j, nodeLists, computeSurf->getStructure(), statsOut))
+                        if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, j, orderedNodeLists, *computeSurf, myGeoHelp, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
                         {
                             statisticsInformationOut += statsOut + ": " +
-                                                        inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) +
+                                                        inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
                                                         inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
                                                         FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n";
                         }
@@ -648,10 +821,10 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                     statisticsInformationOut += "\n";
                 } else {
                     AString statsOut;
-                    if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, nodeLists, computeSurf->getStructure(), statsOut))
+                    if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, orderedNodeLists, *computeSurf, myGeoHelp, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
                     {
                         statisticsInformationOut += statsOut + ": " +
-                                                    inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) +
+                                                    inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
                                                     inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
                                                     FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n\n";
                     }
