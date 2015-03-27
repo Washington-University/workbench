@@ -295,19 +295,20 @@ namespace
                 {
                     myGeoBase.grabNew(new GeodesicHelperBase(&surface, correctedAreasMetric->getValuePointerForColumn(0)));
                 }
-#pragma omp CARET_PAR
+                for (int posSide = 0; posSide < 2; ++posSide)
                 {
-                    CaretPointer<GeodesicHelper> myGeoHelp;
-                    if (correctedAreasMetric != NULL)
+                    int listSize = (int)nodeLists[posSide].size();
+#pragma omp CARET_PAR
                     {
-                        myGeoHelp.grabNew(new GeodesicHelper(myGeoBase));
-                    } else {
-                        myGeoHelp = surface.getGeodesicHelper();
-                    }
+                        CaretPointer<GeodesicHelper> myGeoHelp;
+                        if (correctedAreasMetric != NULL)
+                        {
+                            myGeoHelp.grabNew(new GeodesicHelper(myGeoBase));
+                        } else {
+                            myGeoHelp = surface.getGeodesicHelper();
+                        }
 #pragma omp CARET_FOR schedule(dynamic)
-                    for (int posSide = 0; posSide < 2; ++posSide)
-                    {
-                        for (int i = 0; i < (int)nodeLists[posSide].size(); ++i)
+                        for (int i = 0; i < listSize; ++i)
                         {
                             if (!data[posSide][i].empty())
                             {
