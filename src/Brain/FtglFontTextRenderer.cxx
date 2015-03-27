@@ -104,14 +104,17 @@ using namespace caret;
 FtglFontTextRenderer::FtglFontTextRenderer()
 : BrainOpenGLTextRenderInterface()
 {
+    m_defaultFont = NULL;
 #ifdef HAVE_FREETYPE
-//    const FontType fontType = FONT_TYPE_PIXMAP;
-    const FontType fontType = FONT_TYPE_TEXTURE;
+    BrainOpenGLTextAttributes defaultFontAttributes;
+    defaultFontAttributes.setFontHeight(14);
+    defaultFontAttributes.setFontName(BrainOpenGLTextAttributes::ARIAL);
+    defaultFontAttributes.setItalicEnabled(false);
+    defaultFontAttributes.setBoldEnabled(false);
+    defaultFontAttributes.setUnderlineEnabled(false);
     
-    m_boldFont.initialize(":/FtglFonts/VeraBd.ttf",
-                          fontType);
-    m_normalFont.initialize(":/FtglFonts/VeraSe.ttf",
-                            fontType);
+    m_defaultFont = getFont(defaultFontAttributes,
+                            true);
 #endif // HAVE_FREETYPE
 }
 
@@ -121,6 +124,18 @@ FtglFontTextRenderer::FtglFontTextRenderer()
 FtglFontTextRenderer::~FtglFontTextRenderer()
 {
 #ifdef HAVE_FREETYPE
+    for (FONT_MAP_ITERATOR iter = m_fontNameToFontMap.begin();
+         iter != m_fontNameToFontMap.end();
+         iter++) {
+        delete iter->second;
+    }
+    m_fontNameToFontMap.clear();
+    
+    /*
+     * Do not delete "m_defaultFont" since it points to a font
+     * in m_fontNameToFontMap.  Doing so would cause
+     * a double delete.
+     */
 #endif // HAVE_FREETYPE
 }
 
@@ -130,55 +145,80 @@ FtglFontTextRenderer::~FtglFontTextRenderer()
 bool
 FtglFontTextRenderer::isValid() const
 {
-    return m_normalFont.m_valid;
+    return (m_defaultFont != NULL);
 }
 
 /*
- * Get the font with the given style and height.
- * Returned font not guaranteed to be desired size.
+ * Get the font with the given font attributes.
+ * If the font is not created, return the default font.
  *
  * @param textAttributes
- *   Attributes for text drawing.
+ *    Attributes for the font.
+ * @param creatingDefaultFontFlag
+ *    True if creating the default font.
  * @return
- *    The font.  May be NULL due to failure.
+ *    The FTGL font.  If there are errors this value will
+ *    be NULL.
  */
 FTFont*
-FtglFontTextRenderer::getFont(const BrainOpenGLTextAttributes& textAttributes)
+FtglFontTextRenderer::getFont(const BrainOpenGLTextAttributes& textAttributes,
+                              const bool creatingDefaultFontFlag)
 {
 #ifdef HAVE_FREETYPE
-    FTFont* font = NULL;
+    const AString fontName = textAttributes.getFontRenderingEncodedName();
     
-    if (textAttributes.isBoldEnabled()) {
-        if (m_boldFont.m_valid) {
-            font = m_boldFont.m_font;
-        }
+    /*
+     * Has the font already has been created?
+     */
+    FONT_MAP_ITERATOR fontIter = m_fontNameToFontMap.find(fontName);
+    if (fontIter != m_fontNameToFontMap.end()) {
+        FontData* fontData = fontIter->second;
+        CaretAssert(fontData);
+        return fontData->m_font;
+    }
+    
+    /*
+     * Create and save the font
+     */
+    FontData* fontData = new FontData(textAttributes);
+    if (fontData->m_valid) {
+        m_fontNameToFontMap.insert(std::make_pair(fontName,
+                                                  fontData));
+        CaretLogFine("Created font with encoded name "
+                       + fontName);
+        return fontData->m_font;
     }
     else {
-        if (m_normalFont.m_valid) {
-            font = m_normalFont.m_font;
+        delete fontData;
+        fontData = NULL;
+
+        /*
+         * Issue a message about failure to create font but
+         * don't print same message more than once.
+         */
+        if (std::find(m_failedFontNames.begin(),
+                      m_failedFontNames.end(),
+                      fontName) == m_failedFontNames.end()) {
+            m_failedFontNames.insert(fontName);
+            CaretLogSevere("Failed to create font with encoded name "
+                           + fontName);
         }
     }
     
-    if (font != NULL) {
-        if ( ! font->FaceSize(textAttributes.getFontHeight())) {
-            QString msg("Failed to set requested font height="
-                        + AString::number(textAttributes.getFontHeight())
-                        + ".");
-            if (font->FaceSize(14)) {
-                msg += "  Defaulting to font height=14";
-            }
-            else {
-                msg += "  Defaulting to font height=14 also failed.";
-            }
-            CaretLogWarning(msg);
-        }
-        
-        return font;
+    /*
+     * Were we trying to create the default font?
+     */
+    if (creatingDefaultFontFlag) {
+        return NULL;
     }
     
-    CaretLogSevere("Trying to use FTGL Font rendering but font is not valid.");
-    return NULL;
+    /*
+     * Use the default font.
+     */
+    return m_defaultFont;
+    
 #else  // HAVE_FREETYPE
+    CaretLogSevere("Trying to use FTGL Font rendering but FTGL is not valid.");
     return NULL;
 #endif // HAVE_FREETYPE
 }
@@ -209,9 +249,50 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     if (text.isEmpty()) {
         return;
     }
+    
+    switch (textAttributes.getOrientation()) {
+        case BrainOpenGLTextAttributes::LEFT_TO_RIGHT:
+            drawHorizontalTextAtWindowCoords(viewport,
+                                             windowX,
+                                             windowY,
+                                             text,
+                                             textAttributes);
+            break;
+        case BrainOpenGLTextAttributes::TOP_TO_BOTTOM:
+            drawVerticalTextAtWindowCoords(viewport,
+                                           windowX,
+                                           windowY,
+                                           text,
+                                           textAttributes);
+            break;
+    }
+}
 
+/**
+ * Draw horizontal text at the given window coordinates.
+ *
+ * @param viewport
+ *   The current viewport.
+ * @param windowX
+ *   X-coordinate in the window of first text character
+ *   using the 'alignment'
+ * @param windowY
+ *   Y-coordinate in the window at which bottom of text is placed.
+ * @param text
+ *   Text that is to be drawn.
+ * @param textAttributes
+ *   Attributes for text drawing.
+ */
+void
+FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
+                                             const double windowX,
+                                             const double windowY,
+                                             const QString& text,
+                                             const BrainOpenGLTextAttributes& textAttributes)
+{
 #ifdef HAVE_FREETYPE
-    FTFont* font = getFont(textAttributes);
+    FTFont* font = getFont(textAttributes,
+                           false);
     if (! font) {
         return;
     }
@@ -222,8 +303,6 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
      * Disable depth testing so text not occluded
      */
     glDisable(GL_DEPTH_TEST);
-    
-    
     
     /*
      * Set the orthographic projection so that its origin is in the bottom
@@ -267,7 +346,7 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
     
-    const FTBBox bbox = font->BBox(text.toAscii().constData());
+    const FTBBox  bbox  = font->BBox(text.toAscii().constData());
     const FTPoint lower = bbox.Lower();
     const FTPoint upper = bbox.Upper();
     
@@ -300,22 +379,21 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     double textX = windowX + textOffsetX;
     double textY = windowY + textOffsetY;
 
-//    if (drawCrosshairsAtFontStartingCoordinate) {
-//        std::cout << "BBox: (" << lower.Xf() << " " << lower.Yf() << ") (" << upper.Xf() << ", " << upper.Yf() << ")" << std::endl;
-//        
-//        const float width  = upper.Xf() - lower.Xf();
-//        const float height = upper.Yf() - lower.Yf();
-//        
-//        GLfloat savedRGBA[4];
-//        glGetFloatv(GL_CURRENT_COLOR, savedRGBA);
-//        glColor3f(1.0, 0.0, 1.0);
-//        glLineWidth(1.0);
-//        glPushMatrix();
-//        //glTranslatef(windowX, windowY, 0.0);
-//        glRectf(textX, textY, textX + width, textY + height);
-//        glPopMatrix();
-//        glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
-//    }
+    if (drawCrosshairsAtFontStartingCoordinate) {
+        std::cout << "BBox: (" << lower.Xf() << " " << lower.Yf() << ") (" << upper.Xf() << ", " << upper.Yf() << ")" << std::endl;
+        
+        const float width  = upper.Xf() - lower.Xf();
+        const float height = upper.Yf() - lower.Yf();
+        
+        GLfloat savedRGBA[4];
+        glGetFloatv(GL_CURRENT_COLOR, savedRGBA);
+        glColor3f(1.0, 0.0, 1.0);
+        glLineWidth(1.0);
+        glPushMatrix();
+        glRectf(textX, textY, textX + width, textY + height);
+        glPopMatrix();
+        glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
+    }
     
     const double backgroundBounds[4] = {
         textX,
@@ -324,11 +402,6 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
         textY + (upper.Y() - lower.Y())
     };
     
-//    GLint vp[4];
-//    glGetIntegerv(GL_VIEWPORT, vp);
-//    std::cout << "Drawing text (" << qPrintable(text) << " at x=" << textX << " y=" << textY << std::endl;
-//    std::cout << "    VP: " << qPrintable(AString::fromNumbers(vp, 4, ",")) << "  win-x: " << windowX << "  win-y: " << windowY << std::endl;
-
     glPushMatrix();
     glLoadIdentity();
     applyBackgroundColoring(textAttributes,
@@ -341,11 +414,6 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     font->Render(text.toAscii().constData());
     glPopMatrix();
 
-//    glRasterPos2d(textX,
-//                  textY);
-//
-//    font->Render(text.toAscii().constData());
-    
     restoreStateOfOpenGL();
 #else // HAVE_FREETYPE
     CaretLogSevere("Trying to use FTGL Font rendering but it cannot be used due to FreeType not found.");
@@ -354,7 +422,7 @@ FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
 
 
 /**
- * Draw text at the given window coordinates.
+ * Draw vertical text at the given window coordinates.
  *
  * @param viewport
  *   The current viewport.
@@ -375,12 +443,9 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
                                                      const QString& text,
                                                      const BrainOpenGLTextAttributes&  textAttributes)
 {
-    if (text.isEmpty()) {
-        return;
-    }
-    
 #ifdef HAVE_FREETYPE
-    FTFont* font = getFont(textAttributes);
+    FTFont* font = getFont(textAttributes,
+                           false);
     if ( ! font) {
         return;
     }
@@ -415,8 +480,6 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
      */
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
-    
     
     bool drawCrosshairsAtFontStartingCoordinate = false;
     if (drawCrosshairsAtFontStartingCoordinate) {
@@ -437,11 +500,6 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
         glPopMatrix();
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
-    
-    
-//    const double lineHeight = font->LineHeight();
-//    
-//    const int32_t numChars = text.length();
 
     double textBoundsWidth  = 0.0;
     double textBoundsHeight = 0.0;
@@ -451,41 +509,6 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
                             textBoundsWidth,
                             textBoundsHeight,
                             textCharsToDraw);
-    
-//    double y =  windowY;   //+ ((lineHeight * numChars) / 2.0);
-//    double textBoundsWidth = 0.0;
-//    for (int32_t i = 0; i < numChars; i++) {
-//        const QString oneChar = text[i];
-//        double width  = 0;
-//        double height = 0;
-//        getTextBoundsInPixels(width,
-//                              height,
-//                              oneChar,
-//                              textAttributes);
-//        textBoundsWidth = std::max(textBoundsWidth,
-//                                   width);
-//        
-//        
-//        const FTBBox bbox = font->BBox(oneChar.toAscii().constData());
-//        const FTPoint lower = bbox.Lower();
-////        const FTPoint upper = bbox.Upper();
-//        
-//        const double xChar = windowX - lower.X() - (width / 2.0);
-//        const double yChar = y + lower.Y();
-//        
-//        textCharsToDraw.push_back(CharInfo(text.at(i),
-//                                           xChar, yChar));
-//        
-////        std::cout << "   " << qPrintable(oneChar)
-////        << " x:" << xChar << " y:" << yChar
-////        << " w:" << width << " h:" << height
-////        << " x-min:" << lower.X() << " y-min:" << lower.Y()
-////        << " x-max:" << upper.X() << " y-max:" << upper.Y() << std::endl;
-//
-//        y -= lineHeight;
-//    }
-//    
-//    const double textBoundsHeight = std::fabs(windowY - y);
     
     double textOffsetX = 0;
     switch (textAttributes.getHorizontalAlignment()) {
@@ -521,19 +544,11 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
             break;
     }
     
-//    const double backgroundBounds[4] = {
-//        windowX - (textBoundsWidth   / 2.0) + textOffsetX,
-//        windowY - (textBoundsHeight  / 2.0) + textOffsetY,
-//        windowX + (textBoundsWidth   / 2.0) + textOffsetX,
-//        windowY + (textBoundsHeight  / 2.0) + textOffsetY
-//    };
     const double backMinX = windowX - (textBoundsWidth   / 2.0) + textOffsetX;
     const double backMaxX = backMinX + textBoundsWidth;
     
     const double backMaxY = windowY + textBackgroundTopOffsetY;
     const double backMinY = backMaxY - textBoundsHeight;
-//    const double backMinY = windowY  - textOffsetY;
-//    const double backMaxY = backMinY + textBoundsHeight;
     const double backgroundBounds[4] = {
         backMinX,
         backMinY,
@@ -545,17 +560,11 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
                             backgroundBounds);
     applyForegroundColoring(textAttributes);
     
-//    GLint vp[4];
-//    glGetIntegerv(GL_VIEWPORT, vp);
-    
     for (std::vector<CharInfo>::const_iterator textIter = textCharsToDraw.begin();
          textIter != textCharsToDraw.end();
          textIter++) {
         const double charX = windowX + textIter->m_x + textOffsetX;
         const double charY = windowY + textIter->m_y + textOffsetY;
-//        std::cout << "Drawing vertical char (" << qPrintable(textIter->m_char) << " at x=" << charX << " y=" << charY << std::endl;
-//        std::cout << "    VP: " << qPrintable(AString::fromNumbers(vp, 4, ",")) << "  win-x: " << windowX << "  win-y: " << windowY << std::endl;
-//        std::cout <<      "Offset: " << textOffsetX << " " << textOffsetY << std::endl;
 
         glPushMatrix();
         glTranslated(charX,
@@ -570,187 +579,6 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
     CaretLogSevere("Trying to use FTGL Font rendering but it cannot be used due to FreeType not found.");
 #endif // HAVE_FREETYPE
 }
-
-//void
-//FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
-//                                                     const double windowX,
-//                                                     const double windowY,
-//                                                     const QString& text,
-//                                                     const BrainOpenGLTextAttributes&  textAttributes)
-//{
-//    if (text.isEmpty()) {
-//        return;
-//    }
-//    
-//#ifdef HAVE_FREETYPE
-//    FTFont* font = getFont(textAttributes);
-//    if ( ! font) {
-//        return;
-//    }
-//    
-//    saveStateOfOpenGL();
-//    
-//    /*
-//     * Disable depth testing so text not occluded
-//     */
-//    glDisable(GL_DEPTH_TEST);
-//    
-//    /*
-//     * Set the orthographic projection so that its origin is in the bottom
-//     * left corner.  It needs to be there since we are drawing in window
-//     * coordinates.  We do not know the true size of the window but that
-//     * is okay since we can set the orthographic view so that the bottom
-//     * left corner is the origin and the top right corner is the top
-//     * right corner of the user's viewport.
-//     */
-//    glMatrixMode(GL_PROJECTION);
-//    glLoadIdentity();
-//    glOrtho(0,
-//            (viewport[2]),
-//            0,
-//            (viewport[3]),
-//            -1,
-//            1);
-//    
-//    /*
-//     * Viewing projection is just the identity matrix since
-//     * we are drawing in window coordinates.
-//     */
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//    
-//    
-//    
-//    bool drawCrosshairsAtFontStartingCoordinate = false;
-//    if (drawCrosshairsAtFontStartingCoordinate) {
-//        GLfloat savedRGBA[4];
-//        glGetFloatv(GL_CURRENT_COLOR, savedRGBA);
-//        glColor3f(1.0, 0.0, 1.0);
-//        glLineWidth(1.0);
-//        glPushMatrix();
-//        //glTranslatef(windowX, windowY, 0.0);
-//        const double yStart = windowY - 50.0;
-//        const double yEnd   = windowY + 50.0;
-//        glBegin(GL_LINES);
-//        glVertex2d(windowX, yStart);
-//        glVertex2d(windowX, yEnd);
-//        glVertex2d(-50.0, windowY);
-//        glVertex2d( 50.0, windowY);
-//        glEnd();
-//        glPopMatrix();
-//        glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
-//    }
-//    
-//    
-//    const double lineHeight = font->LineHeight();
-//    
-//    const int32_t numChars = text.length();
-//    
-//    std::vector<CharInfo> textCharsToDraw;
-//    
-//    double y =  windowY;   //+ ((lineHeight * numChars) / 2.0);
-//    double textBoundsWidth = 0.0;
-//    for (int32_t i = 0; i < numChars; i++) {
-//        const QString oneChar = text[i];
-//        double width  = 0;
-//        double height = 0;
-//        getTextBoundsInPixels(width,
-//                              height,
-//                              oneChar,
-//                              textAttributes);
-//        textBoundsWidth = std::max(textBoundsWidth,
-//                                   width);
-//        
-//        
-//        const FTBBox bbox = font->BBox(oneChar.toAscii().constData());
-//        const FTPoint lower = bbox.Lower();
-//        //        const FTPoint upper = bbox.Upper();
-//        
-//        const double xChar = windowX - lower.X() - (width / 2.0);
-//        const double yChar = y + lower.Y();
-//        
-//        textCharsToDraw.push_back(CharInfo(text.at(i),
-//                                           xChar, yChar));
-//        
-//        //        std::cout << "   " << qPrintable(oneChar)
-//        //        << " x:" << xChar << " y:" << yChar
-//        //        << " w:" << width << " h:" << height
-//        //        << " x-min:" << lower.X() << " y-min:" << lower.Y()
-//        //        << " x-max:" << upper.X() << " y-max:" << upper.Y() << std::endl;
-//        
-//        y -= lineHeight;
-//    }
-//    
-//    const double textBoundsHeight = std::fabs(windowY - y);
-//    
-//    double textOffsetX = 0;
-//    switch (textAttributes.getHorizontalAlignment()) {
-//        case BrainOpenGLTextAttributes::X_CENTER:
-//            textOffsetX = 0;
-//            break;
-//        case BrainOpenGLTextAttributes::X_LEFT:
-//            textOffsetX = (textBoundsWidth / 2.0);
-//            break;
-//        case BrainOpenGLTextAttributes::X_RIGHT:
-//            textOffsetX = -(textBoundsWidth / 2.0);
-//            break;
-//    }
-//    
-//    /*
-//     * By default, coordinate is a bottom of first character
-//     */
-//    const double oneCharHeight = (textBoundsHeight / static_cast<double>(textCharsToDraw.size()));
-//    double textOffsetY = 0;
-//    switch (textAttributes.getVerticalAlignment()) {
-//        case BrainOpenGLTextAttributes::Y_BOTTOM:
-//            textOffsetY = textBoundsHeight - oneCharHeight;
-//            break;
-//        case BrainOpenGLTextAttributes::Y_CENTER:
-//            textOffsetY = (textBoundsHeight / 2.0) - (oneCharHeight / 2.0);
-//            break;
-//        case BrainOpenGLTextAttributes::Y_TOP:
-//            textOffsetY = -oneCharHeight;
-//            break;
-//    }
-//    
-//    const double backgroundBounds[4] = {
-//        windowX - (textBoundsWidth   / 2.0) + textOffsetX,
-//        windowY - (textBoundsHeight  / 2.0) + textOffsetX,
-//        windowX + (textBoundsWidth   / 2.0) + textOffsetY,
-//        windowY + (textBoundsHeight  / 2.0) + textOffsetY
-//    };
-//    
-//    applyColoring(textAttributes,
-//                  backgroundBounds);
-//    
-//    GLint vp[4];
-//    glGetIntegerv(GL_VIEWPORT, vp);
-//    for (std::vector<CharInfo>::const_iterator textIter = textCharsToDraw.begin();
-//         textIter != textCharsToDraw.end();
-//         textIter++) {
-//        const double charX = textIter->m_x + textOffsetX;
-//        const double charY = textIter->m_y + textOffsetY;
-//        
-//        std::cout << "Drawing vertical char (" << qPrintable(textIter->m_char) << " at x=" << charX << " y=" << charY << std::endl;
-//        std::cout << "    VP: " << qPrintable(AString::fromNumbers(vp, 4, ",")) << "  win-x: " << windowX << "  win-y: " << windowY << std::endl;
-//        std::cout <<      "Offset: " << textOffsetX << " " << textOffsetY << std::endl;
-//        glPushMatrix();
-//        glTranslated(charX,
-//                     charY,
-//                     0.0);
-//        font->Render(textIter->m_char.toAscii().constData());
-//        glPopMatrix();
-//        
-//        //        glRasterPos2d(charX,
-//        //                      charY);
-//        //        font->Render(textIter->m_char.toAscii().constData());
-//    }
-//    
-//    restoreStateOfOpenGL();
-//#else // HAVE_FREETYPE
-//    CaretLogSevere("Trying to use FTGL Font rendering but it cannot be used due to FreeType not found.");
-//#endif // HAVE_FREETYPE
-//}
 
 /**
  * Apply the background coloring by drawing a rectangle in the background
@@ -815,8 +643,12 @@ FtglFontTextRenderer::getTextBoundsInPixels(double& widthOut,
 {
     widthOut  = 0;
     heightOut = 0;
+    if (text.isEmpty()) {
+        return;
+    }
 #ifdef HAVE_FREETYPE
-    FTFont* font = getFont(textAttributes);
+    FTFont* font = getFont(textAttributes,
+                           false);
     if (! font) {
         return;
     }
@@ -824,11 +656,11 @@ FtglFontTextRenderer::getTextBoundsInPixels(double& widthOut,
     switch (textAttributes.getOrientation()) {
         case BrainOpenGLTextAttributes::LEFT_TO_RIGHT:
         {
-            const FTBBox bbox = font->BBox(text.toAscii().constData());
+            const FTBBox bbox   = font->BBox(text.toAscii().constData());
             const FTPoint lower = bbox.Lower();
             const FTPoint upper = bbox.Upper();
             
-            widthOut = upper.X() - lower.X();
+            widthOut  = upper.X() - lower.X();
             heightOut = upper.Y() - lower.Y();
         }
             break;
@@ -876,11 +708,12 @@ FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
 #ifdef HAVE_FREETYPE
     const int32_t numChars = static_cast<int32_t>(text.size());
     
-    FTFont* font = getFont(textAttributes);
+    FTFont* font = getFont(textAttributes,
+                           false);
     if ( ! font) {
         return;
     }
-    const double lineHeight = font->LineHeight();
+    const double SPACING = 2.0;
     
     double y =  0.0;
     for (int32_t i = 0; i < numChars; i++) {
@@ -898,13 +731,8 @@ FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
         charInfoOut.push_back(CharInfo(oneChar,
                                            xChar, yChar));
         
-        //        std::cout << "   " << qPrintable(oneChar)
-        //        << " x:" << xChar << " y:" << yChar
-        //        << " w:" << width << " h:" << height
-        //        << " x-min:" << lower.X() << " y-min:" << lower.Y()
-        //        << " x-max:" << upper.X() << " y-max:" << upper.Y() << std::endl;
-        
-        y -= lineHeight;
+        const double moveDownY = bbox.Upper().Y() - bbox.Lower().Y() + SPACING;
+        y -= moveDownY;
     }
     
     textHeightOut = std::fabs(y);
@@ -944,6 +772,9 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
     
+    /*
+     * Project model coordinate to a window coordinate.
+     */
     GLdouble windowX, windowY, windowZ;
     if (gluProject(modelX, modelY, modelZ,
                    modelMatrix, projectionMatrix, viewport,
@@ -1008,8 +839,110 @@ FtglFontTextRenderer::restoreStateOfOpenGL()
  */
 FtglFontTextRenderer::FontData::FontData()
 {
-    m_valid = false;
-    m_font  = NULL;
+    m_valid    = false;
+    m_font     = NULL;
+}
+
+/**
+ * Constructs a font with the given attributes.
+ * Called should verify that this instance is valid (construction was successful).
+ *
+ * @param textAttributes
+ *     Attributes of the font.
+ */
+FtglFontTextRenderer::FontData::FontData(const BrainOpenGLTextAttributes&  textAttributes)
+{
+    m_valid    = false;
+    m_font     = NULL;
+
+#ifdef HAVE_FREETYPE
+    if (textAttributes.isItalicEnabled()) {
+    }
+    else if (textAttributes.isUnderlineEnabled()) {
+    }
+    
+    AString fontFileName;
+
+    switch (textAttributes.getFontName()) {
+        case BrainOpenGLTextAttributes::ARIAL:
+            if (textAttributes.isBoldEnabled()) {
+                fontFileName = ":/FtglFonts/VeraBd.ttf";
+            }
+            else {
+                fontFileName = ":/FtglFonts/VeraSe.ttf";
+            }
+            break;
+    }
+    
+    CaretAssert( ! fontFileName.isEmpty());
+    
+    /*
+     * Open the font file in the Workbench resources
+     */
+    QFile file(fontFileName);
+    if (file.open(QFile::ReadOnly)) {
+        /*
+         * Read all data which MUST remain valid until the FTGL
+         * font is no longer used.
+         */
+        m_fontData = file.readAll();
+        const size_t numBytes = m_fontData.size();
+        if (numBytes > 0) {
+            /*
+             * Create the FTGL font.
+             */
+            m_font = new FTTextureFont((const unsigned char*)m_fontData.data(),
+                                       numBytes);
+            
+            CaretAssert(m_font);
+            
+            /*
+             * Font created successfully ?
+             */
+            if ( ! m_font->Error()) {
+                /*
+                 * Font size successful ?
+                 */
+                if (m_font->FaceSize(textAttributes.getFontHeight())) {
+                    m_valid = true;
+                }
+                else {
+                    CaretLogSevere("Error creating font height "
+                                   + AString::number(textAttributes.getFontHeight())
+                                   + " from font file "
+                                   + file.fileName());
+                }
+            }
+            else {
+                CaretLogSevere("Error creating FTGL Font from "
+                               + file.fileName()
+                               + ".  Error code from FreeType is "
+                               + AString::number(m_font->Error()));
+            }
+        }
+        else {
+            CaretLogSevere("Error reading data for FTGL Font from "
+                           + file.fileName()
+                           + " error: "
+                           + file.errorString());
+        }
+    }
+    else {
+        CaretLogSevere("Unable to open FTGL Font File "
+                       + file.fileName()
+                       + " error: "
+                       + file.errorString());
+    }
+    
+    if ( ! m_valid) {
+        m_fontData.clear();
+        
+        if (m_font != NULL) {
+            delete m_font;
+            m_font = NULL;
+        }
+    }
+#endif // HAVE_FREETYPE
 }
 
 /**
@@ -1017,73 +950,11 @@ FtglFontTextRenderer::FontData::FontData()
  */
 FtglFontTextRenderer::FontData::~FontData()
 {
+#ifdef HAVE_FREETYPE
     if (m_font != NULL) {
         delete m_font;
         m_font = NULL;
     }
-}
-
-/**
- * Initialize font data.    
- *
- * @param fontFileName
- *    Name of font file.
- * @param fontType
- *    Type of font.
- */
-void
-FtglFontTextRenderer::FontData::initialize(const AString& fontFileName,
-                                           const FontType fontType)
-{
-#ifdef HAVE_FREETYPE
-    m_positionType = POSITION_TYPE_RASTER;
-    
-    QFile file(fontFileName);
-    if (file.open(QFile::ReadOnly)) {
-        m_fontData = file.readAll();
-        const size_t numBytes = m_fontData.size();
-        if (numBytes > 0) {
-            const unsigned char* data = (const unsigned char*)m_fontData.data();
-            
-            switch (fontType) {
-                case FONT_TYPE_PIXMAP:
-                    m_font = new FTPixmapFont(data,
-                                              numBytes);
-                    m_positionType = POSITION_TYPE_RASTER;
-                    break;
-                case FONT_TYPE_TEXTURE:
-                    m_font = new FTTextureFont(data,
-                                               numBytes);
-                    m_positionType = POSITION_TYPE_MATRIX;
-                    break;
-            }
-            if (m_font->Error()) {
-                delete m_font;
-                m_font = NULL;
-                CaretLogSevere("Unable to load font file " + file.fileName());
-                return;
-            }
-        }
-        else {
-            CaretLogSevere("Error reading data from "
-                           + file.fileName()
-                           + " error: "
-                           + file.errorString());
-            return;
-        }
-    }
-    else {
-        CaretLogSevere("Unable to open "
-                       + file.fileName()
-                       + " error: "
-                       + file.errorString());
-        return;
-    }
-    
-    m_valid = true;
-#else // HAVE_FREETYPE
-    CaretLogWarning("Trying to initialize FTGL fonts but program was compiled without FreeType.\n"
-                    "Text labels may be missing in graphics windows.");
 #endif // HAVE_FREETYPE
 }
 

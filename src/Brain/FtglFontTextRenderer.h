@@ -21,6 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include <map>
+#include <set>
+
 #include "BrainOpenGLTextAttributes.h"
 #include "BrainOpenGLTextRenderInterface.h"
 
@@ -43,12 +46,6 @@ namespace caret {
                                             const QString& text,
                                             const BrainOpenGLTextAttributes& textAttributes);
         
-        void drawVerticalTextAtWindowCoords(const int viewport[4],
-                                            const double windowX,
-                                            const double windowY,
-                                            const QString& text,
-                                            const BrainOpenGLTextAttributes&  textAttributes);
-        
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,
                                    const double modelZ,
@@ -63,32 +60,37 @@ namespace caret {
         virtual AString getName() const;
         
     private:
-        enum FontType {
-            FONT_TYPE_PIXMAP,
-            FONT_TYPE_TEXTURE
-        };
-        
         FtglFontTextRenderer(const FtglFontTextRenderer&);
 
         FtglFontTextRenderer& operator=(const FtglFontTextRenderer&);
         
-        FTFont* getFont(const BrainOpenGLTextAttributes& textAttributes);
+        void drawHorizontalTextAtWindowCoords(const int viewport[4],
+                                            const double windowX,
+                                            const double windowY,
+                                            const QString& text,
+                                            const BrainOpenGLTextAttributes&  textAttributes);
+        
+        void drawVerticalTextAtWindowCoords(const int viewport[4],
+                                            const double windowX,
+                                            const double windowY,
+                                            const QString& text,
+                                            const BrainOpenGLTextAttributes&  textAttributes);
+        
+        FTFont* getFont(const BrainOpenGLTextAttributes& textAttributes,
+                        const bool creatingDefaultFontFlag);
+        
         
         class FontData {
         public:
-            enum PositionType {
-                POSITION_TYPE_MATRIX,
-                POSITION_TYPE_RASTER
-            };
-            
             FontData();
+            
+            FontData(const BrainOpenGLTextAttributes&  textAttributes);
             
             ~FontData();
             
-            void initialize(const AString& fontFileName,
-                            const FontType fontType);
+            void initialize(const AString& fontFileName);
             
-            PositionType m_positionType;
+//            void initialize(const BrainOpenGLTextAttributes&  textAttributes);
             
             QByteArray m_fontData;
             
@@ -118,13 +120,36 @@ namespace caret {
         void applyBackgroundColoring(const BrainOpenGLTextAttributes& textAttributes,
                                      const double textBoundsBox[4]);
         
+        /**
+         * The default font.  DO NOT delete it since it points to
+         * a font in "m_fontNameToFontMap".
+         */
+        FTFont* m_defaultFont;
+        
+        /**
+         * Map for caching fonts
+         */
+        typedef std::map<AString, FontData*> FONT_MAP;
+        
+        /**
+         * Iterator for cached fonts.
+         */
+        typedef FONT_MAP::iterator FONT_MAP_ITERATOR;
+        
+        /**
+         * Caches fonts as they are created
+         */
+        FONT_MAP m_fontNameToFontMap;
+        
+        /**
+         * Tracks fonts that failed creation to avoid
+         * printing an error message more than once.
+         */
+        std::set<AString> m_failedFontNames;
+        
         void saveStateOfOpenGL();
         
         void restoreStateOfOpenGL();
-
-        FontData m_normalFont;
-        
-        FontData m_boldFont;
     };
     
 #ifdef __FTGL_FONT_TEXT_RENDERER_DECLARE__

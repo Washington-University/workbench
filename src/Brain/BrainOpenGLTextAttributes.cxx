@@ -156,10 +156,26 @@ AString
 BrainOpenGLTextAttributes::getFontRenderingEncodedName() const
 {
     AString encodedName;
+    encodedName.reserve(50);
     
     switch (m_fontName) {
         case ARIAL:
+            encodedName.append("Arial");
             break;
+    }
+    
+    encodedName.append(AString::number(m_fontHeight));
+    
+    if (m_boldEnabled) {
+        encodedName.append("B");
+    }
+    
+    if (m_italicEnabled) {
+        encodedName.append("I");
+    }
+    
+    if (m_underlineEnabled) {
+        encodedName.append("U");
     }
     
     return encodedName;

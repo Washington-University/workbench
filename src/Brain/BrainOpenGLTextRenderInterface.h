@@ -65,43 +65,6 @@ namespace caret {
                                             const BrainOpenGLTextAttributes& textAttributes) = 0;
         
         /**
-         * Draw vertical text at the given window coordinates.
-         *
-         * @param viewport
-         *   The current viewport.
-         * @param windowX
-         *   X-coordinate in the window of first text character
-         *   using the 'alignment'
-         * @param windowY
-         *   Y-coordinate in the window at which bottom of text is placed.
-         * @param text
-         *   Text that is to be drawn.
-         * @param textAttributes
-         *   Attributes for text drawing.
-         */
-        virtual void drawVerticalTextAtWindowCoords(const int viewport[4],
-                                                    const double windowX,
-                                                    const double windowY,
-                                                    const QString& text,
-                                                    const BrainOpenGLTextAttributes&  textAttributes) = 0;
-//        {
-//            const int32_t numChars = text.length();
-//            int y = windowY + ((numChars * fontHeight) / 2.0);
-//            
-//            for (int32_t i = 0; i < text.length(); i++) {
-//                drawTextAtWindowCoords(viewport,
-//                                       windowX,
-//                                       y,
-//                                       text[i],
-//                                       alignmentX,
-//                                       alignmentY,
-//                                       textStyle,
-//                                       fontHeight);
-//                y -= fontHeight;
-//            }
-//        }
-        
-        /**
          * Draw text at the given model coordinates.
          *
          * @param modelX

@@ -46,18 +46,6 @@ namespace caret {
                                     const QString& text,
                                     const BrainOpenGLTextAttributes& textAttributes);
         
-        void drawHorizontalTextAtWindowCoords(const int viewport[4],
-                                            const double windowX,
-                                            const double windowY,
-                                            const QString& text,
-                                            const BrainOpenGLTextAttributes&  textAttributes);
-        
-        void drawVerticalTextAtWindowCoords(const int viewport[4],
-                                            const double windowX,
-                                            const double windowY,
-                                            const QString& text,
-                                            const BrainOpenGLTextAttributes&  textAttributes);
-        
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,
                                    const double modelZ,
@@ -89,6 +77,18 @@ namespace caret {
             QFont* m_font;
             bool m_fontValid;
         };
+        
+        void drawHorizontalTextAtWindowCoords(const int viewport[4],
+                                              const double windowX,
+                                              const double windowY,
+                                              const QString& text,
+                                              const BrainOpenGLTextAttributes&  textAttributes);
+        
+        void drawVerticalTextAtWindowCoords(const int viewport[4],
+                                            const double windowX,
+                                            const double windowY,
+                                            const QString& text,
+                                            const BrainOpenGLTextAttributes&  textAttributes);
         
         FontData m_normalFont;
         

@@ -682,13 +682,15 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                     break;
             }
             if (drawAxisTextVerticalFlag) {
-                textRenderer->drawVerticalTextAtWindowCoords(viewport,
-                                                             axisTextCenterX,
-                                                             axisTextCenterY,
-                                                             axisText,
-                                                             textAttributes);
+                textAttributes.setOrientation(BrainOpenGLTextAttributes::TOP_TO_BOTTOM);
+                textRenderer->drawTextAtWindowCoords(viewport,
+                                                     axisTextCenterX,
+                                                     axisTextCenterY,
+                                                     axisText,
+                                                     textAttributes);
             }
             else {
+                textAttributes.setOrientation(BrainOpenGLTextAttributes::LEFT_TO_RIGHT);
                 textRenderer->drawTextAtWindowCoords(viewport,
                                                      axisTextCenterX,
                                                      axisTextCenterY,
