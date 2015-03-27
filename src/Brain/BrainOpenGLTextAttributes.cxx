@@ -36,7 +36,7 @@ using namespace caret;
 
 /**
  * Constructor that creates the attributes as: 
- * font name = ARIAL
+ * font name = SANS_SERIF
  * font height = 14,
  * bold disabled
  * italic disabled
@@ -52,7 +52,7 @@ using namespace caret;
 BrainOpenGLTextAttributes::BrainOpenGLTextAttributes()
 : CaretObject()
 {
-    m_fontName            = ARIAL;
+    m_fontName            = SANS_SERIF;
     m_fontHeight          = 14;
     m_boldEnabled         = false;
     m_italicEnabled       = false;
@@ -159,8 +159,14 @@ BrainOpenGLTextAttributes::getFontRenderingEncodedName() const
     encodedName.reserve(50);
     
     switch (m_fontName) {
-        case ARIAL:
-            encodedName.append("Arial");
+        case SANS_SERIF:
+            encodedName.append("SansSerif");
+            break;
+        case SANS_SERIF_MONO:
+            encodedName.append("SansSerifMono");
+            break;
+        case SERIF:
+            encodedName.append("Serif");
             break;
     }
     

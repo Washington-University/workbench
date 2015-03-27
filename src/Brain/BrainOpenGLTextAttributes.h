@@ -35,7 +35,9 @@ namespace caret {
          * Name of font.
          */
         enum FontName {
-            ARIAL
+            SANS_SERIF,
+            SANS_SERIF_MONO,
+            SERIF,
         };
         
         /**

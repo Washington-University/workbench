@@ -108,7 +108,7 @@ FtglFontTextRenderer::FtglFontTextRenderer()
 #ifdef HAVE_FREETYPE
     BrainOpenGLTextAttributes defaultFontAttributes;
     defaultFontAttributes.setFontHeight(14);
-    defaultFontAttributes.setFontName(BrainOpenGLTextAttributes::ARIAL);
+    defaultFontAttributes.setFontName(BrainOpenGLTextAttributes::SANS_SERIF);
     defaultFontAttributes.setItalicEnabled(false);
     defaultFontAttributes.setBoldEnabled(false);
     defaultFontAttributes.setUnderlineEnabled(false);
@@ -864,12 +864,32 @@ FtglFontTextRenderer::FontData::FontData(const BrainOpenGLTextAttributes&  textA
     AString fontFileName;
 
     switch (textAttributes.getFontName()) {
-        case BrainOpenGLTextAttributes::ARIAL:
+        case BrainOpenGLTextAttributes::SANS_SERIF:
+            if (textAttributes.isBoldEnabled()) {
+                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSans-Bold.ttf";
+            }
+            else {
+                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSans.ttf";
+            }
+            break;
+        case BrainOpenGLTextAttributes::SANS_SERIF_MONO:
             if (textAttributes.isBoldEnabled()) {
                 fontFileName = ":/FtglFonts/VeraBd.ttf";
+                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSansMono-Bold.ttf";
             }
             else {
                 fontFileName = ":/FtglFonts/VeraSe.ttf";
+                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSansMono.ttf";
+            }
+            break;
+        case BrainOpenGLTextAttributes::SERIF:
+            if (textAttributes.isBoldEnabled()) {
+                fontFileName = ":/FtglFonts/VeraBd.ttf";
+                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSerif-Bold.ttf";
+            }
+            else {
+                fontFileName = ":/FtglFonts/VeraSe.ttf";
+                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSerif.ttf";
             }
             break;
     }
