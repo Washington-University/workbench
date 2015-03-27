@@ -36,6 +36,7 @@
 #include "AlgorithmNodesInsideBorder.h"
 #include "BorderFile.h"
 #include "CaretLogger.h"
+#include "CaretOMP.h"
 #include "CiftiFile.h"
 #include "CiftiMappableDataFile.h"
 #include "EventProgressUpdate.h"
@@ -235,7 +236,7 @@ namespace
     }
     
     bool getStatisticsString(const CaretMappableDataFile* dataFile, const int32_t& mapIndex, const vector<int32_t> nodeLists[2],
-                             const SurfaceFile& surface, const CaretPointer<GeodesicHelper>& myGeoHelp, const float& excludeDist, AString& statsOut)
+                             const SurfaceFile& surface, const MetricFile* correctedAreasMetric, const float& excludeDist, AString& statsOut)
     {
         vector<float> tempStatsStore, roiData;
         StructureEnum::Enum structure = surface.getStructure();
@@ -289,58 +290,78 @@ namespace
                     }
                 }
                 vector<float> samples[2][2];
-                for (int posSide = 0; posSide < 2; ++posSide)
+                CaretPointer<GeodesicHelperBase> myGeoBase;
+                if (correctedAreasMetric != NULL)
                 {
-                    for (int i = 0; i < (int)nodeLists[posSide].size(); ++i)
+                    myGeoBase.grabNew(new GeodesicHelperBase(&surface, correctedAreasMetric->getValuePointerForColumn(0)));
+                }
+#pragma omp CARET_PAR
+                {
+                    CaretPointer<GeodesicHelper> myGeoHelp;
+                    if (correctedAreasMetric != NULL)
                     {
-                        if (!data[posSide][i].empty())
+                        myGeoHelp.grabNew(new GeodesicHelper(myGeoBase));
+                    } else {
+                        myGeoHelp = surface.getGeodesicHelper();
+                    }
+#pragma omp CARET_FOR schedule(dynamic)
+                    for (int posSide = 0; posSide < 2; ++posSide)
+                    {
+                        for (int i = 0; i < (int)nodeLists[posSide].size(); ++i)
                         {
-                            vector<int32_t> excludeNodes;
-                            vector<float> excludeDists;
-                            myGeoHelp->getNodesToGeoDist(nodeLists[posSide][i], excludeDist, excludeNodes, excludeDists);
-                            vector<char> excludeLookup(numNodes, 0);
-                            for (int j = 0; j < (int)excludeNodes.size(); ++j)
+                            if (!data[posSide][i].empty())
                             {
-                                excludeLookup[excludeNodes[j]] = 1;
-                            }
-                            for (int side = 0; side < 2; ++side)
-                            {
-                                vector<double> averagerow(rowLength, 0.0);
-                                int count = 0;
-                                for (int j = 0; j < (int)nodeLists[side].size(); ++j)
+                                vector<int32_t> excludeNodes;
+                                vector<float> excludeDists;
+                                myGeoHelp->getNodesToGeoDist(nodeLists[posSide][i], excludeDist, excludeNodes, excludeDists);
+                                vector<char> excludeLookup(numNodes, 0);
+                                for (int j = 0; j < (int)excludeNodes.size(); ++j)
                                 {
-                                    if (excludeLookup[nodeLists[side][j]] == 0 && !data[side][j].empty())
+                                    excludeLookup[excludeNodes[j]] = 1;
+                                }
+                                for (int side = 0; side < 2; ++side)
+                                {
+                                    vector<double> averagerow(rowLength, 0.0);
+                                    int count = 0;
+                                    for (int j = 0; j < (int)nodeLists[side].size(); ++j)
                                     {
-                                        ++count;
-                                        for (int k = 0; k < rowLength; ++k)
+                                        if (excludeLookup[nodeLists[side][j]] == 0 && !data[side][j].empty())
                                         {
-                                            averagerow[k] += data[side][j][k];
+                                            ++count;
+                                            float* dataRef = data[side][j].data();
+                                            for (int k = 0; k < rowLength; ++k)
+                                            {
+                                                averagerow[k] += dataRef[k];
+                                            }
                                         }
                                     }
-                                }
-                                if (count != 0)
-                                {
-                                    double accum1 = 0.0, accum2 = 0.0;
-                                    for (int k = 0; k < rowLength; ++k)
+                                    if (count != 0)
                                     {
-                                        averagerow[k] /= count;
-                                        accum1 += averagerow[k];
-                                        accum2 += data[posSide][i][k];
+                                        double accum1 = 0.0, accum2 = 0.0;
+                                        for (int k = 0; k < rowLength; ++k)
+                                        {
+                                            averagerow[k] /= count;
+                                            accum1 += averagerow[k];
+                                            accum2 += data[posSide][i][k];
+                                        }
+                                        float mean1 = accum1 / rowLength, mean2 = accum2 / rowLength;
+                                        accum1 = 0.0, accum2 = 0.0;
+                                        double accum3 = 0.0;
+                                        for (int k = 0; k < rowLength; ++k)
+                                        {
+                                            float val1 = averagerow[k] - mean1, val2 = data[posSide][i][k] - mean2;
+                                            accum1 += val1 * val2;
+                                            accum2 += val1 * val1;
+                                            accum3 += val2 * val2;
+                                        }
+                                        double corrval = accum1 / sqrt(accum2 * accum3);
+                                        if (corrval >= 0.999999)  corrval = 0.999999;//prevent inf
+                                        if (corrval <= -0.999999)  corrval = -0.999999;//prevent -inf
+#pragma omp critical
+                                        {
+                                            samples[posSide][side].push_back(0.5f * log((1 + corrval)/(1 - corrval)));//fisher z transform
+                                        }
                                     }
-                                    float mean1 = accum1 / rowLength, mean2 = accum2 / rowLength;
-                                    accum1 = 0.0, accum2 = 0.0;
-                                    double accum3 = 0.0;
-                                    for (int k = 0; k < rowLength; ++k)
-                                    {
-                                        float val1 = averagerow[k] - mean1, val2 = data[posSide][i][k] - mean2;
-                                        accum1 += val1 * val2;
-                                        accum2 += val1 * val1;
-                                        accum3 += val2 * val2;
-                                    }
-                                    double corrval = accum1 / sqrt(accum2 * accum3);
-                                    if (corrval >= 0.999999)  corrval = 0.999999;//prevent inf
-                                    if (corrval <= -0.999999)  corrval = -0.999999;//prevent -inf
-                                    samples[posSide][side].push_back(0.5f * log((1 + corrval)/(1 - corrval)));//fisher z transform
                                 }
                             }
                         }
@@ -810,7 +831,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                     for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
                     {
                         AString statsOut;
-                        if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, j, orderedNodeLists, *computeSurf, myGeoHelp, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
+                        if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, j, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
                         {
                             statisticsInformationOut += statsOut + ": " +
                                                         inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
@@ -821,7 +842,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                     statisticsInformationOut += "\n";
                 } else {
                     AString statsOut;
-                    if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, orderedNodeLists, *computeSurf, myGeoHelp, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
+                    if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
                     {
                         statisticsInformationOut += statsOut + ": " +
                                                     inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
