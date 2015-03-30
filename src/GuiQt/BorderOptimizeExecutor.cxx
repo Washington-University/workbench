@@ -478,11 +478,6 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         
         printInputs(inputData);
         
-        if (inputData.m_borderPair.size() != 2)
-        {
-            errorMessageOut = "Border pair must have exactly two elements.";
-            return false;
-        }
         SurfaceFile* computeSurf = inputData.m_surface;
         const MetricFile* correctedAreasMetric = inputData.m_vertexAreasMetricFile;
         int32_t numNodes = computeSurf->getNumberOfNodes();
@@ -782,10 +777,8 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             orderedNodeLists[0] = nodeLists[1];
             orderedNodeLists[1] = nodeLists[0];
         }
-        if (inputData.m_borderPair.size() != 2)
+        if (inputData.m_borderPair.size() == 2)
         {
-            statisticsInformationOut = "n1=" + AString::number(orderedNodeLists[0].size()) + ", n2=" + AString::number(orderedNodeLists[1].size()) + "\n\n";
-        } else {
             vector<int32_t> insideBorderNodes;
             AlgorithmNodesInsideBorder(NULL, computeSurf, inputData.m_borderPair[0], false, insideBorderNodes);
             vector<char> insideLookup(numNodes, 0);
@@ -812,43 +805,43 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                 statisticsInformationOut += inputData.m_borderPair[1]->getName() + " n=" + AString::number(orderedNodeLists[0].size()) + ", " +
                                             inputData.m_borderPair[0]->getName() + " n=" + AString::number(orderedNodeLists[1].size()) + "\n\n";
             }
-        }
-        if (orderedNodeLists[0].size() < 2 || orderedNodeLists[1].size() < 2)
-        {
-            statisticsInformationOut += "roi pieces are too small for statistics";
-        } else {
-            for (int i = 0; i < numInputs; ++i)
+            if (orderedNodeLists[0].size() < 2 || orderedNodeLists[1].size() < 2)
             {
-                EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + DRAW_PROGRESS + (STATISTICS_PROGRESS * i) / numInputs,
-                                            "computing statistics on file '" + inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + "'");
-                EventManager::get()->sendEvent(&tempEvent);
-                if (tempEvent.isCancelled())
+                statisticsInformationOut += "roi pieces are too small for statistics";
+            } else {
+                for (int i = 0; i < numInputs; ++i)
                 {
-                    errorMessageOut = "cancelled by user";
-                    return false;
-                }
-                if (inputData.m_dataFileInfo[i].m_allMapsFlag)
-                {
-                    for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
+                    EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + DRAW_PROGRESS + (STATISTICS_PROGRESS * i) / numInputs,
+                                                "computing statistics on file '" + inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + "'");
+                    EventManager::get()->sendEvent(&tempEvent);
+                    if (tempEvent.isCancelled())
                     {
+                        errorMessageOut = "cancelled by user";
+                        return false;
+                    }
+                    if (inputData.m_dataFileInfo[i].m_allMapsFlag)
+                    {
+                        for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
+                        {
+                            AString statsOut;
+                            if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, j, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
+                            {
+                                statisticsInformationOut += statsOut + ": " +
+                                                            inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
+                                                            inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
+                                                            FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n";
+                            }
+                        }
+                        statisticsInformationOut += "\n";
+                    } else {
                         AString statsOut;
-                        if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, j, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
+                        if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
                         {
                             statisticsInformationOut += statsOut + ": " +
                                                         inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
                                                         inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
-                                                        FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n";
+                                                        FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n\n";
                         }
-                    }
-                    statisticsInformationOut += "\n";
-                } else {
-                    AString statsOut;
-                    if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
-                    {
-                        statisticsInformationOut += statsOut + ": " +
-                                                    inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
-                                                    inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
-                                                    FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n\n";
                     }
                 }
             }
