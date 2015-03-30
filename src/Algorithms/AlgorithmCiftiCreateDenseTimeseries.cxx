@@ -75,7 +75,7 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
     OptionalParameter* timestartOpt = ret->createOptionalParameter(7, "-timestart", "set the start time");
     timestartOpt->addDoubleParameter(1, "start", "the time at the first frame, in seconds (default 0.0)");
     
-    OptionalParameter* unitOpt = ret->createOptionalParameter(8, "-unit", "use a different unit");
+    OptionalParameter* unitOpt = ret->createOptionalParameter(8, "-unit", "use a unit other than time");
     unitOpt->addStringParameter(1, "unit", "unit identifier (default SECOND)");
     
     AString myText = AString("All input files must have the same number of columns/subvolumes.  Only the specified components will be in the output cifti.  ") +

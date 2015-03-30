@@ -64,6 +64,8 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fgresetTimeOpt = fromGiftiExt->createOptionalParameter(3, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the gifti file");
     fgresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
     fgresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
+    OptionalParameter* fgresetTimeunitsOpt = fgresetTimeOpt->createOptionalParameter(3, "-unit", "use a unit other than time");
+    fgresetTimeunitsOpt->addStringParameter(1, "unit", "unit identifier (default SECOND)");
     fromGiftiExt->createOptionalParameter(4, "-reset-scalars", "reset mapping along rows to scalars, taking length from the gifti file");
     OptionalParameter* fromGiftiReplace = fromGiftiExt->createOptionalParameter(5, "-replace-binary", "replace data with a binary file");
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
@@ -81,6 +83,8 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fnresetTimeOpt = fromNifti->createOptionalParameter(4, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the nifti file");
     fnresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
     fnresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
+    OptionalParameter* fnresetTimeunitsOpt = fnresetTimeOpt->createOptionalParameter(3, "-unit", "use a unit other than time");
+    fnresetTimeunitsOpt->addStringParameter(1, "unit", "unit identifier (default SECOND)");
     fromNifti->createOptionalParameter(5, "-reset-scalars", "reset mapping along rows to scalars, taking length from the nifti file");
     
     OptionalParameter* toText = ret->createOptionalParameter(5, "-to-text", "convert to a plain text file");
@@ -98,16 +102,23 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* ftresetTimeOpt = fromText->createOptionalParameter(5, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the text file");
     ftresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
     ftresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
+    OptionalParameter* ftresetTimeunitsOpt = ftresetTimeOpt->createOptionalParameter(3, "-unit", "use a unit other than time");
+    ftresetTimeunitsOpt->addStringParameter(1, "unit", "unit identifier (default SECOND)");
     fromText->createOptionalParameter(6, "-reset-scalars", "reset mapping along rows to scalars, taking length from the text file");
     
-    ret->setHelpText(
-        AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
+    AString myText = AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
         "If you want to write an existing CIFTI file with a different CIFTI version, see -file-convert, and its -cifti-version-convert option.  " +
         "If you want part of the CIFTI file as a metric, label, or volume file, see -cifti-separate.  " +
         "If you want to create a CIFTI file from metric and/or volume files, see the -cifti-create-* commands.  " +
         "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, -from-nifti, -to-text, or -from-text.  " +
-        "The -transpose option to -from-gifti-ext is needed if the replacement binary file is in column-major order."
-    );
+        "The -transpose option to -from-gifti-ext is needed if the replacement binary file is in column-major order.  " +
+        "The -unit options accept these values:\n";
+    vector<CiftiSeriesMap::Unit> units = CiftiSeriesMap::getAllUnits();
+    for (int i = 0; i < (int)units.size(); ++i)
+    {
+        myText += "\n" + CiftiSeriesMap::unitToString(units[i]);
+    }
+    ret->setHelpText(myText);
     return ret;
 }
 
@@ -177,7 +188,15 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         OptionalParameter* fgresetTimeOpt = fromGiftiExt->getOptionalParameter(3);
         if (fgresetTimeOpt->m_present)
         {
-            myXML.setMap(CiftiXML::ALONG_ROW, CiftiSeriesMap(numCols, fgresetTimeOpt->getDouble(2), fgresetTimeOpt->getDouble(1)));
+            CiftiSeriesMap::Unit myUnit = CiftiSeriesMap::SECOND;
+            OptionalParameter* fgresetTimeunitsOpt = fgresetTimeOpt->getOptionalParameter(3);
+            if (fgresetTimeunitsOpt->m_present)
+            {
+                bool ok = false;
+                myUnit = CiftiSeriesMap::stringToUnit(fgresetTimeunitsOpt->getString(1), ok);
+                if (!ok) throw OperationException("unrecognized unit name: '" + fgresetTimeunitsOpt->getString(1) + "'");
+            }
+            myXML.setMap(CiftiXML::ALONG_ROW, CiftiSeriesMap(numCols, fgresetTimeOpt->getDouble(2), fgresetTimeOpt->getDouble(1), myUnit));
         } else {
             if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES)
             {
@@ -323,11 +342,15 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         OptionalParameter* fnresetTimeOpt = fromNifti->getOptionalParameter(4);
         if (fnresetTimeOpt->m_present)
         {
-            CiftiSeriesMap newMap;
-            newMap.setLength(myDims[3]);
-            newMap.setStep(fnresetTimeOpt->getDouble(1));
-            newMap.setStart(fnresetTimeOpt->getDouble(2));
-            outXML.setMap(CiftiXML::ALONG_ROW, newMap);
+            CiftiSeriesMap::Unit myUnit = CiftiSeriesMap::SECOND;
+            OptionalParameter* fnresetTimeunitsOpt = fnresetTimeOpt->getOptionalParameter(3);
+            if (fnresetTimeunitsOpt->m_present)
+            {
+                bool ok = false;
+                myUnit = CiftiSeriesMap::stringToUnit(fnresetTimeunitsOpt->getString(1), ok);
+                if (!ok) throw OperationException("unrecognized unit name: '" + fnresetTimeunitsOpt->getString(1) + "'");
+            }
+            outXML.setMap(CiftiXML::ALONG_ROW, CiftiSeriesMap(myDims[3], fnresetTimeOpt->getDouble(2), fnresetTimeOpt->getDouble(1), myUnit));
         }
         if (fromNifti->getOptionalParameter(5)->m_present)
         {
@@ -413,18 +436,22 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         }
         if (numRows < 1) throw OperationException("template cifti file has no data");//this probably throws an exception in CiftiFile, but double check
         int textRowLength = entries.size();
-        OptionalParameter* fnresetTimeOpt = fromText->getOptionalParameter(5);
-        if (fnresetTimeOpt->m_present)
+        OptionalParameter* ftresetTimeOpt = fromText->getOptionalParameter(5);
+        if (ftresetTimeOpt->m_present)
         {
-            CiftiSeriesMap newMap;
-            newMap.setLength(textRowLength);
-            newMap.setStep(fnresetTimeOpt->getDouble(1));
-            newMap.setStart(fnresetTimeOpt->getDouble(2));
-            outXML.setMap(CiftiXML::ALONG_ROW, newMap);
+            CiftiSeriesMap::Unit myUnit = CiftiSeriesMap::SECOND;
+            OptionalParameter* ftresetTimeunitsOpt = ftresetTimeOpt->getOptionalParameter(3);
+            if (ftresetTimeunitsOpt->m_present)
+            {
+                bool ok = false;
+                myUnit = CiftiSeriesMap::stringToUnit(ftresetTimeunitsOpt->getString(1), ok);
+                if (!ok) throw OperationException("unrecognized unit name: '" + ftresetTimeunitsOpt->getString(1) + "'");
+            }
+            outXML.setMap(CiftiXML::ALONG_ROW, CiftiSeriesMap(textRowLength, ftresetTimeOpt->getDouble(2), ftresetTimeOpt->getDouble(1), myUnit));
         }
         if (fromText->getOptionalParameter(6)->m_present)
         {
-            if (fnresetTimeOpt->m_present) throw OperationException("only one of -reset-timepoints and -reset-scalars may be specified");
+            if (ftresetTimeOpt->m_present) throw OperationException("only one of -reset-timepoints and -reset-scalars may be specified");
             CiftiScalarsMap newMap;
             newMap.setLength(textRowLength);
             outXML.setMap(CiftiXML::ALONG_ROW, newMap);
