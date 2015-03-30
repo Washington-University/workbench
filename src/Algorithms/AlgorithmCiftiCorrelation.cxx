@@ -73,6 +73,8 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     
     ret->createOptionalParameter(7, "-no-demean", "instead of correlation, do dot product of rows, then normalize by diagonal");
     
+    ret->createOptionalParameter(8, "-covariance", "compute covariance instead of correlation");
+    
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(6, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
@@ -170,6 +172,7 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
         }
     }
     bool noDemean = myParams->getOptionalParameter(7)->m_present;
+    bool covariance = myParams->getOptionalParameter(8)->m_present;
     if (roiOverrideMode)
     {
         if (ciftiRoiMode)
@@ -179,15 +182,15 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
             AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB, noDemean);
         }
     } else {
-        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, weights, fisherZ, memLimitGB, noDemean);
+        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, weights, fisherZ, memLimitGB, noDemean, covariance);
     }
 }
 
 AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut, const vector<float>* weights,
-                                                     const bool& fisherZ, const float& memLimitGB, const bool& noDemean) : AbstractAlgorithm(myProgObj)
+                                                     const bool& fisherZ, const float& memLimitGB, const bool& noDemean, const bool& covariance) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    init(myCifti, weights, noDemean);
+    init(myCifti, weights, noDemean, covariance);
     int numRows = myCifti->getNumberOfRows();
     CiftiXMLOld newXML = myCifti->getCiftiXMLOld();
     newXML.applyColumnMapToRows();
@@ -279,10 +282,11 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 
 AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                                      const MetricFile* leftRoi, const MetricFile* rightRoi, const MetricFile* cerebRoi,
-                                                     const VolumeFile* volRoi, const vector<float>* weights, const bool& fisherZ, const float& memLimitGB, const bool& noDemean) : AbstractAlgorithm(myProgObj)
+                                                     const VolumeFile* volRoi, const vector<float>* weights, const bool& fisherZ, const float& memLimitGB,
+                                                     const bool& noDemean, const bool& covariance) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    init(myCifti, weights, noDemean);
+    init(myCifti, weights, noDemean, covariance);
     const CiftiXMLOld& origXML = myCifti->getCiftiXMLOld();
     if (origXML.getColumnMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
@@ -462,7 +466,8 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 }
 
 AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut, const CiftiFile* ciftiRoi,
-                                                     const vector<float>* weights, const bool& fisherZ, const float& memLimitGB, const bool& noDemean): AbstractAlgorithm(NULL)//HACK: get around the sentinel by passing a null, because this implementation calls another
+                                                     const vector<float>* weights, const bool& fisherZ, const float& memLimitGB,
+                                                     const bool& noDemean, const bool& covariance): AbstractAlgorithm(NULL)//HACK: get around the sentinel by passing a null, because this implementation calls another
 {
     const CiftiXML& roiXML = ciftiRoi->getCiftiXML();//roi is not optional in this variant
     if (roiXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("cifti roi does not have brain models mapping along column");
@@ -500,7 +505,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
         AlgorithmCiftiSeparate(NULL, ciftiRoi, CiftiXML::ALONG_COLUMN, &volRoi, offsetOut, NULL, false);//don't crop, because it needs to match the original volume space in the input
         volRoiPtr = &volRoi;
     }
-    AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoiPtr, rightRoiPtr, cerebRoiPtr, volRoiPtr, weights, fisherZ, memLimitGB, noDemean);//HACK: pass through our progress object
+    AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoiPtr, rightRoiPtr, cerebRoiPtr, volRoiPtr, weights, fisherZ, memLimitGB, noDemean, covariance);//HACK: pass through our progress object
 }
 
 float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2, const bool& fisherZ)
@@ -518,31 +523,50 @@ float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1,
             {
                 accum += row1[i] * row2[i];//these have already had the weighted row means subtracted out, and weights applied
             }
-            r = accum / (rrs1 * rrs2);//as do these
+            if (m_covariance)
+            {
+                if (m_binaryWeights)
+                {
+                    r = accum / numWeights;
+                } else {
+                    r = accum / rrs1;//NOTE: will equal rrs2 as it only depends on weights, and is not square root
+                }
+            } else {
+                r = accum / (rrs1 * rrs2);//as do these
+            }
         } else {
             double accum = 0.0;
             for (int i = 0; i < m_numCols; ++i)
             {
                 accum += row1[i] * row2[i];//these have already had the row means subtracted out
             }
-            r = accum / (rrs1 * rrs2);
+            if (m_covariance)
+            {
+                r = accum / m_numCols;
+            } else {
+                r = accum / (rrs1 * rrs2);
+            }
         }
     }
-    if (fisherZ)
+    if (!m_covariance)
     {
-        if (r > 0.999999) r = 0.999999;//prevent inf
-        if (r < -0.999999) r = -0.999999;//prevent -inf
-        return 0.5 * log((1 + r) / (1 - r));
-    } else {
-        if (r > 1.0) r = 1.0;//don't output anything silly
-        if (r < -1.0) r = -1.0;
-        return r;
+        if (fisherZ)
+        {
+            if (r > 0.999999) r = 0.999999;//prevent inf
+            if (r < -0.999999) r = -0.999999;//prevent -inf
+            r = 0.5 * log((1 + r) / (1 - r));
+        } else {
+            if (r > 1.0) r = 1.0;//don't output anything silly
+            if (r < -1.0) r = -1.0;
+        }
     }
+    return r;
 }
 
-void AlgorithmCiftiCorrelation::init(const CiftiFile* input, const vector<float>* weights, const bool& noDemean)
+void AlgorithmCiftiCorrelation::init(const CiftiFile* input, const vector<float>* weights, const bool& noDemean, const bool& covariance)
 {
     m_noDemean = noDemean;
+    m_covariance = covariance;
     m_inputCifti = input;
     m_rowInfo.resize(m_inputCifti->getNumberOfRows());
     m_cacheUsed = 0;
@@ -675,32 +699,46 @@ void AlgorithmCiftiCorrelation::computeRowStats(const float* row, float& mean, f
         }
     }
     accum = 0.0;
-    if (m_weightedMode)
+    if (m_covariance)
     {
         int weightsize = (int)m_weightIndexes.size();
-        if (m_binaryWeights)
+        rootResidSqr = 0.0f;
+        if (m_weightedMode && !m_binaryWeights)
         {
             for (int i = 0; i < weightsize; ++i)
             {
-                float tempf = row[m_weightIndexes[i]] - mean;
-                accum += tempf * tempf;
+                accum += m_weights[i];
             }
-           rootResidSqr = sqrt(accum);
-        } else {
-            for (int i = 0; i < weightsize; ++i)
+            rootResidSqr = accum;//repurpose this variable to store the weight sum - NOTE: don't take sqrt in case negative sum (whatever that means), so must not divide by both in correlate() in covariance mode
+        }
+    } else {
+        if (m_weightedMode)
+        {
+            int weightsize = (int)m_weightIndexes.size();
+            if (m_binaryWeights)
             {
-                float tempf = row[m_weightIndexes[i]] - mean;
-                accum += tempf * tempf * m_weights[i];
+                for (int i = 0; i < weightsize; ++i)
+                {
+                    float tempf = row[m_weightIndexes[i]] - mean;
+                    accum += tempf * tempf;
+                }
+            rootResidSqr = sqrt(accum);
+            } else {
+                for (int i = 0; i < weightsize; ++i)
+                {
+                    float tempf = row[m_weightIndexes[i]] - mean;
+                    accum += tempf * tempf * m_weights[i];
+                }
+                rootResidSqr = sqrt(accum);
+            }
+        } else {
+            for (int i = 0; i < m_numCols; ++i)
+            {
+                float tempf = row[i] - mean;
+                accum += tempf * tempf;
             }
             rootResidSqr = sqrt(accum);
         }
-    } else {
-        for (int i = 0; i < m_numCols; ++i)
-        {
-            float tempf = row[i] - mean;
-            accum += tempf * tempf;
-        }
-        rootResidSqr = sqrt(accum);
     }
 }
 
