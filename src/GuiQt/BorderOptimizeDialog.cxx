@@ -377,22 +377,24 @@ BorderOptimizeDialog::okButtonClicked()
     if (m_selectedBorders.empty()) {
         errorMessage.appendWithNewLine("No optimization border files are selected.");
     }
-    else if (pairBorderFile == NULL) {
-        errorMessage.appendWithNewLine("Border pair file selection is invalid.");
-    }
-    else if (numPairedBorders != 2) {
-        errorMessage.appendWithNewLine("Two of the selected borders must be in the border pair file.");
-        if (pairedBorders.empty()) {
-            errorMessage.appendWithNewLine("None of the selected borders are in the border pair file.");
+    else if (m_borderPairCheckBox->isChecked()) {
+        if (pairBorderFile == NULL) {
+            errorMessage.appendWithNewLine("Border pair file selection is invalid.");
         }
-        else {
-            errorMessage.appendWithNewLine("There are "
-                                           + AString::number(numPairedBorders)
-                                           + " selected borders in the border pair file.");
-            for (int32_t i = 0; i < numPairedBorders; i++) {
-                CaretAssertVectorIndex(pairedBorders, i);
-                errorMessage.appendWithNewLine("   "
-                                               + pairedBorders[i]->getName());
+        else if (numPairedBorders != 2) {
+            errorMessage.appendWithNewLine("Two of the selected borders must be in the border pair file.");
+            if (pairedBorders.empty()) {
+                errorMessage.appendWithNewLine("None of the selected borders are in the border pair file.");
+            }
+            else {
+                errorMessage.appendWithNewLine("There are "
+                                               + AString::number(numPairedBorders)
+                                               + " selected borders in the border pair file.");
+                for (int32_t i = 0; i < numPairedBorders; i++) {
+                    CaretAssertVectorIndex(pairedBorders, i);
+                    errorMessage.appendWithNewLine("   "
+                                                   + pairedBorders[i]->getName());
+                }
             }
         }
     }
@@ -402,8 +404,13 @@ BorderOptimizeDialog::okButtonClicked()
         return;
     }
     
-    CaretAssertMessage((pairedBorders.size() == 2),
-                       "Must be exactly two borders in the border pair vector");
+    if (m_borderPairCheckBox->isChecked()) {
+        CaretAssertMessage((pairedBorders.size() == 2),
+                           "Must be exactly two borders in the border pair vector");
+    }
+    else {
+        pairedBorders.clear();
+    }
     
     ProgressReportingDialog progressDialog("Border Optimization",
                                            "",
@@ -555,12 +562,13 @@ BorderOptimizeDialog::getModifiedBorders(std::vector<Border*>& modifiedBordersOu
 QWidget*
 BorderOptimizeDialog::createBorderSelectionWidget()
 {
-    QLabel* borderPairLabel = new QLabel("Border Pair File");
+    m_borderPairCheckBox = new QCheckBox("Border Pair File");
+    m_borderPairCheckBox->setChecked(true);
     m_borderPairFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(GuiManager::get()->getBrain(),
                                                                                                    DataFileTypeEnum::BORDER);
     m_borderPairFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     QHBoxLayout* borderPairLayout = new QHBoxLayout();
-    borderPairLayout->addWidget(borderPairLabel, 0);
+    borderPairLayout->addWidget(m_borderPairCheckBox, 0);
     borderPairLayout->addWidget(m_borderPairFileSelectionComboBox->getWidget(), 100);
     
     m_bordersInsideROILayout = new QVBoxLayout();

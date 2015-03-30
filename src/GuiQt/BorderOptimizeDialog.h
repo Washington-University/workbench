@@ -122,6 +122,8 @@ namespace caret {
         CaretDataFileSelectionComboBox* m_borderPairFileSelectionComboBox;
         CaretDataFileSelectionModel* m_borderPairFileSelectionModel;
         
+        QCheckBox* m_borderPairCheckBox;
+        
         std::vector<QCheckBox*> m_borderCheckBoxes;
         
         std::vector<DataFileTypeEnum::Enum> m_optimizeDataFileTypes;
