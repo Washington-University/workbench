@@ -616,7 +616,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             
             const float textX = tickEndX;
             const float textY = tickEndY;
-            textRenderer->drawTextAtWindowCoords(viewport,
+            textRenderer->drawTextAtViewportCoords(viewport,
                                                  textX,
                                                  textY,
                                                  labelTexts[i],
@@ -683,7 +683,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             }
             if (drawAxisTextVerticalFlag) {
                 textAttributes.setOrientation(BrainOpenGLTextAttributes::TOP_TO_BOTTOM);
-                textRenderer->drawTextAtWindowCoords(viewport,
+                textRenderer->drawTextAtViewportCoords(viewport,
                                                      axisTextCenterX,
                                                      axisTextCenterY,
                                                      axisText,
@@ -691,7 +691,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             }
             else {
                 textAttributes.setOrientation(BrainOpenGLTextAttributes::LEFT_TO_RIGHT);
-                textRenderer->drawTextAtWindowCoords(viewport,
+                textRenderer->drawTextAtViewportCoords(viewport,
                                                      axisTextCenterX,
                                                      axisTextCenterY,
                                                      axisText,

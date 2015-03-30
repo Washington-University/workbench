@@ -225,27 +225,31 @@ FtglFontTextRenderer::getFont(const BrainOpenGLTextAttributes& textAttributes,
 
 
 /**
- * Draw text at the given window coordinates.
+ * Draw text at the given VIEWPORT coordinates.
+ *
+ * The origin (0, 0) is at the bottom left corner
+ * of the viewport and (viewport-width, viewport-height)
+ * is at the top right corner of the viewport.
  *
  * @param viewport
  *   The current viewport.
  * @param windowX
- *   X-coordinate in the window of first text character
- *   using the 'alignment'
+ *   X-coordinate of the text.
  * @param windowY
- *   Y-coordinate in the window at which bottom of text is placed.
+ *   Y-coordinate of the text.
  * @param text
  *   Text that is to be drawn.
  * @param textAttributes
  *   Attributes for text drawing.
  */
 void
-FtglFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
+FtglFontTextRenderer::drawTextAtViewportCoords(const int viewport[4],
                                              const double windowX,
                                              const double windowY,
                                              const QString& text,
                                              const BrainOpenGLTextAttributes& textAttributes)
 {
+    std::cout << "Drawing \"" << qPrintable(text) << "\" at " << windowX << ", " << windowY << std::endl;
     if (text.isEmpty()) {
         return;
     }
@@ -780,7 +784,7 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                    modelMatrix, projectionMatrix, viewport,
                    &windowX, &windowY, &windowZ) == GL_TRUE) {
         
-        drawTextAtWindowCoords(viewport,
+        drawTextAtViewportCoords(viewport,
                                windowX,
                                windowY,
                                text,

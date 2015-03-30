@@ -37,7 +37,7 @@ namespace caret {
         
         bool isValid() const;
         
-        void drawTextAtWindowCoords(const int viewport[4],
+        void drawTextAtViewportCoords(const int viewport[4],
                                     const double windowX,
                                     const double windowY,
                                     const QString& text,

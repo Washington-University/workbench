@@ -73,22 +73,25 @@ BrainOpenGLWidgetTextRenderer::isValid() const
 }
 
 /**
- * Draw text at the given window coordinates.
+ * Draw text at the given VIEWPORT coordinates.
+ *
+ * The origin (0, 0) is at the bottom left corner
+ * of the viewport and (viewport-width, viewport-height)
+ * is at the top right corner of the viewport.
  *
  * @param viewport
  *   The current viewport.
  * @param windowX
- *   X-coordinate in the window of first text character
- *   using the 'alignment'
+ *   X-coordinate of the text.
  * @param windowY
- *   Y-coordinate in the window at which bottom of text is placed.
+ *   Y-coordinate of the text.
  * @param text
  *   Text that is to be drawn.
  * @param textAttributes
  *   Attributes for text drawing.
  */
 void
-BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
+BrainOpenGLWidgetTextRenderer::drawTextAtViewportCoords(const int viewport[4],
                                                       const double windowX,
                                                       const double windowY,
                                                       const QString& text,
