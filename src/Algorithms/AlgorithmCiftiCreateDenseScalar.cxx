@@ -22,6 +22,7 @@
 #include "AlgorithmException.h"
 
 #include "AlgorithmCiftiCreateDenseTimeseries.h" //for making the dense mapping from metric files
+#include "CaretAssert.h"
 #include "CiftiFile.h"
 #include "CaretAssert.h"
 #include "GiftiLabelTable.h"
@@ -134,7 +135,7 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
-    CiftiXMLOld myXML;
+    CiftiXML myXML;
     AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(myXML, CiftiXMLOld::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
     int numMaps = -1;
     const CaretMappableDataFile* nameFile = NULL;
@@ -186,58 +187,52 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
     {
         throw AlgorithmException("no models specified");
     }
-    myXML.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, numMaps);
+    CiftiScalarsMap scalarMap;
+    scalarMap.setLength(numMaps);
     for (int i = 0; i < numMaps; ++i)
     {
-        myXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, nameFile->getMapName(i));//copy map names
+        scalarMap.setMapName(i, nameFile->getMapName(i));//copy map names
     }
+    myXML.setMap(CiftiXML::ALONG_ROW, scalarMap);
     myCiftiOut->setCiftiXML(myXML);
     CaretArray<float> temprow(numMaps);
-    vector<CiftiSurfaceMap> surfMap;
-    if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CORTEX_LEFT))
+    const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    vector<StructureEnum::Enum> surfStructs = myDenseMap.getSurfaceStructureList();
+    for (int whichStruct = 0; whichStruct < (int)surfStructs.size(); ++whichStruct)
     {
+        vector<CiftiBrainModelsMap::SurfaceMap> surfMap = myDenseMap.getSurfaceMap(surfStructs[whichStruct]);
+        const MetricFile* dataMetric = NULL;
+        switch (surfStructs[whichStruct])
+        {
+            case StructureEnum::CORTEX_LEFT:
+                dataMetric = leftData;
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                dataMetric = rightData;
+                break;
+            case StructureEnum::CEREBELLUM:
+                dataMetric = cerebData;
+                break;
+            default:
+                CaretAssert(false);
+        }
         for (int64_t i = 0; i < (int)surfMap.size(); ++i)
         {
             for (int t = 0; t < numMaps; ++t)
             {
-                temprow[t] = leftData->getValue(surfMap[i].m_surfaceNode, t);
+                temprow[t] = dataMetric->getValue(surfMap[i].m_surfaceNode, t);
             }
             myCiftiOut->setRow(temprow, surfMap[i].m_ciftiIndex);
         }
     }
-    if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CORTEX_RIGHT))
+    vector<CiftiBrainModelsMap::VolumeMap> volMap = myDenseMap.getFullVolumeMap();//we don't need to know which voxel is from which structure
+    for (int64_t i = 0; i < (int)volMap.size(); ++i)
     {
-        for (int64_t i = 0; i < (int)surfMap.size(); ++i)
+        for (int t = 0; t < numMaps; ++t)
         {
-            for (int t = 0; t < numMaps; ++t)
-            {
-                temprow[t] = rightData->getValue(surfMap[i].m_surfaceNode, t);
-            }
-            myCiftiOut->setRow(temprow, surfMap[i].m_ciftiIndex);
+            temprow[t] = myVol->getValue(volMap[i].m_ijk, t);
         }
-    }
-    if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CEREBELLUM))
-    {
-        for (int64_t i = 0; i < (int)surfMap.size(); ++i)
-        {
-            for (int t = 0; t < numMaps; ++t)
-            {
-                temprow[t] = cerebData->getValue(surfMap[i].m_surfaceNode, t);
-            }
-            myCiftiOut->setRow(temprow, surfMap[i].m_ciftiIndex);
-        }
-    }
-    vector<CiftiVolumeMap> volMap;
-    if (myXML.getVolumeMapForColumns(volMap))//we don't need to know which voxel is from which parcel
-    {
-        for (int64_t i = 0; i < (int)volMap.size(); ++i)
-        {
-            for (int t = 0; t < numMaps; ++t)
-            {
-                temprow[t] = myVol->getValue(volMap[i].m_ijk, t);
-            }
-            myCiftiOut->setRow(temprow, volMap[i].m_ciftiIndex);
-        }
+        myCiftiOut->setRow(temprow, volMap[i].m_ciftiIndex);
     }
 }
 

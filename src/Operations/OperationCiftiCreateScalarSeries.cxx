@@ -61,11 +61,15 @@ OperationParameters* OperationCiftiCreateScalarSeries::getParameters()
     seriesOpt->addDoubleParameter(2, "start", "the value at the first series point");
     seriesOpt->addDoubleParameter(3, "step", "the interval between series points");
     
-    ret->setHelpText(
-        AString("Convert a text file containing series of equal length into a cifti file.  ") +
+    AString myHelp = AString("Convert a text file containing series of equal length into a cifti file.  ") +
         "The text file should have lines made up of numbers separated by whitespace, with no extra newlines between lines.\n\n" +
-        "The <unit> argument must be one of the following:\n\nSECOND\nHERTZ\nMETER\nRADIAN"
-    );
+        "The <unit> argument must be one of the following:\n";
+    vector<CiftiSeriesMap::Unit> units = CiftiSeriesMap::getAllUnits();
+    for (int i = 0; i < (int)units.size(); ++i)
+    {
+        myHelp += "\n" + CiftiSeriesMap::unitToString(units[i]);
+    }
+    ret->setHelpText(myHelp);
     return ret;
 }
 
@@ -127,18 +131,13 @@ void OperationCiftiCreateScalarSeries::useParameters(OperationParameters* myPara
     if (seriesOpt->m_present)
     {
         AString unitName = seriesOpt->getString(1);
-        if (unitName == "SECOND")//TODO: make this an enum class
+        bool ok = false;
+        CiftiSeriesMap::Unit myUnit = CiftiSeriesMap::stringToUnit(unitName, ok);
+        if (!ok)
         {
-            rowMap.setUnit(CiftiSeriesMap::SECOND);
-        } else if (unitName == "HERTZ") {
-            rowMap.setUnit(CiftiSeriesMap::HERTZ);
-        } else if (unitName == "METER") {
-            rowMap.setUnit(CiftiSeriesMap::METER);
-        } else if (unitName == "RADIAN") {
-            rowMap.setUnit(CiftiSeriesMap::RADIAN);
-        } else {
-            throw OperationException("unrecognized unit name");
+            throw OperationException("unrecognized unit name: '" + unitName + "'");
         }
+        rowMap.setUnit(myUnit);
         rowMap.setStart(seriesOpt->getDouble(2));
         rowMap.setStep(seriesOpt->getDouble(3));
     }

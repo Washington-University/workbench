@@ -20,6 +20,7 @@
 
 #include "AlgorithmCiftiCreateDenseTimeseries.h"
 #include "AlgorithmException.h"
+#include "CaretAssert.h"
 #include "StructureEnum.h"
 #include "VolumeFile.h"
 #include "MetricFile.h"
@@ -74,6 +75,9 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
     OptionalParameter* timestartOpt = ret->createOptionalParameter(7, "-timestart", "set the start time");
     timestartOpt->addDoubleParameter(1, "start", "the time at the first frame, in seconds (default 0.0)");
     
+    OptionalParameter* unitOpt = ret->createOptionalParameter(8, "-unit", "use a different unit");
+    unitOpt->addStringParameter(1, "unit", "unit identifier (default SECOND)");
+    
     AString myText = AString("All input files must have the same number of columns/subvolumes.  Only the specified components will be in the output cifti.  ") +
         "At least one component must be specified.  The label volume should have some of the label names from this list, all other label names will be ignored:\n";
     vector<StructureEnum::Enum> myStructureEnums;
@@ -81,6 +85,12 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
     {
         myText += "\n" + StructureEnum::toName(myStructureEnums[i]);
+    }
+    myText += "\n\nThe -unit option accepts these values:\n";
+    vector<CiftiSeriesMap::Unit> units = CiftiSeriesMap::getAllUnits();
+    for (int i = 0; i < (int)units.size(); ++i)
+    {
+        myText += "\n" + CiftiSeriesMap::unitToString(units[i]);
     }
     ret->setHelpText(myText);
     return ret;
@@ -139,18 +149,31 @@ void AlgorithmCiftiCreateDenseTimeseries::useParameters(OperationParameters* myP
     {
         timestart = (float)timestartOpt->getDouble(1);
     }
-    AlgorithmCiftiCreateDenseTimeseries(myProgObj, myCiftiOut, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi, timestep, timestart);
+    CiftiSeriesMap::Unit myUnit = CiftiSeriesMap::SECOND;
+    OptionalParameter* unitOpt = myParams->getOptionalParameter(8);
+    if (unitOpt->m_present)
+    {
+        AString unitName = unitOpt->getString(1);
+        bool ok = false;
+        myUnit = CiftiSeriesMap::stringToUnit(unitName, ok);
+        if (!ok)
+        {
+            throw AlgorithmException("unrecognized unit name: '" + unitName + "'");
+        }
+    }
+    AlgorithmCiftiCreateDenseTimeseries(myProgObj, myCiftiOut, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi, timestep, timestart, myUnit);
 }
 
-AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol,
-                                                                         const VolumeFile* myVolLabel, const MetricFile* leftData, const MetricFile* leftRoi,
-                                                                         const MetricFile* rightData, const MetricFile* rightRoi, const MetricFile* cerebData,
-                                                                         const MetricFile* cerebRoi, const float& timestep, const float& timestart) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol, const VolumeFile* myVolLabel,
+                                                                         const MetricFile* leftData, const MetricFile* leftRoi,
+                                                                         const MetricFile* rightData, const MetricFile* rightRoi,
+                                                                         const MetricFile* cerebData, const MetricFile* cerebRoi,
+                                                                         const float& timestep, const float& timestart, const CiftiSeriesMap::Unit& myUnit) : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
-    CiftiXMLOld myXML;
-    makeDenseMapping(myXML, CiftiXMLOld::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
+    CiftiXML myXML;
+    makeDenseMapping(myXML, CiftiXML::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
     int numMaps = -1;
     if (leftData != NULL)
     {
@@ -196,77 +219,74 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     {
         throw AlgorithmException("no models specified");
     }
-    myXML.resetRowsToTimepoints(timestep, numMaps, timestart);
+    CiftiSeriesMap seriesMap;
+    seriesMap.setUnit(myUnit);
+    seriesMap.setStart(timestart);
+    seriesMap.setStep(timestep);
+    seriesMap.setLength(numMaps);
+    myXML.setMap(CiftiXML::ALONG_ROW, seriesMap);
     myCiftiOut->setCiftiXML(myXML);
     CaretArray<float> temprow(numMaps);
-    vector<CiftiSurfaceMap> surfMap;
-    if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CORTEX_LEFT))
+    const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    vector<StructureEnum::Enum> surfStructs = myDenseMap.getSurfaceStructureList();
+    for (int whichStruct = 0; whichStruct < (int)surfStructs.size(); ++whichStruct)
     {
+        vector<CiftiBrainModelsMap::SurfaceMap> surfMap = myDenseMap.getSurfaceMap(surfStructs[whichStruct]);
+        const MetricFile* dataMetric = NULL;
+        switch (surfStructs[whichStruct])
+        {
+            case StructureEnum::CORTEX_LEFT:
+                dataMetric = leftData;
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                dataMetric = rightData;
+                break;
+            case StructureEnum::CEREBELLUM:
+                dataMetric = cerebData;
+                break;
+            default:
+                CaretAssert(false);
+        }
         for (int64_t i = 0; i < (int)surfMap.size(); ++i)
         {
             for (int t = 0; t < numMaps; ++t)
             {
-                temprow[t] = leftData->getValue(surfMap[i].m_surfaceNode, t);
+                temprow[t] = dataMetric->getValue(surfMap[i].m_surfaceNode, t);
             }
             myCiftiOut->setRow(temprow, surfMap[i].m_ciftiIndex);
         }
     }
-    if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CORTEX_RIGHT))
+    vector<CiftiBrainModelsMap::VolumeMap> volMap = myDenseMap.getFullVolumeMap();//we don't need to know which voxel is from which structure
+    for (int64_t i = 0; i < (int)volMap.size(); ++i)
     {
-        for (int64_t i = 0; i < (int)surfMap.size(); ++i)
+        for (int t = 0; t < numMaps; ++t)
         {
-            for (int t = 0; t < numMaps; ++t)
-            {
-                temprow[t] = rightData->getValue(surfMap[i].m_surfaceNode, t);
-            }
-            myCiftiOut->setRow(temprow, surfMap[i].m_ciftiIndex);
+            temprow[t] = myVol->getValue(volMap[i].m_ijk, t);
         }
-    }
-    if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CEREBELLUM))
-    {
-        for (int64_t i = 0; i < (int)surfMap.size(); ++i)
-        {
-            for (int t = 0; t < numMaps; ++t)
-            {
-                temprow[t] = cerebData->getValue(surfMap[i].m_surfaceNode, t);
-            }
-            myCiftiOut->setRow(temprow, surfMap[i].m_ciftiIndex);
-        }
-    }
-    vector<CiftiVolumeMap> volMap;
-    if (myXML.getVolumeMapForColumns(volMap))//we don't need to know which voxel is from which parcel
-    {
-        for (int64_t i = 0; i < (int)volMap.size(); ++i)
-        {
-            for (int t = 0; t < numMaps; ++t)
-            {
-                temprow[t] = myVol->getValue(volMap[i].m_ijk, t);
-            }
-            myCiftiOut->setRow(temprow, volMap[i].m_ciftiIndex);
-        }
+        myCiftiOut->setRow(temprow, volMap[i].m_ciftiIndex);
     }
 }
 
-void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXMLOld& toModify, const int& direction,
+void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXML& toModify, const int& direction,
                                                            const VolumeFile* myVol, const VolumeFile* myVolLabel,
                                                            const MetricFile* leftData, const MetricFile* leftRoi,
                                                            const MetricFile* rightData, const MetricFile* rightRoi,
                                                            const MetricFile* cerebData, const MetricFile* cerebRoi)
 {
     bool noData = true;
-    toModify.resetDirectionToBrainModels(direction);
+    CiftiBrainModelsMap denseMap;
     if (leftData != NULL)
     {
         noData = false;
         if (leftRoi == NULL)
         {
-            toModify.addSurfaceModel(direction, leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT);
+            denseMap.addSurfaceModel(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT);
         } else {
             if (leftRoi->getNumberOfNodes() != leftData->getNumberOfNodes())
             {
                 throw AlgorithmException("left surface ROI and data have different vertex counts");
             }
-            toModify.addSurfaceModel(direction, leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
+            denseMap.addSurfaceModel(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
         }
     }
     if (rightData != NULL)
@@ -274,13 +294,13 @@ void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXMLOld& toModify
         noData = false;
         if (rightRoi == NULL)
         {
-            toModify.addSurfaceModel(direction, rightData->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT);
+            denseMap.addSurfaceModel(rightData->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT);
         } else {
             if (rightRoi->getNumberOfNodes() != rightData->getNumberOfNodes())
             {
                 throw AlgorithmException("right surface ROI and data have different vertex counts");
             }
-            toModify.addSurfaceModel(direction, rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
+            denseMap.addSurfaceModel(rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
         }
     }
     if (cerebData != NULL)
@@ -288,13 +308,13 @@ void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXMLOld& toModify
         noData = false;
         if (cerebRoi == NULL)
         {
-            toModify.addSurfaceModel(direction, cerebData->getNumberOfNodes(), StructureEnum::CEREBELLUM);
+            denseMap.addSurfaceModel(cerebData->getNumberOfNodes(), StructureEnum::CEREBELLUM);
         } else {
             if (cerebRoi->getNumberOfNodes() != cerebData->getNumberOfNodes())
             {
                 throw AlgorithmException("cerebellum surface ROI and data have different vertex counts");
             }
-            toModify.addSurfaceModel(direction, cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
+            denseMap.addSurfaceModel(cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
         }
     }
     if (myVol != NULL)
@@ -314,7 +334,7 @@ void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXMLOld& toModify
         }
         noData = false;
         map<int, StructureEnum::Enum> labelMap;//maps label values to structures
-        vector<vector<voxelIndexType> > voxelLists;//voxel lists for each volume component
+        vector<vector<int64_t> > voxelLists;//voxel lists for each volume component
         map<StructureEnum::Enum, int> componentMap;//maps structures to indexes in voxelLists
         const GiftiLabelTable* myLabelTable = myVolLabel->getMapLabelTable(0);
         vector<int32_t> labelKeys;
@@ -355,20 +375,17 @@ void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXMLOld& toModify
                 }
             }
         }
-        int64_t ciftiVolDims[3];
-        ciftiVolDims[0] = mydims[0];
-        ciftiVolDims[1] = mydims[1];
-        ciftiVolDims[2] = mydims[2];
-        toModify.setVolumeDimsAndSForm(ciftiVolDims, myVol->getSform());
+        denseMap.setVolumeSpace(VolumeSpace(mydims.data(), myVol->getSform()));
         for (map<StructureEnum::Enum, int>::iterator myiter = componentMap.begin(); myiter != componentMap.end(); ++myiter)
         {
-            toModify.addVolumeModel(direction, voxelLists[myiter->second], myiter->first);
+            denseMap.addVolumeModel(myiter->first, voxelLists[myiter->second]);
         }
     }
     if (noData)
     {
         throw AlgorithmException("no models specified");
     }
+    toModify.setMap(direction, denseMap);
 }
 
 

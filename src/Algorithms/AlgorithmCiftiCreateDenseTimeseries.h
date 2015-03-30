@@ -23,9 +23,11 @@
 
 #include "AbstractAlgorithm.h"
 
+#include "CiftiSeriesMap.h"
+
 namespace caret {
     
-    class CiftiXMLOld;
+    class CiftiXML;
     
     class AlgorithmCiftiCreateDenseTimeseries : public AbstractAlgorithm
     {
@@ -34,14 +36,15 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiCreateDenseTimeseries(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol = NULL,
-                                                                         const VolumeFile* myVolLabel = NULL, const MetricFile* leftData = NULL, const MetricFile* leftRoi = NULL,
-                                                                         const MetricFile* rightData = NULL, const MetricFile* rightRoi = NULL, const MetricFile* cerebData = NULL,
-                                                                         const MetricFile* cerebRoi = NULL, const float& timestep = 1.0f, const float& timestart = 0.0f);
-        static void makeDenseMapping(CiftiXMLOld& toModify, const int& direction, const VolumeFile* myVol = NULL,
-                                                                         const VolumeFile* myVolLabel = NULL, const MetricFile* leftData = NULL, const MetricFile* leftRoi = NULL,
-                                                                         const MetricFile* rightData = NULL, const MetricFile* rightRoi = NULL, const MetricFile* cerebData = NULL,
-                                                                         const MetricFile* cerebRoi = NULL);//where should this go?  should also have version that accepts LabelFile
+        AlgorithmCiftiCreateDenseTimeseries(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol = NULL, const VolumeFile* myVolLabel = NULL,
+                                            const MetricFile* leftData = NULL, const MetricFile* leftRoi = NULL,
+                                            const MetricFile* rightData = NULL, const MetricFile* rightRoi = NULL,
+                                            const MetricFile* cerebData = NULL, const MetricFile* cerebRoi = NULL,
+                                            const float& timestep = 1.0f, const float& timestart = 0.0f, const CiftiSeriesMap::Unit& myUnit = CiftiSeriesMap::SECOND);
+        static void makeDenseMapping(CiftiXML& toModify, const int& direction, const VolumeFile* myVol = NULL,
+                                     const VolumeFile* myVolLabel = NULL, const MetricFile* leftData = NULL, const MetricFile* leftRoi = NULL,
+                                     const MetricFile* rightData = NULL, const MetricFile* rightRoi = NULL, const MetricFile* cerebData = NULL,
+                                     const MetricFile* cerebRoi = NULL);//where should this go?  should also have version that accepts LabelFile
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

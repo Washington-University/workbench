@@ -27,6 +27,50 @@
 using namespace caret;
 using namespace std;
 
+CiftiSeriesMap::Unit CiftiSeriesMap::stringToUnit(const QString& string, bool& ok)
+{
+    ok = true;
+    if (string == "SECOND")
+    {
+        return SECOND;
+    } else if (string == "HERTZ") {
+        return HERTZ;
+    } else if (string == "METER") {
+        return METER;
+    } else if (string == "RADIAN") {
+        return RADIAN;
+    }
+    ok = false;
+    return SECOND;
+}
+
+QString CiftiSeriesMap::unitToString(const CiftiSeriesMap::Unit& theUnit)
+{
+    switch (theUnit)
+    {
+        case SECOND:
+            return "SECOND";
+        case HERTZ:
+            return "HERTZ";
+        case METER:
+            return "METER";
+        case RADIAN:
+            return "RADIAN";
+    }
+    CaretAssert(false);
+    return "UNKNOWN";
+}
+
+vector<CiftiSeriesMap::Unit> CiftiSeriesMap::getAllUnits()
+{
+    vector<Unit> ret;
+    ret.push_back(SECOND);
+    ret.push_back(HERTZ);
+    ret.push_back(METER);
+    ret.push_back(RADIAN);
+    return ret;
+}
+
 void CiftiSeriesMap::readXML1(QXmlStreamReader& xml)
 {
     QXmlStreamAttributes attrs = xml.attributes();
