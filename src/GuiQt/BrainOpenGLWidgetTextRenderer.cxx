@@ -191,11 +191,18 @@ BrainOpenGLWidgetTextRenderer::drawHorizontalTextAtWindowCoords(const int viewpo
 {
     std::cout << "Draw horiz string " << qPrintable(text) << " at " << windowX << ", " << windowY << std::endl;
     
-    double width, height;
-    getTextBoundsInPixels(width,
-                          height,
-                          text,
-                          textAttributes);
+    double textMinX = 0.0;
+    double textMaxX = 0.0;
+    double textMinY = 0.0;
+    double textMaxY = 0.0;
+    getTextBoundsInPixels(text,
+                          textAttributes,
+                          textMinX,
+                          textMaxX,
+                          textMinY,
+                          textMaxY);
+    const double width  = textMaxX - textMinX;
+    const double height = textMaxY - textMinY;
     
     switch (textAttributes.getOrientation()) {
         case BrainOpenGLTextAttributes::LEFT_TO_RIGHT:
@@ -339,12 +346,18 @@ BrainOpenGLWidgetTextRenderer::drawVerticalTextAtWindowCoords(const int viewport
     const int32_t numChars = text.length();
     for (int32_t i = 0; i < numChars; i++) {
         const QString oneChar = text[i];
-        double width = 0;
-        double height = 0;
-        getTextBoundsInPixels(width,
-                              height,
-                              oneChar,
-                              textAttributes);
+        double textMinX = 0.0;
+        double textMaxX = 0.0;
+        double textMinY = 0.0;
+        double textMaxY = 0.0;
+        getTextBoundsInPixels(oneChar,
+                              textAttributes,
+                              textMinX,
+                              textMaxX,
+                              textMinY,
+                              textMaxY);
+        const double width  = textMaxX - textMinX;
+        const double height = textMaxY - textMinY;
         y -= height;
         xChars.push_back(0.0);
         yChars.push_back(y);
@@ -461,23 +474,31 @@ BrainOpenGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
 }
 
 /**
- * Get the bounds of the text (in pixels) using the given text
+ * Get the bounds of text (in pixels) using the given text
  * attributes.
  *
- * @param widthOut
- *   Output containing width of text characters.
- * @param heightOut
- *   Output containing height of text characters.
+ * See http://ftgl.sourceforge.net/docs/html/metrics.png
+ *
  * @param text
  *   Text that is to be drawn.
  * @param textAttributes
  *   Attributes for text drawing.
+ * @param xMinOut
+ *    Minimum X of text.
+ * @param xMaxOut
+ *    Maximum X of text.
+ * @param yMinOut
+ *    Minimum Y of text.
+ * @param yMaxOut
+ *    Maximum Y of text.
  */
 void
-BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(double& widthOut,
-                                                     double& heightOut,
-                                                     const QString& text,
-                                                     const BrainOpenGLTextAttributes& textAttributes)
+BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(const QString& text,
+                                                     const BrainOpenGLTextAttributes& textAttributes,
+                                                     double& xMinOut,
+                                                     double& xMaxOut,
+                                                     double& yMinOut,
+                                                     double& yMaxOut)
 {
     QFont* font = findFont(textAttributes.isBoldEnabled(),
                            textAttributes.getFontHeight());
@@ -487,8 +508,10 @@ BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(double& widthOut,
     
     QFontMetricsF fontMetrics(*font);
     QRectF boundsRect = fontMetrics.boundingRect(text);
-    widthOut  = boundsRect.width();
-    heightOut = boundsRect.height();
+    xMinOut = boundsRect.left();
+    xMaxOut = boundsRect.right();
+    yMinOut = boundsRect.bottom();
+    yMaxOut = boundsRect.top();
 }
 
 /**

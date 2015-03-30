@@ -18,6 +18,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /*LICENSE_END*/
+
+/**
+ * Qt licence is included since some of its GLWidget API is copied.
+ */
 /****************************************************************************
  **
  ** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
@@ -64,6 +68,7 @@
 #undef __FTGL_FONT_TEXT_RENDERER_DECLARE__
 
 #include <cmath>
+#include <limits>
 
 #include <QFile>
 
@@ -249,7 +254,7 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const int viewport[4],
                                              const QString& text,
                                              const BrainOpenGLTextAttributes& textAttributes)
 {
-    std::cout << "Drawing \"" << qPrintable(text) << "\" at " << windowX << ", " << windowY << std::endl;
+    //std::cout << "Drawing \"" << qPrintable(text) << "\" at " << windowX << ", " << windowY << std::endl;
     if (text.isEmpty()) {
         return;
     }
@@ -399,6 +404,12 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
     
+//    const double backgroundBounds[4] = {
+//        textX,
+//        textY,
+//        textX + (upper.X() - lower.X()),
+//        textY + (upper.Y() - lower.Y())
+//    };
     const double backgroundBounds[4] = {
         textX,
         textY,
@@ -505,14 +516,18 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
 
-    double textBoundsWidth  = 0.0;
-    double textBoundsHeight = 0.0;
+    double textMinX   = 0.0;
+    double textMaxX   = 0.0;
+    double textHeight = 0.0;
     std::vector<CharInfo> textCharsToDraw;
     getVerticalTextCharInfo(text,
                             textAttributes,
-                            textBoundsWidth,
-                            textBoundsHeight,
+                            textMinX,
+                            textMaxX,
+                            textHeight,
                             textCharsToDraw);
+    const double textBoundsWidth  = textMaxX - textMinX;
+    const double textBoundsHeight = textHeight;
     
     double textOffsetX = 0;
     switch (textAttributes.getHorizontalAlignment()) {
@@ -528,22 +543,22 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
     }
     
     /*
-     * By default, coordinate is a bottom of first character
+     * The character coordinates are set so that the top of the first
+     * will be at Y=0.
      */
-    const double oneCharHeight = (textBoundsHeight / static_cast<double>(textCharsToDraw.size()));
     double textOffsetY = 0.0;
     double textBackgroundTopOffsetY = 0.0;
     switch (textAttributes.getVerticalAlignment()) {
         case BrainOpenGLTextAttributes::Y_BOTTOM:
-            textOffsetY = textBoundsHeight - oneCharHeight;
+            textOffsetY = textBoundsHeight;
             textBackgroundTopOffsetY = textBoundsHeight;
             break;
         case BrainOpenGLTextAttributes::Y_CENTER:
-            textOffsetY = (textBoundsHeight / 2.0) - (oneCharHeight / 2.0);
+            textOffsetY = (textBoundsHeight / 2.0);
             textBackgroundTopOffsetY = (textBoundsHeight / 2.0);
             break;
         case BrainOpenGLTextAttributes::Y_TOP:
-            textOffsetY = -oneCharHeight;
+            textOffsetY = 0.0;
             textBackgroundTopOffsetY = 0.0;
             break;
     }
@@ -601,9 +616,14 @@ FtglFontTextRenderer::applyBackgroundColoring(const BrainOpenGLTextAttributes& t
     float backgroundColor[4];
     textAttributes.getBackgroundColor(backgroundColor);
     
+//    backgroundColor[0] = 1.0;
+//    backgroundColor[1] = 0.8;
+//    backgroundColor[2] = 0.6;
+//    backgroundColor[3] = 1.0;
+    
     if (backgroundColor[3] > 0.0) {
         glColor4fv(backgroundColor);
-        const double margin = 2;
+        const double margin = s_textMarginSize * 2;
         glRectd(textBoundsBox[0] - margin,
                 textBoundsBox[1] - margin,
                 textBoundsBox[2] + margin,
@@ -627,26 +647,37 @@ FtglFontTextRenderer::applyForegroundColoring(const BrainOpenGLTextAttributes& t
 }
 
 /**
- * Get the bounds of the text (in pixels) using the given text
+ * Get the bounds of text (in pixels) using the given text
  * attributes.
  *
- * @param widthOut
- *   Output containing width of text characters.
- * @param heightOut
- *   Output containing height of text characters.
+ * See http://ftgl.sourceforge.net/docs/html/metrics.png
+ *
  * @param text
  *   Text that is to be drawn.
  * @param textAttributes
  *   Attributes for text drawing.
+ * @param xMinOut
+ *    Minimum X of text.
+ * @param xMaxOut
+ *    Maximum X of text.
+ * @param yMinOut
+ *    Minimum Y of text.
+ * @param yMaxOut
+ *    Maximum Y of text.
  */
 void
-FtglFontTextRenderer::getTextBoundsInPixels(double& widthOut,
-                                            double& heightOut,
-                                           const QString& text,
-                                           const BrainOpenGLTextAttributes& textAttributes)
+FtglFontTextRenderer::getTextBoundsInPixels(const QString& text,
+                                            const BrainOpenGLTextAttributes& textAttributes,
+                                            double& xMinOut,
+                                            double& xMaxOut,
+                                            double& yMinOut,
+                                            double& yMaxOut)
 {
-    widthOut  = 0;
-    heightOut = 0;
+    xMinOut = 0.0;
+    xMaxOut = 0.0;
+    yMinOut = 0.0;
+    yMaxOut = 0.0;
+    
     if (text.isEmpty()) {
         return;
     }
@@ -664,36 +695,115 @@ FtglFontTextRenderer::getTextBoundsInPixels(double& widthOut,
             const FTPoint lower = bbox.Lower();
             const FTPoint upper = bbox.Upper();
             
-            widthOut  = upper.X() - lower.X();
-            heightOut = upper.Y() - lower.Y();
+            xMinOut = lower.X();
+            xMaxOut = upper.X();
+            yMinOut = lower.Y();
+            yMaxOut = upper.Y();
         }
             break;
         case BrainOpenGLTextAttributes::TOP_TO_BOTTOM:
         {
+            double textHeight = 0.0;
             std::vector<CharInfo> charInfo;
             getVerticalTextCharInfo(text,
                                     textAttributes,
-                                    widthOut,
-                                    heightOut,
+                                    xMinOut,
+                                    xMaxOut,
+                                    textHeight,
                                     charInfo);
+            yMaxOut = textHeight;
         }
             break;
     }
 #endif // HAVE_FREETYPE
 }
 
+///**
+// * Get the character info for drawing vertical text which includes
+// * position for each of the characters.
+// *
+// * @param text
+// *    Text that is to be drawn.
+// * @param textAttributes
+// *    Attributes for text drawing.
+// * @param xMinOut
+// *    Minimum X of text.
+// * @param xMaxOut
+// *    Maximum X of text.
+// * @param heightOut
+// *    Total height of text.
+// * @param charInfoOut
+// *    Contains each character and its X, Y position
+// *    for rendering vertically.
+// */
+//void
+//FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
+//                                              const BrainOpenGLTextAttributes& textAttributes,
+//                                              double& xMinOut,
+//                                              double& xMaxOut,
+//                                              double& heightOut,
+//                                              std::vector<CharInfo>& charInfoOut)
+//{
+//    charInfoOut.clear();
+//    xMinOut = 0.0;
+//    xMaxOut = 0.0;
+//    heightOut = 0.0;
+//    
+//    const int32_t numChars = static_cast<int32_t>(text.size());
+//    if (numChars <= 0) {
+//        return;
+//    }
+//#ifdef HAVE_FREETYPE
+//    
+//    FTFont* font = getFont(textAttributes,
+//                           false);
+//    if ( ! font) {
+//        return;
+//    }
+//    
+//    xMinOut =  std::numeric_limits<float>::max();
+//    xMaxOut = -std::numeric_limits<float>::max();
+//    
+//    double y =  0.0;
+//    for (int32_t i = 0; i < numChars; i++) {
+//        const QString oneChar = text[i];
+//        const FTBBox bbox = font->BBox(oneChar.toAscii().constData());
+//        const FTPoint lower = bbox.Lower();
+//        const FTPoint upper = bbox.Upper();
+//        
+//        const double width  = bbox.Upper().X() - bbox.Lower().X();
+//        
+//        xMinOut = std::min(xMinOut, lower.X());
+//        xMaxOut = std::max(xMaxOut, upper.X());
+//        
+//        const double xChar = -lower.X() - (width / 2.0);
+//        const double yChar = y + lower.Y();
+//        
+//        charInfoOut.push_back(CharInfo(oneChar,
+//                                           xChar, yChar));
+//        
+//        const double moveDownY = bbox.Upper().Y() - bbox.Lower().Y() + s_textMarginSize;
+//        y -= moveDownY;
+//    }
+//    
+//    heightOut = std::fabs(y);
+//#endif // HAVE_FREETYPE
+//}
 /**
  * Get the character info for drawing vertical text which includes
- * position for each of the characters.
+ * position for each of the characters.  The TOP of the first
+ * character will be at Y=0.
  *
  * @param text
  *    Text that is to be drawn.
  * @param textAttributes
  *    Attributes for text drawing.
- * @param widthOut
- *    Output containing width of text characters.
+ * @param xMinOut
+ *    Minimum X of text.
+ * @param xMaxOut
+ *    Maximum X of text.
  * @param heightOut
- *    Output containing height of text characters.
+ *    Total height of text.
  * @param charInfoOut
  *    Contains each character and its X, Y position
  *    for rendering vertically.
@@ -701,45 +811,69 @@ FtglFontTextRenderer::getTextBoundsInPixels(double& widthOut,
 void
 FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
                                               const BrainOpenGLTextAttributes& textAttributes,
-                                              double& textWidthOut,
-                                              double& textHeightOut,
+                                              double& xMinOut,
+                                              double& xMaxOut,
+                                              double& heightOut,
                                               std::vector<CharInfo>& charInfoOut)
 {
     charInfoOut.clear();
-    textWidthOut  = 0.0;
-    textHeightOut = 0.0;
+    xMinOut = 0.0;
+    xMaxOut = 0.0;
+    heightOut = 0.0;
     
-#ifdef HAVE_FREETYPE
     const int32_t numChars = static_cast<int32_t>(text.size());
+    if (numChars <= 0) {
+        return;
+    }
+#ifdef HAVE_FREETYPE
     
     FTFont* font = getFont(textAttributes,
                            false);
     if ( ! font) {
         return;
     }
-    const double SPACING = 2.0;
+    
+    xMinOut =  std::numeric_limits<float>::max();
+    xMaxOut = -std::numeric_limits<float>::max();
     
     double y =  0.0;
+    const int32_t lastCharIndex = numChars - 1;
     for (int32_t i = 0; i < numChars; i++) {
         const QString oneChar = text[i];
         const FTBBox bbox = font->BBox(oneChar.toAscii().constData());
+        const FTPoint lower = bbox.Lower();
+        const FTPoint upper = bbox.Upper();
+        
         const double width  = bbox.Upper().X() - bbox.Lower().X();
         
-        textWidthOut = std::max(textWidthOut,
-                                width);
+        xMinOut = std::min(xMinOut, lower.X());
+        xMaxOut = std::max(xMaxOut, upper.X());
         
-        const FTPoint lower = bbox.Lower();
+        /*
+         * Center the character horizontally.
+         */
         const double xChar = -lower.X() - (width / 2.0);
-        const double yChar = y + lower.Y();
+        
+        /*
+         * Want the top of character at the Y-coordinate.
+         */
+        const double yChar = y - upper.Y();
         
         charInfoOut.push_back(CharInfo(oneChar,
-                                           xChar, yChar));
+                                       xChar, yChar));
         
-        const double moveDownY = bbox.Upper().Y() - bbox.Lower().Y() + SPACING;
-        y -= moveDownY;
+        const double height = upper.Y() - lower.Y();
+        if (i == lastCharIndex) {
+            y -= height;
+        }
+        else {
+            const double heightWithSpacing = height + s_textMarginSize;
+            y -= heightWithSpacing;
+        }
     }
     
-    textHeightOut = std::fabs(y);
+    heightOut = std::fabs(y);
+
 #endif // HAVE_FREETYPE
 }
 

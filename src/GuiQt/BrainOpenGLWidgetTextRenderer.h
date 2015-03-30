@@ -52,10 +52,12 @@ namespace caret {
                                    const QString& text,
                                    const BrainOpenGLTextAttributes& textAttributes);
         
-        void getTextBoundsInPixels(double& widthOut,
-                                   double& heightOut,
-                                   const QString& text,
-                                   const BrainOpenGLTextAttributes& textAttributes);
+        void getTextBoundsInPixels(const QString& text,
+                                   const BrainOpenGLTextAttributes& textAttributes,
+                                   double& xMinOut,
+                                   double& xMaxOut,
+                                   double& yMinOut,
+                                   double& yMaxOut);
 
         virtual AString getName() const;
         

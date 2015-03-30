@@ -91,19 +91,27 @@ namespace caret {
          * Get the bounds of text (in pixels) using the given text
          * attributes.
          *
-         * @param widthOut
-         *   Output containing width of text characters.
-         * @param heightOut
-         *   Output containing height of text characters.
+         * See http://ftgl.sourceforge.net/docs/html/metrics.png
+         *
          * @param text
          *   Text that is to be drawn.
          * @param textAttributes
          *   Attributes for text drawing.
+         * @param xMinOut
+         *    Minimum X of text.
+         * @param xMaxOut
+         *    Maximum X of text.
+         * @param yMinOut
+         *    Minimum Y of text.
+         * @param yMaxOut
+         *    Maximum Y of text.
          */
-        virtual void getTextBoundsInPixels(double& widthOut,
-                                           double& heightOut,
-                                           const QString& text,
-                                           const BrainOpenGLTextAttributes& textAttributes) = 0;
+        virtual void getTextBoundsInPixels(const QString& text,
+                                           const BrainOpenGLTextAttributes& textAttributes,
+                                           double& xMinOut,
+                                           double& xMaxOut,
+                                           double& yMinOut,
+                                           double& yMaxOut) = 0;
         
         /**
          * @return The font system is valid.

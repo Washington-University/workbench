@@ -52,10 +52,12 @@ namespace caret {
                                    const QString& text,
                                    const BrainOpenGLTextAttributes& textAttributes);
         
-        void getTextBoundsInPixels(double& widthOut,
-                                   double& heightOut,
-                                   const QString& text,
-                                   const BrainOpenGLTextAttributes& textAttributes);
+        void getTextBoundsInPixels(const QString& text,
+                                   const BrainOpenGLTextAttributes& textAttributes,
+                                   double& xMinOut,
+                                   double& xMaxOut,
+                                   double& yMinOut,
+                                   double& yMaxOut);
         
         virtual AString getName() const;
         
@@ -111,8 +113,9 @@ namespace caret {
         
         void getVerticalTextCharInfo(const QString& text,
                                      const BrainOpenGLTextAttributes& textAttributes,
-                                     double& textWidthOut,
-                                     double& textHeightOut,
+                                     double& xMinOut,
+                                     double& xMaxOut,
+                                     double& heightOut,
                                      std::vector<CharInfo>& charInfoOut);
         
         void applyForegroundColoring(const BrainOpenGLTextAttributes& textAttributes);
@@ -150,10 +153,12 @@ namespace caret {
         void saveStateOfOpenGL();
         
         void restoreStateOfOpenGL();
+        
+        static const double s_textMarginSize;
     };
     
 #ifdef __FTGL_FONT_TEXT_RENDERER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const double FtglFontTextRenderer::s_textMarginSize = 2.0;
 #endif // __FTGL_FONT_TEXT_RENDERER_DECLARE__
 
 } // namespace
