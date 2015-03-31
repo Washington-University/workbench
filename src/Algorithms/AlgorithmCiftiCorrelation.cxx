@@ -190,6 +190,10 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
                                                      const bool& fisherZ, const float& memLimitGB, const bool& noDemean, const bool& covariance) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (covariance)
+    {
+        if (fisherZ) throw AlgorithmException("cannot apply fisher z transformation to covariance");
+    }
     init(myCifti, weights, noDemean, covariance);
     int numRows = myCifti->getNumberOfRows();
     CiftiXMLOld newXML = myCifti->getCiftiXMLOld();
@@ -286,6 +290,10 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
                                                      const bool& noDemean, const bool& covariance) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (covariance)
+    {
+        if (fisherZ) throw AlgorithmException("cannot apply fisher z transformation to covariance");
+    }
     init(myCifti, weights, noDemean, covariance);
     const CiftiXMLOld& origXML = myCifti->getCiftiXMLOld();
     if (origXML.getColumnMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
