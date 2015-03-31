@@ -216,7 +216,7 @@ namespace
                 CiftiFile restrictCifti, corrGradCifti;
                 AlgorithmCiftiRestrictDenseMap(NULL, dataCifti, CiftiXML::ALONG_COLUMN, &restrictCifti, leftRoi, rightRoi, cerebRoi, NULL);
                 AlgorithmCiftiCorrelationGradient(NULL, &restrictCifti, &corrGradCifti, leftSurf, rightSurf, cerebSurf,
-                                                  leftCorrAreas, rightCorrAreas, cerebCorrAreas, smoothing, 0.0f, false, true, excludeDist);
+                                                  leftCorrAreas, rightCorrAreas, cerebCorrAreas, smoothing, 0.0f, false, true, excludeDist, -1.0f, true);
                 AlgorithmCiftiSeparate(NULL, &corrGradCifti, CiftiXML::ALONG_COLUMN, surface->getStructure(), &gradientOut);
                 return true;
             }
