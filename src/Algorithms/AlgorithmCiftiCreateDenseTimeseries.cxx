@@ -385,6 +385,7 @@ void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXML& toModify, c
     {
         throw AlgorithmException("no models specified");
     }
+    toModify.setNumberOfDimensions(2);//HACK: quick fix, should probably return a mapping, not modify xml
     toModify.setMap(direction, denseMap);
 }
 
