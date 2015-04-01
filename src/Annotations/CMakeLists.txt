@@ -21,15 +21,17 @@ Annotation.h
 AnnotationAlignHorizontalEnum.h
 AnnotationAlignVerticalEnum.h
 AnnotationCoordinateSpaceEnum.h
-AnnotationDrawingTypeEnum.h
+AnnotationShapeTypeEnum.h
 AnnotationText.h
+AnnotationTypeEnum.h
 
 Annotation.cxx
 AnnotationAlignHorizontalEnum.cxx
 AnnotationAlignVerticalEnum.cxx
 AnnotationCoordinateSpaceEnum.cxx
-AnnotationDrawingTypeEnum.cxx
+AnnotationShapeTypeEnum.cxx
 AnnotationText.cxx
+AnnotationTypeEnum.cxx
 )
 
 #

@@ -45,6 +45,7 @@ namespace caret {
     class Model;
     class MouseEvent;
     class SurfaceProjectedItem;
+    class UserInputModeAnnotations;
     class UserInputModeBorders;
     class UserInputModeFoci;
     class UserInputModeView;
@@ -152,6 +153,7 @@ namespace caret {
         BrainOpenGLTextRenderInterface* textRenderer;
         
         UserInputModeAbstract* selectedUserInputProcessor;
+        UserInputModeAnnotations* userInputAnnotationsModeProcessor;
         UserInputModeView* userInputViewModeProcessor;
         UserInputModeBorders* userInputBordersModeProcessor;
         UserInputModeFoci* userInputFociModeProcessor;

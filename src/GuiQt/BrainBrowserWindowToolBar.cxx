@@ -2180,6 +2180,16 @@ QWidget*
 BrainBrowserWindowToolBar::createModeWidget()
 {
     /*
+     * Annotations
+     */
+    this->modeInputModeAnnotationsAction = WuQtUtilities::createAction("Annotations",
+                                                                      "Perform annotations operations with mouse",
+                                                                      this);
+    QToolButton* inputModeAnnotationsToolButton = new QToolButton();
+    inputModeAnnotationsToolButton->setCheckable(true);
+    inputModeAnnotationsToolButton->setDefaultAction(this->modeInputModeAnnotationsAction);
+    
+    /*
      * Borders 
      */ 
     this->modeInputModeBordersAction = WuQtUtilities::createAction("Border",
@@ -2228,7 +2238,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     QToolButton* inputModeViewToolButton = new QToolButton();
     inputModeViewToolButton->setDefaultAction(this->modeInputModeViewAction);
     
-    WuQtUtilities::matchWidgetWidths(inputModeBordersToolButton,
+    WuQtUtilities::matchWidgetWidths(inputModeAnnotationsToolButton,
+                                     inputModeBordersToolButton,
                                      inputModeFociToolButton,
                                      inputModeViewToolButton,
                                      inputModeVolumeEditButton);
@@ -2238,12 +2249,14 @@ BrainBrowserWindowToolBar::createModeWidget()
     QWidget* inputModeWidget = new QWidget();
     QVBoxLayout* inputModeLayout = new QVBoxLayout(inputModeWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(inputModeLayout, 2, 2);
+    inputModeLayout->addWidget(inputModeAnnotationsToolButton, 0, Qt::AlignHCenter);
     inputModeLayout->addWidget(inputModeBordersToolButton, 0, Qt::AlignHCenter);
     inputModeLayout->addWidget(inputModeFociToolButton, 0, Qt::AlignHCenter);
     inputModeLayout->addWidget(inputModeViewToolButton, 0, Qt::AlignHCenter);
     inputModeLayout->addWidget(inputModeVolumeEditButton, 0, Qt::AlignHCenter);
     
     this->modeInputModeActionGroup = new QActionGroup(this);
+    this->modeInputModeActionGroup->addAction(this->modeInputModeAnnotationsAction);
     this->modeInputModeActionGroup->addAction(this->modeInputModeBordersAction);
     this->modeInputModeActionGroup->addAction(this->modeInputModeFociAction);
     this->modeInputModeActionGroup->addAction(this->modeInputModeViewAction);
@@ -2284,7 +2297,10 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
 
     UserInputModeAbstract::UserInputMode inputMode = UserInputModeAbstract::INVALID;
     
-    if (action == this->modeInputModeBordersAction) {
+    if (action == this->modeInputModeAnnotationsAction) {
+        inputMode = UserInputModeAbstract::ANNOTATIONS;
+    }
+    else if (action == this->modeInputModeBordersAction) {
         inputMode = UserInputModeAbstract::BORDERS;
         
         /*
@@ -2344,6 +2360,9 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
     switch (getInputModeEvent.getUserInputMode()) {
         case UserInputModeAbstract::INVALID:
             /* may get here when program is exiting and widgets are being destroyed */
+            break;
+        case UserInputModeAbstract::ANNOTATIONS:
+            this->modeInputModeAnnotationsAction->setChecked(true);
             break;
         case UserInputModeAbstract::BORDERS:
             this->modeInputModeBordersAction->setChecked(true);

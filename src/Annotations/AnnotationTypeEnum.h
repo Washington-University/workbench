@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_DRAWING_TYPE_ENUM_H__
-#define __ANNOTATION_DRAWING_TYPE_ENUM_H__
+#ifndef __ANNOTATION_TYPE_ENUM_H__
+#define __ANNOTATION_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,29 +28,23 @@
 
 namespace caret {
 
-class AnnotationDrawingTypeEnum {
+class AnnotationTypeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** */
-        ARROW,
-        /** */
-        BOX,
-        /** */
+        /** Image */
         IMAGE,
-        /** */
-        LINE,
-        /** */
-        OVAL,
-        /** */
+        /** Shape */
+        SHAPE,
+        /** Text */
         TEXT
     };
 
 
-    ~AnnotationDrawingTypeEnum();
+    ~AnnotationTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -71,14 +65,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    AnnotationDrawingTypeEnum(const Enum enumValue, 
+    AnnotationTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const AnnotationDrawingTypeEnum* findData(const Enum enumValue);
+    static const AnnotationTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationDrawingTypeEnum> enumData;
+    static std::vector<AnnotationTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -102,11 +96,11 @@ private:
     AString guiName;
 };
 
-#ifdef __ANNOTATION_DRAWING_TYPE_ENUM_DECLARE__
-std::vector<AnnotationDrawingTypeEnum> AnnotationDrawingTypeEnum::enumData;
-bool AnnotationDrawingTypeEnum::initializedFlag = false;
-int32_t AnnotationDrawingTypeEnum::integerCodeCounter = 0; 
-#endif // __ANNOTATION_DRAWING_TYPE_ENUM_DECLARE__
+#ifdef __ANNOTATION_TYPE_ENUM_DECLARE__
+std::vector<AnnotationTypeEnum> AnnotationTypeEnum::enumData;
+bool AnnotationTypeEnum::initializedFlag = false;
+int32_t AnnotationTypeEnum::integerCodeCounter = 0; 
+#endif // __ANNOTATION_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_DRAWING_TYPE_ENUM_H__
+#endif  //__ANNOTATION_TYPE_ENUM_H__

@@ -25,7 +25,7 @@
 #include "AnnotationAlignHorizontalEnum.h"
 #include "AnnotationAlignVerticalEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
-#include "AnnotationDrawingTypeEnum.h"
+#include "AnnotationTypeEnum.h"
 #include "CaretObject.h"
 
 #include "SceneableInterface.h"
@@ -37,7 +37,7 @@ namespace caret {
     class Annotation : public CaretObject, public SceneableInterface {
         
     public:
-        Annotation(const AnnotationDrawingTypeEnum::Enum drawingType);
+        Annotation(const AnnotationTypeEnum::Enum type);
         
         virtual ~Annotation();
         
@@ -45,7 +45,7 @@ namespace caret {
 
         Annotation& operator=(const Annotation& obj);
         
-        AnnotationDrawingTypeEnum::Enum getDrawingType() const;
+        AnnotationTypeEnum::Enum getType() const;
         
         AnnotationAlignHorizontalEnum::Enum getHorizontalAlignment() const;
         
@@ -101,7 +101,7 @@ namespace caret {
     private:
         void copyHelperAnnotation(const Annotation& obj);
 
-        const AnnotationDrawingTypeEnum::Enum m_drawingType;
+        const AnnotationTypeEnum::Enum m_type;
         
         SceneClassAssistant* m_sceneAssistant;
 

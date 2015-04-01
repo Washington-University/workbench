@@ -116,6 +116,7 @@ StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 TileTabsConfigurationDialog.h
+UserInputModeAnnotationsWidget.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
 UserInputModeVolumeEditWidget.h
@@ -273,6 +274,8 @@ SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 TileTabsConfigurationDialog.h
 UserInputModeAbstract.h
+UserInputModeAnnotations.h
+UserInputModeAnnotationsWidget.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
@@ -427,6 +430,8 @@ SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
 TileTabsConfigurationDialog.cxx
 UserInputModeAbstract.cxx
+UserInputModeAnnotations.cxx
+UserInputModeAnnotationsWidget.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx
 UserInputModeFoci.cxx

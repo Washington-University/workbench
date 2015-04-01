@@ -5427,7 +5427,7 @@ BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
             vp[2],
             vp[3]
         };
-        this->textRenderer->drawTextAtWindowCoords(viewport,
+        this->textRenderer->drawTextAtViewportCoords(viewport,
                                                    windowX,
                                                    windowY,
                                                    text.trimmed(),

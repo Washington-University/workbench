@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __ANNOTATION_DRAWING_TYPE_ENUM_DECLARE__
-#include "AnnotationDrawingTypeEnum.h"
-#undef __ANNOTATION_DRAWING_TYPE_ENUM_DECLARE__
+#define __ANNOTATION_SHAPE_TYPE_ENUM_DECLARE__
+#include "AnnotationShapeTypeEnum.h"
+#undef __ANNOTATION_SHAPE_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,10 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationDrawingTypeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \class caret::AnnotationShapeTypeEnum 
+ * \brief Shape types for shape annotations.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -42,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_annotationDrawingTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_AnnotationShapeTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void annotationDrawingTypeEnumComboBoxItemActivated();
+ *             void AnnotationShapeTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "AnnotationDrawingTypeEnum.h"
+ *         #include "AnnotationShapeTypeEnum.h"
  * 
  *     Instatiate:
- *         m_annotationDrawingTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_annotationDrawingTypeEnumComboBox->setup<AnnotationDrawingTypeEnum,AnnotationDrawingTypeEnum::Enum>();
+ *         m_AnnotationShapeTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_AnnotationShapeTypeEnumComboBox->setup<AnnotationShapeTypeEnum,AnnotationShapeTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_annotationDrawingTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(annotationDrawingTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_AnnotationShapeTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(AnnotationShapeTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_annotationDrawingTypeEnumComboBox->setSelectedItem<AnnotationDrawingTypeEnum,AnnotationDrawingTypeEnum::Enum>(NEW_VALUE);
+ *         m_AnnotationShapeTypeEnumComboBox->setSelectedItem<AnnotationShapeTypeEnum,AnnotationShapeTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const AnnotationDrawingTypeEnum::Enum VARIABLE = m_annotationDrawingTypeEnumComboBox->getSelectedItem<AnnotationDrawingTypeEnum,AnnotationDrawingTypeEnum::Enum>();
+ *         const AnnotationShapeTypeEnum::Enum VARIABLE = m_AnnotationShapeTypeEnumComboBox->getSelectedItem<AnnotationShapeTypeEnum,AnnotationShapeTypeEnum::Enum>();
  * 
  */
 
@@ -80,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-AnnotationDrawingTypeEnum::AnnotationDrawingTypeEnum(const Enum enumValue,
+AnnotationShapeTypeEnum::AnnotationShapeTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -93,7 +91,7 @@ AnnotationDrawingTypeEnum::AnnotationDrawingTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-AnnotationDrawingTypeEnum::~AnnotationDrawingTypeEnum()
+AnnotationShapeTypeEnum::~AnnotationShapeTypeEnum()
 {
 }
 
@@ -101,37 +99,28 @@ AnnotationDrawingTypeEnum::~AnnotationDrawingTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-AnnotationDrawingTypeEnum::initialize()
+AnnotationShapeTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationDrawingTypeEnum(ARROW, 
-                                    "ARROW", 
-                                    ""));
+    enumData.push_back(AnnotationShapeTypeEnum(ARROW,
+                                               "ARROW",
+                                               "Arrow"));
     
-    enumData.push_back(AnnotationDrawingTypeEnum(BOX, 
-                                    "BOX", 
-                                    ""));
+    enumData.push_back(AnnotationShapeTypeEnum(BOX,
+                                               "BOX",
+                                               "Box"));
     
-    enumData.push_back(AnnotationDrawingTypeEnum(IMAGE, 
-                                    "IMAGE", 
-                                    ""));
+    enumData.push_back(AnnotationShapeTypeEnum(LINE,
+                                               "LINE",
+                                               "Line"));
     
-    enumData.push_back(AnnotationDrawingTypeEnum(LINE, 
-                                    "LINE", 
-                                    ""));
-    
-    enumData.push_back(AnnotationDrawingTypeEnum(OVAL, 
-                                    "OVAL", 
-                                    ""));
-    
-    enumData.push_back(AnnotationDrawingTypeEnum(TEXT, 
-                                    "TEXT", 
-                                    ""));
-    
+    enumData.push_back(AnnotationShapeTypeEnum(OVAL,
+                                               "OVAL",
+                                               "Oval"));
 }
 
 /**
@@ -141,14 +130,14 @@ AnnotationDrawingTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const AnnotationDrawingTypeEnum*
-AnnotationDrawingTypeEnum::findData(const Enum enumValue)
+const AnnotationShapeTypeEnum*
+AnnotationShapeTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const AnnotationDrawingTypeEnum* d = &enumData[i];
+        const AnnotationShapeTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -165,10 +154,10 @@ AnnotationDrawingTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-AnnotationDrawingTypeEnum::toName(Enum enumValue) {
+AnnotationShapeTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationDrawingTypeEnum* enumInstance = findData(enumValue);
+    const AnnotationShapeTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -182,18 +171,18 @@ AnnotationDrawingTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationDrawingTypeEnum::Enum 
-AnnotationDrawingTypeEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationShapeTypeEnum::Enum 
+AnnotationShapeTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationDrawingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationShapeTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationDrawingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationDrawingTypeEnum& d = *iter;
+        const AnnotationShapeTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -205,7 +194,7 @@ AnnotationDrawingTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationDrawingTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationShapeTypeEnum"));
     }
     return enumValue;
 }
@@ -218,10 +207,10 @@ AnnotationDrawingTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-AnnotationDrawingTypeEnum::toGuiName(Enum enumValue) {
+AnnotationShapeTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationDrawingTypeEnum* enumInstance = findData(enumValue);
+    const AnnotationShapeTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -235,18 +224,18 @@ AnnotationDrawingTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationDrawingTypeEnum::Enum 
-AnnotationDrawingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+AnnotationShapeTypeEnum::Enum 
+AnnotationShapeTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationDrawingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationShapeTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationDrawingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationDrawingTypeEnum& d = *iter;
+        const AnnotationShapeTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -258,7 +247,7 @@ AnnotationDrawingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationDrawingTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationShapeTypeEnum"));
     }
     return enumValue;
 }
@@ -270,10 +259,10 @@ AnnotationDrawingTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-AnnotationDrawingTypeEnum::toIntegerCode(Enum enumValue)
+AnnotationShapeTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationDrawingTypeEnum* enumInstance = findData(enumValue);
+    const AnnotationShapeTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -288,18 +277,18 @@ AnnotationDrawingTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-AnnotationDrawingTypeEnum::Enum
-AnnotationDrawingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+AnnotationShapeTypeEnum::Enum
+AnnotationShapeTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationDrawingTypeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationShapeTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationDrawingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationDrawingTypeEnum& enumInstance = *iter;
+        const AnnotationShapeTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -311,7 +300,7 @@ AnnotationDrawingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVa
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationDrawingTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationShapeTypeEnum"));
     }
     return enumValue;
 }
@@ -324,13 +313,13 @@ AnnotationDrawingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVa
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-AnnotationDrawingTypeEnum::getAllEnums(std::vector<AnnotationDrawingTypeEnum::Enum>& allEnums)
+AnnotationShapeTypeEnum::getAllEnums(std::vector<AnnotationShapeTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<AnnotationDrawingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -346,16 +335,16 @@ AnnotationDrawingTypeEnum::getAllEnums(std::vector<AnnotationDrawingTypeEnum::En
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationDrawingTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+AnnotationShapeTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<AnnotationDrawingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(AnnotationDrawingTypeEnum::toName(iter->enumValue));
+        allNames.push_back(AnnotationShapeTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -372,16 +361,16 @@ AnnotationDrawingTypeEnum::getAllNames(std::vector<AString>& allNames, const boo
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationDrawingTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+AnnotationShapeTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<AnnotationDrawingTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(AnnotationDrawingTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(AnnotationShapeTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

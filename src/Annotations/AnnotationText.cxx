@@ -41,7 +41,7 @@ using namespace caret;
  * Constructor for a text annotation.
  */
 AnnotationText::AnnotationText()
-: Annotation(AnnotationDrawingTypeEnum::TEXT)
+: Annotation(AnnotationTypeEnum::TEXT)
 {
     m_sceneAssistant = new SceneClassAssistant();
     

@@ -40,6 +40,8 @@ namespace caret {
         enum UserInputMode {
             /** Invalid */
             INVALID,
+            /** Annotation Operations */
+            ANNOTATIONS,
             /** Border Operations */
             BORDERS,
             /** Foci Operations */

@@ -66,6 +66,7 @@
 #include "SessionManager.h"
 #include "Surface.h"
 #include "TileTabsConfiguration.h"
+#include "userInputModeAnnotations.h"
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
 #include "UserInputModeView.h"
@@ -126,6 +127,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     }
     
     this->windowIndex = windowIndex;
+    this->userInputAnnotationsModeProcessor = new UserInputModeAnnotations(windowIndex);
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
                                                                    windowIndex);
     this->userInputFociModeProcessor = new UserInputModeFoci(windowIndex);
@@ -164,6 +166,7 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
         this->openGL = NULL;
     }
     delete this->userInputViewModeProcessor;
+    delete this->userInputAnnotationsModeProcessor;
     delete this->userInputBordersModeProcessor;
     delete this->userInputFociModeProcessor;
     delete this->userInputVolumeEditModeProcessor;
@@ -1361,6 +1364,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                 switch (inputModeEvent->getUserInputMode()) {
                     case UserInputModeAbstract::INVALID:
                         CaretAssertMessage(0, "INVALID is NOT allowed for user input mode");
+                        break;
+                    case UserInputModeAbstract::ANNOTATIONS:
+                        newUserInputProcessor = this->userInputAnnotationsModeProcessor;
                         break;
                     case UserInputModeAbstract::BORDERS:
                         newUserInputProcessor = this->userInputBordersModeProcessor;

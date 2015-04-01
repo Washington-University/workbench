@@ -43,9 +43,9 @@ using namespace caret;
  * @param drawingType
  *    Type of annotation for drawing.
  */
-Annotation::Annotation(const AnnotationDrawingTypeEnum::Enum drawingType)
+Annotation::Annotation(const AnnotationTypeEnum::Enum type)
 : CaretObject(),
-m_drawingType(drawingType)
+m_type(type)
 {
     m_alignmentHorizontal = AnnotationAlignHorizontalEnum::CENTER;
     m_alignmentVertical   = AnnotationAlignVerticalEnum::CENTER;
@@ -84,7 +84,7 @@ Annotation::~Annotation()
  */
 Annotation::Annotation(const Annotation& obj)
 : CaretObject(obj),
-m_drawingType(obj.m_drawingType)
+m_type(obj.m_type)
 {
     this->copyHelperAnnotation(obj);
 }
@@ -120,10 +120,10 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
 /**
  * @return The annotation drawing type.
  */
-AnnotationDrawingTypeEnum::Enum
-Annotation::getDrawingType() const
+AnnotationTypeEnum::Enum
+Annotation::getType() const
 {
-    return m_drawingType;
+    return m_type;
 }
 
 /**

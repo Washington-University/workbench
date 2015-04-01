@@ -361,6 +361,7 @@ namespace caret {
     private:
         void updateDisplayedModeUserInputWidget();
         QActionGroup* modeInputModeActionGroup;
+        QAction* modeInputModeAnnotationsAction;
         QAction* modeInputModeBordersAction;
         QAction* modeInputModeFociAction;
         QAction* modeInputModeViewAction;
