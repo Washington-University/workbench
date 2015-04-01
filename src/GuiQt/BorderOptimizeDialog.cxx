@@ -438,10 +438,23 @@ BorderOptimizeDialog::okButtonClicked()
                                                gradientFollowingStrength,
                                                resultsMetricFile);
     
+    /*
+     * Run border optimization.
+     */
     AString statisticsInformation;
-    if (BorderOptimizeExecutor::run(algInput,
-                                    statisticsInformation,
-                                    errorMessage)) {
+    const bool algSuccessFlag = BorderOptimizeExecutor::run(algInput,
+                                                            statisticsInformation,
+                                                            errorMessage);
+    /*
+     * The progress dialog normally closes on its own but
+     * may fail to close if the algorithm fails due to 
+     * the 'progress value' not reaching 'progress maximum'.
+     * This prevent the error dialog from being shown behind
+     * the progress dialog.
+     */
+    progressDialog.close();
+    
+    if (algSuccessFlag) {
         AString infoMsg;
         if ( ! resultsMetricFile->isEmpty()) {
             resultsMetricFile->setStructure(gradientComputationSurface->getStructure());
