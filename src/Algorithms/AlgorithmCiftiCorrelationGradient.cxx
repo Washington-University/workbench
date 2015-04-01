@@ -84,7 +84,8 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     OptionalParameter* volumeExcludeOpt = ret->createOptionalParameter(10, "-volume-exclude", "exclude voxels near each seed voxel from computation");
     volumeExcludeOpt->addDoubleParameter(1, "distance", "distance from seed voxel for the exclusion zone, in mm");
     
-    ret->createOptionalParameter(13, "-covariance", "compute covariance instead of correlation");
+    OptionalParameter* covarianceOpt = ret->createOptionalParameter(13, "-covariance", "compute covariance instead of correlation");
+    covarianceOpt->createOptionalParameter(1, "-sqrt", "take the square root of the magnitude of covariance and reapply sign");
     
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(11, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
@@ -180,23 +181,29 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
         }
     }
     //bool localMethod = myParams->getOptionalParameter(9)->m_present;
-    bool covariance = myParams->getOptionalParameter(13)->m_present;
+    bool covariance = false, covSqrt = false;
+    OptionalParameter* covarianceOpt = myParams->getOptionalParameter(13);
+    if (covarianceOpt->m_present)
+    {
+        covariance = true;
+        covSqrt = covarianceOpt->getOptionalParameter(1)->m_present;
+    }
     AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myLeftAreas, myRightAreas, myCerebAreas,
-                                      surfKern, volKern, undoFisherInput, applyFisher, surfaceExclude, volumeExclude, covariance, memLimitGB);
+                                      surfKern, volKern, undoFisherInput, applyFisher, surfaceExclude, volumeExclude, covariance, covSqrt, memLimitGB);
 }
 
 AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                                                      SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf, SurfaceFile* myCerebSurf,
                                                                      const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
                                                                      const float& surfKern, const float& volKern, const bool& undoFisherInput, const bool& applyFisher,
-                                                                     const float& surfaceExclude, const float& volumeExclude, const bool& covariance, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
+                                                                     const float& surfaceExclude, const float& volumeExclude, const bool& covariance, const bool& covSqrt, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (covariance)
     {
         if (applyFisher) throw AlgorithmException("cannot apply fisher z transformation to covariance");
     }
-    init(myCifti, undoFisherInput, applyFisher, covariance);
+    init(myCifti, undoFisherInput, applyFisher, covariance, covSqrt);
     const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
     CiftiXMLOld myNewXML = myXML;
     myNewXML.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, 1);
@@ -1076,6 +1083,15 @@ float AlgorithmCiftiCorrelationGradient::correlate(const float* row1, const floa
         if (m_covariance)
         {
             r = accum / m_numCols;
+            if (m_covSqrt)
+            {
+                if (r > 0.0)
+                {
+                    r = sqrt(r);
+                } else {
+                    r = -sqrt(-r);
+                }
+            }
         } else {
             r = accum / (rrs1 * rrs2);
         }
@@ -1095,12 +1111,13 @@ float AlgorithmCiftiCorrelationGradient::correlate(const float* row1, const floa
     return r;
 }
 
-void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool& undoFisherInput, const bool& applyFisher, const bool& covariance)
+void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool& undoFisherInput, const bool& applyFisher, const bool& covariance, const bool& covSqrt)
 {
     if (input->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("input cifti file must have brain models mapping along column");
     m_undoFisherInput = undoFisherInput;
     m_applyFisher = applyFisher;
     m_covariance = covariance;
+    m_covSqrt = covSqrt;
     m_inputCifti = input;
     m_rowInfo.resize(m_inputCifti->getNumberOfRows());
     m_cacheUsed = 0;
