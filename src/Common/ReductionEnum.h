@@ -50,6 +50,7 @@ public:
             STDEV,
             SAMPSTDEV,
             VARIANCE,
+            PRODUCT,
             MEDIAN,
             MODE,
             COUNT_NONZERO

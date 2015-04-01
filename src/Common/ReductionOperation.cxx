@@ -76,6 +76,12 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
                 }
             }
         }
+        case ReductionEnum::PRODUCT:
+        {
+            double prod = 1.0;
+            for (int64_t i = 0; i < numElems; ++i) prod *= data[i];
+            return prod;
+        }
         case ReductionEnum::MAX:
         {
             float max = data[0];
