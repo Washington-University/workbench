@@ -584,6 +584,10 @@ BorderOptimizeDialog::createBorderSelectionWidget()
     borderPairLayout->addWidget(m_borderPairCheckBox, 0);
     borderPairLayout->addWidget(m_borderPairFileSelectionComboBox->getWidget(), 100);
     
+    QObject::connect(m_borderPairCheckBox, SIGNAL(clicked(bool)),
+                     m_borderPairFileSelectionComboBox->getWidget(), SLOT(setEnabled(bool)));
+    m_borderPairFileSelectionComboBox->getWidget()->setEnabled(m_borderPairCheckBox->isChecked());
+    
     m_bordersInsideROILayout = new QVBoxLayout();
     
     QAction* diableAllAction = new QAction("Disable All",
