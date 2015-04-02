@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __ANNOTATION_COORDINATE_SPACE_ENUM_DECLARE__
-#include "AnnotationCoordinateSpaceEnum.h"
-#undef __ANNOTATION_COORDINATE_SPACE_ENUM_DECLARE__
+#define __ANNOTATION_TEXT_ORIENTATION_ENUM_DECLARE__
+#include "AnnotationTextOrientationEnum.h"
+#undef __ANNOTATION_TEXT_ORIENTATION_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationCoordinateSpaceEnum 
- * \brief Coordinate space of annotation.
+ * \class caret::AnnotationTextOrientationEnum 
+ * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
  *
  * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
@@ -42,30 +42,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_annotationCoordinateSpaceEnumComboBox;
+ *         EnumComboBoxTemplate* m_annotationTextOrientationEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void annotationCoordinateSpaceEnumComboBoxItemActivated();
+ *             void annotationTextOrientationEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "AnnotationCoordinateSpaceEnum.h"
+ *         #include "AnnotationTextOrientationEnum.h"
  * 
  *     Instatiate:
- *         m_annotationCoordinateSpaceEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_annotationCoordinateSpaceEnumComboBox->setup<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>();
+ *         m_annotationTextOrientationEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_annotationTextOrientationEnumComboBox->setup<AnnotationTextOrientationEnum,AnnotationTextOrientationEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_annotationCoordinateSpaceEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(annotationCoordinateSpaceEnumComboBoxItemActivated()));
+ *         QObject::connect(m_annotationTextOrientationEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(annotationTextOrientationEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_annotationCoordinateSpaceEnumComboBox->setSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(NEW_VALUE);
+ *         m_annotationTextOrientationEnumComboBox->setSelectedItem<AnnotationTextOrientationEnum,AnnotationTextOrientationEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const AnnotationCoordinateSpaceEnum::Enum VARIABLE = m_annotationCoordinateSpaceEnumComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>();
+ *         const AnnotationTextOrientationEnum::Enum VARIABLE = m_annotationTextOrientationEnumComboBox->getSelectedItem<AnnotationTextOrientationEnum,AnnotationTextOrientationEnum::Enum>();
  * 
  */
 
@@ -80,7 +80,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-AnnotationCoordinateSpaceEnum::AnnotationCoordinateSpaceEnum(const Enum enumValue,
+AnnotationTextOrientationEnum::AnnotationTextOrientationEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -93,7 +93,7 @@ AnnotationCoordinateSpaceEnum::AnnotationCoordinateSpaceEnum(const Enum enumValu
 /**
  * Destructor.
  */
-AnnotationCoordinateSpaceEnum::~AnnotationCoordinateSpaceEnum()
+AnnotationTextOrientationEnum::~AnnotationTextOrientationEnum()
 {
 }
 
@@ -101,28 +101,21 @@ AnnotationCoordinateSpaceEnum::~AnnotationCoordinateSpaceEnum()
  * Initialize the enumerated metadata.
  */
 void
-AnnotationCoordinateSpaceEnum::initialize()
+AnnotationTextOrientationEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationCoordinateSpaceEnum(MODEL,
-                                                     "MODEL",
-                                                     "Model"));
+    enumData.push_back(AnnotationTextOrientationEnum(HORIZONTAL, 
+                                    "HORIZONTAL", 
+                                    "Horizontal"));
     
-    enumData.push_back(AnnotationCoordinateSpaceEnum(SURFACE,
-                                                     "SURFACE",
-                                                     "Surface"));
+    enumData.push_back(AnnotationTextOrientationEnum(STACKED, 
+                                    "STACKED", 
+                                    "Stacked"));
     
-    enumData.push_back(AnnotationCoordinateSpaceEnum(TAB,
-                                                     "TAB",
-                                                     "Tab"));
-    
-    enumData.push_back(AnnotationCoordinateSpaceEnum(WINDOW,
-                                                     "WINDOW",
-                                                     "Window"));
 }
 
 /**
@@ -132,14 +125,14 @@ AnnotationCoordinateSpaceEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const AnnotationCoordinateSpaceEnum*
-AnnotationCoordinateSpaceEnum::findData(const Enum enumValue)
+const AnnotationTextOrientationEnum*
+AnnotationTextOrientationEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const AnnotationCoordinateSpaceEnum* d = &enumData[i];
+        const AnnotationTextOrientationEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -156,10 +149,10 @@ AnnotationCoordinateSpaceEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-AnnotationCoordinateSpaceEnum::toName(Enum enumValue) {
+AnnotationTextOrientationEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationCoordinateSpaceEnum* enumInstance = findData(enumValue);
+    const AnnotationTextOrientationEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -173,18 +166,18 @@ AnnotationCoordinateSpaceEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationCoordinateSpaceEnum::Enum 
-AnnotationCoordinateSpaceEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationTextOrientationEnum::Enum 
+AnnotationTextOrientationEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationCoordinateSpaceEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextOrientationEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationCoordinateSpaceEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextOrientationEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationCoordinateSpaceEnum& d = *iter;
+        const AnnotationTextOrientationEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -196,7 +189,7 @@ AnnotationCoordinateSpaceEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationCoordinateSpaceEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationTextOrientationEnum"));
     }
     return enumValue;
 }
@@ -209,10 +202,10 @@ AnnotationCoordinateSpaceEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-AnnotationCoordinateSpaceEnum::toGuiName(Enum enumValue) {
+AnnotationTextOrientationEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationCoordinateSpaceEnum* enumInstance = findData(enumValue);
+    const AnnotationTextOrientationEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -226,18 +219,18 @@ AnnotationCoordinateSpaceEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationCoordinateSpaceEnum::Enum 
-AnnotationCoordinateSpaceEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+AnnotationTextOrientationEnum::Enum 
+AnnotationTextOrientationEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationCoordinateSpaceEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextOrientationEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationCoordinateSpaceEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextOrientationEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationCoordinateSpaceEnum& d = *iter;
+        const AnnotationTextOrientationEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -249,7 +242,7 @@ AnnotationCoordinateSpaceEnum::fromGuiName(const AString& guiName, bool* isValid
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationCoordinateSpaceEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationTextOrientationEnum"));
     }
     return enumValue;
 }
@@ -261,10 +254,10 @@ AnnotationCoordinateSpaceEnum::fromGuiName(const AString& guiName, bool* isValid
  *    Integer code for data type.
  */
 int32_t
-AnnotationCoordinateSpaceEnum::toIntegerCode(Enum enumValue)
+AnnotationTextOrientationEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationCoordinateSpaceEnum* enumInstance = findData(enumValue);
+    const AnnotationTextOrientationEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -279,18 +272,18 @@ AnnotationCoordinateSpaceEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-AnnotationCoordinateSpaceEnum::Enum
-AnnotationCoordinateSpaceEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+AnnotationTextOrientationEnum::Enum
+AnnotationTextOrientationEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationCoordinateSpaceEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextOrientationEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationCoordinateSpaceEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextOrientationEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationCoordinateSpaceEnum& enumInstance = *iter;
+        const AnnotationTextOrientationEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -302,7 +295,7 @@ AnnotationCoordinateSpaceEnum::fromIntegerCode(const int32_t integerCode, bool* 
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationCoordinateSpaceEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationTextOrientationEnum"));
     }
     return enumValue;
 }
@@ -315,13 +308,13 @@ AnnotationCoordinateSpaceEnum::fromIntegerCode(const int32_t integerCode, bool* 
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-AnnotationCoordinateSpaceEnum::getAllEnums(std::vector<AnnotationCoordinateSpaceEnum::Enum>& allEnums)
+AnnotationTextOrientationEnum::getAllEnums(std::vector<AnnotationTextOrientationEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<AnnotationCoordinateSpaceEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextOrientationEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -337,16 +330,16 @@ AnnotationCoordinateSpaceEnum::getAllEnums(std::vector<AnnotationCoordinateSpace
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationCoordinateSpaceEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+AnnotationTextOrientationEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<AnnotationCoordinateSpaceEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextOrientationEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(AnnotationCoordinateSpaceEnum::toName(iter->enumValue));
+        allNames.push_back(AnnotationTextOrientationEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -363,16 +356,16 @@ AnnotationCoordinateSpaceEnum::getAllNames(std::vector<AString>& allNames, const
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationCoordinateSpaceEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+AnnotationTextOrientationEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<AnnotationCoordinateSpaceEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextOrientationEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(AnnotationCoordinateSpaceEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(AnnotationTextOrientationEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

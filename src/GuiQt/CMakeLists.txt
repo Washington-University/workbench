@@ -180,7 +180,6 @@ BrainBrowserWindowToolBarTab.h
 BrainBrowserWindowToolBarVolumeMontage.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
-BrainOpenGLWidgetTextRenderer.h
 BugReportDialog.h
 CaretColorEnumComboBox.h
 CaretDataFileSelectionComboBox.h
@@ -337,7 +336,6 @@ BrainBrowserWindowToolBarTab.cxx
 BrainBrowserWindowToolBarVolumeMontage.cxx
 BrainOpenGLWidget.cxx
 BrainOpenGLWidgetContextMenu.cxx
-BrainOpenGLWidgetTextRenderer.cxx
 BugReportDialog.cxx
 CaretColorEnumComboBox.cxx
 CaretDataFileSelectionComboBox.cxx

@@ -26,15 +26,16 @@
 #include "AnnotationAlignVerticalEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
-#include "CaretObject.h"
+#include "CaretObjectTracksModification.h"
 
 #include "SceneableInterface.h"
+#include "StructureEnum.h"
 
 
 namespace caret {
     class SceneClassAssistant;
 
-    class Annotation : public CaretObject, public SceneableInterface {
+    class Annotation : public CaretObjectTracksModification, public SceneableInterface {
         
     public:
         Annotation(const AnnotationTypeEnum::Enum type);
@@ -45,7 +46,7 @@ namespace caret {
 
         Annotation& operator=(const Annotation& obj);
         
-        AnnotationTypeEnum::Enum getType() const;
+        AnnotationTypeEnum::Enum getType() const ;
         
         AnnotationAlignHorizontalEnum::Enum getHorizontalAlignment() const;
         
@@ -69,9 +70,37 @@ namespace caret {
                     const float y,
                     const float z);
         
+        void getSurfaceSpace(StructureEnum::Enum& structureOut,
+                             int32_t& surfaceNumberOfNodesOut,
+                             int32_t& surfaceNodeIndexOut) const;
+        
+        void seturfaceSpace(const StructureEnum::Enum structure,
+                            const int32_t surfaceNumberOfNodes,
+                            const int32_t surfaceNodeIndex);
+        
         int32_t getTabIndex() const;
         
         void setTabIndex(const int32_t tabIndex);
+        
+        void getForegroundColor(float rgbaOut[4]) const;
+        
+        void getForegroundColor(uint8_t rgbaOut[4]) const;
+        
+        const float* getForegroundColor() const;
+        
+        void setForegroundColor(const float rgba[4]);
+        
+        void setForegroundColor(const uint8_t rgba[4]);
+        
+        void getBackgroundColor(float rgbaOut[4]) const;
+        
+        void getBackgroundColor(uint8_t rgbaOut[4]) const;
+        
+        const float* getBackgroundColor() const;
+        
+        void setBackgroundColor(const float rgba[4]);
+        
+        void setBackgroundColor(const uint8_t rgba[4]);
         
         // ADD_NEW_METHODS_HERE
 
@@ -101,10 +130,10 @@ namespace caret {
     private:
         void copyHelperAnnotation(const Annotation& obj);
 
+        SceneClassAssistant* m_sceneAssistant;
+        
         const AnnotationTypeEnum::Enum m_type;
         
-        SceneClassAssistant* m_sceneAssistant;
-
         AnnotationAlignHorizontalEnum::Enum  m_alignmentHorizontal;
         
         AnnotationAlignVerticalEnum::Enum  m_alignmentVertical;
@@ -113,8 +142,19 @@ namespace caret {
         
         float m_xyz[3];
         
+        int32_t m_surfaceSpaceNodeIndex;
+        
+        int32_t m_surfaceSpaceNumberOfNodes;
+        
+        StructureEnum::Enum m_surfaceSpaceStructure;
+        
         int32_t m_tabIndex;
         
+        float m_colorForeground[4];
+        
+        float m_colorBackground[4];
+        
+
         // ADD_NEW_MEMBERS_HERE
 
     };

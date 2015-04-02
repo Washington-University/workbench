@@ -40,23 +40,19 @@ namespace caret {
         void drawTextAtViewportCoords(const int viewport[4],
                                     const double windowX,
                                     const double windowY,
-                                    const QString& text,
-                                    const BrainOpenGLTextAttributes& textAttributes);
+                                    const AnnotationText& annotationText);
         
         void drawVerticalTextAtWindowCoords(const int viewport[4],
                                             const double windowX,
                                             const double windowY,
-                                            const QString& text,
-                                            const BrainOpenGLTextAttributes& textAttributes);
+                                            const AnnotationText& annotationText);
         
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,
                                    const double modelZ,
-                                   const QString& text,
-                                   const BrainOpenGLTextAttributes& textAttributes);
+                                   const AnnotationText& annotationText);
         
-        void getTextBoundsInPixels(const QString& text,
-                                   const BrainOpenGLTextAttributes& textAttributes,
+        void getTextBoundsInPixels(const AnnotationText& annotationTexts,
                                    double& xMinOut,
                                    double& xMaxOut,
                                    double& yMinOut,

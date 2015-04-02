@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_COORDINATE_SPACE_ENUM_H__
-#define __ANNOTATION_COORDINATE_SPACE_ENUM_H__
+#ifndef __ANNOTATION_FONT_NAME_ENUM_H__
+#define __ANNOTATION_FONT_NAME_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,25 +28,21 @@
 
 namespace caret {
 
-class AnnotationCoordinateSpaceEnum {
+class AnnotationFontNameEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Annotation in model 3D space */
-        MODEL,
-        /** Annotation on surface node */
-        SURFACE,
-        /** Annotation in tab space */
-        TAB,
-        /** Annotation in window space */
-        WINDOW
+        /** Vera Fonts */
+        VERA,
+        /** Vera Monospaced Fonts */
+        VERA_MONOSPACE
     };
 
 
-    ~AnnotationCoordinateSpaceEnum();
+    ~AnnotationFontNameEnum();
 
     static AString toName(Enum enumValue);
     
@@ -66,15 +62,27 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-private:
-    AnnotationCoordinateSpaceEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+    static AString getResourceFontFileName(Enum enumValue);
+    
+    static AString getResourceBoldFontFileName(Enum enumValue);
+    
+    static AString getResourceBoldItalicFontFileName(Enum enumValue);
 
-    static const AnnotationCoordinateSpaceEnum* findData(const Enum enumValue);
+    static AString getResourceItalicFontFileName(Enum enumValue);
+    
+private:
+    AnnotationFontNameEnum(const Enum enumValue, 
+                           const AString& name,
+                           const AString& guiName,
+                           const AString& fontFileName,
+                           const AString& boldFontFileName,
+                           const AString& boldItalicFontFileName,
+                           const AString& italicFontFileName);
+
+    static const AnnotationFontNameEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationCoordinateSpaceEnum> enumData;
+    static std::vector<AnnotationFontNameEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -96,13 +104,25 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** Name of font file */
+    AString resourceFontFileName;
+
+    /** Name of bold font file */
+    AString resourceBoldFontFileName;
+
+    /** Name of bold italic font file */
+    AString resourceBoldItalicFontFileName;
+
+    /** Name of italic font file */
+    AString resourceItalicFontFileName;
 };
 
-#ifdef __ANNOTATION_COORDINATE_SPACE_ENUM_DECLARE__
-std::vector<AnnotationCoordinateSpaceEnum> AnnotationCoordinateSpaceEnum::enumData;
-bool AnnotationCoordinateSpaceEnum::initializedFlag = false;
-int32_t AnnotationCoordinateSpaceEnum::integerCodeCounter = 0; 
-#endif // __ANNOTATION_COORDINATE_SPACE_ENUM_DECLARE__
+#ifdef __ANNOTATION_FONT_NAME_ENUM_DECLARE__
+std::vector<AnnotationFontNameEnum> AnnotationFontNameEnum::enumData;
+bool AnnotationFontNameEnum::initializedFlag = false;
+int32_t AnnotationFontNameEnum::integerCodeCounter = 0; 
+#endif // __ANNOTATION_FONT_NAME_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_COORDINATE_SPACE_ENUM_H__
+#endif  //__ANNOTATION_FONT_NAME_ENUM_H__

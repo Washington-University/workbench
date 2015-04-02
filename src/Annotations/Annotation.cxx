@@ -44,7 +44,7 @@ using namespace caret;
  *    Type of annotation for drawing.
  */
 Annotation::Annotation(const AnnotationTypeEnum::Enum type)
-: CaretObject(),
+: CaretObjectTracksModification(),
 m_type(type)
 {
     m_alignmentHorizontal = AnnotationAlignHorizontalEnum::CENTER;
@@ -55,8 +55,22 @@ m_type(type)
     m_xyz[1] = 0.0;
     m_xyz[2] = 0.0;
     
+    m_surfaceSpaceStructure     = StructureEnum::INVALID;
+    m_surfaceSpaceNumberOfNodes = -1;
+    m_surfaceSpaceNodeIndex     = -1;
+    
     m_tabIndex = -1;
 
+    m_colorBackground[0]  = 0.0;
+    m_colorBackground[1]  = 0.0;
+    m_colorBackground[2]  = 0.0;
+    m_colorBackground[3]  = 0.0;
+    
+    m_colorForeground[0]  = 1.0;
+    m_colorForeground[1]  = 1.0;
+    m_colorForeground[2]  = 1.0;
+    m_colorForeground[3]  = 1.0;
+    
     m_sceneAssistant = new SceneClassAssistant();
     
     m_sceneAssistant->add<AnnotationAlignHorizontalEnum>("m_alignmentHorizontal",
@@ -65,8 +79,22 @@ m_type(type)
                                                          &m_alignmentVertical);
     m_sceneAssistant->add<AnnotationCoordinateSpaceEnum>("m_coordinateSpace",
                                                          &m_coordinateSpace);
-    m_sceneAssistant->addArray("m_xyz", m_xyz, 3, 0.0);
-    m_sceneAssistant->add("m_tabIndex", &m_tabIndex);
+    m_sceneAssistant->addArray("m_xyz",
+                               m_xyz, 3, 0.0);
+    
+    m_sceneAssistant->add<StructureEnum>("m_surfaceSpaceStructure",
+                                         &m_surfaceSpaceStructure);
+    m_sceneAssistant->add("m_surfaceSpaceNumberOfNodes",
+                          &m_surfaceSpaceNumberOfNodes);
+    m_sceneAssistant->add("m_surfaceSpaceNodeIndex",
+                          &m_surfaceSpaceNodeIndex);
+    
+    m_sceneAssistant->add("m_tabIndex",
+                          &m_tabIndex);
+    m_sceneAssistant->addArray("m_colorBackground",
+                               m_colorBackground, 4, 0.0);
+    m_sceneAssistant->addArray("m_colorForeground",
+                               m_colorForeground, 4, 1.0);
 }
 
 /**
@@ -83,7 +111,7 @@ Annotation::~Annotation()
  *    Object that is copied.
  */
 Annotation::Annotation(const Annotation& obj)
-: CaretObject(obj),
+: CaretObjectTracksModification(obj),
 m_type(obj.m_type)
 {
     this->copyHelperAnnotation(obj);
@@ -100,7 +128,7 @@ Annotation&
 Annotation::operator=(const Annotation& obj)
 {
     if (this != &obj) {
-        CaretObject::operator=(obj);
+        CaretObjectTracksModification::operator=(obj);
         this->copyHelperAnnotation(obj);
     }
     return *this;    
@@ -114,6 +142,24 @@ Annotation::operator=(const Annotation& obj)
 void 
 Annotation::copyHelperAnnotation(const Annotation& obj)
 {
+    m_alignmentHorizontal = obj.m_alignmentHorizontal;
+    m_alignmentVertical   = obj.m_alignmentVertical;
+    m_coordinateSpace     = obj.m_coordinateSpace;
+    m_xyz[0]              = obj.m_xyz[0];
+    m_xyz[1]              = obj.m_xyz[1];
+    m_xyz[2]              = obj.m_xyz[2];
+    m_surfaceSpaceStructure     = obj.m_surfaceSpaceStructure;
+    m_surfaceSpaceNumberOfNodes = obj.m_surfaceSpaceNumberOfNodes;
+    m_surfaceSpaceNodeIndex     = obj.m_surfaceSpaceNodeIndex;
+    m_tabIndex            = obj.m_tabIndex;
+    m_colorBackground[0]  = obj.m_colorBackground[0];
+    m_colorBackground[1]  = obj.m_colorBackground[1];
+    m_colorBackground[2]  = obj.m_colorBackground[2];
+    m_colorBackground[3]  = obj.m_colorBackground[3];
+    m_colorForeground[0]  = obj.m_colorForeground[0];
+    m_colorForeground[1]  = obj.m_colorForeground[1];
+    m_colorForeground[2]  = obj.m_colorForeground[2];
+    m_colorForeground[3]  = obj.m_colorForeground[3];
     
 }
 
@@ -144,7 +190,10 @@ Annotation::getHorizontalAlignment() const
 void
 Annotation::setHorizontalAlignment(const AnnotationAlignHorizontalEnum::Enum alignment)
 {
-    m_alignmentHorizontal = alignment;
+    if (m_alignmentHorizontal != alignment) {
+        m_alignmentHorizontal = alignment;
+        setModified();
+    }
 }
 
 /**
@@ -165,7 +214,10 @@ Annotation::getVerticalAlignment() const
 void
 Annotation::setVerticalAlignment(const AnnotationAlignVerticalEnum::Enum alignment)
 {
-    m_alignmentVertical = alignment;
+    if (m_alignmentVertical != alignment) {
+        m_alignmentVertical = alignment;
+        setModified();
+    }
 }
 
 /**
@@ -186,7 +238,10 @@ Annotation::getCoordinateSpace() const
 void
 Annotation::setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace)
 {
-    m_coordinateSpace = coordinateSpace;
+    if (m_coordinateSpace != coordinateSpace) {
+        m_coordinateSpace = coordinateSpace;
+        setModified();
+    }
 }
 
 
@@ -216,6 +271,7 @@ Annotation::getXYZ(float xyzOut[3]) const
     xyzOut[2] = m_xyz[2];
 }
 
+
 /**
  * Set the annotation's coordinate.
  *
@@ -227,9 +283,7 @@ Annotation::getXYZ(float xyzOut[3]) const
 void
 Annotation::setXYZ(const float xyz[3])
 {
-    m_xyz[0] = xyz[0];
-    m_xyz[1] = xyz[1];
-    m_xyz[2] = xyz[2];
+    setXYZ(xyz[0], xyz[1], xyz[2]);
 }
 
 /**
@@ -249,10 +303,65 @@ Annotation::setXYZ(const float x,
                    const float y,
                    const float z)
 {
-    m_xyz[0] = x;
-    m_xyz[1] = y;
-    m_xyz[2] = z;
+    if ((x != m_xyz[0])
+        || (y != m_xyz[1])
+        || (z != m_xyz[2])) {
+        m_xyz[0] = x;
+        m_xyz[1] = y;
+        m_xyz[2] = z;
+        setModified();
+    }
 }
+
+/**
+ * Get the surface space data.
+ *
+ * @param structureOut
+ *     The surface structure.
+ * @param surfaceNumberOfNodesOut
+ *     Number of nodes in surface.
+ * @param surfaceNodeIndexOut
+ *     Index of surface node.
+ */
+void
+Annotation::getSurfaceSpace(StructureEnum::Enum& structureOut,
+                            int32_t& surfaceNumberOfNodesOut,
+                            int32_t& surfaceNodeIndexOut) const
+{
+    structureOut            = m_surfaceSpaceStructure;
+    surfaceNumberOfNodesOut = m_surfaceSpaceNumberOfNodes;
+    surfaceNodeIndexOut     = m_surfaceSpaceNodeIndex;
+}
+
+/**
+ * Set the surface space data.
+ *
+ * @param structure
+ *     The surface structure.
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in surface.
+ * @param surfaceNodeIndex
+ *     Index of surface node.
+ */
+void
+Annotation::seturfaceSpace(const StructureEnum::Enum structure,
+                           const int32_t surfaceNumberOfNodes,
+                           const int32_t surfaceNodeIndex)
+{
+    if (structure != m_surfaceSpaceStructure) {
+        m_surfaceSpaceStructure = structure;
+        setModified();
+    }
+    if (surfaceNumberOfNodes != m_surfaceSpaceNumberOfNodes) {
+        m_surfaceSpaceNumberOfNodes = surfaceNumberOfNodes;
+        setModified();
+    }
+    if (surfaceNodeIndex != m_surfaceSpaceNodeIndex) {
+        m_surfaceSpaceNodeIndex = surfaceNodeIndex;
+        setModified();
+    }
+}
+
 
 /**
  * @return The tab index.  Valid only for tab coordinate space annotations.
@@ -271,7 +380,10 @@ Annotation::getTabIndex() const
 void
 Annotation::setTabIndex(const int32_t tabIndex)
 {
-    m_tabIndex = tabIndex;
+    if (tabIndex != m_tabIndex) {
+        m_tabIndex = tabIndex;
+        setModified();
+    }
 }
 
 /**
@@ -282,6 +394,159 @@ AString
 Annotation::toString() const
 {
     return "Annotation";
+}
+
+/**
+ * @return
+ *    Foreground color RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+const float*
+Annotation::getForegroundColor() const
+{
+    return m_colorForeground;
+}
+
+/**
+ * Get the foreground color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+Annotation::getForegroundColor(float rgbaOut[4]) const
+{
+    rgbaOut[0] = m_colorForeground[0];
+    rgbaOut[1] = m_colorForeground[1];
+    rgbaOut[2] = m_colorForeground[2];
+    rgbaOut[3] = m_colorForeground[3];
+}
+
+/**
+ * Get the foreground color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+Annotation::getForegroundColor(uint8_t rgbaOut[4]) const
+{
+    rgbaOut[0] = static_cast<uint8_t>(m_colorForeground[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_colorForeground[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_colorForeground[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(m_colorForeground[3] * 255.0);
+}
+
+/**
+ * Set the foreground color with floats.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+Annotation::setForegroundColor(const float rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        if (rgba[i] != m_colorForeground[i]) {
+            m_colorForeground[i] = rgba[i];
+            setModified();
+        }
+    }
+}
+
+/**
+ * Set the foreground color with unsigned bytes.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+Annotation::setForegroundColor(const uint8_t rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        const float component = rgba[i] / 255.0;
+        if (component != m_colorForeground[i]) {
+            m_colorForeground[i] = component;
+            setModified();
+        }
+    }
+}
+
+/**
+ * @return
+ *    Background color RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ *    The background color is applied only when its alpha component is greater than zero.
+ */
+const float*
+Annotation::getBackgroundColor() const
+{
+    return m_colorBackground;
+}
+
+/**
+ * Get the background color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+Annotation::getBackgroundColor(float rgbaOut[4]) const
+{
+    rgbaOut[0] = m_colorBackground[0];
+    rgbaOut[1] = m_colorBackground[1];
+    rgbaOut[2] = m_colorBackground[2];
+    rgbaOut[3] = m_colorBackground[3];
+}
+
+/**
+ * Get the background color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+Annotation::getBackgroundColor(uint8_t rgbaOut[4]) const
+{
+    rgbaOut[0] = static_cast<uint8_t>(m_colorBackground[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_colorBackground[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_colorBackground[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(m_colorBackground[3] * 255.0);
+}
+
+/**
+ * Set the background color with floats.
+ * The background color is applied only when its alpha component is greater than zero.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+Annotation::setBackgroundColor(const float rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        if (rgba[i] != m_colorBackground[i]) {
+            m_colorBackground[i] = rgba[i];
+            setModified();
+        }
+    }
+}
+
+/**
+ * Set the background color with bytes.
+ * The background color is applied only when its alpha component is greater than zero.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+Annotation::setBackgroundColor(const uint8_t rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        const float component = rgba[i] / 255.0;
+        if (component != m_colorBackground[i]) {
+            m_colorBackground[i] = component;
+            setModified();
+        }
+    }
 }
 
 /**

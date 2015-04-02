@@ -24,7 +24,6 @@
 #include <map>
 #include <set>
 
-#include "BrainOpenGLTextAttributes.h"
 #include "BrainOpenGLTextRenderInterface.h"
 
 class FTFont;
@@ -41,22 +40,19 @@ namespace caret {
         bool isValid() const;
         
         virtual void drawTextAtViewportCoords(const int viewport[4],
-                                            const double windowX,
-                                            const double windowY,
-                                            const QString& text,
-                                            const BrainOpenGLTextAttributes& textAttributes);
+                                              const double windowX,
+                                              const double windowY,
+                                              const AnnotationText& annotationText);
         
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,
                                    const double modelZ,
-                                   const QString& text,
-                                   const BrainOpenGLTextAttributes& textAttributes);
+                                   const AnnotationText& annotationText);
         
-        void getTextBoundsInPixels(const QString& text,
-                                   const BrainOpenGLTextAttributes& textAttributes,
-                                   double& xMinOut,
-                                   double& xMaxOut,
-                                   double& yMinOut,
+        void getTextBoundsInPixels(const AnnotationText& annotationText,
+                                           double& xMinOut,
+                                           double& xMaxOut,
+                                           double& yMinOut,
                                    double& yMaxOut);
         
         virtual AString getName() const;
@@ -69,16 +65,14 @@ namespace caret {
         void drawHorizontalTextAtWindowCoords(const int viewport[4],
                                             const double windowX,
                                             const double windowY,
-                                            const QString& text,
-                                            const BrainOpenGLTextAttributes&  textAttributes);
+                                            const AnnotationText& annotationText);
         
         void drawVerticalTextAtWindowCoords(const int viewport[4],
                                             const double windowX,
                                             const double windowY,
-                                            const QString& text,
-                                            const BrainOpenGLTextAttributes&  textAttributes);
+                                            const AnnotationText& annotationText);
         
-        FTFont* getFont(const BrainOpenGLTextAttributes& textAttributes,
+        FTFont* getFont(const AnnotationText& annotationText,
                         const bool creatingDefaultFontFlag);
         
         
@@ -86,13 +80,11 @@ namespace caret {
         public:
             FontData();
             
-            FontData(const BrainOpenGLTextAttributes&  textAttributes);
+            FontData(const AnnotationText&  annotationText);
             
             ~FontData();
             
             void initialize(const AString& fontFileName);
-            
-//            void initialize(const BrainOpenGLTextAttributes&  textAttributes);
             
             QByteArray m_fontData;
             
@@ -111,16 +103,15 @@ namespace caret {
             const double m_y;
         };
         
-        void getVerticalTextCharInfo(const QString& text,
-                                     const BrainOpenGLTextAttributes& textAttributes,
+        void getVerticalTextCharInfo(const AnnotationText& annotationText,
                                      double& xMinOut,
                                      double& xMaxOut,
                                      double& heightOut,
                                      std::vector<CharInfo>& charInfoOut);
         
-        void applyForegroundColoring(const BrainOpenGLTextAttributes& textAttributes);
+        void applyForegroundColoring(const AnnotationText& annotationText);
         
-        void applyBackgroundColoring(const BrainOpenGLTextAttributes& textAttributes,
+        void applyBackgroundColoring(const AnnotationText& annotationText,
                                      const double textBoundsBox[4]);
         
         /**

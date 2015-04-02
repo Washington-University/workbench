@@ -25,9 +25,9 @@
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #undef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
 
+#include "AnnotationText.h"
 #include "CaretOpenGLInclude.h"
 #include "BrainOpenGLFixedPipeline.h"
-#include "BrainOpenGLTextAttributes.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
 #include "ChartAxis.h"
@@ -499,14 +499,17 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                                 labelTexts);
     
     const int32_t numLabelsToDraw = static_cast<int32_t>(labelTexts.size());
-    BrainOpenGLTextAttributes textAttributes;
+    //BrainOpenGLTextAttributes textAttributes;
+    AnnotationText annotationText;
     if (numLabelsToDraw > 0) {
         float labelX = 0.0;
         float labelY = 0.0;
         float labelOffsetMultiplierX = 0.0;
         float labelOffsetMultiplierY = 0.0;
-        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
-        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+//        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
+//        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+        annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
         
         /*
          * Viewport for axis name and numeric values
@@ -528,8 +531,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 labelY = margins.m_bottom;
                 labelOffsetMultiplierX = 1.0;
                 labelOffsetMultiplierY = 0.0;
-                textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
-                textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_TOP);
+//                textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
+//                textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_TOP);
+                annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
+                annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::TOP);
                 tickDeltaXY[0] = 0.0;
                 tickDeltaXY[1] = -tickLength;
                 break;
@@ -542,8 +547,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 labelY = 0.0;
                 labelOffsetMultiplierX = 1.0;
                 labelOffsetMultiplierY = 0.0;
-                textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
-                textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+//                textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
+//                textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+                annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
+                annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
                 tickDeltaXY[0] = 0.0;
                 tickDeltaXY[1] = tickLength;
                 break;
@@ -556,8 +563,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 labelY = margins.m_bottom;
                 labelOffsetMultiplierX = 0.0;
                 labelOffsetMultiplierY = 1.0;
-                textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
-                textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+//                textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
+//                textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+                annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
+                annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
                 tickDeltaXY[0] = -tickLength;
                 tickDeltaXY[1] = 0.0;
                 break;
@@ -570,8 +579,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 labelY = margins.m_bottom;
                 labelOffsetMultiplierX = 0.0;
                 labelOffsetMultiplierY = 1.0;
-                textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
-                textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+//                textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
+//                textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+                annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
+                annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
                 tickDeltaXY[0] = tickLength;
                 tickDeltaXY[1] = 0.0;
                 break;
@@ -616,11 +627,16 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             
             const float textX = tickEndX;
             const float textY = tickEndY;
+            annotationText.setText(labelTexts[i]);
             textRenderer->drawTextAtViewportCoords(viewport,
-                                                 textX,
-                                                 textY,
-                                                 labelTexts[i],
-                                                 textAttributes);
+                                                   textX,
+                                                   textY,
+                                                   annotationText);
+//            textRenderer->drawTextAtViewportCoords(viewport,
+//                                                 textX,
+//                                                 textY,
+//                                                 labelTexts[i],
+//                                                 textAttributes);
         }
         
         const AString axisText = axis->getText();
@@ -649,9 +665,13 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
 //                    break;
 //            }
             
-            BrainOpenGLTextAttributes textAttributes;
-            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
-            textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+//            BrainOpenGLTextAttributes textAttributes;
+//            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
+//            textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_CENTER);
+            
+            AnnotationText annotationText;
+            annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
+            annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
             
             bool drawAxisTextVerticalFlag = false;
             float axisTextCenterX = axisVpWidth / 2.0;
@@ -661,41 +681,58 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                     axisTextCenterX = (vpWidth / 2.0);
                     axisTextCenterY = textMarginOffset;
-                    textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+                    annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
+//                    textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                     axisTextCenterX = (vpWidth / 2.0);
                     axisTextCenterY = margins.m_top - textMarginOffset;
-                    textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_TOP);
+                    annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::TOP);
+//                    textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_TOP);
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                     axisTextCenterX = textMarginOffset;
                     axisTextCenterY = (vpHeight / 2.0);
-                    textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
+                    annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
+//                    textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
                     drawAxisTextVerticalFlag = true;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
                     axisTextCenterX = margins.m_right - textMarginOffset;
                     axisTextCenterY = (vpHeight / 2.0);
-                    textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
+                    annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
+//                    textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
                     drawAxisTextVerticalFlag = true;
                     break;
             }
             if (drawAxisTextVerticalFlag) {
-                textAttributes.setOrientation(BrainOpenGLTextAttributes::TOP_TO_BOTTOM);
+                annotationText.setOrientation(AnnotationTextOrientationEnum::STACKED);
+                annotationText.setText(axisText);
                 textRenderer->drawTextAtViewportCoords(viewport,
-                                                     axisTextCenterX,
-                                                     axisTextCenterY,
-                                                     axisText,
-                                                     textAttributes);
+                                                       axisTextCenterX,
+                                                       axisTextCenterY,
+                                                       annotationText);
+                
+//                textAttributes.setOrientation(BrainOpenGLTextAttributes::TOP_TO_BOTTOM);
+//                textRenderer->drawTextAtViewportCoords(viewport,
+//                                                     axisTextCenterX,
+//                                                     axisTextCenterY,
+//                                                     axisText,
+//                                                     textAttributes);
             }
             else {
-                textAttributes.setOrientation(BrainOpenGLTextAttributes::LEFT_TO_RIGHT);
+                annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
+                annotationText.setText(axisText);
                 textRenderer->drawTextAtViewportCoords(viewport,
-                                                     axisTextCenterX,
-                                                     axisTextCenterY,
-                                                     axisText,
-                                                     textAttributes);
+                                                       axisTextCenterX,
+                                                       axisTextCenterY,
+                                                       annotationText);
+//                textAttributes.setOrientation(BrainOpenGLTextAttributes::LEFT_TO_RIGHT);
+//                textRenderer->drawTextAtViewportCoords(viewport,
+//                                                     axisTextCenterX,
+//                                                     axisTextCenterY,
+//                                                     axisText,
+//                                                     textAttributes);
             }
         }
     }
@@ -749,9 +786,9 @@ BrainOpenGLChartDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeig
             double textMaxX   = 0;
             double textMinY   = 0;
             double textMaxY   = 0;
-            BrainOpenGLTextAttributes textAttributes;
-            textRenderer->getTextBoundsInPixels(text,
-                                                textAttributes,
+            AnnotationText annotationText;
+            annotationText.setText(text);
+            textRenderer->getTextBoundsInPixels(annotationText,
                                                 textMinX,
                                                 textMaxX,
                                                 textMinY,

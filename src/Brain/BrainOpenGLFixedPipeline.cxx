@@ -35,6 +35,7 @@
 #include <QStringList>
 #include <QImage>
 
+#include "AnnotationText.h"
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
@@ -5401,22 +5402,19 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
 }
 
 /**
- * Draw text at the given window coordinates.
+ * Draw text at the given viewport coordinates.
  *
  * @param windowX
  *    Window X-coordinate.
  * @param windowY
  *    Window Y-coordinate.
- * @param text
- *    Text that is to be drawn.
- * @param textAttributes
- *    Attributes for drawing text.
+ * @param annotationText
+ *    Text and its attributes that is to be drawn.
  */
-void 
-BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
-                                               const int windowY,
-                                               const QString& text,
-                                               const BrainOpenGLTextAttributes& textAttributes)
+void
+BrainOpenGLFixedPipeline::drawTextViewportCoords(const int windowX,
+                                                 const int windowY,
+                                                 const AnnotationText& annotationText)
 {
     if (this->textRenderer != NULL) {
         GLint vp[4];
@@ -5428,39 +5426,9 @@ BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
             vp[3]
         };
         this->textRenderer->drawTextAtViewportCoords(viewport,
-                                                   windowX,
-                                                   windowY,
-                                                   text.trimmed(),
-                                                   textAttributes);
-    }
-}
-
-/**
- * Draw text at the given window coordinates.
- * @param modelX
- *    Model X-coordinate.
- * @param modelY
- *    Model Y-coordinate.
- * @param modelZ
- *    Model Z-coordinate.
- * @param text
- *    Text that is to be drawn.
- * @param textAttributes
- *    Attributes for drawing text.
- */
-void 
-BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
-                                              const double modelY,
-                                              const double modelZ,
-                                              const QString& text,
-                                              const BrainOpenGLTextAttributes& textAttributes)
-{
-    if (this->textRenderer != NULL) {
-        this->textRenderer->drawTextAtModelCoords(modelX,
-                                                  modelY,
-                                                  modelZ,
-                                                  text.trimmed(),
-                                                  textAttributes);
+                                                     windowX,
+                                                     windowY,
+                                                     annotationText);
     }
 }
 
@@ -5468,21 +5436,19 @@ BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
  * Draw text at the given window coordinates.
  * @param modelXYZ
  *    Model XYZ coordinate.
- * @param text
- *    Text that is to be drawn.
- * @param textAttributes
- *    Attributes for drawing text.
+ * @param annotationText
+ *    Text and its attributes that is to be drawn.
  */
 void
 BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelXYZ[3],
-                                              const QString& text,
-                                              const BrainOpenGLTextAttributes& textAttributes)
+                                              const AnnotationText& annotationText)
 {
-    drawTextModelCoords(modelXYZ[0],
-                        modelXYZ[1],
-                        modelXYZ[2],
-                        text,
-                        textAttributes);
+    if (this->textRenderer != NULL) {
+        this->textRenderer->drawTextAtModelCoords(modelXYZ[0],
+                                                  modelXYZ[1],
+                                                  modelXYZ[2],
+                                                  annotationText);
+    }
 }
 
 /**
@@ -5964,45 +5930,75 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     
     const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
     if (isNegativeDisplayed) {
-        BrainOpenGLTextAttributes textAttributes;
-        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
-        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
-        textAttributes.setFontHeight(12);
-        textAttributes.setForegroundColor(m_foregroundColorFloat);
-        this->drawTextWindowCoords(textLeftX,
-                                   textY, 
-                                   textLeft,
-                                   textAttributes);
+//        BrainOpenGLTextAttributes textAttributes;
+//        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
+//        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+//        textAttributes.setFontHeight(12);
+//        textAttributes.setForegroundColor(m_foregroundColorFloat);
+//        this->drawTextViewportCoords(textLeftX,
+//                                   textY, 
+//                                   textLeft,
+//                                   textAttributes);
+        
+        AnnotationText annotationText;
+        annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
+        annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
+        annotationText.setFontHeight(12);
+        annotationText.setForegroundColor(m_foregroundColorFloat);
+        annotationText.setText(textLeft);
+        this->drawTextViewportCoords(textLeftX, textY, annotationText);
     }
     if (isNegativeDisplayed
         || isZeroDisplayed
         || isPositiveDisplayed) {
-        BrainOpenGLTextAttributes textAttributes;
-        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
-        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+//        BrainOpenGLTextAttributes textAttributes;
+//        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
+//        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+//        if (isNegativeOnly) {
+//            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
+//        }
+//        else if (isPositiveOnly) {
+//            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
+//        }
+//        textAttributes.setFontHeight(12);
+//        textAttributes.setForegroundColor(m_foregroundColorFloat);
+//        this->drawTextViewportCoords(textCenterX,
+//                                   textY, 
+//                                   textCenter,
+//                                   textAttributes);
+
+        AnnotationText annotationText;
+        annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
         if (isNegativeOnly) {
-            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
+            annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
         }
         else if (isPositiveOnly) {
-            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
+            annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
         }
-        textAttributes.setFontHeight(12);
-        textAttributes.setForegroundColor(m_foregroundColorFloat);
-        this->drawTextWindowCoords(textCenterX,
-                                   textY, 
-                                   textCenter,
-                                   textAttributes);
+        annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
+        annotationText.setFontHeight(12);
+        annotationText.setForegroundColor(m_foregroundColorFloat);
+        annotationText.setText(textLeft);
+        this->drawTextViewportCoords(textCenterX, textY, annotationText);
     }
     if (isPositiveDisplayed) {
-        BrainOpenGLTextAttributes textAttributes;
-        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
-        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
-        textAttributes.setFontHeight(12);
-        textAttributes.setForegroundColor(m_foregroundColorFloat);
-        this->drawTextWindowCoords(textRightX,
-                                   textY, 
-                                   textRight,
-                                   textAttributes);
+//        BrainOpenGLTextAttributes textAttributes;
+//        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
+//        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
+//        textAttributes.setFontHeight(12);
+//        textAttributes.setForegroundColor(m_foregroundColorFloat);
+//        this->drawTextViewportCoords(textRightX,
+//                                   textY, 
+//                                   textRight,
+//                                   textAttributes);
+        
+        AnnotationText annotationText;
+        annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
+        annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
+        annotationText.setFontHeight(12);
+        annotationText.setForegroundColor(m_foregroundColorFloat);
+        annotationText.setText(textRight);
+        this->drawTextViewportCoords(textRightX, textY, annotationText);
     }
     
     return;

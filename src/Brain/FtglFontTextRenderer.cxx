@@ -72,6 +72,7 @@
 
 #include <QFile>
 
+#include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
@@ -111,14 +112,13 @@ FtglFontTextRenderer::FtglFontTextRenderer()
 {
     m_defaultFont = NULL;
 #ifdef HAVE_FREETYPE
-    BrainOpenGLTextAttributes defaultFontAttributes;
-    defaultFontAttributes.setFontHeight(14);
-    defaultFontAttributes.setFontName(BrainOpenGLTextAttributes::SANS_SERIF);
-    defaultFontAttributes.setItalicEnabled(false);
-    defaultFontAttributes.setBoldEnabled(false);
-    defaultFontAttributes.setUnderlineEnabled(false);
-    
-    m_defaultFont = getFont(defaultFontAttributes,
+    AnnotationText defaultAnnotationText;
+    defaultAnnotationText.setFontHeight(14);
+    defaultAnnotationText.setFont(AnnotationFontNameEnum::VERA);
+    defaultAnnotationText.setItalicEnabled(false);
+    defaultAnnotationText.setBoldEnabled(false);
+    defaultAnnotationText.setUnderlineEnabled(false);
+    m_defaultFont = getFont(defaultAnnotationText,
                             true);
 #endif // HAVE_FREETYPE
 }
@@ -157,8 +157,8 @@ FtglFontTextRenderer::isValid() const
  * Get the font with the given font attributes.
  * If the font is not created, return the default font.
  *
- * @param textAttributes
- *    Attributes for the font.
+ * @param annotationText
+ *   Annotation Text that is to be drawn.
  * @param creatingDefaultFontFlag
  *    True if creating the default font.
  * @return
@@ -166,11 +166,11 @@ FtglFontTextRenderer::isValid() const
  *    be NULL.
  */
 FTFont*
-FtglFontTextRenderer::getFont(const BrainOpenGLTextAttributes& textAttributes,
+FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
                               const bool creatingDefaultFontFlag)
 {
 #ifdef HAVE_FREETYPE
-    const AString fontName = textAttributes.getFontRenderingEncodedName();
+    const AString fontName = annotationText.getFontRenderingEncodedName();
     
     /*
      * Has the font already has been created?
@@ -185,18 +185,24 @@ FtglFontTextRenderer::getFont(const BrainOpenGLTextAttributes& textAttributes,
     /*
      * Create and save the font
      */
-    FontData* fontData = new FontData(textAttributes);
+    FontData* fontData = new FontData(annotationText);
     if (fontData->m_valid) {
+        /*
+         * Request font is valid.
+         */
         m_fontNameToFontMap.insert(std::make_pair(fontName,
                                                   fontData));
         CaretLogFine("Created font with encoded name "
-                       + fontName);
+                     + fontName);
         return fontData->m_font;
     }
     else {
+        /*
+         * Error creating font
+         */
         delete fontData;
         fontData = NULL;
-
+        
         /*
          * Issue a message about failure to create font but
          * don't print same message more than once.
@@ -218,7 +224,7 @@ FtglFontTextRenderer::getFont(const BrainOpenGLTextAttributes& textAttributes,
     }
     
     /*
-     * Use the default font.
+     * Failed so use the default font.
      */
     return m_defaultFont;
     
@@ -228,9 +234,8 @@ FtglFontTextRenderer::getFont(const BrainOpenGLTextAttributes& textAttributes,
 #endif // HAVE_FREETYPE
 }
 
-
 /**
- * Draw text at the given VIEWPORT coordinates.
+ * Draw annnotation text at the given VIEWPORT coordinates.
  *
  * The origin (0, 0) is at the bottom left corner
  * of the viewport and (viewport-width, viewport-height)
@@ -242,43 +247,38 @@ FtglFontTextRenderer::getFont(const BrainOpenGLTextAttributes& textAttributes,
  *   X-coordinate of the text.
  * @param windowY
  *   Y-coordinate of the text.
- * @param text
- *   Text that is to be drawn.
- * @param textAttributes
- *   Attributes for text drawing.
+ * @param annotationText
+ *   Annotation Text that is to be drawn.
  */
 void
 FtglFontTextRenderer::drawTextAtViewportCoords(const int viewport[4],
-                                             const double windowX,
-                                             const double windowY,
-                                             const QString& text,
-                                             const BrainOpenGLTextAttributes& textAttributes)
+                                      const double windowX,
+                                      const double windowY,
+                                      const AnnotationText& annotationText)
 {
     //std::cout << "Drawing \"" << qPrintable(text) << "\" at " << windowX << ", " << windowY << std::endl;
-    if (text.isEmpty()) {
+    if (annotationText.getText().isEmpty()) {
         return;
     }
     
-    switch (textAttributes.getOrientation()) {
-        case BrainOpenGLTextAttributes::LEFT_TO_RIGHT:
+    switch (annotationText.getOrientation()) {
+        case AnnotationTextOrientationEnum::HORIZONTAL:
             drawHorizontalTextAtWindowCoords(viewport,
                                              windowX,
                                              windowY,
-                                             text,
-                                             textAttributes);
+                                             annotationText);
             break;
-        case BrainOpenGLTextAttributes::TOP_TO_BOTTOM:
+        case AnnotationTextOrientationEnum::STACKED:
             drawVerticalTextAtWindowCoords(viewport,
                                            windowX,
                                            windowY,
-                                           text,
-                                           textAttributes);
+                                           annotationText);
             break;
     }
 }
 
 /**
- * Draw horizontal text at the given window coordinates.
+ * Draw horizontal annotation text at the given window coordinates.
  *
  * @param viewport
  *   The current viewport.
@@ -287,27 +287,24 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const int viewport[4],
  *   using the 'alignment'
  * @param windowY
  *   Y-coordinate in the window at which bottom of text is placed.
- * @param text
- *   Text that is to be drawn.
- * @param textAttributes
- *   Attributes for text drawing.
+ * @param annotationText
+ *   Annotation Text that is to be drawn.
  */
 void
 FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
-                                             const double windowX,
-                                             const double windowY,
-                                             const QString& text,
-                                             const BrainOpenGLTextAttributes& textAttributes)
+                                                       const double windowX,
+                                                       const double windowY,
+                                                       const AnnotationText& annotationText)
 {
 #ifdef HAVE_FREETYPE
-    FTFont* font = getFont(textAttributes,
+    FTFont* font = getFont(annotationText,
                            false);
     if (! font) {
         return;
     }
     
     saveStateOfOpenGL();
-
+    
     /*
      * Disable depth testing so text not occluded
      */
@@ -355,39 +352,42 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
     
+    const AString text = annotationText.getText();
+    
     const FTBBox  bbox  = font->BBox(text.toAscii().constData());
     const FTPoint lower = bbox.Lower();
     const FTPoint upper = bbox.Upper();
     
     double textOffsetX = 0;
-    switch (textAttributes.getHorizontalAlignment()) {
-        case BrainOpenGLTextAttributes::X_CENTER:
+    switch (annotationText.getHorizontalAlignment()) {
+        case AnnotationAlignHorizontalEnum::CENTER:
             textOffsetX = -((upper.X() - lower.X()) / 2.0);
             break;
-        case BrainOpenGLTextAttributes::X_LEFT:
+        case AnnotationAlignHorizontalEnum::LEFT:
             textOffsetX = -lower.X();
             break;
-        case BrainOpenGLTextAttributes::X_RIGHT:
+        case AnnotationAlignHorizontalEnum::RIGHT:
             textOffsetX = -upper.X();
             break;
     }
     
+    
     double textOffsetY = 0;
-    switch (textAttributes.getVerticalAlignment()) {
-        case BrainOpenGLTextAttributes::Y_BOTTOM:
+    switch (annotationText.getVerticalAlignment()) {
+        case AnnotationAlignVerticalEnum::BOTTOM:
             textOffsetY = -lower.Y();
             break;
-        case BrainOpenGLTextAttributes::Y_CENTER:
+        case AnnotationAlignVerticalEnum::CENTER:
             textOffsetY = -((upper.Y() - lower.Y()) / 2.0);
             break;
-        case BrainOpenGLTextAttributes::Y_TOP:
+        case AnnotationAlignVerticalEnum::TOP:
             textOffsetY = -upper.Y();
             break;
     }
     
     double textX = windowX + textOffsetX;
     double textY = windowY + textOffsetY;
-
+    
     if (drawCrosshairsAtFontStartingCoordinate) {
         std::cout << "BBox: (" << lower.Xf() << " " << lower.Yf() << ") (" << upper.Xf() << ", " << upper.Yf() << ")" << std::endl;
         
@@ -404,12 +404,12 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
     
-//    const double backgroundBounds[4] = {
-//        textX,
-//        textY,
-//        textX + (upper.X() - lower.X()),
-//        textY + (upper.Y() - lower.Y())
-//    };
+    //    const double backgroundBounds[4] = {
+    //        textX,
+    //        textY,
+    //        textX + (upper.X() - lower.X()),
+    //        textY + (upper.Y() - lower.Y())
+    //    };
     const double backgroundBounds[4] = {
         textX,
         textY,
@@ -419,22 +419,21 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
     
     glPushMatrix();
     glLoadIdentity();
-    applyBackgroundColoring(textAttributes,
+    applyBackgroundColoring(annotationText,
                             backgroundBounds);
-    applyForegroundColoring(textAttributes);
+    applyForegroundColoring(annotationText);
     
     glTranslated(textX,
                  textY,
                  0.0);
     font->Render(text.toAscii().constData());
     glPopMatrix();
-
+    
     restoreStateOfOpenGL();
 #else // HAVE_FREETYPE
     CaretLogSevere("Trying to use FTGL Font rendering but it cannot be used due to FreeType not found.");
 #endif // HAVE_FREETYPE
 }
-
 
 /**
  * Draw vertical text at the given window coordinates.
@@ -446,20 +445,17 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
  *   using the 'alignment'
  * @param windowY
  *   Y-coordinate in the window at which bottom of text is placed.
- * @param text
+ * @param annotationText
  *   Text that is to be drawn.
- * @param textAttributes
- *   Attributes for text drawing.
  */
 void
 FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
                                                      const double windowX,
                                                      const double windowY,
-                                                     const QString& text,
-                                                     const BrainOpenGLTextAttributes&  textAttributes)
+                                                     const AnnotationText& annotationText)
 {
 #ifdef HAVE_FREETYPE
-    FTFont* font = getFont(textAttributes,
+    FTFont* font = getFont(annotationText,
                            false);
     if ( ! font) {
         return;
@@ -515,13 +511,12 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
         glPopMatrix();
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
-
+    
     double textMinX   = 0.0;
     double textMaxX   = 0.0;
     double textHeight = 0.0;
     std::vector<CharInfo> textCharsToDraw;
-    getVerticalTextCharInfo(text,
-                            textAttributes,
+    getVerticalTextCharInfo(annotationText,
                             textMinX,
                             textMaxX,
                             textHeight,
@@ -530,14 +525,14 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
     const double textBoundsHeight = textHeight;
     
     double textOffsetX = 0;
-    switch (textAttributes.getHorizontalAlignment()) {
-        case BrainOpenGLTextAttributes::X_CENTER:
-            textOffsetX = 0;
-            break;
-        case BrainOpenGLTextAttributes::X_LEFT:
+    switch (annotationText.getHorizontalAlignment()) {
+        case AnnotationAlignHorizontalEnum::LEFT:
             textOffsetX = (textBoundsWidth / 2.0);
             break;
-        case BrainOpenGLTextAttributes::X_RIGHT:
+        case AnnotationAlignHorizontalEnum::CENTER:
+            textOffsetX = 0;
+            break;
+        case AnnotationAlignHorizontalEnum::RIGHT:
             textOffsetX = -(textBoundsWidth / 2.0);
             break;
     }
@@ -548,16 +543,16 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
      */
     double textOffsetY = 0.0;
     double textBackgroundTopOffsetY = 0.0;
-    switch (textAttributes.getVerticalAlignment()) {
-        case BrainOpenGLTextAttributes::Y_BOTTOM:
+    switch (annotationText.getVerticalAlignment()) {
+        case AnnotationAlignVerticalEnum::BOTTOM:
             textOffsetY = textBoundsHeight;
             textBackgroundTopOffsetY = textBoundsHeight;
             break;
-        case BrainOpenGLTextAttributes::Y_CENTER:
+        case AnnotationAlignVerticalEnum::CENTER:
             textOffsetY = (textBoundsHeight / 2.0);
             textBackgroundTopOffsetY = (textBoundsHeight / 2.0);
             break;
-        case BrainOpenGLTextAttributes::Y_TOP:
+        case AnnotationAlignVerticalEnum::TOP:
             textOffsetY = 0.0;
             textBackgroundTopOffsetY = 0.0;
             break;
@@ -575,16 +570,16 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
         backMaxY
     };
     
-    applyBackgroundColoring(textAttributes,
+    applyBackgroundColoring(annotationText,
                             backgroundBounds);
-    applyForegroundColoring(textAttributes);
+    applyForegroundColoring(annotationText);
     
     for (std::vector<CharInfo>::const_iterator textIter = textCharsToDraw.begin();
          textIter != textCharsToDraw.end();
          textIter++) {
         const double charX = windowX + textIter->m_x + textOffsetX;
         const double charY = windowY + textIter->m_y + textOffsetY;
-
+        
         glPushMatrix();
         glTranslated(charX,
                      charY,
@@ -604,22 +599,22 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
  * color that encloses the text.  If the background color is
  * invalid (alpha => 0), no action is taken.
  *
- * @param textAttributes
- *   Attributes for text drawing.
+ * @param annotationText
+ *   Annotation Text that is to be drawn.
  * @param textBoundsBox
  *   Bounding box for text (min-x, min-y, max-x, max-y)
  */
 void
-FtglFontTextRenderer::applyBackgroundColoring(const BrainOpenGLTextAttributes& textAttributes,
+FtglFontTextRenderer::applyBackgroundColoring(const AnnotationText& annotationText,
                                               const double textBoundsBox[4])
 {
     float backgroundColor[4];
-    textAttributes.getBackgroundColor(backgroundColor);
+    annotationText.getBackgroundColor(backgroundColor);
     
-//    backgroundColor[0] = 1.0;
-//    backgroundColor[1] = 0.8;
-//    backgroundColor[2] = 0.6;
-//    backgroundColor[3] = 1.0;
+    //    backgroundColor[0] = 1.0;
+    //    backgroundColor[1] = 0.8;
+    //    backgroundColor[2] = 0.6;
+    //    backgroundColor[3] = 1.0;
     
     if (backgroundColor[3] > 0.0) {
         glColor4fv(backgroundColor);
@@ -634,15 +629,15 @@ FtglFontTextRenderer::applyBackgroundColoring(const BrainOpenGLTextAttributes& t
 /**
  * Apply the foreground color.
  *
- * @param textAttributes
- *   Attributes for text drawing.
+ * @param annotationText
+ *   Annotation Text that is to be drawn.
  * @param textBoundsBox
  *   Bounding box for text (min-x, min-y, max-x, max-y)
  */
 void
-FtglFontTextRenderer::applyForegroundColoring(const BrainOpenGLTextAttributes& textAttributes)
+FtglFontTextRenderer::applyForegroundColoring(const AnnotationText& annotationText)
 {
-    const float* foregroundColor = textAttributes.getForegroundColor();
+    const float* foregroundColor = annotationText.getForegroundColor();
     glColor4fv(foregroundColor);
 }
 
@@ -652,10 +647,8 @@ FtglFontTextRenderer::applyForegroundColoring(const BrainOpenGLTextAttributes& t
  *
  * See http://ftgl.sourceforge.net/docs/html/metrics.png
  *
- * @param text
+ * @param annotationText
  *   Text that is to be drawn.
- * @param textAttributes
- *   Attributes for text drawing.
  * @param xMinOut
  *    Minimum X of text.
  * @param xMaxOut
@@ -666,8 +659,7 @@ FtglFontTextRenderer::applyForegroundColoring(const BrainOpenGLTextAttributes& t
  *    Maximum Y of text.
  */
 void
-FtglFontTextRenderer::getTextBoundsInPixels(const QString& text,
-                                            const BrainOpenGLTextAttributes& textAttributes,
+FtglFontTextRenderer::getTextBoundsInPixels(const AnnotationText& annotationText,
                                             double& xMinOut,
                                             double& xMaxOut,
                                             double& yMinOut,
@@ -678,18 +670,19 @@ FtglFontTextRenderer::getTextBoundsInPixels(const QString& text,
     yMinOut = 0.0;
     yMaxOut = 0.0;
     
+    const AString text = annotationText.getText();
     if (text.isEmpty()) {
         return;
     }
 #ifdef HAVE_FREETYPE
-    FTFont* font = getFont(textAttributes,
+    FTFont* font = getFont(annotationText,
                            false);
     if (! font) {
         return;
     }
-
-    switch (textAttributes.getOrientation()) {
-        case BrainOpenGLTextAttributes::LEFT_TO_RIGHT:
+    
+    switch (annotationText.getOrientation()) {
+        case AnnotationTextOrientationEnum::HORIZONTAL:
         {
             const FTBBox bbox   = font->BBox(text.toAscii().constData());
             const FTPoint lower = bbox.Lower();
@@ -701,12 +694,11 @@ FtglFontTextRenderer::getTextBoundsInPixels(const QString& text,
             yMaxOut = upper.Y();
         }
             break;
-        case BrainOpenGLTextAttributes::TOP_TO_BOTTOM:
+        case AnnotationTextOrientationEnum::STACKED:
         {
             double textHeight = 0.0;
             std::vector<CharInfo> charInfo;
-            getVerticalTextCharInfo(text,
-                                    textAttributes,
+            getVerticalTextCharInfo(annotationText,
                                     xMinOut,
                                     xMaxOut,
                                     textHeight,
@@ -718,86 +710,13 @@ FtglFontTextRenderer::getTextBoundsInPixels(const QString& text,
 #endif // HAVE_FREETYPE
 }
 
-///**
-// * Get the character info for drawing vertical text which includes
-// * position for each of the characters.
-// *
-// * @param text
-// *    Text that is to be drawn.
-// * @param textAttributes
-// *    Attributes for text drawing.
-// * @param xMinOut
-// *    Minimum X of text.
-// * @param xMaxOut
-// *    Maximum X of text.
-// * @param heightOut
-// *    Total height of text.
-// * @param charInfoOut
-// *    Contains each character and its X, Y position
-// *    for rendering vertically.
-// */
-//void
-//FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
-//                                              const BrainOpenGLTextAttributes& textAttributes,
-//                                              double& xMinOut,
-//                                              double& xMaxOut,
-//                                              double& heightOut,
-//                                              std::vector<CharInfo>& charInfoOut)
-//{
-//    charInfoOut.clear();
-//    xMinOut = 0.0;
-//    xMaxOut = 0.0;
-//    heightOut = 0.0;
-//    
-//    const int32_t numChars = static_cast<int32_t>(text.size());
-//    if (numChars <= 0) {
-//        return;
-//    }
-//#ifdef HAVE_FREETYPE
-//    
-//    FTFont* font = getFont(textAttributes,
-//                           false);
-//    if ( ! font) {
-//        return;
-//    }
-//    
-//    xMinOut =  std::numeric_limits<float>::max();
-//    xMaxOut = -std::numeric_limits<float>::max();
-//    
-//    double y =  0.0;
-//    for (int32_t i = 0; i < numChars; i++) {
-//        const QString oneChar = text[i];
-//        const FTBBox bbox = font->BBox(oneChar.toAscii().constData());
-//        const FTPoint lower = bbox.Lower();
-//        const FTPoint upper = bbox.Upper();
-//        
-//        const double width  = bbox.Upper().X() - bbox.Lower().X();
-//        
-//        xMinOut = std::min(xMinOut, lower.X());
-//        xMaxOut = std::max(xMaxOut, upper.X());
-//        
-//        const double xChar = -lower.X() - (width / 2.0);
-//        const double yChar = y + lower.Y();
-//        
-//        charInfoOut.push_back(CharInfo(oneChar,
-//                                           xChar, yChar));
-//        
-//        const double moveDownY = bbox.Upper().Y() - bbox.Lower().Y() + s_textMarginSize;
-//        y -= moveDownY;
-//    }
-//    
-//    heightOut = std::fabs(y);
-//#endif // HAVE_FREETYPE
-//}
 /**
  * Get the character info for drawing vertical text which includes
  * position for each of the characters.  The TOP of the first
  * character will be at Y=0.
  *
- * @param text
- *    Text that is to be drawn.
- * @param textAttributes
- *    Attributes for text drawing.
+ * @param annotationText
+ *   Text that is to be drawn.
  * @param xMinOut
  *    Minimum X of text.
  * @param xMaxOut
@@ -809,8 +728,7 @@ FtglFontTextRenderer::getTextBoundsInPixels(const QString& text,
  *    for rendering vertically.
  */
 void
-FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
-                                              const BrainOpenGLTextAttributes& textAttributes,
+FtglFontTextRenderer::getVerticalTextCharInfo(const AnnotationText& annotationText,
                                               double& xMinOut,
                                               double& xMaxOut,
                                               double& heightOut,
@@ -821,13 +739,14 @@ FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
     xMaxOut = 0.0;
     heightOut = 0.0;
     
+    const AString text = annotationText.getText();
     const int32_t numChars = static_cast<int32_t>(text.size());
     if (numChars <= 0) {
         return;
     }
 #ifdef HAVE_FREETYPE
     
-    FTFont* font = getFont(textAttributes,
+    FTFont* font = getFont(annotationText,
                            false);
     if ( ! font) {
         return;
@@ -873,10 +792,9 @@ FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
     }
     
     heightOut = std::fabs(y);
-
+    
 #endif // HAVE_FREETYPE
 }
-
 
 /**
  * Draw text at the given model coordinates.
@@ -887,17 +805,14 @@ FtglFontTextRenderer::getVerticalTextCharInfo(const QString& text,
  *   Y-coordinate in model space.
  * @param modelZ
  *   Z-coordinate in model space.
- * @param text
+ * @param annotationText
  *   Text that is to be drawn.
- * @param textAttributes
- *   Attributes for text drawing.
  */
 void
 FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
-                                                     const double modelY,
-                                                     const double modelZ,
-                                                     const QString& text,
-                                            const BrainOpenGLTextAttributes& textAttributes)
+                                            const double modelY,
+                                            const double modelZ,
+                                            const AnnotationText& annotationText)
 {
     GLdouble modelMatrix[16];
     GLdouble projectionMatrix[16];
@@ -919,10 +834,9 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                    &windowX, &windowY, &windowZ) == GL_TRUE) {
         
         drawTextAtViewportCoords(viewport,
-                               windowX,
-                               windowY,
-                               text,
-                               textAttributes);
+                                 windowX,
+                                 windowY,
+                                 annotationText);
     }
     else {
         CaretLogSevere("gluProject() failed for drawing text at model coordinates.");
@@ -985,51 +899,28 @@ FtglFontTextRenderer::FontData::FontData()
  * Constructs a font with the given attributes.
  * Called should verify that this instance is valid (construction was successful).
  *
- * @param textAttributes
- *     Attributes of the font.
+ * @param annotationText
+ *   Annotation Text that is to be drawn.
  */
-FtglFontTextRenderer::FontData::FontData(const BrainOpenGLTextAttributes&  textAttributes)
+FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText)
 {
     m_valid    = false;
     m_font     = NULL;
-
-#ifdef HAVE_FREETYPE
-    if (textAttributes.isItalicEnabled()) {
-    }
-    else if (textAttributes.isUnderlineEnabled()) {
-    }
     
-    AString fontFileName;
-
-    switch (textAttributes.getFontName()) {
-        case BrainOpenGLTextAttributes::SANS_SERIF:
-            if (textAttributes.isBoldEnabled()) {
-                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSans-Bold.ttf";
-            }
-            else {
-                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSans.ttf";
-            }
-            break;
-        case BrainOpenGLTextAttributes::SANS_SERIF_MONO:
-            if (textAttributes.isBoldEnabled()) {
-                fontFileName = ":/FtglFonts/VeraBd.ttf";
-                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSansMono-Bold.ttf";
-            }
-            else {
-                fontFileName = ":/FtglFonts/VeraSe.ttf";
-                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSansMono.ttf";
-            }
-            break;
-        case BrainOpenGLTextAttributes::SERIF:
-            if (textAttributes.isBoldEnabled()) {
-                fontFileName = ":/FtglFonts/VeraBd.ttf";
-                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSerif-Bold.ttf";
-            }
-            else {
-                fontFileName = ":/FtglFonts/VeraSe.ttf";
-                fontFileName = ":/DejaVuFtglFonts/ttf/DejaVuSerif.ttf";
-            }
-            break;
+#ifdef HAVE_FREETYPE
+    const AnnotationFontNameEnum::Enum fontName = annotationText.getFont();
+    
+    AString fontFileName = AnnotationFontNameEnum::getResourceFontFileName(fontName);
+    if (annotationText.isBoldEnabled()
+        && annotationText.isItalicEnabled()) {
+        fontFileName = AnnotationFontNameEnum::getResourceBoldItalicFontFileName(fontName);
+    }
+    else if (annotationText.isBoldEnabled()) {
+        fontFileName = AnnotationFontNameEnum::getResourceBoldFontFileName(fontName);
+        
+    }
+    else if (annotationText.isItalicEnabled()) {
+        fontFileName = AnnotationFontNameEnum::getResourceItalicFontFileName(fontName);
     }
     
     CaretAssert( ! fontFileName.isEmpty());
@@ -1061,12 +952,12 @@ FtglFontTextRenderer::FontData::FontData(const BrainOpenGLTextAttributes&  textA
                 /*
                  * Font size successful ?
                  */
-                if (m_font->FaceSize(textAttributes.getFontHeight())) {
+                if (m_font->FaceSize(annotationText.getFontHeight())) {
                     m_valid = true;
                 }
                 else {
                     CaretLogSevere("Error creating font height "
-                                   + AString::number(textAttributes.getFontHeight())
+                                   + AString::number(annotationText.getFontHeight())
                                    + " from font file "
                                    + file.fileName());
                 }

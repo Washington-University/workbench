@@ -26,7 +26,6 @@
 
 #include "BrainConstants.h"
 #include "BrainOpenGL.h"
-#include "BrainOpenGLTextAttributes.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretVolumeExtension.h"
 #include "DisplayGroupEnum.h"
@@ -46,6 +45,7 @@ class QImage;
 
 namespace caret {
     
+    class AnnotationText;
     class BoundingBox;
     class Brain;
     class BrainOpenGLShapeCone;
@@ -396,20 +396,12 @@ namespace caret {
                                 const float baseRotationAngle,
                                 const bool backwardsFlag);
         
-        void drawTextWindowCoords(const int windowX,
-                                  const int windowY,
-                                  const QString& text,
-                                  const BrainOpenGLTextAttributes& textAttributes);
-        
-        void drawTextModelCoords(const double modelX,
-                                 const double modelY,
-                                 const double modelZ,
-                                 const QString& text,
-                                 const BrainOpenGLTextAttributes& textAttributes);
+        void drawTextViewportCoords(const int windowX,
+                                    const int windowY,
+                                    const AnnotationText& annotationText);
         
         void drawTextModelCoords(const double modelXYZ[3],
-                                 const QString& text,
-                                 const BrainOpenGLTextAttributes& textAttributes);
+                                 const AnnotationText& annotationText);
         
         void drawAllPalettes(Brain* brain);
         

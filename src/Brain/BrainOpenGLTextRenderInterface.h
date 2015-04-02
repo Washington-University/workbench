@@ -25,8 +25,7 @@
 #include "CaretObject.h"
 
 namespace caret {
-
-    class BrainOpenGLTextAttributes;
+    class AnnotationText;
 
     /// An interface for a system that renders text in OpenGL commands
     class BrainOpenGLTextRenderInterface : public CaretObject {
@@ -44,7 +43,7 @@ namespace caret {
         virtual ~BrainOpenGLTextRenderInterface() { }
         
         /**
-         * Draw text at the given VIEWPORT coordinates.
+         * Draw annnotation text at the given VIEWPORT coordinates.
          *
          * The origin (0, 0) is at the bottom left corner
          * of the viewport and (viewport-width, viewport-height)
@@ -56,16 +55,13 @@ namespace caret {
          *   X-coordinate of the text.
          * @param windowY
          *   Y-coordinate of the text.
-         * @param text
+         * @param annotationText
          *   Text that is to be drawn.
-         * @param textAttributes
-         *   Attributes for text drawing.
          */
         virtual void drawTextAtViewportCoords(const int viewport[4],
                                               const double windowX,
                                               const double windowY,
-                                              const QString& text,
-                                              const BrainOpenGLTextAttributes& textAttributes) = 0;
+                                              const AnnotationText& annotationText) = 0;
         
         /**
          * Draw text at the given model coordinates.
@@ -76,27 +72,22 @@ namespace caret {
          *   Y-coordinate in model space.
          * @param modelZ
          *   Z-coordinate in model space.
-         * @param text
+         * @param annotationText
          *   Text that is to be drawn.
-         * @param textAttributes
-         *   Attributes for text drawing.
          */
         virtual void drawTextAtModelCoords(const double modelX,
                                            const double modelY,
                                            const double modelZ,
-                                           const QString& text,
-                                           const BrainOpenGLTextAttributes& textAttributes) = 0;
-
+                                           const AnnotationText& annotationText) = 0;
+        
         /**
          * Get the bounds of text (in pixels) using the given text
          * attributes.
          *
          * See http://ftgl.sourceforge.net/docs/html/metrics.png
          *
-         * @param text
+         * @param annotationText
          *   Text that is to be drawn.
-         * @param textAttributes
-         *   Attributes for text drawing.
          * @param xMinOut
          *    Minimum X of text.
          * @param xMaxOut
@@ -106,8 +97,7 @@ namespace caret {
          * @param yMaxOut
          *    Maximum Y of text.
          */
-        virtual void getTextBoundsInPixels(const QString& text,
-                                           const BrainOpenGLTextAttributes& textAttributes,
+        virtual void getTextBoundsInPixels(const AnnotationText& annotationText,
                                            double& xMinOut,
                                            double& xMaxOut,
                                            double& yMinOut,

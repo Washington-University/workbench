@@ -78,17 +78,14 @@ DummyFontTextRenderer::isValid() const
  *   X-coordinate of the text.
  * @param windowY
  *   Y-coordinate of the text.
- * @param text
- *   Text that is to be drawn.
- * @param textAttributes
- *   Attributes for text drawing.
+ * @param annotationText
+ *   Text and attributes for text drawing.
  */
 void
 DummyFontTextRenderer::drawTextAtViewportCoords(const int* /*viewport[4]*/,
                                              const double /*windowX*/,
                                              const double /*windowY*/,
-                                              const QString& /*text*/,
-                                              const BrainOpenGLTextAttributes&  /*textAttributes */)
+                                              const AnnotationText& /*annotationText*/)
 {
 }
 
@@ -102,21 +99,14 @@ DummyFontTextRenderer::drawTextAtViewportCoords(const int* /*viewport[4]*/,
  *   using the 'alignment'
  * @param windowY
  *   Y-coordinate in the window at which bottom of text is placed.
- * @param text
- *   Text that is to be drawn.
- * @param alignment
- *   Alignment of text
- * @param textStyle
- *   Style of the text.
- * @param fontHeight
- *   Height of the text.
+ * @param annotationText
+ *   Text and attributes for text drawing.
  */
 void
 DummyFontTextRenderer::drawVerticalTextAtWindowCoords(const int* /*viewport[4]*/,
                                                       const double /*windowX*/,
                                                       const double /*windowY*/,
-                                                      const QString& /*text*/,
-                                                      const BrainOpenGLTextAttributes&  /*textAttributes */)
+                                                      const AnnotationText& /*annotationText*/)
 {
 }
 
@@ -126,10 +116,8 @@ DummyFontTextRenderer::drawVerticalTextAtWindowCoords(const int* /*viewport[4]*/
  *
  * See http://ftgl.sourceforge.net/docs/html/metrics.png
  *
- * @param text
- *   Text that is to be drawn.
- * @param textAttributes
- *   Attributes for text drawing.
+ * @param annotationText
+ *   Text and attributes for text drawing.
  * @param xMinOut
  *    Minimum X of text.
  * @param xMaxOut
@@ -140,8 +128,7 @@ DummyFontTextRenderer::drawVerticalTextAtWindowCoords(const int* /*viewport[4]*/
  *    Maximum Y of text.
  */
 void
-DummyFontTextRenderer::getTextBoundsInPixels(const QString& /*text*/,
-                                             const BrainOpenGLTextAttributes& /*textAttributes*/,
+DummyFontTextRenderer::getTextBoundsInPixels(const AnnotationText& /*annotationText*/,
                                              double& /*xMinOut*/,
                                              double& /*xMaxOut*/,
                                              double& /*yMinOut*/,
@@ -158,17 +145,14 @@ DummyFontTextRenderer::getTextBoundsInPixels(const QString& /*text*/,
  *   Y-coordinate in model space.
  * @param modelZ
  *   Z-coordinate in model space.
- * @param text
- *   Text that is to be drawn.
- * @param textAttributes
- *   Attributes for text drawing.
+ * @param annotationText
+ *   Text and attributes for text drawing.
  */
 void
 DummyFontTextRenderer::drawTextAtModelCoords(const double /*modelX*/,
                                             const double /*modelY*/,
                                             const double /*modelZ*/,
-                                             const QString& /*text*/,
-                                             const BrainOpenGLTextAttributes&  /*textAttributes */)
+                                             const AnnotationText& /*annotationText*/)
 {
 }
 
