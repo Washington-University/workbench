@@ -519,7 +519,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2, const bool& fisherZ)
 {
     double r;
-    if (row1 == row2)
+    if (row1 == row2 && !m_covariance)
     {
         r = 1.0;//short circuit for same row
     } else {

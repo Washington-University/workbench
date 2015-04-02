@@ -1071,7 +1071,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponentLocal(StructureEnu
 float AlgorithmCiftiCorrelationGradient::correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2)
 {
     double r;
-    if (row1 == row2)
+    if (row1 == row2 && !m_covariance)
     {
         r = 1.0;//short circuit for same row
     } else {
