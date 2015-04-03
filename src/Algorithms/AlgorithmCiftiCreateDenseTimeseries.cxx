@@ -172,8 +172,10 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
+    CiftiBrainModelsMap denseMap = makeDenseMapping(myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
     CiftiXML myXML;
-    makeDenseMapping(myXML, CiftiXML::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
+    myXML.setNumberOfDimensions(2);
+    myXML.setMap(CiftiXML::ALONG_COLUMN, denseMap);
     int numMaps = -1;
     if (leftData != NULL)
     {
@@ -267,8 +269,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     }
 }
 
-void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXML& toModify, const int& direction,
-                                                           const VolumeFile* myVol, const VolumeFile* myVolLabel,
+CiftiBrainModelsMap AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(const VolumeFile* myVol, const VolumeFile* myVolLabel,
                                                            const MetricFile* leftData, const MetricFile* leftRoi,
                                                            const MetricFile* rightData, const MetricFile* rightRoi,
                                                            const MetricFile* cerebData, const MetricFile* cerebRoi)
@@ -385,8 +386,7 @@ void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXML& toModify, c
     {
         throw AlgorithmException("no models specified");
     }
-    toModify.setNumberOfDimensions(2);//HACK: quick fix, should probably return a mapping, not modify xml
-    toModify.setMap(direction, denseMap);
+    return denseMap;
 }
 
 

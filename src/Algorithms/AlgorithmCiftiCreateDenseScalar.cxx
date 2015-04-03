@@ -135,8 +135,10 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
+    CiftiBrainModelsMap denseMap = AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
     CiftiXML myXML;
-    AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(myXML, CiftiXMLOld::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
+    myXML.setNumberOfDimensions(2);
+    myXML.setMap(CiftiXML::ALONG_COLUMN, denseMap);
     int numMaps = -1;
     const CaretMappableDataFile* nameFile = NULL;
     if (leftData != NULL)
