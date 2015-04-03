@@ -86,6 +86,8 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     
     OptionalParameter* covarianceOpt = ret->createOptionalParameter(13, "-covariance", "compute covariance instead of correlation");
     covarianceOpt->createOptionalParameter(1, "-sqrt", "take the square root of the magnitude of covariance and reapply sign");
+    covarianceOpt->createOptionalParameter(2, "-normalize-rows", "divide rows by the square root of the diagonal");
+    covarianceOpt->createOptionalParameter(3, "-normalize-cols", "divide columns by the square root of the diagonal");
     
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(11, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
@@ -181,29 +183,29 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
         }
     }
     //bool localMethod = myParams->getOptionalParameter(9)->m_present;
-    bool covariance = false, covSqrt = false;
+    bool covariance = false, covSqrt = false, covNormRow = false, covNormCol = false;
     OptionalParameter* covarianceOpt = myParams->getOptionalParameter(13);
     if (covarianceOpt->m_present)
     {
         covariance = true;
         covSqrt = covarianceOpt->getOptionalParameter(1)->m_present;
+        covNormRow = covarianceOpt->getOptionalParameter(2)->m_present;
+        covNormCol = covarianceOpt->getOptionalParameter(3)->m_present;
     }
     AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myLeftAreas, myRightAreas, myCerebAreas,
-                                      surfKern, volKern, undoFisherInput, applyFisher, surfaceExclude, volumeExclude, covariance, covSqrt, memLimitGB);
+                                      surfKern, volKern, undoFisherInput, applyFisher, surfaceExclude, volumeExclude, covariance, covSqrt, covNormRow, covNormCol, memLimitGB);
 }
 
 AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                                                      SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf, SurfaceFile* myCerebSurf,
                                                                      const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
                                                                      const float& surfKern, const float& volKern, const bool& undoFisherInput, const bool& applyFisher,
-                                                                     const float& surfaceExclude, const float& volumeExclude, const bool& covariance, const bool& covSqrt, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
+                                                                     const float& surfaceExclude, const float& volumeExclude,
+                                                                     const bool& covariance, const bool& covSqrt, const bool& covNormRow, const bool& covNormCol,
+                                                                     const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (covariance)
-    {
-        if (applyFisher) throw AlgorithmException("cannot apply fisher z transformation to covariance");
-    }
-    init(myCifti, undoFisherInput, applyFisher, covariance, covSqrt);
+    init(myCifti, undoFisherInput, applyFisher, covariance, covSqrt, covNormRow, covNormCol);
     const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
     CiftiXMLOld myNewXML = myXML;
     myNewXML.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, 1);
@@ -377,14 +379,36 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
                         float cacheRrs;
                         const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                         float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                        computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
-                        computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
+                        if (m_covNormRow)
+                        {
+                            computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result / cacheRrs);
+                            computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result / movingRrs);
+                        } else {
+                            if (m_covNormCol)
+                            {
+                                computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result / movingRrs);
+                                computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result / cacheRrs);
+                            } else {
+                                computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                                computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
+                            }
+                        }
                     }
                 } else {
                     float cacheRrs;
                     const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                     float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                    computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                    if (m_covNormRow)
+                    {
+                        computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result / cacheRrs);
+                    } else {
+                        if (m_covNormCol)
+                        {
+                            computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result / movingRrs);
+                        } else {
+                            computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                        }
+                    }
                 }
             }
         }
@@ -535,14 +559,36 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
                             float cacheRrs;
                             const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                             float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                            computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
-                            computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
+                            if (m_covNormRow)
+                            {
+                                computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result / cacheRrs);
+                                computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result / movingRrs);
+                            } else {
+                                if (m_covNormCol)
+                                {
+                                    computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result / movingRrs);
+                                    computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result / cacheRrs);
+                                } else {
+                                    computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                                    computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
+                                }
+                            }
                         }
                     } else {
                         float cacheRrs;
                         const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                         float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                        computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                        if (m_covNormRow)
+                        {
+                            computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result / cacheRrs);
+                        } else {
+                            if (m_covNormCol)
+                            {
+                                computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result / movingRrs);
+                            } else {
+                                computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                            }
+                        }
                     }
                 }
             }
@@ -702,14 +748,36 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
                         float cacheRrs;
                         const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                         float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                        computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
-                        computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                        if (m_covNormRow)
+                        {
+                            computeVol.setValue(result / cacheRrs, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                            computeVol.setValue(result / movingRrs, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                        } else {
+                            if (m_covNormCol)
+                            {
+                                computeVol.setValue(result / movingRrs, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                                computeVol.setValue(result / cacheRrs, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                            } else {
+                                computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                                computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                            }
+                        }
                     }
                 } else {
                     float cacheRrs;
                     const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                     float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                    computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                    if (m_covNormRow)
+                    {
+                        computeVol.setValue(result / cacheRrs, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                    } else {
+                        if (m_covNormCol)
+                        {
+                            computeVol.setValue(result / movingRrs, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                        } else {
+                            computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                        }
+                    }
                 }
             }
         }
@@ -846,14 +914,36 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
                             float cacheRrs;
                             const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                             float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                            computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
-                            computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                            if (m_covNormRow)
+                            {
+                                computeVol.setValue(result / cacheRrs, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                                computeVol.setValue(result / movingRrs, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                            } else {
+                                if (m_covNormCol)
+                                {
+                                    computeVol.setValue(result / movingRrs, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                                    computeVol.setValue(result / cacheRrs, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                                } else {
+                                    computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                                    computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                                }
+                            }
                         }
                     } else {
                         float cacheRrs;
                         const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                         float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                        computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                        if (m_covNormRow)
+                        {
+                            computeVol.setValue(result / cacheRrs, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                        } else {
+                            if (m_covNormCol)
+                            {
+                                computeVol.setValue(result / movingRrs, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                            } else {
+                                computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                            }
+                        }
                     }
                 }
             }
@@ -1111,13 +1201,24 @@ float AlgorithmCiftiCorrelationGradient::correlate(const float* row1, const floa
     return r;
 }
 
-void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool& undoFisherInput, const bool& applyFisher, const bool& covariance, const bool& covSqrt)
+void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool& undoFisherInput, const bool& applyFisher,
+                                             const bool& covariance, const bool& covSqrt, const bool& covNormRow, const bool& covNormCol)
 {
     if (input->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("input cifti file must have brain models mapping along column");
+    if (covariance)
+    {
+        if (applyFisher) throw AlgorithmException("cannot apply fisher z transformation to covariance");
+        if (covSqrt && (covNormCol || covNormRow)) throw AlgorithmException("cannot square root covariance and normalize by row or column at the same time");
+        if (covNormRow && covNormCol) throw AlgorithmException("normalize by both row and column would be correlation, do not use covariance option");
+    } else {
+        if (covSqrt || covNormRow || covNormCol) throw AlgorithmException("covariance suboptions specified without covariance option");
+    }
     m_undoFisherInput = undoFisherInput;
     m_applyFisher = applyFisher;
     m_covariance = covariance;
     m_covSqrt = covSqrt;
+    m_covNormRow = covNormRow;
+    m_covNormCol = covNormCol;
     m_inputCifti = input;
     m_rowInfo.resize(m_inputCifti->getNumberOfRows());
     m_cacheUsed = 0;
@@ -1213,14 +1314,18 @@ void AlgorithmCiftiCorrelationGradient::adjustRow(float* rowOut, const int& cift
             accum += rowOut[i];
         }
         float mean = accum / m_numCols;
-        float rootResidSqr = 0.0f;//not used in covariance
-        if (!m_covariance)
+        float rootResidSqr = 0.0f;//not used in covariance unless normalizing
+        if (!m_covariance || m_covNormCol || m_covNormRow)
         {
             accum = 0.0;
             for (int i = 0; i < m_numCols; ++i)
             {
                 float tempf = rowOut[i] - mean;
                 accum += tempf * tempf;
+            }
+            if (m_covariance && (m_covNormCol || m_covNormRow))
+            {
+                rootResidSqr /= m_numCols;//for normalizing by only one direction, can't have the number of elements factor in play
             }
             rootResidSqr = sqrt(accum);
         }
