@@ -137,8 +137,6 @@
 
 using namespace caret;
 
-//static const bool USE_OLD_VOLUME_SLICE_DRAWING_FLAG = false;
-
 /**
  * Constructor.
  *
@@ -440,10 +438,6 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
 
         drawBackgroundImage(vpContent);
         
-//        CaretLogFinest("Drawing Model "
-//                       + AString::number(i)
-//                       + ": "
-//                       + AString::fromNumbers(vpContent->getModelViewport(), 4, ", "));
         m_brain = vpContent->getBrain();
         CaretAssert(m_brain);
         this->drawModelInternal(MODE_DRAWING,
@@ -1101,9 +1095,9 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
      */    
     glEnable(GL_NORMALIZE);
     
-    //
-    // Avoid drawing backfacing polygons
-    //
+    /*
+     * Avoid drawing backfacing polygons
+     */
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     
@@ -1169,9 +1163,9 @@ BrainOpenGLFixedPipeline::enableLighting()
             glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
             glEnable(GL_LIGHT0);
             
-            //
-            // Light 1 position is opposite of light 0
-            //
+            /*
+             * Light 1 position is opposite of light 0
+             */
             lightPosition[0] = -lightPosition[0];
             lightPosition[1] = -lightPosition[1];
             lightPosition[2] = -lightPosition[2];
@@ -1249,11 +1243,6 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(ModelSurface* surfaceModel,
     
     this->drawSurface(surface,
                       nodeColoringRGBA);
-    
-// Disable on individual surface for Matt's NX crash
-//    if (surface->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
-//        this->drawSurfaceFiberOrientations();
-//    }
 }
 
 /**
@@ -1342,8 +1331,6 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     glGetBooleanv(GL_BLEND, &blendingEnabled);
                     glEnable(GL_BLEND);
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//                    std::cout << "Surface " << surface->getFileNameNoPath() << std::endl;
-//                    std::cout << qPrintable(getStateOfOpenGL()) << std::endl;
                     
                     this->drawSurfaceTrianglesWithVertexArrays(surface,
                                                                nodeColoringRGBA);
@@ -1636,7 +1623,6 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                          * use a coordinate from the triangle
                          */
                         if (triangleDisplayArea < 0.001) {
-                            //this->modeProjectionData->setStereotaxicXYZ(c1);
                             float barycentricAreas[3] = { 1.0, 0.0, 0.0 };
                             int barycentricNodes[3] = { n1, n1, n1 };
                             
@@ -1679,7 +1665,6 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                                     (dc1[1]*areaU + dc2[1]*areaV + dc3[1]*areaW) / totalArea,
                                     (dc1[2]*areaU + dc2[2]*areaV + dc3[2]*areaW) / totalArea
                                 };
-                                //this->modeProjectionData->setStereotaxicXYZ(projectedXYZ);
                                 
                                 const float barycentricAreas[3] = {
                                     areaU,
@@ -3346,7 +3331,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             const int32_t volDrawInfoIndex = identificationIndices[idIndex];
             CaretAssertVectorIndex(volumeDrawInfo, volDrawInfoIndex);
             VolumeMappableInterface* vf = volumeDrawInfo[volDrawInfoIndex].volumeFile;
-            //const int32_t mapIndex = identificationIndices[idIndex + 1];
             const int64_t voxelIndices[3] = {
                 identificationIndices[idIndex + 2],
                 identificationIndices[idIndex + 3],
@@ -5415,36 +5399,6 @@ BrainOpenGLFixedPipeline::drawAnnotationText(const AnnotationText& annotationTex
     }
 }
 
-
-///**
-// * Draw text at viewport coordinates.
-// *
-// * @param annotationText
-// *    Text and its attributes that is to be drawn.
-// */
-//void
-//BrainOpenGLFixedPipeline::drawTextViewportCoords(const AnnotationText& annotationText)
-//{
-//    CaretAssert(annotationText.getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB);
-//    if (this->textRenderer != NULL) {
-//        this->textRenderer->drawAnnotationText(annotationText);
-//    }
-//}
-//
-///**
-// * Draw text at modeling coordinates.
-// * @param annotationText
-// *    Text and its attributes that is to be drawn.
-// */
-//void
-//BrainOpenGLFixedPipeline::drawTextModelCoords(const AnnotationText& annotationText)
-//{
-//    CaretAssert(annotationText.getCoordinateSpace() == AnnotationCoordinateSpaceEnum::MODEL);
-//    if (this->textRenderer != NULL) {
-//        this->textRenderer->drawAnnotationText(annotationText);
-//    }
-//}
-
 /**
  * Draw the palettes showing how scalars are mapped
  * to colors.
@@ -5924,16 +5878,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     
     const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
     if (isNegativeDisplayed) {
-//        BrainOpenGLTextAttributes textAttributes;
-//        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
-//        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
-//        textAttributes.setFontHeight(12);
-//        textAttributes.setForegroundColor(m_foregroundColorFloat);
-//        this->drawTextViewportCoords(textLeftX,
-//                                   textY, 
-//                                   textLeft,
-//                                   textAttributes);
-        
         AnnotationText annotationText;
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
@@ -5944,24 +5888,10 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setXYZ(textLeftX, textY, 0.0);
         this->drawAnnotationText(annotationText);
     }
+    
     if (isNegativeDisplayed
         || isZeroDisplayed
         || isPositiveDisplayed) {
-//        BrainOpenGLTextAttributes textAttributes;
-//        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
-//        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
-//        if (isNegativeOnly) {
-//            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
-//        }
-//        else if (isPositiveOnly) {
-//            textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_LEFT);
-//        }
-//        textAttributes.setFontHeight(12);
-//        textAttributes.setForegroundColor(m_foregroundColorFloat);
-//        this->drawTextViewportCoords(textCenterX,
-//                                   textY, 
-//                                   textCenter,
-//                                   textAttributes);
 
         AnnotationText annotationText;
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
@@ -5979,17 +5909,8 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setXYZ(textCenterX, textY, 0.0);
         this->drawAnnotationText(annotationText);
     }
+    
     if (isPositiveDisplayed) {
-//        BrainOpenGLTextAttributes textAttributes;
-//        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
-//        textAttributes.setVerticalAlignment(BrainOpenGLTextAttributes::Y_BOTTOM);
-//        textAttributes.setFontHeight(12);
-//        textAttributes.setForegroundColor(m_foregroundColorFloat);
-//        this->drawTextViewportCoords(textRightX,
-//                                   textY, 
-//                                   textRight,
-//                                   textAttributes);
-        
         AnnotationText annotationText;
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);

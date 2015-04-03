@@ -398,10 +398,6 @@ namespace caret {
         
         void drawAnnotationText(const AnnotationText& annotationText);
         
-//        void drawTextViewportCoords(const AnnotationText& annotationText);
-//        
-//        void drawTextModelCoords(const AnnotationText& annotationText);
-        
         void drawAllPalettes(Brain* brain);
         
         void drawPalette(const Palette* palette,

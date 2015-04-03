@@ -439,12 +439,6 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
     
-    //    const double backgroundBounds[4] = {
-    //        textX,
-    //        textY,
-    //        textX + (upper.X() - lower.X()),
-    //        textY + (upper.Y() - lower.Y())
-    //    };
     const double backgroundBounds[4] = {
         textX,
         textY,
@@ -649,11 +643,6 @@ FtglFontTextRenderer::applyBackgroundColoring(const AnnotationText& annotationTe
 {
     float backgroundColor[4];
     annotationText.getBackgroundColor(backgroundColor);
-    
-    //    backgroundColor[0] = 1.0;
-    //    backgroundColor[1] = 0.8;
-    //    backgroundColor[2] = 0.6;
-    //    backgroundColor[3] = 1.0;
     
     if (backgroundColor[3] > 0.0) {
         glColor4fv(backgroundColor);
