@@ -417,7 +417,20 @@ CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename)
     if (whichExt == -1) throw DataFileException("no cifti extension found in file '" + filename + "'");
     m_xml.readXML(QByteArray(myHeader.m_extensions[whichExt]->m_bytes.data(), myHeader.m_extensions[whichExt]->m_bytes.size()));//CiftiXML should be under 2GB
     vector<int64_t> dimCheck = m_nifti.getDimensions();
-    if (dimCheck.size() < 5) throw DataFileException("invalid dimensions in cifti file '" + filename + "'");
+    if (dimCheck.size() < 5)
+    {
+        if (m_xml.getParsedVersion() == CiftiVersion(1, 0) && dimCheck.size() == 2)//QUIRK: we wrote some cifti-1 files with the dimensions in dim[1] and dim[2]
+        {
+            CaretLogWarning("invalid dimensions in cifti file '" + filename + "', attempting recovery");//becase cifti-1 was 2D only, we can try to recover
+            vector<int64_t> dimFix(4, 1);
+            dimFix.push_back(dimCheck[0]);
+            dimFix.push_back(dimCheck[1]);
+            dimCheck = dimFix;
+            m_nifti.overrideDimensions(dimCheck);//will actually get overridden again below since cifti-1 has reversed first dims
+        } else {
+            throw DataFileException("invalid dimensions in cifti file '" + filename + "'");
+        }
+    }
     for (int i = 0; i < 4; ++i)
     {
         if (dimCheck[i] != 1) throw DataFileException("non-singular dimension #" + QString::number(i + 1) + " in cifti file '" + filename + "'");
