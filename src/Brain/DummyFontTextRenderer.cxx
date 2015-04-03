@@ -66,27 +66,40 @@ DummyFontTextRenderer::isValid() const
 }
 
 /**
- * Draw text at the given VIEWPORT coordinates.
+ * Draw annnotation text using its attributes
+ * for the style and position of the text.
  *
- * The origin (0, 0) is at the bottom left corner
- * of the viewport and (viewport-width, viewport-height)
- * is at the top right corner of the viewport.
- *
- * @param viewport
- *   The current viewport.
- * @param windowX
- *   X-coordinate of the text.
- * @param windowY
- *   Y-coordinate of the text.
  * @param annotationText
- *   Text and attributes for text drawing.
+ *   Text that is to be drawn.
  */
 void
-DummyFontTextRenderer::drawTextAtViewportCoords(const double /*windowX*/,
-                                             const double /*windowY*/,
-                                              const AnnotationText& /*annotationText*/)
+DummyFontTextRenderer::drawAnnotationText(const AnnotationText& /*annotationText*/)
 {
+    
 }
+
+///**
+// * Draw text at the given VIEWPORT coordinates.
+// *
+// * The origin (0, 0) is at the bottom left corner
+// * of the viewport and (viewport-width, viewport-height)
+// * is at the top right corner of the viewport.
+// *
+// * @param viewport
+// *   The current viewport.
+// * @param windowX
+// *   X-coordinate of the text.
+// * @param windowY
+// *   Y-coordinate of the text.
+// * @param annotationText
+// *   Text and attributes for text drawing.
+// */
+//void
+//DummyFontTextRenderer::drawTextAtViewportCoords(const double /*windowX*/,
+//                                             const double /*windowY*/,
+//                                              const AnnotationText& /*annotationText*/)
+//{
+//}
 
 /**
  * Get the bounds of text (in pixels) using the given text
@@ -114,25 +127,25 @@ DummyFontTextRenderer::getTextBoundsInPixels(const AnnotationText& /*annotationT
 {
 }
 
-/**
- * Draw text at the given model coordinates.
- *
- * @param modelX
- *   X-coordinate in model space of first text character
- * @param modelY
- *   Y-coordinate in model space.
- * @param modelZ
- *   Z-coordinate in model space.
- * @param annotationText
- *   Text and attributes for text drawing.
- */
-void
-DummyFontTextRenderer::drawTextAtModelCoords(const double /*modelX*/,
-                                            const double /*modelY*/,
-                                            const double /*modelZ*/,
-                                             const AnnotationText& /*annotationText*/)
-{
-}
+///**
+// * Draw text at the given model coordinates.
+// *
+// * @param modelX
+// *   X-coordinate in model space of first text character
+// * @param modelY
+// *   Y-coordinate in model space.
+// * @param modelZ
+// *   Z-coordinate in model space.
+// * @param annotationText
+// *   Text and attributes for text drawing.
+// */
+//void
+//DummyFontTextRenderer::drawTextAtModelCoords(const double /*modelX*/,
+//                                            const double /*modelY*/,
+//                                            const double /*modelZ*/,
+//                                             const AnnotationText& /*annotationText*/)
+//{
+//}
 
 /**
  * @return Name of the text renderer.

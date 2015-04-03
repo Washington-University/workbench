@@ -5402,39 +5402,48 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
 }
 
 /**
- * Draw text at viewport coordinates.
+ * Draw text using its attributes.
  *
  * @param annotationText
  *    Text and its attributes that is to be drawn.
  */
 void
-BrainOpenGLFixedPipeline::drawTextViewportCoords(const AnnotationText& annotationText)
+BrainOpenGLFixedPipeline::drawAnnotationText(const AnnotationText& annotationText)
 {
     if (this->textRenderer != NULL) {
-        const float* xyz = annotationText.getXYZ();
-        this->textRenderer->drawTextAtViewportCoords(xyz[0],
-                                                     xyz[1],
-                                                     annotationText);
+        this->textRenderer->drawAnnotationText(annotationText);
     }
 }
 
-/**
- * Draw text at modeling coordinates.
- * @param annotationText
- *    Text and its attributes that is to be drawn.
- */
-void
-BrainOpenGLFixedPipeline::drawTextModelCoords(const AnnotationText& annotationText)
-{
-    if (this->textRenderer != NULL) {
-        float modelXYZ[3];
-        annotationText.getXYZ(modelXYZ);
-        this->textRenderer->drawTextAtModelCoords(modelXYZ[0],
-                                                  modelXYZ[1],
-                                                  modelXYZ[2],
-                                                  annotationText);
-    }
-}
+
+///**
+// * Draw text at viewport coordinates.
+// *
+// * @param annotationText
+// *    Text and its attributes that is to be drawn.
+// */
+//void
+//BrainOpenGLFixedPipeline::drawTextViewportCoords(const AnnotationText& annotationText)
+//{
+//    CaretAssert(annotationText.getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB);
+//    if (this->textRenderer != NULL) {
+//        this->textRenderer->drawAnnotationText(annotationText);
+//    }
+//}
+//
+///**
+// * Draw text at modeling coordinates.
+// * @param annotationText
+// *    Text and its attributes that is to be drawn.
+// */
+//void
+//BrainOpenGLFixedPipeline::drawTextModelCoords(const AnnotationText& annotationText)
+//{
+//    CaretAssert(annotationText.getCoordinateSpace() == AnnotationCoordinateSpaceEnum::MODEL);
+//    if (this->textRenderer != NULL) {
+//        this->textRenderer->drawAnnotationText(annotationText);
+//    }
+//}
 
 /**
  * Draw the palettes showing how scalars are mapped
@@ -5933,7 +5942,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setText(textLeft);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
         annotationText.setXYZ(textLeftX, textY, 0.0);
-        this->drawTextViewportCoords(annotationText);
+        this->drawAnnotationText(annotationText);
     }
     if (isNegativeDisplayed
         || isZeroDisplayed
@@ -5968,7 +5977,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setText(textLeft);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
         annotationText.setXYZ(textCenterX, textY, 0.0);
-        this->drawTextViewportCoords(annotationText);
+        this->drawAnnotationText(annotationText);
     }
     if (isPositiveDisplayed) {
 //        BrainOpenGLTextAttributes textAttributes;
@@ -5989,7 +5998,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setText(textRight);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
         annotationText.setXYZ(textRightX, textY, 0.0);
-        this->drawTextViewportCoords(annotationText);
+        this->drawAnnotationText(annotationText);
     }
     
     return;

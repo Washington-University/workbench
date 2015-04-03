@@ -92,5 +92,5 @@ void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawTextAnnotation(const AnnotationText& textAnnotation)
 {
     const float* xyz = textAnnotation.getXYZ();
-    m_brainOpenGLFixedPipeline->drawTextViewportCoords(textAnnotation);
+    m_brainOpenGLFixedPipeline->drawAnnotationText(textAnnotation);
 }

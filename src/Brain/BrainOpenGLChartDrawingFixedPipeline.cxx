@@ -628,9 +628,11 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             const float textX = tickEndX;
             const float textY = tickEndY;
             annotationText.setText(labelTexts[i]);
-            textRenderer->drawTextAtViewportCoords(textX,
-                                                   textY,
-                                                   annotationText);
+            annotationText.setXYZ(textX, textY, 0.0);
+            textRenderer->drawAnnotationText(annotationText);
+//            textRenderer->drawTextAtViewportCoords(textX,
+//                                                   textY,
+//                                                   annotationText);
 //            textRenderer->drawTextAtViewportCoords(viewport,
 //                                                 textX,
 //                                                 textY,
@@ -706,10 +708,12 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             }
             if (drawAxisTextVerticalFlag) {
                 annotationText.setOrientation(AnnotationTextOrientationEnum::STACKED);
+                annotationText.setXYZ(axisTextCenterX, axisTextCenterY, 0.0);
                 annotationText.setText(axisText);
-                textRenderer->drawTextAtViewportCoords(axisTextCenterX,
-                                                       axisTextCenterY,
-                                                       annotationText);
+                textRenderer->drawAnnotationText(annotationText);
+//                textRenderer->drawTextAtViewportCoords(axisTextCenterX,
+//                                                       axisTextCenterY,
+//                                                       annotationText);
                 
 //                textAttributes.setOrientation(BrainOpenGLTextAttributes::TOP_TO_BOTTOM);
 //                textRenderer->drawTextAtViewportCoords(viewport,
@@ -721,9 +725,11 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             else {
                 annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
                 annotationText.setText(axisText);
-                textRenderer->drawTextAtViewportCoords(axisTextCenterX,
-                                                       axisTextCenterY,
-                                                       annotationText);
+                annotationText.setXYZ(axisTextCenterX, axisTextCenterY, 0.0);
+                textRenderer->drawAnnotationText(annotationText);
+//                textRenderer->drawTextAtViewportCoords(axisTextCenterX,
+//                                                       axisTextCenterY,
+//                                                       annotationText);
 //                textAttributes.setOrientation(BrainOpenGLTextAttributes::LEFT_TO_RIGHT);
 //                textRenderer->drawTextAtViewportCoords(viewport,
 //                                                     axisTextCenterX,

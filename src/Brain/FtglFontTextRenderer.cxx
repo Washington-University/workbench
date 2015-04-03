@@ -145,6 +145,38 @@ FtglFontTextRenderer::~FtglFontTextRenderer()
 }
 
 /**
+ * Draw annnotation text using its attributes
+ * for the style and position of the text.
+ *
+ * @param annotationText
+ *   Text that is to be drawn.
+ */
+void
+FtglFontTextRenderer::drawAnnotationText(const AnnotationText& annotationText)
+{
+    const float* xyz = annotationText.getXYZ();
+    switch (annotationText.getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::MODEL:
+            drawTextAtModelCoords(xyz[0],
+                                  xyz[1],
+                                  xyz[2],
+                                  annotationText);
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            CaretAssertMessage(0, "SURFACE coordinate space not implemented.");
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            drawTextAtViewportCoords(xyz[0],
+                                     xyz[1],
+                                     annotationText);
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            CaretAssertMessage(0, "WINDOW coordinate space not implemented.");
+            break;
+    }
+}
+
+/**
  * @return The font system is valid.
  */
 bool
