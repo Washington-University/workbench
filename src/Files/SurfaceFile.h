@@ -256,6 +256,8 @@ namespace caret {
         std::vector<float> normalVectors;
         
         bool m_normalsComputed;
+        
+        bool m_skipSanityCheck;
 
         /** The node coloring. */
         std::vector<float> nodeColoring;

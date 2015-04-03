@@ -54,6 +54,8 @@ using namespace caret;
 SurfaceFile::SurfaceFile()
 : GiftiTypeFile(DataFileTypeEnum::SURFACE)
 {
+    m_skipSanityCheck = false;//NOTE: this is NOT in the initializeMembersSurfaceFile method, because that method gets used at the top of the validate function,
+                              //which is used by setNumberOfNodesAndTriangles, which temporarily puts it the triangles into an invalid state, which is why this flag exists
     this->initializeMembersSurfaceFile();
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
@@ -67,6 +69,7 @@ SurfaceFile::SurfaceFile()
 SurfaceFile::SurfaceFile(const SurfaceFile& sf)
 : GiftiTypeFile(sf), EventListenerInterface()
 {
+    m_skipSanityCheck = false;//see above
     this->initializeMembersSurfaceFile();
     this->copyHelperSurfaceFile(sf);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
@@ -211,31 +214,34 @@ SurfaceFile::validateDataArraysAfterReading()
         " contains data type INT32, Intent TRIANGLE, and two "
         " dimensions with the second dimension set to three.";
     }
-    const int numTris = getNumberOfTriangles();//sanity check the triangle data array
     const int32_t numNodes = this->getNumberOfNodes();
-    for (int i = 0; i < numTris; ++i)
+    if (!m_skipSanityCheck)
     {
-        const int32_t* thisTri = getTriangle(i);
-        for (int j = 0; j < 3; ++j)
+        const int numTris = getNumberOfTriangles();//sanity check the triangle data array
+        for (int i = 0; i < numTris; ++i)
         {
-            if (thisTri[j] < 0 || thisTri[j] >= numNodes)
+            const int32_t* thisTri = getTriangle(i);
+            for (int j = 0; j < 3; ++j)
             {
-                errorMessage += "Invalid vertex in triangle array: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]);
-                break;
-            }
-            for (int k = j + 1; k < 3; ++k)
-            {
-                if (thisTri[j] == thisTri[k])
+                if (thisTri[j] < 0 || thisTri[j] >= numNodes)
                 {
-                    errorMessage += "Vertex used twice in one triangle: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]);
+                    errorMessage += "Invalid vertex in triangle array: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]);
                     break;
+                }
+                for (int k = j + 1; k < 3; ++k)
+                {
+                    if (thisTri[j] == thisTri[k])
+                    {
+                        errorMessage += "Vertex used twice in one triangle: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]);
+                        break;
+                    }
                 }
             }
         }
-    }
-    if (errorMessage.isEmpty() == false) {
-        throw DataFileException(getFileName(),
-                                errorMessage);
+        if (errorMessage.isEmpty() == false) {
+            throw DataFileException(getFileName(),
+                                    errorMessage);
+        }
     }
     
     this->computeNormals();
@@ -326,7 +332,9 @@ void SurfaceFile::setNumberOfNodesAndTriangles(const int32_t& nodes, const int32
     giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_POINTSET, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, dims, GiftiEncodingEnum::GZIP_BASE64_BINARY));
     dims[0] = triangles;
     giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_TRIANGLE, NiftiDataTypeEnum::NIFTI_TYPE_INT32, dims, GiftiEncodingEnum::GZIP_BASE64_BINARY));
+    m_skipSanityCheck = true;
     validateDataArraysAfterReading();
+    m_skipSanityCheck = false;
     setModified();
 }
 

@@ -259,7 +259,7 @@ DataFile::checkFileWritability(const AString& filename)
         
         if (fileInfo.isWritable() == false) {
             throw DataFileException(filename,
-                                    "File name exists is not writable due its permissions.");
+                                    "File is not writable due its permissions.");
         }
     }
 }
