@@ -597,9 +597,9 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                         annotationText.setForegroundColor(foregroundRGBA);
                         annotationText.setBackgroundColor(backgroundRGBA);
                         annotationText.setText(coordText);
-                        m_fixedPipelineDrawing->drawTextViewportCoords((vpSizeX - 5),
-                                                                       5,
-                                                                       annotationText);
+                        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+                        annotationText.setXYZ((vpSizeX - 5), 5, 0.0);
+                        m_fixedPipelineDrawing->drawTextViewportCoords(annotationText);
                         
 //                        BrainOpenGLTextAttributes textAttributes;
 //                        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_RIGHT);
@@ -3741,27 +3741,24 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
         annotationText.setFontHeight(fontHeight);
         annotationText.setForegroundColor(horizontalAxisRGBA);
         annotationText.setBackgroundColor(backgroundRGBA);
+        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
         
         annotationText.setText(horizontalLeftText);
-        m_fixedPipelineDrawing->drawTextViewportCoords(textLeftWindowXY[0],
-                                                       textLeftWindowXY[1],
-                                                       annotationText);
+        annotationText.setXYZ(textLeftWindowXY[0], textLeftWindowXY[1], 0.0);
+        m_fixedPipelineDrawing->drawTextViewportCoords(annotationText);
         
         annotationText.setText(horizontalRightText);
-        m_fixedPipelineDrawing->drawTextViewportCoords(textRightWindowXY[0],
-                                                       textRightWindowXY[1],
-                                                       annotationText);
+        annotationText.setXYZ(textRightWindowXY[0], textRightWindowXY[1], 0.0);
+        m_fixedPipelineDrawing->drawTextViewportCoords(annotationText);
         
         annotationText.setForegroundColor(verticalAxisRGBA);
         annotationText.setText(verticalBottomText);
-        m_fixedPipelineDrawing->drawTextViewportCoords(textBottomWindowXY[0],
-                                                       textBottomWindowXY[1],
-                                                       annotationText);
+        annotationText.setXYZ(textBottomWindowXY[0], textBottomWindowXY[1], 0.0);
+        m_fixedPipelineDrawing->drawTextViewportCoords(annotationText);
         
         annotationText.setText(verticalTopText);
-        m_fixedPipelineDrawing->drawTextViewportCoords(textTopWindowXY[0],
-                                                       textTopWindowXY[1],
-                                                       annotationText);
+        annotationText.setXYZ(textTopWindowXY[0], textTopWindowXY[1], 0.0);
+        m_fixedPipelineDrawing->drawTextViewportCoords(annotationText);
         
         
 //        m_fixedPipelineDrawing->drawTextViewportCoords(textLeftWindowXY[0],
@@ -4043,6 +4040,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
         annotationText.setFontHeight(14);
+        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
         
 //        BrainOpenGLTextAttributes textAttributes;
 //        textAttributes.setHorizontalAlignment(BrainOpenGLTextAttributes::X_CENTER);
@@ -4057,11 +4055,11 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
             
             annotationText.setForegroundColor(blue);
             annotationText.setText("I");
-            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMin,
-                                                        annotationText);
+            annotationText.setXYZ(axialTextMin);
+            m_fixedPipelineDrawing->drawTextModelCoords(annotationText);
             annotationText.setText("S");
-            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMax,
-                                                        annotationText);
+            annotationText.setXYZ(axialTextMax);
+            m_fixedPipelineDrawing->drawTextModelCoords(annotationText);
         }
         
         
@@ -4079,11 +4077,11 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
             
             annotationText.setForegroundColor(green);
             annotationText.setText("L");
-            m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMin,
-                                                        annotationText);
+            annotationText.setXYZ(coronalTextMin);
+            m_fixedPipelineDrawing->drawTextModelCoords(annotationText);
             annotationText.setText("R");
-            m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMax,
-                                                        annotationText);
+            annotationText.setXYZ(coronalTextMax);
+            m_fixedPipelineDrawing->drawTextModelCoords(annotationText);
         }
         
         
@@ -4101,11 +4099,11 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
             
             annotationText.setForegroundColor(red);
             annotationText.setText("P");
-            m_fixedPipelineDrawing->drawTextModelCoords(paraTextMin,
-                                                        annotationText);
+            annotationText.setXYZ(paraTextMin);
+            m_fixedPipelineDrawing->drawTextModelCoords(annotationText);
             annotationText.setText("A");
-            m_fixedPipelineDrawing->drawTextModelCoords(paraTextMax,
-                                                        annotationText);
+            annotationText.setXYZ(paraTextMax);
+            m_fixedPipelineDrawing->drawTextModelCoords(annotationText);
         }
     }
     glPopMatrix();

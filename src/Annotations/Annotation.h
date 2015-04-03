@@ -66,6 +66,8 @@ namespace caret {
         
         void setXYZ(const float xyz[3]);
         
+        void setXYZ(const double xyz[3]);
+        
         void setXYZ(const float x,
                     const float y,
                     const float z);

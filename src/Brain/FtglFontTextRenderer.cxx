@@ -251,8 +251,7 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
  *   Annotation Text that is to be drawn.
  */
 void
-FtglFontTextRenderer::drawTextAtViewportCoords(const int viewport[4],
-                                      const double windowX,
+FtglFontTextRenderer::drawTextAtViewportCoords(const double windowX,
                                       const double windowY,
                                       const AnnotationText& annotationText)
 {
@@ -263,14 +262,12 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const int viewport[4],
     
     switch (annotationText.getOrientation()) {
         case AnnotationTextOrientationEnum::HORIZONTAL:
-            drawHorizontalTextAtWindowCoords(viewport,
-                                             windowX,
+            drawHorizontalTextAtWindowCoords(windowX,
                                              windowY,
                                              annotationText);
             break;
         case AnnotationTextOrientationEnum::STACKED:
-            drawVerticalTextAtWindowCoords(viewport,
-                                           windowX,
+            drawVerticalTextAtWindowCoords(windowX,
                                            windowY,
                                            annotationText);
             break;
@@ -291,8 +288,7 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const int viewport[4],
  *   Annotation Text that is to be drawn.
  */
 void
-FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
-                                                       const double windowX,
+FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
                                                        const double windowY,
                                                        const AnnotationText& annotationText)
 {
@@ -310,6 +306,13 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
      */
     glDisable(GL_DEPTH_TEST);
     
+    /*
+     * Get the viewport
+     */
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+
     /*
      * Set the orthographic projection so that its origin is in the bottom
      * left corner.  It needs to be there since we are drawing in window
@@ -438,8 +441,6 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
 /**
  * Draw vertical text at the given window coordinates.
  *
- * @param viewport
- *   The current viewport.
  * @param windowX
  *   X-coordinate in the window of first text character
  *   using the 'alignment'
@@ -449,8 +450,7 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const int viewport[4],
  *   Text that is to be drawn.
  */
 void
-FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
-                                                     const double windowX,
+FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
                                                      const double windowY,
                                                      const AnnotationText& annotationText)
 {
@@ -467,6 +467,13 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const int viewport[4],
      * Disable depth testing so text not occluded
      */
     glDisable(GL_DEPTH_TEST);
+    
+    /*
+     * Get the viewport
+     */
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
     
     /*
      * Set the orthographic projection so that its origin is in the bottom
@@ -833,9 +840,15 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                    modelMatrix, projectionMatrix, viewport,
                    &windowX, &windowY, &windowZ) == GL_TRUE) {
         
-        drawTextAtViewportCoords(viewport,
-                                 windowX,
-                                 windowY,
+//        std::cout << "VP:" << AString::fromNumbers(viewport, 4, ",")
+//        << "   Window: " << windowX << ", " << windowY << std::endl;
+        /*
+         * Convert window coordinate to viewport coordinatde
+         */
+        const double x = windowX - viewport[0];
+        const double y = windowY - viewport[1];
+        drawTextAtViewportCoords(x,
+                                 y,
                                  annotationText);
     }
     else {

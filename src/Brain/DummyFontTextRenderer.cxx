@@ -82,31 +82,9 @@ DummyFontTextRenderer::isValid() const
  *   Text and attributes for text drawing.
  */
 void
-DummyFontTextRenderer::drawTextAtViewportCoords(const int* /*viewport[4]*/,
-                                             const double /*windowX*/,
+DummyFontTextRenderer::drawTextAtViewportCoords(const double /*windowX*/,
                                              const double /*windowY*/,
                                               const AnnotationText& /*annotationText*/)
-{
-}
-
-/**
- * Draw vertical text at the given window coordinates.
- *
- * @param viewport
- *   The current viewport.
- * @param windowX
- *   X-coordinate in the window of first text character
- *   using the 'alignment'
- * @param windowY
- *   Y-coordinate in the window at which bottom of text is placed.
- * @param annotationText
- *   Text and attributes for text drawing.
- */
-void
-DummyFontTextRenderer::drawVerticalTextAtWindowCoords(const int* /*viewport[4]*/,
-                                                      const double /*windowX*/,
-                                                      const double /*windowY*/,
-                                                      const AnnotationText& /*annotationText*/)
 {
 }
 

@@ -49,8 +49,6 @@ namespace caret {
          * of the viewport and (viewport-width, viewport-height)
          * is at the top right corner of the viewport.
          *
-         * @param viewport
-         *   The current viewport.
          * @param windowX
          *   X-coordinate of the text.
          * @param windowY
@@ -58,8 +56,7 @@ namespace caret {
          * @param annotationText
          *   Text that is to be drawn.
          */
-        virtual void drawTextAtViewportCoords(const int viewport[4],
-                                              const double windowX,
+        virtual void drawTextAtViewportCoords(const double windowX,
                                               const double windowY,
                                               const AnnotationText& annotationText) = 0;
         

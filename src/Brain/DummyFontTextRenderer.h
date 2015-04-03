@@ -37,15 +37,9 @@ namespace caret {
         
         bool isValid() const;
         
-        void drawTextAtViewportCoords(const int viewport[4],
-                                    const double windowX,
+        void drawTextAtViewportCoords(const double windowX,
                                     const double windowY,
                                     const AnnotationText& annotationText);
-        
-        void drawVerticalTextAtWindowCoords(const int viewport[4],
-                                            const double windowX,
-                                            const double windowY,
-                                            const AnnotationText& annotationText);
         
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,

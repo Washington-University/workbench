@@ -39,8 +39,7 @@ namespace caret {
         
         bool isValid() const;
         
-        virtual void drawTextAtViewportCoords(const int viewport[4],
-                                              const double windowX,
+        virtual void drawTextAtViewportCoords(const double windowX,
                                               const double windowY,
                                               const AnnotationText& annotationText);
         
@@ -62,13 +61,11 @@ namespace caret {
 
         FtglFontTextRenderer& operator=(const FtglFontTextRenderer&);
         
-        void drawHorizontalTextAtWindowCoords(const int viewport[4],
-                                            const double windowX,
+        void drawHorizontalTextAtWindowCoords(const double windowX,
                                             const double windowY,
                                             const AnnotationText& annotationText);
         
-        void drawVerticalTextAtWindowCoords(const int viewport[4],
-                                            const double windowX,
+        void drawVerticalTextAtWindowCoords(const double windowX,
                                             const double windowY,
                                             const AnnotationText& annotationText);
         

@@ -5402,48 +5402,33 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
 }
 
 /**
- * Draw text at the given viewport coordinates.
+ * Draw text at viewport coordinates.
  *
- * @param windowX
- *    Window X-coordinate.
- * @param windowY
- *    Window Y-coordinate.
  * @param annotationText
  *    Text and its attributes that is to be drawn.
  */
 void
-BrainOpenGLFixedPipeline::drawTextViewportCoords(const int windowX,
-                                                 const int windowY,
-                                                 const AnnotationText& annotationText)
+BrainOpenGLFixedPipeline::drawTextViewportCoords(const AnnotationText& annotationText)
 {
     if (this->textRenderer != NULL) {
-        GLint vp[4];
-        glGetIntegerv(GL_VIEWPORT, vp);
-        int viewport[4] = {
-            vp[0],
-            vp[1],
-            vp[2],
-            vp[3]
-        };
-        this->textRenderer->drawTextAtViewportCoords(viewport,
-                                                     windowX,
-                                                     windowY,
+        const float* xyz = annotationText.getXYZ();
+        this->textRenderer->drawTextAtViewportCoords(xyz[0],
+                                                     xyz[1],
                                                      annotationText);
     }
 }
 
 /**
- * Draw text at the given window coordinates.
- * @param modelXYZ
- *    Model XYZ coordinate.
+ * Draw text at modeling coordinates.
  * @param annotationText
  *    Text and its attributes that is to be drawn.
  */
 void
-BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelXYZ[3],
-                                              const AnnotationText& annotationText)
+BrainOpenGLFixedPipeline::drawTextModelCoords(const AnnotationText& annotationText)
 {
     if (this->textRenderer != NULL) {
+        float modelXYZ[3];
+        annotationText.getXYZ(modelXYZ);
         this->textRenderer->drawTextAtModelCoords(modelXYZ[0],
                                                   modelXYZ[1],
                                                   modelXYZ[2],
@@ -5946,7 +5931,9 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setFontHeight(12);
         annotationText.setForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
-        this->drawTextViewportCoords(textLeftX, textY, annotationText);
+        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+        annotationText.setXYZ(textLeftX, textY, 0.0);
+        this->drawTextViewportCoords(annotationText);
     }
     if (isNegativeDisplayed
         || isZeroDisplayed
@@ -5979,7 +5966,9 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setFontHeight(12);
         annotationText.setForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
-        this->drawTextViewportCoords(textCenterX, textY, annotationText);
+        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+        annotationText.setXYZ(textCenterX, textY, 0.0);
+        this->drawTextViewportCoords(annotationText);
     }
     if (isPositiveDisplayed) {
 //        BrainOpenGLTextAttributes textAttributes;
@@ -5998,7 +5987,9 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setFontHeight(12);
         annotationText.setForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textRight);
-        this->drawTextViewportCoords(textRightX, textY, annotationText);
+        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+        annotationText.setXYZ(textRightX, textY, 0.0);
+        this->drawTextViewportCoords(annotationText);
     }
     
     return;

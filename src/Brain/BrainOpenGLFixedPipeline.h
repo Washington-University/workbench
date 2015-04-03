@@ -396,12 +396,9 @@ namespace caret {
                                 const float baseRotationAngle,
                                 const bool backwardsFlag);
         
-        void drawTextViewportCoords(const int windowX,
-                                    const int windowY,
-                                    const AnnotationText& annotationText);
+        void drawTextViewportCoords(const AnnotationText& annotationText);
         
-        void drawTextModelCoords(const double modelXYZ[3],
-                                 const AnnotationText& annotationText);
+        void drawTextModelCoords(const AnnotationText& annotationText);
         
         void drawAllPalettes(Brain* brain);
         

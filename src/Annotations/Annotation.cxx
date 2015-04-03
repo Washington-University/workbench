@@ -49,7 +49,7 @@ m_type(type)
 {
     m_alignmentHorizontal = AnnotationAlignHorizontalEnum::CENTER;
     m_alignmentVertical   = AnnotationAlignVerticalEnum::CENTER;
-    m_coordinateSpace     = AnnotationCoordinateSpaceEnum::MODEL;
+    m_coordinateSpace     = AnnotationCoordinateSpaceEnum::TAB;
     
     m_xyz[0] = 0.0;
     m_xyz[1] = 0.0;
@@ -282,6 +282,20 @@ Annotation::getXYZ(float xyzOut[3]) const
  */
 void
 Annotation::setXYZ(const float xyz[3])
+{
+    setXYZ(xyz[0], xyz[1], xyz[2]);
+}
+
+/**
+ * Set the annotation's coordinate.
+ *
+ * For tab and window spaces, the Z value is a depth for ordering.
+ *
+ * @param xyz
+ *     New coordinate for the annotation.
+ */
+void
+Annotation::setXYZ(const double xyz[3])
 {
     setXYZ(xyz[0], xyz[1], xyz[2]);
 }
