@@ -1325,7 +1325,7 @@ void AlgorithmCiftiCorrelationGradient::adjustRow(float* rowOut, const int& cift
             }
             if (m_covariance && (m_covNormCol || m_covNormRow))
             {
-                accum /= m_numCols;//for normalizing by only one direction, can't have the number of elements factor in play
+                rootResidSqr = accum / m_numCols;//for normalizing by only one direction, can't have the number of elements factor in play
             } else {
                 rootResidSqr = sqrt(accum);
             }
