@@ -86,8 +86,8 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     
     OptionalParameter* covarianceOpt = ret->createOptionalParameter(13, "-covariance", "compute covariance instead of correlation");
     covarianceOpt->createOptionalParameter(1, "-sqrt", "take the square root of the magnitude of covariance and reapply sign");
-    covarianceOpt->createOptionalParameter(2, "-normalize-rows", "divide rows by the square root of the diagonal");
-    covarianceOpt->createOptionalParameter(3, "-normalize-cols", "divide columns by the square root of the diagonal");
+    covarianceOpt->createOptionalParameter(2, "-normalize-rows", "divide rows by the diagonal");
+    covarianceOpt->createOptionalParameter(3, "-normalize-cols", "divide columns by the diagonal");
     
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(11, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
@@ -1326,8 +1326,9 @@ void AlgorithmCiftiCorrelationGradient::adjustRow(float* rowOut, const int& cift
             if (m_covariance && (m_covNormCol || m_covNormRow))
             {
                 accum /= m_numCols;//for normalizing by only one direction, can't have the number of elements factor in play
+            } else {
+                rootResidSqr = sqrt(accum);
             }
-            rootResidSqr = sqrt(accum);
         }
         m_rowInfo[ciftiIndex].m_mean = mean;
         m_rowInfo[ciftiIndex].m_rootResidSqr = rootResidSqr;
