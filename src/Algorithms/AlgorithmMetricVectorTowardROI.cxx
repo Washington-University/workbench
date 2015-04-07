@@ -21,6 +21,7 @@
 #include "AlgorithmMetricVectorTowardROI.h"
 #include "AlgorithmException.h"
 
+#include "CaretOMP.h"
 #include "GeodesicHelper.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
@@ -97,7 +98,6 @@ AlgorithmMetricVectorTowardROI::AlgorithmMetricVectorTowardROI(ProgressObject* m
     const float* myNormals = mySurf->getNormalData();
     myMetricOut->setNumberOfNodesAndColumns(numNodes, numVectors);
     myMetricOut->setStructure(mySurf->getStructure());
-    CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
     vector<char> roiConvert(numNodes, 0);
     const float* coordData = mySurf->getCoordinateData();
     const float* targetData = targetRoi->getValuePointerForColumn(0);
@@ -117,23 +117,28 @@ AlgorithmMetricVectorTowardROI::AlgorithmMetricVectorTowardROI(ProgressObject* m
         const float* xcol = myMetric->getValuePointerForColumn(vec * 3);
         const float* ycol = myMetric->getValuePointerForColumn(vec * 3 + 1);
         const float* zcol = myMetric->getValuePointerForColumn(vec * 3 + 2);
-        for (int i = 0; i < numNodes; ++i)
+#pragma omp CARET_PAR
         {
-            Vector3D normal = Vector3D(myNormals + i * 3).normal();//ensure unit length, just in case
-            Vector3D inVec = Vector3D(xcol[i], ycol[i], zcol[i]);
-            if (normalize) inVec = inVec.normal();
-            vector<int32_t> pathNodes;
-            vector<float> pathDists;
-            myGeoHelp->getClosestNodeInRoi(i, roiConvert.data(), pathNodes, pathDists, true);//not using smooth will make noisier results, but using smooth can have curvature problems...
-            if (pathNodes.size() < 2)//no path found, or node is inside the target roi
+            CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+            for (int i = 0; i < numNodes; ++i)
             {
-                outCol[i] = 0.0f;
-                continue;
+                Vector3D normal = Vector3D(myNormals + i * 3).normal();//ensure unit length, just in case
+                Vector3D inVec = Vector3D(xcol[i], ycol[i], zcol[i]);
+                if (normalize) inVec = inVec.normal();
+                vector<int32_t> pathNodes;
+                vector<float> pathDists;
+                myGeoHelp->getClosestNodeInRoi(i, roiConvert.data(), pathNodes, pathDists, true);//not using smooth will make noisier results, but using smooth can have curvature problems...
+                if (pathNodes.size() < 2)//no path found, or node is inside the target roi
+                {
+                    outCol[i] = 0.0f;
+                    continue;
+                }
+                Vector3D pathVec = Vector3D(coordData + pathNodes[1] * 3) - Vector3D(coordData + i * 3);
+                Vector3D vecProject = inVec.length() * (inVec - inVec.dot(normal) * normal).normal();//project and restore original vector magnitude
+                Vector3D pathProject = pathVec.length() * (pathVec - pathVec.dot(normal) * normal).normal();//ditto
+                outCol[i] = vecProject.dot(pathProject);
             }
-            Vector3D pathVec = Vector3D(coordData + pathNodes[1] * 3) - Vector3D(coordData + i * 3);
-            Vector3D vecProject = inVec.length() * (inVec - inVec.dot(normal) * normal).normal();//project and restore original vector magnitude
-            Vector3D pathProject = pathVec.length() * (pathVec - pathVec.dot(normal) * normal).normal();//ditto
-            outCol[i] = vecProject.dot(pathProject);
         }
         myMetricOut->setValuesForColumn(vec, outCol.data());
     }
