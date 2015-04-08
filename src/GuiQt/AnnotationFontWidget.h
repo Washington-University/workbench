@@ -1,5 +1,5 @@
-#ifndef __USER_INPUT_MODE_ANNOTATIONS_WIDGET_H__
-#define __USER_INPUT_MODE_ANNOTATIONS_WIDGET_H__
+#ifndef __ANNOTATION_FONT_WIDGET_H__
+#define __ANNOTATION_FONT_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -26,55 +26,59 @@
 
 #include "EventListenerInterface.h"
 
-class QComboBox;
 
 namespace caret {
 
-    class AnnotationColorWidget;
-    class AnnotationFontWidget;
-    class UserInputModeAnnotations;
+    class AnnotationText;
+    class EnumComboBoxTemplate;
     
-    class UserInputModeAnnotationsWidget : public QWidget, public EventListenerInterface {
+    class AnnotationFontWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        UserInputModeAnnotationsWidget(UserInputModeAnnotations* inputModeAnnotations);
+        AnnotationFontWidget(QWidget* parent = 0);
         
-        virtual ~UserInputModeAnnotationsWidget();
+        virtual ~AnnotationFontWidget();
         
+
         virtual void receiveEvent(Event* event);
-        
-        void updateWidget();
-        
 
+        void updateContent(AnnotationText* annotationText);
+        
         // ADD_NEW_METHODS_HERE
-
+        
     private slots:
-        void modeComboBoxSelection(int);
-
+        void slotItemValueChanged();
+        
     private:
-        UserInputModeAnnotationsWidget(const UserInputModeAnnotationsWidget&);
+        AnnotationFontWidget(const AnnotationFontWidget&);
 
-        UserInputModeAnnotationsWidget& operator=(const UserInputModeAnnotationsWidget&);
+        AnnotationFontWidget& operator=(const AnnotationFontWidget&);
         
-        QWidget* createModeWidget();
+        AnnotationText* m_annotationText;
         
-        UserInputModeAnnotations* m_inputModeAnnotations;
+        EnumComboBoxTemplate* m_fontNameComboBox;
+
+        EnumComboBoxTemplate* m_fontSizeComboBox;
         
-        QComboBox* m_modeComboBox;
+        QAction* m_boldFontAction;
         
-        AnnotationFontWidget* m_fontWidget;
+        QAction* m_italicFontAction;
         
-        AnnotationColorWidget* m_colorWidget;
+        QAction* m_underlineFontAction;
+        
+        QAction* m_foregroundColorAction;
+        
+        QAction* m_backgroundColorAction;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __USER_INPUT_MODE_ANNOTATIONS_WIDGET_DECLARE__
+#ifdef __ANNOTATION_FONT_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __USER_INPUT_MODE_ANNOTATIONS_WIDGET_DECLARE__
+#endif // __ANNOTATION_FONT_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__USER_INPUT_MODE_ANNOTATIONS_WIDGET_H__
+#endif  //__ANNOTATION_FONT_WIDGET_H__

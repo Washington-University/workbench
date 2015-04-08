@@ -47,54 +47,7 @@ Annotation::Annotation(const AnnotationTypeEnum::Enum type)
 : CaretObjectTracksModification(),
 m_type(type)
 {
-    m_alignmentHorizontal = AnnotationAlignHorizontalEnum::CENTER;
-    m_alignmentVertical   = AnnotationAlignVerticalEnum::CENTER;
-    m_coordinateSpace     = AnnotationCoordinateSpaceEnum::TAB;
-    
-    m_xyz[0] = 0.0;
-    m_xyz[1] = 0.0;
-    m_xyz[2] = 0.0;
-    
-    m_surfaceSpaceStructure     = StructureEnum::INVALID;
-    m_surfaceSpaceNumberOfNodes = -1;
-    m_surfaceSpaceNodeIndex     = -1;
-    
-    m_tabIndex = -1;
-
-    m_colorBackground[0]  = 0.0;
-    m_colorBackground[1]  = 0.0;
-    m_colorBackground[2]  = 0.0;
-    m_colorBackground[3]  = 0.0;
-    
-    m_colorForeground[0]  = 1.0;
-    m_colorForeground[1]  = 1.0;
-    m_colorForeground[2]  = 1.0;
-    m_colorForeground[3]  = 1.0;
-    
-    m_sceneAssistant = new SceneClassAssistant();
-    
-    m_sceneAssistant->add<AnnotationAlignHorizontalEnum>("m_alignmentHorizontal",
-                                                         &m_alignmentHorizontal);
-    m_sceneAssistant->add<AnnotationAlignVerticalEnum>("m_alignmentVertical",
-                                                         &m_alignmentVertical);
-    m_sceneAssistant->add<AnnotationCoordinateSpaceEnum>("m_coordinateSpace",
-                                                         &m_coordinateSpace);
-    m_sceneAssistant->addArray("m_xyz",
-                               m_xyz, 3, 0.0);
-    
-    m_sceneAssistant->add<StructureEnum>("m_surfaceSpaceStructure",
-                                         &m_surfaceSpaceStructure);
-    m_sceneAssistant->add("m_surfaceSpaceNumberOfNodes",
-                          &m_surfaceSpaceNumberOfNodes);
-    m_sceneAssistant->add("m_surfaceSpaceNodeIndex",
-                          &m_surfaceSpaceNodeIndex);
-    
-    m_sceneAssistant->add("m_tabIndex",
-                          &m_tabIndex);
-    m_sceneAssistant->addArray("m_colorBackground",
-                               m_colorBackground, 4, 0.0);
-    m_sceneAssistant->addArray("m_colorForeground",
-                               m_colorForeground, 4, 1.0);
+    initializeAnnotationMembers();
 }
 
 /**
@@ -114,6 +67,7 @@ Annotation::Annotation(const Annotation& obj)
 : CaretObjectTracksModification(obj),
 m_type(obj.m_type)
 {
+    initializeAnnotationMembers();
     this->copyHelperAnnotation(obj);
 }
 
@@ -162,6 +116,63 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_colorForeground[3]  = obj.m_colorForeground[3];
     
 }
+
+/**
+ * Initialize members of this class.
+ */
+void
+Annotation::initializeAnnotationMembers()
+{
+    m_alignmentHorizontal = AnnotationAlignHorizontalEnum::CENTER;
+    m_alignmentVertical   = AnnotationAlignVerticalEnum::CENTER;
+    m_coordinateSpace     = AnnotationCoordinateSpaceEnum::TAB;
+    
+    m_xyz[0] = 0.0;
+    m_xyz[1] = 0.0;
+    m_xyz[2] = 0.0;
+    
+    m_surfaceSpaceStructure     = StructureEnum::INVALID;
+    m_surfaceSpaceNumberOfNodes = -1;
+    m_surfaceSpaceNodeIndex     = -1;
+    
+    m_tabIndex = -1;
+    
+    m_colorBackground[0]  = 0.0;
+    m_colorBackground[1]  = 0.0;
+    m_colorBackground[2]  = 0.0;
+    m_colorBackground[3]  = 0.0;
+    
+    m_colorForeground[0]  = 1.0;
+    m_colorForeground[1]  = 1.0;
+    m_colorForeground[2]  = 1.0;
+    m_colorForeground[3]  = 1.0;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    
+    m_sceneAssistant->add<AnnotationAlignHorizontalEnum>("m_alignmentHorizontal",
+                                                         &m_alignmentHorizontal);
+    m_sceneAssistant->add<AnnotationAlignVerticalEnum>("m_alignmentVertical",
+                                                       &m_alignmentVertical);
+    m_sceneAssistant->add<AnnotationCoordinateSpaceEnum>("m_coordinateSpace",
+                                                         &m_coordinateSpace);
+    m_sceneAssistant->addArray("m_xyz",
+                               m_xyz, 3, 0.0);
+    
+    m_sceneAssistant->add<StructureEnum>("m_surfaceSpaceStructure",
+                                         &m_surfaceSpaceStructure);
+    m_sceneAssistant->add("m_surfaceSpaceNumberOfNodes",
+                          &m_surfaceSpaceNumberOfNodes);
+    m_sceneAssistant->add("m_surfaceSpaceNodeIndex",
+                          &m_surfaceSpaceNodeIndex);
+    
+    m_sceneAssistant->add("m_tabIndex",
+                          &m_tabIndex);
+    m_sceneAssistant->addArray("m_colorBackground",
+                               m_colorBackground, 4, 0.0);
+    m_sceneAssistant->addArray("m_colorForeground",
+                               m_colorForeground, 4, 1.0);
+}
+
 
 /**
  * @return The annotation drawing type.

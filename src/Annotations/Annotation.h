@@ -132,6 +132,8 @@ namespace caret {
     private:
         void copyHelperAnnotation(const Annotation& obj);
 
+        void initializeAnnotationMembers();
+        
         SceneClassAssistant* m_sceneAssistant;
         
         const AnnotationTypeEnum::Enum m_type;

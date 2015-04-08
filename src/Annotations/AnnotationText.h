@@ -24,6 +24,7 @@
 
 #include "Annotation.h"
 #include "AnnotationFontNameEnum.h"
+#include "AnnotationFontSizeEnum.h"
 #include "AnnotationTextOrientationEnum.h"
 
 namespace caret {
@@ -53,9 +54,9 @@ namespace caret {
         
         void setOrientation(const AnnotationTextOrientationEnum::Enum orientation);
         
-        int32_t getFontHeight() const;
+        AnnotationFontSizeEnum::Enum getFontSize() const;
         
-        void setFontHeight(const int32_t fontHeight);
+        void setFontSize(const AnnotationFontSizeEnum::Enum fontSize);
         
         bool isBoldEnabled() const;
         
@@ -86,6 +87,8 @@ namespace caret {
     private:
         void copyHelperAnnotationText(const AnnotationText& obj);
 
+        void initializeAnnotationTextMembers();
+        
         SceneClassAssistant* m_sceneAssistant;
 
         AString m_text;
@@ -94,7 +97,7 @@ namespace caret {
         
         AnnotationTextOrientationEnum::Enum m_orientation;
         
-        int32_t m_fontHeight;
+        AnnotationFontSizeEnum::Enum m_fontSize;
         
         bool m_boldEnabled;
         

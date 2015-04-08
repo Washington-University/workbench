@@ -113,7 +113,7 @@ FtglFontTextRenderer::FtglFontTextRenderer()
     m_defaultFont = NULL;
 #ifdef HAVE_FREETYPE
     AnnotationText defaultAnnotationText;
-    defaultAnnotationText.setFontHeight(14);
+    defaultAnnotationText.setFontSize(AnnotationFontSizeEnum::SIZE14);
     defaultAnnotationText.setFont(AnnotationFontNameEnum::VERA);
     defaultAnnotationText.setItalicEnabled(false);
     defaultAnnotationText.setBoldEnabled(false);
@@ -986,12 +986,14 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText)
                 /*
                  * Font size successful ?
                  */
-                if (m_font->FaceSize(annotationText.getFontHeight())) {
+                const AnnotationFontSizeEnum::Enum fontSizeEnum = annotationText.getFontSize();
+                const int32_t fontSizeInt = AnnotationFontSizeEnum::toSizeNumeric(fontSizeEnum);
+                if (m_font->FaceSize(fontSizeInt)) {
                     m_valid = true;
                 }
                 else {
-                    CaretLogSevere("Error creating font height "
-                                   + AString::number(annotationText.getFontHeight())
+                    CaretLogSevere("Error creating font size "
+                                   + AString::number(fontSizeInt)
                                    + " from font file "
                                    + file.fileName());
                 }
@@ -1047,6 +1049,6 @@ FtglFontTextRenderer::FontData::~FontData()
 AString
 FtglFontTextRenderer::getName() const
 {
-    return "FTGL Font";
+    return "FTGL Text Renderer";
 }
 

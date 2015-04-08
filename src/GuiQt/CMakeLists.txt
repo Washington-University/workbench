@@ -27,6 +27,8 @@ INCLUDE(${QT_USE_FILE})
 #
 SET(MOC_INPUT_HEADER_FILES
 AboutWorkbenchDialog.h
+AnnotationColorWidget.h
+AnnotationFontWidget.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -50,6 +52,7 @@ BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
 BugReportDialog.h
 CaretColorEnumComboBox.h
+CaretColorEnumMenu.h
 CaretDataFileSelectionComboBox.h
 CaretFileDialog.h
 CaretFileDialogExtendable.h
@@ -158,6 +161,8 @@ WuQWidgetObjectGroup.h
 #
 SET(SOURCE_FILES
 AboutWorkbenchDialog.h
+AnnotationColorWidget.h
+AnnotationFontWidget.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -182,6 +187,7 @@ BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
 BugReportDialog.h
 CaretColorEnumComboBox.h
+CaretColorEnumMenu.h
 CaretDataFileSelectionComboBox.h
 CaretFileDialog.h
 CaretFileDialogExtendable.h
@@ -261,6 +267,7 @@ PlotPanner.h
 PreferencesDialog.h
 ProgressReportingDialog.h
 ProgressReportingWithSlots.h
+QtOpenGLTextRenderer.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
@@ -314,6 +321,8 @@ WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
 AboutWorkbenchDialog.cxx
+AnnotationColorWidget.cxx
+AnnotationFontWidget.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
 BorderOptimizeDialog.cxx
@@ -338,6 +347,7 @@ BrainOpenGLWidget.cxx
 BrainOpenGLWidgetContextMenu.cxx
 BugReportDialog.cxx
 CaretColorEnumComboBox.cxx
+CaretColorEnumMenu.cxx
 CaretDataFileSelectionComboBox.cxx
 CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx
@@ -416,6 +426,7 @@ PlotPanner.cxx
 PreferencesDialog.cxx
 ProgressReportingDialog.cxx
 ProgressReportingWithSlots.cxx
+QtOpenGLTextRenderer.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
@@ -495,6 +506,7 @@ INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Qwt
 ${CMAKE_SOURCE_DIR}/Algorithms
+${CMAKE_SOURCE_DIR}/Annotations
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Commands
 ${CMAKE_SOURCE_DIR}/Charting

@@ -22,6 +22,7 @@ AnnotationAlignHorizontalEnum.h
 AnnotationAlignVerticalEnum.h
 AnnotationCoordinateSpaceEnum.h
 AnnotationFontNameEnum.h
+AnnotationFontSizeEnum.h
 AnnotationShapeTypeEnum.h
 AnnotationText.h
 AnnotationTextOrientationEnum.h
@@ -32,6 +33,7 @@ AnnotationAlignHorizontalEnum.cxx
 AnnotationAlignVerticalEnum.cxx
 AnnotationCoordinateSpaceEnum.cxx
 AnnotationFontNameEnum.cxx
+AnnotationFontSizeEnum.cxx
 AnnotationShapeTypeEnum.cxx
 AnnotationText.cxx
 AnnotationTextOrientationEnum.cxx

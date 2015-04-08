@@ -27,6 +27,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
+#include "AnnotationColorWidget.h"
+#include "AnnotationFontWidget.h"
 #include "CaretAssert.h"
 #include "EventBrainReset.h"
 #include "EventManager.h"
@@ -52,16 +54,23 @@ m_inputModeAnnotations(inputModeAnnotations)
 {
     CaretAssert(inputModeAnnotations);
     
-    QLabel* nameLabel = new QLabel("Annotations ");
     QWidget* modeWidget = createModeWidget();
+    
+    m_fontWidget = new AnnotationFontWidget();
+    
+    m_colorWidget = new AnnotationColorWidget();
     
 //    resetLastEditedBorder();
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addWidget(nameLabel);
     layout->addWidget(modeWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addSpacing(10);
+    layout->addWidget(m_fontWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addSpacing(10);
+    layout->addWidget(m_colorWidget);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
@@ -148,6 +157,8 @@ UserInputModeAnnotationsWidget::modeComboBoxSelection(int indx)
 QWidget*
 UserInputModeAnnotationsWidget::createModeWidget()
 {
+    QLabel* modeLabel = new QLabel("Mode");
+    
     m_modeComboBox = new QComboBox();
     m_modeComboBox->addItem("New",  (int)UserInputModeAnnotations::MODE_NEW);
     m_modeComboBox->addItem("Edit", (int)UserInputModeAnnotations::MODE_EDIT);
@@ -156,11 +167,11 @@ UserInputModeAnnotationsWidget::createModeWidget()
                      this, SLOT(modeComboBoxSelection(int)));
     
     QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
+    QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addWidget(m_modeComboBox);
-    
-    widget->setFixedWidth(widget->sizeHint().width());
+    layout->addWidget(modeLabel, 0, Qt::AlignHCenter);
+    layout->addWidget(m_modeComboBox, 0, Qt::AlignHCenter);
+    widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     return widget;
 }

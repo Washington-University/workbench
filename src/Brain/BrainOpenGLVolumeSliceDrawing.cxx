@@ -592,7 +592,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                         AnnotationText annotationText;
                         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
-                        annotationText.setFontHeight(12);
+                        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
                         annotationText.setForegroundColor(foregroundRGBA);
                         annotationText.setBackgroundColor(backgroundRGBA);
                         annotationText.setText(coordText);
@@ -3465,13 +3465,14 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
     }
     
     if (drawCrosshairLabelsFlag) {
-        const int fontHeight = 18;
+        const AnnotationFontSizeEnum::Enum fontSize = AnnotationFontSizeEnum::SIZE18;
+        const int32_t fontSizeInt = AnnotationFontSizeEnum::toSizeNumeric(fontSize);
         
         const int textCenter[2] = {
             textLeftWindowXY[0],
             textLeftWindowXY[1]
         };
-        const int halfFontSize = fontHeight / 2;
+        const int halfFontSize = fontSizeInt / 2;
         
         uint8_t backgroundRGBA[4] = {
             m_fixedPipelineDrawing->m_backgroundColorByte[0],
@@ -3580,7 +3581,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
         annotationText.setBoldEnabled(true);
-        annotationText.setFontHeight(fontHeight);
+        annotationText.setFontSize(fontSize);
         annotationText.setForegroundColor(horizontalAxisRGBA);
         annotationText.setBackgroundColor(backgroundRGBA);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
@@ -3861,7 +3862,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         AnnotationText annotationText;
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
-        annotationText.setFontHeight(14);
+        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE14);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
         
         if (drawLabelsFlag) {

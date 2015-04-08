@@ -588,7 +588,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
                         AnnotationText annotationText;
                         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
-                        annotationText.setFontHeight(12);
+                        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
                         annotationText.setForegroundColor(foregroundRGBA);
                         annotationText.setBackgroundColor(backgroundRGBA);
                         annotationText.setText(coordText);
@@ -3162,13 +3162,13 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
     }
     
     if (drawCrosshairLabelsFlag) {
-        const int fontHeight = 18;
+        const AnnotationFontSizeEnum::Enum fontSize = AnnotationFontSizeEnum::SIZE18;
         
         const int textCenter[2] = {
             textLeftWindowXY[0],
             textLeftWindowXY[1]
         };
-        const int halfFontSize = fontHeight / 2;
+        const int halfFontSize = AnnotationFontSizeEnum::toSizeNumeric(fontSize) / 2;
         
         uint8_t backgroundRGBA[4] = {
             m_fixedPipelineDrawing->m_backgroundColorByte[0],
@@ -3277,7 +3277,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
         annotationText.setBoldEnabled(true);
-        annotationText.setFontHeight(fontHeight);
+        annotationText.setFontSize(fontSize);
         annotationText.setForegroundColor(horizontalAxisRGBA);
         annotationText.setBackgroundColor(backgroundRGBA);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
@@ -3556,7 +3556,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
         AnnotationText annotationText;
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
-        annotationText.setFontHeight(14);
+        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE14);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
         
         if (drawLabelsFlag) {

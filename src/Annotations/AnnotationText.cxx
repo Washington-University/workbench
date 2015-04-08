@@ -43,29 +43,7 @@ using namespace caret;
 AnnotationText::AnnotationText()
 : Annotation(AnnotationTypeEnum::TEXT)
 {
-    m_text = "";
-    m_font = AnnotationFontNameEnum::VERA;
-    m_fontHeight = 14;
-    m_orientation = AnnotationTextOrientationEnum::HORIZONTAL;
-    m_boldEnabled = false;
-    m_italicEnabled = false;
-    m_underlineEnabled = false;
-    
-    m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_text",
-                          &m_text);
-    m_sceneAssistant->add<AnnotationFontNameEnum>("m_font",
-                                              &m_font);
-    m_sceneAssistant->add("m_fontHeight",
-                          &m_fontHeight);
-    m_sceneAssistant->add<AnnotationTextOrientationEnum>("m_orientation",
-                                                         &m_orientation);
-    m_sceneAssistant->add("m_boldEnabled",
-                          &m_boldEnabled);
-    m_sceneAssistant->add("m_italicEnabled",
-                          &m_italicEnabled);
-    m_sceneAssistant->add("m_underlineEnabled",
-                          &m_underlineEnabled);
+    initializeAnnotationTextMembers();
 }
 
 /**
@@ -84,7 +62,56 @@ AnnotationText::~AnnotationText()
 AnnotationText::AnnotationText(const AnnotationText& obj)
 : Annotation(obj)
 {
+    initializeAnnotationTextMembers();
     this->copyHelperAnnotationText(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+AnnotationText&
+AnnotationText::operator=(const AnnotationText& obj)
+{
+    if (this != &obj) {
+        Annotation::operator=(obj);
+        this->copyHelperAnnotationText(obj);
+    }
+    return *this;
+}
+
+/**
+ * Initialize members of this class.
+ */
+void
+AnnotationText::initializeAnnotationTextMembers()
+{
+    m_text = "";
+    m_font = AnnotationFontNameEnum::VERA;
+    m_fontSize = AnnotationFontSizeEnum::SIZE14;
+    m_orientation = AnnotationTextOrientationEnum::HORIZONTAL;
+    m_boldEnabled = false;
+    m_italicEnabled = false;
+    m_underlineEnabled = false;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_text",
+                          &m_text);
+    m_sceneAssistant->add<AnnotationFontNameEnum>("m_font",
+                                                  &m_font);
+    m_sceneAssistant->add<AnnotationFontSizeEnum>("m_fontSize",
+                                                  &m_fontSize);
+    m_sceneAssistant->add<AnnotationTextOrientationEnum>("m_orientation",
+                                                         &m_orientation);
+    m_sceneAssistant->add("m_boldEnabled",
+                          &m_boldEnabled);
+    m_sceneAssistant->add("m_italicEnabled",
+                          &m_italicEnabled);
+    m_sceneAssistant->add("m_underlineEnabled",
+                          &m_underlineEnabled);
 }
 
 /**
@@ -101,7 +128,7 @@ AnnotationText::getFontRenderingEncodedName() const
     
     encodedName.append(AnnotationFontNameEnum::toName(m_font));
     
-    encodedName.append("_" + AString::number(m_fontHeight));
+    encodedName.append("_" + AnnotationFontSizeEnum::toName(m_fontSize));
     
     if (m_boldEnabled) {
         encodedName.append("_B");
@@ -166,25 +193,25 @@ AnnotationText::setFont(const AnnotationFontNameEnum::Enum font)
 }
 
 /**
- * @return The font height.
+ * @return The font size.
  */
-int32_t
-AnnotationText::getFontHeight() const
+AnnotationFontSizeEnum::Enum
+AnnotationText::getFontSize() const
 {
-    return m_fontHeight;
+    return m_fontSize;
 }
 
 /**
- * Set the font height.
+ * Set the font size.
  *
- * @param fontHeight
- *     New font height.
+ * @param fontSize
+ *     New font size.
  */
 void
-AnnotationText::setFontHeight(const int32_t fontHeight)
+AnnotationText::setFontSize(const AnnotationFontSizeEnum::Enum fontSize)
 {
-    if (fontHeight != m_fontHeight) {
-        m_fontHeight = fontHeight;
+    if (fontSize != m_fontSize) {
+        m_fontSize = fontSize;
         setModified();
     }
 }
@@ -289,23 +316,6 @@ AnnotationText::setUnderlineEnabled(const bool enabled)
 }
 
 /**
- * Assignment operator.
- * @param obj
- *    Data copied from obj to this.
- * @return
- *    Reference to this object.
- */
-AnnotationText&
-AnnotationText::operator=(const AnnotationText& obj)
-{
-    if (this != &obj) {
-        Annotation::operator=(obj);
-        this->copyHelperAnnotationText(obj);
-    }
-    return *this;
-}
-
-/**
  * Helps with copying an object of this type.
  * @param obj
  *    Object that is copied.
@@ -315,7 +325,7 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
 {
     m_text             = obj.m_text;
     m_font             = obj.m_font;
-    m_fontHeight       = obj.m_fontHeight;
+    m_fontSize         = obj.m_fontSize;
     m_orientation      = obj.m_orientation;
     m_boldEnabled      = obj.m_boldEnabled;
     m_italicEnabled    = obj.m_italicEnabled;

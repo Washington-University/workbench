@@ -5881,7 +5881,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         AnnotationText annotationText;
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
-        annotationText.setFontHeight(12);
+        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
         annotationText.setForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
@@ -5902,7 +5902,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
             annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
         }
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
-        annotationText.setFontHeight(12);
+        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
         annotationText.setForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
@@ -5914,8 +5914,8 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         AnnotationText annotationText;
         annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
         annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
-        annotationText.setFontHeight(12);
-        annotationText.setForegroundColor(m_foregroundColorFloat);
+        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+       annotationText.setForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textRight);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
         annotationText.setXYZ(textRightX, textY, 0.0);

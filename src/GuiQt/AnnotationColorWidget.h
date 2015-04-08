@@ -1,5 +1,5 @@
-#ifndef __USER_INPUT_MODE_ANNOTATIONS_WIDGET_H__
-#define __USER_INPUT_MODE_ANNOTATIONS_WIDGET_H__
+#ifndef __ANNOTATION_COLOR_WIDGET_H__
+#define __ANNOTATION_COLOR_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -24,57 +24,57 @@
 
 #include <QWidget>
 
+#include "CaretColorEnum.h"
 #include "EventListenerInterface.h"
 
-class QComboBox;
+class QAction;
+class QToolButton;
 
 namespace caret {
 
-    class AnnotationColorWidget;
-    class AnnotationFontWidget;
-    class UserInputModeAnnotations;
+    class CaretColorEnumMenu;
     
-    class UserInputModeAnnotationsWidget : public QWidget, public EventListenerInterface {
+    class AnnotationColorWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        UserInputModeAnnotationsWidget(UserInputModeAnnotations* inputModeAnnotations);
+        AnnotationColorWidget(QWidget* parent = 0);
         
-        virtual ~UserInputModeAnnotationsWidget();
-        
-        virtual void receiveEvent(Event* event);
-        
-        void updateWidget();
+        virtual ~AnnotationColorWidget();
         
 
         // ADD_NEW_METHODS_HERE
 
+        virtual void receiveEvent(Event* event);
+
     private slots:
-        void modeComboBoxSelection(int);
-
+        void backgroundColorSelected(const CaretColorEnum::Enum);
+        
+        void foregroundColorSelected(const CaretColorEnum::Enum);
+        
     private:
-        UserInputModeAnnotationsWidget(const UserInputModeAnnotationsWidget&);
+        AnnotationColorWidget(const AnnotationColorWidget&);
 
-        UserInputModeAnnotationsWidget& operator=(const UserInputModeAnnotationsWidget&);
+        AnnotationColorWidget& operator=(const AnnotationColorWidget&);
+
+        QToolButton* m_foregroundToolButton;
         
-        QWidget* createModeWidget();
+        QAction* m_foregroundColorAction;
         
-        UserInputModeAnnotations* m_inputModeAnnotations;
+        QAction* m_backgroundColorAction;
         
-        QComboBox* m_modeComboBox;
+        CaretColorEnumMenu* m_foregroundColorMenu;
         
-        AnnotationFontWidget* m_fontWidget;
-        
-        AnnotationColorWidget* m_colorWidget;
+        CaretColorEnumMenu* m_backgroundColorMenu;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __USER_INPUT_MODE_ANNOTATIONS_WIDGET_DECLARE__
+#ifdef __ANNOTATION_COLOR_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __USER_INPUT_MODE_ANNOTATIONS_WIDGET_DECLARE__
+#endif // __ANNOTATION_COLOR_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__USER_INPUT_MODE_ANNOTATIONS_WIDGET_H__
+#endif  //__ANNOTATION_COLOR_WIDGET_H__

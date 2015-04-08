@@ -59,6 +59,7 @@
 #include "Matrix4x4.h"
 #include "Model.h"
 #include "MouseEvent.h"
+#include "QtOpenGLTextRenderer.h"
 #include "SelectionManager.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxelEditing.h"
@@ -88,6 +89,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->borderBeingDrawn = new Border();
 
     this->textRenderer = NULL;
+    
     /*
      * Create a FTGL font renderer
      */
@@ -99,7 +101,19 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
             this->textRenderer = NULL;
         }
     }
-  
+    
+    /*
+     * Create a Qt text renderer
+     */
+    if (this->textRenderer == NULL) {
+        this->textRenderer = new QtOpenGLTextRenderer(this);
+        if ( ! this->textRenderer->isValid()) {
+            CaretLogWarning("Failed to create Qt text renderer.");
+            delete this->textRenderer;
+            this->textRenderer = NULL;
+        }
+    }
+    
     if (this->textRenderer == NULL) {
         CaretLogSevere("Unable to create a text renderer for OpenGL.");
         this->textRenderer = new DummyFontTextRenderer();
