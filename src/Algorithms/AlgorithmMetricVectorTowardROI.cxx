@@ -136,7 +136,7 @@ AlgorithmMetricVectorTowardROI::AlgorithmMetricVectorTowardROI(ProgressObject* m
                 }
                 Vector3D pathVec = Vector3D(coordData + pathNodes[1] * 3) - Vector3D(coordData + i * 3);
                 Vector3D vecProject = inVec.length() * (inVec - inVec.dot(normal) * normal).normal();//project and restore original vector magnitude
-                Vector3D pathProject = pathVec.length() * (pathVec - pathVec.dot(normal) * normal).normal();//ditto
+                Vector3D pathProject = (pathVec - pathVec.dot(normal) * normal).normal();//but the path vector is a direction only, just normalize after projection
                 outCol[i] = vecProject.dot(pathProject);
             }
         }
