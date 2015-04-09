@@ -112,9 +112,9 @@ AnnotationAlignVerticalEnum::initialize()
                                     "BOTTOM", 
                                     "Bottom"));
     
-    enumData.push_back(AnnotationAlignVerticalEnum(CENTER, 
-                                    "CENTER", 
-                                    "Center"));
+    enumData.push_back(AnnotationAlignVerticalEnum(MIDDLE,
+                                    "MIDDLE",
+                                    "Middle"));
     
     enumData.push_back(AnnotationAlignVerticalEnum(TOP, 
                                     "TOP", 

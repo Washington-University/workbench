@@ -24,6 +24,8 @@
 #undef __ANNOTATION_COLOR_WIDGET_DECLARE__
 
 #include <QAction>
+#include <QGridLayout>
+#include <QLabel>
 #include <QPainter>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -52,6 +54,10 @@ using namespace caret;
 AnnotationColorWidget::AnnotationColorWidget(QWidget* parent)
 : QWidget(parent)
 {
+    QLabel* colorLabel = new QLabel("Color");
+    
+    const QSize toolButtonSize(24, 24);
+    
     /*
      * Background color menu
      */
@@ -68,6 +74,7 @@ AnnotationColorWidget::AnnotationColorWidget(QWidget* parent)
     m_backgroundColorAction->setMenu(m_backgroundColorMenu);
     QToolButton* backgroundToolButton = new QToolButton();
     backgroundToolButton->setDefaultAction(m_backgroundColorAction);
+    backgroundToolButton->setIconSize(toolButtonSize);
     
     /*
      * Foreground color menu
@@ -85,18 +92,28 @@ AnnotationColorWidget::AnnotationColorWidget(QWidget* parent)
     m_foregroundColorAction->setMenu(m_foregroundColorMenu);
     m_foregroundToolButton = new QToolButton();
     m_foregroundToolButton->setDefaultAction(m_foregroundColorAction);
+    m_foregroundToolButton->setIconSize(toolButtonSize);
     
     /*
      * Layout widgets
      */
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QGridLayout* layout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addWidget(m_foregroundToolButton);
-    layout->addWidget(backgroundToolButton);
+    layout->addWidget(colorLabel,
+                      0, 0,
+                      1, 2,
+                      Qt::AlignHCenter);
+    layout->addWidget(m_foregroundToolButton,
+                      1, 0);
+    layout->addWidget(backgroundToolButton,
+                      1, 1);
     
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
+    
+    backgroundColorSelected(CaretColorEnum::WHITE);
+    foregroundColorSelected(CaretColorEnum::BLACK);
 }
 
 /**
@@ -116,9 +133,8 @@ AnnotationColorWidget::~AnnotationColorWidget()
 void
 AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretColor)
 {
-    std::cout << "Background: " << qPrintable(CaretColorEnum::toGuiName(caretColor)) << std::endl;
     const float* rgb = CaretColorEnum::toRGB(caretColor);
-    QPixmap pm(10, 10);
+    QPixmap pm(24, 24);
     pm.fill(QColor::fromRgbF(rgb[0],
                              rgb[1],
                              rgb[2]));
@@ -136,8 +152,6 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
 void
 AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretColor)
 {
-    std::cout << "Foreground: " << qPrintable(CaretColorEnum::toGuiName(caretColor)) << std::endl;
-  
     /*
      * Get the toolbutton's background color
      */
@@ -150,7 +164,10 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
      * Create a small, square pixmap that will contain
      * the foreground color around the pixmap's perimeter.
      */
-    QPixmap pm(10, 10);
+    const int width  = 24;
+    const int height = 24;
+    QPixmap pm(width,
+               height);
     
     /*
      * Create a painter and fill the pixmap with 
@@ -168,8 +185,13 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
     painter.setPen(QColor::fromRgbF(foregroundColor[0],
                                     foregroundColor[1],
                                     foregroundColor[2]));
-    painter.drawRect(0, 0, 9, 9);
-    painter.drawRect(1, 1, 7, 7);
+//    painter.drawRect(0, 0, 9, 9);
+//    painter.drawRect(1, 1, 7, 7);
+//    painter.drawRect(0, 0, width - 1, height - 1);
+    for (int32_t i = 0; i < 3; i++) {
+        painter.drawRect(i, i,
+                         width - 1 - i * 2, height - 1 - i * 2);
+    }
     
     m_foregroundColorAction->setIcon(QIcon(pm));
 }

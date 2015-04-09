@@ -37,8 +37,8 @@ public:
     enum Enum {
         /** Align Bottom */
         BOTTOM,
-        /** Align Center */
-        CENTER,
+        /** Align Middle */
+        MIDDLE,
         /** Align Top */
         TOP
     };

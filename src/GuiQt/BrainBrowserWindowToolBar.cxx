@@ -2185,8 +2185,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeAnnotationsAction = WuQtUtilities::createAction("Annotations",
                                                                       "Perform annotations operations with mouse",
                                                                       this);
+    this->modeInputModeAnnotationsAction->setCheckable(true);
     QToolButton* inputModeAnnotationsToolButton = new QToolButton();
-    inputModeAnnotationsToolButton->setCheckable(true);
     inputModeAnnotationsToolButton->setDefaultAction(this->modeInputModeAnnotationsAction);
     
     /*
@@ -2195,8 +2195,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeBordersAction = WuQtUtilities::createAction("Border",
                                                                     "Perform border operations with mouse",
                                                                     this);
-    QToolButton* inputModeBordersToolButton = new QToolButton();
     this->modeInputModeBordersAction->setCheckable(true);
+    QToolButton* inputModeBordersToolButton = new QToolButton();
     inputModeBordersToolButton->setDefaultAction(this->modeInputModeBordersAction);
     
     /*
@@ -2205,8 +2205,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeFociAction = WuQtUtilities::createAction("Foci",
                                                                  "Perform foci operations with mouse",
                                                                  this);
-    QToolButton* inputModeFociToolButton = new QToolButton();
     this->modeInputModeFociAction->setCheckable(true);
+    QToolButton* inputModeFociToolButton = new QToolButton();
     inputModeFociToolButton->setDefaultAction(this->modeInputModeFociAction);
     
     /*

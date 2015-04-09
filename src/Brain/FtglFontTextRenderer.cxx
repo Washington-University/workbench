@@ -412,7 +412,7 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
         case AnnotationAlignVerticalEnum::BOTTOM:
             textOffsetY = -lower.Y();
             break;
-        case AnnotationAlignVerticalEnum::CENTER:
+        case AnnotationAlignVerticalEnum::MIDDLE:
             textOffsetY = -((upper.Y() - lower.Y()) / 2.0);
             break;
         case AnnotationAlignVerticalEnum::TOP:
@@ -581,7 +581,7 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
             textOffsetY = textBoundsHeight;
             textBackgroundTopOffsetY = textBoundsHeight;
             break;
-        case AnnotationAlignVerticalEnum::CENTER:
+        case AnnotationAlignVerticalEnum::MIDDLE:
             textOffsetY = (textBoundsHeight / 2.0);
             textBackgroundTopOffsetY = (textBoundsHeight / 2.0);
             break;

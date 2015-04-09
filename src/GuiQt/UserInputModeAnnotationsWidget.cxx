@@ -27,6 +27,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
+#include "AnnotationAlignmentWidget.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationFontWidget.h"
 #include "CaretAssert.h"
@@ -60,6 +61,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_colorWidget = new AnnotationColorWidget();
     
+    m_alignmentWidget = new AnnotationAlignmentWidget();
+    
 //    resetLastEditedBorder();
     
     QHBoxLayout* layout = new QHBoxLayout(this);
@@ -71,6 +74,9 @@ m_inputModeAnnotations(inputModeAnnotations)
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addSpacing(10);
     layout->addWidget(m_colorWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addSpacing(10);
+    layout->addWidget(m_alignmentWidget);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);

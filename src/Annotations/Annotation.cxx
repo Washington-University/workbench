@@ -124,7 +124,7 @@ void
 Annotation::initializeAnnotationMembers()
 {
     m_alignmentHorizontal = AnnotationAlignHorizontalEnum::CENTER;
-    m_alignmentVertical   = AnnotationAlignVerticalEnum::CENTER;
+    m_alignmentVertical   = AnnotationAlignVerticalEnum::MIDDLE;
     m_coordinateSpace     = AnnotationCoordinateSpaceEnum::TAB;
     
     m_xyz[0] = 0.0;

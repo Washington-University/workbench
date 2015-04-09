@@ -30,6 +30,7 @@ class QComboBox;
 
 namespace caret {
 
+    class AnnotationAlignmentWidget;
     class AnnotationColorWidget;
     class AnnotationFontWidget;
     class UserInputModeAnnotations;
@@ -67,6 +68,8 @@ namespace caret {
         AnnotationFontWidget* m_fontWidget;
         
         AnnotationColorWidget* m_colorWidget;
+        
+        AnnotationAlignmentWidget* m_alignmentWidget;
         
         // ADD_NEW_MEMBERS_HERE
 
