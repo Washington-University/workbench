@@ -23,11 +23,16 @@
 #include "UserInputModeAnnotationsWidget.h"
 #undef __USER_INPUT_MODE_ANNOTATIONS_WIDGET_DECLARE__
 
+#include <QAction>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QToolButton>
+#include <QVBoxLayout>
 
 #include "AnnotationAlignmentWidget.h"
+#include "AnnotationMenuArrange.h"
+#include "AnnotationMenuInsert.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationFontWidget.h"
 #include "CaretAssert.h"
@@ -63,20 +68,21 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_alignmentWidget = new AnnotationAlignmentWidget();
     
+    m_insertAlignMenusWidget = createInsertArrangeMenusWidget();
+    
 //    resetLastEditedBorder();
     
     QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(modeWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addSpacing(10);
     layout->addWidget(m_fontWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addSpacing(10);
     layout->addWidget(m_colorWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addSpacing(10);
     layout->addWidget(m_alignmentWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(m_insertAlignMenusWidget);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
@@ -175,10 +181,50 @@ UserInputModeAnnotationsWidget::createModeWidget()
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
+    layout->addStretch();
     layout->addWidget(modeLabel, 0, Qt::AlignHCenter);
     layout->addWidget(m_modeComboBox, 0, Qt::AlignHCenter);
     widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     return widget;
 }
+
+/**
+ * @return The arrange and insert menu widget.
+ */
+QWidget*
+UserInputModeAnnotationsWidget::createInsertArrangeMenusWidget()
+{
+    AnnotationMenuArrange* arrangeMenu = new AnnotationMenuArrange();
+    
+    QAction* arrangeAction = new QAction("Arrange",
+                                         this);
+    arrangeAction->setToolTip("Align and group annotations");
+    arrangeAction->setMenu(arrangeMenu);
+    
+    QToolButton* arrangeToolButton = new QToolButton();
+    arrangeToolButton->setDefaultAction(arrangeAction);
+    
+    AnnotationMenuInsert* insertMenu = new AnnotationMenuInsert();
+    
+    QAction* insertAction = new QAction("Insert",
+                                        this);
+    insertAction->setToolTip("Insert new annotations");
+    insertAction->setMenu(insertMenu);
+    
+    QToolButton* insertToolButton = new QToolButton();
+    insertToolButton->setDefaultAction(insertAction);
+    
+    WuQtUtilities::matchWidgetWidths(arrangeToolButton,
+                                     insertToolButton);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+    layout->addStretch();
+    layout->addWidget(arrangeToolButton);
+    layout->addWidget(insertToolButton);
+    return widget;
+}
+
 

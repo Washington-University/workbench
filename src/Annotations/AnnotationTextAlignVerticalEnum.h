@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_ALIGN_HORIZONTAL_ENUM_H__
-#define __ANNOTATION_ALIGN_HORIZONTAL_ENUM_H__
+#ifndef __ANNOTATION_TEXT_ALIGN_VERTICAL_ENUM_H__
+#define __ANNOTATION_TEXT_ALIGN_VERTICAL_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,23 +28,23 @@
 
 namespace caret {
 
-class AnnotationAlignHorizontalEnum {
+class AnnotationTextAlignVerticalEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Align Left */
-        LEFT,
-        /** Align Center */
-        CENTER,
-        /** Align Right */
-        RIGHT
+        /** Align Bottom */
+        BOTTOM,
+        /** Align Middle */
+        MIDDLE,
+        /** Align Top */
+        TOP
     };
 
 
-    ~AnnotationAlignHorizontalEnum();
+    ~AnnotationTextAlignVerticalEnum();
 
     static AString toName(Enum enumValue);
     
@@ -65,14 +65,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    AnnotationAlignHorizontalEnum(const Enum enumValue, 
+    AnnotationTextAlignVerticalEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const AnnotationAlignHorizontalEnum* findData(const Enum enumValue);
+    static const AnnotationTextAlignVerticalEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationAlignHorizontalEnum> enumData;
+    static std::vector<AnnotationTextAlignVerticalEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -96,11 +96,11 @@ private:
     AString guiName;
 };
 
-#ifdef __ANNOTATION_ALIGN_HORIZONTAL_ENUM_DECLARE__
-std::vector<AnnotationAlignHorizontalEnum> AnnotationAlignHorizontalEnum::enumData;
-bool AnnotationAlignHorizontalEnum::initializedFlag = false;
-int32_t AnnotationAlignHorizontalEnum::integerCodeCounter = 0; 
-#endif // __ANNOTATION_ALIGN_HORIZONTAL_ENUM_DECLARE__
+#ifdef __ANNOTATION_TEXT_ALIGN_VERTICAL_ENUM_DECLARE__
+std::vector<AnnotationTextAlignVerticalEnum> AnnotationTextAlignVerticalEnum::enumData;
+bool AnnotationTextAlignVerticalEnum::initializedFlag = false;
+int32_t AnnotationTextAlignVerticalEnum::integerCodeCounter = 0; 
+#endif // __ANNOTATION_TEXT_ALIGN_VERTICAL_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_ALIGN_HORIZONTAL_ENUM_H__
+#endif  //__ANNOTATION_TEXT_ALIGN_VERTICAL_ENUM_H__

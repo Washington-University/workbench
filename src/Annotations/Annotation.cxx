@@ -96,8 +96,6 @@ Annotation::operator=(const Annotation& obj)
 void 
 Annotation::copyHelperAnnotation(const Annotation& obj)
 {
-    m_alignmentHorizontal = obj.m_alignmentHorizontal;
-    m_alignmentVertical   = obj.m_alignmentVertical;
     m_coordinateSpace     = obj.m_coordinateSpace;
     m_xyz[0]              = obj.m_xyz[0];
     m_xyz[1]              = obj.m_xyz[1];
@@ -123,9 +121,7 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
 void
 Annotation::initializeAnnotationMembers()
 {
-    m_alignmentHorizontal = AnnotationAlignHorizontalEnum::CENTER;
-    m_alignmentVertical   = AnnotationAlignVerticalEnum::MIDDLE;
-    m_coordinateSpace     = AnnotationCoordinateSpaceEnum::TAB;
+    m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     
     m_xyz[0] = 0.0;
     m_xyz[1] = 0.0;
@@ -149,10 +145,6 @@ Annotation::initializeAnnotationMembers()
     
     m_sceneAssistant = new SceneClassAssistant();
     
-    m_sceneAssistant->add<AnnotationAlignHorizontalEnum>("m_alignmentHorizontal",
-                                                         &m_alignmentHorizontal);
-    m_sceneAssistant->add<AnnotationAlignVerticalEnum>("m_alignmentVertical",
-                                                       &m_alignmentVertical);
     m_sceneAssistant->add<AnnotationCoordinateSpaceEnum>("m_coordinateSpace",
                                                          &m_coordinateSpace);
     m_sceneAssistant->addArray("m_xyz",
@@ -181,54 +173,6 @@ AnnotationTypeEnum::Enum
 Annotation::getType() const
 {
     return m_type;
-}
-
-/**
- * @return The horizontal alignment.
- */
-AnnotationAlignHorizontalEnum::Enum
-Annotation::getHorizontalAlignment() const
-{
-    return m_alignmentHorizontal;
-}
-
-/**
- * Set the horizontal alignment.
- *
- * @param alignment
- *    New value for horizontal alignment.
- */
-void
-Annotation::setHorizontalAlignment(const AnnotationAlignHorizontalEnum::Enum alignment)
-{
-    if (m_alignmentHorizontal != alignment) {
-        m_alignmentHorizontal = alignment;
-        setModified();
-    }
-}
-
-/**
- * @return The vertical alignment.
- */
-AnnotationAlignVerticalEnum::Enum
-Annotation::getVerticalAlignment() const
-{
-    return m_alignmentVertical;
-}
-
-/**
- * Set the vertical alignment.
- *
- * @param alignment
- *    New value for vertical alignment.
- */
-void
-Annotation::setVerticalAlignment(const AnnotationAlignVerticalEnum::Enum alignment)
-{
-    if (m_alignmentVertical != alignment) {
-        m_alignmentVertical = alignment;
-        setModified();
-    }
 }
 
 /**
@@ -369,7 +313,7 @@ Annotation::getSurfaceSpace(StructureEnum::Enum& structureOut,
  *     Index of surface node.
  */
 void
-Annotation::seturfaceSpace(const StructureEnum::Enum structure,
+Annotation::setSurfaceSpace(const StructureEnum::Enum structure,
                            const int32_t surfaceNumberOfNodes,
                            const int32_t surfaceNodeIndex)
 {

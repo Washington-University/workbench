@@ -90,6 +90,8 @@ void
 AnnotationText::initializeAnnotationTextMembers()
 {
     m_text = "";
+    m_alignmentHorizontal = AnnotationTextAlignHorizontalEnum::CENTER;
+    m_alignmentVertical   = AnnotationTextAlignVerticalEnum::MIDDLE;
     m_font = AnnotationFontNameEnum::VERA;
     m_fontSize = AnnotationFontSizeEnum::SIZE14;
     m_orientation = AnnotationTextOrientationEnum::HORIZONTAL;
@@ -100,6 +102,10 @@ AnnotationText::initializeAnnotationTextMembers()
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_text",
                           &m_text);
+    m_sceneAssistant->add<AnnotationTextAlignHorizontalEnum>("m_alignmentHorizontal",
+                                                             &m_alignmentHorizontal);
+    m_sceneAssistant->add<AnnotationTextAlignVerticalEnum>("m_alignmentVertical",
+                                                           &m_alignmentVertical);
     m_sceneAssistant->add<AnnotationFontNameEnum>("m_font",
                                                   &m_font);
     m_sceneAssistant->add<AnnotationFontSizeEnum>("m_fontSize",
@@ -167,6 +173,55 @@ AnnotationText::setText(const AString& text)
         setModified();
     }
 }
+
+/**
+ * @return The horizontal alignment.
+ */
+AnnotationTextAlignHorizontalEnum::Enum
+AnnotationText::getHorizontalAlignment() const
+{
+    return m_alignmentHorizontal;
+}
+
+/**
+ * Set the horizontal alignment.
+ *
+ * @param alignment
+ *    New value for horizontal alignment.
+ */
+void
+AnnotationText::setHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment)
+{
+    if (m_alignmentHorizontal != alignment) {
+        m_alignmentHorizontal = alignment;
+        setModified();
+    }
+}
+
+/**
+ * @return The vertical alignment.
+ */
+AnnotationTextAlignVerticalEnum::Enum
+AnnotationText::getVerticalAlignment() const
+{
+    return m_alignmentVertical;
+}
+
+/**
+ * Set the vertical alignment.
+ *
+ * @param alignment
+ *    New value for vertical alignment.
+ */
+void
+AnnotationText::setVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment)
+{
+    if (m_alignmentVertical != alignment) {
+        m_alignmentVertical = alignment;
+        setModified();
+    }
+}
+
 
 /**
  * @return The font.
@@ -324,6 +379,8 @@ void
 AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
 {
     m_text             = obj.m_text;
+    m_alignmentHorizontal = obj.m_alignmentHorizontal;
+    m_alignmentVertical   = obj.m_alignmentVertical;
     m_font             = obj.m_font;
     m_fontSize         = obj.m_fontSize;
     m_orientation      = obj.m_orientation;

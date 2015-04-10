@@ -24,8 +24,8 @@
 
 #include <QWidget>
 
-#include "AnnotationAlignHorizontalEnum.h"
-#include "AnnotationAlignVerticalEnum.h"
+#include "AnnotationTextAlignHorizontalEnum.h"
+#include "AnnotationTextAlignVerticalEnum.h"
 #include "EventListenerInterface.h"
 
 class QAction;
@@ -60,15 +60,15 @@ namespace caret {
 
         AnnotationAlignmentWidget& operator=(const AnnotationAlignmentWidget&);
         
-        QToolButton* createHorizontalAlignmentToolButton(const AnnotationAlignHorizontalEnum::Enum horizontalAlignment);
+        QToolButton* createHorizontalAlignmentToolButton(const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment);
         
-        QToolButton* createVerticalAlignmentToolButton(const AnnotationAlignVerticalEnum::Enum verticalAlignment);
+        QToolButton* createVerticalAlignmentToolButton(const AnnotationTextAlignVerticalEnum::Enum verticalAlignment);
         
         QPixmap createHorizontalAlignmentPixmap(const QWidget* widget,
-                                        const AnnotationAlignHorizontalEnum::Enum horizontalAlignment);
+                                        const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment);
         
         QPixmap createVerticalAlignmentPixmap(const QWidget* widget,
-                                                const AnnotationAlignVerticalEnum::Enum verticalAlignment);
+                                                const AnnotationTextAlignVerticalEnum::Enum verticalAlignment);
         
         QActionGroup* m_horizontalAlignActionGroup;
         

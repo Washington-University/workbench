@@ -61,7 +61,11 @@ namespace caret {
         
         QWidget* createModeWidget();
         
+        QWidget* createInsertArrangeMenusWidget();
+        
         UserInputModeAnnotations* m_inputModeAnnotations;
+        
+        QWidget* m_insertAlignMenusWidget;
         
         QComboBox* m_modeComboBox;
         

@@ -22,15 +22,17 @@
 /*LICENSE_END*/
 
 
-
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "CaretObject.h"
 
 
 
 namespace caret {
 
+    class Annotation;
     class AnnotationText;
     class BrainOpenGLFixedPipeline;
+    class Surface;
     
     class BrainOpenGLAnnotationDrawingFixedPipeline : public CaretObject {
         
@@ -39,7 +41,8 @@ namespace caret {
         
         virtual ~BrainOpenGLAnnotationDrawingFixedPipeline();
         
-        void drawWindowAnnotations();
+        void drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                             const Surface* surfaceDisplayed);
 
         // ADD_NEW_METHODS_HERE
 
@@ -50,10 +53,9 @@ namespace caret {
 
         BrainOpenGLAnnotationDrawingFixedPipeline& operator=(const BrainOpenGLAnnotationDrawingFixedPipeline&);
         
-        void drawTextAnnotation(const AnnotationText& textAnnotation);
-        
-        
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
+        
+        std::vector<Annotation*> m_annotations;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -22,12 +22,9 @@
 /*LICENSE_END*/
 
 
-#include "AnnotationAlignHorizontalEnum.h"
-#include "AnnotationAlignVerticalEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "CaretObjectTracksModification.h"
-
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 
@@ -47,14 +44,6 @@ namespace caret {
         Annotation& operator=(const Annotation& obj);
         
         AnnotationTypeEnum::Enum getType() const ;
-        
-        AnnotationAlignHorizontalEnum::Enum getHorizontalAlignment() const;
-        
-        void setHorizontalAlignment(const AnnotationAlignHorizontalEnum::Enum alignment);
-        
-        AnnotationAlignVerticalEnum::Enum getVerticalAlignment() const;
-        
-        void setVerticalAlignment(const AnnotationAlignVerticalEnum::Enum alignment);
         
         AnnotationCoordinateSpaceEnum::Enum getCoordinateSpace() const;
 
@@ -76,7 +65,7 @@ namespace caret {
                              int32_t& surfaceNumberOfNodesOut,
                              int32_t& surfaceNodeIndexOut) const;
         
-        void seturfaceSpace(const StructureEnum::Enum structure,
+        void setSurfaceSpace(const StructureEnum::Enum structure,
                             const int32_t surfaceNumberOfNodes,
                             const int32_t surfaceNodeIndex);
         
@@ -137,10 +126,6 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
         
         const AnnotationTypeEnum::Enum m_type;
-        
-        AnnotationAlignHorizontalEnum::Enum  m_alignmentHorizontal;
-        
-        AnnotationAlignVerticalEnum::Enum  m_alignmentVertical;
         
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
         

@@ -43,13 +43,68 @@ namespace caret {
         virtual ~BrainOpenGLTextRenderInterface() { }
         
         /**
-         * Draw annnotation text using its attributes
-         * for the style and position of the text.
+         * Draw annnotation text at the given viewport coordinates using
+         * the the annotations attributes for the style of text.
          *
+         * @param viewportX
+         *     Viewport X-coordinate.
+         * @param viewportY
+         *     Viewport Y-coordinate.
+         * @param viewportZ
+         *     Viewport Z-coordinate.
          * @param annotationText
-         *   Text that is to be drawn.
+         *     Annotation text and attributes.
          */
-        virtual void drawAnnotationText(const AnnotationText& annotationText) = 0;
+        virtual void drawTextAtViewportCoords(const double viewportX,
+                                              const double viewportY,
+                                              const double viewportZ,
+                                              const AnnotationText& annotationText) = 0;
+        
+        /**
+         * Draw annnotation text at the given model coordinates using
+         * the the annotations attributes for the style of text.
+         *
+         * @param modelX
+         *     Model X-coordinate.
+         * @param modelY
+         *     Model Y-coordinate.
+         * @param modelZ
+         *     Model Z-coordinate.
+         * @param annotationText
+         *     Annotation text and attributes.
+         */
+        virtual void drawTextAtModelCoords(const double modelX,
+                                           const double modelY,
+                                           const double modelZ,
+                                           const AnnotationText& annotationText) = 0;
+        
+        /**
+         * Draw annnotation text at the given model coordinates using
+         * the the annotations attributes for the style of text.
+         *
+         * @param modelXYZ
+         *     Model XYZ coordinate.
+         * @param annotationText
+         *     Annotation text and attributes.
+         */
+        void drawTextAtModelCoords(const double modelXYZ[3],
+                                   const AnnotationText& annotationText) {
+            drawTextAtModelCoords(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText);
+        }
+        
+        /**
+         * Draw annnotation text at the given model coordinates using
+         * the the annotations attributes for the style of text.
+         *
+         * @param modelXYZ
+         *     Model XYZ coordinate.
+         * @param annotationText
+         *     Annotation text and attributes.
+         */
+        void drawTextAtModelCoords(const float modelXYZ[3],
+                                   const AnnotationText& annotationText) {
+            drawTextAtModelCoords(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText);
+        }
         
         /**
          * Get the bounds of text (in pixels) using the given text

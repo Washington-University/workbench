@@ -478,8 +478,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
         float labelY = 0.0;
         float labelOffsetMultiplierX = 0.0;
         float labelOffsetMultiplierY = 0.0;
-        annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
-        annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         
         /*
          * Viewport for axis name and numeric values
@@ -501,8 +501,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 labelY = margins.m_bottom;
                 labelOffsetMultiplierX = 1.0;
                 labelOffsetMultiplierY = 0.0;
-                annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
-                annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::TOP);
+                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
                 tickDeltaXY[0] = 0.0;
                 tickDeltaXY[1] = -tickLength;
                 break;
@@ -515,8 +515,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 labelY = 0.0;
                 labelOffsetMultiplierX = 1.0;
                 labelOffsetMultiplierY = 0.0;
-                annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
-                annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
+                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
                 tickDeltaXY[0] = 0.0;
                 tickDeltaXY[1] = tickLength;
                 break;
@@ -529,8 +529,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 labelY = margins.m_bottom;
                 labelOffsetMultiplierX = 0.0;
                 labelOffsetMultiplierY = 1.0;
-                annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
-                annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
+                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
                 tickDeltaXY[0] = -tickLength;
                 tickDeltaXY[1] = 0.0;
                 break;
@@ -543,8 +543,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 labelY = margins.m_bottom;
                 labelOffsetMultiplierX = 0.0;
                 labelOffsetMultiplierY = 1.0;
-                annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
-                annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
+                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
                 tickDeltaXY[0] = tickLength;
                 tickDeltaXY[1] = 0.0;
                 break;
@@ -590,15 +590,17 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             const float textX = tickEndX;
             const float textY = tickEndY;
             annotationText.setText(labelTexts[i]);
-            annotationText.setXYZ(textX, textY, 0.0);
-            textRenderer->drawAnnotationText(annotationText);
+            textRenderer->drawTextAtViewportCoords(textX,
+                                                   textY,
+                                                   0.0,
+                                                   annotationText);
         }
         
         const AString axisText = axis->getText();
         if ( ! axisText.isEmpty()) {
             AnnotationText annotationText;
-            annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
-            annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::CENTER);
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
             
             bool drawAxisTextVerticalFlag = false;
             float axisTextCenterX = axisVpWidth / 2.0;
@@ -608,37 +610,41 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                     axisTextCenterX = (vpWidth / 2.0);
                     axisTextCenterY = textMarginOffset;
-                    annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
+                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                     axisTextCenterX = (vpWidth / 2.0);
                     axisTextCenterY = margins.m_top - textMarginOffset;
-                    annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::TOP);
+                    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                     axisTextCenterX = textMarginOffset;
                     axisTextCenterY = (vpHeight / 2.0);
-                    annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
+                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
                     drawAxisTextVerticalFlag = true;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
                     axisTextCenterX = margins.m_right - textMarginOffset;
                     axisTextCenterY = (vpHeight / 2.0);
-                    annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
+                    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                     drawAxisTextVerticalFlag = true;
                     break;
             }
             if (drawAxisTextVerticalFlag) {
                 annotationText.setOrientation(AnnotationTextOrientationEnum::STACKED);
-                annotationText.setXYZ(axisTextCenterX, axisTextCenterY, 0.0);
                 annotationText.setText(axisText);
-                textRenderer->drawAnnotationText(annotationText);
+                textRenderer->drawTextAtViewportCoords(axisTextCenterX,
+                                                       axisTextCenterY,
+                                                       0.0,
+                                                       annotationText);
             }
             else {
                 annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
                 annotationText.setText(axisText);
-                annotationText.setXYZ(axisTextCenterX, axisTextCenterY, 0.0);
-                textRenderer->drawAnnotationText(annotationText);
+                textRenderer->drawTextAtViewportCoords(axisTextCenterX,
+                                                       axisTextCenterY,
+                                                       0.0,
+                                                       annotationText);
             }
         }
     }

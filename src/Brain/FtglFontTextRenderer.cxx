@@ -145,38 +145,6 @@ FtglFontTextRenderer::~FtglFontTextRenderer()
 }
 
 /**
- * Draw annnotation text using its attributes
- * for the style and position of the text.
- *
- * @param annotationText
- *   Text that is to be drawn.
- */
-void
-FtglFontTextRenderer::drawAnnotationText(const AnnotationText& annotationText)
-{
-    const float* xyz = annotationText.getXYZ();
-    switch (annotationText.getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
-            drawTextAtModelCoords(xyz[0],
-                                  xyz[1],
-                                  xyz[2],
-                                  annotationText);
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            CaretAssertMessage(0, "SURFACE coordinate space not implemented.");
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            drawTextAtViewportCoords(xyz[0],
-                                     xyz[1],
-                                     annotationText);
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            CaretAssertMessage(0, "WINDOW coordinate space not implemented.");
-            break;
-    }
-}
-
-/**
  * @return The font system is valid.
  */
 bool
@@ -267,25 +235,23 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
 }
 
 /**
- * Draw annnotation text at the given VIEWPORT coordinates.
+ * Draw annnotation text at the given viewport coordinates using
+ * the the annotations attributes for the style of text.
  *
- * The origin (0, 0) is at the bottom left corner
- * of the viewport and (viewport-width, viewport-height)
- * is at the top right corner of the viewport.
- *
- * @param viewport
- *   The current viewport.
- * @param windowX
- *   X-coordinate of the text.
- * @param windowY
- *   Y-coordinate of the text.
+ * @param viewportX
+ *     Viewport X-coordinate.
+ * @param viewportY
+ *     Viewport Y-coordinate.
+ * @param viewportZ
+ *     Viewport Z-coordinate.
  * @param annotationText
- *   Annotation Text that is to be drawn.
+ *     Annotation text and attributes.
  */
 void
-FtglFontTextRenderer::drawTextAtViewportCoords(const double windowX,
-                                      const double windowY,
-                                      const AnnotationText& annotationText)
+FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
+                                               const double viewportY,
+                                               const double viewportZ,
+                                               const AnnotationText& annotationText)
 {
     //std::cout << "Drawing \"" << qPrintable(text) << "\" at " << windowX << ", " << windowY << std::endl;
     if (annotationText.getText().isEmpty()) {
@@ -294,13 +260,13 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const double windowX,
     
     switch (annotationText.getOrientation()) {
         case AnnotationTextOrientationEnum::HORIZONTAL:
-            drawHorizontalTextAtWindowCoords(windowX,
-                                             windowY,
+            drawHorizontalTextAtWindowCoords(viewportX,
+                                             viewportY,
                                              annotationText);
             break;
         case AnnotationTextOrientationEnum::STACKED:
-            drawVerticalTextAtWindowCoords(windowX,
-                                           windowY,
+            drawVerticalTextAtWindowCoords(viewportX,
+                                           viewportY,
                                            annotationText);
             break;
     }
@@ -395,13 +361,13 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     
     double textOffsetX = 0;
     switch (annotationText.getHorizontalAlignment()) {
-        case AnnotationAlignHorizontalEnum::CENTER:
+        case AnnotationTextAlignHorizontalEnum::CENTER:
             textOffsetX = -((upper.X() - lower.X()) / 2.0);
             break;
-        case AnnotationAlignHorizontalEnum::LEFT:
+        case AnnotationTextAlignHorizontalEnum::LEFT:
             textOffsetX = -lower.X();
             break;
-        case AnnotationAlignHorizontalEnum::RIGHT:
+        case AnnotationTextAlignHorizontalEnum::RIGHT:
             textOffsetX = -upper.X();
             break;
     }
@@ -409,13 +375,13 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     
     double textOffsetY = 0;
     switch (annotationText.getVerticalAlignment()) {
-        case AnnotationAlignVerticalEnum::BOTTOM:
+        case AnnotationTextAlignVerticalEnum::BOTTOM:
             textOffsetY = -lower.Y();
             break;
-        case AnnotationAlignVerticalEnum::MIDDLE:
+        case AnnotationTextAlignVerticalEnum::MIDDLE:
             textOffsetY = -((upper.Y() - lower.Y()) / 2.0);
             break;
-        case AnnotationAlignVerticalEnum::TOP:
+        case AnnotationTextAlignVerticalEnum::TOP:
             textOffsetY = -upper.Y();
             break;
     }
@@ -559,13 +525,13 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
     
     double textOffsetX = 0;
     switch (annotationText.getHorizontalAlignment()) {
-        case AnnotationAlignHorizontalEnum::LEFT:
+        case AnnotationTextAlignHorizontalEnum::LEFT:
             textOffsetX = (textBoundsWidth / 2.0);
             break;
-        case AnnotationAlignHorizontalEnum::CENTER:
+        case AnnotationTextAlignHorizontalEnum::CENTER:
             textOffsetX = 0;
             break;
-        case AnnotationAlignHorizontalEnum::RIGHT:
+        case AnnotationTextAlignHorizontalEnum::RIGHT:
             textOffsetX = -(textBoundsWidth / 2.0);
             break;
     }
@@ -577,15 +543,15 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
     double textOffsetY = 0.0;
     double textBackgroundTopOffsetY = 0.0;
     switch (annotationText.getVerticalAlignment()) {
-        case AnnotationAlignVerticalEnum::BOTTOM:
+        case AnnotationTextAlignVerticalEnum::BOTTOM:
             textOffsetY = textBoundsHeight;
             textBackgroundTopOffsetY = textBoundsHeight;
             break;
-        case AnnotationAlignVerticalEnum::MIDDLE:
+        case AnnotationTextAlignVerticalEnum::MIDDLE:
             textOffsetY = (textBoundsHeight / 2.0);
             textBackgroundTopOffsetY = (textBoundsHeight / 2.0);
             break;
-        case AnnotationAlignVerticalEnum::TOP:
+        case AnnotationTextAlignVerticalEnum::TOP:
             textOffsetY = 0.0;
             textBackgroundTopOffsetY = 0.0;
             break;
@@ -825,22 +791,23 @@ FtglFontTextRenderer::getVerticalTextCharInfo(const AnnotationText& annotationTe
 }
 
 /**
- * Draw text at the given model coordinates.
+ * Draw annnotation text at the given model coordinates using
+ * the the annotations attributes for the style of text.
  *
  * @param modelX
- *   X-coordinate in model space of first text character
+ *     Model X-coordinate.
  * @param modelY
- *   Y-coordinate in model space.
+ *     Model Y-coordinate.
  * @param modelZ
- *   Z-coordinate in model space.
+ *     Model Z-coordinate.
  * @param annotationText
- *   Text that is to be drawn.
+ *     Annotation text and attributes.
  */
 void
 FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
-                                            const double modelY,
-                                            const double modelZ,
-                                            const AnnotationText& annotationText)
+                                          const double modelY,
+                                          const double modelZ,
+                                          const AnnotationText& annotationText)
 {
     GLdouble modelMatrix[16];
     GLdouble projectionMatrix[16];
@@ -870,6 +837,7 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
         const double y = windowY - viewport[1];
         drawTextAtViewportCoords(x,
                                  y,
+                                 0.0,
                                  annotationText);
     }
     else {

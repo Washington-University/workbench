@@ -18,8 +18,9 @@ SET(QT_DONT_USE_QTGUI TRUE)
 #
 ADD_LIBRARY(Annotations
 Annotation.h
-AnnotationAlignHorizontalEnum.h
-AnnotationAlignVerticalEnum.h
+AnnotationAlignmentEnum.h
+AnnotationTextAlignHorizontalEnum.h
+AnnotationTextAlignVerticalEnum.h
 AnnotationCoordinateSpaceEnum.h
 AnnotationFontNameEnum.h
 AnnotationFontSizeEnum.h
@@ -29,8 +30,9 @@ AnnotationTextOrientationEnum.h
 AnnotationTypeEnum.h
 
 Annotation.cxx
-AnnotationAlignHorizontalEnum.cxx
-AnnotationAlignVerticalEnum.cxx
+AnnotationAlignmentEnum.cxx
+AnnotationTextAlignHorizontalEnum.cxx
+AnnotationTextAlignVerticalEnum.cxx
 AnnotationCoordinateSpaceEnum.cxx
 AnnotationFontNameEnum.cxx
 AnnotationFontSizeEnum.cxx

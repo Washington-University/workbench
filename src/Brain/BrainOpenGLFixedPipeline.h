@@ -174,7 +174,8 @@ namespace caret {
                                    const int32_t viewport[4]);
         
         void drawSurface(Surface* surface,
-                         const float* nodeColoringRGBA);
+                         const float* nodeColoringRGBA,
+                         const bool drawAnnotationsInModelSpaceFlag);
         
         void drawSurfaceNodes(Surface* surface,
                               const float* nodeColoringRGBA);
@@ -396,7 +397,21 @@ namespace caret {
                                 const float baseRotationAngle,
                                 const bool backwardsFlag);
         
-        void drawAnnotationText(const AnnotationText& annotationText);
+        void drawTextAtViewportCoords(const double viewportX,
+                                      const double viewportY,
+                                      const double viewportZ,
+                                      const AnnotationText& annotationText);
+        
+        void drawTextAtModelCoords(const double modelX,
+                                   const double modelY,
+                                   const double modelZ,
+                                   const AnnotationText& annotationText);
+        
+        void drawTextAtModelCoords(const double modelXYZ[3],
+                                   const AnnotationText& annotationText);
+        
+        void drawTextAtModelCoords(const float modelXYZ[3],
+                                   const AnnotationText& annotationText);
         
         void drawAllPalettes(Brain* brain);
         

@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __ANNOTATION_ALIGN_HORIZONTAL_ENUM_DECLARE__
-#include "AnnotationAlignHorizontalEnum.h"
-#undef __ANNOTATION_ALIGN_HORIZONTAL_ENUM_DECLARE__
+#define __ANNOTATION_TEXT_ALIGN_HORIZONTAL_ENUM_DECLARE__
+#include "AnnotationTextAlignHorizontalEnum.h"
+#undef __ANNOTATION_TEXT_ALIGN_HORIZONTAL_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationAlignHorizontalEnum 
- * \brief Horizontal alignment for annotations.
+ * \class caret::AnnotationTextAlignHorizontalEnum 
+ * \brief Horizontal alignment for text annotations.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -49,21 +49,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "AnnotationAlignHorizontalEnum.h"
+ *         #include "AnnotationTextAlignHorizontalEnum.h"
  * 
  *     Instatiate:
  *         m_annotationAlignHorizontalEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_annotationAlignHorizontalEnumComboBox->setup<AnnotationAlignHorizontalEnum,AnnotationAlignHorizontalEnum::Enum>();
+ *         m_annotationAlignHorizontalEnumComboBox->setup<AnnotationTextAlignHorizontalEnum,AnnotationTextAlignHorizontalEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_annotationAlignHorizontalEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(annotationAlignHorizontalEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_annotationAlignHorizontalEnumComboBox->setSelectedItem<AnnotationAlignHorizontalEnum,AnnotationAlignHorizontalEnum::Enum>(NEW_VALUE);
+ *         m_annotationAlignHorizontalEnumComboBox->setSelectedItem<AnnotationTextAlignHorizontalEnum,AnnotationTextAlignHorizontalEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const AnnotationAlignHorizontalEnum::Enum VARIABLE = m_annotationAlignHorizontalEnumComboBox->getSelectedItem<AnnotationAlignHorizontalEnum,AnnotationAlignHorizontalEnum::Enum>();
+ *         const AnnotationTextAlignHorizontalEnum::Enum VARIABLE = m_annotationAlignHorizontalEnumComboBox->getSelectedItem<AnnotationTextAlignHorizontalEnum,AnnotationTextAlignHorizontalEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-AnnotationAlignHorizontalEnum::AnnotationAlignHorizontalEnum(const Enum enumValue,
+AnnotationTextAlignHorizontalEnum::AnnotationTextAlignHorizontalEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ AnnotationAlignHorizontalEnum::AnnotationAlignHorizontalEnum(const Enum enumValu
 /**
  * Destructor.
  */
-AnnotationAlignHorizontalEnum::~AnnotationAlignHorizontalEnum()
+AnnotationTextAlignHorizontalEnum::~AnnotationTextAlignHorizontalEnum()
 {
 }
 
@@ -99,22 +99,22 @@ AnnotationAlignHorizontalEnum::~AnnotationAlignHorizontalEnum()
  * Initialize the enumerated metadata.
  */
 void
-AnnotationAlignHorizontalEnum::initialize()
+AnnotationTextAlignHorizontalEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationAlignHorizontalEnum(LEFT, 
+    enumData.push_back(AnnotationTextAlignHorizontalEnum(LEFT, 
                                     "LEFT", 
                                     "Left"));
     
-    enumData.push_back(AnnotationAlignHorizontalEnum(CENTER, 
+    enumData.push_back(AnnotationTextAlignHorizontalEnum(CENTER, 
                                     "CENTER", 
                                     "Center"));
     
-    enumData.push_back(AnnotationAlignHorizontalEnum(RIGHT, 
+    enumData.push_back(AnnotationTextAlignHorizontalEnum(RIGHT, 
                                     "RIGHT", 
                                     "Right"));
     
@@ -127,14 +127,14 @@ AnnotationAlignHorizontalEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const AnnotationAlignHorizontalEnum*
-AnnotationAlignHorizontalEnum::findData(const Enum enumValue)
+const AnnotationTextAlignHorizontalEnum*
+AnnotationTextAlignHorizontalEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const AnnotationAlignHorizontalEnum* d = &enumData[i];
+        const AnnotationTextAlignHorizontalEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -151,10 +151,10 @@ AnnotationAlignHorizontalEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-AnnotationAlignHorizontalEnum::toName(Enum enumValue) {
+AnnotationTextAlignHorizontalEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationAlignHorizontalEnum* enumInstance = findData(enumValue);
+    const AnnotationTextAlignHorizontalEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -168,18 +168,18 @@ AnnotationAlignHorizontalEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationAlignHorizontalEnum::Enum 
-AnnotationAlignHorizontalEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationTextAlignHorizontalEnum::Enum 
+AnnotationTextAlignHorizontalEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationAlignHorizontalEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextAlignHorizontalEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationAlignHorizontalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextAlignHorizontalEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationAlignHorizontalEnum& d = *iter;
+        const AnnotationTextAlignHorizontalEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -191,7 +191,7 @@ AnnotationAlignHorizontalEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationAlignHorizontalEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationTextAlignHorizontalEnum"));
     }
     return enumValue;
 }
@@ -204,10 +204,10 @@ AnnotationAlignHorizontalEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-AnnotationAlignHorizontalEnum::toGuiName(Enum enumValue) {
+AnnotationTextAlignHorizontalEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationAlignHorizontalEnum* enumInstance = findData(enumValue);
+    const AnnotationTextAlignHorizontalEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -221,18 +221,18 @@ AnnotationAlignHorizontalEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationAlignHorizontalEnum::Enum 
-AnnotationAlignHorizontalEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+AnnotationTextAlignHorizontalEnum::Enum 
+AnnotationTextAlignHorizontalEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationAlignHorizontalEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextAlignHorizontalEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationAlignHorizontalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextAlignHorizontalEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationAlignHorizontalEnum& d = *iter;
+        const AnnotationTextAlignHorizontalEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -244,7 +244,7 @@ AnnotationAlignHorizontalEnum::fromGuiName(const AString& guiName, bool* isValid
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationAlignHorizontalEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationTextAlignHorizontalEnum"));
     }
     return enumValue;
 }
@@ -256,10 +256,10 @@ AnnotationAlignHorizontalEnum::fromGuiName(const AString& guiName, bool* isValid
  *    Integer code for data type.
  */
 int32_t
-AnnotationAlignHorizontalEnum::toIntegerCode(Enum enumValue)
+AnnotationTextAlignHorizontalEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationAlignHorizontalEnum* enumInstance = findData(enumValue);
+    const AnnotationTextAlignHorizontalEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -274,18 +274,18 @@ AnnotationAlignHorizontalEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-AnnotationAlignHorizontalEnum::Enum
-AnnotationAlignHorizontalEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+AnnotationTextAlignHorizontalEnum::Enum
+AnnotationTextAlignHorizontalEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationAlignHorizontalEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextAlignHorizontalEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationAlignHorizontalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextAlignHorizontalEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationAlignHorizontalEnum& enumInstance = *iter;
+        const AnnotationTextAlignHorizontalEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -297,7 +297,7 @@ AnnotationAlignHorizontalEnum::fromIntegerCode(const int32_t integerCode, bool* 
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationAlignHorizontalEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationTextAlignHorizontalEnum"));
     }
     return enumValue;
 }
@@ -310,13 +310,13 @@ AnnotationAlignHorizontalEnum::fromIntegerCode(const int32_t integerCode, bool* 
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-AnnotationAlignHorizontalEnum::getAllEnums(std::vector<AnnotationAlignHorizontalEnum::Enum>& allEnums)
+AnnotationTextAlignHorizontalEnum::getAllEnums(std::vector<AnnotationTextAlignHorizontalEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<AnnotationAlignHorizontalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextAlignHorizontalEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -332,16 +332,16 @@ AnnotationAlignHorizontalEnum::getAllEnums(std::vector<AnnotationAlignHorizontal
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationAlignHorizontalEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+AnnotationTextAlignHorizontalEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<AnnotationAlignHorizontalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextAlignHorizontalEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(AnnotationAlignHorizontalEnum::toName(iter->enumValue));
+        allNames.push_back(AnnotationTextAlignHorizontalEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -358,16 +358,16 @@ AnnotationAlignHorizontalEnum::getAllNames(std::vector<AString>& allNames, const
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationAlignHorizontalEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+AnnotationTextAlignHorizontalEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<AnnotationAlignHorizontalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextAlignHorizontalEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(AnnotationAlignHorizontalEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(AnnotationTextAlignHorizontalEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

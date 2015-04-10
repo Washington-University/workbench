@@ -66,17 +66,49 @@ DummyFontTextRenderer::isValid() const
 }
 
 /**
- * Draw annnotation text using its attributes
- * for the style and position of the text.
+ * Draw annnotation text at the given viewport coordinates using
+ * the the annotations attributes for the style of text.
  *
+ * @param viewportX
+ *     Viewport X-coordinate.
+ * @param viewportY
+ *     Viewport Y-coordinate.
+ * @param viewportZ
+ *     Viewport Z-coordinate.
  * @param annotationText
- *   Text that is to be drawn.
+ *     Annotation text and attributes.
  */
 void
-DummyFontTextRenderer::drawAnnotationText(const AnnotationText& /*annotationText*/)
+DummyFontTextRenderer::drawTextAtViewportCoords(const double /*viewportX*/,
+                                      const double /*viewportY*/,
+                                      const double /*viewportZ*/,
+                                      const AnnotationText& /*annotationText*/)
 {
     
 }
+
+/**
+ * Draw annnotation text at the given model coordinates using
+ * the the annotations attributes for the style of text.
+ *
+ * @param modelX
+ *     Model X-coordinate.
+ * @param modelY
+ *     Model Y-coordinate.
+ * @param modelZ
+ *     Model Z-coordinate.
+ * @param annotationText
+ *     Annotation text and attributes.
+ */
+void
+DummyFontTextRenderer::drawTextAtModelCoords(const double /*modelX*/,
+                                   const double /*modelY*/,
+                                   const double /*modelZ*/,
+                                   const AnnotationText& /*annotationText*/)
+{
+    
+}
+
 
 /**
  * Get the bounds of text (in pixels) using the given text

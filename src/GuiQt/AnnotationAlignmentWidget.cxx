@@ -61,9 +61,9 @@ AnnotationAlignmentWidget::AnnotationAlignmentWidget(QWidget* parent)
 {
     
     QLabel* horizontalLabel = new QLabel("Align Horizontal");
-    QToolButton* leftAlignToolButton   = createHorizontalAlignmentToolButton(AnnotationAlignHorizontalEnum::LEFT);
-    QToolButton* centerAlignToolButton = createHorizontalAlignmentToolButton(AnnotationAlignHorizontalEnum::CENTER);
-    QToolButton* rightAlignToolButton  = createHorizontalAlignmentToolButton(AnnotationAlignHorizontalEnum::RIGHT);
+    QToolButton* leftAlignToolButton   = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::LEFT);
+    QToolButton* centerAlignToolButton = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::CENTER);
+    QToolButton* rightAlignToolButton  = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::RIGHT);
     
     m_horizontalAlignActionGroup = new QActionGroup(this);
     m_horizontalAlignActionGroup->setExclusive(true);
@@ -81,9 +81,9 @@ AnnotationAlignmentWidget::AnnotationAlignmentWidget(QWidget* parent)
     horizontalAlignLayout->addWidget(rightAlignToolButton);
     
     QLabel* verticalLabel = new QLabel("Align Vertical");
-    QToolButton* topAlignToolButton = createVerticalAlignmentToolButton(AnnotationAlignVerticalEnum::TOP);
-    QToolButton* middleAlignToolButton = createVerticalAlignmentToolButton(AnnotationAlignVerticalEnum::MIDDLE);
-    QToolButton* bottomAlignToolButton = createVerticalAlignmentToolButton(AnnotationAlignVerticalEnum::BOTTOM);
+    QToolButton* topAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::TOP);
+    QToolButton* middleAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::MIDDLE);
+    QToolButton* bottomAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::BOTTOM);
     
     m_verticalAlignActionGroup = new QActionGroup(this);
     m_verticalAlignActionGroup->setExclusive(true);
@@ -153,7 +153,7 @@ void
 AnnotationAlignmentWidget::horizontalAlignmentActionSelected(QAction* action)
 {
     CaretAssert(action);
-    const AnnotationAlignHorizontalEnum::Enum align = static_cast<AnnotationAlignHorizontalEnum::Enum>(action->data().toInt());
+    const AnnotationTextAlignHorizontalEnum::Enum align = static_cast<AnnotationTextAlignHorizontalEnum::Enum>(action->data().toInt());
 }
 
 /**
@@ -166,7 +166,7 @@ void
 AnnotationAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
 {
     CaretAssert(action);
-    const AnnotationAlignVerticalEnum::Enum align = static_cast<AnnotationAlignVerticalEnum::Enum>(action->data().toInt());
+    const AnnotationTextAlignVerticalEnum::Enum align = static_cast<AnnotationTextAlignVerticalEnum::Enum>(action->data().toInt());
 }
 
 /**
@@ -178,17 +178,17 @@ AnnotationAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
  *     The horizontal alignment.
  */
 QToolButton*
-AnnotationAlignmentWidget::createHorizontalAlignmentToolButton(const AnnotationAlignHorizontalEnum::Enum horizontalAlignment)
+AnnotationAlignmentWidget::createHorizontalAlignmentToolButton(const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment)
 {
     QString toolTipText;
     switch (horizontalAlignment) {
-        case AnnotationAlignHorizontalEnum::CENTER:
+        case AnnotationTextAlignHorizontalEnum::CENTER:
             toolTipText = "Align Center";
             break;
-        case AnnotationAlignHorizontalEnum::LEFT:
+        case AnnotationTextAlignHorizontalEnum::LEFT:
             toolTipText = "Align Left";
             break;
-        case AnnotationAlignHorizontalEnum::RIGHT:
+        case AnnotationTextAlignHorizontalEnum::RIGHT:
             toolTipText = "Align Right";
             break;
     }
@@ -217,17 +217,17 @@ AnnotationAlignmentWidget::createHorizontalAlignmentToolButton(const AnnotationA
  *     The vertical alignment.
  */
 QToolButton*
-AnnotationAlignmentWidget::createVerticalAlignmentToolButton(const AnnotationAlignVerticalEnum::Enum verticalAlignment)
+AnnotationAlignmentWidget::createVerticalAlignmentToolButton(const AnnotationTextAlignVerticalEnum::Enum verticalAlignment)
 {
     QString toolTipText;
     switch (verticalAlignment) {
-        case AnnotationAlignVerticalEnum::BOTTOM:
+        case AnnotationTextAlignVerticalEnum::BOTTOM:
             toolTipText = "Align Bottom";
             break;
-        case AnnotationAlignVerticalEnum::MIDDLE:
+        case AnnotationTextAlignVerticalEnum::MIDDLE:
             toolTipText = "Align Middle";
             break;
-        case AnnotationAlignVerticalEnum::TOP:
+        case AnnotationTextAlignVerticalEnum::TOP:
             toolTipText = "Align Top";
             break;
     }
@@ -261,7 +261,7 @@ AnnotationAlignmentWidget::createVerticalAlignmentToolButton(const AnnotationAli
  */
 QPixmap
 AnnotationAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* widget,
-                                                     const AnnotationAlignHorizontalEnum::Enum horizontalAlignment)
+                                                     const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment)
 {
     CaretAssert(widget);
     
@@ -316,15 +316,15 @@ AnnotationAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* widget
         qreal xEnd   = width;
         
         switch (horizontalAlignment) {
-            case AnnotationAlignHorizontalEnum::CENTER:
+            case AnnotationTextAlignHorizontalEnum::CENTER:
                 xStart = (width - lineLength) / 2.0;
                 xEnd   = xStart + lineLength;
                 break;
-            case AnnotationAlignHorizontalEnum::LEFT:
+            case AnnotationTextAlignHorizontalEnum::LEFT:
                 xStart = margin;
                 xEnd   = xStart + lineLength;
                 break;
-            case AnnotationAlignHorizontalEnum::RIGHT:
+            case AnnotationTextAlignHorizontalEnum::RIGHT:
                 xEnd   = width - margin;
                 xStart = xEnd - lineLength;
                 break;
@@ -352,7 +352,7 @@ AnnotationAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* widget
  */
 QPixmap
 AnnotationAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widget,
-                                                         const AnnotationAlignVerticalEnum::Enum verticalAlignment)
+                                                         const AnnotationTextAlignVerticalEnum::Enum verticalAlignment)
 {
     CaretAssert(widget);
     
@@ -404,13 +404,13 @@ AnnotationAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widget,
         
         int32_t iOffset = i;
         switch (verticalAlignment) {
-            case AnnotationAlignVerticalEnum::BOTTOM:
+            case AnnotationTextAlignVerticalEnum::BOTTOM:
                 iOffset += 2;
                 break;
-            case AnnotationAlignVerticalEnum::MIDDLE:
+            case AnnotationTextAlignVerticalEnum::MIDDLE:
                 iOffset += 1;
                 break;
-            case AnnotationAlignVerticalEnum::TOP:
+            case AnnotationTextAlignVerticalEnum::TOP:
                 break;
         }
         const qreal y = yStep * iOffset;

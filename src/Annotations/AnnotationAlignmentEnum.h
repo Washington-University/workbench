@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_COORDINATE_SPACE_ENUM_H__
-#define __ANNOTATION_COORDINATE_SPACE_ENUM_H__
+#ifndef __ANNOTATION_ALIGNMENT_ENUM_H__
+#define __ANNOTATION_ALIGNMENT_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,27 +28,29 @@
 
 namespace caret {
 
-class AnnotationCoordinateSpaceEnum {
+class AnnotationAlignmentEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Annotation in model 3D space */
-        MODEL,
-        /** Annotation in pixels (origin is bottom, left corner). */
-        PIXELS,
-        /** Annotation on surface node */
-        SURFACE,
-        /** Annotation in tab space */
-        TAB,
-        /** Annotation in window space */
-        WINDOW
+        /** Left */
+        ALIGN_LEFT,
+        /** Center */
+        ALIGN_CENTER,
+        /** Right */
+        ALIGN_RIGHT,
+        /** Top */
+        ALIGN_TOP,
+        /** Middle */
+        ALIGN_MIDDLE,
+        /** Bottom */
+        ALIGN_BOTTOM
     };
 
 
-    ~AnnotationCoordinateSpaceEnum();
+    ~AnnotationAlignmentEnum();
 
     static AString toName(Enum enumValue);
     
@@ -69,14 +71,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    AnnotationCoordinateSpaceEnum(const Enum enumValue, 
+    AnnotationAlignmentEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const AnnotationCoordinateSpaceEnum* findData(const Enum enumValue);
+    static const AnnotationAlignmentEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationCoordinateSpaceEnum> enumData;
+    static std::vector<AnnotationAlignmentEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -100,11 +102,11 @@ private:
     AString guiName;
 };
 
-#ifdef __ANNOTATION_COORDINATE_SPACE_ENUM_DECLARE__
-std::vector<AnnotationCoordinateSpaceEnum> AnnotationCoordinateSpaceEnum::enumData;
-bool AnnotationCoordinateSpaceEnum::initializedFlag = false;
-int32_t AnnotationCoordinateSpaceEnum::integerCodeCounter = 0; 
-#endif // __ANNOTATION_COORDINATE_SPACE_ENUM_DECLARE__
+#ifdef __ANNOTATION_ALIGNMENT_ENUM_DECLARE__
+std::vector<AnnotationAlignmentEnum> AnnotationAlignmentEnum::enumData;
+bool AnnotationAlignmentEnum::initializedFlag = false;
+int32_t AnnotationAlignmentEnum::integerCodeCounter = 0; 
+#endif // __ANNOTATION_ALIGNMENT_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_COORDINATE_SPACE_ENUM_H__
+#endif  //__ANNOTATION_ALIGNMENT_ENUM_H__

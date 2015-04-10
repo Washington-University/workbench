@@ -403,7 +403,8 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
          * Viewport of window.
          */
         BrainOpenGLViewportContent* vpContent = viewportContents[i];
-        const int* windowVP = vpContent->getWindowViewport();
+//JWH10APR        const int* windowVP = vpContent->getWindowViewport();  JWH10APR
+        const int* windowVP = vpContent->getModelViewport();
         glViewport(windowVP[0], windowVP[1], windowVP[2], windowVP[3]);
         
         /*
@@ -513,9 +514,30 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
         m_brain = NULL;
     }
     
-
-    BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
-    annotationDrawing.drawWindowAnnotations();
+    if ( ! viewportContents.empty()) {
+        const int* windowViewport = viewportContents[0]->getWindowViewport();
+        glViewport(windowViewport[0],
+                   windowViewport[1],
+                   windowViewport[2],
+                   windowViewport[3]);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glOrtho(0.0, windowViewport[2], 0.0, windowViewport[3], -1.0, 1.0);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+        annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::WINDOW,
+                                          NULL);
+        annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::PIXELS,
+                                          NULL);
+        
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+    }
     
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     
@@ -592,12 +614,18 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 CaretAssertMessage(0, "Unknown type of model for drawing");
             }
             
+            
+            int viewport[4];
+            viewportContent->getModelViewport(viewport);
+            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
             if (modelAllowsPalettes) {
-                int viewport[4];
-                viewportContent->getModelViewport(viewport);
-                glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
                 this->drawAllPalettes(model->getBrain());
             }
+            
+            BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+            annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::TAB,
+                                              NULL);
+            
         }
     }
     
@@ -1242,7 +1270,8 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(ModelSurface* surfaceModel,
                                                                                  this->windowTabIndex);
     
     this->drawSurface(surface,
-                      nodeColoringRGBA);
+                      nodeColoringRGBA,
+                      true);
 }
 
 /**
@@ -1273,10 +1302,13 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
  *    Surface that is drawn.
  * @param nodeColoringRGBA
  *    RGBA coloring for the nodes.
+ * @param drawAnnotationsInModelSpaceFlag
+ *    If true, draw annotations in model space.
  */
 void 
 BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
-                                      const float* nodeColoringRGBA)
+                                      const float* nodeColoringRGBA,
+                                      const bool drawAnnotationsInModelSpaceFlag)
 {
     const DisplayPropertiesSurface* dps = m_brain->getDisplayPropertiesSurface();
     
@@ -1292,6 +1324,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
     const SurfaceDrawingTypeEnum::Enum drawingType = dps->getSurfaceDrawingType();
     switch (this->mode)  {
         case MODE_DRAWING:
+        {
             switch (drawingType) {
                 case SurfaceDrawingTypeEnum::DRAW_HIDE:
                     break;
@@ -1349,8 +1382,22 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             this->drawSurfaceFoci(surface);
             this->drawSurfaceNodeAttributes(surface);
             this->drawSurfaceBorderBeingDrawn(surface);
+
+            /*
+             * Draw annotations for this surface and maybe draw
+             * the model annotations.
+             */
+            BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+            annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
+                                              surface);
+            if (drawAnnotationsInModelSpaceFlag) {
+                annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                                                  NULL);
+            }
+        }
             break;
         case MODE_IDENTIFICATION:
+        {
             /*
              * Disable shading since ID info is encoded in rgba coloring
              */
@@ -1370,10 +1417,24 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             this->drawSurfaceBorders(surface);
             this->drawSurfaceFoci(surface);
             this->drawSurfaceNodeAttributes(surface);
+
+            /*
+             * Draw annotations for this surface and maybe draw
+             * the model annotations.
+             */
+            BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+            annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
+                                              surface);
+            if (drawAnnotationsInModelSpaceFlag) {
+                annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                                                  NULL);
+            }
+            
             /*
              * Re-enable shading since ID info is encoded in rgba coloring
              */
             glShadeModel(GL_SMOOTH);
+        }
             break;
         case MODE_PROJECTION:
             /*
@@ -4362,8 +4423,10 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         
         this->applyViewingTransformations(center,
                                           mvp->getProjectionViewType());
+        
         this->drawSurface(mvp->getSurface(),
-                          nodeColoringRGBA);
+                          nodeColoringRGBA,
+                          true);
         
     }
     
@@ -4507,61 +4570,144 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
     
     drawSurfaceFiberOrientations(StructureEnum::ALL);
     drawSurfaceFiberTrajectories(StructureEnum::ALL);
-    
+
     /*
      * Draw surfaces last so that opacity works.
      */
+    std::vector<Surface*> surfacesToDraw;
     const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
     for (int32_t i = 0; i < numberOfBrainStructures; i++) {
         BrainStructure* brainStructure = brain->getBrainStructure(i);
         const StructureEnum::Enum structure = brainStructure->getStructure();
         Surface* surface = wholeBrainModel->getSelectedSurface(structure,
-                                                                    tabNumberIndex);
+                                                               tabNumberIndex);
         if (surface != NULL) {
-            float dx = 0.0;
-            float dy = 0.0;
-            float dz = 0.0;
-            
             bool drawIt = false;
             switch (structure) {
                 case StructureEnum::CORTEX_LEFT:
                     drawIt = browserTabContent->isWholeBrainLeftEnabled();
-                    dx = -browserTabContent->getWholeBrainLeftRightSeparation();
-                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
-                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
-                        dx -= surface->getBoundingBox()->getMaxX();
-                    }
                     break;
                 case StructureEnum::CORTEX_RIGHT:
                     drawIt = browserTabContent->isWholeBrainRightEnabled();
-                    dx = browserTabContent->getWholeBrainLeftRightSeparation();
-                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
-                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
-                        dx -= surface->getBoundingBox()->getMinX();
-                    }
                     break;
                 case StructureEnum::CEREBELLUM:
                     drawIt = browserTabContent->isWholeBrainCerebellumEnabled();
-                    dz = browserTabContent->getWholeBrainCerebellumSeparation();
                     break;
                 default:
                     CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
                     break;
             }
             
+            if (drawIt) {
+                surfacesToDraw.push_back(surface);
+            }
+        }
+    }
+
+    const int32_t numSurfaceToDraw = static_cast<int32_t>(surfacesToDraw.size());
+    for (int32_t i = 0; i < numSurfaceToDraw; i++) {
+        CaretAssertVectorIndex(surfacesToDraw, i);
+        Surface* surface = surfacesToDraw[i];
+        CaretAssert(surface);
+        
+        float dx = 0.0;
+        float dy = 0.0;
+        float dz = 0.0;
+        switch (surface->getStructure()) {
+            case StructureEnum::CORTEX_LEFT:
+                dx = -browserTabContent->getWholeBrainLeftRightSeparation();
+                if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+                    && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+                    dx -= surface->getBoundingBox()->getMaxX();
+                }
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                dx = browserTabContent->getWholeBrainLeftRightSeparation();
+                if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+                    && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+                    dx -= surface->getBoundingBox()->getMinX();
+                }
+                break;
+            case StructureEnum::CEREBELLUM:
+                dz = browserTabContent->getWholeBrainCerebellumSeparation();
+                break;
+            default:
+                CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
+                break;
+        }
+        
+        if (surface != NULL) {
+            /*
+             * Draw the model annotations when the last surface is drawn.
+             */
+            const bool drawModelSpaceAnnotationsFlag = (i == (numSurfaceToDraw - 1));
+            
             const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(wholeBrainModel,
                                                                                          surface,
                                                                                          this->windowTabIndex);
             
-            if (drawIt) {
-                glPushMatrix();
-                glTranslatef(dx, dy, dz);
-                this->drawSurface(surface,
-                                  nodeColoringRGBA);
-                glPopMatrix();
-            }
+            glPushMatrix();
+            glTranslatef(dx, dy, dz);
+            this->drawSurface(surface,
+                              nodeColoringRGBA,
+                              drawModelSpaceAnnotationsFlag);
+            glPopMatrix();
         }
     }
+//    /*
+//     * Draw surfaces last so that opacity works.
+//     */
+//    const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
+//    for (int32_t i = 0; i < numberOfBrainStructures; i++) {
+//        BrainStructure* brainStructure = brain->getBrainStructure(i);
+//        const StructureEnum::Enum structure = brainStructure->getStructure();
+//        Surface* surface = wholeBrainModel->getSelectedSurface(structure,
+//                                                                    tabNumberIndex);
+//        if (surface != NULL) {
+//            float dx = 0.0;
+//            float dy = 0.0;
+//            float dz = 0.0;
+//            
+//            bool drawIt = false;
+//            switch (structure) {
+//                case StructureEnum::CORTEX_LEFT:
+//                    drawIt = browserTabContent->isWholeBrainLeftEnabled();
+//                    dx = -browserTabContent->getWholeBrainLeftRightSeparation();
+//                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+//                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+//                        dx -= surface->getBoundingBox()->getMaxX();
+//                    }
+//                    break;
+//                case StructureEnum::CORTEX_RIGHT:
+//                    drawIt = browserTabContent->isWholeBrainRightEnabled();
+//                    dx = browserTabContent->getWholeBrainLeftRightSeparation();
+//                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+//                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+//                        dx -= surface->getBoundingBox()->getMinX();
+//                    }
+//                    break;
+//                case StructureEnum::CEREBELLUM:
+//                    drawIt = browserTabContent->isWholeBrainCerebellumEnabled();
+//                    dz = browserTabContent->getWholeBrainCerebellumSeparation();
+//                    break;
+//                default:
+//                    CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
+//                    break;
+//            }
+//            
+//            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(wholeBrainModel,
+//                                                                                         surface,
+//                                                                                         this->windowTabIndex);
+//            
+//            if (drawIt) {
+//                glPushMatrix();
+//                glTranslatef(dx, dy, dz);
+//                this->drawSurface(surface,
+//                                  nodeColoringRGBA);
+//                glPopMatrix();
+//            }
+//        }
+//    }
 }
 
 /**
@@ -5386,16 +5532,94 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
 }
 
 /**
- * Draw text using its attributes.
+ * Draw annnotation text at the given viewport coordinates using
+ * the the annotations attributes for the style of text.
  *
+ * @param viewportX
+ *     Viewport X-coordinate.
+ * @param viewportY
+ *     Viewport Y-coordinate.
+ * @param viewportZ
+ *     Viewport Z-coordinate.
  * @param annotationText
- *    Text and its attributes that is to be drawn.
+ *     Annotation text and attributes.
  */
 void
-BrainOpenGLFixedPipeline::drawAnnotationText(const AnnotationText& annotationText)
+BrainOpenGLFixedPipeline::drawTextAtViewportCoords(const double viewportX,
+                                                   const double viewportY,
+                                                   const double viewportZ,
+                                                   const AnnotationText& annotationText)
 {
     if (this->textRenderer != NULL) {
-        this->textRenderer->drawAnnotationText(annotationText);
+        this->textRenderer->drawTextAtViewportCoords(viewportX,
+                                                     viewportY,
+                                                     viewportZ,
+                                                     annotationText);
+    }
+}
+
+/**
+ * Draw annnotation text at the given model coordinates using
+ * the the annotations attributes for the style of text.
+ *
+ * @param modelX
+ *     Model X-coordinate.
+ * @param modelY
+ *     Model Y-coordinate.
+ * @param modelZ
+ *     Model Z-coordinate.
+ * @param annotationText
+ *     Annotation text and attributes.
+ */
+void
+BrainOpenGLFixedPipeline::drawTextAtModelCoords(const double modelX,
+                                                const double modelY,
+                                                const double modelZ,
+                                                const AnnotationText& annotationText)
+{
+    if (this->textRenderer != NULL) {
+        this->textRenderer->drawTextAtModelCoords(modelX,
+                                                  modelY,
+                                                  modelZ,
+                                                  annotationText);
+    }
+}
+
+/**
+ * Draw annnotation text at the given model coordinates using
+ * the the annotations attributes for the style of text.
+ *
+ * @param modelXYZ
+ *     Model XYZ coordinates.
+ * @param annotationText
+ *     Annotation text and attributes.
+ */
+void
+BrainOpenGLFixedPipeline::drawTextAtModelCoords(const double modelXYZ[3],
+                                                const AnnotationText& annotationText)
+{
+    if (this->textRenderer != NULL) {
+        this->textRenderer->drawTextAtModelCoords(modelXYZ,
+                                                  annotationText);
+    }
+}
+
+/**
+ * Draw annnotation text at the given model coordinates using
+ * the the annotations attributes for the style of text.
+ *
+ * @param modelXYZ
+ *     Model XYZ coordinates.
+ * @param annotationText
+ *     Annotation text and attributes.
+ */
+void
+BrainOpenGLFixedPipeline::drawTextAtModelCoords(const float modelXYZ[3],
+                                                const AnnotationText& annotationText)
+{
+    if (this->textRenderer != NULL) {
+        this->textRenderer->drawTextAtModelCoords(modelXYZ,
+                                                  annotationText);
     }
 }
 
@@ -5407,7 +5631,7 @@ BrainOpenGLFixedPipeline::drawAnnotationText(const AnnotationText& annotationTex
  * @param viewport
  *    Viewport for the model.
  */
-void 
+void
 BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
 {
     /*
@@ -5879,14 +6103,15 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
     if (isNegativeDisplayed) {
         AnnotationText annotationText;
-        annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
-        annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
         annotationText.setForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
-        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-        annotationText.setXYZ(textLeftX, textY, 0.0);
-        this->drawAnnotationText(annotationText);
+        this->drawTextAtViewportCoords(textLeftX,
+                                       textY,
+                                       0.0,
+                                       annotationText);
     }
     
     if (isNegativeDisplayed
@@ -5894,32 +6119,34 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         || isPositiveDisplayed) {
 
         AnnotationText annotationText;
-        annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::CENTER);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         if (isNegativeOnly) {
-            annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
         }
         else if (isPositiveOnly) {
-            annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::LEFT);
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
         }
-        annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
         annotationText.setForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
-        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-        annotationText.setXYZ(textCenterX, textY, 0.0);
-        this->drawAnnotationText(annotationText);
+        this->drawTextAtViewportCoords(textCenterX,
+                                       textY,
+                                       0.0,
+                                       annotationText);
     }
     
     if (isPositiveDisplayed) {
         AnnotationText annotationText;
-        annotationText.setHorizontalAlignment(AnnotationAlignHorizontalEnum::RIGHT);
-        annotationText.setVerticalAlignment(AnnotationAlignVerticalEnum::BOTTOM);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
-       annotationText.setForegroundColor(m_foregroundColorFloat);
+        annotationText.setForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textRight);
-        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-        annotationText.setXYZ(textRightX, textY, 0.0);
-        this->drawAnnotationText(annotationText);
+        this->drawTextAtViewportCoords(textRightX,
+                                       textY,
+                                       0.0,
+                                       annotationText);
     }
     
     return;

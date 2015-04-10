@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __ANNOTATION_ALIGN_VERTICAL_ENUM_DECLARE__
-#include "AnnotationAlignVerticalEnum.h"
-#undef __ANNOTATION_ALIGN_VERTICAL_ENUM_DECLARE__
+#define __ANNOTATION_ALIGNMENT_ENUM_DECLARE__
+#include "AnnotationAlignmentEnum.h"
+#undef __ANNOTATION_ALIGNMENT_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,10 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationAlignVerticalEnum 
- * \brief Vertical alignment for annotations.
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \class caret::AnnotationAlignmentEnum 
+ * \brief Enumerated type for aligning multiple annotations.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -42,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_annotationAlignVerticalEnumComboBox;
+ *         EnumComboBoxTemplate* m_annotationAlignmentEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void annotationAlignVerticalEnumComboBoxItemActivated();
+ *             void annotationAlignmentEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "AnnotationAlignVerticalEnum.h"
+ *         #include "AnnotationAlignmentEnum.h"
  * 
  *     Instatiate:
- *         m_annotationAlignVerticalEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_annotationAlignVerticalEnumComboBox->setup<AnnotationAlignVerticalEnum,AnnotationAlignVerticalEnum::Enum>();
+ *         m_annotationAlignmentEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_annotationAlignmentEnumComboBox->setup<AnnotationAlignmentEnum,AnnotationAlignmentEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_annotationAlignVerticalEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(annotationAlignVerticalEnumComboBoxItemActivated()));
+ *         QObject::connect(m_annotationAlignmentEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(annotationAlignmentEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_annotationAlignVerticalEnumComboBox->setSelectedItem<AnnotationAlignVerticalEnum,AnnotationAlignVerticalEnum::Enum>(NEW_VALUE);
+ *         m_annotationAlignmentEnumComboBox->setSelectedItem<AnnotationAlignmentEnum,AnnotationAlignmentEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const AnnotationAlignVerticalEnum::Enum VARIABLE = m_annotationAlignVerticalEnumComboBox->getSelectedItem<AnnotationAlignVerticalEnum,AnnotationAlignVerticalEnum::Enum>();
+ *         const AnnotationAlignmentEnum::Enum VARIABLE = m_annotationAlignmentEnumComboBox->getSelectedItem<AnnotationAlignmentEnum,AnnotationAlignmentEnum::Enum>();
  * 
  */
 
@@ -80,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-AnnotationAlignVerticalEnum::AnnotationAlignVerticalEnum(const Enum enumValue,
+AnnotationAlignmentEnum::AnnotationAlignmentEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -93,7 +91,7 @@ AnnotationAlignVerticalEnum::AnnotationAlignVerticalEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-AnnotationAlignVerticalEnum::~AnnotationAlignVerticalEnum()
+AnnotationAlignmentEnum::~AnnotationAlignmentEnum()
 {
 }
 
@@ -101,24 +99,36 @@ AnnotationAlignVerticalEnum::~AnnotationAlignVerticalEnum()
  * Initialize the enumerated metadata.
  */
 void
-AnnotationAlignVerticalEnum::initialize()
+AnnotationAlignmentEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationAlignVerticalEnum(BOTTOM, 
-                                    "BOTTOM", 
-                                    "Bottom"));
+    enumData.push_back(AnnotationAlignmentEnum(ALIGN_LEFT, 
+                                    "ALIGN_LEFT", 
+                                    "Align Left"));
     
-    enumData.push_back(AnnotationAlignVerticalEnum(MIDDLE,
-                                    "MIDDLE",
-                                    "Middle"));
+    enumData.push_back(AnnotationAlignmentEnum(ALIGN_CENTER, 
+                                    "ALIGN_CENTER", 
+                                    "Align Center"));
     
-    enumData.push_back(AnnotationAlignVerticalEnum(TOP, 
-                                    "TOP", 
-                                    "Top"));
+    enumData.push_back(AnnotationAlignmentEnum(ALIGN_RIGHT, 
+                                    "ALIGN_RIGHT", 
+                                    "Align Right"));
+    
+    enumData.push_back(AnnotationAlignmentEnum(ALIGN_TOP, 
+                                    "ALIGN_TOP", 
+                                    "Align Top"));
+    
+    enumData.push_back(AnnotationAlignmentEnum(ALIGN_MIDDLE, 
+                                    "ALIGN_MIDDLE", 
+                                    "Align Middle"));
+    
+    enumData.push_back(AnnotationAlignmentEnum(ALIGN_BOTTOM, 
+                                    "ALIGN_BOTTOM", 
+                                    "Align Bottom"));
     
 }
 
@@ -129,14 +139,14 @@ AnnotationAlignVerticalEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const AnnotationAlignVerticalEnum*
-AnnotationAlignVerticalEnum::findData(const Enum enumValue)
+const AnnotationAlignmentEnum*
+AnnotationAlignmentEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const AnnotationAlignVerticalEnum* d = &enumData[i];
+        const AnnotationAlignmentEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -153,10 +163,10 @@ AnnotationAlignVerticalEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-AnnotationAlignVerticalEnum::toName(Enum enumValue) {
+AnnotationAlignmentEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationAlignVerticalEnum* enumInstance = findData(enumValue);
+    const AnnotationAlignmentEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -170,18 +180,18 @@ AnnotationAlignVerticalEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationAlignVerticalEnum::Enum 
-AnnotationAlignVerticalEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationAlignmentEnum::Enum 
+AnnotationAlignmentEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationAlignVerticalEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationAlignmentEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationAlignVerticalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationAlignmentEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationAlignVerticalEnum& d = *iter;
+        const AnnotationAlignmentEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -193,7 +203,7 @@ AnnotationAlignVerticalEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationAlignVerticalEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationAlignmentEnum"));
     }
     return enumValue;
 }
@@ -206,10 +216,10 @@ AnnotationAlignVerticalEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-AnnotationAlignVerticalEnum::toGuiName(Enum enumValue) {
+AnnotationAlignmentEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationAlignVerticalEnum* enumInstance = findData(enumValue);
+    const AnnotationAlignmentEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -223,18 +233,18 @@ AnnotationAlignVerticalEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationAlignVerticalEnum::Enum 
-AnnotationAlignVerticalEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+AnnotationAlignmentEnum::Enum 
+AnnotationAlignmentEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationAlignVerticalEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationAlignmentEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationAlignVerticalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationAlignmentEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationAlignVerticalEnum& d = *iter;
+        const AnnotationAlignmentEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -246,7 +256,7 @@ AnnotationAlignVerticalEnum::fromGuiName(const AString& guiName, bool* isValidOu
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationAlignVerticalEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationAlignmentEnum"));
     }
     return enumValue;
 }
@@ -258,10 +268,10 @@ AnnotationAlignVerticalEnum::fromGuiName(const AString& guiName, bool* isValidOu
  *    Integer code for data type.
  */
 int32_t
-AnnotationAlignVerticalEnum::toIntegerCode(Enum enumValue)
+AnnotationAlignmentEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationAlignVerticalEnum* enumInstance = findData(enumValue);
+    const AnnotationAlignmentEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -276,18 +286,18 @@ AnnotationAlignVerticalEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-AnnotationAlignVerticalEnum::Enum
-AnnotationAlignVerticalEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+AnnotationAlignmentEnum::Enum
+AnnotationAlignmentEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationAlignVerticalEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationAlignmentEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationAlignVerticalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationAlignmentEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationAlignVerticalEnum& enumInstance = *iter;
+        const AnnotationAlignmentEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -299,7 +309,7 @@ AnnotationAlignVerticalEnum::fromIntegerCode(const int32_t integerCode, bool* is
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationAlignVerticalEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationAlignmentEnum"));
     }
     return enumValue;
 }
@@ -312,13 +322,13 @@ AnnotationAlignVerticalEnum::fromIntegerCode(const int32_t integerCode, bool* is
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-AnnotationAlignVerticalEnum::getAllEnums(std::vector<AnnotationAlignVerticalEnum::Enum>& allEnums)
+AnnotationAlignmentEnum::getAllEnums(std::vector<AnnotationAlignmentEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<AnnotationAlignVerticalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationAlignmentEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -334,16 +344,16 @@ AnnotationAlignVerticalEnum::getAllEnums(std::vector<AnnotationAlignVerticalEnum
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationAlignVerticalEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+AnnotationAlignmentEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<AnnotationAlignVerticalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationAlignmentEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(AnnotationAlignVerticalEnum::toName(iter->enumValue));
+        allNames.push_back(AnnotationAlignmentEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -360,16 +370,16 @@ AnnotationAlignVerticalEnum::getAllNames(std::vector<AString>& allNames, const b
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationAlignVerticalEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+AnnotationAlignmentEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<AnnotationAlignVerticalEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationAlignmentEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(AnnotationAlignVerticalEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(AnnotationAlignmentEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

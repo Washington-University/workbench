@@ -35,8 +35,16 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Arrow */
+        ARROW,
+        /** Box */
+        BOX,
         /** Image */
         IMAGE,
+        /** Line */
+        LINE,
+        /** Oval */
+        OVAL,
         /** Shape */
         SHAPE,
         /** Text */

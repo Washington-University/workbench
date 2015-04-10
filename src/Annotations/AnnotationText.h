@@ -25,6 +25,8 @@
 #include "Annotation.h"
 #include "AnnotationFontNameEnum.h"
 #include "AnnotationFontSizeEnum.h"
+#include "AnnotationTextAlignHorizontalEnum.h"
+#include "AnnotationTextAlignVerticalEnum.h"
 #include "AnnotationTextOrientationEnum.h"
 
 namespace caret {
@@ -46,6 +48,14 @@ namespace caret {
         
         void setText(const AString& text);
 
+        AnnotationTextAlignHorizontalEnum::Enum getHorizontalAlignment() const;
+        
+        void setHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment);
+        
+        AnnotationTextAlignVerticalEnum::Enum getVerticalAlignment() const;
+        
+        void setVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment);
+        
         AnnotationFontNameEnum::Enum getFont() const;
         
         void setFont(const AnnotationFontNameEnum::Enum font);
@@ -92,6 +102,10 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
 
         AString m_text;
+        
+        AnnotationTextAlignHorizontalEnum::Enum  m_alignmentHorizontal;
+        
+        AnnotationTextAlignVerticalEnum::Enum  m_alignmentVertical;
         
         AnnotationFontNameEnum::Enum m_font;
         

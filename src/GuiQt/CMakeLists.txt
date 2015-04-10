@@ -30,6 +30,8 @@ AboutWorkbenchDialog.h
 AnnotationAlignmentWidget.h
 AnnotationColorWidget.h
 AnnotationFontWidget.h
+AnnotationMenuArrange.h
+AnnotationMenuInsert.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -165,6 +167,8 @@ AboutWorkbenchDialog.h
 AnnotationAlignmentWidget.h
 AnnotationColorWidget.h
 AnnotationFontWidget.h
+AnnotationMenuArrange.h
+AnnotationMenuInsert.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -326,6 +330,8 @@ AboutWorkbenchDialog.cxx
 AnnotationAlignmentWidget.cxx
 AnnotationColorWidget.cxx
 AnnotationFontWidget.cxx
+AnnotationMenuArrange.cxx
+AnnotationMenuInsert.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
 BorderOptimizeDialog.cxx

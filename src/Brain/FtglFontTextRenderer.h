@@ -39,7 +39,15 @@ namespace caret {
         
         bool isValid() const;
         
-        void drawAnnotationText(const AnnotationText& annotationText);
+        virtual void drawTextAtViewportCoords(const double viewportX,
+                                              const double viewportY,
+                                              const double viewportZ,
+                                              const AnnotationText& annotationText);
+        
+        virtual void drawTextAtModelCoords(const double modelX,
+                                           const double modelY,
+                                           const double modelZ,
+                                           const AnnotationText& annotationText);
         
         void getTextBoundsInPixels(const AnnotationText& annotationText,
                                            double& xMinOut,
@@ -53,15 +61,6 @@ namespace caret {
         FtglFontTextRenderer(const FtglFontTextRenderer&);
 
         FtglFontTextRenderer& operator=(const FtglFontTextRenderer&);
-        
-        void drawTextAtViewportCoords(const double windowX,
-                                      const double windowY,
-                                      const AnnotationText& annotationText);
-        
-        void drawTextAtModelCoords(const double modelX,
-                                   const double modelY,
-                                   const double modelZ,
-                                   const AnnotationText& annotationText);
         
         void drawHorizontalTextAtWindowCoords(const double windowX,
                                             const double windowY,
