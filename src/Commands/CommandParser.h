@@ -38,7 +38,7 @@ namespace caret {
         AString m_provenance, m_parentProvenance, m_workingDir;
         bool m_doProvenance;
         const static AString PROVENANCE_NAME, PARENT_PROVENANCE_NAME, PROGRAM_PROVENANCE_NAME, CWD_PROVENANCE_NAME;//TODO: put this elsewhere?
-        std::set<AString> m_inputCiftiNames;
+        std::map<AString, const CiftiFile*> m_inputCiftiNames;
         struct OutputAssoc
         {//how the output is stored is up to the parser, in the GUI it should load into memory without writing to disk
             AString m_fileName;

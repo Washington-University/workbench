@@ -169,7 +169,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                     FileInformation myInfo(nextArg);
                     CaretPointer<CiftiFile> myFile(new CiftiFile());
                     myFile->openFile(nextArg);
-                    m_inputCiftiNames.insert(myInfo.getCanonicalFilePath());//track only names of input cifti, because inputs are always on-disk
+                    m_inputCiftiNames[myInfo.getCanonicalFilePath()] = myFile;//track input cifti, so we can check their size
                     if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
                     {
                         const GiftiMetaData* md = myFile->getCiftiXML().getFileMetaData();
@@ -636,10 +636,16 @@ void CommandParser::makeOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
             {
                 CiftiParameter* myCiftiParam = (CiftiParameter*)myParam;
                 FileInformation myInfo(outAssociation[i].m_fileName);
-                set<AString>::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
+                map<AString, const CiftiFile*>::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
                 if (iter != m_inputCiftiNames.end())
                 {
-                    if (outAssociation[i].m_fileName.endsWith(".dconn.nii"))//suppress the message except for dconn, because other types are nearly always small
+                    vector<int64_t> dims = iter->second->getDimensions();
+                    int64_t totalSize = sizeof(float);
+                    for (int j = 0; j < (int)dims.size(); ++j)
+                    {
+                        totalSize *= dims[j];
+                    }
+                    if (totalSize > ((int64_t)2) * 1024 * 1024 * 1024)//suppress the message for non-large input files, on the assumption that the output file will be the same size
                     {
                         CaretLogInfo("Computing output file '" + outAssociation[i].m_fileName + "' in memory due to collision with input file");
                     }
