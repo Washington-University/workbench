@@ -50,7 +50,9 @@ OperationParameters* OperationNiftiInformation::getParameters()
     
     ret->createOptionalParameter(3, "-print-matrix", "output the values in the matrix (cifti only)");
     
-    ret->createOptionalParameter(4, "-print-xml", "print the cifti XML (cifti only)");
+    OptionalParameter* printXmlOpt = ret->createOptionalParameter(4, "-print-xml", "print the cifti XML (cifti only)");
+    OptionalParameter* pxVersionOpt = printXmlOpt->createOptionalParameter(1, "-version", "convert the XML to a specific CIFTI version (default is the file's cifti version)");
+    pxVersionOpt->addStringParameter(1, "version", "the CIFTI version to use");
     
     ret->setHelpText(
         AString("You must specify at least one -print-* option.")
@@ -64,7 +66,8 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
     const AString fileName = myParams->getString(1);
     bool printHeader = myParams->getOptionalParameter(2)->m_present;
     bool printMatrix = myParams->getOptionalParameter(3)->m_present;
-    bool printXml = myParams->getOptionalParameter(4)->m_present;
+    OptionalParameter* printXmlOpt = myParams->getOptionalParameter(4);
+    bool printXml = printXmlOpt->m_present;
     if (!printHeader && !printMatrix && !printXml) throw OperationException("you must specify a -print-* option");
     if(!QFile::exists(fileName)) throw OperationException("File '" + fileName + "' does not exist.");
 
@@ -79,7 +82,13 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
     {
         CiftiFile cf(fileName);
         const CiftiXML& xml = cf.getCiftiXML();
-        AString xmlString = xml.writeXMLToString(xml.getParsedVersion());//rewrite with the same version that it was read with - maybe it should have an option?
+        CiftiVersion printVersion = xml.getParsedVersion();//by default, rewrite with the same version that it was read with
+        OptionalParameter* pxVersionOpt = printXmlOpt->getOptionalParameter(1);
+        if (pxVersionOpt->m_present)
+        {
+            printVersion = CiftiVersion(pxVersionOpt->getString(1));
+        }
+        AString xmlString = xml.writeXMLToString(printVersion);
         cout << xmlString << endl;
     }
     if(printMatrix)

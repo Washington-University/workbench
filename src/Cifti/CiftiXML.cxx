@@ -717,7 +717,7 @@ void CiftiXML::writeXML(QXmlStreamWriter& xml, const CiftiVersion& writingVersio
     } else if (writingVersion == CiftiVersion(2, 0)) {
         writeMatrix2(xml);
     } else {
-        throw CaretException("unknown Cifti writing version: '" + writingVersion.toString());
+        throw CaretException("unknown Cifti writing version: '" + writingVersion.toString() + "'");
     }
     xml.writeEndElement();
 }
