@@ -74,6 +74,7 @@ AlgorithmMetricROIsFromExtrema.h
 AlgorithmMetricROIsToBorder.h
 AlgorithmMetricSmoothing.h
 AlgorithmMetricTFCE.h
+AlgorithmMetricVectorOperation.h
 AlgorithmMetricVectorTowardROI.h
 AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
@@ -173,6 +174,7 @@ AlgorithmMetricROIsFromExtrema.cxx
 AlgorithmMetricROIsToBorder.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmMetricTFCE.cxx
+AlgorithmMetricVectorOperation.cxx
 AlgorithmMetricVectorTowardROI.cxx
 AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx

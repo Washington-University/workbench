@@ -26,7 +26,11 @@
 #include "CaretAssert.h"
 #include "OperationParameters.h"
 
+#include "StructureEnum.h"
+
 namespace caret {
+    
+    class CaretDataFile;
 
     class AbstractOperation
     {
@@ -49,6 +53,9 @@ namespace caret {
         
         ///override this if the operation doesn't take parameters
         static bool takesParameters() { return true; }
+        
+        ///convenience method for checking structures of input files
+        static void checkStructureMatch(const CaretDataFile* toCheck, const StructureEnum::Enum& correctStruct, const AString& fileDescrip, const AString& basisDescrip);
     };
 
     ///interface class for use by operation parsers - used because the above interface has only static methods, so to avoid neededing to instantiate the operation or template the parser code

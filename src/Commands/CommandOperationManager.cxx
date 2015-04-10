@@ -78,6 +78,7 @@
 #include "AlgorithmMetricROIsToBorder.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmMetricTFCE.h"
+#include "AlgorithmMetricVectorOperation.h"
 #include "AlgorithmMetricVectorTowardROI.h"
 #include "AlgorithmNodesInsideBorder.h" //-border-to-rois
 #include "AlgorithmSignedDistanceToSurface.h"
@@ -309,6 +310,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricROIsToBorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricTFCE()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricVectorOperation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricVectorTowardROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmNodesInsideBorder()));//-border-to-rois
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));

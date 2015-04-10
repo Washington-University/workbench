@@ -20,8 +20,20 @@
 
 #include "AbstractOperation.h"
 
+#include "CaretDataFile.h"
+#include "CaretLogger.h"
+
 using namespace std;
 using namespace caret;
+
+void AbstractOperation::checkStructureMatch(const CaretDataFile* toCheck, const StructureEnum::Enum& correctStruct, const AString& fileDescrip, const AString& basisDescrip)
+{
+    if (toCheck->getStructure() != correctStruct)
+    {
+        CaretLogWarning(fileDescrip + " has structure '" + StructureEnum::toName(toCheck->getStructure()) +
+                        "', while " + basisDescrip + " has structure '" + StructureEnum::toName(correctStruct) + "'");
+    }
+}
 
 AbstractOperation::AbstractOperation()
 {

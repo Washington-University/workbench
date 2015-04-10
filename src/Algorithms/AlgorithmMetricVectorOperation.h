@@ -1,9 +1,9 @@
-#ifndef __ALGORITHM_METRIC_VECTOR_TOWARD_ROI_H__
-#define __ALGORITHM_METRIC_VECTOR_TOWARD_ROI_H__
+#ifndef __ALGORITHM_METRIC_VECTOR_OPERATION_H__
+#define __ALGORITHM_METRIC_VECTOR_OPERATION_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2015  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,23 +25,31 @@
 
 namespace caret {
     
-    class AlgorithmMetricVectorTowardROI : public AbstractAlgorithm
+    class AlgorithmMetricVectorOperation : public AbstractAlgorithm
     {
-        AlgorithmMetricVectorTowardROI();
+        AlgorithmMetricVectorOperation();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricVectorTowardROI(ProgressObject* myProgObj, SurfaceFile* mySurf, const MetricFile* targetRoi,
-                                       MetricFile* myMetricOut, const MetricFile* computeRoi = NULL);
+        enum Operation
+        {
+            DOT,
+            CROSS,
+            ADD,
+            SUBTRACT
+        };
+        static Operation stringToOperation(const AString& string, bool& ok);
+        AlgorithmMetricVectorOperation(ProgressObject* myProgObj, const MetricFile* metricA, const MetricFile* metricB, const Operation& myOper,
+                                       MetricFile* myMetricOut, const bool& normA = false, const bool& normB = false, const bool& normOut = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmMetricVectorTowardROI> AutoAlgorithmMetricVectorTowardROI;
+    typedef TemplateAutoOperation<AlgorithmMetricVectorOperation> AutoAlgorithmMetricVectorOperation;
 
 }
 
-#endif //__ALGORITHM_METRIC_VECTOR_TOWARD_ROI_H__
+#endif //__ALGORITHM_METRIC_VECTOR_OPERATION_H__
