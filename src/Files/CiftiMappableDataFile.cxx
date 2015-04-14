@@ -3211,19 +3211,18 @@ CiftiMappableDataFile::getVoxelColorInMap(const PaletteFile* paletteFile,
     rgbaOut[2] = 0;
     rgbaOut[3] = 0;
     
-    const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
-    CaretAssert(mapRgbaCount > 0);
-    if (mapRgbaCount <= 0) {
-        return;
-    }
-    
-    if (isMapColoringValid(mapIndex) == false) {
+    if ( ! isMapColoringValid(mapIndex)) {
         CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
         nonConstThis->updateScalarColoringForMap(mapIndex,
                                              paletteFile);
     }
     
     CaretAssert(m_voxelIndicesToOffset);
+    
+    const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
+    if (mapRgbaCount <= 0) {
+        return;
+    }
     
     const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
     const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(indexIn1,
