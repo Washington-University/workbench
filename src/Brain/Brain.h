@@ -37,7 +37,7 @@
 #include "VolumeFile.h"
 
 namespace caret {
-    
+    class AnnotationFile;
     class Border;
     class BorderFile;
     class BorderPointFromSearch;
@@ -122,6 +122,14 @@ namespace caret {
         BorderFile* getBorderFile(const int32_t indx);
         
         const BorderFile* getBorderFile(const int32_t indx) const;
+
+        int getNumberOfAnnotationFile() const;
+        
+        AnnotationFile* getAnnotationFile(const int32_t indx);
+        
+        const AnnotationFile* getAnnotationFile(const int32_t indx) const;
+        
+        void getAllAnnotationFiles(std::vector<AnnotationFile*>& allAnnotationFilesOut) const;
         
         int32_t getNumberOfFociFiles() const;
         
@@ -577,9 +585,13 @@ namespace caret {
                                    CaretDataFile* caretDataFile,
                                    const AString& filename);
                             
-        BorderFile* addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
+        AnnotationFile* addReadOrReloadAnnotationFile(const FileModeAddReadReload fileMode,
                                    CaretDataFile* caretDataFile,
                                    const AString& filename);
+        
+        BorderFile* addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
+                                              CaretDataFile* caretDataFile,
+                                              const AString& filename);
         
         CiftiConnectivityMatrixDenseFile* addReadOrReloadConnectivityDenseFile(const FileModeAddReadReload fileMode,
                                                                     CaretDataFile* caretDataFile,
@@ -668,6 +680,8 @@ namespace caret {
         void resetDuplicateFileNameCounter(const bool preserveSceneFileCounter);
         
         std::vector<BrainStructure*> m_brainStructures;
+        
+        std::vector<AnnotationFile*> m_annotationFiles;
         
         std::vector<BorderFile*> m_borderFiles;
         

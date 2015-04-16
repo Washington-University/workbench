@@ -53,6 +53,14 @@ namespace caret {
                                    double& yMinOut,
                                    double& yMaxOut);
         
+        virtual void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                      const double viewportX,
+                                                      const double viewportY,
+                                                      const double viewportZ,
+                                                      double& xMinOut,
+                                                      double& xMaxOut,
+                                                      double& yMinOut,
+                                                      double& yMaxOut);
         virtual AString getName() const;
 
         // ADD_NEW_METHODS_HERE

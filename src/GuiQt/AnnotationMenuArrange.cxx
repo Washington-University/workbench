@@ -46,23 +46,10 @@ using namespace caret;
 AnnotationMenuArrange::AnnotationMenuArrange(QWidget* parent)
 : QMenu(parent)
 {
-    setTitle("Arrange");
-    
-    std::vector<AnnotationAlignmentEnum::Enum> alignments;
-    AnnotationAlignmentEnum::getAllEnums(alignments);
-    
-    for (std::vector<AnnotationAlignmentEnum::Enum>::iterator iter = alignments.begin();
-         iter != alignments.end();
-         iter++) {
-        const AnnotationAlignmentEnum::Enum annAlign = *iter;
-        const AString text = AnnotationAlignmentEnum::toGuiName(annAlign);
-        
-        QAction* action = addAction(text);
-        action->setData((int)AnnotationAlignmentEnum::toIntegerCode(annAlign));
-    }
-    
-    QObject::connect(this, SIGNAL(triggered(QAction*)),
-                     this, SLOT(menuActionTriggered(QAction*)));
+    addAction("Group");
+    addAction("Ungroup");
+    addSeparator();
+    addMenu(createAlignMenu());
 }
 
 /**
@@ -73,10 +60,37 @@ AnnotationMenuArrange::~AnnotationMenuArrange()
 }
 
 /**
+ * @return The Align menu.
+ */
+QMenu*
+AnnotationMenuArrange::createAlignMenu()
+{
+    std::vector<AnnotationAlignmentEnum::Enum> alignments;
+    AnnotationAlignmentEnum::getAllEnums(alignments);
+    
+    QMenu* alignMenu = new QMenu("Align");
+    
+    for (std::vector<AnnotationAlignmentEnum::Enum>::iterator iter = alignments.begin();
+         iter != alignments.end();
+         iter++) {
+        const AnnotationAlignmentEnum::Enum annAlign = *iter;
+        const AString text = AnnotationAlignmentEnum::toGuiName(annAlign);
+        
+        QAction* action = alignMenu->addAction(text);
+        action->setData((int)AnnotationAlignmentEnum::toIntegerCode(annAlign));
+    }
+    
+    QObject::connect(alignMenu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(alignMenuActionTriggered(QAction*)));
+    
+    return alignMenu;
+}
+
+/**
  * Gets called when the user selects a menu item.
  */
 void
-AnnotationMenuArrange::menuActionTriggered(QAction* action)
+AnnotationMenuArrange::alignMenuActionTriggered(QAction* action)
 {
     CaretAssert(action);
     const int32_t integerCode = action->data().toInt();

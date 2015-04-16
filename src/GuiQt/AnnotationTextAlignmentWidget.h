@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_ALIGNMENT_WIDGET_H__
-#define __ANNOTATION_ALIGNMENT_WIDGET_H__
+#ifndef __ANNOTATION_TEXT_ALIGNMENT_WIDGET_H__
+#define __ANNOTATION_TEXT_ALIGNMENT_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -35,19 +35,22 @@ class QToolButton;
 
 namespace caret {
 
+    class AnnotationText;
     
-    class AnnotationAlignmentWidget : public QWidget, public EventListenerInterface {
+    class AnnotationTextAlignmentWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        AnnotationAlignmentWidget(QWidget* parent = 0);
+        AnnotationTextAlignmentWidget(QWidget* parent = 0);
         
-        virtual ~AnnotationAlignmentWidget();
+        virtual ~AnnotationTextAlignmentWidget();
         
 
         // ADD_NEW_METHODS_HERE
 
+        void updateContent(AnnotationText* annotationText);
+        
         virtual void receiveEvent(Event* event);
 
     private slots:
@@ -56,9 +59,9 @@ namespace caret {
         void verticalAlignmentActionSelected(QAction* action);
         
     private:
-        AnnotationAlignmentWidget(const AnnotationAlignmentWidget&);
+        AnnotationTextAlignmentWidget(const AnnotationTextAlignmentWidget&);
 
-        AnnotationAlignmentWidget& operator=(const AnnotationAlignmentWidget&);
+        AnnotationTextAlignmentWidget& operator=(const AnnotationTextAlignmentWidget&);
         
         QToolButton* createHorizontalAlignmentToolButton(const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment);
         
@@ -74,13 +77,15 @@ namespace caret {
         
         QActionGroup* m_verticalAlignActionGroup;
         
+        AnnotationText* m_annotationText;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __ANNOTATION_ALIGNMENT_WIDGET_DECLARE__
+#ifdef __ANNOTATION_TEXT_ALIGNMENT_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_ALIGNMENT_WIDGET_DECLARE__
+#endif // __ANNOTATION_TEXT_ALIGNMENT_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_ALIGNMENT_WIDGET_H__
+#endif  //__ANNOTATION_TEXT_ALIGNMENT_WIDGET_H__

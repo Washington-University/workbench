@@ -30,11 +30,12 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "AnnotationAlignmentWidget.h"
+#include "AnnotationCoordinateSizeRotateWidget.h"
 #include "AnnotationMenuArrange.h"
-#include "AnnotationMenuInsert.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationFontWidget.h"
+#include "AnnotationTextAlignmentWidget.h"
+#include "AnnotationTypeSpaceWidget.h"
 #include "CaretAssert.h"
 #include "EventBrainReset.h"
 #include "EventManager.h"
@@ -60,30 +61,44 @@ m_inputModeAnnotations(inputModeAnnotations)
 {
     CaretAssert(inputModeAnnotations);
     
-    QWidget* modeWidget = createModeWidget();
+    m_typeSpaceWidget = new AnnotationTypeSpaceWidget();
     
     m_fontWidget = new AnnotationFontWidget();
     
     m_colorWidget = new AnnotationColorWidget();
     
-    m_alignmentWidget = new AnnotationAlignmentWidget();
+    m_alignmentWidget = new AnnotationTextAlignmentWidget();
     
-    m_insertAlignMenusWidget = createInsertArrangeMenusWidget();
+    m_coordSizeRotateWidget = new AnnotationCoordinateSizeRotateWidget();
     
-//    resetLastEditedBorder();
+    QWidget* arrangeToolButton = createArrangeMenuToolButton();
     
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(modeWidget);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_fontWidget);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_colorWidget);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_alignmentWidget);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_insertAlignMenusWidget);
-    layout->addStretch();
+    QHBoxLayout* topRowLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 2);
+    topRowLayout->addWidget(m_typeSpaceWidget);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_colorWidget);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_fontWidget);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_alignmentWidget);
+    topRowLayout->addStretch();
+    
+    QHBoxLayout* bottomRowLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 2);
+    bottomRowLayout->addWidget(m_coordSizeRotateWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomRowLayout->addWidget(arrangeToolButton);
+    bottomRowLayout->addStretch();
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
+    layout->addLayout(topRowLayout);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addLayout(bottomRowLayout);
+    
+//    setSizePolicy(QSizePolicy::Fixed,
+//                  QSizePolicy::Fixed);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
 }
@@ -139,92 +154,24 @@ UserInputModeAnnotationsWidget::updateWidget()
 //            resetLastEditedBorder();
             break;
     }
-    const int selectedModeInteger = (int)m_inputModeAnnotations->getMode();
-    
-    const int modeComboBoxIndex = m_modeComboBox->findData(selectedModeInteger);
-    CaretAssert(modeComboBoxIndex >= 0);
-    m_modeComboBox->blockSignals(true);
-    m_modeComboBox->setCurrentIndex(modeComboBoxIndex);
-    m_modeComboBox->blockSignals(false);
 }
 
 /**
- * Gets called when the user sets a mode.
- *
- * @param indx
- *    Inde of the selected item in combo box.
- */
-void
-UserInputModeAnnotationsWidget::modeComboBoxSelection(int indx)
-{
-    const int modeInteger = m_modeComboBox->itemData(indx).toInt();
-    const UserInputModeAnnotations::Mode mode = (UserInputModeAnnotations::Mode)modeInteger;
-    m_inputModeAnnotations->setMode(mode);
-//    resetLastEditedBorder();
-}
-
-/**
- * @return The mode widget.
+ * @return The arrange tool button.
  */
 QWidget*
-UserInputModeAnnotationsWidget::createModeWidget()
-{
-    QLabel* modeLabel = new QLabel("Mode");
-    
-    m_modeComboBox = new QComboBox();
-    m_modeComboBox->addItem("New",  (int)UserInputModeAnnotations::MODE_NEW);
-    m_modeComboBox->addItem("Edit", (int)UserInputModeAnnotations::MODE_EDIT);
-    m_modeComboBox->addItem("ROI",  (int)UserInputModeAnnotations::MODE_DELETE);
-    QObject::connect(m_modeComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(modeComboBoxSelection(int)));
-    
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addStretch();
-    layout->addWidget(modeLabel, 0, Qt::AlignHCenter);
-    layout->addWidget(m_modeComboBox, 0, Qt::AlignHCenter);
-    widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    
-    return widget;
-}
-
-/**
- * @return The arrange and insert menu widget.
- */
-QWidget*
-UserInputModeAnnotationsWidget::createInsertArrangeMenusWidget()
+UserInputModeAnnotationsWidget::createArrangeMenuToolButton()
 {
     AnnotationMenuArrange* arrangeMenu = new AnnotationMenuArrange();
     
     QAction* arrangeAction = new QAction("Arrange",
-                                         this);
-    arrangeAction->setToolTip("Align and group annotations");
+                                          this);
+    arrangeAction->setToolTip("Arrange (align) and group annotations");
     arrangeAction->setMenu(arrangeMenu);
     
     QToolButton* arrangeToolButton = new QToolButton();
     arrangeToolButton->setDefaultAction(arrangeAction);
     
-    AnnotationMenuInsert* insertMenu = new AnnotationMenuInsert();
-    
-    QAction* insertAction = new QAction("Insert",
-                                        this);
-    insertAction->setToolTip("Insert new annotations");
-    insertAction->setMenu(insertMenu);
-    
-    QToolButton* insertToolButton = new QToolButton();
-    insertToolButton->setDefaultAction(insertAction);
-    
-    WuQtUtilities::matchWidgetWidths(arrangeToolButton,
-                                     insertToolButton);
-    
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addStretch();
-    layout->addWidget(arrangeToolButton);
-    layout->addWidget(insertToolButton);
-    return widget;
+    return arrangeToolButton;
 }
-
 

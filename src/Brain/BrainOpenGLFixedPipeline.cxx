@@ -150,6 +150,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
 {
     this->initializeMembersBrainOpenGL();
     this->colorIdentification   = new IdentificationWithColor();
+    m_annotationDrawing.grabNew(new BrainOpenGLAnnotationDrawingFixedPipeline(this));
     m_shapeSphere = NULL;
     m_shapeCone   = NULL;
     m_shapeCylinder = NULL;
@@ -238,6 +239,9 @@ BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportConten
     this->drawModelInternal(MODE_IDENTIFICATION,
                             viewportContent);
 
+    const int* windowViewport = viewportContent->getWindowViewport();
+    drawWindowAnnotations(windowViewport);
+    
     m_brain->getSelectionManager()->filterSelections(applySelectionBackgroundFiltering);
     
     m_brain = NULL;
@@ -516,32 +520,48 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
     
     if ( ! viewportContents.empty()) {
         const int* windowViewport = viewportContents[0]->getWindowViewport();
-        glViewport(windowViewport[0],
-                   windowViewport[1],
-                   windowViewport[2],
-                   windowViewport[3]);
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glOrtho(0.0, windowViewport[2], 0.0, windowViewport[3], -1.0, 1.0);
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-        
-        BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
-        annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::WINDOW,
-                                          NULL);
-        annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::PIXELS,
-                                          NULL);
-        
-        glPopMatrix();
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
+        m_brain = viewportContents[0]->getBrain();
+        drawWindowAnnotations(windowViewport);
+        m_brain = NULL;
     }
     
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     
 }
+
+/**
+ * Draw the window annotations.
+ *
+ * @param windowViewport
+ *    Viewport (x, y, w, h).
+ */
+void
+BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
+{
+    CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing window annotations.");
+    glViewport(windowViewport[0],
+               windowViewport[1],
+               windowViewport[2],
+               windowViewport[3]);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glOrtho(0.0, windowViewport[2], 0.0, windowViewport[3], -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+    m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::WINDOW,
+                                      NULL);
+    m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::PIXELS,
+                                      NULL);
+    
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
 /**
  * Draw a model.
  *
@@ -622,8 +642,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 this->drawAllPalettes(model->getBrain());
             }
             
-            BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
-            annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::TAB,
+            //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+            m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::TAB,
                                               NULL);
             
         }
@@ -1387,11 +1407,11 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * Draw annotations for this surface and maybe draw
              * the model annotations.
              */
-            BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
-            annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
+            //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+            m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
                                               surface);
             if (drawAnnotationsInModelSpaceFlag) {
-                annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
                                                   NULL);
             }
         }
@@ -1422,11 +1442,11 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * Draw annotations for this surface and maybe draw
              * the model annotations.
              */
-            BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
-            annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
+            //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+            m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
                                               surface);
             if (drawAnnotationsInModelSpaceFlag) {
-                annotationDrawing.drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
                                                   NULL);
             }
             

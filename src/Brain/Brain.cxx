@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 
+#include "AnnotationFile.h"
 #include "Border.h"
 #include "BorderFile.h"
 #include "BorderPointFromSearch.h"
@@ -434,6 +435,21 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     
     m_brainStructures.clear();
     
+    for (std::vector<AnnotationFile*>::iterator afi = m_annotationFiles.begin();
+         afi != m_annotationFiles.end();
+         afi++) {
+        AnnotationFile* af = *afi;
+        delete af;
+    }
+    m_annotationFiles.clear();
+    
+    CaretLogSevere("Adding an annotation file for testing to the Brain."
+                    "NOTE: THIS WILL CAUSE A PRINTOUT OF UNDELETED OBJECTS since this file is "
+                    "added inside of resetBrain() which does all file deletion.");
+    addReadOrReloadAnnotationFile(Brain::FILE_MODE_ADD,
+                                  new AnnotationFile(),
+                                  ("Testing." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION)));
+    
     for (std::vector<BorderFile*>::iterator bfi = m_borderFiles.begin();
          bfi != m_borderFiles.end();
          bfi++) {
@@ -656,6 +672,8 @@ Brain::resetBrainKeepSceneFiles()
         
         bool keepFileFlag = true;
         switch (dataFileType) {
+            case DataFileTypeEnum::ANNOTATION:
+                break;
             case DataFileTypeEnum::BORDER:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE:
@@ -1458,6 +1476,86 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
 {
     CaretAssertVectorIndex(m_volumeFiles, volumeFileIndex);
     return m_volumeFiles[volumeFileIndex];
+}
+
+/**
+ * Add, read, or reload an annotation file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @return
+ *    File that was read.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+AnnotationFile*
+Brain::addReadOrReloadAnnotationFile(const FileModeAddReadReload fileMode,
+                                 CaretDataFile* caretDataFile,
+                                 const AString& filename)
+{
+    AnnotationFile* af = NULL;
+    if (caretDataFile != NULL) {
+        af = dynamic_cast<AnnotationFile*>(caretDataFile);
+        CaretAssert(af);
+    }
+    else {
+        af = new AnnotationFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                af->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete af;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_annotationFiles,
+                                      af);
+        m_annotationFiles.push_back(af);
+    }
+    
+    
+    return af;
 }
 
 /**
@@ -3921,6 +4019,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
     
     const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
             switch (dataFileType) {
+                case DataFileTypeEnum::ANNOTATION:
+                {
+                    AnnotationFile* file = dynamic_cast<AnnotationFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_annotationFiles.push_back(file);
+                }
+                    break;
                 case DataFileTypeEnum::BORDER:
                 {
                     BorderFile* file = dynamic_cast<BorderFile*>(caretDataFile);
@@ -4135,11 +4240,55 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
             m_specFile->addCaretDataFile(caretDataFile);
 }
 
+/**
+ * @return Number of annotation files.
+ */
+int
+Brain::getNumberOfAnnotationFile() const
+{
+    return m_annotationFiles.size();
+}
+
+/**
+ * @return The annotation file.
+ * @param indx Index of the annotation file.
+ */
+AnnotationFile*
+Brain::getAnnotationFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(m_annotationFiles,
+                           indx);
+    return m_annotationFiles[indx];
+}
+
+/**
+ * @return The annotation file.
+ * @param indx Index of the annotation file.
+ */
+const AnnotationFile*
+Brain::getAnnotationFile(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_annotationFiles,
+                           indx);
+    return m_annotationFiles[indx];
+}
+
+/**
+ * Get all annotation files.
+ *
+ * @param allAnnotationFilesOut
+ *    Will contain all annotation files on exit.
+ */
+void
+Brain::getAllAnnotationFiles(std::vector<AnnotationFile*>& allAnnotationFilesOut) const
+{
+    allAnnotationFilesOut = m_annotationFiles;
+}
 
 /**
  * @return Number of border files.
  */
-int32_t 
+int32_t
 Brain::getNumberOfBorderFiles() const
 {
     return m_borderFiles.size();
@@ -4727,6 +4876,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
         et.start();
         
         switch (dataFileType) {
+            case DataFileTypeEnum::ANNOTATION:
+                caretDataFileRead = addReadOrReloadAnnotationFile(fileMode,
+                                                                  caretDataFile,
+                                                                  dataFileName);
+                break;
             case DataFileTypeEnum::BORDER:
                 caretDataFileRead  = addReadOrReloadBorderFile(fileMode,
                                                    caretDataFile,
@@ -5836,6 +5990,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
     }
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_annotationFiles.begin(),
+                           m_annotationFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_borderFiles.begin(),
                            m_borderFiles.end());
     
@@ -6108,6 +6266,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
         if (getBrainStructure(i)->removeWithoutDeleteDataFile(caretDataFile)) {
             return true;
         }
+    }
+    
+    std::vector<AnnotationFile*>::iterator annotationIterator = std::find(m_annotationFiles.begin(),
+                                                                          m_annotationFiles.end(),
+                                                                          caretDataFile);
+    if (annotationIterator != m_annotationFiles.end()) {
+        m_annotationFiles.erase(annotationIterator);
+        return true;
     }
     
     std::vector<BorderFile*>::iterator borderIterator = std::find(m_borderFiles.begin(),

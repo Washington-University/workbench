@@ -132,6 +132,7 @@ OverlaySetArray.h
 ProjectionViewTypeEnum.h
 SelectionItemDataTypeEnum.h
 SelectionItem.h
+SelectionItemAnnotation.h
 SelectionItemBorderSurface.h
 SelectionItemChartDataSeries.h
 SelectionItemChartFrequencySeries.h
@@ -251,6 +252,7 @@ OverlaySetArray.cxx
 ProjectionViewTypeEnum.cxx
 SelectionItemDataTypeEnum.cxx
 SelectionItem.cxx
+SelectionItemAnnotation.cxx
 SelectionItemBorderSurface.cxx
 SelectionItemChartDataSeries.cxx
 SelectionItemChartFrequencySeries.cxx

@@ -50,10 +50,19 @@ namespace caret {
                                            const AnnotationText& annotationText);
         
         void getTextBoundsInPixels(const AnnotationText& annotationText,
-                                           double& xMinOut,
-                                           double& xMaxOut,
-                                           double& yMinOut,
+                                   double& xMinOut,
+                                   double& xMaxOut,
+                                   double& yMinOut,
                                    double& yMaxOut);
+        
+        void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
+                                              const double viewportX,
+                                              const double viewportY,
+                                              const double viewportZ,
+                                              double& xMinOut,
+                                              double& xMaxOut,
+                                              double& yMinOut,
+                                              double& yMaxOut);
         
         virtual AString getName() const;
         
@@ -101,6 +110,25 @@ namespace caret {
             const double m_y;
         };
         
+        void getBoundsForHorizontalTextAtWindowCoords(const AnnotationText& annotationText,
+                                                      const double viewportX,
+                                                      const double viewportY,
+                                                      const double viewportZ,
+                                                      double& xMinOut,
+                                                      double& xMaxOut,
+                                                      double& yMinOut,
+                                                      double& yMaxOut);
+        
+        void getBoundsForVerticalTextAtWindowCoords(const AnnotationText& annotationText,
+                                                    const double viewportX,
+                                                    const double viewportY,
+                                                    const double viewportZ,
+                                                    double& xMinOut,
+                                                    double& xMaxOut,
+                                                    double& yMinOut,
+                                                    double& yMaxOut,
+                                                    std::vector<CharInfo>& textCharsToDraw);
+        
         void getVerticalTextCharInfo(const AnnotationText& annotationText,
                                      double& xMinOut,
                                      double& xMaxOut,
@@ -147,7 +175,7 @@ namespace caret {
     };
     
 #ifdef __FTGL_FONT_TEXT_RENDERER_DECLARE__
-    const double FtglFontTextRenderer::s_textMarginSize = 2.0;
+    const double FtglFontTextRenderer::s_textMarginSize = 3.0;
 #endif // __FTGL_FONT_TEXT_RENDERER_DECLARE__
 
 } // namespace

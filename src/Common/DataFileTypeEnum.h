@@ -35,6 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Annotation */
+        ANNOTATION,
         /** Border */
         BORDER,
         /** Connectivity - Dense */

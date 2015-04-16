@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Files
 AffineFile.h
+AnnotationFile.h
 Border.h
 BorderException.h
 BorderFile.h
@@ -132,6 +133,7 @@ VtkFileExporter.h
 WarpfieldFile.h
 
 AffineFile.cxx
+AnnotationFile.cxx
 Border.cxx
 BorderException.cxx
 BorderFile.cxx
@@ -245,6 +247,7 @@ WarpfieldFile.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/Annotations
 ${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/FilesBase

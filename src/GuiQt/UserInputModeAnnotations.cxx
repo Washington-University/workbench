@@ -23,10 +23,18 @@
 #include "UserInputModeAnnotations.h"
 #undef __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
 
+#include "Annotation.h"
+#include "AnnotationFile.h"
+#include "Brain.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
 #include "CursorEnum.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "GuiManager.h"
 #include "MouseEvent.h"
+#include "SelectionItemAnnotation.h"
+#include "SelectionManager.h"
 #include "UserInputModeAnnotationsWidget.h"
 
 using namespace caret;
@@ -147,6 +155,53 @@ UserInputModeAnnotations::getCursor() const
 }
 
 /**
+ * Process a mouse left drag with no keys down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& /*mouseEvent*/)
+{
+}
+
+/**
+ * Process a mouse left drag with only the alt key down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseLeftDragWithAlt(const MouseEvent& /*mouseEvent*/) { }
+
+/**
+ * Process a mouse left drag with ctrl key down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseLeftDragWithCtrl(const MouseEvent& /*mouseEvent*/) { }
+
+/**
+ * Process a mouse left drag with ctrl and shift keys down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseLeftDragWithCtrlShift(const MouseEvent& /*mouseEvent*/) { }
+
+/**
+ * Process a mouse left drag with shift key down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseLeftDragWithShift(const MouseEvent& /*mouseEvent*/) { }
+
+/**
  * Process a mouse left click event.
  *
  * @param mouseEvent
@@ -155,11 +210,8 @@ UserInputModeAnnotations::getCursor() const
 void
 UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
 {
-    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    const int mouseX = mouseEvent.getX();
-    const int mouseY = mouseEvent.getY();
-    
-    std::cout << "Mouse click: " << mouseX << ", " << mouseY << std::endl;
+    processMouseLeftClick(mouseEvent,
+                          false);
     
     switch (m_mode) {
         case MODE_DELETE:
@@ -229,4 +281,128 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             break;
     }
 }
+
+/**
+ * Process a mouse left click with Shift key event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
+{
+    processMouseLeftClick(mouseEvent,
+                          true);
+    
+    switch (m_mode) {
+        case MODE_DELETE:
+            break;
+        case MODE_EDIT:
+            break;
+        case MODE_NEW:
+            break;
+    }
+}
+
+/**
+ * Select (or deselect) the given annotation.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ * @param shiftKeyDownFlag
+ *     Status of shift key.
+ */
+void
+UserInputModeAnnotations::processMouseLeftClick(const MouseEvent& mouseEvent,
+                                                const bool shiftKeyDownFlag)
+{
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    const int mouseX = mouseEvent.getX();
+    const int mouseY = mouseEvent.getY();
+    
+    //std::cout << "Mouse click: " << mouseX << ", " << mouseY << std::endl;
+    
+    /*
+     * NOTE: When selecting annotations:
+     *    (A) When the mouse is clicked WITHOUT the SHIFT key down, the user is in
+     *        'single-annotation-selection-mode' and at most one annotation will
+     *        be selected when this method completes.
+     *    (B) If the mouse is clicked with the SHIFT key down, the user is in
+     *        'multi-annotation-selection-mode' and any number of annotation will
+     *        be selected when this method completes.
+     */
+    SelectionManager* idManager = openGLWidget->performIdentification(mouseX, mouseY, true);
+    SelectionItemAnnotation* annotationID = idManager->getAnnotationIdentification();
+    if (annotationID->isValid()) {
+        //std::cout << "Selected Annotation: " << qPrintable(annotationID->toString()) << std::endl;
+        
+        Annotation* selectedAnnotation = annotationID->getAnnotation();
+        CaretAssert(selectedAnnotation);
+        
+        /*
+         * If the annotation selected by the user was already selected
+         * then the user is deselecting it.
+         */
+        if (selectedAnnotation->isSelected()) {
+            selectedAnnotation->setSelected(false);
+            selectedAnnotation = NULL;
+        }
+        
+        /*
+         * If the SHIFT key is down, the user is selecting multiple
+         * annotations
+         */
+        if (shiftKeyDownFlag) {
+            /* 
+             * Do not alter the selection status of any other
+             * annotations.
+             */
+        }
+        else {
+            /*
+             * User is in single selection mode so deselect
+             * all annotations.
+             */
+            deselectAllAnnotations();
+        }
+        
+        /*
+         * If the annotation selected by the user was 
+         * not previously selected, now select it.
+         */
+        if (selectedAnnotation != NULL) {
+            selectedAnnotation->setSelected(true);
+        }
+    }
+    else {
+        /*
+         * User did not click over an annotation.
+         *
+         * If SHIFT key IS NOT DOWN, the user is in single
+         * selection mode so deselect all annotations.
+         */
+        if ( !shiftKeyDownFlag) {
+            deselectAllAnnotations();
+        }
+    }
+
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Deselect all annotations.
+ */
+void
+UserInputModeAnnotations::deselectAllAnnotations()
+{
+    std::vector<AnnotationFile*> allAnnotationFiles;
+    GuiManager::get()->getBrain()->getAllAnnotationFiles(allAnnotationFiles);
+    for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
+         fileIter != allAnnotationFiles.end();
+         fileIter++) {
+        AnnotationFile* annotationFile = *fileIter;
+        annotationFile->setAllAnnotationsSelected(false);
+    }
+}
+
 

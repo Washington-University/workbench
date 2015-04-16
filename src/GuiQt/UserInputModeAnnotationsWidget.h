@@ -30,9 +30,11 @@ class QComboBox;
 
 namespace caret {
 
-    class AnnotationAlignmentWidget;
     class AnnotationColorWidget;
+    class AnnotationCoordinateSizeRotateWidget;
     class AnnotationFontWidget;
+    class AnnotationTextAlignmentWidget;
+    class AnnotationTypeSpaceWidget;
     class UserInputModeAnnotations;
     
     class UserInputModeAnnotationsWidget : public QWidget, public EventListenerInterface {
@@ -51,29 +53,24 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-    private slots:
-        void modeComboBoxSelection(int);
-
     private:
         UserInputModeAnnotationsWidget(const UserInputModeAnnotationsWidget&);
 
         UserInputModeAnnotationsWidget& operator=(const UserInputModeAnnotationsWidget&);
         
-        QWidget* createModeWidget();
-        
-        QWidget* createInsertArrangeMenusWidget();
+        QWidget* createArrangeMenuToolButton();
         
         UserInputModeAnnotations* m_inputModeAnnotations;
         
-        QWidget* m_insertAlignMenusWidget;
+        AnnotationTypeSpaceWidget* m_typeSpaceWidget;
         
-        QComboBox* m_modeComboBox;
+        AnnotationCoordinateSizeRotateWidget* m_coordSizeRotateWidget;
         
         AnnotationFontWidget* m_fontWidget;
         
         AnnotationColorWidget* m_colorWidget;
         
-        AnnotationAlignmentWidget* m_alignmentWidget;
+        AnnotationTextAlignmentWidget* m_alignmentWidget;
         
         // ADD_NEW_MEMBERS_HERE
 

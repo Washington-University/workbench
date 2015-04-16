@@ -54,6 +54,8 @@ using namespace caret;
 AnnotationColorWidget::AnnotationColorWidget(QWidget* parent)
 : QWidget(parent)
 {
+    m_annotation = NULL;
+    
     QLabel* colorLabel = new QLabel("Color");
     
     const QSize toolButtonSize(24, 24);
@@ -122,6 +124,22 @@ AnnotationColorWidget::AnnotationColorWidget(QWidget* parent)
 AnnotationColorWidget::~AnnotationColorWidget()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Update with the given annotation.
+ *
+ * @param annotation.
+ */
+void
+AnnotationColorWidget::updateContent(Annotation* annotation)
+{
+    m_annotation = annotation;
+    
+    if (m_annotation != NULL) {
+    }
+    else {
+    }
 }
 
 /**

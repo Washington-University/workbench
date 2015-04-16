@@ -466,6 +466,9 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
              */
             bool limitMapIndicesFlag = false;
             switch (cmdf->getDataFileType()) {
+                case DataFileTypeEnum::ANNOTATION:
+                    CaretAssertToDoFatal();
+                    break;
                 case DataFileTypeEnum::BORDER:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE:

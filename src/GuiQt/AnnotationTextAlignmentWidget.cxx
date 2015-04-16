@@ -21,9 +21,9 @@
 
 #include <cmath>
 
-#define __ANNOTATION_ALIGNMENT_WIDGET_DECLARE__
-#include "AnnotationAlignmentWidget.h"
-#undef __ANNOTATION_ALIGNMENT_WIDGET_DECLARE__
+#define __ANNOTATION_TEXT_ALIGNMENT_WIDGET_DECLARE__
+#include "AnnotationTextAlignmentWidget.h"
+#undef __ANNOTATION_TEXT_ALIGNMENT_WIDGET_DECLARE__
 
 #include <QAction>
 #include <QGridLayout>
@@ -45,7 +45,7 @@ using namespace caret;
 
 
 /**
- * \class caret::AnnotationAlignmentWidget 
+ * \class caret::AnnotationTextAlignmentWidget 
  * \brief Widget for adjusting annotation alignment.
  * \ingroup GuiQt
  */
@@ -56,11 +56,12 @@ using namespace caret;
  * @param parent
  *     The parent widget.
  */
-AnnotationAlignmentWidget::AnnotationAlignmentWidget(QWidget* parent)
+AnnotationTextAlignmentWidget::AnnotationTextAlignmentWidget(QWidget* parent)
 : QWidget(parent)
 {
+    m_annotationText = NULL;
     
-    QLabel* horizontalLabel = new QLabel("Align Horizontal");
+    QLabel* horizontalLabel = new QLabel("Text Horizontal");
     QToolButton* leftAlignToolButton   = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::LEFT);
     QToolButton* centerAlignToolButton = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::CENTER);
     QToolButton* rightAlignToolButton  = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::RIGHT);
@@ -80,7 +81,7 @@ AnnotationAlignmentWidget::AnnotationAlignmentWidget(QWidget* parent)
     horizontalAlignLayout->addWidget(centerAlignToolButton);
     horizontalAlignLayout->addWidget(rightAlignToolButton);
     
-    QLabel* verticalLabel = new QLabel("Align Vertical");
+    QLabel* verticalLabel = new QLabel("Text Vertical");
     QToolButton* topAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::TOP);
     QToolButton* middleAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::MIDDLE);
     QToolButton* bottomAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::BOTTOM);
@@ -121,9 +122,25 @@ AnnotationAlignmentWidget::AnnotationAlignmentWidget(QWidget* parent)
 /**
  * Destructor.
  */
-AnnotationAlignmentWidget::~AnnotationAlignmentWidget()
+AnnotationTextAlignmentWidget::~AnnotationTextAlignmentWidget()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Update with the given annotation.
+ *
+ * @param annotation.
+ */
+void
+AnnotationTextAlignmentWidget::updateContent(AnnotationText* annotationText)
+{
+    m_annotationText = annotationText;
+    
+    if (m_annotationText != NULL) {
+    }
+    else {
+    }
 }
 
 /**
@@ -133,7 +150,7 @@ AnnotationAlignmentWidget::~AnnotationAlignmentWidget()
  *    An event for which this instance is listening.
  */
 void
-AnnotationAlignmentWidget::receiveEvent(Event* event)
+AnnotationTextAlignmentWidget::receiveEvent(Event* event)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -150,7 +167,7 @@ AnnotationAlignmentWidget::receiveEvent(Event* event)
  *     Action that was selected.
  */
 void
-AnnotationAlignmentWidget::horizontalAlignmentActionSelected(QAction* action)
+AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action)
 {
     CaretAssert(action);
     const AnnotationTextAlignHorizontalEnum::Enum align = static_cast<AnnotationTextAlignHorizontalEnum::Enum>(action->data().toInt());
@@ -163,7 +180,7 @@ AnnotationAlignmentWidget::horizontalAlignmentActionSelected(QAction* action)
  *     Action that was selected.
  */
 void
-AnnotationAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
+AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
 {
     CaretAssert(action);
     const AnnotationTextAlignVerticalEnum::Enum align = static_cast<AnnotationTextAlignVerticalEnum::Enum>(action->data().toInt());
@@ -178,7 +195,7 @@ AnnotationAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
  *     The horizontal alignment.
  */
 QToolButton*
-AnnotationAlignmentWidget::createHorizontalAlignmentToolButton(const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment)
+AnnotationTextAlignmentWidget::createHorizontalAlignmentToolButton(const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment)
 {
     QString toolTipText;
     switch (horizontalAlignment) {
@@ -217,7 +234,7 @@ AnnotationAlignmentWidget::createHorizontalAlignmentToolButton(const AnnotationT
  *     The vertical alignment.
  */
 QToolButton*
-AnnotationAlignmentWidget::createVerticalAlignmentToolButton(const AnnotationTextAlignVerticalEnum::Enum verticalAlignment)
+AnnotationTextAlignmentWidget::createVerticalAlignmentToolButton(const AnnotationTextAlignVerticalEnum::Enum verticalAlignment)
 {
     QString toolTipText;
     switch (verticalAlignment) {
@@ -260,7 +277,7 @@ AnnotationAlignmentWidget::createVerticalAlignmentToolButton(const AnnotationTex
  *    Pixmap with icon for the given horizontal alignment.
  */
 QPixmap
-AnnotationAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* widget,
+AnnotationTextAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* widget,
                                                      const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment)
 {
     CaretAssert(widget);
@@ -351,7 +368,7 @@ AnnotationAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* widget
  *    Pixmap with icon for the given vertical alignment.
  */
 QPixmap
-AnnotationAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widget,
+AnnotationTextAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widget,
                                                          const AnnotationTextAlignVerticalEnum::Enum verticalAlignment)
 {
     CaretAssert(widget);

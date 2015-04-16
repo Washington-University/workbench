@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_SHAPE_TYPE_ENUM_H__
-#define __ANNOTATION_SHAPE_TYPE_ENUM_H__
+#ifndef __ANNOTATION_SHAPE_DIMENSION_ENUM_H__
+#define __ANNOTATION_SHAPE_DIMENSION_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,25 +28,21 @@
 
 namespace caret {
 
-class AnnotationShapeTypeEnum {
+class AnnotationShapeDimensionEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Arrow */
-        ARROW,
-        /** Box */
-        BOX,
-        /** Line */
-        LINE,
-        /** Oval */
-        OVAL
+        /** One Dimensional */
+        ONE_DIMENSIONAL,
+        /** Two Dimensional */
+        TWO_DIMENSIONAL
     };
 
 
-    ~AnnotationShapeTypeEnum();
+    ~AnnotationShapeDimensionEnum();
 
     static AString toName(Enum enumValue);
     
@@ -67,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    AnnotationShapeTypeEnum(const Enum enumValue, 
+    AnnotationShapeDimensionEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const AnnotationShapeTypeEnum* findData(const Enum enumValue);
+    static const AnnotationShapeDimensionEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationShapeTypeEnum> enumData;
+    static std::vector<AnnotationShapeDimensionEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -98,11 +94,11 @@ private:
     AString guiName;
 };
 
-#ifdef __ANNOTATION_SHAPE_TYPE_ENUM_DECLARE__
-std::vector<AnnotationShapeTypeEnum> AnnotationShapeTypeEnum::enumData;
-bool AnnotationShapeTypeEnum::initializedFlag = false;
-int32_t AnnotationShapeTypeEnum::integerCodeCounter = 0; 
-#endif // __ANNOTATION_SHAPE_TYPE_ENUM_DECLARE__
+#ifdef __ANNOTATION_SHAPE_DIMENSION_ENUM_DECLARE__
+std::vector<AnnotationShapeDimensionEnum> AnnotationShapeDimensionEnum::enumData;
+bool AnnotationShapeDimensionEnum::initializedFlag = false;
+int32_t AnnotationShapeDimensionEnum::integerCodeCounter = 0; 
+#endif // __ANNOTATION_SHAPE_DIMENSION_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_SHAPE_TYPE_ENUM_H__
+#endif  //__ANNOTATION_SHAPE_DIMENSION_ENUM_H__

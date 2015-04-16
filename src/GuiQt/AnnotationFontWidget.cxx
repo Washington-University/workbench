@@ -55,6 +55,8 @@ using namespace caret;
 AnnotationFontWidget::AnnotationFontWidget(QWidget* parent)
 : QWidget(parent)
 {
+    m_annotationText = NULL;
+    
     /*
      * "Font" label
      */

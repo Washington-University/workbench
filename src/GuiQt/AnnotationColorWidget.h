@@ -32,6 +32,7 @@ class QToolButton;
 
 namespace caret {
 
+    class Annotation;
     class CaretColorEnumMenu;
     
     class AnnotationColorWidget : public QWidget, public EventListenerInterface {
@@ -42,6 +43,8 @@ namespace caret {
         AnnotationColorWidget(QWidget* parent = 0);
         
         virtual ~AnnotationColorWidget();
+        
+        void updateContent(Annotation* annotation);
         
 
         // ADD_NEW_METHODS_HERE
@@ -67,6 +70,8 @@ namespace caret {
         CaretColorEnumMenu* m_foregroundColorMenu;
         
         CaretColorEnumMenu* m_backgroundColorMenu;
+        
+        Annotation* m_annotation;
         
         // ADD_NEW_MEMBERS_HERE
 

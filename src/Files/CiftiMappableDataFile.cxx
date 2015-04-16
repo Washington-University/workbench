@@ -195,6 +195,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
+        case DataFileTypeEnum::ANNOTATION:
         case DataFileTypeEnum::BORDER:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -730,6 +731,7 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
             expectedAlongColumnMapType = CiftiMappingType::SCALARS;
             expectedAlongRowMapType = CiftiMappingType::SERIES;
             break;
+        case DataFileTypeEnum::ANNOTATION:
         case DataFileTypeEnum::BORDER:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -3943,6 +3945,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
     bool useParcelLabelMapData = false;
     bool useSeriesData = false;
     switch (getDataFileType()) {
+        case DataFileTypeEnum::ANNOTATION:
+            CaretAssert(0);
+            break;
         case DataFileTypeEnum::BORDER:
             CaretAssert(0);
             break;

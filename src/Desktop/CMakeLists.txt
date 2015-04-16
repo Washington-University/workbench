@@ -94,9 +94,9 @@ OperationsBase
 Qwt
 OSMesaDummy
 Brain
-Annotations
 ${FTGL_FONT_MODULE_FOR_LINKING}
 Files
+Annotations
 Charting
 Palette
 Cifti

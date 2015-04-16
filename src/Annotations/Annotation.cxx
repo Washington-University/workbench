@@ -24,6 +24,7 @@
 #undef __ANNOTATION_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -42,6 +43,8 @@ using namespace caret;
  * 
  * @param drawingType
  *    Type of annotation for drawing.
+ * @param shapeDimension
+ *    Dimension of the annotation's shape.
  */
 Annotation::Annotation(const AnnotationTypeEnum::Enum type)
 : CaretObjectTracksModification(),
@@ -96,10 +99,15 @@ Annotation::operator=(const Annotation& obj)
 void 
 Annotation::copyHelperAnnotation(const Annotation& obj)
 {
+    m_shapeDimension      = obj.m_shapeDimension;
     m_coordinateSpace     = obj.m_coordinateSpace;
     m_xyz[0]              = obj.m_xyz[0];
     m_xyz[1]              = obj.m_xyz[1];
     m_xyz[2]              = obj.m_xyz[2];
+    m_width2D             = obj.m_width2D;
+    m_height2D            = obj.m_height2D;
+    m_length1D            = obj.m_length1D;
+    m_rotationAngle       = obj.m_rotationAngle;
     m_surfaceSpaceStructure     = obj.m_surfaceSpaceStructure;
     m_surfaceSpaceNumberOfNodes = obj.m_surfaceSpaceNumberOfNodes;
     m_surfaceSpaceNodeIndex     = obj.m_surfaceSpaceNodeIndex;
@@ -112,7 +120,11 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_colorForeground[1]  = obj.m_colorForeground[1];
     m_colorForeground[2]  = obj.m_colorForeground[2];
     m_colorForeground[3]  = obj.m_colorForeground[3];
-    
+ 
+    /*
+     * Selected status is NOT copied.
+     */
+    m_selectedFlag = false;
 }
 
 /**
@@ -121,11 +133,42 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
 void
 Annotation::initializeAnnotationMembers()
 {
+    switch (m_type) {
+        case AnnotationTypeEnum::ARROW:
+            m_shapeDimension = AnnotationShapeDimensionEnum::ONE_DIMENSIONAL;
+            break;
+        case AnnotationTypeEnum::BOX:
+            m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
+            break;
+        case AnnotationTypeEnum::LINE:
+            m_shapeDimension = AnnotationShapeDimensionEnum::ONE_DIMENSIONAL;
+            break;
+        case AnnotationTypeEnum::OVAL:
+            m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
+            break;
+        case AnnotationTypeEnum::SHAPE:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
+            break;
+    }
+    
+
     m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
+    
+    m_selectedFlag = false;
     
     m_xyz[0] = 0.0;
     m_xyz[1] = 0.0;
     m_xyz[2] = 0.0;
+    
+    m_width2D  = 0.0;
+    m_height2D = 0.0;
+    m_length1D = 0.0;
+    m_rotationAngle = 0.0;
     
     m_surfaceSpaceStructure     = StructureEnum::INVALID;
     m_surfaceSpaceNumberOfNodes = -1;
@@ -143,12 +186,26 @@ Annotation::initializeAnnotationMembers()
     m_colorForeground[2]  = 1.0;
     m_colorForeground[3]  = 1.0;
     
+    /*
+     * Note: The 'const' members are not saved to the scene as they 
+     * are set by constructor.
+     *
+     * The 'selected' status is not saved to the scene.
+     */
     m_sceneAssistant = new SceneClassAssistant();
     
     m_sceneAssistant->add<AnnotationCoordinateSpaceEnum>("m_coordinateSpace",
                                                          &m_coordinateSpace);
     m_sceneAssistant->addArray("m_xyz",
                                m_xyz, 3, 0.0);
+    m_sceneAssistant->add("m_width2D",
+                          &m_width2D);
+    m_sceneAssistant->add("m_height2D",
+                          &m_height2D);
+    m_sceneAssistant->add("m_length1D",
+                          &m_length1D);
+    m_sceneAssistant->add("m_rotationAngle",
+                          &m_rotationAngle);
     
     m_sceneAssistant->add<StructureEnum>("m_surfaceSpaceStructure",
                                          &m_surfaceSpaceStructure);
@@ -281,6 +338,128 @@ Annotation::setXYZ(const float x,
         setModified();
     }
 }
+
+/**
+ * @return Height for "two-dimensional" annotations in pixels.
+ */
+float
+Annotation::getHeight2D() const
+{
+    return m_height2D;
+}
+
+/**
+ * Set the height for "two-dimensional" annotations in pixels.
+ *
+ * @param height2D
+ *    New value for height of the annotation.
+ */
+void
+Annotation::setHeight2D(const float height2D)
+{
+    if (m_type != AnnotationTypeEnum::TEXT) {
+        if (height2D > 1.0) {
+            CaretLogWarning("Annotation height for non-text annotation should range [0.0, 1.0], "
+                            " a relative value, but is "
+                            + AString::number(height2D));
+        }
+    }
+    
+    if (height2D != m_height2D) {
+        m_height2D = height2D;
+        setModified();
+    }
+}
+
+/**
+ * @return Width for "two-dimensional" annotations in pixels.
+ */
+float
+Annotation::getWidth2D() const
+{
+    return m_width2D;
+}
+
+/**
+ * Set the width for "two-dimensional" annotations in pixels.
+ *
+ * @param width
+ *    New value for width of the annotation.
+ */
+void
+Annotation::setWidth2D(const float width2D)
+{
+    if (m_type != AnnotationTypeEnum::TEXT) {
+        if (width2D > 1.0) {
+            CaretLogWarning("Annotation width for non-text annotation should range [0.0, 1.0], "
+                            " a relative value, but is "
+                            + AString::number(width2D));
+        }
+    }
+    
+    if (width2D != m_width2D) {
+        m_width2D = width2D;
+        setModified();
+    }
+}
+
+/**
+ * @return The length for "one-dimensional" annotations in pixels.
+ */
+float
+Annotation::getLength1D() const
+{
+    return m_length1D;
+}
+
+/**
+ * Set the length for "one-dimensional" annotations in pixels.
+ *
+ * @param length1D
+ *     New length value.
+ */
+void
+Annotation::setLength1D(const float length1D)
+{
+    if (length1D != m_length1D) {
+        m_length1D = length1D;
+        setModified();
+    }
+}
+
+/**
+ * @return The rotation angle, in degrees, from vertical at the top (12 o'clock).
+ */
+float
+Annotation::getRotationAngle() const
+{
+    return m_rotationAngle;
+}
+
+/**
+ * Set the rotation angle, in degrees, from vertical at the top (12 o'clock).
+ *
+ * @param rotationAngle
+ *     New value rotation angle.
+ */
+void
+Annotation::setRotationAngle(const float rotationAngle)
+{
+    if (rotationAngle != m_rotationAngle) {
+        m_rotationAngle = rotationAngle;
+        setModified();
+    }
+}
+
+/**
+ * @param Return the shape's dimension 2D (ie: box) or 1D (ie: line).
+ */
+AnnotationShapeDimensionEnum::Enum
+Annotation::getShapeDimension() const
+{
+    return m_shapeDimension;
+}
+
 
 /**
  * Get the surface space data.
@@ -517,6 +696,33 @@ Annotation::setBackgroundColor(const uint8_t rgba[4])
         }
     }
 }
+
+/**
+ * @return The annotation's selected status.
+ *
+ * Note: (1) The selection status is never saved to a scene
+ * or file.  (2) Changing the selection status DOES NOT
+ * alter the annotation's modified status.
+ */
+bool
+Annotation::isSelected() const
+{
+    return m_selectedFlag;
+}
+
+/**
+ * Set the annotation's selected status.
+ *
+ * Note: (1) The selection status is never saved to a scene
+ * or file.  (2) Changing the selection status DOES NOT
+ * alter the annotation's modified status.
+ */
+void
+Annotation::setSelected(const bool selectedStatus) const
+{
+    m_selectedFlag = selectedStatus;
+}
+
 
 /**
  * Save information specific to this type of model to the scene.

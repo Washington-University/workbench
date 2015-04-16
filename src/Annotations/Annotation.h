@@ -23,6 +23,7 @@
 
 
 #include "AnnotationCoordinateSpaceEnum.h"
+#include "AnnotationShapeDimensionEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "SceneableInterface.h"
@@ -61,6 +62,24 @@ namespace caret {
                     const float y,
                     const float z);
         
+        float getHeight2D() const;
+        
+        void setHeight2D(const float height);
+        
+        float getWidth2D() const;
+        
+        void setWidth2D(const float width);
+        
+        float getLength1D() const;
+        
+        void setLength1D(const float length1D);
+        
+        float getRotationAngle() const;
+        
+        void setRotationAngle(const float rotationAngle);
+        
+        AnnotationShapeDimensionEnum::Enum getShapeDimension() const;
+        
         void getSurfaceSpace(StructureEnum::Enum& structureOut,
                              int32_t& surfaceNumberOfNodesOut,
                              int32_t& surfaceNodeIndexOut) const;
@@ -92,6 +111,10 @@ namespace caret {
         void setBackgroundColor(const float rgba[4]);
         
         void setBackgroundColor(const uint8_t rgba[4]);
+        
+        bool isSelected() const;
+        
+        void setSelected(const bool selectedStatus) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -127,9 +150,19 @@ namespace caret {
         
         const AnnotationTypeEnum::Enum m_type;
         
+        AnnotationShapeDimensionEnum::Enum m_shapeDimension;
+        
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
         
         float m_xyz[3];
+        
+        float m_width2D;
+        
+        float m_height2D;
+        
+        float m_length1D;
+        
+        float m_rotationAngle;
         
         int32_t m_surfaceSpaceNodeIndex;
         
@@ -143,7 +176,8 @@ namespace caret {
         
         float m_colorBackground[4];
         
-
+        mutable bool m_selectedFlag;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

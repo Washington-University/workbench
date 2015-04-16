@@ -25,8 +25,10 @@
 #include "EventListenerInterface.h"
 
 namespace caret {
+    class Annotation;
     class Brain;
     class BrowserTabContent;
+    class SelectionItemAnnotation;
     class SelectionItem;
     class SelectionItemBorderSurface;
     class SelectionItemChartDataSeries;
@@ -55,6 +57,10 @@ namespace caret {
         void receiveEvent(Event* event);
         
         void reset();
+
+        SelectionItemAnnotation* getAnnotationIdentification();
+        
+        const SelectionItemAnnotation* getAnnotationIdentification() const;
         
         SelectionItemBorderSurface* getSurfaceBorderIdentification();
         
@@ -148,6 +154,8 @@ namespace caret {
         
         /** Volume items */
         std::vector<SelectionItem*> m_volumeSelectedItems;
+        
+        SelectionItemAnnotation* m_annotationIdentification;
         
         SelectionItemBorderSurface* m_surfaceBorderIdentification;
         

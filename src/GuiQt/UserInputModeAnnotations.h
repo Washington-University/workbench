@@ -28,6 +28,7 @@
 
 namespace caret {
 
+    class Annotation;
     class UserInputModeAnnotationsWidget;
     
     class UserInputModeAnnotations : public UserInputModeView {
@@ -53,7 +54,20 @@ namespace caret {
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
+        virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDrag(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDragWithAlt(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDragWithCtrl(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDragWithShift(const MouseEvent& mouseEvent);
+        
         virtual CursorEnum::Enum getCursor() const;
+        
 
         virtual AString toString() const;
         
@@ -65,6 +79,11 @@ namespace caret {
         UserInputModeAnnotations& operator=(const UserInputModeAnnotations&);
         
         void setMode(const Mode mode);
+        
+        void processMouseLeftClick(const MouseEvent& mouseEvent,
+                                   const bool shiftKeyDownFlag);
+        
+        void deselectAllAnnotations();
         
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         

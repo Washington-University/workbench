@@ -1802,6 +1802,9 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
     bool checkShapeFile = false;
     bool checkVolume = false;
     switch (dataFileType) {
+        case DataFileTypeEnum::ANNOTATION:
+            invalid = true;
+            break;
         case DataFileTypeEnum::BORDER:
             invalid = true;
             break;

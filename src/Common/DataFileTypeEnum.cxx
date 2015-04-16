@@ -114,7 +114,14 @@ DataFileTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(DataFileTypeEnum(BORDER, 
+    enumData.push_back(DataFileTypeEnum(ANNOTATION,
+                                        "ANNOTATION",
+                                        "Annotation",
+                                        "ANNOTATION",
+                                        false,
+                                        "annot"));
+    
+    enumData.push_back(DataFileTypeEnum(BORDER,
                                         "BORDER", 
                                         "Border",
                                         "BORDER",

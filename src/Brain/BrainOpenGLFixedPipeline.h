@@ -26,7 +26,9 @@
 
 #include "BrainConstants.h"
 #include "BrainOpenGL.h"
+#include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLTextRenderInterface.h"
+#include "CaretPointer.h"
 #include "CaretVolumeExtension.h"
 #include "DisplayGroupEnum.h"
 #include "FiberOrientationColoringTypeEnum.h"
@@ -413,6 +415,8 @@ namespace caret {
         void drawTextAtModelCoords(const float modelXYZ[3],
                                    const AnnotationText& annotationText);
         
+        void drawWindowAnnotations(const int windowViewport[4]);
+        
         void drawAllPalettes(Brain* brain);
         
         void drawPalette(const Palette* palette,
@@ -540,6 +544,8 @@ namespace caret {
         double orthographicTop;
         double orthographicFar; 
         double orthographicNear;
+        
+        CaretPointer<BrainOpenGLAnnotationDrawingFixedPipeline> m_annotationDrawing;
         
         static bool s_staticInitialized;
         

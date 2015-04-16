@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __ANNOTATION_SHAPE_TYPE_ENUM_DECLARE__
-#include "AnnotationShapeTypeEnum.h"
-#undef __ANNOTATION_SHAPE_TYPE_ENUM_DECLARE__
+#define __ANNOTATION_SHAPE_DIMENSION_ENUM_DECLARE__
+#include "AnnotationShapeDimensionEnum.h"
+#undef __ANNOTATION_SHAPE_DIMENSION_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,10 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationShapeTypeEnum 
- * \brief Shape types for shape annotations.
+ * \class caret::AnnotationShapeDimensionEnum 
+ * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ *
+ * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +42,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_AnnotationShapeTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_annotationShapeDimensionEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void AnnotationShapeTypeEnumComboBoxItemActivated();
+ *             void annotationShapeDimensionEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "AnnotationShapeTypeEnum.h"
+ *         #include "AnnotationShapeDimensionEnum.h"
  * 
  *     Instatiate:
- *         m_AnnotationShapeTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_AnnotationShapeTypeEnumComboBox->setup<AnnotationShapeTypeEnum,AnnotationShapeTypeEnum::Enum>();
+ *         m_annotationShapeDimensionEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_annotationShapeDimensionEnumComboBox->setup<AnnotationShapeDimensionEnum,AnnotationShapeDimensionEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_AnnotationShapeTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(AnnotationShapeTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_annotationShapeDimensionEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(annotationShapeDimensionEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_AnnotationShapeTypeEnumComboBox->setSelectedItem<AnnotationShapeTypeEnum,AnnotationShapeTypeEnum::Enum>(NEW_VALUE);
+ *         m_annotationShapeDimensionEnumComboBox->setSelectedItem<AnnotationShapeDimensionEnum,AnnotationShapeDimensionEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const AnnotationShapeTypeEnum::Enum VARIABLE = m_AnnotationShapeTypeEnumComboBox->getSelectedItem<AnnotationShapeTypeEnum,AnnotationShapeTypeEnum::Enum>();
+ *         const AnnotationShapeDimensionEnum::Enum VARIABLE = m_annotationShapeDimensionEnumComboBox->getSelectedItem<AnnotationShapeDimensionEnum,AnnotationShapeDimensionEnum::Enum>();
  * 
  */
 
@@ -78,7 +80,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-AnnotationShapeTypeEnum::AnnotationShapeTypeEnum(const Enum enumValue,
+AnnotationShapeDimensionEnum::AnnotationShapeDimensionEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +93,7 @@ AnnotationShapeTypeEnum::AnnotationShapeTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-AnnotationShapeTypeEnum::~AnnotationShapeTypeEnum()
+AnnotationShapeDimensionEnum::~AnnotationShapeDimensionEnum()
 {
 }
 
@@ -99,28 +101,21 @@ AnnotationShapeTypeEnum::~AnnotationShapeTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-AnnotationShapeTypeEnum::initialize()
+AnnotationShapeDimensionEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationShapeTypeEnum(ARROW,
-                                               "ARROW",
-                                               "Arrow"));
+    enumData.push_back(AnnotationShapeDimensionEnum(ONE_DIMENSIONAL, 
+                                    "ONE_DIMENSIONAL", 
+                                    "One Dimensional"));
     
-    enumData.push_back(AnnotationShapeTypeEnum(BOX,
-                                               "BOX",
-                                               "Box"));
+    enumData.push_back(AnnotationShapeDimensionEnum(TWO_DIMENSIONAL, 
+                                    "TWO_DIMENSIONAL", 
+                                    "Two Dimensional"));
     
-    enumData.push_back(AnnotationShapeTypeEnum(LINE,
-                                               "LINE",
-                                               "Line"));
-    
-    enumData.push_back(AnnotationShapeTypeEnum(OVAL,
-                                               "OVAL",
-                                               "Oval"));
 }
 
 /**
@@ -130,14 +125,14 @@ AnnotationShapeTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const AnnotationShapeTypeEnum*
-AnnotationShapeTypeEnum::findData(const Enum enumValue)
+const AnnotationShapeDimensionEnum*
+AnnotationShapeDimensionEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const AnnotationShapeTypeEnum* d = &enumData[i];
+        const AnnotationShapeDimensionEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -154,10 +149,10 @@ AnnotationShapeTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-AnnotationShapeTypeEnum::toName(Enum enumValue) {
+AnnotationShapeDimensionEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationShapeTypeEnum* enumInstance = findData(enumValue);
+    const AnnotationShapeDimensionEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -171,18 +166,18 @@ AnnotationShapeTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationShapeTypeEnum::Enum 
-AnnotationShapeTypeEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationShapeDimensionEnum::Enum 
+AnnotationShapeDimensionEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationShapeTypeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationShapeDimensionEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationShapeTypeEnum& d = *iter;
+        const AnnotationShapeDimensionEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -194,7 +189,7 @@ AnnotationShapeTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationShapeTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationShapeDimensionEnum"));
     }
     return enumValue;
 }
@@ -207,10 +202,10 @@ AnnotationShapeTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-AnnotationShapeTypeEnum::toGuiName(Enum enumValue) {
+AnnotationShapeDimensionEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationShapeTypeEnum* enumInstance = findData(enumValue);
+    const AnnotationShapeDimensionEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -224,18 +219,18 @@ AnnotationShapeTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationShapeTypeEnum::Enum 
-AnnotationShapeTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+AnnotationShapeDimensionEnum::Enum 
+AnnotationShapeDimensionEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationShapeTypeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationShapeDimensionEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationShapeTypeEnum& d = *iter;
+        const AnnotationShapeDimensionEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -247,7 +242,7 @@ AnnotationShapeTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationShapeTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationShapeDimensionEnum"));
     }
     return enumValue;
 }
@@ -259,10 +254,10 @@ AnnotationShapeTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-AnnotationShapeTypeEnum::toIntegerCode(Enum enumValue)
+AnnotationShapeDimensionEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationShapeTypeEnum* enumInstance = findData(enumValue);
+    const AnnotationShapeDimensionEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -277,18 +272,18 @@ AnnotationShapeTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-AnnotationShapeTypeEnum::Enum
-AnnotationShapeTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+AnnotationShapeDimensionEnum::Enum
+AnnotationShapeDimensionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationShapeTypeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationShapeDimensionEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationShapeTypeEnum& enumInstance = *iter;
+        const AnnotationShapeDimensionEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -300,7 +295,7 @@ AnnotationShapeTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVali
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationShapeTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationShapeDimensionEnum"));
     }
     return enumValue;
 }
@@ -313,13 +308,13 @@ AnnotationShapeTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVali
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-AnnotationShapeTypeEnum::getAllEnums(std::vector<AnnotationShapeTypeEnum::Enum>& allEnums)
+AnnotationShapeDimensionEnum::getAllEnums(std::vector<AnnotationShapeDimensionEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -335,16 +330,16 @@ AnnotationShapeTypeEnum::getAllEnums(std::vector<AnnotationShapeTypeEnum::Enum>&
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationShapeTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+AnnotationShapeDimensionEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(AnnotationShapeTypeEnum::toName(iter->enumValue));
+        allNames.push_back(AnnotationShapeDimensionEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -361,16 +356,16 @@ AnnotationShapeTypeEnum::getAllNames(std::vector<AString>& allNames, const bool 
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationShapeTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+AnnotationShapeDimensionEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<AnnotationShapeTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationShapeDimensionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(AnnotationShapeTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(AnnotationShapeDimensionEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

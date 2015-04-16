@@ -87,6 +87,7 @@ OperationsBase
 GuiQt
 Brain
 Files
+Annotations
 Cifti
 Gifti
 Nifti

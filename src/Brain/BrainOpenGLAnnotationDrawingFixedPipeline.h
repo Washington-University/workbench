@@ -24,6 +24,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "CaretObject.h"
+#include "CaretOpenGLInclude.h"
 
 
 
@@ -55,7 +56,22 @@ namespace caret {
         
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         
-        std::vector<Annotation*> m_annotations;
+        bool getAnnotationWindowCoordinates(GLdouble modelSpaceModelMatrix[16],
+                                            GLdouble modelSpaceProjectionMatrix[16],
+                                            GLint    modelSpaceViewport[4],
+                                            const Annotation* annotation,
+                                            const Surface* surfaceDisplayed,
+                                            float windowXYZOut[3]) const;
+        
+        bool getAnnotationBounds(const Annotation* annotation,
+                                 const GLint viewport[4],
+                                 const float windowXYZ[3],
+                                 double bottomLeftOut[3],
+                                 double bottomRightOut[3],
+                                 double topRightOut[3],
+                                 double topLeftOut[3]) const;
+        
+        //        std::vector<Annotation*> m_annotations;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -109,6 +109,41 @@ DummyFontTextRenderer::drawTextAtModelCoords(const double /*modelX*/,
     
 }
 
+/**
+ * Get the bounds of text (in pixels) using the given text
+ * attributes.
+ *
+ * See http://ftgl.sourceforge.net/docs/html/metrics.png
+ *
+ * @param annotationText
+ *   Text that is to be drawn.
+ * @param viewportX
+ *    Viewport X-coordinate.
+ * @param viewportY
+ *    Viewport Y-coordinate.
+ * @param viewportZ
+ *    Viewport Z-coordinate.
+ * @param xMinOut
+ *    Minimum X of text.
+ * @param xMaxOut
+ *    Maximum X of text.
+ * @param yMinOut
+ *    Minimum Y of text.
+ * @param yMaxOut
+ *    Maximum Y of text.
+ */
+void
+DummyFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& /*annotationText*/,
+                                                        const double /*viewportX*/,
+                                                        const double /*viewportY*/,
+                                                        const double /*viewportZ*/,
+                                                        double& /*xMinOut*/,
+                                                        double& /*xMaxOut*/,
+                                                        double& /*yMinOut*/,
+                                                        double& /*yMaxOut*/)
+{
+    
+}
 
 /**
  * Get the bounds of text (in pixels) using the given text

@@ -31,6 +31,7 @@
 #include "SelectionManager.h"
 #undef __SELECTION_MANAGER_DECLARE__
 
+#include "SelectionItemAnnotation.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
 #include "SelectionItemChartFrequencySeries.h"
@@ -64,6 +65,7 @@ using namespace caret;
 SelectionManager::SelectionManager()
 : CaretObject()
 {
+    m_annotationIdentification = new SelectionItemAnnotation();
     m_surfaceBorderIdentification = new SelectionItemBorderSurface();
     m_chartDataSeriesIdentification = new SelectionItemChartDataSeries();
     m_chartDataFrequencyIdentification = new SelectionItemChartFrequencySeries();
@@ -79,6 +81,7 @@ SelectionManager::SelectionManager()
     m_voxelIdentificationSymbol = new SelectionItemVoxelIdentificationSymbol();
     m_voxelEditingIdentification = new SelectionItemVoxelEditing();
     
+    m_allSelectionItems.push_back(m_annotationIdentification);
     m_allSelectionItems.push_back(m_surfaceBorderIdentification);
     m_allSelectionItems.push_back(m_chartDataSeriesIdentification);
     m_allSelectionItems.push_back(m_chartDataFrequencyIdentification);
@@ -120,6 +123,8 @@ SelectionManager::SelectionManager()
 SelectionManager::~SelectionManager()
 {
     reset();
+    delete m_annotationIdentification;
+    m_annotationIdentification = NULL;
     delete m_surfaceBorderIdentification;
     m_surfaceBorderIdentification = NULL;
     delete m_chartDataSeriesIdentification;
@@ -435,6 +440,24 @@ SelectionManager::reset()
         SelectionItem* item = *iter;
         item->reset();
     }
+}
+
+/**
+ * @return Identification for annotations.
+ */
+SelectionItemAnnotation*
+SelectionManager::getAnnotationIdentification()
+{
+    return m_annotationIdentification;
+}
+
+/**
+ * @return Identification for annotations.
+ */
+const SelectionItemAnnotation*
+SelectionManager::getAnnotationIdentification() const
+{
+    return m_annotationIdentification;
 }
 
 /**

@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_MENU_INSERT_H__
-#define __ANNOTATION_MENU_INSERT_H__
+#ifndef __ANNOTATION_TYPE_SPACE_WIDGET_H__
+#define __ANNOTATION_TYPE_SPACE_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -22,39 +22,55 @@
 /*LICENSE_END*/
 
 
-#include <QMenu>
+#include <QWidget>
 
+#include "EventListenerInterface.h"
 
 
 namespace caret {
 
-    class AnnotationMenuInsert : public QMenu {
+    class Annotation;
+    class EnumComboBoxTemplate;
+    
+    class AnnotationTypeSpaceWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        AnnotationMenuInsert(QWidget* parent = 0);
+        AnnotationTypeSpaceWidget(QWidget* parent = 0);
         
-        virtual ~AnnotationMenuInsert();
+        virtual ~AnnotationTypeSpaceWidget();
         
 
         // ADD_NEW_METHODS_HERE
 
+        void updateContent(Annotation* annotation);
+        
+        virtual void receiveEvent(Event* event);
+
     private slots:
-        void menuActionTriggered(QAction* action);
+        void coordinateSpaceEnumChanged();
+        
+        void typeEnumChanged();
         
     private:
-        AnnotationMenuInsert(const AnnotationMenuInsert&);
+        AnnotationTypeSpaceWidget(const AnnotationTypeSpaceWidget&);
 
-        AnnotationMenuInsert& operator=(const AnnotationMenuInsert&);
+        AnnotationTypeSpaceWidget& operator=(const AnnotationTypeSpaceWidget&);
+        
+        EnumComboBoxTemplate* m_coordinateSpaceComboBox;
+        
+        EnumComboBoxTemplate* m_typeComboBox;
+        
+        Annotation* m_annotation;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __ANNOTATION_MENU_INSERT_DECLARE__
+#ifdef __ANNOTATION_TYPE_SPACE_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_MENU_INSERT_DECLARE__
+#endif // __ANNOTATION_TYPE_SPACE_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_MENU_INSERT_H__
+#endif  //__ANNOTATION_TYPE_SPACE_WIDGET_H__

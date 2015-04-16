@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_MENU_ARRANGE_H__
-#define __ANNOTATION_MENU_ARRANGE_H__
+#ifndef __SELECTION_ITEM_ANNOTATION_H__
+#define __SELECTION_ITEM_ANNOTATION_H__
 
 /*LICENSE_START*/
 /*
@@ -22,41 +22,46 @@
 /*LICENSE_END*/
 
 
-#include <QMenu>
+#include "SelectionItem.h"
 
 
 
 namespace caret {
-
-    class AnnotationMenuArrange : public QMenu {
+    class Annotation;
+    
+    class SelectionItemAnnotation : public SelectionItem {
         
-        Q_OBJECT
-
     public:
-        AnnotationMenuArrange(QWidget* parent = 0);
+        SelectionItemAnnotation();
         
-        virtual ~AnnotationMenuArrange();
+        virtual ~SelectionItemAnnotation();
         
+        virtual bool isValid() const;
+        
+        void reset();
+        
+        virtual AString toString() const;
+        
+        Annotation* getAnnotation() const;
+        
+        void setAnnotation(Annotation* annotation);
 
         // ADD_NEW_METHODS_HERE
 
-    private slots:
-        void alignMenuActionTriggered(QAction* action);
-        
     private:
-        QMenu* createAlignMenu();
-        
-        AnnotationMenuArrange(const AnnotationMenuArrange&);
+        SelectionItemAnnotation(const SelectionItemAnnotation&);
 
-        AnnotationMenuArrange& operator=(const AnnotationMenuArrange&);
+        SelectionItemAnnotation& operator=(const SelectionItemAnnotation&);
+        
+        Annotation* m_annotation;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __ANNOTATION_MENU_ARRANGE_DECLARE__
+#ifdef __SELECTION_ITEM_ANNOTATION_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_MENU_ARRANGE_DECLARE__
+#endif // __SELECTION_ITEM_ANNOTATION_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_MENU_ARRANGE_H__
+#endif  //__SELECTION_ITEM_ANNOTATION_H__

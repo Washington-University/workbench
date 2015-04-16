@@ -522,6 +522,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
             
             const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
             switch (dataFileType) {
+                case DataFileTypeEnum::ANNOTATION:
+                    break;
                 case DataFileTypeEnum::BORDER:
                     haveBorders = true;
                     break;

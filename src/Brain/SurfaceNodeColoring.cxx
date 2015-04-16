@@ -340,6 +340,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
             
             bool isColoringValid = false;
             switch (mapDataFileType) {
+                case DataFileTypeEnum::ANNOTATION:
+                    break;
                 case DataFileTypeEnum::BORDER:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE:

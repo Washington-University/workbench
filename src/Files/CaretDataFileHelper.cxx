@@ -23,8 +23,34 @@
 #include "CaretDataFileHelper.h"
 #undef __CARET_DATA_FILE_HELPER_DECLARE__
 
+#include "AnnotationFile.h"
+#include "BorderFile.h"
 #include "CaretAssert.h"
-#include "DataFileTypeEnum.h"
+#include "CiftiBrainordinateDataSeriesFile.h"
+#include "CiftiBrainordinateLabelFile.h"
+#include "CiftiBrainordinateScalarFile.h"
+#include "CiftiConnectivityMatrixDenseFile.h"
+#include "CiftiConnectivityMatrixDenseParcelFile.h"
+#include "CiftiConnectivityMatrixParcelDenseFile.h"
+#include "CiftiConnectivityMatrixParcelFile.h"
+#include "CiftiParcelLabelFile.h"
+#include "CiftiParcelScalarFile.h"
+#include "CiftiParcelSeriesFile.h"
+#include "CiftiFiberOrientationFile.h"
+#include "CiftiFiberTrajectoryFile.h"
+#include "CiftiScalarDataSeriesFile.h"
+#include "FileInformation.h"
+#include "FociFile.h"
+#include "ImageFile.h"
+#include "LabelFile.h"
+#include "MetricFile.h"
+#include "PaletteFile.h"
+#include "RgbaFile.h"
+#include "SceneFile.h"
+#include "SpecFile.h"
+#include "SurfaceFile.h"
+#include "VolumeFile.h"
+
 
 using namespace caret;
 
@@ -50,32 +76,6 @@ CaretDataFileHelper::CaretDataFileHelper()
 CaretDataFileHelper::~CaretDataFileHelper()
 {
 }
-
-#include "BorderFile.h"
-#include "CiftiBrainordinateDataSeriesFile.h"
-#include "CiftiBrainordinateLabelFile.h"
-#include "CiftiBrainordinateScalarFile.h"
-#include "CiftiConnectivityMatrixDenseFile.h"
-#include "CiftiConnectivityMatrixDenseParcelFile.h"
-#include "CiftiConnectivityMatrixParcelDenseFile.h"
-#include "CiftiConnectivityMatrixParcelFile.h"
-#include "CiftiParcelLabelFile.h"
-#include "CiftiParcelScalarFile.h"
-#include "CiftiParcelSeriesFile.h"
-#include "CiftiFiberOrientationFile.h"
-#include "CiftiFiberTrajectoryFile.h"
-#include "CiftiScalarDataSeriesFile.h"
-#include "FileInformation.h"
-#include "FociFile.h"
-#include "ImageFile.h"
-#include "LabelFile.h"
-#include "MetricFile.h"
-#include "PaletteFile.h"
-#include "RgbaFile.h"
-#include "SceneFile.h"
-#include "SpecFile.h"
-#include "SurfaceFile.h"
-#include "VolumeFile.h"
 
 /**
  * Read any CaretDataFile subclass.
@@ -103,6 +103,9 @@ CaretDataFileHelper::readAnyCaretDataFile(const AString& filename, const bool& p
     CaretDataFile* caretDataFile = NULL;
     
     switch (dataFileType) {
+        case DataFileTypeEnum::ANNOTATION:
+            caretDataFile = new AnnotationFile();
+            break;
         case DataFileTypeEnum::BORDER:
             caretDataFile = new BorderFile();
             break;

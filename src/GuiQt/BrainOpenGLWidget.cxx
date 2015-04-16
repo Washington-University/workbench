@@ -1158,14 +1158,6 @@ BrainOpenGLWidget::performIdentification(const int x,
     idManager->getVoxelEditingIdentification()->setEnabledForSelection(false);
     
     if (idViewport != NULL) {
-        /*
-         * ID coordinate needs to be relative to the viewport
-         *
-        int vp[4];
-        idViewport->getViewport(vp);
-        const int idX = x - vp[0];
-        const int idY = y - vp[1];
-         */
         this->openGL->selectModel(idViewport, 
                                   x, 
                                   y,
