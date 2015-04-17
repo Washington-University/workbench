@@ -59,10 +59,10 @@ namespace caret {
                                               const double viewportX,
                                               const double viewportY,
                                               const double viewportZ,
-                                              double& xMinOut,
-                                              double& xMaxOut,
-                                              double& yMinOut,
-                                              double& yMaxOut);
+                                              double bottomLeftOut[3],
+                                              double bottomRightOut[3],
+                                              double topRightOut[3],
+                                              double topLeftOut[3]);
         
         virtual AString getName() const;
         
@@ -100,33 +100,33 @@ namespace caret {
             bool m_valid;
         };
         
-        struct CharInfo {
+        class CharInfo {
+        public:
             CharInfo(const QString& theChar,
                      double x,
                      double y) : m_char(theChar), m_x(x), m_y(y) { }
-            
-            const QString m_char;
-            const double m_x;
-            const double m_y;
+            QString m_char;
+            double m_x;
+            double m_y;
         };
         
         void getBoundsForHorizontalTextAtWindowCoords(const AnnotationText& annotationText,
                                                       const double viewportX,
                                                       const double viewportY,
                                                       const double viewportZ,
-                                                      double& xMinOut,
-                                                      double& xMaxOut,
-                                                      double& yMinOut,
-                                                      double& yMaxOut);
+                                                      double bottomLeftOut[3],
+                                                      double bottomRightOut[3],
+                                                      double topRightOut[3],
+                                                      double topLeftOut[3]);
         
         void getBoundsForVerticalTextAtWindowCoords(const AnnotationText& annotationText,
                                                     const double viewportX,
                                                     const double viewportY,
                                                     const double viewportZ,
-                                                    double& xMinOut,
-                                                    double& xMaxOut,
-                                                    double& yMinOut,
-                                                    double& yMaxOut,
+                                                    double bottomLeftOut[3],
+                                                    double bottomRightOut[3],
+                                                    double topRightOut[3],
+                                                    double topLeftOut[3],
                                                     std::vector<CharInfo>& textCharsToDraw);
         
         void getVerticalTextCharInfo(const AnnotationText& annotationText,
@@ -138,7 +138,10 @@ namespace caret {
         void applyForegroundColoring(const AnnotationText& annotationText);
         
         void applyBackgroundColoring(const AnnotationText& annotationText,
-                                     const double textBoundsBox[4]);
+                                     const double bottomLeftOut[3],
+                                     const double bottomRightOut[3],
+                                     const double topRightOut[3],
+                                     const double topLeftOut[3]);
         
         /**
          * The default font.  DO NOT delete it since it points to

@@ -123,24 +123,24 @@ DummyFontTextRenderer::drawTextAtModelCoords(const double /*modelX*/,
  *    Viewport Y-coordinate.
  * @param viewportZ
  *    Viewport Z-coordinate.
- * @param xMinOut
- *    Minimum X of text.
- * @param xMaxOut
- *    Maximum X of text.
- * @param yMinOut
- *    Minimum Y of text.
- * @param yMaxOut
- *    Maximum Y of text.
+ * @param bottomLeftOut
+ *    The bottom left corner of the text bounds.
+ * @param bottomRightOut
+ *    The bottom right corner of the text bounds.
+ * @param topRightOut
+ *    The top right corner of the text bounds.
+ * @param topLeftOut
+ *    The top left corner of the text bounds.
  */
 void
 DummyFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& /*annotationText*/,
                                                         const double /*viewportX*/,
                                                         const double /*viewportY*/,
                                                         const double /*viewportZ*/,
-                                                        double& /*xMinOut*/,
-                                                        double& /*xMaxOut*/,
-                                                        double& /*yMinOut*/,
-                                                        double& /*yMaxOut*/)
+                                                        double bottomLeftOut[3],
+                                                        double bottomRightOut[3],
+                                                        double topRightOut[3],
+                                                        double topLeftOut[3])
 {
     
 }

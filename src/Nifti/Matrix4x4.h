@@ -69,6 +69,8 @@ public:
             const double ty,
             const double tz);
 
+    void translate(const double txyz[3]);
+    
     void scale(
             const double sx,
             const double sy,
@@ -131,6 +133,8 @@ public:
     void multiplyPoint4(float p[4]) const;
 
     void multiplyPoint3(float p[3]) const;
+    
+    void multiplyPoint3(double p[3]) const;
     
     void multiplyPoint3X3(float p[3]) const;
 

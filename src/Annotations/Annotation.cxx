@@ -428,7 +428,7 @@ Annotation::setLength1D(const float length1D)
 }
 
 /**
- * @return The rotation angle, in degrees, from vertical at the top (12 o'clock).
+ * @return The rotation angle, in degrees, clockwise, from vertical at the top (12 o'clock).
  */
 float
 Annotation::getRotationAngle() const
@@ -437,7 +437,7 @@ Annotation::getRotationAngle() const
 }
 
 /**
- * Set the rotation angle, in degrees, from vertical at the top (12 o'clock).
+ * The rotation angle, in degrees, clockwise, from vertical at the top (12 o'clock).
  *
  * @param rotationAngle
  *     New value rotation angle.

@@ -57,10 +57,10 @@ namespace caret {
                                                       const double viewportX,
                                                       const double viewportY,
                                                       const double viewportZ,
-                                                      double& xMinOut,
-                                                      double& xMaxOut,
-                                                      double& yMinOut,
-                                                      double& yMaxOut);
+                                                      double bottomLeftOut[3],
+                                                      double bottomRightOut[3],
+                                                      double topRightOut[3],
+                                                      double topLeftOut[3]);
         virtual AString getName() const;
 
         // ADD_NEW_METHODS_HERE

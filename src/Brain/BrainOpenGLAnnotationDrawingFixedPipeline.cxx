@@ -32,6 +32,7 @@
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
 #include "IdentificationWithColor.h"
+#include "Matrix4x4.h"
 #include "SelectionManager.h"
 #include "SelectionItemAnnotation.h"
 #include "Surface.h"
@@ -374,6 +375,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationBounds(const Annotation*
             topLeftOut[1]     = windowXYZ[1] + height;
             topLeftOut[2]     = windowXYZ[2];
             
+            applyRotationToShape(annotation->getRotationAngle(),
+                                 bottomLeftOut,
+                                 bottomRightOut,
+                                 topRightOut,
+                                 topLeftOut);
+            
             boundsValid       = true;
         }
             break;
@@ -399,6 +406,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationBounds(const Annotation*
             topLeftOut[1]     = windowXYZ[1] + halfHeight;
             topLeftOut[2]     = windowXYZ[2];
             
+            applyRotationToShape(annotation->getRotationAngle(),
+                               bottomLeftOut,
+                               bottomRightOut,
+                               topRightOut,
+                               topLeftOut);
+            
             boundsValid       = true;
         }
             break;
@@ -409,27 +422,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationBounds(const Annotation*
             break;
         case AnnotationTypeEnum::TEXT:
         {
-            double xMin = 0.0;
-            double xMax = 0.0;
-            double yMin = 0.0;
-            double yMax = 0.0;
             const AnnotationText* textAnnotation = dynamic_cast<const AnnotationText*>(annotation);
             CaretAssert(textAnnotation);
             m_brainOpenGLFixedPipeline->textRenderer->getBoundsForTextAtViewportCoords(*textAnnotation,
                                                                                        windowXYZ[0], windowXYZ[1], windowXYZ[2],
-                                                                                       xMin, xMax, yMin, yMax);
-            bottomLeftOut[0]  = xMin;
-            bottomLeftOut[1]  = yMin;
-            bottomLeftOut[2]  = windowXYZ[2];
-            bottomRightOut[0] = xMax;
-            bottomRightOut[1] = yMin;
-            bottomRightOut[2] = windowXYZ[2];
-            topRightOut[0]    = xMax;
-            topRightOut[1]    = yMax;
-            topRightOut[2]    = windowXYZ[2];
-            topLeftOut[0]     = xMin;
-            topLeftOut[1]     = yMax;
-            topLeftOut[2]     = windowXYZ[2];
+                                                                                       bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
             
             boundsValid       = true;
         }
@@ -438,6 +435,48 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationBounds(const Annotation*
     
     return boundsValid;
 }
+
+/**
+ * Apply rotation to the shape's bounding coordinates.
+ *
+ * @param rotationAngle
+ *     The rotation angle.
+ * @param bottomLeftOut
+ *     The bottom left corner of the annotation bounds.
+ * @param bottomRightOut
+ *     The bottom right corner of the annotation bounds.
+ * @param topRightOut
+ *     The top right corner of the annotation bounds.
+ * @param topLeftOut
+ *     The top left corner of the annotation bounds.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const double rotationAngle,
+                                                                double bottomLeftOut[3],
+                                                                double bottomRightOut[3],
+                                                                double topRightOut[3],
+                                                                double topLeftOut[3]) const
+{
+    if (rotationAngle != 0) {
+        Matrix4x4 matrix;
+        matrix.translate(-bottomLeftOut[0], -bottomLeftOut[1], -bottomLeftOut[2]);
+        matrix.rotateZ(-rotationAngle);
+        matrix.translate(bottomLeftOut[0], bottomLeftOut[1], bottomLeftOut[2]);
+        matrix.multiplyPoint3(bottomLeftOut);
+        matrix.multiplyPoint3(bottomRightOut);
+        matrix.multiplyPoint3(topRightOut);
+        matrix.multiplyPoint3(topLeftOut);
+        
+        
+//        Matrix4x4 matrix;
+//        matrix.setRotation(0.0, 0.0, -rotationAngle);
+//        matrix.multiplyPoint3(bottomLeftOut);
+//        matrix.multiplyPoint3(bottomRightOut);
+//        matrix.multiplyPoint3(topRightOut);
+//        matrix.multiplyPoint3(topLeftOut);
+    }
+}
+
 
 /**
  * Draw the annotations in the given coordinate space.

@@ -230,6 +230,20 @@ Matrix4x4::translate(
 }
 
 /**
+ *
+ * Apply a translation by multiplying the matrix by a matrix
+ * containing the specified translation.  Translates in the
+ * screen' coordinate system.
+ *
+ * @param txyz  The translation along the XYZ-Axis.
+ */
+void
+Matrix4x4::translate(const double txyz[3])
+{
+    translate(txyz[0], txyz[1], txyz[2]);
+}
+
+/**
  * Apply scaling by multiplying the matrix by a matrix
  * containing the specified scaling.  Translates in the
  * screen' coordinate system.
@@ -1513,6 +1527,21 @@ Matrix4x4::multiplyPoint3(float p[3]) const
     float pout[3] = { 0.0f, 0.0f, 0.0f };
     for (int row = 0; row < 3; row++) {
         pout[row] = (float)(this->matrix[row][0] * p[0]
+                            + this->matrix[row][1] * p[1]
+                            + this->matrix[row][2] * p[2]
+                            + this->matrix[row][3]);
+    }
+    p[0] = pout[0];
+    p[1] = pout[1];
+    p[2] = pout[2];
+}
+
+void
+Matrix4x4::multiplyPoint3(double p[3]) const
+{
+    double pout[3] = { 0.0f, 0.0f, 0.0f };
+    for (int row = 0; row < 3; row++) {
+        pout[row] = (this->matrix[row][0] * p[0]
                             + this->matrix[row][1] * p[1]
                             + this->matrix[row][2] * p[2]
                             + this->matrix[row][3]);

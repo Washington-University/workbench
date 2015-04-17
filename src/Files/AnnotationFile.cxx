@@ -78,11 +78,34 @@ AnnotationFile::AnnotationFile()
         CaretColorEnum::toRGBFloat(CaretColorEnum::BLUE, rgba);
         rgba[3] = 1.0;
         at->setForegroundColor(rgba);
+        CaretColorEnum::toRGBFloat(CaretColorEnum::GRAY, rgba);
+        at->setBackgroundColor(rgba);
 //        at->setWidth2D(120);
 //        at->setHeight2D(20);
         at->setFontSize(AnnotationFontSizeEnum::SIZE20);
         at->setBoldEnabled(true);
         at->setText("WINDOW-CENTER-MIDDLE,0.5,0.9");
+        addAnnotation(at);
+    }
+    
+    {
+        AnnotationText* at = new AnnotationText();
+        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+        at->setXYZ(0.1, 0.6, 0);
+        at->setRotationAngle(30.0);
+        float rgba[4];
+        CaretColorEnum::toRGBFloat(CaretColorEnum::FUCHSIA, rgba);
+        rgba[3] = 1.0;
+        at->setForegroundColor(rgba);
+        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
+        at->setBackgroundColor(rgba);
+        //        at->setWidth2D(120);
+        //        at->setHeight2D(20);
+        at->setFontSize(AnnotationFontSizeEnum::SIZE16);
+        at->setBoldEnabled(true);
+        at->setText("Rotated");
         addAnnotation(at);
     }
     
@@ -108,6 +131,27 @@ AnnotationFile::AnnotationFile()
     }
     
     {
+        AnnotationText* at = new AnnotationText();
+        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+        at->setOrientation(AnnotationTextOrientationEnum::STACKED);
+        at->setXYZ(0.7, 0.7, 0);
+        float rgba[4];
+        CaretColorEnum::toRGBFloat(CaretColorEnum::TEAL, rgba);
+        rgba[3] = 1.0;
+        at->setForegroundColor(rgba);
+        CaretColorEnum::toRGBFloat(CaretColorEnum::SILVER, rgba);
+        at->setBackgroundColor(rgba);
+        //        at->setWidth2D(120);
+        //        at->setHeight2D(20);
+        at->setFontSize(AnnotationFontSizeEnum::SIZE24);
+        at->setBoldEnabled(false);
+        at->setText("STACK-ROT");
+        at->setRotationAngle(-90.0);
+        addAnnotation(at);
+    }
+    {
         Annotation* at = new Annotation(AnnotationTypeEnum::BOX);
         at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
         at->setXYZ(0.5, 0.5, 0);
@@ -119,6 +163,7 @@ AnnotationFile::AnnotationFile()
         at->setBackgroundColor(rgba);
         at->setWidth2D(0.2);
         at->setHeight2D(0.10);
+        at->setRotationAngle(-20.0);
         addAnnotation(at);
     }
     {
@@ -132,6 +177,7 @@ AnnotationFile::AnnotationFile()
         CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
         at->setBackgroundColor(rgba);
         at->setLength1D(0.20);
+        at->setRotationAngle(30.0);
         addAnnotation(at);
     }
 

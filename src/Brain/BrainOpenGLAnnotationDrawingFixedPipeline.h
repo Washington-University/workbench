@@ -71,6 +71,12 @@ namespace caret {
                                  double topRightOut[3],
                                  double topLeftOut[3]) const;
         
+        void applyRotationToShape(const double rotationAngle,
+                                  double bottomLeftOut[3],
+                                  double bottomRightOut[3],
+                                  double topRightOut[3],
+                                  double topLeftOut[3]) const;
+        
         //        std::vector<Annotation*> m_annotations;
         
         // ADD_NEW_MEMBERS_HERE
