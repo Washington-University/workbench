@@ -45,8 +45,6 @@ public:
         LINE,
         /** Oval */
         OVAL,
-        /** Shape */
-        SHAPE,
         /** Text */
         TEXT
     };

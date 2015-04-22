@@ -149,8 +149,6 @@ Annotation::initializeAnnotationMembers()
         case AnnotationTypeEnum::OVAL:
             m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
             break;
-        case AnnotationTypeEnum::SHAPE:
-            break;
         case AnnotationTypeEnum::TEXT:
             m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
             break;

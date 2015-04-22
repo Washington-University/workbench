@@ -53,6 +53,7 @@ namespace caret {
     class BrainOpenGLShapeCone;
     class BrainOpenGLShapeCube;
     class BrainOpenGLShapeCylinder;
+    class BrainOpenGLShapeRing;
     class BrainOpenGLShapeSphere;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
@@ -357,6 +358,20 @@ namespace caret {
         
         void drawSurfaceAxes();
         
+        void drawCircleOutline(const uint8_t rgba[4],
+                               const double diameter);
+        
+        void drawCircleFilled(const uint8_t rgba[4],
+                              const double diameter);
+        
+        void drawEllipseOutline(const uint8_t rgba[4],
+                                const double majorAxis,
+                                const double minorAxis);
+        
+        void drawEllipseFilled(const uint8_t rgba[4],
+                               const double majorAxis,
+                               const double minorAxis);
+        
         void drawSphereWithDiameter(const uint8_t rgba[4],
                                     const double diameter);
         
@@ -526,6 +541,12 @@ namespace caret {
         
         /** Cube symbol */
         BrainOpenGLShapeCube* m_shapeCube;
+        
+        /** Outline circle symbol */
+        BrainOpenGLShapeRing* m_shapeCircleOutline;
+        
+        /** Filled circle symbol */
+        BrainOpenGLShapeRing* m_shapeCircleFilled;
         
         /** Rounded Cube symbol */
         BrainOpenGLShapeCube* m_shapeCubeRounded;

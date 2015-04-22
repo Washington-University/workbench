@@ -32,6 +32,7 @@
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
 #include "IdentificationWithColor.h"
+#include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "SelectionManager.h"
 #include "SelectionItemAnnotation.h"
@@ -58,93 +59,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::BrainOpenGLAnnotationDrawingFixedPipe
 m_brainOpenGLFixedPipeline(brainOpenGLFixedPipeline)
 {
     CaretAssert(brainOpenGLFixedPipeline);
-
-//    {
-//        AnnotationText* at = new AnnotationText();
-//        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-//        at->setTabIndex(3);
-//        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-//        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//        at->setXYZ(0.4, 0.2, 0);
-//        float rgba[4];
-//        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
-//        rgba[3] = 1.0;
-//        at->setForegroundColor(rgba);
-//        at->setWidth2D(120);
-//        at->setHeight2D(20);
-//        at->setText("TAB-4-LEFT-MIDDLE,0.4, 0.2");
-//        m_annotations.push_back(at);
-//    }
-
-//    {
-//        AnnotationText* at = new AnnotationText();
-//        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-//        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-//        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//        at->setXYZ(0.0, 0.2, 0);
-//        float rgba[4];
-//        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
-//        rgba[3] = 1.0;
-//        at->setForegroundColor(rgba);
-//        at->setWidth2D(150);
-//        at->setHeight2D(20);
-//        at->setText("TAB-LEFT-MIDDLE,0.0, 0.2");
-//        m_annotations.push_back(at);
-//    }
-//    
-//    {
-//        AnnotationText* at = new AnnotationText();
-//        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-//        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-//        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//        at->setXYZ(0.95, 0.6, 0);
-//        at->setText("TAB-RIGHT-MIDDLE-0.95,0.6,-24-BOLD");
-//        at->setBoldEnabled(true);
-//        at->setFontSize(AnnotationFontSizeEnum::SIZE32);
-//        float rgba[4];
-//        CaretColorEnum::toRGBFloat(CaretColorEnum::BLUE, rgba);
-//        rgba[3] = 1.0;
-//        at->setForegroundColor(rgba);
-//        at->setWidth2D(150);
-//        at->setHeight2D(20);
-//        m_annotations.push_back(at);
-//    }
-//    
-//    
-//    {
-//        AnnotationText* at = new AnnotationText();
-//        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-//        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-//        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//        at->setXYZ(0.5, 0.9, 0);
-//        at->setText("WINDOW-CENTER-TOP-0.5,0.9");
-//        at->setFontSize(AnnotationFontSizeEnum::SIZE32);
-//        float rgba[4];
-//        CaretColorEnum::toRGBFloat(CaretColorEnum::RED, rgba);
-//        rgba[3] = 1.0;
-//        at->setForegroundColor(rgba);
-//        at->setWidth2D(150);
-//        at->setHeight2D(20);
-//        m_annotations.push_back(at);
-//    }
-//    
-//    
-//    {
-//        AnnotationText* at = new AnnotationText();
-//        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-//        at->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 19703);
-//        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-//        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//        at->setText("RIGHT surface node 19703");
-//        float rgba[4];
-//        CaretColorEnum::toRGBFloat(CaretColorEnum::GREEN, rgba);
-//        rgba[3] = 1.0;
-//        at->setForegroundColor(rgba);
-//        at->setWidth2D(150);
-//        at->setHeight2D(20);
-//        m_annotations.push_back(at);
-//    }
-    
 }
 
 /**
@@ -152,12 +66,6 @@ m_brainOpenGLFixedPipeline(brainOpenGLFixedPipeline)
  */
 BrainOpenGLAnnotationDrawingFixedPipeline::~BrainOpenGLAnnotationDrawingFixedPipeline()
 {
-//    for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
-//         iter != m_annotations.end();
-//         iter++) {
-//        delete *iter;
-//    }
-//    m_annotations.clear();
 }
 
 /**
@@ -322,32 +230,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationBounds(const Annotation*
                                                                double topRightOut[3],
                                                                double topLeftOut[3]) const
 {
-    /*
-     * Note: Width and height are in range 0.0 to 1.0 for all types
-     * EXCEPT for text.
-     */
-//    double halfWidth  = 0.0;
-//    double halfHeight = 0.0;
-//    switch (annotation->getShapeDimension()) {
-//        case AnnotationShapeDimensionEnum::ONE_DIMENSIONAL:
-//            halfWidth  = 4.0;
-//            halfHeight = annotation->getLength1D();
-//            break;
-//        case AnnotationShapeDimensionEnum::TWO_DIMENSIONAL:
-//            halfWidth  = annotation->getWidth2D()  / 2.0;
-//            halfHeight = annotation->getHeight2D() / 2.0;
-//            break;
-//    }
-//    if (annotation->getType() != AnnotationTypeEnum::TEXT) {
-//        halfWidth  *= modelSpaceViewport[2];
-//        halfHeight *= modelSpaceViewport[3];
-//    }
-//    
-//    double bottomLeft[3]  = { windowXYZ[0] - halfWidth, windowXYZ[1] - halfHeight, 0.0 };
-//    double bottomRight[3] = { windowXYZ[0] + halfWidth, windowXYZ[1] - halfHeight, 0.0 };
-//    double topRight[3]    = { windowXYZ[0] + halfWidth, windowXYZ[1] + halfHeight, 0.0 };
-//    double topLeft[3]     = { windowXYZ[0] - halfWidth, windowXYZ[1] + halfHeight, 0.0 };
-    
     const double viewportWidth  = viewport[2];
     const double viewportHeight = viewport[3];
     
@@ -357,7 +239,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationBounds(const Annotation*
         case AnnotationTypeEnum::LINE:
         {
             /*
-             * NOTE: Annotation's height and width are 'relative' (percentage) of window size.
+             * NOTE: Annotation's length is 'relative' ([0.0, 1.0] percentage) of window size.
              */
             const double halfWidth = 2.0;
             const double height    = annotation->getLength1D() * viewportHeight;
@@ -388,7 +270,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationBounds(const Annotation*
         case AnnotationTypeEnum::OVAL:
         {
             /*
-             * NOTE: Annotation's height and width are 'relative' (percentage) of window size.
+             * NOTE: Annotation's height and width are 'relative' ([0.0, 1.0] percentage) of window size.
              */
             const double halfWidth  = (annotation->getWidth2D()  / 2.0) * viewportWidth;
             const double halfHeight = (annotation->getHeight2D() / 2.0) * viewportHeight;
@@ -417,8 +299,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationBounds(const Annotation*
             break;
         case AnnotationTypeEnum::IMAGE:
             CaretAssertToDoFatal();
-            break;
-        case AnnotationTypeEnum::SHAPE:
             break;
         case AnnotationTypeEnum::TEXT:
         {
@@ -466,14 +346,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const double rot
         matrix.multiplyPoint3(bottomRightOut);
         matrix.multiplyPoint3(topRightOut);
         matrix.multiplyPoint3(topLeftOut);
-        
-        
-//        Matrix4x4 matrix;
-//        matrix.setRotation(0.0, 0.0, -rotationAngle);
-//        matrix.multiplyPoint3(bottomLeftOut);
-//        matrix.multiplyPoint3(bottomRightOut);
-//        matrix.multiplyPoint3(topRightOut);
-//        matrix.multiplyPoint3(topLeftOut);
     }
 }
 
@@ -617,93 +489,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                                                                        windowXYZ);
             
             
-//            float modelXYZ[3]  = { 0.0, 0.0, 0.0 };
-//            bool modelXYZValid = false;
-//            
-//            float annotationXYZ[3];
-//            annotation->getXYZ(annotationXYZ);
-//            const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace = annotation->getCoordinateSpace();
-//            
-//            switch (annotationCoordSpace) {
-//                case AnnotationCoordinateSpaceEnum::MODEL:
-//                    modelXYZ[0] = annotationXYZ[0];
-//                    modelXYZ[1] = annotationXYZ[1];
-//                    modelXYZ[2] = annotationXYZ[2];
-//                    modelXYZValid = true;
-//                    break;
-//                case AnnotationCoordinateSpaceEnum::PIXELS:
-//                    windowXYZ[0] = annotationXYZ[0];
-//                    windowXYZ[1] = annotationXYZ[1];
-//                    windowXYZ[2] = annotationXYZ[2];
-//                    windowXYZValid = true;
-//                    break;
-//                case AnnotationCoordinateSpaceEnum::SURFACE:
-//                    if (surfaceDisplayed != NULL) {
-//                        StructureEnum::Enum structure = StructureEnum::INVALID;
-//                        int32_t surfaceNumberOfNodes  = -1;
-//                        int32_t surfaceNodeIndex      = -1;
-//                        annotation->getSurfaceSpace(structure,
-//                                                    surfaceNumberOfNodes,
-//                                                    surfaceNodeIndex);
-//                        if ((surfaceDisplayed->getStructure() == structure)
-//                            && (surfaceDisplayed->getNumberOfNodes() == surfaceNumberOfNodes)) {
-//                            if ((surfaceNodeIndex >= 0)
-//                                && (surfaceNodeIndex < surfaceNumberOfNodes)) {
-//                                float nodeXYZ[3];
-//                                surfaceDisplayed->getCoordinate(surfaceNodeIndex,
-//                                                                nodeXYZ);
-//                                modelXYZ[0] = nodeXYZ[0];
-//                                modelXYZ[1] = nodeXYZ[1];
-//                                modelXYZ[2] = nodeXYZ[2];
-//                                modelXYZValid = true;
-//                            }
-//                        }
-//                    }
-//                    break;
-//                case AnnotationCoordinateSpaceEnum::TAB:
-//                {
-//                    GLint viewport[4];
-//                    glGetIntegerv(GL_VIEWPORT,
-//                                  viewport);
-//                    windowXYZ[0] = viewport[2] * annotationXYZ[0];
-//                    windowXYZ[1] = viewport[3] * annotationXYZ[1];
-//                    windowXYZ[2] = 0.0;
-//                    windowXYZValid = true;
-//                }
-//                    break;
-//                case AnnotationCoordinateSpaceEnum::WINDOW:
-//                {
-//                    GLint viewport[4];
-//                    glGetIntegerv(GL_VIEWPORT,
-//                                  viewport);
-//                    windowXYZ[0] = viewport[2] * annotationXYZ[0];
-//                    windowXYZ[1] = viewport[3] * annotationXYZ[1];
-//                    windowXYZ[2] = 0.0;
-//                    windowXYZValid = true;
-//                }
-//                    break;
-//            }
-//            
-//            if (modelXYZValid) {
-//                /*
-//                 * Convert model space coordinates to window coordinates
-//                 * as all annotations are drawn in window coordinates.
-//                 */
-//                GLdouble windowX, windowY, windowZ;
-//                if (gluProject(modelXYZ[0], modelXYZ[1], modelXYZ[2],
-//                               modelSpaceModelMatrix, modelSpaceProjectionMatrix, modelSpaceViewport,
-//                               &windowX, &windowY, &windowZ) == GL_TRUE) {
-//                    windowXYZ[0] = windowX;
-//                    windowXYZ[1] = windowY;
-//                    windowXYZ[2] = windowZ;
-//                    modelXYZValid = false;
-//                    windowXYZValid = true;
-//                }
-//                else {
-//                    CaretLogSevere("Failed to convert model coordinates to window coordinates for annotation identification.");
-//                    continue;
-//                }
-//            }
             
             if (windowXYZValid) {
                 double bottomLeft[3]  = { 0.0, 0.0, 0.0 };
@@ -721,70 +506,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                 if ( ! boundsValid) {
                     continue;
                 }
-//                /*
-//                 * Note: Width and height are in range 0.0 to 1.0 for all types
-//                 * EXCEPT for text.
-//                 */
-//                double halfWidth  = 0.0;
-//                double halfHeight = 0.0;
-//                switch (annotation->getShapeDimension()) {
-//                    case AnnotationShapeDimensionEnum::ONE_DIMENSIONAL:
-//                        halfWidth  = 4.0;
-//                        halfHeight = annotation->getLength1D();
-//                        break;
-//                    case AnnotationShapeDimensionEnum::TWO_DIMENSIONAL:
-//                        halfWidth  = annotation->getWidth2D()  / 2.0;
-//                        halfHeight = annotation->getHeight2D() / 2.0;
-//                        break;
-//                }
-//                if (annotation->getType() != AnnotationTypeEnum::TEXT) {
-//                    halfWidth  *= modelSpaceViewport[2];
-//                    halfHeight *= modelSpaceViewport[3];
-//                }
-//                
-//                double bottomLeft[3]  = { windowXYZ[0] - halfWidth, windowXYZ[1] - halfHeight, 0.0 };
-//                double bottomRight[3] = { windowXYZ[0] + halfWidth, windowXYZ[1] - halfHeight, 0.0 };
-//                double topRight[3]    = { windowXYZ[0] + halfWidth, windowXYZ[1] + halfHeight, 0.0 };
-//                double topLeft[3]     = { windowXYZ[0] - halfWidth, windowXYZ[1] + halfHeight, 0.0 };
-//                switch (annotation->getType()) {
-//                    case AnnotationTypeEnum::ARROW:
-//                        break;
-//                    case AnnotationTypeEnum::BOX:
-//                        break;
-//                    case AnnotationTypeEnum::IMAGE:
-//                        break;
-//                    case AnnotationTypeEnum::LINE:
-//                        break;
-//                    case AnnotationTypeEnum::OVAL:
-//                        break;
-//                    case AnnotationTypeEnum::SHAPE:
-//                        break;
-//                    case AnnotationTypeEnum::TEXT:
-//                    {
-//                        double xMin = 0.0;
-//                        double xMax = 0.0;
-//                        double yMin = 0.0;
-//                        double yMax = 0.0;
-//                        const AnnotationText* textAnnotation = dynamic_cast<const AnnotationText*>(annotation);
-//                        CaretAssert(textAnnotation);
-//                        m_brainOpenGLFixedPipeline->textRenderer->getBoundsForTextAtViewportCoords(*textAnnotation,
-//                                                                                                   windowXYZ[0], windowXYZ[1], windowXYZ[2],
-//                                                                                                   xMin, xMax, yMin, yMax);
-//                        bottomLeft[0]  = xMin;
-//                        bottomLeft[1]  = yMin;
-//                        bottomLeft[2]  = 0.0;
-//                        bottomRight[0] = xMax;
-//                        bottomRight[1] = yMin;
-//                        bottomRight[2] = 0.0;
-//                        topRight[0]    = xMax;
-//                        topRight[1]    = yMax;
-//                        topRight[2]    = 0.0;
-//                        topLeft[0]     = xMin;
-//                        topLeft[1]     = yMax;
-//                        topLeft[2]     = 0.0;
-//                    }
-//                        break;
-//                }
                 
                 if (isSelect) {
                     /*
@@ -825,7 +546,102 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                 else {
                     switch (annotation->getType()) {
                         case AnnotationTypeEnum::ARROW:
-                            CaretAssertToDoFatal();
+                        {
+                            /*
+                             * Start and end of arrow's long line
+                             */
+                            const double lineStart[3] = {
+                                (bottomLeft[0] + bottomRight[0]) / 2.0,
+                                (bottomLeft[1] + bottomRight[1]) / 2.0,
+                                (bottomLeft[2] + bottomRight[2]) / 2.0
+                            };
+                            const double lineEnd[3] = {
+                                (topLeft[0] + topRight[0]) / 2.0,
+                                (topLeft[1] + topRight[1]) / 2.0,
+                                (topLeft[2] + topRight[2]) / 2.0
+                            };
+                            
+                            /*
+                             * Length of arrow's line
+                             */
+                            const double lineLength = MathFunctions::distance3D(lineStart,
+                                                                                   lineEnd);
+                            
+                            /*
+                             * Length of arrow's right and left pointer tips
+                             */
+                            const double pointerPercent = 0.2;
+                            const double tipLength = lineLength * pointerPercent;
+                            
+                            /*
+                             * Pointer on arrow's line that is between the arrow's left and right arrow tips
+                             */
+                            double endToStartVector[3];
+                            MathFunctions::createUnitVector(lineEnd, lineStart, endToStartVector);
+                            const double arrowTipsOnLine[3] = {
+                                lineEnd[0] + endToStartVector[0] * tipLength,
+                                lineEnd[1] + endToStartVector[1] * tipLength,
+                                lineEnd[2] + endToStartVector[2] * tipLength
+                            };
+                            
+                            /*
+                             * Vector for arrow tip's on left and right
+                             */
+                            double leftRightTipOffset[3];
+                            MathFunctions::createUnitVector(bottomLeft, bottomRight, leftRightTipOffset);
+                            leftRightTipOffset[0] *= tipLength;
+                            leftRightTipOffset[1] *= tipLength;
+                            leftRightTipOffset[2] *= tipLength;
+                            
+                            /*
+                             * Tip of arrow's pointer on the right
+                             */
+                            const double rightTipEnd[3] = {
+                                arrowTipsOnLine[0] + leftRightTipOffset[0],
+                                arrowTipsOnLine[1] + leftRightTipOffset[1],
+                                arrowTipsOnLine[2] + leftRightTipOffset[2]
+                            };
+                            
+                            /*
+                             * Tip of arrow's pointer on the left
+                             */
+                            const double leftTipEnd[3] = {
+                                arrowTipsOnLine[0] - leftRightTipOffset[0],
+                                arrowTipsOnLine[1] - leftRightTipOffset[1],
+                                arrowTipsOnLine[2] - leftRightTipOffset[2]
+                            };
+                            
+                            
+                            const double lineWidth = 2.0;
+                            
+                            float backgroundRGBA[4];
+                            annotation->getBackgroundColor(backgroundRGBA);
+                            if (backgroundRGBA[3] > 0) {
+                                glColor3fv(backgroundRGBA);                            
+                                glLineWidth(lineWidth * 3.0);
+                                glBegin(GL_LINES);
+                                glVertex3dv(lineStart);
+                                glVertex3dv(lineEnd);
+                                glVertex3dv(lineEnd);
+                                glVertex3dv(rightTipEnd);
+                                glVertex3dv(lineEnd);
+                                glVertex3dv(leftTipEnd);
+                                glEnd();
+                            }
+                            
+                            float foregroundRGBA[4];
+                            annotation->getForegroundColor(foregroundRGBA);
+                            glColor3fv(foregroundRGBA);
+                            glLineWidth(lineWidth);
+                            glBegin(GL_LINES);
+                            glVertex3dv(lineStart);
+                            glVertex3dv(lineEnd);
+                            glVertex3dv(lineEnd);
+                            glVertex3dv(rightTipEnd);
+                            glVertex3dv(lineEnd);
+                            glVertex3dv(leftTipEnd);
+                            glEnd();
+                        }
                             break;
                         case AnnotationTypeEnum::BOX:
                         {
@@ -891,26 +707,42 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                         }
                             break;
                         case AnnotationTypeEnum::OVAL:
-                            CaretAssertToDoFatal();
-                            break;
-                        case AnnotationTypeEnum::SHAPE:
-                            CaretAssertToDoFatal();
+                        {
+                            const double majorAxis = annotation->getWidth2D() * modelSpaceViewport[2];
+                            const double minorAxis = annotation->getHeight2D() * modelSpaceViewport[2];
+                            const double rotationAngle = annotation->getRotationAngle();
+                            
+                            glPushMatrix();
+                            glTranslatef(windowXYZ[0], windowXYZ[1], windowXYZ[2]);
+                            if (rotationAngle != 0.0) {
+                                glRotated(-rotationAngle, 0.0, 0.0, 1.0);
+                            }
+                            uint8_t backgroundRGBA[4];
+                            annotation->getBackgroundColor(backgroundRGBA);
+                            if (backgroundRGBA[3] > 0) {
+                                m_brainOpenGLFixedPipeline->drawEllipseFilled(backgroundRGBA,
+                                                                              majorAxis,
+                                                                              minorAxis);
+                            }
+                            
+                            uint8_t foregroundRGBA[4];
+                            annotation->getForegroundColor(foregroundRGBA);
+                            m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
+                                                                           majorAxis,
+                                                                           minorAxis);
+                            
+                            glPopMatrix();
+                        }
                             break;
                         case AnnotationTypeEnum::TEXT:
                         {
                             const AnnotationText* textAnnotation = dynamic_cast<const AnnotationText*>(annotation);
                             CaretAssert(textAnnotation);
                             
-//                            if (modelXYZValid) {
-//                                m_brainOpenGLFixedPipeline->textRenderer->drawTextAtModelCoords(modelXYZ,
-//                                                                                                *textAnnotation);
-//                            }
-//                            else if (windowXYZValid) {
                                 m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
                                                                                                    windowXYZ[1],
                                                                                                    windowXYZ[2],
                                                                                                    *textAnnotation);
-//                            }
                         }
                             break;
                     }
