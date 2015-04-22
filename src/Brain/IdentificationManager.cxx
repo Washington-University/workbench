@@ -585,6 +585,16 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                         delete item;
                     }
                 }
+                else if (className == "IdentifiedItemVoxel") {
+                    IdentifiedItemVoxel* item = new IdentifiedItemVoxel();
+                    item->restoreFromScene(sceneAttributes, sc);
+                    if (item->isValid()) {
+                        addIdentifiedItemPrivate(item);
+                    }
+                    else {
+                        delete item;
+                    }
+                }
                 else {
                     const AString msg = ("IdentifiedItem from scene is invalid.  "
                                          "Has a new IdentifiedItem type been added?  "

@@ -31,6 +31,8 @@ namespace caret {
     class IdentifiedItemVoxel : public IdentifiedItem{
         
     public:
+        IdentifiedItemVoxel();
+
         IdentifiedItemVoxel(const AString& text,
                             const float xyz[3]);
         

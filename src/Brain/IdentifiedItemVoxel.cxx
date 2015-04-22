@@ -40,6 +40,15 @@ using namespace caret;
 /**
  * Constructor.
  */
+IdentifiedItemVoxel::IdentifiedItemVoxel()
+: IdentifiedItem()
+{
+    initializeMembers();
+}
+    
+/**
+ * Constructor.
+ */
 IdentifiedItemVoxel::IdentifiedItemVoxel(const AString& text,
                                          const float xyz[3])
 : IdentifiedItem(text)
