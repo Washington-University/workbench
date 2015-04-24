@@ -27,7 +27,9 @@
 #include "NumericTextFormatting.h"
 //because the ROY_BIG_BL palette name is a constant defined in Palette.h
 #include "Palette.h"
+#define __PALETTE_COLOR_MAPPING_DECLARE__
 #include "PaletteColorMapping.h"
+#undef __PALETTE_COLOR_MAPPING_DECLARE__
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteColorMappingXmlElements.h"
 #include "XmlSaxParser.h"
@@ -1247,11 +1249,11 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             mappingMostPositive  = this->getUserScalePositiveMaximum();
             break;
     }
-    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive) * 0.99999f;//reserve [0, 0.00001] as "zero" range
+    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive);  // JWH 24 April 2015  * 0.99999f;//reserve [0, 0.00001] as "zero" range
     if (mappingPositiveDenominator == 0.0) {
         mappingPositiveDenominator = 1.0;
     }
-    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative) * 0.99999f;
+    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative);  // JWH 24 April 2015 * 0.99999f;
     if (mappingNegativeDenominator == 0.0) {
         mappingNegativeDenominator = 1.0;
     }
@@ -1269,10 +1271,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             }
             else if (scalar >= mappingLeastPositive) {
                 float numerator = scalar - mappingLeastPositive;
-                normalized = numerator / mappingPositiveDenominator + 0.00001f;//don't return less than 0.00001f if input is positive
+                normalized = numerator / mappingPositiveDenominator + SMALL_POSITIVE; // JWH 24 April 2015   0.00001f;//don't return less than 0.00001f if input is positive
             }
             else {
-                normalized = 0.00001f;
+                normalized = SMALL_POSITIVE;  // JWH 24 April 2015  0.00001f;
             }
         }
         else if (scalar < 0.0) {
@@ -1281,10 +1283,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             }
             else if (scalar <= mappingLeastNegative) {
                 float numerator = scalar - mappingLeastNegative;
-                normalized = numerator / mappingNegativeDenominator - 0.00001f;
+                normalized = numerator / mappingNegativeDenominator + SMALL_NEGATIVE;  // JWH 24 April 2015  - 0.00001f;
             }
             else {
-                normalized = -0.00001f;
+                normalized = SMALL_NEGATIVE;   // JWH 24 April 2015   -0.00001f;
             }
         }
         normalizedValuesOut[i] = normalized;

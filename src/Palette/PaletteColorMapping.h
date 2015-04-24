@@ -208,6 +208,12 @@ namespace caret {
                                          AString& zeroValueTextOut,
                                          AString& maximumValueTextOut) const;
         
+        /** A positive value near zero - may be zero! */
+        static const float SMALL_POSITIVE;
+        
+        /** A negative value near zero - may be zero! */
+        static const float SMALL_NEGATIVE;
+        
     private:
         PaletteScaleModeEnum::Enum scaleMode;
         
@@ -265,6 +271,11 @@ namespace caret {
         bool modifiedFlag;
         
     };
+
+#ifdef __PALETTE_COLOR_MAPPING_DECLARE__
+    const float PaletteColorMapping::SMALL_POSITIVE = 0.0;  // JWH 24 April 2015  0.00001;
+    const float PaletteColorMapping::SMALL_NEGATIVE = 0.0;  // JWH 24 April 2015 -0.00001;
+#endif // __PALETTE_COLOR_MAPPING_DECLARE__
     
 } // namespace
 

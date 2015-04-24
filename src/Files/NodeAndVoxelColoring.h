@@ -54,8 +54,8 @@ namespace caret {
                                             uint8_t* rgbaOut,
                                             const bool ignoreThresholding = false);
         
-        static const float SMALL_POSITIVE;
-        static const float SMALL_NEGATIVE;
+        // JWH 24 April 2015  static const float SMALL_POSITIVE;
+        // JWH 24 April 2015  static const float SMALL_NEGATIVE;
         
         static void colorIndicesWithLabelTableForDisplayGroupTab(const GiftiLabelTable* labelTable,
                                                const float* labelIndices,
@@ -123,8 +123,8 @@ namespace caret {
     };
     
 #ifdef __NODE_AND_VOXEL_COLORING_DECLARE__
-    const float NodeAndVoxelColoring::SMALL_POSITIVE =  0.00001;
-    const float NodeAndVoxelColoring::SMALL_NEGATIVE = -0.00001;
+  // JWH 24 April 2015  const float NodeAndVoxelColoring::SMALL_POSITIVE =  0.00001;
+  // JWH 24 April 2015  const float NodeAndVoxelColoring::SMALL_NEGATIVE = -0.00001;
     const int32_t NodeAndVoxelColoring::INVALID_TAB_INDEX = -1;
 #endif // __NODE_AND_VOXEL_COLORING_DECLARE__
 

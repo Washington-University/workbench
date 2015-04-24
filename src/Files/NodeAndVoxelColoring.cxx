@@ -227,12 +227,12 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
         /*
          * Positive/Zero/Negative Test
          */
-        if (scalar > NodeAndVoxelColoring::SMALL_POSITIVE) {
+        if (scalar > PaletteColorMapping::SMALL_POSITIVE) {   // JWH 24 April 2015    NodeAndVoxelColoring::SMALL_POSITIVE) {
             if (hidePositiveValues) {
                 continue;
             }
         }
-        else if (scalar < NodeAndVoxelColoring::SMALL_NEGATIVE) {
+        else if (scalar < PaletteColorMapping::SMALL_NEGATIVE) {  // JWH 24 April 2015  NodeAndVoxelColoring::SMALL_NEGATIVE) {
             if (hideNegativeValues) {
                 continue;
             }
