@@ -532,6 +532,7 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
     if ( ! viewportContents.empty()) {
         const int* windowViewport = viewportContents[0]->getWindowViewport();
         m_brain = viewportContents[0]->getBrain();
+        this->windowIndex = viewportContents[0]->getWindowIndex();
         drawWindowAnnotations(windowViewport);
         m_brain = NULL;
     }
@@ -587,6 +588,9 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
 {
     ElapsedTimer et;
     et.start();
+    
+    this->windowIndex = viewportContent->getWindowIndex();
+    this->windowTabIndex = -1;
     
     this->browserTabContent = viewportContent->getBrowserTabContent();
     

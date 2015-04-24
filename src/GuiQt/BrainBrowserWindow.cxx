@@ -3041,6 +3041,8 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
 
+    sceneClass->addInteger("m_browserWindowIndex",
+                           m_browserWindowIndex);
 
     /*
      * Save the selected tile tabs configuration as the scene configuration

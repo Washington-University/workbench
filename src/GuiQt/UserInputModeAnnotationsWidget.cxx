@@ -30,12 +30,13 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "AnnotationCoordinateSizeRotateWidget.h"
+#include "AnnotationCoordinateWidget.h"
 #include "AnnotationMenuArrange.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationFontWidget.h"
 #include "AnnotationTextAlignmentWidget.h"
 #include "AnnotationTypeSpaceWidget.h"
+#include "AnnotationWidthHeightRotationWidget.h"
 #include "CaretAssert.h"
 #include "EventBrainReset.h"
 #include "EventManager.h"
@@ -69,7 +70,9 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_alignmentWidget = new AnnotationTextAlignmentWidget();
     
-    m_coordSizeRotateWidget = new AnnotationCoordinateSizeRotateWidget();
+    m_coordinateOneWidget = new AnnotationCoordinateWidget();
+    
+    m_widthHeightRotationWidget = new AnnotationWidthHeightRotationWidget();
     
     QWidget* arrangeToolButton = createArrangeMenuToolButton();
     
@@ -86,7 +89,9 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     QHBoxLayout* bottomRowLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 2);
-    bottomRowLayout->addWidget(m_coordSizeRotateWidget);
+    bottomRowLayout->addWidget(m_coordinateOneWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomRowLayout->addWidget(m_widthHeightRotationWidget);
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomRowLayout->addWidget(arrangeToolButton);
     bottomRowLayout->addStretch();

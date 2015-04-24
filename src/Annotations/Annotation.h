@@ -21,13 +21,10 @@
  */
 /*LICENSE_END*/
 
-
 #include "AnnotationCoordinateSpaceEnum.h"
-#include "AnnotationShapeDimensionEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "SceneableInterface.h"
-#include "StructureEnum.h"
 
 
 namespace caret {
@@ -47,50 +44,16 @@ namespace caret {
         AnnotationTypeEnum::Enum getType() const ;
         
         AnnotationCoordinateSpaceEnum::Enum getCoordinateSpace() const;
-
+        
         void setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace);
-        
-        const float* getXYZ() const;
-        
-        void getXYZ(float xyzOut[3]) const;
-        
-        void setXYZ(const float xyz[3]);
-        
-        void setXYZ(const double xyz[3]);
-        
-        void setXYZ(const float x,
-                    const float y,
-                    const float z);
-        
-        float getHeight2D() const;
-        
-        void setHeight2D(const float height);
-        
-        float getWidth2D() const;
-        
-        void setWidth2D(const float width);
-        
-        float getLength1D() const;
-        
-        void setLength1D(const float length1D);
-        
-        float getRotationAngle() const;
-        
-        void setRotationAngle(const float rotationAngle);
-        
-        AnnotationShapeDimensionEnum::Enum getShapeDimension() const;
-        
-        void getSurfaceSpace(StructureEnum::Enum& structureOut,
-                             int32_t& surfaceNumberOfNodesOut,
-                             int32_t& surfaceNodeIndexOut) const;
-        
-        void setSurfaceSpace(const StructureEnum::Enum structure,
-                            const int32_t surfaceNumberOfNodes,
-                            const int32_t surfaceNodeIndex);
         
         int32_t getTabIndex() const;
         
         void setTabIndex(const int32_t tabIndex);
+        
+        int32_t getWindowIndex() const;
+        
+        void setWindowIndex(const int32_t windowIndex);
         
         void getForegroundColor(float rgbaOut[4]) const;
         
@@ -131,15 +94,12 @@ namespace caret {
           
           
           
-// If there will be sub-classes of this class that need to save
-// and restore data from scenes, these pure virtual methods can
-// be uncommented to force their implemetation by sub-classes.
-//    protected: 
-//        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-//                                             SceneClass* sceneClass) = 0;
-//
-//        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-//                                                  const SceneClass* sceneClass) = 0;
+    protected: 
+        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                             SceneClass* sceneClass) = 0;
+
+        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                  const SceneClass* sceneClass) = 0;
 
     private:
         void copyHelperAnnotation(const Annotation& obj);
@@ -150,27 +110,11 @@ namespace caret {
         
         const AnnotationTypeEnum::Enum m_type;
         
-        AnnotationShapeDimensionEnum::Enum m_shapeDimension;
-        
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
         
-        float m_xyz[3];
-        
-        float m_width2D;
-        
-        float m_height2D;
-        
-        float m_length1D;
-        
-        float m_rotationAngle;
-        
-        int32_t m_surfaceSpaceNodeIndex;
-        
-        int32_t m_surfaceSpaceNumberOfNodes;
-        
-        StructureEnum::Enum m_surfaceSpaceStructure;
-        
         int32_t m_tabIndex;
+        
+        int32_t m_windowIndex;
         
         float m_colorForeground[4];
         

@@ -25,6 +25,7 @@
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #undef __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
 
+#include "AnnotationCoordinate.h"
 #include "AnnotationText.h"
 #include "BoundingBox.h"
 #include "Brain.h"

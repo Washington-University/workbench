@@ -28,11 +28,12 @@ INCLUDE(${QT_USE_FILE})
 SET(MOC_INPUT_HEADER_FILES
 AboutWorkbenchDialog.h
 AnnotationColorWidget.h
-AnnotationCoordinateSizeRotateWidget.h
+AnnotationCoordinateWidget.h
 AnnotationFontWidget.h
 AnnotationMenuArrange.h
 AnnotationTextAlignmentWidget.h
 AnnotationTypeSpaceWidget.h
+AnnotationWidthHeightRotationWidget.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -166,11 +167,12 @@ WuQWidgetObjectGroup.h
 SET(SOURCE_FILES
 AboutWorkbenchDialog.h
 AnnotationColorWidget.h
-AnnotationCoordinateSizeRotateWidget.h
+AnnotationCoordinateWidget.h
 AnnotationFontWidget.h
 AnnotationMenuArrange.h
 AnnotationTextAlignmentWidget.h
 AnnotationTypeSpaceWidget.h
+AnnotationWidthHeightRotationWidget.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -330,11 +332,12 @@ WuQtUtilities.h
 
 AboutWorkbenchDialog.cxx
 AnnotationColorWidget.cxx
-AnnotationCoordinateSizeRotateWidget.cxx
+AnnotationCoordinateWidget.cxx
 AnnotationFontWidget.cxx
 AnnotationMenuArrange.cxx
 AnnotationTextAlignmentWidget.cxx
 AnnotationTypeSpaceWidget.cxx
+AnnotationWidthHeightRotationWidget.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
 BorderOptimizeDialog.cxx

@@ -41,7 +41,7 @@ using namespace caret;
  * Constructor for a text annotation.
  */
 AnnotationText::AnnotationText()
-: Annotation(AnnotationTypeEnum::TEXT)
+: AnnotationTwoDimensionalShape(AnnotationTypeEnum::TEXT)
 {
     initializeAnnotationTextMembers();
 }
@@ -60,7 +60,7 @@ AnnotationText::~AnnotationText()
  *    Object that is copied.
  */
 AnnotationText::AnnotationText(const AnnotationText& obj)
-: Annotation(obj)
+: AnnotationTwoDimensionalShape(obj)
 {
     initializeAnnotationTextMembers();
     this->copyHelperAnnotationText(obj);
@@ -405,6 +405,8 @@ void
 AnnotationText::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
+    AnnotationTwoDimensionalShape::saveSubClassDataToScene(sceneAttributes,
+                                                           sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
 }
@@ -425,6 +427,8 @@ void
 AnnotationText::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
+    AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
+                                                                sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }

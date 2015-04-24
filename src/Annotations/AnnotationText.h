@@ -22,16 +22,16 @@
 /*LICENSE_END*/
 
 
-#include "Annotation.h"
 #include "AnnotationFontNameEnum.h"
 #include "AnnotationFontSizeEnum.h"
 #include "AnnotationTextAlignHorizontalEnum.h"
 #include "AnnotationTextAlignVerticalEnum.h"
 #include "AnnotationTextOrientationEnum.h"
+#include "AnnotationTwoDimensionalShape.h"
 
 namespace caret {
 
-    class AnnotationText : public Annotation {
+    class AnnotationText : public AnnotationTwoDimensionalShape {
         
     public:
         AnnotationText();

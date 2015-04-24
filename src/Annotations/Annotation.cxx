@@ -99,19 +99,9 @@ Annotation::operator=(const Annotation& obj)
 void 
 Annotation::copyHelperAnnotation(const Annotation& obj)
 {
-    m_shapeDimension      = obj.m_shapeDimension;
     m_coordinateSpace     = obj.m_coordinateSpace;
-    m_xyz[0]              = obj.m_xyz[0];
-    m_xyz[1]              = obj.m_xyz[1];
-    m_xyz[2]              = obj.m_xyz[2];
-    m_width2D             = obj.m_width2D;
-    m_height2D            = obj.m_height2D;
-    m_length1D            = obj.m_length1D;
-    m_rotationAngle       = obj.m_rotationAngle;
-    m_surfaceSpaceStructure     = obj.m_surfaceSpaceStructure;
-    m_surfaceSpaceNumberOfNodes = obj.m_surfaceSpaceNumberOfNodes;
-    m_surfaceSpaceNodeIndex     = obj.m_surfaceSpaceNodeIndex;
     m_tabIndex            = obj.m_tabIndex;
+    m_windowIndex         = obj.m_windowIndex;
     m_colorBackground[0]  = obj.m_colorBackground[0];
     m_colorBackground[1]  = obj.m_colorBackground[1];
     m_colorBackground[2]  = obj.m_colorBackground[2];
@@ -133,46 +123,12 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
 void
 Annotation::initializeAnnotationMembers()
 {
-    switch (m_type) {
-        case AnnotationTypeEnum::ARROW:
-            m_shapeDimension = AnnotationShapeDimensionEnum::ONE_DIMENSIONAL;
-            break;
-        case AnnotationTypeEnum::BOX:
-            m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
-            break;
-        case AnnotationTypeEnum::IMAGE:
-            m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
-            break;
-        case AnnotationTypeEnum::LINE:
-            m_shapeDimension = AnnotationShapeDimensionEnum::ONE_DIMENSIONAL;
-            break;
-        case AnnotationTypeEnum::OVAL:
-            m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
-            break;
-        case AnnotationTypeEnum::TEXT:
-            m_shapeDimension = AnnotationShapeDimensionEnum::TWO_DIMENSIONAL;
-            break;
-    }
-    
-
-    m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
-    
     m_selectedFlag = false;
     
-    m_xyz[0] = 0.0;
-    m_xyz[1] = 0.0;
-    m_xyz[2] = 0.0;
-    
-    m_width2D  = 0.0;
-    m_height2D = 0.0;
-    m_length1D = 0.0;
-    m_rotationAngle = 0.0;
-    
-    m_surfaceSpaceStructure     = StructureEnum::INVALID;
-    m_surfaceSpaceNumberOfNodes = -1;
-    m_surfaceSpaceNodeIndex     = -1;
+    m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     
     m_tabIndex = -1;
+    m_windowIndex = -1;
     
     m_colorBackground[0]  = 0.0;
     m_colorBackground[1]  = 0.0;
@@ -194,26 +150,10 @@ Annotation::initializeAnnotationMembers()
     
     m_sceneAssistant->add<AnnotationCoordinateSpaceEnum>("m_coordinateSpace",
                                                          &m_coordinateSpace);
-    m_sceneAssistant->addArray("m_xyz",
-                               m_xyz, 3, 0.0);
-    m_sceneAssistant->add("m_width2D",
-                          &m_width2D);
-    m_sceneAssistant->add("m_height2D",
-                          &m_height2D);
-    m_sceneAssistant->add("m_length1D",
-                          &m_length1D);
-    m_sceneAssistant->add("m_rotationAngle",
-                          &m_rotationAngle);
-    
-    m_sceneAssistant->add<StructureEnum>("m_surfaceSpaceStructure",
-                                         &m_surfaceSpaceStructure);
-    m_sceneAssistant->add("m_surfaceSpaceNumberOfNodes",
-                          &m_surfaceSpaceNumberOfNodes);
-    m_sceneAssistant->add("m_surfaceSpaceNodeIndex",
-                          &m_surfaceSpaceNodeIndex);
-    
     m_sceneAssistant->add("m_tabIndex",
                           &m_tabIndex);
+    m_sceneAssistant->add("m_windowIndex",
+                          &m_windowIndex);
     m_sceneAssistant->addArray("m_colorBackground",
                                m_colorBackground, 4, 0.0);
     m_sceneAssistant->addArray("m_colorForeground",
@@ -254,261 +194,6 @@ Annotation::setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordin
     }
 }
 
-
-/**
- * @return The annotation's coordinate.
- *
- * For tab and window spaces, the Z value is a depth for ordering.
- */
-const float*
-Annotation::getXYZ() const
-{
-    return m_xyz;
-}
-
-/**
- * Get the annotation's coordinate.
- *
- * For tab and window spaces, the Z value is a depth for ordering.
- *
- * @param xyzOut
- */
-void
-Annotation::getXYZ(float xyzOut[3]) const
-{
-    xyzOut[0] = m_xyz[0];
-    xyzOut[1] = m_xyz[1];
-    xyzOut[2] = m_xyz[2];
-}
-
-
-/**
- * Set the annotation's coordinate.
- *
- * For tab and window spaces, the Z value is a depth for ordering.
- *
- * @param xyz
- *     New coordinate for the annotation.
- */
-void
-Annotation::setXYZ(const float xyz[3])
-{
-    setXYZ(xyz[0], xyz[1], xyz[2]);
-}
-
-/**
- * Set the annotation's coordinate.
- *
- * For tab and window spaces, the Z value is a depth for ordering.
- *
- * @param xyz
- *     New coordinate for the annotation.
- */
-void
-Annotation::setXYZ(const double xyz[3])
-{
-    setXYZ(xyz[0], xyz[1], xyz[2]);
-}
-
-/**
- * Set the annotation's coordinate.
- *
- * For tab and window spaces, the Z value is a depth for ordering.
- *
- * @param x
- *     New X-coordinate for the annotation.
- * @param y
- *     New Y-coordinate for the annotation.
- * @param z
- *     New Z-coordinate for the annotation.
- */
-void
-Annotation::setXYZ(const float x,
-                   const float y,
-                   const float z)
-{
-    if ((x != m_xyz[0])
-        || (y != m_xyz[1])
-        || (z != m_xyz[2])) {
-        m_xyz[0] = x;
-        m_xyz[1] = y;
-        m_xyz[2] = z;
-        setModified();
-    }
-}
-
-/**
- * @return Height for "two-dimensional" annotations in pixels.
- */
-float
-Annotation::getHeight2D() const
-{
-    return m_height2D;
-}
-
-/**
- * Set the height for "two-dimensional" annotations in pixels.
- *
- * @param height2D
- *    New value for height of the annotation.
- */
-void
-Annotation::setHeight2D(const float height2D)
-{
-    if (m_type != AnnotationTypeEnum::TEXT) {
-        if (height2D > 1.0) {
-            CaretLogWarning("Annotation height for non-text annotation should range [0.0, 1.0], "
-                            " a relative value, but is "
-                            + AString::number(height2D));
-        }
-    }
-    
-    if (height2D != m_height2D) {
-        m_height2D = height2D;
-        setModified();
-    }
-}
-
-/**
- * @return Width for "two-dimensional" annotations in pixels.
- */
-float
-Annotation::getWidth2D() const
-{
-    return m_width2D;
-}
-
-/**
- * Set the width for "two-dimensional" annotations in pixels.
- *
- * @param width
- *    New value for width of the annotation.
- */
-void
-Annotation::setWidth2D(const float width2D)
-{
-    if (m_type != AnnotationTypeEnum::TEXT) {
-        if (width2D > 1.0) {
-            CaretLogWarning("Annotation width for non-text annotation should range [0.0, 1.0], "
-                            " a relative value, but is "
-                            + AString::number(width2D));
-        }
-    }
-    
-    if (width2D != m_width2D) {
-        m_width2D = width2D;
-        setModified();
-    }
-}
-
-/**
- * @return The length for "one-dimensional" annotations in pixels.
- */
-float
-Annotation::getLength1D() const
-{
-    return m_length1D;
-}
-
-/**
- * Set the length for "one-dimensional" annotations in pixels.
- *
- * @param length1D
- *     New length value.
- */
-void
-Annotation::setLength1D(const float length1D)
-{
-    if (length1D != m_length1D) {
-        m_length1D = length1D;
-        setModified();
-    }
-}
-
-/**
- * @return The rotation angle, in degrees, clockwise, from vertical at the top (12 o'clock).
- */
-float
-Annotation::getRotationAngle() const
-{
-    return m_rotationAngle;
-}
-
-/**
- * The rotation angle, in degrees, clockwise, from vertical at the top (12 o'clock).
- *
- * @param rotationAngle
- *     New value rotation angle.
- */
-void
-Annotation::setRotationAngle(const float rotationAngle)
-{
-    if (rotationAngle != m_rotationAngle) {
-        m_rotationAngle = rotationAngle;
-        setModified();
-    }
-}
-
-/**
- * @param Return the shape's dimension 2D (ie: box) or 1D (ie: line).
- */
-AnnotationShapeDimensionEnum::Enum
-Annotation::getShapeDimension() const
-{
-    return m_shapeDimension;
-}
-
-
-/**
- * Get the surface space data.
- *
- * @param structureOut
- *     The surface structure.
- * @param surfaceNumberOfNodesOut
- *     Number of nodes in surface.
- * @param surfaceNodeIndexOut
- *     Index of surface node.
- */
-void
-Annotation::getSurfaceSpace(StructureEnum::Enum& structureOut,
-                            int32_t& surfaceNumberOfNodesOut,
-                            int32_t& surfaceNodeIndexOut) const
-{
-    structureOut            = m_surfaceSpaceStructure;
-    surfaceNumberOfNodesOut = m_surfaceSpaceNumberOfNodes;
-    surfaceNodeIndexOut     = m_surfaceSpaceNodeIndex;
-}
-
-/**
- * Set the surface space data.
- *
- * @param structure
- *     The surface structure.
- * @param surfaceNumberOfNodes
- *     Number of nodes in surface.
- * @param surfaceNodeIndex
- *     Index of surface node.
- */
-void
-Annotation::setSurfaceSpace(const StructureEnum::Enum structure,
-                           const int32_t surfaceNumberOfNodes,
-                           const int32_t surfaceNodeIndex)
-{
-    if (structure != m_surfaceSpaceStructure) {
-        m_surfaceSpaceStructure = structure;
-        setModified();
-    }
-    if (surfaceNumberOfNodes != m_surfaceSpaceNumberOfNodes) {
-        m_surfaceSpaceNumberOfNodes = surfaceNumberOfNodes;
-        setModified();
-    }
-    if (surfaceNodeIndex != m_surfaceSpaceNodeIndex) {
-        m_surfaceSpaceNodeIndex = surfaceNodeIndex;
-        setModified();
-    }
-}
-
-
 /**
  * @return The tab index.  Valid only for tab coordinate space annotations.
  */
@@ -533,13 +218,38 @@ Annotation::setTabIndex(const int32_t tabIndex)
 }
 
 /**
+ * @return The window index.  Valid only for window coordinate space annotations.
+ */
+int32_t
+Annotation::getWindowIndex() const
+{
+    return m_windowIndex;
+}
+
+/**
+ * Set window index.  Valid only for window coordinate space annotations.
+ *
+ * @param tabIndex
+ */
+void
+Annotation::setWindowIndex(const int32_t windowIndex)
+{
+    if (windowIndex != m_windowIndex) {
+        m_windowIndex = windowIndex;
+        setModified();
+    }
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
 AString
 Annotation::toString() const
 {
-    return "Annotation";
+    const AString msg("Annotation type="
+                      + AnnotationTypeEnum::toName(m_type));
+    return msg;
 }
 
 /**
@@ -743,9 +453,8 @@ Annotation::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    // Uncomment if sub-classes must save to scene
-    //saveSubClassDataToScene(sceneAttributes,
-    //                        sceneClass);
+    saveSubClassDataToScene(sceneAttributes,
+                            sceneClass);
     
     return sceneClass;
 }
@@ -772,9 +481,8 @@ Annotation::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    //Uncomment if sub-classes must restore from scene
-    //restoreSubClassDataFromScene(sceneAttributes,
-    //                             sceneClass);
+    restoreSubClassDataFromScene(sceneAttributes,
+                                 sceneClass);
     
 }
 

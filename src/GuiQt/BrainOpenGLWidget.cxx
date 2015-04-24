@@ -739,7 +739,7 @@ BrainOpenGLWidget::paintGL()
          * Create the viewport drawing contents for all tabs
          */
 //  REPOSITORY keep !!!
-        std::vector<BrowserTabContent*> allTabs;
+    std::vector<BrowserTabContent*> allTabs;
         for (int32_t i = 0; i < getModelEvent.getNumberOfItemsToDraw(); i++) {
             allTabs.push_back(getModelEvent.getTabContentToDraw(i));
 //  ANNOTATIONS

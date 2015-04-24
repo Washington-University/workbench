@@ -19,16 +19,16 @@
  */
 /*LICENSE_END*/
 
-#define __ANNOTATION_COORDINATE_SIZE_ROTATE_WIDGET_DECLARE__
-#include "AnnotationCoordinateSizeRotateWidget.h"
-#undef __ANNOTATION_COORDINATE_SIZE_ROTATE_WIDGET_DECLARE__
+#define __ANNOTATION_COORDINATE_WIDGET_DECLARE__
+#include "AnnotationCoordinateWidget.h"
+#undef __ANNOTATION_COORDINATE_WIDGET_DECLARE__
 
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QSpinBox>
 
-#include "Annotation.h"
+#include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "StructureEnumComboBox.h"
@@ -40,7 +40,7 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationCoordinateSizeRotateWidget 
+ * \class caret::AnnotationCoordinateWidget 
  * \brief Widget for editing annotation coordinate, size, and rotation.
  * \ingroup GuiQt
  */
@@ -48,10 +48,10 @@ using namespace caret;
 /**
  * Constructor.
  */
-AnnotationCoordinateSizeRotateWidget::AnnotationCoordinateSizeRotateWidget(QWidget* parent)
+AnnotationCoordinateWidget::AnnotationCoordinateWidget(QWidget* parent)
 : QWidget(parent)
 {
-    m_annotation = NULL;
+    m_coordinate = NULL;
     
     QLabel* surfaceVertexLabel = new QLabel("Vertex:");
     std::vector<StructureEnum::Enum> validStructures;
@@ -96,30 +96,6 @@ AnnotationCoordinateSizeRotateWidget::AnnotationCoordinateSizeRotateWidget(QWidg
                                          "       1.0 => Away from viewer\n");
     
 
-    QLabel* widthLabel = new QLabel(" W:");
-    m_widthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, 2,
-                                                                                    this, SLOT(widthValueChanged(double)));
-    WuQtUtilities::setWordWrappedToolTip(m_widthSpinBox,
-                                         "Width of 2D Shapes (Box, Image, Oval)");
-
-    QLabel* heightLabel = new QLabel(" H:");
-    m_heightSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, 2,
-                                                                                    this, SLOT(heightValueChanged(double)));
-    WuQtUtilities::setWordWrappedToolTip(m_heightSpinBox,
-                                         "Height of 2D Shapes (Box, Image, Oval)");
-
-    QLabel* lengthLabel = new QLabel(" L:");
-    m_lengthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, 2,
-                                                                                    this, SLOT(lengthValueChanged(double)));
-    WuQtUtilities::setWordWrappedToolTip(m_lengthSpinBox,
-                                         "Length of 1D Shapes (Arrow, Line)");
-    
-    QLabel* rotationLabel = new QLabel(" R:");
-    m_rotationSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 360, 1.0, 0,
-                                                                                    this, SLOT(rotationValueChanged(double)));
-    WuQtUtilities::setWordWrappedToolTip(m_rotationSpinBox,
-                                         "Rotation, clockwise in degrees, of annotation");
-
     m_surfaceWidget = new QWidget();
     QHBoxLayout* surfaceLayout = new QHBoxLayout(m_surfaceWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(surfaceLayout, 2, 0);
@@ -142,14 +118,6 @@ AnnotationCoordinateSizeRotateWidget::AnnotationCoordinateSizeRotateWidget(QWidg
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(m_surfaceWidget);
     layout->addWidget(m_coordinateWidget);
-    layout->addWidget(widthLabel);
-    layout->addWidget(m_widthSpinBox);
-    layout->addWidget(heightLabel);
-    layout->addWidget(m_heightSpinBox);
-    layout->addWidget(lengthLabel);
-    layout->addWidget(m_lengthSpinBox);
-    layout->addWidget(rotationLabel);
-    layout->addWidget(m_rotationSpinBox);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -159,7 +127,7 @@ AnnotationCoordinateSizeRotateWidget::AnnotationCoordinateSizeRotateWidget(QWidg
 /**
  * Destructor.
  */
-AnnotationCoordinateSizeRotateWidget::~AnnotationCoordinateSizeRotateWidget()
+AnnotationCoordinateWidget::~AnnotationCoordinateWidget()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -171,7 +139,7 @@ AnnotationCoordinateSizeRotateWidget::~AnnotationCoordinateSizeRotateWidget()
  *    An event for which this instance is listening.
  */
 void
-AnnotationCoordinateSizeRotateWidget::receiveEvent(Event* event)
+AnnotationCoordinateWidget::receiveEvent(Event* event)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -182,22 +150,23 @@ AnnotationCoordinateSizeRotateWidget::receiveEvent(Event* event)
 }
 
 /**
- * Update with the given annotation.
+ * Update with the given annotation coordinate.
  *
- * @param annotation.
+ * @param coordinate.
  */
 void
-AnnotationCoordinateSizeRotateWidget::updateContent(Annotation* annotation)
+AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                                          AnnotationCoordinate* coordinate)
 {
-    m_annotation = annotation;
+    m_coordinate = coordinate;
     
-    if (m_annotation != NULL) {
+    if (m_coordinate != NULL) {
         double xyMin =  0.0;
         double xyMax =  1.0;
         double zMin  = -1.0;
         double zMax  =  1.0;
         double xyzStep = 0.01;
-        switch (m_annotation->getCoordinateSpace()) {
+        switch (coordinateSpace) {
             case AnnotationCoordinateSpaceEnum::MODEL:
                 xyMax = 10000.0;
                 xyMin = -xyMax;
@@ -226,16 +195,11 @@ AnnotationCoordinateSizeRotateWidget::updateContent(Annotation* annotation)
         m_zCoordSpinBox->setSingleStep(xyzStep);
         
         float xyz[3];
-        m_annotation->getXYZ(xyz);
+        m_coordinate->getXYZ(xyz);
         
         m_xCoordSpinBox->setValue(xyz[0]);
         m_yCoordSpinBox->setValue(xyz[1]);
         m_zCoordSpinBox->setValue(xyz[2]);
-        
-        m_widthSpinBox->setValue(m_annotation->getWidth2D());
-        m_heightSpinBox->setValue(m_annotation->getHeight2D());
-        m_lengthSpinBox->setValue(m_annotation->getLength1D());
-        m_rotationSpinBox->setValue(m_annotation->getRotationAngle());
         
         setEnabled(true);
     }
@@ -248,71 +212,15 @@ AnnotationCoordinateSizeRotateWidget::updateContent(Annotation* annotation)
  * Gets called when an X, Y, or Z-coordinate value is changed.
  */
 void
-AnnotationCoordinateSizeRotateWidget::coordinateValueChanged()
+AnnotationCoordinateWidget::coordinateValueChanged()
 {
-    if (m_annotation != NULL) {
+    if (m_coordinate != NULL) {
         float xyz[3] = {
             m_xCoordSpinBox->value(),
             m_yCoordSpinBox->value(),
             m_zCoordSpinBox->value()
         };
-        m_annotation->setXYZ(xyz);
-    }
-}
-
-/**
- * Gets called when the width value is changed.
- *
- * @param value
- *
- */
-void
-AnnotationCoordinateSizeRotateWidget::widthValueChanged(double value)
-{
-    if (m_annotation != NULL) {
-        m_annotation->setWidth2D(value);
-    }
-}
-
-/**
- * Gets called when height value is changed.
- *
- * @param value
- *
- */
-void
-AnnotationCoordinateSizeRotateWidget::heightValueChanged(double value)
-{
-    if (m_annotation != NULL) {
-        m_annotation->setHeight2D(value);
-    }
-}
-
-/**
- * Gets called when length value is changed.
- *
- * @param value
- *
- */
-void
-AnnotationCoordinateSizeRotateWidget::lengthValueChanged(double value)
-{
-    if (m_annotation != NULL) {
-        m_annotation->setLength1D(value);
-    }
-}
-
-/**
- * Gets called when rotation value is changed.
- *
- * @param value
- *
- */
-void
-AnnotationCoordinateSizeRotateWidget::rotationValueChanged(double value)
-{
-    if (m_annotation != NULL) {
-        m_annotation->setRotationAngle(value);
+        m_coordinate->setXYZ(xyz);
     }
 }
 

@@ -288,7 +288,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             
             const bool restoreToTabTiles = browserClass->getBooleanValue("m_viewTileTabsAction",
                                                                          false);
-            
             /*
              * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
              */

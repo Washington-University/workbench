@@ -31,10 +31,11 @@ class QComboBox;
 namespace caret {
 
     class AnnotationColorWidget;
-    class AnnotationCoordinateSizeRotateWidget;
+    class AnnotationCoordinateWidget;
     class AnnotationFontWidget;
     class AnnotationTextAlignmentWidget;
     class AnnotationTypeSpaceWidget;
+    class AnnotationWidthHeightRotationWidget;
     class UserInputModeAnnotations;
     
     class UserInputModeAnnotationsWidget : public QWidget, public EventListenerInterface {
@@ -64,7 +65,9 @@ namespace caret {
         
         AnnotationTypeSpaceWidget* m_typeSpaceWidget;
         
-        AnnotationCoordinateSizeRotateWidget* m_coordSizeRotateWidget;
+        AnnotationCoordinateWidget* m_coordinateOneWidget;
+        
+        AnnotationWidthHeightRotationWidget* m_widthHeightRotationWidget;
         
         AnnotationFontWidget* m_fontWidget;
         

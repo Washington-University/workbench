@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_COORDINATE_SIZE_ROTATE_WIDGET_H__
-#define __ANNOTATION_COORDINATE_SIZE_ROTATE_WIDGET_H__
+#ifndef __ANNOTATION_COORDINATE_WIDGET_H__
+#define __ANNOTATION_COORDINATE_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -24,6 +24,7 @@
 
 #include <QWidget>
 
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "EventListenerInterface.h"
 
 class QDoubleSpinBox;
@@ -31,40 +32,33 @@ class QSpinBox;
 
 namespace caret {
 
-    class Annotation;
+    class AnnotationCoordinate;
     class StructureEnumComboBox;
     
-    class AnnotationCoordinateSizeRotateWidget : public QWidget, public EventListenerInterface {
+    class AnnotationCoordinateWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        AnnotationCoordinateSizeRotateWidget(QWidget* parent = 0);
+        AnnotationCoordinateWidget(QWidget* parent = 0);
         
-        virtual ~AnnotationCoordinateSizeRotateWidget();
+        virtual ~AnnotationCoordinateWidget();
         
 
         // ADD_NEW_METHODS_HERE
 
-        void updateContent(Annotation* annotation);
+        void updateContent(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                           AnnotationCoordinate* coordinate);
         
         virtual void receiveEvent(Event* event);
 
     private slots:
         void coordinateValueChanged();
         
-        void widthValueChanged(double value);
-        
-        void heightValueChanged(double value);
-        
-        void lengthValueChanged(double value);
-        
-        void rotationValueChanged(double value);
-        
     private:
-        AnnotationCoordinateSizeRotateWidget(const AnnotationCoordinateSizeRotateWidget&);
+        AnnotationCoordinateWidget(const AnnotationCoordinateWidget&);
 
-        AnnotationCoordinateSizeRotateWidget& operator=(const AnnotationCoordinateSizeRotateWidget&);
+        AnnotationCoordinateWidget& operator=(const AnnotationCoordinateWidget&);
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -81,22 +75,14 @@ namespace caret {
         QDoubleSpinBox* m_yCoordSpinBox;
         
         QDoubleSpinBox* m_zCoordSpinBox;
-        
-        QDoubleSpinBox* m_widthSpinBox;
-        
-        QDoubleSpinBox* m_heightSpinBox;
-        
-        QDoubleSpinBox* m_lengthSpinBox;
-        
-        QDoubleSpinBox* m_rotationSpinBox;
-        
-        Annotation* m_annotation;
+
+        AnnotationCoordinate* m_coordinate;
         
     };
     
-#ifdef __ANNOTATION_COORDINATE_SIZE_ROTATE_WIDGET_DECLARE__
+#ifdef __ANNOTATION_COORDINATE_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_COORDINATE_SIZE_ROTATE_WIDGET_DECLARE__
+#endif // __ANNOTATION_COORDINATE_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_COORDINATE_SIZE_ROTATE_WIDGET_H__
+#endif  //__ANNOTATION_COORDINATE_WIDGET_H__

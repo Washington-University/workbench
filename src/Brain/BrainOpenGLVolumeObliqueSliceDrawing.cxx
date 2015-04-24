@@ -25,6 +25,7 @@
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #undef __BRAIN_OPEN_GL_VOLUME_OBLIQUE_SLICE_DRAWING_DECLARE__
 
+#include "AnnotationCoordinate.h"
 #include "AnnotationText.h"
 #include "BoundingBox.h"
 #include "Brain.h"
@@ -3302,7 +3303,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
                                                          annotationText);
 
         annotationText.setText(verticalTopText);
-        annotationText.setXYZ(textTopWindowXY[0], textTopWindowXY[1], 0.0);
+        annotationText.getCoordinate()->setXYZ(textTopWindowXY[0], textTopWindowXY[1], 0.0);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textTopWindowXY[0],
                                                          textTopWindowXY[1],
                                                          0.0,

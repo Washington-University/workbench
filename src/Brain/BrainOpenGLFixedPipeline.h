@@ -492,6 +492,9 @@ namespace caret {
         /** Source brain of content being drawn DOES NOT get deleted! */
         Brain* m_brain;
         
+        /** Index of window */
+        int32_t windowIndex;
+        
         /** Index of window tab */
         int32_t windowTabIndex;
         

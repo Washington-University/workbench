@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "CaretObject.h"
@@ -31,6 +32,12 @@
 namespace caret {
 
     class Annotation;
+    class AnnotationTwoDimensionalShape;
+    class AnnotationArrow;
+    class AnnotationBox;
+    class AnnotationCoordinate;
+    class AnnotationLine;
+    class AnnotationOval;
     class AnnotationText;
     class BrainOpenGLFixedPipeline;
     class Surface;
@@ -42,7 +49,7 @@ namespace caret {
         
         virtual ~BrainOpenGLAnnotationDrawingFixedPipeline();
         
-        void drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+        void drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                              const Surface* surfaceDisplayed);
 
         // ADD_NEW_METHODS_HERE
@@ -56,16 +63,14 @@ namespace caret {
         
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         
-        bool getAnnotationWindowCoordinates(GLdouble modelSpaceModelMatrix[16],
-                                            GLdouble modelSpaceProjectionMatrix[16],
-                                            GLint    modelSpaceViewport[4],
-                                            const Annotation* annotation,
+        bool getAnnotationWindowCoordinate(const AnnotationCoordinate* coordinate,
+                                           const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace,
                                             const Surface* surfaceDisplayed,
-                                            float windowXYZOut[3]) const;
+                                            double windowXYZOut[3]) const;
         
-        bool getAnnotationBounds(const Annotation* annotation,
+        bool getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
                                  const GLint viewport[4],
-                                 const float windowXYZ[3],
+                                 const double windowXYZ[3],
                                  double bottomLeftOut[3],
                                  double bottomRightOut[3],
                                  double topRightOut[3],
@@ -77,7 +82,48 @@ namespace caret {
                                   double topRightOut[3],
                                   double topLeftOut[3]) const;
         
-        //        std::vector<Annotation*> m_annotations;
+        void applyRotationToPoints(const double rotationAngle,
+                                   const double windowXYZ[3],
+                                   const std::vector<double*>& points3D) const;
+        
+        void drawArrow(const AnnotationArrow* arrow,
+                       const Surface* surfaceDisplayed,
+                       const uint8_t selectionColorRGBA[4],
+                       const bool selectionFlag,
+                       double selectionCenterXYZOut[3]);
+        
+        void drawBox(const AnnotationBox* box,
+                       const Surface* surfaceDisplayed,
+                       const uint8_t selectionColorRGBA[4],
+                     const bool selectionFlag,
+                     double selectionCenterXYZOut[3]);
+        
+        void drawLine(const AnnotationLine* line,
+                      const Surface* surfaceDisplayed,
+                      const uint8_t selectionColorRGBA[4],
+                      const bool selectionFlag,
+                      double selectionCenterXYZOut[3]);
+        
+        void drawOval(const AnnotationOval* oval,
+                      const Surface* surfaceDisplayed,
+                      const uint8_t selectionColorRGBA[4],
+                      const bool selectionFlag,
+                      double selectionCenterXYZOut[3]);
+        
+        void drawText(const AnnotationText* text,
+                       const Surface* surfaceDisplayed,
+                       const uint8_t selectionColorRGBA[4],
+                      const bool selectionFlag,
+                      double selectionCenterXYZOut[3]);
+        
+        /** OpenGL Model Matrix */
+        GLdouble m_modelSpaceModelMatrix[16];
+        
+        /** OpenGL Projection Matrix */
+        GLdouble m_modelSpaceProjectionMatrix[16];
+        
+        /** OpenGL Viewport */
+        GLint    m_modelSpaceViewport[4];
         
         // ADD_NEW_MEMBERS_HERE
 

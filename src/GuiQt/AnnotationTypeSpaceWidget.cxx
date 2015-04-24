@@ -27,6 +27,7 @@
 #include <QLabel>
 
 #include "Annotation.h"
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
@@ -118,10 +119,10 @@ AnnotationTypeSpaceWidget::updateContent(Annotation* annotation)
 {
     m_annotation = annotation;
     
-    if (m_annotation != NULL) {
-        m_coordinateSpaceComboBox->setSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(m_annotation->getCoordinateSpace());
-        m_typeComboBox->setSelectedItem<AnnotationTypeEnum, AnnotationTypeEnum::Enum>(m_annotation->getType());
-    }
+//    if (m_annotation != NULL) {
+//        m_coordinateSpaceComboBox->setSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(m_annotation->getCoordinateSpace());
+//        m_typeComboBox->setSelectedItem<AnnotationTypeEnum, AnnotationTypeEnum::Enum>(m_annotation->getType());
+//    }
 }
 
 /**
@@ -130,9 +131,9 @@ AnnotationTypeSpaceWidget::updateContent(Annotation* annotation)
 void
 AnnotationTypeSpaceWidget::coordinateSpaceEnumChanged()
 {
-    if (m_annotation != NULL) {
-        m_annotation->setCoordinateSpace(m_coordinateSpaceComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>());
-    }
+//    if (m_annotation != NULL) {
+//        m_annotation->setCoordinateSpace(m_coordinateSpaceComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>());
+//    }
 }
 
 /**

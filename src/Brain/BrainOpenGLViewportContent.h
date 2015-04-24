@@ -34,6 +34,7 @@ namespace caret {
     public:
         BrainOpenGLViewportContent(const int windowViewport[4],
                                    const int modelViewport[4],
+                                   const int windowIndex,
                                    const bool highlightTabFlag,
                                    Brain* brain,
                                    BrowserTabContent* browserTabContent);
@@ -45,6 +46,8 @@ namespace caret {
         const int* getModelViewport() const;
         
         const int* getWindowViewport() const;
+        
+        int getWindowIndex() const;
         
         BrowserTabContent* getBrowserTabContent();
         
@@ -68,6 +71,8 @@ namespace caret {
         BrowserTabContent* m_browserTabContent;
         
         Brain* m_brain;
+        
+        int m_windowIndex;
         
         bool m_highlightTab;
         
