@@ -1249,11 +1249,11 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             mappingMostPositive  = this->getUserScalePositiveMaximum();
             break;
     }
-    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive);  // JWH 24 April 2015  * 0.99999f;//reserve [0, 0.00001] as "zero" range
+    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive) * (1.0f - SMALL_POSITIVE);//if the "zero" color is extended to more than exact zeros, this correction prevents normalization from returning something greater than 1
     if (mappingPositiveDenominator == 0.0) {
         mappingPositiveDenominator = 1.0;
     }
-    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative);  // JWH 24 April 2015 * 0.99999f;
+    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative) * (1.0f + SMALL_NEGATIVE);//ditto, but SMALL_NEGATIVE is negative
     if (mappingNegativeDenominator == 0.0) {
         mappingNegativeDenominator = 1.0;
     }
