@@ -1763,33 +1763,15 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
         {
             CaretLogWarning("found invalid NIFTI datatype code while adding file information");
         }
-        vector<int64_t> dims = myHeader.getDimensions();
-        const int32_t numDims = static_cast<int32_t>(dims.size());
-        dataFileInformation.addNameAndValue(("Dim[0]"),
-                                            AString::number(numDims));
-        for (int32_t i = 0; i < numDims; i++) {
-            dataFileInformation.addNameAndValue(("Dim["
-                                                 + AString::number(i + 1)
-                                                 + "]"),
-                                                AString::number(dims[i]));
-        }
     }
-    else {
-        int64_t dimI, dimJ, dimK, dimMaps, dimComponents;
-        getDimensions(dimI, dimJ, dimK, dimMaps, dimComponents);
-        
-        dataFileInformation.addNameAndValue("Dim I",
-                                            AString::number(dimI));
-        dataFileInformation.addNameAndValue("Dim J",
-                                            AString::number(dimJ));
-        dataFileInformation.addNameAndValue("Dim K",
-                                            AString::number(dimK));
-        dataFileInformation.addNameAndValue("Dim Maps",
-                                            AString::number(dimMaps));
-        dataFileInformation.addNameAndValue("Dim Components",
-                                            AString::number(dimComponents));
+    AString dimString;
+    vector<int64_t> dims = getOriginalDimensions();
+    for (int i = 0; i < (int)dims.size(); ++i)
+    {
+        if (i != 0) dimString += ", ";
+        dimString += AString::number(dims[i]);
     }
-
+    dataFileInformation.addNameAndValue("Dimensions", dimString);
     const int64_t zero64 = 0;
     if (indexValid(zero64, zero64, zero64)) {
         float x, y, z;
