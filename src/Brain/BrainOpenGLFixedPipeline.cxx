@@ -6226,7 +6226,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
-        annotationText.setForegroundColor(m_foregroundColorFloat);
+        annotationText.setCustomForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
         this->drawTextAtViewportCoords(textLeftX,
                                        textY,
@@ -6248,7 +6248,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         }
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
-        annotationText.setForegroundColor(m_foregroundColorFloat);
+        annotationText.setCustomForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
         this->drawTextAtViewportCoords(textCenterX,
                                        textY,
@@ -6261,7 +6261,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
-        annotationText.setForegroundColor(m_foregroundColorFloat);
+        annotationText.setCustomForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textRight);
         this->drawTextAtViewportCoords(textRightX,
                                        textY,

@@ -63,10 +63,7 @@ AnnotationFile::AnnotationFile()
         at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         coord->setXYZ(0.4, 0.2, 0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::WHITE);
         at->setText("TAB-4-LEFT-MIDDLE,0.4, 0.2");
         addAnnotation(at);
     }
@@ -79,12 +76,8 @@ AnnotationFile::AnnotationFile()
         at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
         coord->setXYZ(0.5, 0.9, 0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::BLUE, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
-        CaretColorEnum::toRGBFloat(CaretColorEnum::GRAY, rgba);
-        at->setBackgroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::BLUE);
+        at->setBackgroundColor(CaretColorEnum::GRAY);
         at->setFontSize(AnnotationFontSizeEnum::SIZE20);
         at->setBoldEnabled(true);
         at->setText("WINDOW-CENTER-MIDDLE,0.5,0.9");
@@ -100,12 +93,8 @@ AnnotationFile::AnnotationFile()
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         coord->setXYZ(0.1, 0.6, 0);
         at->setRotationAngle(30.0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::FUCHSIA, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
-        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
-        at->setBackgroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::FUCHSIA);
+        at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setFontSize(AnnotationFontSizeEnum::SIZE16);
         at->setBoldEnabled(true);
         at->setText("Rotated");
@@ -121,12 +110,8 @@ AnnotationFile::AnnotationFile()
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
         at->setOrientation(AnnotationTextOrientationEnum::STACKED);
         coord->setXYZ(0.9, 0.5, 0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::PURPLE, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
-        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
-        at->setBackgroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::PURPLE);
+        at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setFontSize(AnnotationFontSizeEnum::SIZE24);
         at->setBoldEnabled(false);
         at->setText("STACKED-VERT-0.9-0.5");
@@ -142,12 +127,8 @@ AnnotationFile::AnnotationFile()
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
         at->setOrientation(AnnotationTextOrientationEnum::STACKED);
         coord->setXYZ(0.7, 0.7, 0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::TEAL, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
-        CaretColorEnum::toRGBFloat(CaretColorEnum::SILVER, rgba);
-        at->setBackgroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::TEAL);
+        at->setBackgroundColor(CaretColorEnum::SILVER);
         at->setFontSize(AnnotationFontSizeEnum::SIZE24);
         at->setBoldEnabled(false);
         at->setText("STACK-ROT");
@@ -160,12 +141,8 @@ AnnotationFile::AnnotationFile()
         at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
         at->setWindowIndex(0);
         coord->setXYZ(0.5, 0.5, 0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::GREEN, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
-        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
-        at->setBackgroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::GREEN);
+        at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setWidth(0.2);
         at->setHeight(0.10);
         at->setRotationAngle(-20.0);
@@ -179,12 +156,8 @@ AnnotationFile::AnnotationFile()
         startCoord->setXYZ(0.1, 0.1, 0);
         AnnotationCoordinate* endCoord = at->getEndCoordinate();
         endCoord->setXYZ(0.2, 0.3, 0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::RED, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
-        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
-        at->setBackgroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::RED);
+        at->setBackgroundColor(CaretColorEnum::WHITE);
         addAnnotation(at);
     }
 
@@ -197,12 +170,8 @@ AnnotationFile::AnnotationFile()
         AnnotationCoordinate* endCoord = at->getEndCoordinate();
         endCoord->setXYZ(0.4, 0.3, 0);
         //endCoord->setXYZ(0.7, 0.4, 0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::GREEN, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
-        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
-        at->setBackgroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::GREEN);
+        at->setBackgroundColor(CaretColorEnum::WHITE);
         addAnnotation(at);
     }
     
@@ -212,10 +181,7 @@ AnnotationFile::AnnotationFile()
         at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
         at->setWindowIndex(0);
         coord->setXYZ(0.5, 0.2, 0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::BLUE, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::BLUE);
         at->setWidth(0.05);
         at->setHeight(0.1);
         at->setRotationAngle(30.0);
@@ -231,12 +197,8 @@ AnnotationFile::AnnotationFile()
         at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         at->setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
         coord->setXYZ(0.95, 0.05, 0);
-        float rgba[4];
-        CaretColorEnum::toRGBFloat(CaretColorEnum::TEAL, rgba);
-        rgba[3] = 1.0;
-        at->setForegroundColor(rgba);
-        CaretColorEnum::toRGBFloat(CaretColorEnum::WHITE, rgba);
-        at->setBackgroundColor(rgba);
+        at->setForegroundColor(CaretColorEnum::TEAL);
+        at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setFontSize(AnnotationFontSizeEnum::SIZE18);
         at->setBoldEnabled(true);
         at->setText(AString::number(iTab + 1));

@@ -594,8 +594,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
                         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
-                        annotationText.setForegroundColor(foregroundRGBA);
-                        annotationText.setBackgroundColor(backgroundRGBA);
+                        annotationText.setCustomForegroundColor(foregroundRGBA);
+                        annotationText.setCustomBackgroundColor(backgroundRGBA);
                         annotationText.setText(coordText);
                         m_fixedPipelineDrawing->drawTextAtViewportCoords((vpSizeX - 5),
                                                                          5,
@@ -3584,8 +3584,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setBoldEnabled(true);
         annotationText.setFontSize(fontSize);
-        annotationText.setForegroundColor(horizontalAxisRGBA);
-        annotationText.setBackgroundColor(backgroundRGBA);
+        annotationText.setCustomForegroundColor(horizontalAxisRGBA);
+        annotationText.setCustomBackgroundColor(backgroundRGBA);
         annotationText.setText(horizontalLeftText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textLeftWindowXY[0],
                                                          textLeftWindowXY[1],
@@ -3598,7 +3598,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                                                          0.0,
                                                          annotationText);
         
-        annotationText.setForegroundColor(verticalAxisRGBA);
+        annotationText.setCustomForegroundColor(verticalAxisRGBA);
         annotationText.setText(verticalBottomText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textBottomWindowXY[0],
                                                          textBottomWindowXY[1],
@@ -3874,7 +3874,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
         
         if (drawLabelsFlag) {
-            annotationText.setForegroundColor(blue);
+            annotationText.setCustomForegroundColor(blue);
             annotationText.setText("I");
             m_fixedPipelineDrawing->drawTextAtModelCoords(axialTextMin,
                                                           annotationText);
@@ -3892,7 +3892,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         }
         
         if (drawLabelsFlag) {
-            annotationText.setForegroundColor(green);
+            annotationText.setCustomForegroundColor(green);
             annotationText.setText("L");
             m_fixedPipelineDrawing->drawTextAtModelCoords(coronalTextMin,
                                                           annotationText);
@@ -3910,7 +3910,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         }
         
         if (drawLabelsFlag) {
-            annotationText.setForegroundColor(red);
+            annotationText.setCustomForegroundColor(red);
             annotationText.setText("P");
             m_fixedPipelineDrawing->drawTextAtModelCoords(paraTextMin,
                                                           annotationText);

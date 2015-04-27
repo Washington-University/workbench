@@ -944,7 +944,7 @@ FtglFontTextRenderer::applyBackgroundColoring(const AnnotationText& annotationTe
                                               const double topLeftOut[3])
 {
     float backgroundColor[4];
-    annotationText.getBackgroundColor(backgroundColor);
+    annotationText.getBackgroundColorRGBA(backgroundColor);
     if (backgroundColor[3] > 0.0) {
         glColor4fv(backgroundColor);
         glBegin(GL_TRIANGLE_STRIP);
@@ -967,7 +967,8 @@ FtglFontTextRenderer::applyBackgroundColoring(const AnnotationText& annotationTe
 void
 FtglFontTextRenderer::applyForegroundColoring(const AnnotationText& annotationText)
 {
-    const float* foregroundColor = annotationText.getForegroundColor();
+    float foregroundColor[4];
+    annotationText.getForegroundColorRGBA(foregroundColor);
     glColor4fv(foregroundColor);
 }
 

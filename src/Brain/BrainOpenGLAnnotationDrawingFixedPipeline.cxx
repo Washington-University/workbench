@@ -1091,7 +1091,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
     }
     else {
         float backgroundRGBA[4];
-        arrow->getBackgroundColor(backgroundRGBA);
+        arrow->getBackgroundColorRGBA(backgroundRGBA);
         if (backgroundRGBA[3] > 0.0) {
             glColor3fv(backgroundRGBA);
             drawBackgroundFlag = true;
@@ -1112,7 +1112,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
     
     if ( ! selectionFlag) {
         float foregroundRGBA[4];
-        arrow->getForegroundColor(foregroundRGBA);
+        arrow->getForegroundColorRGBA(foregroundRGBA);
         glColor3fv(foregroundRGBA);
         if (arrow->isSelected()) {
             glLineWidth(lineWidth * 2.0);
@@ -1162,7 +1162,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
     }
     else {
         float backgroundRGBA[4];
-        box->getBackgroundColor(backgroundRGBA);
+        box->getBackgroundColorRGBA(backgroundRGBA);
         if (backgroundRGBA[3] > 0.0) {
             glColor3fv(backgroundRGBA);
             drawBackgroundFlag = true;
@@ -1203,7 +1203,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
     
     if ( ! selectionFlag) {
         float foregroundRGBA[4];
-        box->getForegroundColor(foregroundRGBA);
+        box->getForegroundColorRGBA(foregroundRGBA);
         glColor3fv(foregroundRGBA);
         if (box->isSelected()) {
             glLineWidth(4.0);
@@ -1255,7 +1255,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
         backgroundRGBA[3] = 255;
     }
     else {
-        oval->getBackgroundColor(backgroundRGBA);
+        oval->getBackgroundColorRGBA(backgroundRGBA);
         if (backgroundRGBA[3] > 0) {
             drawBackgroundFlag = true;
         }
@@ -1302,7 +1302,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
     
     if ( ! selectionFlag) {
         uint8_t foregroundRGBA[4];
-        oval->getForegroundColor(foregroundRGBA);
+        oval->getForegroundColorRGBA(foregroundRGBA);
         if (oval->isSelected()) {
             m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
                                                            majorAxis+2,
@@ -1350,7 +1350,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
     }
     else {
         float backgroundRGBA[4];
-        text->getBackgroundColor(backgroundRGBA);
+        text->getBackgroundColorRGBA(backgroundRGBA);
         if (backgroundRGBA[3] > 0.0) {
             glColor3fv(backgroundRGBA);
             drawBackgroundFlag = true;
@@ -1396,7 +1396,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
         
         if (text->isSelected()) {
             float rgba[4];
-            text->getForegroundColor(rgba);
+            text->getForegroundColorRGBA(rgba);
             glColor4fv(rgba);
             glLineWidth(3.0);
             glBegin(GL_LINE_LOOP);
@@ -1461,7 +1461,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
     }
     else {
         float backgroundRGBA[4];
-        line->getBackgroundColor(backgroundRGBA);
+        line->getBackgroundColorRGBA(backgroundRGBA);
         if (backgroundRGBA[3] > 0.0) {
             glColor3fv(backgroundRGBA);
             drawBackgroundFlag = true;
@@ -1477,7 +1477,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
     
     if ( ! selectionFlag) {
         float foregroundRGBA[4];
-        line->getForegroundColor(foregroundRGBA);
+        line->getForegroundColorRGBA(foregroundRGBA);
         if (line->isSelected()) {
             glLineWidth(3.0);
         }

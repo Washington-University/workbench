@@ -23,6 +23,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
+#include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "SceneableInterface.h"
 
@@ -55,25 +56,37 @@ namespace caret {
         
         void setWindowIndex(const int32_t windowIndex);
         
-        void getForegroundColor(float rgbaOut[4]) const;
+        CaretColorEnum::Enum getForegroundColor() const;
+
+        void setForegroundColor(const CaretColorEnum::Enum color);
+
+        void getForegroundColorRGBA(float rgbaOut[4]) const;
         
-        void getForegroundColor(uint8_t rgbaOut[4]) const;
+        void getForegroundColorRGBA(uint8_t rgbaOut[4]) const;
         
-        const float* getForegroundColor() const;
+        CaretColorEnum::Enum getBackgroundColor() const;
         
-        void setForegroundColor(const float rgba[4]);
+        void setBackgroundColor(const CaretColorEnum::Enum color);
         
-        void setForegroundColor(const uint8_t rgba[4]);
+        void getBackgroundColorRGBA(float rgbaOut[4]) const;
         
-        void getBackgroundColor(float rgbaOut[4]) const;
+        void getBackgroundColorRGBA(uint8_t rgbaOut[4]) const;
         
-        void getBackgroundColor(uint8_t rgbaOut[4]) const;
+        void getCustomForegroundColor(float rgbaOut[4]) const;
         
-        const float* getBackgroundColor() const;
+        void getCustomForegroundColor(uint8_t rgbaOut[4]) const;
         
-        void setBackgroundColor(const float rgba[4]);
+        void setCustomForegroundColor(const float rgba[4]);
         
-        void setBackgroundColor(const uint8_t rgba[4]);
+        void setCustomForegroundColor(const uint8_t rgba[4]);
+        
+        void getCustomBackgroundColor(float rgbaOut[4]) const;
+        
+        void getCustomBackgroundColor(uint8_t rgbaOut[4]) const;
+        
+        void setCustomBackgroundColor(const float rgba[4]);
+        
+        void setCustomBackgroundColor(const uint8_t rgba[4]);
         
         bool isSelected() const;
         
@@ -116,9 +129,13 @@ namespace caret {
         
         int32_t m_windowIndex;
         
-        float m_colorForeground[4];
+        CaretColorEnum::Enum m_colorForeground;
         
-        float m_colorBackground[4];
+        CaretColorEnum::Enum m_colorBackground;
+        
+        float m_customColorForeground[4];
+        
+        float m_customColorBackground[4];
         
         mutable bool m_selectedFlag;
         

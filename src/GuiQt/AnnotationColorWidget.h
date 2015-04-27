@@ -62,6 +62,10 @@ namespace caret {
 
         AnnotationColorWidget& operator=(const AnnotationColorWidget&);
 
+        void updateBackgroundColorButton();
+        
+        void updateForegroundColorButton();
+        
         const int32_t m_browserWindowIndex;
         
         QToolButton* m_foregroundToolButton;

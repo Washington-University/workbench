@@ -102,14 +102,16 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_coordinateSpace     = obj.m_coordinateSpace;
     m_tabIndex            = obj.m_tabIndex;
     m_windowIndex         = obj.m_windowIndex;
-    m_colorBackground[0]  = obj.m_colorBackground[0];
-    m_colorBackground[1]  = obj.m_colorBackground[1];
-    m_colorBackground[2]  = obj.m_colorBackground[2];
-    m_colorBackground[3]  = obj.m_colorBackground[3];
-    m_colorForeground[0]  = obj.m_colorForeground[0];
-    m_colorForeground[1]  = obj.m_colorForeground[1];
-    m_colorForeground[2]  = obj.m_colorForeground[2];
-    m_colorForeground[3]  = obj.m_colorForeground[3];
+    m_colorForeground     = obj.m_colorForeground;
+    m_colorBackground     = obj.m_colorBackground;
+    m_customColorBackground[0]  = obj.m_customColorBackground[0];
+    m_customColorBackground[1]  = obj.m_customColorBackground[1];
+    m_customColorBackground[2]  = obj.m_customColorBackground[2];
+    m_customColorBackground[3]  = obj.m_customColorBackground[3];
+    m_customColorForeground[0]  = obj.m_customColorForeground[0];
+    m_customColorForeground[1]  = obj.m_customColorForeground[1];
+    m_customColorForeground[2]  = obj.m_customColorForeground[2];
+    m_customColorForeground[3]  = obj.m_customColorForeground[3];
  
     /*
      * Selected status is NOT copied.
@@ -127,18 +129,21 @@ Annotation::initializeAnnotationMembers()
     
     m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     
-    m_tabIndex = -1;
+    m_tabIndex    = -1;
     m_windowIndex = -1;
     
-    m_colorBackground[0]  = 0.0;
-    m_colorBackground[1]  = 0.0;
-    m_colorBackground[2]  = 0.0;
-    m_colorBackground[3]  = 0.0;
+    m_colorBackground = CaretColorEnum::BLACK;
+    m_colorForeground = CaretColorEnum::WHITE;
     
-    m_colorForeground[0]  = 1.0;
-    m_colorForeground[1]  = 1.0;
-    m_colorForeground[2]  = 1.0;
-    m_colorForeground[3]  = 1.0;
+    m_customColorBackground[0]  = 0.0;
+    m_customColorBackground[1]  = 0.0;
+    m_customColorBackground[2]  = 0.0;
+    m_customColorBackground[3]  = 0.0;
+    
+    m_customColorForeground[0]  = 1.0;
+    m_customColorForeground[1]  = 1.0;
+    m_customColorForeground[2]  = 1.0;
+    m_customColorForeground[3]  = 1.0;
     
     /*
      * Note: The 'const' members are not saved to the scene as they 
@@ -154,10 +159,10 @@ Annotation::initializeAnnotationMembers()
                           &m_tabIndex);
     m_sceneAssistant->add("m_windowIndex",
                           &m_windowIndex);
-    m_sceneAssistant->addArray("m_colorBackground",
-                               m_colorBackground, 4, 0.0);
-    m_sceneAssistant->addArray("m_colorForeground",
-                               m_colorForeground, 4, 1.0);
+    m_sceneAssistant->addArray("m_customColorBackground",
+                               m_customColorBackground, 4, 0.0);
+    m_sceneAssistant->addArray("m_customColorForeground",
+                               m_customColorForeground, 4, 1.0);
 }
 
 
@@ -253,13 +258,111 @@ Annotation::toString() const
 }
 
 /**
- * @return
- *    Foreground color RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ * @return The foreground color.
  */
-const float*
+CaretColorEnum::Enum
 Annotation::getForegroundColor() const
 {
     return m_colorForeground;
+}
+
+/**
+ * Set the foreground color.
+ *
+ * @param color
+ *     New value for foreground color.
+ */
+void
+Annotation::setForegroundColor(const CaretColorEnum::Enum color)
+{
+    if (m_colorForeground != color) {
+        m_colorForeground = color;
+        setModified();
+    }
+}
+
+/**
+ * Get the foreground color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0.0 to 1.0.
+ */
+void
+Annotation::getForegroundColorRGBA(float rgbaOut[4]) const
+{
+    CaretColorEnum::toRGBFloat(m_colorForeground,
+                               rgbaOut);
+    rgbaOut[3] = 1.0;
+}
+
+/**
+ * Get the foreground color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0 to 255.
+ */
+void
+Annotation::getForegroundColorRGBA(uint8_t rgbaOut[4]) const
+{
+    CaretColorEnum::toRGBByte(m_colorForeground,
+                               rgbaOut);
+    rgbaOut[3] = 255;
+}
+
+/**
+ * @return The background color.
+ */
+CaretColorEnum::Enum
+Annotation::getBackgroundColor() const
+{
+    return m_colorBackground;
+}
+
+/**
+ * Set the background color.
+ *
+ * @param color
+ *     New value for background color.
+ */
+void
+Annotation::setBackgroundColor(const CaretColorEnum::Enum color)
+{
+    if (m_colorBackground != color) {
+        m_colorBackground = color;
+        setModified();
+    }
+}
+
+/**
+ * Get the foreground color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0.0 to 1.0.
+ */
+void
+Annotation::getBackgroundColorRGBA(float rgbaOut[4]) const
+{
+    CaretColorEnum::toRGBFloat(m_colorBackground,
+                               rgbaOut);
+    rgbaOut[3] = 1.0;
+}
+
+/**
+ * Get the foreground color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0 to 255.
+ */
+void
+Annotation::getBackgroundColorRGBA(uint8_t rgbaOut[4]) const
+{
+    CaretColorEnum::toRGBByte(m_colorBackground,
+                              rgbaOut);
+    rgbaOut[3] = 255;
 }
 
 /**
@@ -269,12 +372,12 @@ Annotation::getForegroundColor() const
  *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
  */
 void
-Annotation::getForegroundColor(float rgbaOut[4]) const
+Annotation::getCustomForegroundColor(float rgbaOut[4]) const
 {
-    rgbaOut[0] = m_colorForeground[0];
-    rgbaOut[1] = m_colorForeground[1];
-    rgbaOut[2] = m_colorForeground[2];
-    rgbaOut[3] = m_colorForeground[3];
+    rgbaOut[0] = m_customColorForeground[0];
+    rgbaOut[1] = m_customColorForeground[1];
+    rgbaOut[2] = m_customColorForeground[2];
+    rgbaOut[3] = m_customColorForeground[3];
 }
 
 /**
@@ -284,12 +387,12 @@ Annotation::getForegroundColor(float rgbaOut[4]) const
  *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
  */
 void
-Annotation::getForegroundColor(uint8_t rgbaOut[4]) const
+Annotation::getCustomForegroundColor(uint8_t rgbaOut[4]) const
 {
-    rgbaOut[0] = static_cast<uint8_t>(m_colorForeground[0] * 255.0);
-    rgbaOut[1] = static_cast<uint8_t>(m_colorForeground[1] * 255.0);
-    rgbaOut[2] = static_cast<uint8_t>(m_colorForeground[2] * 255.0);
-    rgbaOut[3] = static_cast<uint8_t>(m_colorForeground[3] * 255.0);
+    rgbaOut[0] = static_cast<uint8_t>(m_customColorForeground[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_customColorForeground[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_customColorForeground[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(m_customColorForeground[3] * 255.0);
 }
 
 /**
@@ -299,11 +402,11 @@ Annotation::getForegroundColor(uint8_t rgbaOut[4]) const
  *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
  */
 void
-Annotation::setForegroundColor(const float rgba[4])
+Annotation::setCustomForegroundColor(const float rgba[4])
 {
     for (int32_t i = 0; i < 4; i++) {
-        if (rgba[i] != m_colorForeground[i]) {
-            m_colorForeground[i] = rgba[i];
+        if (rgba[i] != m_customColorForeground[i]) {
+            m_customColorForeground[i] = rgba[i];
             setModified();
         }
     }
@@ -316,26 +419,15 @@ Annotation::setForegroundColor(const float rgba[4])
  *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
  */
 void
-Annotation::setForegroundColor(const uint8_t rgba[4])
+Annotation::setCustomForegroundColor(const uint8_t rgba[4])
 {
     for (int32_t i = 0; i < 4; i++) {
         const float component = rgba[i] / 255.0;
-        if (component != m_colorForeground[i]) {
-            m_colorForeground[i] = component;
+        if (component != m_customColorForeground[i]) {
+            m_customColorForeground[i] = component;
             setModified();
         }
     }
-}
-
-/**
- * @return
- *    Background color RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
- *    The background color is applied only when its alpha component is greater than zero.
- */
-const float*
-Annotation::getBackgroundColor() const
-{
-    return m_colorBackground;
 }
 
 /**
@@ -345,12 +437,12 @@ Annotation::getBackgroundColor() const
  *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
  */
 void
-Annotation::getBackgroundColor(float rgbaOut[4]) const
+Annotation::getCustomBackgroundColor(float rgbaOut[4]) const
 {
-    rgbaOut[0] = m_colorBackground[0];
-    rgbaOut[1] = m_colorBackground[1];
-    rgbaOut[2] = m_colorBackground[2];
-    rgbaOut[3] = m_colorBackground[3];
+    rgbaOut[0] = m_customColorBackground[0];
+    rgbaOut[1] = m_customColorBackground[1];
+    rgbaOut[2] = m_customColorBackground[2];
+    rgbaOut[3] = m_customColorBackground[3];
 }
 
 /**
@@ -360,12 +452,12 @@ Annotation::getBackgroundColor(float rgbaOut[4]) const
  *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
  */
 void
-Annotation::getBackgroundColor(uint8_t rgbaOut[4]) const
+Annotation::getCustomBackgroundColor(uint8_t rgbaOut[4]) const
 {
-    rgbaOut[0] = static_cast<uint8_t>(m_colorBackground[0] * 255.0);
-    rgbaOut[1] = static_cast<uint8_t>(m_colorBackground[1] * 255.0);
-    rgbaOut[2] = static_cast<uint8_t>(m_colorBackground[2] * 255.0);
-    rgbaOut[3] = static_cast<uint8_t>(m_colorBackground[3] * 255.0);
+    rgbaOut[0] = static_cast<uint8_t>(m_customColorBackground[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_customColorBackground[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_customColorBackground[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(m_customColorBackground[3] * 255.0);
 }
 
 /**
@@ -376,11 +468,11 @@ Annotation::getBackgroundColor(uint8_t rgbaOut[4]) const
  *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
  */
 void
-Annotation::setBackgroundColor(const float rgba[4])
+Annotation::setCustomBackgroundColor(const float rgba[4])
 {
     for (int32_t i = 0; i < 4; i++) {
-        if (rgba[i] != m_colorBackground[i]) {
-            m_colorBackground[i] = rgba[i];
+        if (rgba[i] != m_customColorBackground[i]) {
+            m_customColorBackground[i] = rgba[i];
             setModified();
         }
     }
@@ -394,12 +486,12 @@ Annotation::setBackgroundColor(const float rgba[4])
  *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
  */
 void
-Annotation::setBackgroundColor(const uint8_t rgba[4])
+Annotation::setCustomBackgroundColor(const uint8_t rgba[4])
 {
     for (int32_t i = 0; i < 4; i++) {
         const float component = rgba[i] / 255.0;
-        if (component != m_colorBackground[i]) {
-            m_colorBackground[i] = component;
+        if (component != m_customColorBackground[i]) {
+            m_customColorBackground[i] = component;
             setModified();
         }
     }
