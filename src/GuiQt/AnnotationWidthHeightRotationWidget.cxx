@@ -30,6 +30,7 @@
 
 #include "AnnotationTwoDimensionalShape.h"
 #include "CaretAssert.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "StructureEnumComboBox.h"
 #include "WuQFactory.h"
@@ -48,8 +49,10 @@ using namespace caret;
 /**
  * Constructor.
  */
-AnnotationWidthHeightRotationWidget::AnnotationWidthHeightRotationWidget(QWidget* parent)
-: QWidget(parent)
+AnnotationWidthHeightRotationWidget::AnnotationWidthHeightRotationWidget(const int32_t browserWindowIndex,
+                                                                         QWidget* parent)
+: QWidget(parent),
+m_browserWindowIndex(browserWindowIndex)
 {
     m_annotation2D = NULL;
     
@@ -144,6 +147,7 @@ AnnotationWidthHeightRotationWidget::heightValueChanged(double value)
 {
     if (m_annotation2D != NULL) {
         m_annotation2D->setHeight(value);
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
     }
 }
 
@@ -158,6 +162,7 @@ AnnotationWidthHeightRotationWidget::widthValueChanged(double value)
 {
     if (m_annotation2D != NULL) {
         m_annotation2D->setWidth(value);
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
     }
 }
 
@@ -172,6 +177,7 @@ AnnotationWidthHeightRotationWidget::rotationValueChanged(double value)
 {
     if (m_annotation2D != NULL) {
         m_annotation2D->setRotationAngle(value);
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
     }
 }
 

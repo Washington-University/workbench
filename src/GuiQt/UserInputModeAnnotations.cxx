@@ -29,7 +29,8 @@
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
 #include "CursorEnum.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventAnnotation.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "MouseEvent.h"
@@ -52,11 +53,12 @@ using namespace caret;
  */
 UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
 : UserInputModeView(UserInputModeAbstract::ANNOTATIONS),
-m_windowIndex(windowIndex)
+m_browserWindowIndex(windowIndex)
 {
     m_mode = MODE_NEW;
     
-    m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this);
+    m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
+                                                                 m_browserWindowIndex);
     setWidgetForToolBar(m_annotationToolsWidget);
 }
 
@@ -322,6 +324,8 @@ UserInputModeAnnotations::processMouseLeftClick(const MouseEvent& mouseEvent,
     
     //std::cout << "Mouse click: " << mouseX << ", " << mouseY << std::endl;
     
+    Annotation* annotationToEdit = NULL;
+    
     /*
      * NOTE: When selecting annotations:
      *    (A) When the mouse is clicked WITHOUT the SHIFT key down, the user is in
@@ -372,6 +376,10 @@ UserInputModeAnnotations::processMouseLeftClick(const MouseEvent& mouseEvent,
          */
         if (selectedAnnotation != NULL) {
             selectedAnnotation->setSelected(true);
+            
+            if ( ! shiftKeyDownFlag) {
+                annotationToEdit = selectedAnnotation;
+            }
         }
     }
     else {
@@ -386,7 +394,14 @@ UserInputModeAnnotations::processMouseLeftClick(const MouseEvent& mouseEvent,
         }
     }
 
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    
+    if (annotationToEdit != NULL) {
+        EventAnnotation event;
+        event.setModeEditAnnotation(m_browserWindowIndex,
+                                    annotationToEdit);
+        EventManager::get()->sendEvent(event.getPointer());
+    }
 }
 
 /**

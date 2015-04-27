@@ -40,7 +40,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationCoordinateWidget(QWidget* parent = 0);
+        AnnotationCoordinateWidget(const int32_t browserWindowIndex,
+                                   QWidget* parent = 0);
         
         virtual ~AnnotationCoordinateWidget();
         
@@ -62,6 +63,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        const int32_t m_browserWindowIndex;
+        
         QWidget* m_surfaceWidget;
         
         QWidget* m_coordinateWidget;

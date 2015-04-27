@@ -43,8 +43,10 @@ using namespace caret;
  * @param parent
  *     The parent widget.
  */
-AnnotationMenuArrange::AnnotationMenuArrange(QWidget* parent)
-: QMenu(parent)
+AnnotationMenuArrange::AnnotationMenuArrange(const int32_t browserWindowIndex,
+                                             QWidget* parent)
+: QMenu(parent),
+m_browserWindowIndex(browserWindowIndex)
 {
     addAction("Group");
     addAction("Ungroup");

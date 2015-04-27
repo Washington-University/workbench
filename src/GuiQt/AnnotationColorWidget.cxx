@@ -30,8 +30,10 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "Annotation.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumMenu.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "WuQtUtilities.h"
 
@@ -51,8 +53,10 @@ using namespace caret;
  * @param parent
  *     Parent for this widget.
  */
-AnnotationColorWidget::AnnotationColorWidget(QWidget* parent)
-: QWidget(parent)
+AnnotationColorWidget::AnnotationColorWidget(const int32_t browserWindowIndex,
+                                             QWidget* parent)
+: QWidget(parent),
+m_browserWindowIndex(browserWindowIndex)
 {
     m_annotation = NULL;
     
@@ -159,6 +163,8 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
     QIcon icon(pm);
     
     m_backgroundColorAction->setIcon(icon);
+
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
 /**
@@ -212,6 +218,8 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
     }
     
     m_foregroundColorAction->setIcon(QIcon(pm));
+
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());    
 }
 
 /**

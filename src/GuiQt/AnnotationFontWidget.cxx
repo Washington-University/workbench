@@ -34,6 +34,7 @@
 #include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "WuQtUtilities.h"
 using namespace caret;
@@ -52,8 +53,10 @@ using namespace caret;
  * @param parent
  *     Parent for this widget.
  */
-AnnotationFontWidget::AnnotationFontWidget(QWidget* parent)
-: QWidget(parent)
+AnnotationFontWidget::AnnotationFontWidget(const int32_t browserWindowIndex,
+                                           QWidget* parent)
+: QWidget(parent),
+m_browserWindowIndex(browserWindowIndex)
 {
     m_annotationText = NULL;
     
@@ -242,6 +245,8 @@ AnnotationFontWidget::slotItemValueChanged()
         m_annotationText->setBoldEnabled(m_boldFontAction->isChecked());
         m_annotationText->setItalicEnabled(m_italicFontAction->isChecked());
         m_annotationText->setUnderlineEnabled(m_underlineFontAction->isChecked());
+        
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
     }
 }
 

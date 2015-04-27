@@ -39,7 +39,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationWidthHeightRotationWidget(QWidget* parent = 0);
+        AnnotationWidthHeightRotationWidget(const int32_t browserWindowIndex,
+                                            QWidget* parent = 0);
         
         virtual ~AnnotationWidthHeightRotationWidget();
         
@@ -64,6 +65,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        const int32_t m_browserWindowIndex;
+        
         QDoubleSpinBox* m_widthSpinBox;
         
         QDoubleSpinBox* m_heightSpinBox;

@@ -30,6 +30,7 @@ class QComboBox;
 
 namespace caret {
 
+    class Annotation;
     class AnnotationColorWidget;
     class AnnotationCoordinateWidget;
     class AnnotationFontWidget;
@@ -43,7 +44,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        UserInputModeAnnotationsWidget(UserInputModeAnnotations* inputModeAnnotations);
+        UserInputModeAnnotationsWidget(UserInputModeAnnotations* inputModeAnnotations,
+                                       const int32_t browserWindowIndex);
         
         virtual ~UserInputModeAnnotationsWidget();
         
@@ -61,6 +63,8 @@ namespace caret {
         
         QWidget* createArrangeMenuToolButton();
         
+        const int32_t m_browserWindowIndex;
+        
         UserInputModeAnnotations* m_inputModeAnnotations;
         
         AnnotationTypeSpaceWidget* m_typeSpaceWidget;
@@ -75,6 +79,8 @@ namespace caret {
         
         AnnotationTextAlignmentWidget* m_alignmentWidget;
         
+        
+        Annotation* m_annotationBeingEdited;
         // ADD_NEW_MEMBERS_HERE
 
     };

@@ -42,7 +42,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationTextAlignmentWidget(QWidget* parent = 0);
+        AnnotationTextAlignmentWidget(const int32_t browserWindowIndex,
+                                      QWidget* parent = 0);
         
         virtual ~AnnotationTextAlignmentWidget();
         
@@ -72,6 +73,8 @@ namespace caret {
         
         QPixmap createVerticalAlignmentPixmap(const QWidget* widget,
                                                 const AnnotationTextAlignVerticalEnum::Enum verticalAlignment);
+        
+        const int32_t m_browserWindowIndex;
         
         QActionGroup* m_horizontalAlignActionGroup;
         

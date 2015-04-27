@@ -40,6 +40,8 @@ public:
         EVENT_INVALID,
         /** Alert user about something */
         EVENT_ALERT_USER,
+        /** Annotation event */
+        EVENT_ANNOTATION,
         /** Inform that Brain has been reset (new spec or scene loaded) */
         EVENT_BRAIN_RESET,
         /** Get all brain structures */

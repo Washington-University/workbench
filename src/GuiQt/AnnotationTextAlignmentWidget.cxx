@@ -36,8 +36,9 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "Annotation.h"
+#include "AnnotationText.h"
 #include "CaretAssert.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "WuQtUtilities.h"
 
@@ -56,8 +57,10 @@ using namespace caret;
  * @param parent
  *     The parent widget.
  */
-AnnotationTextAlignmentWidget::AnnotationTextAlignmentWidget(QWidget* parent)
-: QWidget(parent)
+AnnotationTextAlignmentWidget::AnnotationTextAlignmentWidget(const int32_t browserWindowIndex,
+                                                             QWidget* parent)
+: QWidget(parent),
+m_browserWindowIndex(browserWindowIndex)
 {
     m_annotationText = NULL;
     
@@ -138,8 +141,66 @@ AnnotationTextAlignmentWidget::updateContent(AnnotationText* annotationText)
     m_annotationText = annotationText;
     
     if (m_annotationText != NULL) {
+        /*
+         * Update horizontal alignment
+         */
+        {
+            QAction* selectedAction = NULL;
+            QList<QAction*> allActions = m_horizontalAlignActionGroup->actions();
+            QListIterator<QAction*> iter(allActions);
+            while (iter.hasNext()) {
+                QAction* action = iter.next();
+                const int intValue = action->data().toInt();
+                bool valid = false;
+                AnnotationTextAlignHorizontalEnum::Enum actionAlign = AnnotationTextAlignHorizontalEnum::fromIntegerCode(intValue,
+                                                                                                                         &valid);
+                if (valid) {
+                    if (actionAlign == annotationText->getHorizontalAlignment()) {
+                        selectedAction = action;
+                        break;
+                    }
+                }
+            }
+            
+            if (selectedAction != NULL) {
+                m_horizontalAlignActionGroup->blockSignals(true);
+                selectedAction->setChecked(true);
+                m_horizontalAlignActionGroup->blockSignals(false);
+            }
+        }
+
+        /*
+         * Update vertical alignment
+         */
+        {
+            QAction* selectedAction = NULL;
+            QList<QAction*> allActions = m_verticalAlignActionGroup->actions();
+            QListIterator<QAction*> iter(allActions);
+            while (iter.hasNext()) {
+                QAction* action = iter.next();
+                const int intValue = action->data().toInt();
+                bool valid = false;
+                AnnotationTextAlignVerticalEnum::Enum actionAlign = AnnotationTextAlignVerticalEnum::fromIntegerCode(intValue,
+                                                                                                                         &valid);
+                if (valid) {
+                    if (actionAlign == annotationText->getVerticalAlignment()) {
+                        selectedAction = action;
+                        break;
+                    }
+                }
+            }
+            
+            if (selectedAction != NULL) {
+                m_verticalAlignActionGroup->blockSignals(true);
+                selectedAction->setChecked(true);
+                m_verticalAlignActionGroup->blockSignals(false);
+            }
+        }
+        
+        setEnabled(true);
     }
     else {
+        setEnabled(false);
     }
 }
 
@@ -170,7 +231,17 @@ void
 AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action)
 {
     CaretAssert(action);
-    const AnnotationTextAlignHorizontalEnum::Enum align = static_cast<AnnotationTextAlignHorizontalEnum::Enum>(action->data().toInt());
+    const int intValue = action->data().toInt();
+    bool valid = false;
+    AnnotationTextAlignHorizontalEnum::Enum actionAlign = AnnotationTextAlignHorizontalEnum::fromIntegerCode(intValue,
+                                                                                                             &valid);
+    if (valid) {
+        if (m_annotationText != NULL) {
+            m_annotationText->setHorizontalAlignment(actionAlign);
+        }
+    }
+
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
 /**
@@ -183,7 +254,17 @@ void
 AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
 {
     CaretAssert(action);
-    const AnnotationTextAlignVerticalEnum::Enum align = static_cast<AnnotationTextAlignVerticalEnum::Enum>(action->data().toInt());
+    const int intValue = action->data().toInt();
+    bool valid = false;
+    AnnotationTextAlignVerticalEnum::Enum actionAlign = AnnotationTextAlignVerticalEnum::fromIntegerCode(intValue,
+                                                                                                             &valid);
+    if (valid) {
+        if (m_annotationText != NULL) {
+            m_annotationText->setVerticalAlignment(actionAlign);
+        }
+    }
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
 /**
@@ -216,7 +297,7 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentToolButton(const Annotat
     
     QAction* action = new QAction(this);
     action->setCheckable(true);
-    action->setData((int)horizontalAlignment);
+    action->setData((int)AnnotationTextAlignHorizontalEnum::toIntegerCode(horizontalAlignment));
     action->setToolTip(toolTipText);
     action->setIcon(QIcon(pixmap));
     toolButton->setDefaultAction(action);
@@ -255,7 +336,7 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentToolButton(const Annotatio
     
     QAction* action = new QAction(this);
     action->setCheckable(true);
-    action->setData((int)verticalAlignment);
+    action->setData((int)AnnotationTextAlignVerticalEnum::toIntegerCode(verticalAlignment));
     action->setToolTip(toolTipText);
     action->setIcon(QIcon(pixmap));
     toolButton->setDefaultAction(action);

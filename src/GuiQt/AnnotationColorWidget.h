@@ -40,7 +40,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationColorWidget(QWidget* parent = 0);
+        AnnotationColorWidget(const int32_t browserWindowIndex,
+                              QWidget* parent = 0);
         
         virtual ~AnnotationColorWidget();
         
@@ -61,6 +62,8 @@ namespace caret {
 
         AnnotationColorWidget& operator=(const AnnotationColorWidget&);
 
+        const int32_t m_browserWindowIndex;
+        
         QToolButton* m_foregroundToolButton;
         
         QAction* m_foregroundColorAction;

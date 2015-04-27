@@ -34,10 +34,13 @@
 #include "AnnotationMenuArrange.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationFontWidget.h"
+#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationText.h"
 #include "AnnotationTextAlignmentWidget.h"
 #include "AnnotationTypeSpaceWidget.h"
 #include "AnnotationWidthHeightRotationWidget.h"
 #include "CaretAssert.h"
+#include "EventAnnotation.h"
 #include "EventBrainReset.h"
 #include "EventManager.h"
 #include "UserInputModeAnnotations.h"
@@ -55,24 +58,33 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param inputModeAnnotations
+ *    Annotation mode input processor.
+ * @param browserWindowIndex
+ *    Index of browser window using this widget.
  */
-UserInputModeAnnotationsWidget::UserInputModeAnnotationsWidget(UserInputModeAnnotations* inputModeAnnotations)
+UserInputModeAnnotationsWidget::UserInputModeAnnotationsWidget(UserInputModeAnnotations* inputModeAnnotations,
+                                                               const int32_t browserWindowIndex)
 : QWidget(),
-m_inputModeAnnotations(inputModeAnnotations)
+m_inputModeAnnotations(inputModeAnnotations),
+m_browserWindowIndex(browserWindowIndex)
 {
     CaretAssert(inputModeAnnotations);
     
+    m_annotationBeingEdited = NULL;
+    
     m_typeSpaceWidget = new AnnotationTypeSpaceWidget();
     
-    m_fontWidget = new AnnotationFontWidget();
+    m_fontWidget = new AnnotationFontWidget(m_browserWindowIndex);
     
-    m_colorWidget = new AnnotationColorWidget();
+    m_colorWidget = new AnnotationColorWidget(m_browserWindowIndex);
     
-    m_alignmentWidget = new AnnotationTextAlignmentWidget();
+    m_alignmentWidget = new AnnotationTextAlignmentWidget(m_browserWindowIndex);
     
-    m_coordinateOneWidget = new AnnotationCoordinateWidget();
+    m_coordinateOneWidget = new AnnotationCoordinateWidget(m_browserWindowIndex);
     
-    m_widthHeightRotationWidget = new AnnotationWidthHeightRotationWidget();
+    m_widthHeightRotationWidget = new AnnotationWidthHeightRotationWidget(m_browserWindowIndex);
     
     QWidget* arrangeToolButton = createArrangeMenuToolButton();
     
@@ -106,6 +118,7 @@ m_inputModeAnnotations(inputModeAnnotations)
 //                  QSizePolicy::Fixed);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION);
 }
 
 /**
@@ -129,8 +142,67 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
         EventBrainReset* brainEvent = dynamic_cast<EventBrainReset*>(event);
         CaretAssert(brainEvent);
         
+        m_annotationBeingEdited = NULL;
+        
         brainEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION) {
+        EventAnnotation* annotationEvent = dynamic_cast<EventAnnotation*>(event);
+        CaretAssert(annotationEvent);
+        
+        switch (annotationEvent->getMode()) {
+            case EventAnnotation::MODE_INVALID:
+                break;
+            case EventAnnotation::MODE_ANNOTATION_EDIT:
+            {
+                int32_t windowIndex = -1;
+                Annotation* annotation = NULL;
+                annotationEvent->getModeEditAnnotation(windowIndex,
+                                                       annotation);
+                if (windowIndex == m_browserWindowIndex) {
+                    m_annotationBeingEdited = annotation;
+                }
+            }
+                break;
+            case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
+                m_annotationBeingEdited = NULL;
+                break;
+        }
+        
+        annotationEvent->setEventProcessed();
+    }
+
+    AnnotationText* textAnnotation = NULL;
+    AnnotationTwoDimensionalShape* twoDimAnnotation = NULL;
+    AnnotationOneDimensionalShape* oneDimAnnotation = NULL;
+    
+    AnnotationCoordinate* coordinateOne = NULL;
+    AnnotationCoordinate* coordinateTwo = NULL;
+    if (m_annotationBeingEdited != NULL) {
+        textAnnotation   = dynamic_cast<AnnotationText*>(m_annotationBeingEdited);
+        
+        oneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
+        if (oneDimAnnotation != NULL) {
+            coordinateOne = oneDimAnnotation->getStartCoordinate();
+            coordinateTwo = oneDimAnnotation->getEndCoordinate();
+        }
+        
+        twoDimAnnotation = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
+        if (twoDimAnnotation != NULL) {
+            coordinateOne = twoDimAnnotation->getCoordinate();
+        }
+    }
+    
+    m_fontWidget->updateContent(textAnnotation);
+    m_colorWidget->updateContent(m_annotationBeingEdited);
+    m_alignmentWidget->updateContent(textAnnotation);
+    
+    if (m_annotationBeingEdited != NULL) {
+        m_coordinateOneWidget->updateContent(m_annotationBeingEdited->getCoordinateSpace(),
+                                             coordinateOne);
+    }
+    
+    m_widthHeightRotationWidget->updateContent(twoDimAnnotation);
 }
 
 /**
@@ -167,7 +239,7 @@ UserInputModeAnnotationsWidget::updateWidget()
 QWidget*
 UserInputModeAnnotationsWidget::createArrangeMenuToolButton()
 {
-    AnnotationMenuArrange* arrangeMenu = new AnnotationMenuArrange();
+    AnnotationMenuArrange* arrangeMenu = new AnnotationMenuArrange(m_browserWindowIndex);
     
     QAction* arrangeAction = new QAction("Arrange",
                                           this);

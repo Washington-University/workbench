@@ -30,6 +30,7 @@
 
 #include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "StructureEnumComboBox.h"
 #include "WuQFactory.h"
@@ -48,8 +49,10 @@ using namespace caret;
 /**
  * Constructor.
  */
-AnnotationCoordinateWidget::AnnotationCoordinateWidget(QWidget* parent)
-: QWidget(parent)
+AnnotationCoordinateWidget::AnnotationCoordinateWidget(const int32_t browserWindowIndex,
+                                                       QWidget* parent)
+: QWidget(parent),
+m_browserWindowIndex(browserWindowIndex)
 {
     m_coordinate = NULL;
     
@@ -160,6 +163,8 @@ AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::E
 {
     m_coordinate = coordinate;
     
+    bool surfaceFlag    = false;
+    
     if (m_coordinate != NULL) {
         double xyMin =  0.0;
         double xyMax =  1.0;
@@ -177,6 +182,7 @@ AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::E
             case AnnotationCoordinateSpaceEnum::PIXELS:
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
+                surfaceFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
                 break;
@@ -201,11 +207,23 @@ AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::E
         m_yCoordSpinBox->setValue(xyz[1]);
         m_zCoordSpinBox->setValue(xyz[2]);
         
+        if (surfaceFlag) {
+            StructureEnum::Enum structure = StructureEnum::INVALID;
+            int32_t surfaceNumberOfNodes  = -1;
+            int32_t surfaceNodeIndex      = -1;
+            m_coordinate->getSurfaceSpace(structure,
+                                          surfaceNumberOfNodes,
+                                          surfaceNodeIndex);
+        }
+        
         setEnabled(true);
     }
     else {
         setEnabled(false);
     }
+    
+    m_surfaceWidget->setVisible(surfaceFlag);
+    m_coordinateWidget->setVisible( ! surfaceFlag);
 }
 
 /**
@@ -222,5 +240,7 @@ AnnotationCoordinateWidget::coordinateValueChanged()
         };
         m_coordinate->setXYZ(xyz);
     }
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 

@@ -69,6 +69,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ALERT_USER",
                                      "Alert user about something (if gui, a pop is displayed, otherwise logged at severe level"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION,
+                                     "EVENT_ANNOTATION",
+                                     "Event related to annotations"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BRAIN_RESET,
                                      "EVENT_BRAIN_RESET",
                                      "Brain has been reset"));

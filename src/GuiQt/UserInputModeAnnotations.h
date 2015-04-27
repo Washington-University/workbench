@@ -89,7 +89,7 @@ namespace caret {
         
         Mode m_mode;
         
-        const int32_t m_windowIndex;
+        const int32_t m_browserWindowIndex;
         
         // ADD_NEW_MEMBERS_HERE
 

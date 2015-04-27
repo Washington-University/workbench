@@ -33,7 +33,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationMenuArrange(QWidget* parent = 0);
+        AnnotationMenuArrange(const int32_t browserWindowIndex,
+                              QWidget* parent = 0);
         
         virtual ~AnnotationMenuArrange();
         
@@ -49,6 +50,8 @@ namespace caret {
         AnnotationMenuArrange(const AnnotationMenuArrange&);
 
         AnnotationMenuArrange& operator=(const AnnotationMenuArrange&);
+        
+        const int32_t m_browserWindowIndex;
         
         // ADD_NEW_MEMBERS_HERE
 

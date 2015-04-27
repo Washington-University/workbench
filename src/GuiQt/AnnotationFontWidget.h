@@ -37,7 +37,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationFontWidget(QWidget* parent = 0);
+        AnnotationFontWidget(const int32_t browserWindowIndex,
+                             QWidget* parent = 0);
         
         virtual ~AnnotationFontWidget();
         
@@ -55,6 +56,8 @@ namespace caret {
         AnnotationFontWidget(const AnnotationFontWidget&);
 
         AnnotationFontWidget& operator=(const AnnotationFontWidget&);
+        
+        const int32_t m_browserWindowIndex;
         
         AnnotationText* m_annotationText;
         
