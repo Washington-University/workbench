@@ -1518,6 +1518,11 @@ void BorderFile::writeFile(const AString& filename, const int& version)
             //
             const int32_t numBorders = getNumberOfBorders();
             for (int32_t i = 0; i < numBorders; i++) {
+                if (m_borders[i]->getNumberOfPoints() < 1)
+                {
+                    CaretLogWarning("skipped writing zero-point border: '" + m_borders[i]->getName() + "'");
+                    continue;
+                }
                 m_borders[i]->writeAsXML(xmlWriter);
             }
             
@@ -1613,6 +1618,12 @@ void BorderFile::writeVersion3(QXmlStreamWriter& output) const
                 {
                     if (used[k]) continue;
                     const Border* thisBorder = getBorder(k);
+                    if (thisBorder->getNumberOfPoints() < 1)
+                    {
+                        used[k] = true;
+                        CaretLogWarning("skipped writing zero-point border: '" + thisBorder->getName() + "'");
+                        continue;
+                    }
                     if (thisBorder->getName() == thisName && thisBorder->getClassName() == thisClass)
                     {
                         used[k] = true;
@@ -1747,7 +1758,12 @@ void BorderFile::parseBorderFile1(QXmlStreamReader& xml)
                 } else if (name == "Border") {
                     CaretPointer<Border> toParse(new Border());//so throw can clean up, but we can also release the Border pointer
                     toParse->readXML1(xml);
-                    addBorder(toParse.releasePointer());
+                    if (toParse->getNumberOfPoints() > 0)
+                    {
+                        addBorder(toParse.releasePointer());
+                    } else {
+                        CaretLogWarning("ignored border with zero points: '" + toParse->getName() + "'");
+                    }
                 } else {
                     throw DataFileException(getFileName(),
                                             "unexpected element in BorderFile: " + name.toString());
@@ -1921,7 +1937,12 @@ AString BorderFile::parseBorder3(QXmlStreamReader& xml, const AString& className
                 thisBorder->setName(borderName);
                 if (!thisBorder->verifyForSurfaceNumberOfNodes(getNumberOfNodes())) throw DataFileException(getFileName(),
                                                                                                             "BorderPart uses node numbers larger than are valid for its surface");
-                addBorder(thisBorder.releasePointer());
+                if (thisBorder->getNumberOfPoints() > 0)
+                {
+                    addBorder(thisBorder.releasePointer());
+                } else {
+                    CaretLogWarning("ignored border with zero points: '" + thisBorder->getName() + "'");
+                }
                 ++numBorderParts;
             } else if (name == "BorderMetaDataValues") {
                 if (haveMDValues) throw DataFileException(getFileName(),
