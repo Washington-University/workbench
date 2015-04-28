@@ -42,7 +42,7 @@ AString AlgorithmCiftiSeparate::getCommandSwitch()
 
 AString AlgorithmCiftiSeparate::getShortDescription()
 {
-    return "WRITE A CIFTI MODEL AS METRIC, LABEL OR VOLUME";
+    return "WRITE A CIFTI STRUCTURE AS METRIC, LABEL OR VOLUME";
 }
 
 OperationParameters* AlgorithmCiftiSeparate::getParameters()
@@ -65,14 +65,14 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     OptionalParameter* metricRoiOpt = metricOpt->createOptionalParameter(3, "-roi", "also output the roi of which vertices have data");
     metricRoiOpt->addMetricOutputParameter(1, "roi-out", "the roi output metric");
     
-    ParameterComponent* volumeOpt = ret->createRepeatableParameter(5, "-volume", "separate a volume model into a volume file");
+    ParameterComponent* volumeOpt = ret->createRepeatableParameter(5, "-volume", "separate a volume structure into a volume file");
     volumeOpt->addStringParameter(1, "structure", "the structure to output");
     volumeOpt->addVolumeOutputParameter(2, "volume-out", "the output volume");
     OptionalParameter* volumeRoiOpt = volumeOpt->createOptionalParameter(3, "-roi", "also output the roi of which voxels have data");
     volumeRoiOpt->addVolumeOutputParameter(1, "roi-out", "the roi output volume");
     volumeOpt->createOptionalParameter(4, "-crop", "crop volume to the size of the component rather than using the original volume size");
     
-    OptionalParameter* volumeAllOpt = ret->createOptionalParameter(6, "-volume-all", "separate all volume models into a volume file");
+    OptionalParameter* volumeAllOpt = ret->createOptionalParameter(6, "-volume-all", "separate all volume structures into a volume file");
     volumeAllOpt->addVolumeOutputParameter(1, "volume-out", "the output volume");
     OptionalParameter* volumeAllRoiOpt = volumeAllOpt->createOptionalParameter(2, "-roi", "also output the roi of which voxels have data");
     volumeAllRoiOpt->addVolumeOutputParameter(1, "roi-out", "the roi output volume");
@@ -80,10 +80,10 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     volumeAllLabelOpt->addVolumeOutputParameter(1, "label-out", "the label output volume");
     volumeAllOpt->createOptionalParameter(3, "-crop", "crop volume to the size of the data rather than using the original volume size");
     
-    AString helpText = AString("You must specify -metric, -volume-all, -volume, or -label for this command to do anything.  ") +
-        "Output volumes will spatially line up with their original positions, whether or not they are cropped.  " +
-        "For dtseries, dscalar, and dlabel, use COLUMN, and if your matrix is fully symmetric, COLUMN is more efficient.  " +
-        "The structure argument must be one of the following:\n";
+    AString helpText = AString("For dtseries, dscalar, and dlabel, use COLUMN for <direction>, and if you have a symmetric dconn, COLUMN is more efficient.\n\n") +
+        "You must specify at least one of -metric, -volume-all, -volume, or -label for this command to do anything.  " +
+        "Output volumes will spatially line up with their original positions, whether or not they are cropped.\n\n" +
+        "For each <structure> argument, use one of the following strings:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
