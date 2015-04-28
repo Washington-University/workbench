@@ -1,5 +1,5 @@
-#ifndef __CARET_COLOR_ENUM_MENU_H__
-#define __CARET_COLOR_ENUM_MENU_H__
+#ifndef __ANNOTATION_LINE_SIZE_WIDGET_H__
+#define __ANNOTATION_LINE_SIZE_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -22,51 +22,49 @@
 /*LICENSE_END*/
 
 
-#include <QMenu>
+#include <QWidget>
 
-#include "CaretColorEnum.h"
+#include "EventListenerInterface.h"
 
+class QDoubleSpinBox;
 
 namespace caret {
+    class Annotation;
 
-    class CaretColorEnumMenu : public QMenu {
+    class AnnotationLineSizeWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        CaretColorEnumMenu();
+        AnnotationLineSizeWidget(QWidget* parent = 0);
         
-        CaretColorEnumMenu(const int64_t caretColorOptions);
-        
-        virtual ~CaretColorEnumMenu();
-        
-        CaretColorEnum::Enum getSelectedColor();
-        
-        void setSelectedColor(const CaretColorEnum::Enum color);
+        virtual ~AnnotationLineSizeWidget();
         
 
         // ADD_NEW_METHODS_HERE
 
-    signals:
-        void colorSelected(const CaretColorEnum::Enum);
+        virtual void receiveEvent(Event* event);
+
+        void updateContent(Annotation* annotation);
         
     private slots:
-        void colorActionSelected(QAction* action);
+        void lineSizeSpinBoxValueChanged(double value);
         
     private:
-        CaretColorEnumMenu(const CaretColorEnumMenu&);
+        AnnotationLineSizeWidget(const AnnotationLineSizeWidget&);
 
-        CaretColorEnumMenu& operator=(const CaretColorEnumMenu&);
-        
-        void initializeCaretColorEnumMenu(const int64_t caretColorOptions);
+        AnnotationLineSizeWidget& operator=(const AnnotationLineSizeWidget&);
         
         // ADD_NEW_MEMBERS_HERE
 
+        QDoubleSpinBox* m_lineSizeSpinBox;
+        
+        Annotation* m_annotation;
     };
     
-#ifdef __CARET_COLOR_ENUM_MENU_DECLARE__
+#ifdef __ANNOTATION_LINE_SIZE_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CARET_COLOR_ENUM_MENU_DECLARE__
+#endif // __ANNOTATION_LINE_SIZE_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__CARET_COLOR_ENUM_MENU_H__
+#endif  //__ANNOTATION_LINE_SIZE_WIDGET_H__

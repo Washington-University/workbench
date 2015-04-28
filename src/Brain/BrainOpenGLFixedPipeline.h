@@ -54,6 +54,7 @@ namespace caret {
     class BrainOpenGLShapeCube;
     class BrainOpenGLShapeCylinder;
     class BrainOpenGLShapeRing;
+    class BrainOpenGLShapeRingOutline;
     class BrainOpenGLShapeSphere;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
@@ -366,7 +367,8 @@ namespace caret {
         
         void drawEllipseOutline(const uint8_t rgba[4],
                                 const double majorAxis,
-                                const double minorAxis);
+                                const double minorAxis,
+                                const double lineThickness);
         
         void drawEllipseFilled(const uint8_t rgba[4],
                                const double majorAxis,
@@ -547,6 +549,9 @@ namespace caret {
         
         /** Outline circle symbol */
         BrainOpenGLShapeRing* m_shapeCircleOutline;
+        
+        /** Outline ellipse symbol.   KEY is line thickness */
+        std::map<float, BrainOpenGLShapeRingOutline*> m_shapeEllipseOutlines;
         
         /** Filled circle symbol */
         BrainOpenGLShapeRing* m_shapeCircleFilled;

@@ -46,7 +46,7 @@ CaretColorEnumComboBox::CaretColorEnumComboBox(QObject* parent)
     this->colorComboBox = new QComboBox();
     
     std::vector<CaretColorEnum::Enum> colors;
-    CaretColorEnum::getAllEnums(colors);
+    CaretColorEnum::getColorEnums(colors);
     
     const int32_t numColors = static_cast<int32_t>(colors.size());
     for (int32_t i = 0; i < numColors; i++) {

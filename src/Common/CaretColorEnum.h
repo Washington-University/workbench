@@ -35,6 +35,10 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** No coloring */
+        NONE,
+        /** Custom coloring */
+        CUSTOM,
         /** AQUA */
         AQUA,
         /** Black */
@@ -69,6 +73,12 @@ public:
         YELLOW
     };
 
+    enum ColorOptions {
+        OPTION_NO_OPTIONS = 0,
+        OPTION_INCLUDE_CUSTOM_COLOR = 1,
+        OPTION_INCLUDE_NONE_COLOR = 2
+    };
+    
     ~CaretColorEnum();
 
     static AString toName(Enum enumValue);
@@ -83,11 +93,14 @@ public:
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
-    static void getAllEnums(std::vector<Enum>& allEnums);
+    static void getColorEnums(std::vector<Enum>& allColorEnums);
 
-    static void getAllNames(std::vector<AString>& allNames, const bool isSorted);
-
-    static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
+    static void getColorAndOptionalEnums(std::vector<Enum>& allEnums,
+                                         const int64_t colorOptions);
+    
+//    static void getAllNames(std::vector<AString>& allNames, const bool isSorted);
+//
+//    static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
     static const float* toRGB(Enum enumValue);
     

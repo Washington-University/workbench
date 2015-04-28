@@ -54,7 +54,7 @@ FiberTrajectoryColorModel::FiberTrajectoryColorModel()
     m_allItems.push_back(item);
     
     std::vector<CaretColorEnum::Enum> allColors;
-    CaretColorEnum::getAllEnums(allColors);
+    CaretColorEnum::getColorEnums(allColors);
     for (std::vector<CaretColorEnum::Enum>::iterator iter = allColors.begin();
          iter != allColors.end();
          iter++) {

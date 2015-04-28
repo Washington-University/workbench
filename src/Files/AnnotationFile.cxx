@@ -146,6 +146,7 @@ AnnotationFile::AnnotationFile()
         at->setWidth(0.2);
         at->setHeight(0.10);
         at->setRotationAngle(-20.0);
+        at->setOutlineWidth(3.0);
         addAnnotation(at);
     }
     {
@@ -172,6 +173,7 @@ AnnotationFile::AnnotationFile()
         //endCoord->setXYZ(0.7, 0.4, 0);
         at->setForegroundColor(CaretColorEnum::GREEN);
         at->setBackgroundColor(CaretColorEnum::WHITE);
+        at->setLineWidth(4.0);
         addAnnotation(at);
     }
     
@@ -185,6 +187,7 @@ AnnotationFile::AnnotationFile()
         at->setWidth(0.05);
         at->setHeight(0.1);
         at->setRotationAngle(30.0);
+        at->setOutlineWidth(3.0);
         addAnnotation(at);
     }
     

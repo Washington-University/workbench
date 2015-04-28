@@ -67,7 +67,8 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Background color menu
      */
-    m_backgroundColorMenu = new CaretColorEnumMenu();
+    m_backgroundColorMenu = new CaretColorEnumMenu((CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR
+                                                    | CaretColorEnum::OPTION_INCLUDE_NONE_COLOR));
     QObject::connect(m_backgroundColorMenu, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(backgroundColorSelected(const CaretColorEnum::Enum)));
     
@@ -78,14 +79,15 @@ m_browserWindowIndex(browserWindowIndex)
                                           this);
     m_backgroundColorAction->setToolTip("Adjust the background color");
     m_backgroundColorAction->setMenu(m_backgroundColorMenu);
-    QToolButton* backgroundToolButton = new QToolButton();
-    backgroundToolButton->setDefaultAction(m_backgroundColorAction);
-    backgroundToolButton->setIconSize(toolButtonSize);
+    m_backgroundToolButton = new QToolButton();
+    m_backgroundToolButton->setDefaultAction(m_backgroundColorAction);
+    m_backgroundToolButton->setIconSize(toolButtonSize);
     
     /*
      * Foreground color menu
      */
-    m_foregroundColorMenu = new CaretColorEnumMenu();
+    m_foregroundColorMenu = new CaretColorEnumMenu((CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR
+                                                    | CaretColorEnum::OPTION_INCLUDE_NONE_COLOR));
     QObject::connect(m_foregroundColorMenu, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(foregroundColorSelected(const CaretColorEnum::Enum)));
     
@@ -111,7 +113,7 @@ m_browserWindowIndex(browserWindowIndex)
                       Qt::AlignHCenter);
     layout->addWidget(m_foregroundToolButton,
                       1, 0);
-    layout->addWidget(backgroundToolButton,
+    layout->addWidget(m_backgroundToolButton,
                       1, 1);
     
     
@@ -182,15 +184,18 @@ AnnotationColorWidget::updateBackgroundColorButton()
         m_annotation->getBackgroundColorRGBA(rgba);
     }
     
-    QPixmap pm(24, 24);
-    pm.fill(QColor::fromRgbF(rgba[0],
-                             rgba[1],
-                             rgba[2]));
+//    QPixmap pm(24, 24);
+//    pm.fill(QColor::fromRgbF(rgba[0],
+//                             rgba[1],
+//                             rgba[2]));
+    
+    QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_backgroundToolButton, 24, 24, colorEnum, rgba, false);
     QIcon icon(pm);
     
     m_backgroundColorAction->setIcon(icon);
     m_backgroundColorMenu->setSelectedColor(colorEnum);
 }
+
 
 /**
  * Update the foreground color.
@@ -208,44 +213,52 @@ AnnotationColorWidget::updateForegroundColorButton()
         m_annotation->getForegroundColorRGBA(rgba);
     }
     
-    /*
-     * Get the toolbutton's background color
-     */
-    const QPalette tbPalette = m_foregroundToolButton->palette();
-    const QPalette::ColorRole backgroundRole = m_foregroundToolButton->backgroundRole();
-    const QBrush brush = tbPalette.brush(backgroundRole);
-    const QColor toolButtonBackgroundColor = brush.color();
     
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    const int width  = 24;
-    const int height = 24;
-    QPixmap pm(width,
-               height);
     
-    /*
-     * Create a painter and fill the pixmap with
-     * the background color
-     */
-    QPainter painter(&pm);
-    painter.setBackgroundMode(Qt::OpaqueMode);
-    painter.fillRect(pm.rect(), toolButtonBackgroundColor);
+//    /*
+//     * Get the toolbutton's background color
+//     */
+//    const QPalette tbPalette = m_foregroundToolButton->palette();
+//    const QPalette::ColorRole backgroundRole = m_foregroundToolButton->backgroundRole();
+//    const QBrush brush = tbPalette.brush(backgroundRole);
+//    const QColor toolButtonBackgroundColor = brush.color();
+//    
+//    /*
+//     * Create a small, square pixmap that will contain
+//     * the foreground color around the pixmap's perimeter.
+//     */
+//    const int width  = 24;
+//    const int height = 24;
+//    QPixmap pm(width,
+//               height);
+//    
+//    /*
+//     * Create a painter and fill the pixmap with
+//     * the background color
+//     */
+//    QPainter painter(&pm);
+//    painter.setBackgroundMode(Qt::OpaqueMode);
+//    painter.fillRect(pm.rect(), toolButtonBackgroundColor);
+//    
+//    /*
+//     * Draw lines (rectangle) around the perimeter of
+//     * the pixmap
+//     */
+//    painter.setPen(QColor::fromRgbF(rgba[0],
+//                                    rgba[1],
+//                                    rgba[2]));
+//    for (int32_t i = 0; i < 3; i++) {
+//        painter.drawRect(i, i,
+//                         width - 1 - i * 2, height - 1 - i * 2);
+//    }
+
     
-    /*
-     * Draw lines (rectangle) around the perimeter of
-     * the pixmap
-     */
-    painter.setPen(QColor::fromRgbF(rgba[0],
-                                    rgba[1],
-                                    rgba[2]));
-    for (int32_t i = 0; i < 3; i++) {
-        painter.drawRect(i, i,
-                         width - 1 - i * 2, height - 1 - i * 2);
-    }
-    
+    QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_foregroundToolButton, 24, 24, colorEnum, rgba, true);
     m_foregroundColorAction->setIcon(QIcon(pm));
+    
+    
+    
+    
     m_foregroundColorMenu->setSelectedColor(colorEnum);
 }
 

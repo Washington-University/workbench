@@ -590,6 +590,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
                         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+                        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
+                        annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
                         annotationText.setCustomForegroundColor(foregroundRGBA);
                         annotationText.setCustomBackgroundColor(backgroundRGBA);
                         annotationText.setText(coordText);
@@ -3280,6 +3282,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setBoldEnabled(true);
         annotationText.setFontSize(fontSize);
+        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
+        annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(horizontalAxisRGBA);
         annotationText.setCustomBackgroundColor(backgroundRGBA);
 
@@ -3570,6 +3574,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE14);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
+        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         
         if (drawLabelsFlag) {
             annotationText.setCustomForegroundColor(blue);

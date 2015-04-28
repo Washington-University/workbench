@@ -84,7 +84,7 @@ ChartDataCartesian::initializeMembersChartDataCartesian()
     m_timeStepInSecondsAxisX  = 1.0;
     
     std::vector<CaretColorEnum::Enum> colorEnums;
-    CaretColorEnum::getAllEnums(colorEnums);
+    CaretColorEnum::getColorEnums(colorEnums);
     const int32_t numCaretColors = static_cast<int32_t>(colorEnums.size());
     
     bool colorFound = false;

@@ -53,6 +53,10 @@ namespace caret {
         
         void setWidth(const float width);
         
+        float getOutlineWidth() const;
+        
+        void setOutlineWidth(const float outlineWidth);
+        
         float getRotationAngle() const;
         
         void setRotationAngle(const float rotationAngle);
@@ -90,6 +94,8 @@ namespace caret {
         float m_width;
         
         float m_height;
+        
+        float m_outlineWidth;
         
         // ADD_NEW_MEMBERS_HERE
 

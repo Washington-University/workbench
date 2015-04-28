@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
     
@@ -40,8 +41,77 @@ using namespace caret;
 CaretColorEnumMenu::CaretColorEnumMenu()
 : QMenu()
 {
+    initializeCaretColorEnumMenu(CaretColorEnum::OPTION_NO_OPTIONS);
+    
+//    std::vector<CaretColorEnum::Enum> colors;
+//    CaretColorEnum::getColorEnums(colors);
+//    
+//    const int32_t numColors = static_cast<int32_t>(colors.size());
+//    for (int32_t i = 0; i < numColors; i++) {
+//        const CaretColorEnum::Enum colorEnum = colors[i];
+//        const int colorIntegerCode = CaretColorEnum::toIntegerCode(colorEnum);
+//        const AString name = CaretColorEnum::toGuiName(colorEnum);
+//        
+//        /*
+//         * Create an icon with the color.
+//         */
+//        const float* rgb = CaretColorEnum::toRGB(colorEnum);
+//        QPixmap pm(10, 10);
+//        pm.fill(QColor::fromRgbF(rgb[0],
+//                                 rgb[1],
+//                                 rgb[2]));
+//        QIcon icon(pm);
+//        
+//        /*
+//         * Add color action to menu and make it checkable
+//         */
+//        QAction* action = addAction(name);
+//        action->setData(colorIntegerCode);
+//        action->setIconText(name);
+//        action->setIcon(icon);
+//        action->setCheckable(true);
+//        
+//    }
+//    
+//    QObject::connect(this, SIGNAL(triggered(QAction*)),
+//                     this, SLOT(colorActionSelected(QAction*)));
+//    
+////    setSelectedColor(CaretColorEnum::BLACK);
+////    QObject::connect(this->colorComboBox, SIGNAL(currentIndexChanged(int)),
+////                     this, SLOT(colorComboBoxIndexChanged(int)));
+}
+
+/**
+ * Constructor for menu that may provide optional caret color enums.
+ *
+ * @param caretColorOptions
+ *     Options for caret color enums.
+ */
+CaretColorEnumMenu::CaretColorEnumMenu(const int64_t caretColorOptions)
+: QMenu()
+{
+    initializeCaretColorEnumMenu(caretColorOptions);
+}
+
+/**
+ * Destructor.
+ */
+CaretColorEnumMenu::~CaretColorEnumMenu()
+{
+}
+
+/**
+ * Initialize instance that may have optional caret color enums.
+ *
+ * @param caretColorOptions
+ *     Options for caret color enums.
+ */
+void
+CaretColorEnumMenu::initializeCaretColorEnumMenu(const int64_t caretColorOptions)
+{
     std::vector<CaretColorEnum::Enum> colors;
-    CaretColorEnum::getAllEnums(colors);
+    CaretColorEnum::getColorAndOptionalEnums(colors,
+                                             caretColorOptions);
     
     const int32_t numColors = static_cast<int32_t>(colors.size());
     for (int32_t i = 0; i < numColors; i++) {
@@ -52,12 +122,27 @@ CaretColorEnumMenu::CaretColorEnumMenu()
         /*
          * Create an icon with the color.
          */
-        const float* rgb = CaretColorEnum::toRGB(colorEnum);
-        QPixmap pm(10, 10);
-        pm.fill(QColor::fromRgbF(rgb[0],
-                                 rgb[1],
-                                 rgb[2]));
-        QIcon icon(pm);
+        float rgba[4];
+        CaretColorEnum::toRGBFloat(colorEnum, rgba);
+        if (colorEnum == CaretColorEnum::NONE) {
+            rgba[3] = 0.0;
+        }
+        else if (colorEnum == CaretColorEnum::CUSTOM) {
+            /*
+             * No pixmap for CUSTOM
+             */
+            rgba[3] = 0.0;
+        }
+        else {
+            rgba[3] = 1.0;
+        }
+        
+//        const float* rgb = CaretColorEnum::toRGB(colorEnum);
+//        QPixmap pm(10, 10);
+//        pm.fill(QColor::fromRgbF(rgb[0],
+//                                 rgb[1],
+//                                 rgb[2]));
+//        QIcon icon(pm);
         
         /*
          * Add color action to menu and make it checkable
@@ -65,24 +150,15 @@ CaretColorEnumMenu::CaretColorEnumMenu()
         QAction* action = addAction(name);
         action->setData(colorIntegerCode);
         action->setIconText(name);
-        action->setIcon(icon);
+        QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(this, 10, 10, colorEnum, rgba, false);
+        action->setIcon(QIcon(pm));
+        
         action->setCheckable(true);
         
     }
     
     QObject::connect(this, SIGNAL(triggered(QAction*)),
                      this, SLOT(colorActionSelected(QAction*)));
-    
-//    setSelectedColor(CaretColorEnum::BLACK);
-//    QObject::connect(this->colorComboBox, SIGNAL(currentIndexChanged(int)),
-//                     this, SLOT(colorComboBoxIndexChanged(int)));
-}
-
-/**
- * Destructor.
- */
-CaretColorEnumMenu::~CaretColorEnumMenu()
-{
 }
 
 /**

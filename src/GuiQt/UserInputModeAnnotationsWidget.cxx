@@ -34,6 +34,7 @@
 #include "AnnotationMenuArrange.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationFontWidget.h"
+#include "AnnotationLineSizeWidget.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationText.h"
 #include "AnnotationTextAlignmentWidget.h"
@@ -67,8 +68,8 @@ using namespace caret;
 UserInputModeAnnotationsWidget::UserInputModeAnnotationsWidget(UserInputModeAnnotations* inputModeAnnotations,
                                                                const int32_t browserWindowIndex)
 : QWidget(),
-m_inputModeAnnotations(inputModeAnnotations),
-m_browserWindowIndex(browserWindowIndex)
+m_browserWindowIndex(browserWindowIndex),
+m_inputModeAnnotations(inputModeAnnotations)
 {
     CaretAssert(inputModeAnnotations);
     
@@ -85,6 +86,8 @@ m_browserWindowIndex(browserWindowIndex)
     m_coordinateOneWidget = new AnnotationCoordinateWidget(m_browserWindowIndex);
     
     m_widthHeightRotationWidget = new AnnotationWidthHeightRotationWidget(m_browserWindowIndex);
+    
+    m_lineSizeWidget = new AnnotationLineSizeWidget();
     
     QWidget* arrangeToolButton = createArrangeMenuToolButton();
     
@@ -104,6 +107,8 @@ m_browserWindowIndex(browserWindowIndex)
     bottomRowLayout->addWidget(m_coordinateOneWidget);
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomRowLayout->addWidget(m_widthHeightRotationWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomRowLayout->addWidget(m_lineSizeWidget);
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomRowLayout->addWidget(arrangeToolButton);
     bottomRowLayout->addStretch();
@@ -203,6 +208,7 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     }
     
     m_widthHeightRotationWidget->updateContent(twoDimAnnotation);
+    m_lineSizeWidget->updateContent(m_annotationBeingEdited);
 }
 
 /**

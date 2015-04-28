@@ -30,6 +30,7 @@ AboutWorkbenchDialog.h
 AnnotationColorWidget.h
 AnnotationCoordinateWidget.h
 AnnotationFontWidget.h
+AnnotationLineSizeWidget.h
 AnnotationMenuArrange.h
 AnnotationTextAlignmentWidget.h
 AnnotationTypeSpaceWidget.h
@@ -169,6 +170,7 @@ AboutWorkbenchDialog.h
 AnnotationColorWidget.h
 AnnotationCoordinateWidget.h
 AnnotationFontWidget.h
+AnnotationLineSizeWidget.h
 AnnotationMenuArrange.h
 AnnotationTextAlignmentWidget.h
 AnnotationTypeSpaceWidget.h
@@ -334,6 +336,7 @@ AboutWorkbenchDialog.cxx
 AnnotationColorWidget.cxx
 AnnotationCoordinateWidget.cxx
 AnnotationFontWidget.cxx
+AnnotationLineSizeWidget.cxx
 AnnotationMenuArrange.cxx
 AnnotationTextAlignmentWidget.cxx
 AnnotationTypeSpaceWidget.cxx

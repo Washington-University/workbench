@@ -48,6 +48,7 @@
 #include "BrainOpenGLShapeCube.h"
 #include "BrainOpenGLShapeCylinder.h"
 #include "BrainOpenGLShapeRing.h"
+#include "BrainOpenGLShapeRingOutline.h"
 #include "BrainOpenGLShapeSphere.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
@@ -201,6 +202,15 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
         delete this->surfaceNodeColoring;
         this->surfaceNodeColoring = NULL;
     }
+    
+    for (std::map<float, BrainOpenGLShapeRingOutline*>::iterator iter = m_shapeEllipseOutlines.begin();
+         iter != m_shapeEllipseOutlines.end();
+         iter++) {
+        BrainOpenGLShapeRingOutline* shape = iter->second;
+        delete shape;
+    }
+    m_shapeEllipseOutlines.clear();
+    
     delete this->colorIdentification;
     this->colorIdentification = NULL;
 }
@@ -5388,15 +5398,38 @@ BrainOpenGLFixedPipeline::drawCircleFilled(const uint8_t rgba[4],
  *    Color for drawing.
  * @param majorAxis
  *    Diameter of the major axis.
+ * @param minorAxis
+ *    Diameter of the minor axis.
+ * @param lineThickness
+ *    Thickness of the line.
  */
 void
 BrainOpenGLFixedPipeline::drawEllipseOutline(const uint8_t rgba[4],
                                              const double majorAxis,
-                                             const double minorAxis)
+                                             const double minorAxis,
+                                             const double lineThickness)
 {
     glPushMatrix();
     glScaled(majorAxis, minorAxis, 1.0);
-    m_shapeCircleOutline->draw(rgba);
+    
+    BrainOpenGLShapeRingOutline* ringOutline = NULL;
+    
+    std::map<float, BrainOpenGLShapeRingOutline*>::iterator iter = m_shapeEllipseOutlines.find(lineThickness);
+    if (iter != m_shapeEllipseOutlines.end()) {
+        ringOutline = iter->second;
+    }
+    else {
+        ringOutline = new BrainOpenGLShapeRingOutline(20,
+                                                      1.0,
+                                                      lineThickness);
+        m_shapeEllipseOutlines.insert(std::make_pair(lineThickness,
+                                                     ringOutline));
+    }
+
+    CaretAssert(ringOutline);
+
+    ringOutline->draw(rgba);
+    
     glPopMatrix();
 }
 
@@ -5407,6 +5440,8 @@ BrainOpenGLFixedPipeline::drawEllipseOutline(const uint8_t rgba[4],
  *    Color for drawing.
  * @param majorAxis
  *    Diameter of the major axis.
+ * @param minorAxis
+ *    Diameter of the minor axis.
  */
 void
 BrainOpenGLFixedPipeline::drawEllipseFilled(const uint8_t rgba[4],
@@ -6226,6 +6261,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
         this->drawTextAtViewportCoords(textLeftX,
@@ -6248,8 +6284,9 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         }
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(m_foregroundColorFloat);
-        annotationText.setText(textLeft);
+        annotationText.setText(textCenter);
         this->drawTextAtViewportCoords(textCenterX,
                                        textY,
                                        0.0,
@@ -6261,6 +6298,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textRight);
         this->drawTextAtViewportCoords(textRightX,

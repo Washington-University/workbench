@@ -132,13 +132,13 @@ Annotation::initializeAnnotationMembers()
     m_tabIndex    = -1;
     m_windowIndex = -1;
     
-    m_colorBackground = CaretColorEnum::BLACK;
+    m_colorBackground = CaretColorEnum::NONE;
     m_colorForeground = CaretColorEnum::WHITE;
     
     m_customColorBackground[0]  = 0.0;
     m_customColorBackground[1]  = 0.0;
     m_customColorBackground[2]  = 0.0;
-    m_customColorBackground[3]  = 0.0;
+    m_customColorBackground[3]  = 1.0;
     
     m_customColorForeground[0]  = 1.0;
     m_customColorForeground[1]  = 1.0;
@@ -291,9 +291,37 @@ Annotation::setForegroundColor(const CaretColorEnum::Enum color)
 void
 Annotation::getForegroundColorRGBA(float rgbaOut[4]) const
 {
-    CaretColorEnum::toRGBFloat(m_colorForeground,
-                               rgbaOut);
-    rgbaOut[3] = 1.0;
+    switch (m_colorForeground) {
+        case CaretColorEnum::NONE:
+            rgbaOut[0] = 0.0;
+            rgbaOut[1] = 0.0;
+            rgbaOut[2] = 0.0;
+            rgbaOut[3] = 0.0;
+            break;
+        case CaretColorEnum::CUSTOM:
+            getCustomForegroundColor(rgbaOut);
+            break;
+        case CaretColorEnum::AQUA:
+        case CaretColorEnum::BLACK:
+        case CaretColorEnum::BLUE:
+        case CaretColorEnum::FUCHSIA:
+        case CaretColorEnum::GRAY:
+        case CaretColorEnum::GREEN:
+        case CaretColorEnum::LIME:
+        case CaretColorEnum::MAROON:
+        case CaretColorEnum::NAVY:
+        case CaretColorEnum::OLIVE:
+        case CaretColorEnum::PURPLE:
+        case CaretColorEnum::RED:
+        case CaretColorEnum::SILVER:
+        case CaretColorEnum::TEAL:
+        case CaretColorEnum::WHITE:
+        case CaretColorEnum::YELLOW:
+            CaretColorEnum::toRGBFloat(m_colorForeground,
+                                       rgbaOut);
+            rgbaOut[3] = 1.0;
+            break;
+    }
 }
 
 /**
@@ -306,9 +334,13 @@ Annotation::getForegroundColorRGBA(float rgbaOut[4]) const
 void
 Annotation::getForegroundColorRGBA(uint8_t rgbaOut[4]) const
 {
-    CaretColorEnum::toRGBByte(m_colorForeground,
-                               rgbaOut);
-    rgbaOut[3] = 255;
+    float rgbaFloat[4];
+    getForegroundColorRGBA(rgbaFloat);
+    
+    rgbaOut[0] = rgbaFloat[0] * 255.0;
+    rgbaOut[1] = rgbaFloat[1] * 255.0;
+    rgbaOut[2] = rgbaFloat[2] * 255.0;
+    rgbaOut[3] = rgbaFloat[2] * 255.0;
 }
 
 /**
@@ -345,9 +377,37 @@ Annotation::setBackgroundColor(const CaretColorEnum::Enum color)
 void
 Annotation::getBackgroundColorRGBA(float rgbaOut[4]) const
 {
-    CaretColorEnum::toRGBFloat(m_colorBackground,
-                               rgbaOut);
-    rgbaOut[3] = 1.0;
+    switch (m_colorBackground) {
+        case CaretColorEnum::NONE:
+            rgbaOut[0] = 0.0;
+            rgbaOut[1] = 0.0;
+            rgbaOut[2] = 0.0;
+            rgbaOut[3] = 0.0;
+            break;
+        case CaretColorEnum::CUSTOM:
+            getCustomBackgroundColor(rgbaOut);
+            break;
+        case CaretColorEnum::AQUA:
+        case CaretColorEnum::BLACK:
+        case CaretColorEnum::BLUE:
+        case CaretColorEnum::FUCHSIA:
+        case CaretColorEnum::GRAY:
+        case CaretColorEnum::GREEN:
+        case CaretColorEnum::LIME:
+        case CaretColorEnum::MAROON:
+        case CaretColorEnum::NAVY:
+        case CaretColorEnum::OLIVE:
+        case CaretColorEnum::PURPLE:
+        case CaretColorEnum::RED:
+        case CaretColorEnum::SILVER:
+        case CaretColorEnum::TEAL:
+        case CaretColorEnum::WHITE:
+        case CaretColorEnum::YELLOW:
+            CaretColorEnum::toRGBFloat(m_colorBackground,
+                                       rgbaOut);
+            rgbaOut[3] = 1.0;
+            break;
+    }
 }
 
 /**
@@ -360,9 +420,13 @@ Annotation::getBackgroundColorRGBA(float rgbaOut[4]) const
 void
 Annotation::getBackgroundColorRGBA(uint8_t rgbaOut[4]) const
 {
-    CaretColorEnum::toRGBByte(m_colorBackground,
-                              rgbaOut);
-    rgbaOut[3] = 255;
+    float rgbaFloat[4];
+    getBackgroundColorRGBA(rgbaFloat);
+    
+    rgbaOut[0] = rgbaFloat[0] * 255.0;
+    rgbaOut[1] = rgbaFloat[1] * 255.0;
+    rgbaOut[2] = rgbaFloat[2] * 255.0;
+    rgbaOut[3] = rgbaFloat[2] * 255.0;
 }
 
 /**

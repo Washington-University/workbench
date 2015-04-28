@@ -68,6 +68,8 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
+        QToolButton* m_backgroundToolButton;
+        
         QToolButton* m_foregroundToolButton;
         
         QAction* m_foregroundColorAction;

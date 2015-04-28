@@ -27,6 +27,8 @@
 #include <QSize>
 #include <QString>
 
+#include "CaretColorEnum.h"
+
 class QAction;
 class QBoxLayout;
 class QDialog;
@@ -78,6 +80,13 @@ namespace caret {
         static QWidget* createVerticalLineWidget();
         
         static QWidget* createHorizontalLineWidget();
+        
+        static QPixmap createCaretColorEnumPixmap(const QWidget* widgetForPixmap,
+                                                  const int32_t  pixmapWidth,
+                                                  const int32_t  pixmapHeight,
+                                                  const CaretColorEnum::Enum caretColor,
+                                                  const float    rgba[4],
+                                                  const bool     outlineFlag);
         
         static void moveWindowToOffset(QWidget* parentWidget,
                                        QWidget* window,

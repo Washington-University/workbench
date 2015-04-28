@@ -50,6 +50,10 @@ namespace caret {
         
         const AnnotationCoordinate* getEndCoordinate() const;
         
+        float getLineWidth() const;
+        
+        void setLineWidth(const float lineWidth);
+        
         virtual bool isModified() const;
         
         virtual void clearModified();
@@ -79,6 +83,8 @@ namespace caret {
         CaretPointer<AnnotationCoordinate> m_startCoordinate;
         
         CaretPointer<AnnotationCoordinate> m_endCoordinate;
+        
+        float m_lineWidth;
         
         // ADD_NEW_MEMBERS_HERE
 

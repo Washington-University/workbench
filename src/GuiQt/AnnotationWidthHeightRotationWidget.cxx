@@ -71,6 +71,7 @@ m_browserWindowIndex(browserWindowIndex)
     QLabel* rotationLabel = new QLabel(" R:");
     m_rotationSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 360, 1.0, 0,
                                                                                     this, SLOT(rotationValueChanged(double)));
+    m_rotationSpinBox->setWrapping(true);
     WuQtUtilities::setWordWrappedToolTip(m_rotationSpinBox,
                                          "Rotation, clockwise in degrees, of annotation");
 
@@ -127,7 +128,11 @@ AnnotationWidthHeightRotationWidget::updateContent(AnnotationTwoDimensionalShape
     if (m_annotation2D != NULL) {
         m_widthSpinBox->setValue(m_annotation2D->getWidth());
         m_heightSpinBox->setValue(m_annotation2D->getHeight());
-        m_rotationSpinBox->setValue(m_annotation2D->getRotationAngle());
+        double rotation = m_annotation2D->getRotationAngle();
+        if (rotation < 0.0) {
+            rotation += 360.0;
+        }
+        m_rotationSpinBox->setValue(rotation);
         
         setEnabled(true);
     }
