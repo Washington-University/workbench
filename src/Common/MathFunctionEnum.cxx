@@ -82,7 +82,7 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(ACOSH, "acosh", "1 argument, the inverse hyperbolic cosine of the argument"));
     enumData.push_back(MathFunctionEnum(ATANH, "atanh", "1 argument, the inverse hyperboloc tangent of the argument"));
     enumData.push_back(MathFunctionEnum(LN, "ln", "1 argument, the natural logarithm of the argument"));
-    enumData.push_back(MathFunctionEnum(EXP, "exp", "1 argument, the constant e raised to the power the argument"));
+    enumData.push_back(MathFunctionEnum(EXP, "exp", "1 argument, the constant e raised to the power of the argument"));
     enumData.push_back(MathFunctionEnum(LOG, "log", "1 argument, the base 10 logarithm of the argument"));
     enumData.push_back(MathFunctionEnum(SQRT, "sqrt", "1 argument, the square root of the argument"));
     enumData.push_back(MathFunctionEnum(ABS, "abs", "1 argument, the absolute value of the argument"));
