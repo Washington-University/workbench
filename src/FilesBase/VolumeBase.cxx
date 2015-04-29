@@ -28,7 +28,6 @@
 #include "PaletteColorMapping.h"
 #include "Vector3D.h"
 
-#include <algorithm>
 #include <cmath>
 
 using namespace caret;
@@ -41,31 +40,26 @@ AbstractHeader::~AbstractHeader()
 void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
     clear();
-    if (dimensionsIn.size() < 3)
+    int numDims = (int)dimensionsIn.size();
+    if (numDims < 3)
     {
         throw DataFileException("volume files must have 3 or more dimensions");
     }
     m_origDims = dimensionsIn;//save the original dimensions
-    int numDims = (int)dimensionsIn.size();
     int64_t storeDims[5];
     storeDims[3] = 1;
-    for (int i = 0; i < max(3, numDims); ++i)
+    for (int i = 0; i < numDims; ++i)
     {
         if (i > 2)
         {
             storeDims[3] *= dimensionsIn[i];
         } else {
-            if (i < numDims)
-            {
-                storeDims[i] = dimensionsIn[i];
-            } else {
-                storeDims[i] = 1;
-            }
+            storeDims[i] = dimensionsIn[i];
         }
     }
     m_volSpace.setSpace(storeDims, indexToSpace);
     if (storeDims[0] == 1 && storeDims[1] == 1 && storeDims[2] == 1 && storeDims[3] > 10000)
-    {
+    {//slight hack, to detect if a cifti file is loaded as a volume file, because many 1x1x1 frames could use a surprisingly large amount of memory (metadata, palette, etc)
         throw DataFileException("this file doesn't appear to be a volume file");
     }
     storeDims[4] = numComponents;
