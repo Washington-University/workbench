@@ -743,10 +743,9 @@ AString CommandParser::getHelpInformation(const AString& programName)
     ret += getIndentString(curIndent) + programName + " " + getCommandLineSwitch() + "\n";//DO NOT format the command that people may want to copy and paste, added hyphens would be disastrous
     curIndent += m_indentIncrement;
     OperationParameters* myAlgParams = m_autoOper->getParameters();
-    addHelpComponent(ret, myAlgParams, curIndent);
-    addHelpProse(ret, myAlgParams, curIndent);
-    ret += getIndentString(curIndent) + "Descriptions of parameters and options:\n\n";
     addComponentDescriptions(ret, myAlgParams, curIndent);
+    ret += "\n";//separate prose with a newline
+    addHelpProse(ret, myAlgParams, curIndent);
     delete myAlgParams;
     return ret;
 }
@@ -781,9 +780,7 @@ void CommandParser::addHelpOptions(AString& info, ParameterComponent* myComponen
 void CommandParser::addHelpProse(AString& info, OperationParameters* myAlgParams, int curIndent)
 {//NOTE: does not currently format tabs well, don't use them
     AString* rawProse = &(myAlgParams->getHelpText());//friendlier name
-    info += "\n";//separate prose with another newline
     info += formatString(*rawProse, curIndent, false);//don't indent on added newlines in the prose
-    info += "\n";//additional newline
 }
 
 AString CommandParser::formatString(const AString& in, int curIndent, bool addIndent)
