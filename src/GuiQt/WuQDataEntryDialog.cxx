@@ -131,10 +131,12 @@ WuQDataEntryDialog::constructDialog(const WuQDialog::ScrollAreaStatus scrollBarS
     //
     // Layout for dialog
     //
+    const int NO_STRETCH  = 0;
+    const int BIG_STRETCH = 100;
     QWidget* widget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
-    dialogLayout->addWidget(textAtTopLabel);
-    dialogLayout->addWidget(widgetForGridLayout);
+    dialogLayout->addWidget(textAtTopLabel, NO_STRETCH);
+    dialogLayout->addWidget(widgetForGridLayout, BIG_STRETCH);
     
     this->setCentralWidget(widget,
                            scrollBarStatus);

@@ -31,14 +31,15 @@
 #include <QVBoxLayout>
 
 #include "AnnotationCoordinateWidget.h"
-#include "AnnotationMenuArrange.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationFontWidget.h"
+#include "AnnotationFormatWidget.h"
+#include "AnnotationInsertNewWidget.h"
 #include "AnnotationLineSizeWidget.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationText.h"
 #include "AnnotationTextAlignmentWidget.h"
-#include "AnnotationTypeSpaceWidget.h"
+#include "AnnotationTextEditorWidget.h"
 #include "AnnotationWidthHeightRotationWidget.h"
 #include "CaretAssert.h"
 #include "EventAnnotation.h"
@@ -49,8 +50,6 @@
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::UserInputModeAnnotationsWidget 
  * \brief Toolbar widget for annotations.
@@ -75,42 +74,56 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_annotationBeingEdited = NULL;
     
-    m_typeSpaceWidget = new AnnotationTypeSpaceWidget();
+    m_textEditorWidget           = new AnnotationTextEditorWidget(m_browserWindowIndex);
     
-    m_fontWidget = new AnnotationFontWidget(m_browserWindowIndex);
+    m_fontWidget                 = new AnnotationFontWidget(m_browserWindowIndex);
     
-    m_colorWidget = new AnnotationColorWidget(m_browserWindowIndex);
+    m_colorWidget                = new AnnotationColorWidget(m_browserWindowIndex);
     
-    m_alignmentWidget = new AnnotationTextAlignmentWidget(m_browserWindowIndex);
+    m_textAlignmentWidget        = new AnnotationTextAlignmentWidget(m_browserWindowIndex);
     
-    m_coordinateOneWidget = new AnnotationCoordinateWidget(m_browserWindowIndex);
+    m_coordinateOneWidget        = new AnnotationCoordinateWidget(m_browserWindowIndex);
     
-    m_widthHeightRotationWidget = new AnnotationWidthHeightRotationWidget(m_browserWindowIndex);
+    m_coordinateTwoWidget        = new AnnotationCoordinateWidget(m_browserWindowIndex);
     
-    m_lineSizeWidget = new AnnotationLineSizeWidget();
+    m_widthHeightRotationWidget  = new AnnotationWidthHeightRotationWidget(m_browserWindowIndex);
     
-    QWidget* arrangeToolButton = createArrangeMenuToolButton();
+    m_lineSizeWidget             = new AnnotationLineSizeWidget(m_browserWindowIndex);
     
+    m_formatWidget               = new AnnotationFormatWidget(m_browserWindowIndex);
+    
+    QWidget* insertWidget        = new AnnotationInsertNewWidget(m_browserWindowIndex);
+    
+    /*
+     * Layout top row of widgets
+     */
     QHBoxLayout* topRowLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 2);
-    topRowLayout->addWidget(m_typeSpaceWidget);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_colorWidget);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_textEditorWidget);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_fontWidget);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_alignmentWidget);
+    topRowLayout->addWidget(m_textAlignmentWidget);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(insertWidget);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_formatWidget);
     topRowLayout->addStretch();
     
+    /*
+     * Layout bottom row of widgets
+     */
     QHBoxLayout* bottomRowLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 2);
     bottomRowLayout->addWidget(m_coordinateOneWidget);
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomRowLayout->addWidget(m_coordinateTwoWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomRowLayout->addWidget(m_widthHeightRotationWidget);
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomRowLayout->addWidget(m_lineSizeWidget);
-    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomRowLayout->addWidget(arrangeToolButton);
     bottomRowLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -199,15 +212,27 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     }
     
     m_fontWidget->updateContent(textAnnotation);
+    m_textEditorWidget->updateContent(textAnnotation);
     m_colorWidget->updateContent(m_annotationBeingEdited);
-    m_alignmentWidget->updateContent(textAnnotation);
+    m_textAlignmentWidget->updateContent(textAnnotation);
     
+    AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     if (m_annotationBeingEdited != NULL) {
-        m_coordinateOneWidget->updateContent(m_annotationBeingEdited->getCoordinateSpace(),
-                                             coordinateOne);
+        coordinateSpace = m_annotationBeingEdited->getCoordinateSpace();
     }
     
-    m_widthHeightRotationWidget->updateContent(twoDimAnnotation);
+    m_coordinateOneWidget->updateContent(coordinateSpace,
+                                         coordinateOne);
+    m_coordinateTwoWidget->updateContent(coordinateSpace,
+                                         coordinateTwo);
+    
+    m_colorWidget->setEnabled(m_annotationBeingEdited != NULL);
+    m_fontWidget->setEnabled(textAnnotation != NULL);
+    m_textAlignmentWidget->setEnabled(textAnnotation != NULL);
+    m_coordinateOneWidget->setEnabled(coordinateOne != NULL);
+    m_coordinateTwoWidget->setEnabled(coordinateTwo != NULL);
+    m_widthHeightRotationWidget->setEnabled(twoDimAnnotation != NULL);
+    
     m_lineSizeWidget->updateContent(m_annotationBeingEdited);
 }
 
@@ -239,22 +264,4 @@ UserInputModeAnnotationsWidget::updateWidget()
     }
 }
 
-/**
- * @return The arrange tool button.
- */
-QWidget*
-UserInputModeAnnotationsWidget::createArrangeMenuToolButton()
-{
-    AnnotationMenuArrange* arrangeMenu = new AnnotationMenuArrange(m_browserWindowIndex);
-    
-    QAction* arrangeAction = new QAction("Arrange",
-                                          this);
-    arrangeAction->setToolTip("Arrange (align) and group annotations");
-    arrangeAction->setMenu(arrangeMenu);
-    
-    QToolButton* arrangeToolButton = new QToolButton();
-    arrangeToolButton->setDefaultAction(arrangeAction);
-    
-    return arrangeToolButton;
-}
 

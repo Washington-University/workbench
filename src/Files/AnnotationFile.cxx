@@ -31,6 +31,7 @@
 #include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
+#include "EventAnnotation.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
@@ -191,6 +192,16 @@ AnnotationFile::AnnotationFile()
         addAnnotation(at);
     }
     
+    {
+        AnnotationText* at = new AnnotationText();
+        AnnotationCoordinate* coord = at->getCoordinate();
+        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+        coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32942, 7883);
+        at->setForegroundColor(CaretColorEnum::PURPLE);
+        at->setText("Vertex 7883");
+        addAnnotation(at);
+    }
+    
     for (int32_t iTab = 0; iTab < 10; iTab++) {
         AnnotationText* at = new AnnotationText();
         AnnotationCoordinate* coord = at->getCoordinate();
@@ -207,7 +218,8 @@ AnnotationFile::AnnotationFile()
         at->setText(AString::number(iTab + 1));
         addAnnotation(at);
     }
-    //    EventManager::get()->addEventListener(this, EventTypeEnum::);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION);
 }
 
 /**
@@ -293,6 +305,22 @@ AnnotationFile::copyHelperAnnotationFile(const AnnotationFile& obj)
 void
 AnnotationFile::receiveEvent(Event* event)
 {
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION) {
+        EventAnnotation* annotationEvent = dynamic_cast<EventAnnotation*>(event);
+        CaretAssert(annotationEvent);
+        
+        switch (annotationEvent->getMode()) {
+            case EventAnnotation::MODE_INVALID:
+                break;
+            case EventAnnotation::MODE_ANNOTATION_EDIT:
+                break;
+            case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
+                setAllAnnotationsSelected(false);
+                break;
+        }
+        
+        annotationEvent->setEventProcessed();
+    }
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
 //        CaretAssert(eventName);

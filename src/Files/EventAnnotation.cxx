@@ -72,14 +72,18 @@ EventAnnotation::getMode() const
  *     Index of the browser window.
  * @param annotation
  *     Annotation being edited.
+ * @return
+ *     Reference to "self".
  */
-void
+EventAnnotation&
 EventAnnotation::setModeEditAnnotation(const int32_t browserWindowIndex,
                                                  Annotation* annotation)
 {
     m_mode               = MODE_ANNOTATION_EDIT;
     m_browserWindowIndex = browserWindowIndex;
     m_annotation         = annotation;
+    
+    return *this;
 }
 
 /**
@@ -102,11 +106,16 @@ EventAnnotation::getModeEditAnnotation(int32_t& browserWindowIndexOut,
 
 /**
  * Set the mode for deselecting all annotations.
+ *
+ * @return
+ *     Reference to "self".
  */
-void
+EventAnnotation&
 EventAnnotation::setModeDeselectAllAnnotations()
 {
     m_mode = MODE_DESELECT_ALL_ANNOTATIONS;
+    
+    return *this;
 }
 
 

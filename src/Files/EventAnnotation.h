@@ -49,13 +49,13 @@ namespace caret {
         
         virtual ~EventAnnotation();
         
-        void setModeEditAnnotation(const int32_t browserWindowIndex,
+        EventAnnotation& setModeEditAnnotation(const int32_t browserWindowIndex,
                                    Annotation* annotation);
         
         void getModeEditAnnotation(int32_t& browserWindowIndexOut,
                                    Annotation* & annotationOut) const;
         
-        void setModeDeselectAllAnnotations();
+        EventAnnotation& setModeDeselectAllAnnotations();
         
         Mode getMode() const;
 

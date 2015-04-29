@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_TYPE_SPACE_WIDGET_H__
-#define __ANNOTATION_TYPE_SPACE_WIDGET_H__
+#ifndef __ANNOTATION_INSERT_NEW_WIDGET_H__
+#define __ANNOTATION_INSERT_NEW_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -24,22 +24,22 @@
 
 #include <QWidget>
 
+#include "AnnotationTypeEnum.h"
 #include "EventListenerInterface.h"
 
-
 namespace caret {
-
     class Annotation;
     class EnumComboBoxTemplate;
     
-    class AnnotationTypeSpaceWidget : public QWidget, public EventListenerInterface {
+    class AnnotationInsertNewWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        AnnotationTypeSpaceWidget(QWidget* parent = 0);
+        AnnotationInsertNewWidget(const int32_t browserWindowIndex,
+                                  QWidget* parent = 0);
         
-        virtual ~AnnotationTypeSpaceWidget();
+        virtual ~AnnotationInsertNewWidget();
         
 
         // ADD_NEW_METHODS_HERE
@@ -51,26 +51,43 @@ namespace caret {
     private slots:
         void coordinateSpaceEnumChanged();
         
-        void typeEnumChanged();
+        void textActionTriggered();
+        
+        void shapeActionTriggered();
+        
+        void shapeMenuActionTriggered(QAction* action);
         
     private:
-        AnnotationTypeSpaceWidget(const AnnotationTypeSpaceWidget&);
+        AnnotationInsertNewWidget(const AnnotationInsertNewWidget&);
 
-        AnnotationTypeSpaceWidget& operator=(const AnnotationTypeSpaceWidget&);
+        AnnotationInsertNewWidget& operator=(const AnnotationInsertNewWidget&);
+        
+        QWidget* createSpaceComboBox();
+        
+        QWidget* createTextToolButton();
+        
+        QWidget* createShapeToolButton();
+        
+        QPixmap createShapePixmap(const QWidget* widget,
+                                  const AnnotationTypeEnum::Enum annotationType);
+        
+        void createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType);
+        
+        const int32_t m_browserWindowIndex;
         
         EnumComboBoxTemplate* m_coordinateSpaceComboBox;
+
+        QAction* m_textToolButtonAction;
         
-        EnumComboBoxTemplate* m_typeComboBox;
-        
-        Annotation* m_annotation;
+        QAction* m_shapeToolButtonAction;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __ANNOTATION_TYPE_SPACE_WIDGET_DECLARE__
+#ifdef __ANNOTATION_INSERT_NEW_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_TYPE_SPACE_WIDGET_DECLARE__
+#endif // __ANNOTATION_INSERT_NEW_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_TYPE_SPACE_WIDGET_H__
+#endif  //__ANNOTATION_INSERT_NEW_WIDGET_H__

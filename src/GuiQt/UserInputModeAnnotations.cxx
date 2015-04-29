@@ -418,6 +418,8 @@ UserInputModeAnnotations::deselectAllAnnotations()
         AnnotationFile* annotationFile = *fileIter;
         annotationFile->setAllAnnotationsSelected(false);
     }
+    
+    EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
 }
 
 

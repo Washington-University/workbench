@@ -65,6 +65,7 @@
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "DisplayPropertiesBorders.h"
+#include "EventAnnotation.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
@@ -2439,6 +2440,10 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
         else {
             this->userInputControlsWidget->setVisible(false);
         }
+    }
+    
+    if (userInputProcessor->getUserInputMode() != UserInputModeAbstract::ANNOTATIONS) {
+        EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
     }
 }
 

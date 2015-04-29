@@ -34,9 +34,10 @@ namespace caret {
     class AnnotationColorWidget;
     class AnnotationCoordinateWidget;
     class AnnotationFontWidget;
+    class AnnotationFormatWidget;
     class AnnotationLineSizeWidget;
     class AnnotationTextAlignmentWidget;
-    class AnnotationTypeSpaceWidget;
+    class AnnotationTextEditorWidget;
     class AnnotationWidthHeightRotationWidget;
     class UserInputModeAnnotations;
     
@@ -62,15 +63,17 @@ namespace caret {
 
         UserInputModeAnnotationsWidget& operator=(const UserInputModeAnnotationsWidget&);
         
-        QWidget* createArrangeMenuToolButton();
+        QWidget* createInsertMenuToolButton();
+        
+        QWidget* createTextEditorWidget();
         
         const int32_t m_browserWindowIndex;
         
         UserInputModeAnnotations* m_inputModeAnnotations;
         
-        AnnotationTypeSpaceWidget* m_typeSpaceWidget;
-        
         AnnotationCoordinateWidget* m_coordinateOneWidget;
+        
+        AnnotationCoordinateWidget* m_coordinateTwoWidget;
         
         AnnotationWidthHeightRotationWidget* m_widthHeightRotationWidget;
         
@@ -78,9 +81,13 @@ namespace caret {
         
         AnnotationColorWidget* m_colorWidget;
         
-        AnnotationTextAlignmentWidget* m_alignmentWidget;
+        AnnotationTextAlignmentWidget* m_textAlignmentWidget;
         
         AnnotationLineSizeWidget* m_lineSizeWidget;
+        
+        AnnotationFormatWidget* m_formatWidget;
+        
+        AnnotationTextEditorWidget* m_textEditorWidget;
         
         Annotation* m_annotationBeingEdited;
         

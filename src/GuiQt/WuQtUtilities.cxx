@@ -728,6 +728,60 @@ WuQtUtilities::loadPixmap(const QString& filename,
 }
 
 /**
+ * Get the maximum height from the given widgets.
+ *
+ * @param w1   Required widget.
+ * @param w2   Required widget.
+ * @param w3   Optional widget.
+ * @param w4   Optional widget.
+ * @param w5   Optional widget.
+ * @param w6   Optional widget.
+ * @param w7   Optional widget.
+ * @param w8   Optional widget.
+ * @param w9   Optional widget.
+ * @param w10  Optional widget.
+ * @return
+ *    Maximum height of the widgets.
+ */
+int
+WuQtUtilities::getMaximumWidgetHeight(QWidget* w1,
+                                      QWidget* w2,
+                                      QWidget* w3,
+                                      QWidget* w4,
+                                      QWidget* w5,
+                                      QWidget* w6,
+                                      QWidget* w7,
+                                      QWidget* w8,
+                                      QWidget* w9,
+                                      QWidget* w10)
+{
+    QVector<QWidget*> widgets;
+    
+    if (w1 != NULL) widgets.push_back(w1);
+    if (w2 != NULL) widgets.push_back(w2);
+    if (w3 != NULL) widgets.push_back(w3);
+    if (w4 != NULL) widgets.push_back(w4);
+    if (w5 != NULL) widgets.push_back(w5);
+    if (w6 != NULL) widgets.push_back(w6);
+    if (w7 != NULL) widgets.push_back(w7);
+    if (w8 != NULL) widgets.push_back(w8);
+    if (w9 != NULL) widgets.push_back(w9);
+    if (w10 != NULL) widgets.push_back(w10);
+    
+    int maxHeight = 0;
+    const int num = widgets.size();
+    for (int i = 0; i < num; i++) {
+        const int h = widgets[i]->sizeHint().height();
+        if (h > maxHeight) {
+            maxHeight = h;
+        }
+    }
+    
+    return maxHeight;
+}
+
+
+/**
  * Find the widget with the maximum height in its
  * size hint.  Apply this height to all of the widgets.
  * 
@@ -754,32 +808,27 @@ WuQtUtilities::matchWidgetHeights(QWidget* w1,
                                   QWidget* w9,
                                   QWidget* w10)
 {
-    QVector<QWidget*> widgets;
-    
-    if (w1 != NULL) widgets.push_back(w1);
-    if (w2 != NULL) widgets.push_back(w2);
-    if (w3 != NULL) widgets.push_back(w3);
-    if (w4 != NULL) widgets.push_back(w4);
-    if (w5 != NULL) widgets.push_back(w5);
-    if (w6 != NULL) widgets.push_back(w6);
-    if (w7 != NULL) widgets.push_back(w7);
-    if (w8 != NULL) widgets.push_back(w8);
-    if (w9 != NULL) widgets.push_back(w9);
-    if (w10 != NULL) widgets.push_back(w10);
-    
-    int maxHeight = 0;
-    const int num = widgets.size();
-    for (int i = 0; i < num; i++) {
-        const int h = widgets[i]->sizeHint().height();
-        if (h > maxHeight) {
-            maxHeight = h;
-        }
-    }
-    
+    const int maxHeight = getMaximumWidgetHeight(w1,
+                                                 w2,
+                                                 w3,
+                                                 w4,
+                                                 w5,
+                                                 w6,
+                                                 w7,
+                                                 w8,
+                                                 w9,
+                                                 w10);
     if (maxHeight > 0) {
-        for (int i = 0; i < num; i++) {
-            widgets[i]->setFixedHeight(maxHeight);
-        }
+        w1->setFixedHeight(maxHeight);
+        w2->setFixedHeight(maxHeight);
+        if (w3  != NULL) w3->setFixedHeight(maxHeight);
+        if (w4  != NULL) w4->setFixedHeight(maxHeight);
+        if (w5  != NULL) w5->setFixedHeight(maxHeight);
+        if (w6  != NULL) w6->setFixedHeight(maxHeight);
+        if (w7  != NULL) w7->setFixedHeight(maxHeight);
+        if (w8  != NULL) w8->setFixedHeight(maxHeight);
+        if (w9  != NULL) w9->setFixedHeight(maxHeight);
+        if (w10 != NULL) w10->setFixedHeight(maxHeight);
     }
 }
 

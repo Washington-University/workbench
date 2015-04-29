@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_LINE_SIZE_WIDGET_H__
-#define __ANNOTATION_LINE_SIZE_WIDGET_H__
+#ifndef __ANNOTATION_TEXT_EDITOR_WIDGET_H__
+#define __ANNOTATION_TEXT_EDITOR_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -26,48 +26,52 @@
 
 #include "EventListenerInterface.h"
 
-class QDoubleSpinBox;
+class QTextEdit;
 
 namespace caret {
-    class Annotation;
 
-    class AnnotationLineSizeWidget : public QWidget, public EventListenerInterface {
+    class AnnotationText;
+    
+    class AnnotationTextEditorWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        AnnotationLineSizeWidget(const int32_t browserWindowIndex,
-                                 QWidget* parent = 0);
+        AnnotationTextEditorWidget(const int32_t browserWindowIndex,
+                                   QWidget* parent = 0);
         
-        virtual ~AnnotationLineSizeWidget();
+        virtual ~AnnotationTextEditorWidget();
         
 
         // ADD_NEW_METHODS_HERE
 
+        void updateContent(AnnotationText* annotationText);
+        
         virtual void receiveEvent(Event* event);
 
-        void updateContent(Annotation* annotation);
-        
     private slots:
-        void lineSizeSpinBoxValueChanged(double value);
+        void annotationTextChanged();
+        
+        void editTextActionClicked();
         
     private:
-        AnnotationLineSizeWidget(const AnnotationLineSizeWidget&);
+        AnnotationTextEditorWidget(const AnnotationTextEditorWidget&);
 
-        AnnotationLineSizeWidget& operator=(const AnnotationLineSizeWidget&);
+        AnnotationTextEditorWidget& operator=(const AnnotationTextEditorWidget&);
+        
+        const int32_t m_browserWindowIndex;
+        
+        AnnotationText* m_annotationText;
+        
+        QTextEdit* m_textEditorInDialog;
         
         // ADD_NEW_MEMBERS_HERE
 
-        const int32_t m_browserWindowIndex;
-        
-        QDoubleSpinBox* m_lineSizeSpinBox;
-        
-        Annotation* m_annotation;
     };
     
-#ifdef __ANNOTATION_LINE_SIZE_WIDGET_DECLARE__
+#ifdef __ANNOTATION_TEXT_EDITOR_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_LINE_SIZE_WIDGET_DECLARE__
+#endif // __ANNOTATION_TEXT_EDITOR_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_LINE_SIZE_WIDGET_H__
+#endif  //__ANNOTATION_TEXT_EDITOR_WIDGET_H__

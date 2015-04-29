@@ -42,6 +42,8 @@ using namespace caret;
  *
  * @param parent
  *     The parent widget.
+ * @param browserWindowIndex
+ *     Index of the browser window.
  */
 AnnotationMenuArrange::AnnotationMenuArrange(const int32_t browserWindowIndex,
                                              QWidget* parent)

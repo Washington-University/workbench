@@ -51,8 +51,10 @@ using namespace caret;
  * @param parent
  *    The parent widget.
  */
-AnnotationLineSizeWidget::AnnotationLineSizeWidget(QWidget* parent)
-: QWidget(parent)
+AnnotationLineSizeWidget::AnnotationLineSizeWidget(const int32_t browserWindowIndex,
+                                                   QWidget* parent)
+: QWidget(parent),
+m_browserWindowIndex(browserWindowIndex)
 {
     m_annotation = NULL;
     
@@ -116,15 +118,19 @@ AnnotationLineSizeWidget::updateContent(Annotation* annotation)
     
     double value = 0.0;
     
+    bool widgetEnabled = false;
+    
     if (m_annotation != NULL) {
         AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
         if (oneDimAnn != NULL) {
             value = oneDimAnn->getLineWidth();
+            widgetEnabled = true;
         }
         else {
             AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
             if (twoDimAnn != NULL) {
                 value = twoDimAnn->getOutlineWidth();
+                widgetEnabled = true;
             }
         }
     }
@@ -132,6 +138,8 @@ AnnotationLineSizeWidget::updateContent(Annotation* annotation)
     m_lineSizeSpinBox->blockSignals(true);
     m_lineSizeSpinBox->setValue(value);
     m_lineSizeSpinBox->blockSignals(false);
+    
+    setEnabled(widgetEnabled);
 }
 
 
