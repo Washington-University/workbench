@@ -107,9 +107,11 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
+    bool outputRequested = false;
     const vector<ParameterComponent*>& labelInstances = *(myParams->getRepeatableParameterInstances(3));
     for (int i = 0; i < (int)labelInstances.size(); ++i)
     {
+        outputRequested = true;
         AString structName = labelInstances[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
@@ -129,6 +131,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
     const vector<ParameterComponent*>& metricInstances = *(myParams->getRepeatableParameterInstances(4));
     for (int i = 0; i < (int)metricInstances.size(); ++i)
     {
+        outputRequested = true;
         AString structName = metricInstances[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
@@ -148,6 +151,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
     const vector<ParameterComponent*>& volumeInstances = *(myParams->getRepeatableParameterInstances(5));
     for (int i = 0; i < (int)volumeInstances.size(); ++i)
     {
+        outputRequested = true;
         AString structName = volumeInstances[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
@@ -169,6 +173,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
     OptionalParameter* volumeAllOpt = myParams->getOptionalParameter(6);
     if (volumeAllOpt->m_present)
     {
+        outputRequested = true;
         VolumeFile* volOut = volumeAllOpt->getOutputVolume(1);
         VolumeFile* roiOut = NULL;
         OptionalParameter* volumeAllRoiOpt = volumeAllOpt->getOptionalParameter(2);
@@ -185,6 +190,10 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
         }
         int64_t offset[3];
         AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, volOut, offset, roiOut, cropVol, labelOut);
+    }
+    if (!outputRequested)
+    {
+        CaretLogWarning("no output requested from -cifti-separate, operation will do nothing");
     }
 }
 
