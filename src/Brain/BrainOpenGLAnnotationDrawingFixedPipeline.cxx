@@ -272,6 +272,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
         topLeftOut[2]     = windowXYZ[2];
         
         applyRotationToShape(annotation2D->getRotationAngle(),
+                             windowXYZ,
                              bottomLeftOut,
                              bottomRightOut,
                              topRightOut,
@@ -299,6 +300,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const double rotationAngle,
+                                                                const double rotationPoint[3],
                                                                 double bottomLeftOut[3],
                                                                 double bottomRightOut[3],
                                                                 double topRightOut[3],
@@ -306,9 +308,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const double rot
 {
     if (rotationAngle != 0) {
         Matrix4x4 matrix;
-        matrix.translate(-bottomLeftOut[0], -bottomLeftOut[1], -bottomLeftOut[2]);
+//        matrix.translate(-bottomLeftOut[0], -bottomLeftOut[1], -bottomLeftOut[2]);
+//        matrix.rotateZ(-rotationAngle);
+//        matrix.translate(bottomLeftOut[0], bottomLeftOut[1], bottomLeftOut[2]);
+        matrix.translate(-rotationPoint[0], -rotationPoint[1], -rotationPoint[2]);
         matrix.rotateZ(-rotationAngle);
-        matrix.translate(bottomLeftOut[0], bottomLeftOut[1], bottomLeftOut[2]);
+        matrix.translate(rotationPoint[0], rotationPoint[1], rotationPoint[2]);
         matrix.multiplyPoint3(bottomLeftOut);
         matrix.multiplyPoint3(bottomRightOut);
         matrix.multiplyPoint3(topRightOut);

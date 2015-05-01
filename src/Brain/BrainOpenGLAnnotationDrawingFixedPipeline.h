@@ -77,6 +77,7 @@ namespace caret {
                                  double topLeftOut[3]) const;
         
         void applyRotationToShape(const double rotationAngle,
+                                  const double rotationPoint[3],
                                   double bottomLeftOut[3],
                                   double bottomRightOut[3],
                                   double topRightOut[3],
