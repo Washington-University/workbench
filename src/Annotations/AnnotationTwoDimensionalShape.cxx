@@ -107,8 +107,8 @@ void
 AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
 {
     m_coordinate.grabNew(new AnnotationCoordinate());
-    m_width  = 0.0;
-    m_height = 0.0;
+    m_width  = 0.25;
+    m_height = 0.25;
     m_outlineWidth  = 1.0;
     m_rotationAngle = 0.0;
     

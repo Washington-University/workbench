@@ -33,7 +33,7 @@
 
 #include "Annotation.h"
 #include "CaretAssert.h"
-#include "EnumComboBoxTemplate.h"
+#include "EventAnnotation.h"
 #include "EventManager.h"
 #include "WuQtUtilities.h"
 
@@ -62,9 +62,6 @@ m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* insertLabel = new QLabel("Insert");
     
-    QLabel* spaceLabel = new QLabel("Space");
-    QWidget* spaceComboBox = createSpaceComboBox();
-    
     QWidget* textToolButton = createTextToolButton();
     QWidget* shapeToolButton = createShapeToolButton();
     
@@ -78,15 +75,9 @@ m_browserWindowIndex(browserWindowIndex)
     toolButtonLayout->addWidget(shapeToolButton);
     toolButtonLayout->addStretch();
     
-    QHBoxLayout* spaceLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(spaceLayout, 2, 0);
-    spaceLayout->addWidget(spaceLabel);
-    spaceLayout->addWidget(spaceComboBox);
-    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(insertLabel, 0, Qt::AlignHCenter);
-    layout->addLayout(spaceLayout);
     layout->addLayout(toolButtonLayout);
     
     setSizePolicy(QSizePolicy::Fixed,
@@ -144,53 +135,6 @@ AnnotationInsertNewWidget::coordinateSpaceEnumChanged()
     //        m_annotation->setCoordinateSpace(m_coordinateSpaceComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>());
     //    }
 }
-
-/**
- * @return Create the text tool button.
- */
-QWidget*
-AnnotationInsertNewWidget::createSpaceComboBox()
-{
-    std::vector<AnnotationCoordinateSpaceEnum::Enum> selectableSpaces;
-    std::vector<AnnotationCoordinateSpaceEnum::Enum> allSpaces;
-    AnnotationCoordinateSpaceEnum::getAllEnums(allSpaces);
-    
-    for (std::vector<AnnotationCoordinateSpaceEnum::Enum>::iterator iter = allSpaces.begin();
-         iter != allSpaces.end();
-         iter++) {
-        const AnnotationCoordinateSpaceEnum::Enum space = *iter;
-        
-        bool useSpaceFlag = false;
-        switch (space) {
-            case AnnotationCoordinateSpaceEnum::MODEL:
-                break;
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                break;
-            case AnnotationCoordinateSpaceEnum::SURFACE:
-                useSpaceFlag = true;
-                break;
-            case AnnotationCoordinateSpaceEnum::TAB:
-                useSpaceFlag = true;
-                break;
-            case AnnotationCoordinateSpaceEnum::WINDOW:
-                useSpaceFlag = true;
-                break;
-        }
-        
-        if (useSpaceFlag) {
-            selectableSpaces.push_back(space);
-        }
-    }
-    
-    m_coordinateSpaceComboBox = new EnumComboBoxTemplate(this);
-    m_coordinateSpaceComboBox->setupWithItems<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(selectableSpaces);
-    m_coordinateSpaceComboBox->setSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(AnnotationCoordinateSpaceEnum::TAB);
-    QObject::connect(m_coordinateSpaceComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(coordinateSpaceEnumChanged()));
-    
-    return m_coordinateSpaceComboBox->getWidget();
-}
-
 
 /**
  * @return Create the text tool button.
@@ -272,9 +216,14 @@ AnnotationInsertNewWidget::createShapeToolButton()
     QToolButton* toolButton = new QToolButton();
     toolButton->setDefaultAction(m_shapeToolButtonAction);
 
+    /*
+     * Initialize the shape tool button action to the BOX action.
+     */
     CaretAssert(boxAction);
     m_shapeToolButtonAction->blockSignals(true);
-    shapeMenuActionTriggered(boxAction);
+    m_shapeToolButtonAction->setIcon(boxAction->icon());
+    m_shapeToolButtonAction->setData(boxAction->data());
+    m_shapeToolButtonAction->setText("");
     m_shapeToolButtonAction->blockSignals(false);
     
     return toolButton;
@@ -290,7 +239,7 @@ void
 AnnotationInsertNewWidget::createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType)
 {
     std::cout << "Create Shape Type: " << qPrintable(AnnotationTypeEnum::toName(annotationType)) << std::endl;
-
+    EventManager::get()->sendEvent(EventAnnotation().setModeCreateNewAnnotationType(annotationType).getPointer());
 }
 
 /**

@@ -157,6 +157,7 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addLayout(topRowLayout);
     layout->addLayout(bottomRowLayout);
+    layout->addStretch();
 //    QHBoxLayout* bottomRowLayout = new QHBoxLayout();
 //    WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 0);
 //    bottomRowLayout->addWidget(boldFontToolButton);

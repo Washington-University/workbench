@@ -24,6 +24,7 @@
 #undef __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
 
 #include "Annotation.h"
+#include "AnnotationCreateDialog.h"
 #include "AnnotationFile.h"
 #include "Brain.h"
 #include "BrainOpenGLWidget.h"
@@ -36,6 +37,7 @@
 #include "MouseEvent.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
+#include "SelectionItemSurfaceNode.h"
 #include "UserInputModeAnnotationsWidget.h"
 
 using namespace caret;
@@ -55,11 +57,14 @@ UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
 : UserInputModeView(UserInputModeAbstract::ANNOTATIONS),
 m_browserWindowIndex(windowIndex)
 {
-    m_mode = MODE_NEW;
+    m_mode = MODE_SELECT;
+    m_modeNewAnnotationType = AnnotationTypeEnum::ARROW;
     
     m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
                                                                  m_browserWindowIndex);
     setWidgetForToolBar(m_annotationToolsWidget);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION);
 }
 
 /**
@@ -67,7 +72,49 @@ m_browserWindowIndex(windowIndex)
  */
 UserInputModeAnnotations::~UserInputModeAnnotations()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    An event for which this instance is listening.
+ */
+void
+UserInputModeAnnotations::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION) {
+        EventAnnotation* annotationEvent = dynamic_cast<EventAnnotation*>(event);
+        CaretAssert(annotationEvent);
+        
+        switch (annotationEvent->getMode()) {
+            case EventAnnotation::MODE_INVALID:
+                break;
+            case EventAnnotation::MODE_EDIT_ANNOTATION:
+                break;
+            case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
+            {
+                m_modeNewAnnotationType = annotationEvent->getModeCreateNewAnnotationType();
+                setMode(MODE_NEW);
+                EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+            }
+                break;
+            case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
+                break;
+        }
+        
+        annotationEvent->setEventProcessed();
+    }
+    //    if (event->getEventType() == EventTypeEnum::) {
+    //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
+    //        CaretAssert(eventName);
+    //
+    //        event->setEventProcessed();
+    //    }
+}
+
 
 /**
  * Called when 'this' user input receiver is set
@@ -77,6 +124,7 @@ void
 UserInputModeAnnotations::initialize()
 {
     //this->borderToolsWidget->updateWidget();
+    m_mode = MODE_SELECT;
 }
 
 /**
@@ -86,6 +134,7 @@ UserInputModeAnnotations::initialize()
 void
 UserInputModeAnnotations::finish()
 {
+    m_mode = MODE_SELECT;
 }
 
 /**
@@ -142,14 +191,11 @@ UserInputModeAnnotations::getCursor() const
     CursorEnum::Enum cursor = CursorEnum::CURSOR_DEFAULT;
     
     switch (m_mode) {
-        case MODE_DELETE:
-            cursor = CursorEnum::CURSOR_POINTING_HAND;
-            break;
-        case MODE_EDIT:
-            cursor = CursorEnum::CURSOR_POINTING_HAND;
-            break;
         case MODE_NEW:
             cursor = CursorEnum::CURSOR_CROSS;
+            break;
+        case MODE_SELECT:
+            cursor = CursorEnum::CURSOR_POINTING_HAND;
             break;
     }
     
@@ -212,74 +258,13 @@ UserInputModeAnnotations::mouseLeftDragWithShift(const MouseEvent& /*mouseEvent*
 void
 UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
 {
-    processMouseLeftClick(mouseEvent,
-                          false);
-    
     switch (m_mode) {
-        case MODE_DELETE:
-        {
-            //            SelectionManager* idManager =
-            //            openGLWidget->performIdentification(mouseX,
-            //                                                mouseY,
-            //                                                true);
-            //            SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
-            //            if (idBorder->isValid()) {
-            //                Brain* brain = idBorder->getBrain();
-            //                Surface* surface = idBorder->getSurface();
-            //                //BorderFile* borderFile = idBorder->getBorderFile();
-            //                Border* border = idBorder->getBorder();
-            //                this->borderToolsWidget->executeRoiInsideSelectedBorderOperation(brain,
-            //                                                                                 surface,
-            //                                                                                 border);
-            //            }
-        }
-            break;
-        case MODE_EDIT:
-        {
-//            SelectionManager* idManager =
-//            openGLWidget->performIdentification(mouseX,
-//                                                mouseY,
-//                                                true);
-//            SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
-//            if (idBorder->isValid()) {
-//                BorderFile* borderFile = idBorder->getBorderFile();
-//                if (borderFile->isSingleStructure()) {
-//                    switch (this->editOperation) {
-//                        case EDIT_OPERATION_DELETE:
-//                        {
-//                            Border* border = idBorder->getBorder();
-//                            borderFile->removeBorder(border);
-//                            this->updateAfterBordersChanged();
-//                        }
-//                            break;
-//                        case EDIT_OPERATION_PROPERTIES:
-//                        {
-//                            Border* border = idBorder->getBorder();
-//                            std::auto_ptr<BorderPropertiesEditorDialog> editBorderDialog(
-//                                                                                         BorderPropertiesEditorDialog::newInstanceEditBorder(borderFile,
-//                                                                                                                                             
-//                                                                                                                                             border,
-//                                                                                                                                             
-//                                                                                                                                             openGLWidget));
-//                            if (editBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
-//                                this->updateAfterBordersChanged();
-//                            }
-//                        }
-//                            break;
-//                    }
-//                }
-//                else {
-//                    WuQMessageBox::errorOk(this->borderToolsWidget,
-//                                           borderFile->getObsoleteMultiStructureFormatMessage());
-//                }
-//            }
-        }
-            break;
         case MODE_NEW:
-            //            this->drawPointAtMouseXY(openGLWidget,
-            //                                     mouseX,
-            //                                     mouseY);
-            //            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+            processModeNewMouseLeftClick(mouseEvent);
+            break;
+        case MODE_SELECT:
+            processModeSelectMouseLeftClick(mouseEvent,
+                                            false);
             break;
     }
 }
@@ -293,21 +278,81 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
 void
 UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
 {
-    processMouseLeftClick(mouseEvent,
-                          true);
+    const bool allowSelectionOfMultipleAnnotationsFlag = false;
+    if ( ! allowSelectionOfMultipleAnnotationsFlag) {
+        return;
+    }
     
     switch (m_mode) {
-        case MODE_DELETE:
-            break;
-        case MODE_EDIT:
-            break;
         case MODE_NEW:
+            break;
+        case MODE_SELECT:
+            processModeSelectMouseLeftClick(mouseEvent,
+                                            true);
             break;
     }
 }
 
 /**
- * Select (or deselect) the given annotation.
+ * Process a mouse left click for new mode.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEvent)
+{
+    AnnotationCreateDialog createAnnotationDialog(mouseEvent,
+                                                  m_modeNewAnnotationType,
+                                                  mouseEvent.getOpenGLWidget());
+    if (createAnnotationDialog.exec() == AnnotationCreateDialog::Accepted) {
+        
+    }
+    
+    /*
+     * Popup dialog for user to select space and annotation file.
+     */
+//    SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+//    if (idBorder->isValid()) {
+//        BorderFile* borderFile = idBorder->getBorderFile();
+//        if (borderFile->isSingleStructure()) {
+//            switch (this->editOperation) {
+//                case EDIT_OPERATION_DELETE:
+//                {
+//                    Border* border = idBorder->getBorder();
+//                    borderFile->removeBorder(border);
+//                    this->updateAfterBordersChanged();
+//                }
+//                    break;
+//                case EDIT_OPERATION_PROPERTIES:
+//                {
+//                    Border* border = idBorder->getBorder();
+//                    std::auto_ptr<BorderPropertiesEditorDialog> editBorderDialog(
+//                                                                                 BorderPropertiesEditorDialog::newInstanceEditBorder(borderFile,
+//                                                                                                                                     
+//                                                                                                                                     border,
+//                                                                                                                                     
+//                                                                                                                                     openGLWidget));
+//                    if (editBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
+//                        this->updateAfterBordersChanged();
+//                    }
+//                }
+//                    break;
+//            }
+//        }
+//        else {
+//            WuQMessageBox::errorOk(this->borderToolsWidget,
+//                                   borderFile->getObsoleteMultiStructureFormatMessage());
+//        }
+//    }
+
+    setMode(MODE_SELECT);
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+}
+
+
+/**
+ * Process a mouse left click for selection mode.
  *
  * @param mouseEvent
  *     Mouse event information.
@@ -315,7 +360,7 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
  *     Status of shift key.
  */
 void
-UserInputModeAnnotations::processMouseLeftClick(const MouseEvent& mouseEvent,
+UserInputModeAnnotations::processModeSelectMouseLeftClick(const MouseEvent& mouseEvent,
                                                 const bool shiftKeyDownFlag)
 {
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();

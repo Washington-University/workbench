@@ -128,22 +128,32 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (surfaceDisplayed != NULL) {
-                StructureEnum::Enum structure = StructureEnum::INVALID;
-                int32_t surfaceNumberOfNodes  = -1;
-                int32_t surfaceNodeIndex      = -1;
-                coordinate->getSurfaceSpace(structure,
-                                            surfaceNumberOfNodes,
-                                            surfaceNodeIndex);
-                if ((surfaceDisplayed->getStructure() == structure)
-                    && (surfaceDisplayed->getNumberOfNodes() == surfaceNumberOfNodes)) {
-                    if ((surfaceNodeIndex >= 0)
-                        && (surfaceNodeIndex < surfaceNumberOfNodes)) {
+                StructureEnum::Enum annotationStructure = StructureEnum::INVALID;
+                int32_t annotationNumberOfNodes  = -1;
+                int32_t annotationNodeIndex      = -1;
+                coordinate->getSurfaceSpace(annotationStructure,
+                                            annotationNumberOfNodes,
+                                            annotationNodeIndex);
+                
+                const StructureEnum::Enum surfaceStructure = surfaceDisplayed->getStructure();
+                const int32_t surfaceNumberOfNodes = surfaceDisplayed->getNumberOfNodes();
+                if ((surfaceStructure == annotationStructure)
+                    && (surfaceNumberOfNodes == annotationNumberOfNodes)) {
+                    if ((annotationNodeIndex >= 0)
+                        && (annotationNodeIndex < surfaceNumberOfNodes)) {
                         float nodeXYZ[3];
-                        surfaceDisplayed->getCoordinate(surfaceNodeIndex,
+                        surfaceDisplayed->getCoordinate(annotationNodeIndex,
                                                         nodeXYZ);
                         modelXYZ[0] = nodeXYZ[0];
                         modelXYZ[1] = nodeXYZ[1];
                         modelXYZ[2] = nodeXYZ[2];
+                        
+                        const float offset = 5.0;
+                        const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
+                        
+                        modelXYZ[0] += (normalVector[0] * offset);
+                        modelXYZ[1] += (normalVector[1] * offset);
+                        modelXYZ[2] += (normalVector[2] * offset);
                         modelXYZValid = true;
                     }
                 }
@@ -182,8 +192,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
         if (gluProject(modelXYZ[0], modelXYZ[1], modelXYZ[2],
                        m_modelSpaceModelMatrix, m_modelSpaceProjectionMatrix, m_modelSpaceViewport,
                        &windowX, &windowY, &windowZ) == GL_TRUE) {
-            windowXYZ[0] = windowX;
-            windowXYZ[1] = windowY;
+            windowXYZ[0] = windowX - m_modelSpaceViewport[0];
+            windowXYZ[1] = windowY - m_modelSpaceViewport[1];
             windowXYZ[2] = windowZ;
             modelXYZValid = false;
             windowXYZValid = true;

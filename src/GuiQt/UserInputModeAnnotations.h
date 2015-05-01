@@ -21,28 +21,33 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationTypeEnum.h"
+#include "EventListenerInterface.h"
 #include "UserInputModeView.h"
-
-
 
 namespace caret {
 
     class Annotation;
     class UserInputModeAnnotationsWidget;
     
-    class UserInputModeAnnotations : public UserInputModeView {
+    class UserInputModeAnnotations : public UserInputModeView, EventListenerInterface {
         
     public:
+        /**
+         * Annotation mode
+         */
         enum Mode {
-            MODE_DELETE,
-            MODE_EDIT,
-            MODE_NEW,
+            /** Mouse selects annotation */
+            MODE_SELECT,
+            /** Mouse creates an annotation */
+            MODE_NEW
         };
         
         UserInputModeAnnotations(const int32_t windowIndex);
         
         virtual ~UserInputModeAnnotations();
+        
+        virtual void receiveEvent(Event* event);
         
         virtual void initialize();
         
@@ -80,8 +85,10 @@ namespace caret {
         
         void setMode(const Mode mode);
         
-        void processMouseLeftClick(const MouseEvent& mouseEvent,
-                                   const bool shiftKeyDownFlag);
+        void processModeNewMouseLeftClick(const MouseEvent& mouseEvent);
+        
+        void processModeSelectMouseLeftClick(const MouseEvent& mouseEvent,
+                                             const bool shiftKeyDownFlag);
         
         void deselectAllAnnotations();
         
@@ -90,6 +97,8 @@ namespace caret {
         Mode m_mode;
         
         const int32_t m_browserWindowIndex;
+        
+        AnnotationTypeEnum::Enum m_modeNewAnnotationType;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -36,6 +36,7 @@ using namespace caret;
  * \ingroup Files
  *
  * This event for annotation contains multiple modes.
+ * Both "get" and "set" method are available for each mode.
  */
 
 /**
@@ -46,6 +47,7 @@ EventAnnotation::EventAnnotation()
 {
     m_mode = MODE_INVALID;
     m_annotation = NULL;
+    m_annotationType = AnnotationTypeEnum::ARROW;
     m_browserWindowIndex = -1;
 }
 
@@ -79,7 +81,7 @@ EventAnnotation&
 EventAnnotation::setModeEditAnnotation(const int32_t browserWindowIndex,
                                                  Annotation* annotation)
 {
-    m_mode               = MODE_ANNOTATION_EDIT;
+    m_mode               = MODE_EDIT_ANNOTATION;
     m_browserWindowIndex = browserWindowIndex;
     m_annotation         = annotation;
     
@@ -98,7 +100,12 @@ void
 EventAnnotation::getModeEditAnnotation(int32_t& browserWindowIndexOut,
                                          Annotation* & annotationOut) const
 {
-    CaretAssert(m_mode == MODE_ANNOTATION_EDIT);
+    CaretAssert(m_mode == MODE_EDIT_ANNOTATION);
+    if (m_mode != MODE_EDIT_ANNOTATION) {
+        browserWindowIndexOut = -1;
+        annotationOut         = NULL;
+        return;
+    }
     
     browserWindowIndexOut = m_browserWindowIndex;
     annotationOut         = m_annotation;
@@ -114,6 +121,29 @@ EventAnnotation&
 EventAnnotation::setModeDeselectAllAnnotations()
 {
     m_mode = MODE_DESELECT_ALL_ANNOTATIONS;
+    
+    return *this;
+}
+
+/**
+ * @return Type of annotation for create new annotation mode.
+ */
+AnnotationTypeEnum::Enum
+EventAnnotation::getModeCreateNewAnnotationType() const
+{
+    CaretAssert(m_mode == MODE_CREATE_NEW_ANNOTATION_TYPE);
+    if (m_mode != MODE_CREATE_NEW_ANNOTATION_TYPE) {
+        return AnnotationTypeEnum::ARROW;
+    }
+    
+    return m_annotationType;
+}
+
+EventAnnotation&
+EventAnnotation::setModeCreateNewAnnotationType(const AnnotationTypeEnum::Enum annotationType)
+{
+    m_mode = MODE_CREATE_NEW_ANNOTATION_TYPE;
+    m_annotationType = annotationType;
     
     return *this;
 }

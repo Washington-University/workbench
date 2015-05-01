@@ -608,6 +608,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     
     Model* model = NULL;
     
+    this->mode = mode;
+    
     if (this->browserTabContent != NULL) {
         m_clippingPlaneGroup = const_cast<ClippingPlaneGroup*>(this->browserTabContent->getClippingPlaneGroup());
         CaretAssert(m_clippingPlaneGroup);
@@ -669,8 +671,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             
             //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::TAB,
-                                              NULL);
-            
+                                                 NULL);
         }
     }
     
@@ -1444,7 +1445,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              */
             //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
-                                              surface);
+                                                 surface);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
                                                   NULL);

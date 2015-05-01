@@ -105,20 +105,25 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Layout widgets
      */
-    QGridLayout* layout = new QGridLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addWidget(colorLabel,
+    QGridLayout* gridLayout = new QGridLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
+    gridLayout->addWidget(colorLabel,
                       0, 0,
                       1, 2,
                       Qt::AlignHCenter);
-    layout->addWidget(m_foregroundToolButton,
+    gridLayout->addWidget(m_foregroundToolButton,
                       1, 0);
-    layout->addWidget(m_backgroundToolButton,
+    gridLayout->addWidget(m_backgroundToolButton,
                       1, 1);
     
+//    QVBoxLayout* layout = new QVBoxLayout(this);
+//    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
+//    layout->addLayout(gridLayout);
+//    layout->addStretch();
     
-    setSizePolicy(QSizePolicy::Fixed,
-                  QSizePolicy::Fixed);
+    
+//    setSizePolicy(QSizePolicy::Fixed,
+//                  QSizePolicy::Fixed);
     
     backgroundColorSelected(CaretColorEnum::WHITE);
     foregroundColorSelected(CaretColorEnum::BLACK);

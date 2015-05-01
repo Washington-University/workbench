@@ -99,17 +99,17 @@ m_inputModeAnnotations(inputModeAnnotations)
      */
     QHBoxLayout* topRowLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 2);
-    topRowLayout->addWidget(m_colorWidget);
+    topRowLayout->addWidget(m_colorWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_textEditorWidget);
+    topRowLayout->addWidget(m_textEditorWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_fontWidget);
+    topRowLayout->addWidget(m_fontWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_textAlignmentWidget);
+    topRowLayout->addWidget(m_textAlignmentWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(insertWidget);
+    topRowLayout->addWidget(insertWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_formatWidget);
+    topRowLayout->addWidget(m_formatWidget, 0, Qt::AlignTop);
     topRowLayout->addStretch();
     
     /*
@@ -171,7 +171,9 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
         switch (annotationEvent->getMode()) {
             case EventAnnotation::MODE_INVALID:
                 break;
-            case EventAnnotation::MODE_ANNOTATION_EDIT:
+            case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
+                break;
+            case EventAnnotation::MODE_EDIT_ANNOTATION:
             {
                 int32_t windowIndex = -1;
                 Annotation* annotation = NULL;
@@ -215,6 +217,7 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     m_textEditorWidget->updateContent(textAnnotation);
     m_colorWidget->updateContent(m_annotationBeingEdited);
     m_textAlignmentWidget->updateContent(textAnnotation);
+    m_widthHeightRotationWidget->updateContent(twoDimAnnotation);
     
     AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     if (m_annotationBeingEdited != NULL) {
@@ -246,20 +249,16 @@ UserInputModeAnnotationsWidget::updateWidget()
      * Show the proper widget
      */
     switch (m_inputModeAnnotations->getMode()) {
-        case UserInputModeAnnotations::MODE_DELETE:
+        case UserInputModeAnnotations::MODE_NEW:
 //            this->operationStackedWidget->setCurrentWidget(this->widgetDrawOperation);
 //            this->setActionGroupByActionData(this->drawOperationActionGroup,
 //                                             inputModeBorders->getDrawOperation());
 //            resetLastEditedBorder();
             break;
-        case UserInputModeAnnotations::MODE_EDIT:
+        case UserInputModeAnnotations::MODE_SELECT:
 //            this->operationStackedWidget->setCurrentWidget(this->widgetEditOperation);
 //            this->setActionGroupByActionData(this->editOperationActionGroup,
 //                                             inputModeBorders->getEditOperation());
-            break;
-        case UserInputModeAnnotations::MODE_NEW:
-//            this->operationStackedWidget->setCurrentWidget(this->widgetRoiOperation);
-//            resetLastEditedBorder();
             break;
     }
 }

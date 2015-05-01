@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 
+#include "AnnotationTypeEnum.h"
 #include "Event.h"
 
 
@@ -39,8 +40,10 @@ namespace caret {
         enum Mode {
             /** Invalid */
             MODE_INVALID,
+            /** Begin creation of a new annotation with a specific type MOUSE MODE MUST BE Annotations */
+            MODE_CREATE_NEW_ANNOTATION_TYPE,
             /** Edit an annotation */
-            MODE_ANNOTATION_EDIT,
+            MODE_EDIT_ANNOTATION,
             /** Deselect all annotations */
             MODE_DESELECT_ALL_ANNOTATIONS
         };
@@ -57,6 +60,10 @@ namespace caret {
         
         EventAnnotation& setModeDeselectAllAnnotations();
         
+        AnnotationTypeEnum::Enum getModeCreateNewAnnotationType() const;
+        
+        EventAnnotation& setModeCreateNewAnnotationType(const AnnotationTypeEnum::Enum annotationType);
+        
         Mode getMode() const;
 
         // ADD_NEW_METHODS_HERE
@@ -71,6 +78,8 @@ namespace caret {
         int32_t m_browserWindowIndex;
         
         Annotation* m_annotation;
+        
+        AnnotationTypeEnum::Enum m_annotationType;
         
         // ADD_NEW_MEMBERS_HERE
 

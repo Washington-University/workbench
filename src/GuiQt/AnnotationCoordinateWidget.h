@@ -79,6 +79,8 @@ namespace caret {
         
         QDoubleSpinBox* m_zCoordSpinBox;
 
+        AnnotationCoordinateSpaceEnum::Enum m_coordinateSpace;
+        
         AnnotationCoordinate* m_coordinate;
         
     };

@@ -56,7 +56,9 @@ m_browserWindowIndex(browserWindowIndex)
     QLabel* formatLabel = new QLabel("Format");
     
     QWidget* arrangeButton = createArrangeMenuToolButton();
-
+    
+    arrangeButton->setEnabled(false);
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(formatLabel);

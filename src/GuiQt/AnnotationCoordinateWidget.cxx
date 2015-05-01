@@ -55,6 +55,7 @@ AnnotationCoordinateWidget::AnnotationCoordinateWidget(const int32_t browserWind
 m_browserWindowIndex(browserWindowIndex)
 {
     m_coordinate = NULL;
+    m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     
     QLabel* surfaceVertexLabel = new QLabel("Vertex:");
     std::vector<StructureEnum::Enum> validStructures;
@@ -162,6 +163,7 @@ AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::E
                                           AnnotationCoordinate* coordinate)
 {
     m_coordinate = coordinate;
+    m_coordinateSpace = coordinateSpace;
     
     bool surfaceFlag    = false;
     
@@ -171,7 +173,7 @@ AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::E
         double zMin  = -1.0;
         double zMax  =  1.0;
         double xyzStep = 0.01;
-        switch (coordinateSpace) {
+        switch (m_coordinateSpace) {
             case AnnotationCoordinateSpaceEnum::MODEL:
                 xyMax = 10000.0;
                 xyMin = -xyMax;
@@ -203,9 +205,17 @@ AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::E
         float xyz[3];
         m_coordinate->getXYZ(xyz);
         
+        m_xCoordSpinBox->blockSignals(true);
         m_xCoordSpinBox->setValue(xyz[0]);
+        m_xCoordSpinBox->blockSignals(false);
+        
+        m_yCoordSpinBox->blockSignals(true);
         m_yCoordSpinBox->setValue(xyz[1]);
+        m_yCoordSpinBox->blockSignals(false);
+        
+        m_zCoordSpinBox->blockSignals(true);
         m_zCoordSpinBox->setValue(xyz[2]);
+        m_zCoordSpinBox->blockSignals(false);
         
         if (surfaceFlag) {
             StructureEnum::Enum structure = StructureEnum::INVALID;
@@ -214,6 +224,10 @@ AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::E
             m_coordinate->getSurfaceSpace(structure,
                                           surfaceNumberOfNodes,
                                           surfaceNodeIndex);
+            m_surfaceStructureComboBox->setSelectedStructure(structure);
+            m_surfaceNodeIndexSpinBox->blockSignals(true);
+            m_surfaceNodeIndexSpinBox->setValue(surfaceNodeIndex);
+            m_surfaceNodeIndexSpinBox->blockSignals(false);
         }
         
         setEnabled(true);
@@ -232,6 +246,21 @@ AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::E
 void
 AnnotationCoordinateWidget::coordinateValueChanged()
 {
+    bool surfaceFlag = false;
+    switch (m_coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::MODEL:
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            surfaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
     if (m_coordinate != NULL) {
         float xyz[3] = {
             m_xCoordSpinBox->value(),
@@ -239,6 +268,21 @@ AnnotationCoordinateWidget::coordinateValueChanged()
             m_zCoordSpinBox->value()
         };
         m_coordinate->setXYZ(xyz);
+        
+        if (surfaceFlag) {
+            StructureEnum::Enum structure = StructureEnum::INVALID;
+            int32_t surfaceNumberOfNodes  = -1;
+            int32_t surfaceNodeIndex      = -1;
+            m_coordinate->getSurfaceSpace(structure,
+                                          surfaceNumberOfNodes,
+                                          surfaceNodeIndex);
+            structure = m_surfaceStructureComboBox->getSelectedStructure();
+            surfaceNodeIndex = m_surfaceNodeIndexSpinBox->value();
+            
+            m_coordinate->setSurfaceSpace(structure,
+                                          surfaceNumberOfNodes,
+                                          surfaceNodeIndex);
+        }
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());

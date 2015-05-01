@@ -29,6 +29,7 @@ SET(MOC_INPUT_HEADER_FILES
 AboutWorkbenchDialog.h
 AnnotationColorWidget.h
 AnnotationCoordinateWidget.h
+AnnotationCreateDialog.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
@@ -171,6 +172,7 @@ SET(SOURCE_FILES
 AboutWorkbenchDialog.h
 AnnotationColorWidget.h
 AnnotationCoordinateWidget.h
+AnnotationCreateDialog.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
@@ -339,6 +341,7 @@ WuQtUtilities.h
 AboutWorkbenchDialog.cxx
 AnnotationColorWidget.cxx
 AnnotationCoordinateWidget.cxx
+AnnotationCreateDialog.cxx
 AnnotationFontWidget.cxx
 AnnotationFormatWidget.cxx
 AnnotationInsertNewWidget.cxx

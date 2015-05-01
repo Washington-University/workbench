@@ -312,7 +312,9 @@ AnnotationFile::receiveEvent(Event* event)
         switch (annotationEvent->getMode()) {
             case EventAnnotation::MODE_INVALID:
                 break;
-            case EventAnnotation::MODE_ANNOTATION_EDIT:
+            case EventAnnotation::MODE_EDIT_ANNOTATION:
+                break;
+            case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
                 break;
             case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
                 setAllAnnotationsSelected(false);
@@ -321,12 +323,6 @@ AnnotationFile::receiveEvent(Event* event)
         
         annotationEvent->setEventProcessed();
     }
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
 }
 
 /**

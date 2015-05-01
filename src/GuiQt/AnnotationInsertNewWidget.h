@@ -29,7 +29,6 @@
 
 namespace caret {
     class Annotation;
-    class EnumComboBoxTemplate;
     
     class AnnotationInsertNewWidget : public QWidget, public EventListenerInterface {
         
@@ -62,8 +61,6 @@ namespace caret {
 
         AnnotationInsertNewWidget& operator=(const AnnotationInsertNewWidget&);
         
-        QWidget* createSpaceComboBox();
-        
         QWidget* createTextToolButton();
         
         QWidget* createShapeToolButton();
@@ -75,8 +72,6 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        EnumComboBoxTemplate* m_coordinateSpaceComboBox;
-
         QAction* m_textToolButtonAction;
         
         QAction* m_shapeToolButtonAction;
