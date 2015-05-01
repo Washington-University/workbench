@@ -5076,22 +5076,21 @@ CiftiMappableDataFile::addCiftiXmlToDataFileContentInformation(DataFileContentIn
                          parcelIter != parcels.end();
                          parcelIter++) {
                         const CiftiParcelsMap::Parcel parcel = *parcelIter;
-                        dataFileInformation.addNameAndValue(("    "
-                                                             + parcel.m_name),
-                                                            ("Voxel-Count="
-                                                             + AString::number(parcel.m_voxelIndices.size())));
-                        
+                        dataFileInformation.addNameAndValue("    Parcel " + AString::number(parcelIter - parcels.begin() + 1), parcel.m_name);
                         
                         for (std::map<StructureEnum::Enum, std::set<int64_t> >::const_iterator surfIter = parcel.m_surfaceNodes.begin();
                              surfIter != parcel.m_surfaceNodes.end();
                              surfIter++) {
                             const StructureEnum::Enum structure  = surfIter->first;
                             const std::set<int64_t>& nodeIndices = surfIter->second;
-                            dataFileInformation.addNameAndValue("    ",
-                                                                (StructureEnum::toGuiName(structure)
-                                                                 + " Vertex-Count="
-                                                                 + AString::number(nodeIndices.size())));
+                            dataFileInformation.addNameAndValue("        " +
+                                                                StructureEnum::toGuiName(structure),
+                                                                AString::number(nodeIndices.size()) + " vertices");
                             
+                        }
+                        if (parcel.m_voxelIndices.size() != 0) 
+                        {
+                            dataFileInformation.addNameAndValue("    ", AString::number(parcel.m_voxelIndices.size()) + " voxels");
                         }
                     }
                 }
