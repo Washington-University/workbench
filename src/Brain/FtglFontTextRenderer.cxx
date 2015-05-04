@@ -473,6 +473,7 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                                    bottomRightOut,
                                                    topRightOut,
                                                    topLeftOut,
+                                                   rotationPointXYZ,
                                                    charInfo);
         }
             break;
@@ -685,6 +686,8 @@ FtglFontTextRenderer::getBoundsForHorizontalTextAtWindowCoords(const AnnotationT
  *    The top left corner of the text bounds.
  * @param textCharsToDraw
  *    Output character drawing information.
+ * @param rotationPointXYZOut
+ *    Rotation point for text.
  */
 void
 FtglFontTextRenderer::getBoundsForVerticalTextAtWindowCoords(const AnnotationText& annotationText,
@@ -695,6 +698,7 @@ FtglFontTextRenderer::getBoundsForVerticalTextAtWindowCoords(const AnnotationTex
                                                              double bottomRightOut[3],
                                                              double topRightOut[3],
                                                              double topLeftOut[3],
+                                                             double rotationPointXYZOut[3],
                                                              std::vector<CharInfo>& textCharsToDraw)
 {
     double textMinX   = 0.0;
@@ -767,7 +771,64 @@ FtglFontTextRenderer::getBoundsForVerticalTextAtWindowCoords(const AnnotationTex
     topLeftOut[1]     = backMaxY + s_textMarginSize;
     topLeftOut[2]     = viewportZ;
     
+    double rotationX = 0.0;
+    double rotationY = 0.0;
     
+    switch (annotationText.getVerticalAlignment()) {
+        case AnnotationTextAlignVerticalEnum::BOTTOM:
+            switch (annotationText.getHorizontalAlignment()) {
+                case AnnotationTextAlignHorizontalEnum::CENTER:
+                    rotationX = (bottomLeftOut[0] + bottomRightOut[0]) / 2.0;
+                    rotationY = (bottomLeftOut[1] + bottomRightOut[1]) / 2.0;
+                    break;
+                case AnnotationTextAlignHorizontalEnum::LEFT:
+                    rotationX = bottomLeftOut[0];
+                    rotationY = bottomLeftOut[1];
+                    break;
+                case AnnotationTextAlignHorizontalEnum::RIGHT:
+                    rotationX = bottomRightOut[0];
+                    rotationY = bottomRightOut[1];
+                    break;
+            }
+            break;
+        case AnnotationTextAlignVerticalEnum::MIDDLE:
+            switch (annotationText.getHorizontalAlignment()) {
+                case AnnotationTextAlignHorizontalEnum::CENTER:
+                    rotationX = (bottomLeftOut[0] + bottomRightOut[0] + topLeftOut[0] + topRightOut[0]) / 4.0;
+                    rotationY = (bottomLeftOut[1] + bottomRightOut[1] + topLeftOut[1] + topRightOut[1]) / 4.0;
+                    break;
+                case AnnotationTextAlignHorizontalEnum::LEFT:
+                    rotationX = (bottomLeftOut[0] + topLeftOut[0]) / 2.0;
+                    rotationY = (bottomLeftOut[1] + topLeftOut[1]) / 2.0;
+                    break;
+                case AnnotationTextAlignHorizontalEnum::RIGHT:
+                    rotationX = (topRightOut[0] + bottomRightOut[0]) / 2.0;
+                    rotationY = (topRightOut[1] + bottomRightOut[1]) / 2.0;
+                    break;
+            }
+            break;
+        case AnnotationTextAlignVerticalEnum::TOP:
+            switch (annotationText.getHorizontalAlignment()) {
+                case AnnotationTextAlignHorizontalEnum::CENTER:
+                    rotationX = (topLeftOut[0] + topRightOut[0]) / 2.0;
+                    rotationY = (topLeftOut[1] + topRightOut[1]) / 2.0;
+                    break;
+                case AnnotationTextAlignHorizontalEnum::LEFT:
+                    rotationX = topLeftOut[0];
+                    rotationY = topLeftOut[1];
+                    break;
+                case AnnotationTextAlignHorizontalEnum::RIGHT:
+                    rotationX = topRightOut[0];
+                    rotationY = topRightOut[1];
+                    break;
+            }
+            break;
+    }
+    
+    rotationPointXYZOut[0] = rotationX;
+    rotationPointXYZOut[1] = rotationY;
+    rotationPointXYZOut[2] = 0.0;
+
     const double rotationAngle = annotationText.getRotationAngle();
     if (rotationAngle != 0.0) {
         float translateFirstChar[3] = { 0.0, 0.0, 0.0 };
@@ -782,62 +843,65 @@ FtglFontTextRenderer::getBoundsForVerticalTextAtWindowCoords(const AnnotationTex
         };
         
         Matrix4x4 matrix;
-        matrix.translate(translateValueForRotation[0], translateValueForRotation[1], translateValueForRotation[2]);
+        matrix.translate(-rotationX, -rotationY, 0.0);
         matrix.rotateZ(-rotationAngle);
-        matrix.translate(-translateValueForRotation[0], -translateValueForRotation[1], -translateValueForRotation[2]);
+        matrix.translate(rotationX, rotationY, 0.0);
+//        matrix.translate(translateValueForRotation[0], translateValueForRotation[1], translateValueForRotation[2]);
+//        matrix.rotateZ(-rotationAngle);
+//        matrix.translate(-translateValueForRotation[0], -translateValueForRotation[1], -translateValueForRotation[2]);
         matrix.multiplyPoint3(bottomLeftOut);
         matrix.multiplyPoint3(bottomRightOut);
         matrix.multiplyPoint3(topRightOut);
         matrix.multiplyPoint3(topLeftOut);
         
-        const int32_t numChars = static_cast<int32_t>(textCharsToDraw.size());
-        if (numChars > 1) {
-            Matrix4x4 characterRotationMatrix;
-            characterRotationMatrix.rotateZ(-rotationAngle);
-            
-            
-            std::vector<CharInfo> rotatedChars;
-            double previousCharacterXYZ[3] = { zeroCharPos[0], zeroCharPos[1], zeroCharPos[2] };
-            for (int32_t i = 0; i < numChars; i++) {
-                const double x1 = ((i > 0) ? textCharsToDraw[i-1].m_x : zeroCharPos[0]);
-                const double y1 = ((i > 0) ? textCharsToDraw[i-1].m_y : zeroCharPos[1]);
-                const double z1 = zeroCharPos[2];
-                const double x2 = textCharsToDraw[i].m_x;
-                const double y2 = textCharsToDraw[i].m_y;
-                const double dx = x2 - x1;
-                const double dy = y2 - y1;
-                const double dz = viewportZ;
-                
-                double dXYZ[3] = { dx, dy, dz };
-                characterRotationMatrix.multiplyPoint3(dXYZ);
-                const double rotXYZ[3] = {
-                    previousCharacterXYZ[0] + dXYZ[0],
-                    previousCharacterXYZ[1] + dXYZ[1],
-                    previousCharacterXYZ[2] + dXYZ[2]
-                };
-                rotatedChars.push_back(CharInfo(textCharsToDraw[i].m_char, rotXYZ[0], rotXYZ[1]));
-                
-                
-                previousCharacterXYZ[0] = rotXYZ[0];
-                previousCharacterXYZ[1] = rotXYZ[1];
-                previousCharacterXYZ[2] = rotXYZ[2];
-            }
-            
-            CaretAssert(textCharsToDraw.size() == rotatedChars.size());
-            CaretAssert(static_cast<int32_t>(rotatedChars.size()) == numChars);
-//            std::cout << std::endl;
+//        const int32_t numChars = static_cast<int32_t>(textCharsToDraw.size());
+//        if (numChars > 1) {
+//            Matrix4x4 characterRotationMatrix;
+//            characterRotationMatrix.rotateZ(-rotationAngle);
+//            
+//            
+//            std::vector<CharInfo> rotatedChars;
+//            double previousCharacterXYZ[3] = { zeroCharPos[0], zeroCharPos[1], zeroCharPos[2] };
 //            for (int32_t i = 0; i < numChars; i++) {
-//                std::cout << "Char '" << textCharsToDraw[i].m_char << "' ("
-//                << textCharsToDraw[i].m_x << ", " << textCharsToDraw[i].m_y << ") rotated to ("
-//                << rotatedChars[i].m_x << ", " << rotatedChars[i].m_y
-//                << ")" << std::endl;
+//                const double x1 = ((i > 0) ? textCharsToDraw[i-1].m_x : zeroCharPos[0]);
+//                const double y1 = ((i > 0) ? textCharsToDraw[i-1].m_y : zeroCharPos[1]);
+//                const double z1 = zeroCharPos[2];
+//                const double x2 = textCharsToDraw[i].m_x;
+//                const double y2 = textCharsToDraw[i].m_y;
+//                const double dx = x2 - x1;
+//                const double dy = y2 - y1;
+//                const double dz = viewportZ;
+//                
+//                double dXYZ[3] = { dx, dy, dz };
+//                characterRotationMatrix.multiplyPoint3(dXYZ);
+//                const double rotXYZ[3] = {
+//                    previousCharacterXYZ[0] + dXYZ[0],
+//                    previousCharacterXYZ[1] + dXYZ[1],
+//                    previousCharacterXYZ[2] + dXYZ[2]
+//                };
+//                rotatedChars.push_back(CharInfo(textCharsToDraw[i].m_char, rotXYZ[0], rotXYZ[1]));
+//                
+//                
+//                previousCharacterXYZ[0] = rotXYZ[0];
+//                previousCharacterXYZ[1] = rotXYZ[1];
+//                previousCharacterXYZ[2] = rotXYZ[2];
 //            }
-            
-            textCharsToDraw.clear();
-            textCharsToDraw.insert(textCharsToDraw.end(),
-                                   rotatedChars.begin(),
-                                   rotatedChars.end());
-        }
+//            
+//            CaretAssert(textCharsToDraw.size() == rotatedChars.size());
+//            CaretAssert(static_cast<int32_t>(rotatedChars.size()) == numChars);
+////            std::cout << std::endl;
+////            for (int32_t i = 0; i < numChars; i++) {
+////                std::cout << "Char '" << textCharsToDraw[i].m_char << "' ("
+////                << textCharsToDraw[i].m_x << ", " << textCharsToDraw[i].m_y << ") rotated to ("
+////                << rotatedChars[i].m_x << ", " << rotatedChars[i].m_y
+////                << ")" << std::endl;
+////            }
+//            
+//            textCharsToDraw.clear();
+//            textCharsToDraw.insert(textCharsToDraw.end(),
+//                                   rotatedChars.begin(),
+//                                   rotatedChars.end());
+//        }
     }
 }
 
@@ -928,6 +992,7 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
     double bottomRightOut[3];
     double topRightOut[3];
     double topLeftOut[3];
+    double rotationPointXYZ[3];
     std::vector<CharInfo> textCharsToDraw;
     getBoundsForVerticalTextAtWindowCoords(annotationText,
                                            windowX,
@@ -937,67 +1002,170 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
                                            bottomRightOut,
                                            topRightOut,
                                            topLeftOut,
+                                           rotationPointXYZ,
                                            textCharsToDraw);
+    
+    
+    
+//    double textX = (topLeftOut[0] + topRightOut[0]) / 2.0;
+//    double textY = topLeftOut[1];
+//    
+//    applyBackgroundColoring(annotationText,
+//                            bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
+//    applyForegroundColoring(annotationText);
+//    
+//    const double rotationAngle = annotationText.getRotationAngle();
+//    const double textOffsetY = s_textMarginSize;
+//    for (std::vector<CharInfo>::const_iterator textIter = textCharsToDraw.begin();
+//         textIter != textCharsToDraw.end();
+//         textIter++) {
+//        const double charX = textX + textIter->m_x; // + textOffsetX;
+//        const double charY = textY + textIter->m_y - textOffsetY;
+//        
+//        glPushMatrix();
+//        glTranslated(charX,
+//                     charY,
+//                     0.0);
+//        if (rotationAngle != 0.0) {
+//            glRotated(rotationAngle, 0.0, 0.0, -1.0);
+//        }
+//        
+//        std::cout << "   "
+//        << qPrintable(textIter->m_char.toAscii().constData())
+//        << " X/Y:"
+//        << charX
+//        << ","
+//        << charY
+//        << "  text mxy:"
+//        << textIter->m_x
+//        << ","
+//        << textIter->m_y
+//        << std::endl;
+//        font->Render(textIter->m_char.toAscii().constData());
+//        glPopMatrix();
+//    }
+//    
+//    std::cout << std::endl;
 
-    const double textBoundsWidth  = MathFunctions::distance3D(bottomLeftOut,
-                                                              bottomRightOut);
-    const double textBoundsHeight = MathFunctions::distance3D(bottomLeftOut,
-                                                              topLeftOut);
-    double textOffsetX = 0;
-    switch (annotationText.getHorizontalAlignment()) {
-        case AnnotationTextAlignHorizontalEnum::LEFT:
-            textOffsetX = (textBoundsWidth / 2.0);
-            break;
-        case AnnotationTextAlignHorizontalEnum::CENTER:
-            textOffsetX = 0;
-            break;
-        case AnnotationTextAlignHorizontalEnum::RIGHT:
-            textOffsetX = -(textBoundsWidth / 2.0);
-            break;
-    }
     
-    /*
-     * The character coordinates are set so that the top of the first
-     * will be at Y=0.
-     */
-    double textOffsetY = 0.0;
-    switch (annotationText.getVerticalAlignment()) {
-        case AnnotationTextAlignVerticalEnum::BOTTOM:
-            textOffsetY = textBoundsHeight;
-            break;
-        case AnnotationTextAlignVerticalEnum::MIDDLE:
-            textOffsetY = (textBoundsHeight / 2.0);
-            break;
-        case AnnotationTextAlignVerticalEnum::TOP:
-            textOffsetY = 0.0;
-            break;
-    }
-    
-    
+    double textX = (topLeftOut[0] + topRightOut[0]) / 2.0;
+    double textY = topLeftOut[1];
     
     applyBackgroundColoring(annotationText,
                             bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
     applyForegroundColoring(annotationText);
     
     const double rotationAngle = annotationText.getRotationAngle();
+//    const double textOffsetY = s_textMarginSize;
+    
+    const double halfTextWidth = MathFunctions::distance3D(topLeftOut, topRightOut) / 2.0;
+    const double textOffsetX = halfTextWidth * std::cos(MathFunctions::toRadians(rotationAngle));
+    const double textOffsetY = halfTextWidth * std::sin(MathFunctions::toRadians(rotationAngle));
+//    std::cout << "Text offset X: " << textOffsetX << " Offset Y: " << textOffsetY << " angle=" << rotationAngle << std::endl;
+    //textX -= textOffsetX;
+    textY -= textOffsetY;
+    
+    
+    glPushMatrix();
+    glTranslated(textX, textY, 0.0);
+    if (rotationAngle != 0.0) {
+        glRotated(rotationAngle, 0.0, 0.0, -1.0);
+    }
     
     for (std::vector<CharInfo>::const_iterator textIter = textCharsToDraw.begin();
          textIter != textCharsToDraw.end();
          textIter++) {
-        const double charX = windowX + textIter->m_x + textOffsetX;
-        const double charY = windowY + textIter->m_y + textOffsetY;
+//        const double charX = textX + textIter->m_x; // + textOffsetX;
+//        const double charY = textY + textIter->m_y - textOffsetY;
+//        
+//        glPushMatrix();
+//        glTranslated(charX,
+//                     charY,
+//                     0.0);
+//        if (rotationAngle != 0.0) {
+//            glRotated(rotationAngle, 0.0, 0.0, -1.0);
+//        }
+//        
+//        std::cout << "   "
+//        << qPrintable(textIter->m_char.toAscii().constData())
+//        << "  text mxy:"
+//        << textIter->m_x
+//        << ","
+//        << textIter->m_y
+//        << std::endl;
         
         glPushMatrix();
-        glTranslated(charX,
-                     charY,
-                     0.0);
-        if (rotationAngle != 0.0) {
-            glRotated(rotationAngle, 0.0, 0.0, -1.0);
-        }
-        
+        glTranslated(textIter->m_x, textIter->m_y - s_textMarginSize, 0.0);
         font->Render(textIter->m_char.toAscii().constData());
         glPopMatrix();
+///        glPopMatrix();
     }
+    glPopMatrix();
+    
+    std::cout << std::endl;
+
+    
+    
+
+//    const double textBoundsWidth  = MathFunctions::distance3D(bottomLeftOut,
+//                                                              bottomRightOut);
+//    const double textBoundsHeight = MathFunctions::distance3D(bottomLeftOut,
+//                                                              topLeftOut);
+//    double textOffsetX = 0;
+//    switch (annotationText.getHorizontalAlignment()) {
+//        case AnnotationTextAlignHorizontalEnum::LEFT:
+//            textOffsetX = (textBoundsWidth / 2.0);
+//            break;
+//        case AnnotationTextAlignHorizontalEnum::CENTER:
+//            textOffsetX = 0;
+//            break;
+//        case AnnotationTextAlignHorizontalEnum::RIGHT:
+//            textOffsetX = -(textBoundsWidth / 2.0);
+//            break;
+//    }
+//    
+//    /*
+//     * The character coordinates are set so that the top of the first
+//     * will be at Y=0.
+//     */
+//    double textOffsetY = 0.0;
+//    switch (annotationText.getVerticalAlignment()) {
+//        case AnnotationTextAlignVerticalEnum::BOTTOM:
+//            textOffsetY = textBoundsHeight;
+//            break;
+//        case AnnotationTextAlignVerticalEnum::MIDDLE:
+//            textOffsetY = (textBoundsHeight / 2.0);
+//            break;
+//        case AnnotationTextAlignVerticalEnum::TOP:
+//            textOffsetY = 0.0;
+//            break;
+//    }
+//    
+//    
+//    
+//    applyBackgroundColoring(annotationText,
+//                            bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
+//    applyForegroundColoring(annotationText);
+//    
+//    const double rotationAngle = annotationText.getRotationAngle();
+//    
+//    for (std::vector<CharInfo>::const_iterator textIter = textCharsToDraw.begin();
+//         textIter != textCharsToDraw.end();
+//         textIter++) {
+//        const double charX = windowX + textIter->m_x + textOffsetX;
+//        const double charY = windowY + textIter->m_y + textOffsetY;
+//        
+//        glPushMatrix();
+//        glTranslated(charX,
+//                     charY,
+//                     0.0);
+//        if (rotationAngle != 0.0) {
+//            glRotated(rotationAngle, 0.0, 0.0, -1.0);
+//        }
+//        
+//        font->Render(textIter->m_char.toAscii().constData());
+//        glPopMatrix();
+//    }
     
     restoreStateOfOpenGL();
 #else // HAVE_FREETYPE

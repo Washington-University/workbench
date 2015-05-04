@@ -129,6 +129,7 @@ namespace caret {
                                                     double bottomRightOut[3],
                                                     double topRightOut[3],
                                                     double topLeftOut[3],
+                                                    double rotationPointXYZOut[3],
                                                     std::vector<CharInfo>& textCharsToDraw);
         
         void getVerticalTextCharInfo(const AnnotationText& annotationText,
