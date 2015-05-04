@@ -367,12 +367,17 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     double topRightOut[3];
     double topLeftOut[3];
     double firstTextCharacterXYZ[3];
+    double rotationPointXYZ[3];
     getBoundsForHorizontalTextAtWindowCoords(annotationText,
                                              windowX, windowY, 0.0,
                                              bottomLeftOut, bottomRightOut, topRightOut, topLeftOut,
-                                             firstTextCharacterXYZ);
+                                             firstTextCharacterXYZ,
+                                             rotationPointXYZ);
     textX = firstTextCharacterXYZ[0];
     textY = firstTextCharacterXYZ[1];
+    
+    textX = (bottomLeftOut[0] + topLeftOut[0]) / 2.0;
+    textY = bottomLeftOut[1] + s_textMarginSize; //(bottomLeftOut[1] + topLeftOut[1]) / 2.0;
     
     const AString text = annotationText.getText();
     
@@ -384,10 +389,15 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     
     const double rotationAngle = annotationText.getRotationAngle();
     if (rotationAngle != 0.0) {
-        glTranslated(textX,
-                     textY,
-                     0.0);
+        glTranslated(textX, textY, 0.0);
         glRotated(rotationAngle, 0.0, 0.0, -1.0);
+        
+//        glTranslated(-rotationPointXYZ[0], -rotationPointXYZ[1], -rotationPointXYZ[2]);
+//        glRotated(rotationAngle, 0.0, 0.0, -1.0);
+//        glTranslated(rotationPointXYZ[0], rotationPointXYZ[1], rotationPointXYZ[2]);
+//        glTranslated(textX,
+//                     textY,
+//                     0.0);
         font->Render(text.toAscii().constData());
     }
     else {
@@ -438,6 +448,7 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                                        double topLeftOut[3])
 {
     double firstTextCharacterXYZ[3];
+    double rotationPointXYZ[3];
     switch (annotationText.getOrientation()) {
         case AnnotationTextOrientationEnum::HORIZONTAL:
             getBoundsForHorizontalTextAtWindowCoords(annotationText,
@@ -448,7 +459,8 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                                      bottomRightOut,
                                                      topRightOut,
                                                      topLeftOut,
-                                                     firstTextCharacterXYZ);
+                                                     firstTextCharacterXYZ,
+                                                     rotationPointXYZ);
             break;
         case AnnotationTextOrientationEnum::STACKED:
         {
@@ -491,6 +503,8 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
  *    The top left corner of the text bounds.
  * @param firstTextCharacterXYZOut
  *    Coordinate for drawing first text character.
+ * @param rotationPointXYZOut
+ *    Rotation point for text.
  */
 void
 FtglFontTextRenderer::getBoundsForHorizontalTextAtWindowCoords(const AnnotationText& annotationText,
@@ -501,7 +515,8 @@ FtglFontTextRenderer::getBoundsForHorizontalTextAtWindowCoords(const AnnotationT
                                                                double bottomRightOut[3],
                                                                double topRightOut[3],
                                                                double topLeftOut[3],
-                                                               double firstTextCharacterXYZOut[3])
+                                                               double firstTextCharacterXYZOut[3],
+                                                               double rotationPointXYZOut[3])
 {
     FTFont* font = getFont(annotationText,
                            false);
@@ -546,6 +561,9 @@ FtglFontTextRenderer::getBoundsForHorizontalTextAtWindowCoords(const AnnotationT
     const double textMinY = viewportY + textOffsetY;
     const double textMaxY = textMinY + (upper.Y() - lower.Y());
     
+    const double halfWidth  = (textMaxX - textMinX) / 2.0;
+    const double halfHeight = (textMaxY - textMinY) / 2.0;
+    
     firstTextCharacterXYZOut[0] = textMinX;
     firstTextCharacterXYZOut[1] = textMinY;
     firstTextCharacterXYZOut[2] = 0.0;
@@ -563,12 +581,79 @@ FtglFontTextRenderer::getBoundsForHorizontalTextAtWindowCoords(const AnnotationT
     topLeftOut[1]     = textMaxY + s_textMarginSize;
     topLeftOut[2]     = 0.0;
     
+        double rotationX = textMinX;
+        double rotationY = textMinY;
+        
+        switch (annotationText.getVerticalAlignment()) {
+            case AnnotationTextAlignVerticalEnum::BOTTOM:
+                switch (annotationText.getHorizontalAlignment()) {
+                    case AnnotationTextAlignHorizontalEnum::CENTER:
+                        rotationX = (bottomLeftOut[0] + bottomRightOut[0]) / 2.0;
+                        rotationY = (bottomLeftOut[1] + bottomRightOut[1]) / 2.0;
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::LEFT:
+                        rotationX = bottomLeftOut[0];
+                        rotationY = bottomLeftOut[1];
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::RIGHT:
+                        rotationX = bottomRightOut[0];
+                        rotationY = bottomRightOut[1];
+                        break;
+                }
+                break;
+            case AnnotationTextAlignVerticalEnum::MIDDLE:
+                switch (annotationText.getHorizontalAlignment()) {
+                    case AnnotationTextAlignHorizontalEnum::CENTER:
+                        rotationX = (bottomLeftOut[0] + bottomRightOut[0] + topLeftOut[0] + topRightOut[0]) / 4.0;
+                        rotationY = (bottomLeftOut[1] + bottomRightOut[1] + topLeftOut[1] + topRightOut[1]) / 4.0;
+//                        firstTextCharacterXYZOut[0] = -halfWidth;
+//                        firstTextCharacterXYZOut[1] = -halfHeight;
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::LEFT:
+                        rotationX = (bottomLeftOut[0] + topLeftOut[0]) / 2.0;
+                        rotationY = (bottomLeftOut[1] + topLeftOut[1]) / 2.0;
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::RIGHT:
+                        rotationX = (topRightOut[0] + bottomRightOut[0]) / 2.0;
+                        rotationY = (topRightOut[1] + bottomRightOut[1]) / 2.0;
+                        break;
+                }
+                break;
+            case AnnotationTextAlignVerticalEnum::TOP:
+                switch (annotationText.getHorizontalAlignment()) {
+                    case AnnotationTextAlignHorizontalEnum::CENTER:
+                        rotationX = (topLeftOut[0] + topRightOut[0]) / 2.0;
+                        rotationY = (topLeftOut[1] + topRightOut[1]) / 2.0;
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::LEFT:
+                        rotationX = topLeftOut[0];
+                        rotationY = topLeftOut[1];
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::RIGHT:
+                        rotationX = topRightOut[0];
+                        rotationY = topRightOut[1];
+                        break;
+                }
+                break;
+        }
+        
+    rotationPointXYZOut[0] = rotationX;
+    rotationPointXYZOut[1] = rotationY;
+    rotationPointXYZOut[2] = 0.0;
+    
     const double rotationAngle = annotationText.getRotationAngle();
     if (rotationAngle != 0.0) {
         Matrix4x4 matrix;
-        matrix.translate(-bottomLeftOut[0], -bottomLeftOut[1], -bottomLeftOut[2]);
+        matrix.translate(-rotationX, -rotationY, 0.0);
         matrix.rotateZ(-rotationAngle);
-        matrix.translate(bottomLeftOut[0], bottomLeftOut[1], bottomLeftOut[2]);
+        matrix.translate(rotationX, rotationY, 0.0);
+        
+//        Matrix4x4 matrix;
+//        matrix.translate(-bottomLeftOut[0], -bottomLeftOut[1], -bottomLeftOut[2]);
+//        matrix.rotateZ(-rotationAngle);
+//        matrix.translate(bottomLeftOut[0], bottomLeftOut[1], bottomLeftOut[2]);
+
+        
         matrix.multiplyPoint3(bottomLeftOut);
         matrix.multiplyPoint3(bottomRightOut);
         matrix.multiplyPoint3(topRightOut);

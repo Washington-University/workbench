@@ -118,7 +118,8 @@ namespace caret {
                                                       double bottomRightOut[3],
                                                       double topRightOut[3],
                                                       double topLeftOut[3],
-                                                      double firstTextCharacterXYZOut[3]);
+                                                      double firstTextCharacterXYZOut[3],
+                                                      double rotationPointXYZOut[3]);
         
         void getBoundsForVerticalTextAtWindowCoords(const AnnotationText& annotationText,
                                                     const double viewportX,

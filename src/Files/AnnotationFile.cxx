@@ -74,8 +74,8 @@ AnnotationFile::AnnotationFile()
         AnnotationCoordinate* coord = at->getCoordinate();
         at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
         at->setWindowIndex(0);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         coord->setXYZ(0.5, 0.9, 0);
         at->setForegroundColor(CaretColorEnum::BLUE);
         at->setBackgroundColor(CaretColorEnum::GRAY);
