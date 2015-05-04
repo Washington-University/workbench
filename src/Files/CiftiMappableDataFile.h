@@ -366,6 +366,14 @@ namespace caret {
                                             bool& numericalValueOutValid,
                                             AString& textValueOut) const;
         
+        virtual bool getMapSurfaceNodeValues(const std::vector<int32_t>& mapIndices,
+                                             const StructureEnum::Enum structure,
+                                             const int nodeIndex,
+                                             const int32_t numberOfNodes,
+                                             std::vector<float>& numericalValuesOut,
+                                             std::vector<bool>& numericalValuesOutValid,
+                                             AString& textValuesOut) const;
+        
         virtual bool getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                             const StructureEnum::Enum structure,
                                                             const int nodeIndex,

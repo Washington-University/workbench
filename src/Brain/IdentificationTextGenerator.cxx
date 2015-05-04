@@ -562,7 +562,7 @@ IdentificationTextGenerator::getMapIndicesOfFileUsedInOverlays(const CaretMappab
         if (overlaySet != NULL) {
             std::vector<int32_t> mapIndices;
             overlaySet->getSelectedMapIndicesForFile(caretMappableDataFile,
-                                                     false,
+                                                     false,  // true => enabled overlays
                                                      mapIndices);
             mapIndicesOut.insert(mapIndicesOut.end(),
                                  mapIndices.begin(),
