@@ -41,7 +41,7 @@ namespace caret {
         };
         static Operation stringToOperation(const AString& string, bool& ok);
         AlgorithmMetricVectorOperation(ProgressObject* myProgObj, const MetricFile* metricA, const MetricFile* metricB, const Operation& myOper,
-                                       MetricFile* myMetricOut, const bool& normA = false, const bool& normB = false, const bool& normOut = false, const bool& magOut = false);
+                                       MetricFile* myMetricOut, bool normA = false, bool normB = false, const bool& normOut = false, const bool& magOut = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

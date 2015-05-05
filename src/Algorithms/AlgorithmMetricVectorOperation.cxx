@@ -60,8 +60,8 @@ OperationParameters* AlgorithmMetricVectorOperation::getParameters()
     
     ret->setHelpText(
         AString("Does a vector operation on two metric files (that must have a multiple of 3 columns).  ") +
-        "One of the inputs may have multiple vectors (more than 3 columns).  " +
-        "-magnitude and -normalize-output may not be specified together, or with the DOT operation.  " +
+        "Either of the inputs may have multiple vectors (more than 3 columns), but not both (at least one must have exactly 3 columns).  " +
+        "The -magnitude and -normalize-output options may not be specified together, or with the DOT operation.  " +
         "The <operation> parameter must be one of the following:\n\n" +
         "DOT\nCROSS\nADD\nSUBTRACT"
     );
@@ -85,7 +85,7 @@ void AlgorithmMetricVectorOperation::useParameters(OperationParameters* myParams
 }
 
 AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* myProgObj, const MetricFile* metricA, const MetricFile* metricB, const Operation& myOper,
-                                                               MetricFile* myMetricOut, const bool& normA, const bool& normB, const bool& normOut, const bool& magOut) : AbstractAlgorithm(myProgObj)
+                                                               MetricFile* myMetricOut, bool normA, bool normB, const bool& normOut, const bool& magOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     StructureEnum::Enum checkStruct = metricA->getStructure();
@@ -95,8 +95,8 @@ AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* m
     if (numColA % 3 != 0) throw AlgorithmException("number of columns of first input is not a multiple of 3");
     if (numColB % 3 != 0) throw AlgorithmException("number of columns of second input is not a multiple of 3");
     int numVecA = numColA / 3, numVecB = numColB / 3;
-    if (numVecA > 1 && numVecB > 1) throw AlgorithmException("both inputs have more than 3 columns");
-    if (normOut && magOut) throw AlgorithmException("normalizing and taking the magnitude is meaningless");
+    if (numVecA > 1 && numVecB > 1) throw AlgorithmException("both inputs have more than 3 columns (more than 1 vector)");
+    if (normOut && magOut) throw AlgorithmException("normalizing the output and taking the magnitude is meaningless");
     if (myOper == DOT && (normOut || magOut)) throw AlgorithmException("cannot normalize or take magnitude of a dot product");
     if (checkStruct == StructureEnum::INVALID)
     {
@@ -106,13 +106,16 @@ AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* m
     }
     bool swapped = false;
     if (numVecB > 1)
-    {//just swap the input pointers and related used variables
+    {//just swap the input pointers and related variables
         const MetricFile* swapMetric = metricA;
         metricA = metricB;
         metricB = swapMetric;
         int swapNum = numVecA;
         numVecA = numVecB;
         numVecB = swapNum;
+        bool tempBool = normA;//swap the normalization options too, kind of a hack
+        normA = normB;
+        normB = tempBool;
         swapped = true;//need to reverse or negate cross product and subtraction
     }
     int numColsOut = numVecA * 3;
