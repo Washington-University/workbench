@@ -151,11 +151,24 @@ LabelFile::validateDataArraysAfterReading()
     
     this->verifyDataArraysHaveSameNumberOfRows(0, 0);
     
+    bool haveWarned = false;
+    
     const int32_t numberOfDataArrays = this->giftiFile->getNumberOfDataArrays();
     for (int32_t i = 0; i < numberOfDataArrays; i++) {
-        int32_t* tempPointer = this->giftiFile->getDataArray(i)->getDataPointerInt();
+        GiftiDataArray* thisArray = this->giftiFile->getDataArray(i);
+        if (thisArray->getDataType() != NiftiDataTypeEnum::NIFTI_TYPE_INT32)
+        {
+            thisArray->convertToDataType(NiftiDataTypeEnum::NIFTI_TYPE_INT32);
+            if (!haveWarned)
+            {
+                CaretLogWarning("label file '" + getFileName() + "' contains data array with data type other than int32");
+                haveWarned = true;
+            }
+        }
+        int32_t* tempPointer = thisArray->getDataPointerInt();
+        CaretAssert(tempPointer != NULL);
         if (tempPointer == NULL) throw DataFileException(getFileName(),
-                                                         "found non-integer data array in label file.");
+                                                         "failed to convert data array to int32.");//shouldn't happen, can probably be removed
         this->columnDataPointers.push_back(tempPointer);
     }
     
