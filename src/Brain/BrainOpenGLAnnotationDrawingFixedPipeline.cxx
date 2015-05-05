@@ -424,6 +424,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     glLoadIdentity();
     
     /*
+     * Enable anti-aliasing for lines
+     */
+    m_brainOpenGLFixedPipeline->enableLineAntiAliasing();
+    
+    /*
      * When selecting, clear out all previous drawing
      * since we identify via colors in each pixel.
      */
@@ -603,6 +608,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
         }
         
     }
+    
+    /*
+     * Disable anti-aliasing for lines
+     */
+    m_brainOpenGLFixedPipeline->disableLineAntiAliasing();
     
     glShadeModel(savedShadeModel);
     
@@ -1068,7 +1078,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
                 text->getForegroundColorRGBA(foregroundColor);
                 if (foregroundColor[3] > 0.0) {
                     glColor4fv(foregroundColor);
-                    glLineWidth(1.0);
+                    glLineWidth(2.0);
                     glBegin(GL_LINES);
                     glVertex3dv(bottomLeft);
                     glVertex3dv(bottomRight);

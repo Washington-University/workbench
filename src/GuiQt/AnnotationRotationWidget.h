@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_WIDTH_HEIGHT_ROTATION_WIDGET_H__
-#define __ANNOTATION_WIDTH_HEIGHT_ROTATION_WIDGET_H__
+#ifndef __ANNOTATION_ROTATION_WIDGET_H__
+#define __ANNOTATION_ROTATION_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -27,22 +27,20 @@
 #include "EventListenerInterface.h"
 
 class QDoubleSpinBox;
-class QSpinBox;
+
 
 namespace caret {
-
     class AnnotationTwoDimensionalShape;
-    class StructureEnumComboBox;
-    
-    class AnnotationWidthHeightRotationWidget : public QWidget, public EventListenerInterface {
+
+    class AnnotationRotationWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        AnnotationWidthHeightRotationWidget(const int32_t browserWindowIndex,
-                                            QWidget* parent = 0);
+        AnnotationRotationWidget(const int32_t browserWindowIndex,
+                                 QWidget* parent = 0);
         
-        virtual ~AnnotationWidthHeightRotationWidget();
+        virtual ~AnnotationRotationWidget();
         
 
         // ADD_NEW_METHODS_HERE
@@ -52,34 +50,26 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private slots:
-        void widthValueChanged(double value);
-        
-        void heightValueChanged(double value);
-        
         void rotationValueChanged(double value);
-        
+
     private:
-        AnnotationWidthHeightRotationWidget(const AnnotationWidthHeightRotationWidget&);
+        AnnotationRotationWidget(const AnnotationRotationWidget&);
 
-        AnnotationWidthHeightRotationWidget& operator=(const AnnotationWidthHeightRotationWidget&);
+        AnnotationRotationWidget& operator=(const AnnotationRotationWidget&);
         
-        // ADD_NEW_MEMBERS_HERE
-
         const int32_t m_browserWindowIndex;
-        
-        QDoubleSpinBox* m_widthSpinBox;
-        
-        QDoubleSpinBox* m_heightSpinBox;
         
         QDoubleSpinBox* m_rotationSpinBox;
         
         AnnotationTwoDimensionalShape* m_annotation2D;
         
+        // ADD_NEW_MEMBERS_HERE
+
     };
     
-#ifdef __ANNOTATION_WIDTH_HEIGHT_ROTATION_WIDGET_DECLARE__
+#ifdef __ANNOTATION_ROTATION_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_WIDTH_HEIGHT_ROTATION_WIDGET_DECLARE__
+#endif // __ANNOTATION_ROTATION_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_WIDTH_HEIGHT_ROTATION_WIDGET_H__
+#endif  //__ANNOTATION_ROTATION_WIDGET_H__

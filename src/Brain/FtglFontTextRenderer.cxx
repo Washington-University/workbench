@@ -1102,7 +1102,7 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
     }
     glPopMatrix();
     
-    std::cout << std::endl;
+//    std::cout << std::endl;
 
     
     

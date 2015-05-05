@@ -19,20 +19,18 @@
  */
 /*LICENSE_END*/
 
-#define __ANNOTATION_WIDTH_HEIGHT_ROTATION_WIDGET_DECLARE__
-#include "AnnotationWidthHeightRotationWidget.h"
-#undef __ANNOTATION_WIDTH_HEIGHT_ROTATION_WIDGET_DECLARE__
+#define __ANNOTATION_WIDTH_HEIGHT_WIDGET_DECLARE__
+#include "AnnotationWidthHeightWidget.h"
+#undef __ANNOTATION_WIDTH_HEIGHT_WIDGET_DECLARE__
 
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QHBoxLayout>
-#include <QSpinBox>
 
 #include "AnnotationTwoDimensionalShape.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
-#include "StructureEnumComboBox.h"
 #include "WuQFactory.h"
 #include "WuQtUtilities.h"
 
@@ -41,15 +39,20 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationWidthHeightRotationWidget 
+ * \class caret::AnnotationWidthHeightWidget 
  * \brief Widget for editing annotation coordinate, size, and rotation.
  * \ingroup GuiQt
  */
 
 /**
  * Constructor.
+ *
+ * @param browserWindowIndex
+ *    Index of browser window.
+ * @param parent
+ *    Parent of this widget.
  */
-AnnotationWidthHeightRotationWidget::AnnotationWidthHeightRotationWidget(const int32_t browserWindowIndex,
+AnnotationWidthHeightWidget::AnnotationWidthHeightWidget(const int32_t browserWindowIndex,
                                                                          QWidget* parent)
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
@@ -68,21 +71,12 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setWordWrappedToolTip(m_heightSpinBox,
                                          "Height of 2D Shapes (Box, Image, Oval)");
 
-    QLabel* rotationLabel = new QLabel(" R:");
-    m_rotationSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 360, 1.0, 0,
-                                                                                    this, SLOT(rotationValueChanged(double)));
-    m_rotationSpinBox->setWrapping(true);
-    WuQtUtilities::setWordWrappedToolTip(m_rotationSpinBox,
-                                         "Rotation, clockwise in degrees, of annotation");
-
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(widthLabel);
     layout->addWidget(m_widthSpinBox);
     layout->addWidget(heightLabel);
     layout->addWidget(m_heightSpinBox);
-    layout->addWidget(rotationLabel);
-    layout->addWidget(m_rotationSpinBox);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -92,7 +86,7 @@ m_browserWindowIndex(browserWindowIndex)
 /**
  * Destructor.
  */
-AnnotationWidthHeightRotationWidget::~AnnotationWidthHeightRotationWidget()
+AnnotationWidthHeightWidget::~AnnotationWidthHeightWidget()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -104,7 +98,7 @@ AnnotationWidthHeightRotationWidget::~AnnotationWidthHeightRotationWidget()
  *    An event for which this instance is listening.
  */
 void
-AnnotationWidthHeightRotationWidget::receiveEvent(Event* event)
+AnnotationWidthHeightWidget::receiveEvent(Event* event)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -121,20 +115,19 @@ AnnotationWidthHeightRotationWidget::receiveEvent(Event* event)
  *    Two dimensional annotation.
  */
 void
-AnnotationWidthHeightRotationWidget::updateContent(AnnotationTwoDimensionalShape* annotation2D)
+AnnotationWidthHeightWidget::updateContent(AnnotationTwoDimensionalShape* annotation2D)
 {
     m_annotation2D = annotation2D;
     
     if (m_annotation2D != NULL) {
-        m_widthSpinBox->setValue(m_annotation2D->getWidth());
-        m_heightSpinBox->setValue(m_annotation2D->getHeight());
-        double rotation = m_annotation2D->getRotationAngle();
-        if (rotation < 0.0) {
-            rotation += 360.0;
+        if (m_annotation2D->getType() != AnnotationTypeEnum::TEXT) {
+            m_widthSpinBox->setValue(m_annotation2D->getWidth());
+            m_heightSpinBox->setValue(m_annotation2D->getHeight());
+            setEnabled(true);
         }
-        m_rotationSpinBox->setValue(rotation);
-        
-        setEnabled(true);
+        else {
+            setEnabled(false);
+        }
     }
     else {
         setEnabled(false);
@@ -148,7 +141,7 @@ AnnotationWidthHeightRotationWidget::updateContent(AnnotationTwoDimensionalShape
  *
  */
 void
-AnnotationWidthHeightRotationWidget::heightValueChanged(double value)
+AnnotationWidthHeightWidget::heightValueChanged(double value)
 {
     if (m_annotation2D != NULL) {
         m_annotation2D->setHeight(value);
@@ -163,25 +156,10 @@ AnnotationWidthHeightRotationWidget::heightValueChanged(double value)
  *
  */
 void
-AnnotationWidthHeightRotationWidget::widthValueChanged(double value)
+AnnotationWidthHeightWidget::widthValueChanged(double value)
 {
     if (m_annotation2D != NULL) {
         m_annotation2D->setWidth(value);
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-    }
-}
-
-/**
- * Gets called when rotation value is changed.
- *
- * @param value
- *
- */
-void
-AnnotationWidthHeightRotationWidget::rotationValueChanged(double value)
-{
-    if (m_annotation2D != NULL) {
-        m_annotation2D->setRotationAngle(value);
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
     }
 }

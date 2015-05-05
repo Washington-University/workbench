@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __ANNOTATION_LINE_SIZE_WIDGET_DECLARE__
-#include "AnnotationLineSizeWidget.h"
-#undef __ANNOTATION_LINE_SIZE_WIDGET_DECLARE__
+#define __ANNOTATION_THICKNESS_WIDGET_DECLARE__
+#include "AnnotationThicknessWidget.h"
+#undef __ANNOTATION_THICKNESS_WIDGET_DECLARE__
 
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
@@ -31,6 +31,7 @@
 #include "AnnotationTwoDimensionalShape.h"
 #include "BrainOpenGL.h"
 #include "CaretAssert.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "WuQFactory.h"
 #include "WuQtUtilities.h"
@@ -40,7 +41,7 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationLineSizeWidget 
+ * \class caret::AnnotationThicknessWidget 
  * \brief Widget for controlling annotation line size outline width
  * \ingroup GuiQt
  */
@@ -51,7 +52,7 @@ using namespace caret;
  * @param parent
  *    The parent widget.
  */
-AnnotationLineSizeWidget::AnnotationLineSizeWidget(const int32_t browserWindowIndex,
+AnnotationThicknessWidget::AnnotationThicknessWidget(const int32_t browserWindowIndex,
                                                    QWidget* parent)
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
@@ -63,12 +64,12 @@ m_browserWindowIndex(browserWindowIndex)
     
     BrainOpenGL::getMinMaxLineWidth(minimumLineWidth,
                                     maximumLineWidth);
-    QLabel* sizeLabel = new QLabel("S:");
+    QLabel* sizeLabel = new QLabel("T:");
     m_lineSizeSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 10.0, 1.0, 0,
                                                                                     this, SLOT(lineSizeSpinBoxValueChanged(double)));
     WuQtUtilities::setWordWrappedToolTip(m_lineSizeSpinBox,
-                                         "Line width for arrow or line\n"
-                                         "Outline width for box or oval");
+                                         "Line thickness for arrow or line\n"
+                                         "Outline thickness for box or oval");
     m_lineSizeSpinBox->setFixedWidth(45);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
@@ -83,25 +84,32 @@ m_browserWindowIndex(browserWindowIndex)
 /**
  * Destructor.
  */
-AnnotationLineSizeWidget::~AnnotationLineSizeWidget()
+AnnotationThicknessWidget::~AnnotationThicknessWidget()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
 void
-AnnotationLineSizeWidget::lineSizeSpinBoxValueChanged(double value)
+AnnotationThicknessWidget::lineSizeSpinBoxValueChanged(double value)
 {
+    bool updateGraphicsFlag = false;
     if (m_annotation != NULL) {
         AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
         if (oneDimAnn != NULL) {
             oneDimAnn->setLineWidth(value);
+            updateGraphicsFlag = true;
         }
         else {
             AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
             if (twoDimAnn != NULL) {
                 twoDimAnn->setOutlineWidth(value);
+                updateGraphicsFlag = true;
             }
         }
+    }
+    
+    if (updateGraphicsFlag) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
     }
 }
 
@@ -112,7 +120,7 @@ AnnotationLineSizeWidget::lineSizeSpinBoxValueChanged(double value)
  *    Two dimensional annotation.
  */
 void
-AnnotationLineSizeWidget::updateContent(Annotation* annotation)
+AnnotationThicknessWidget::updateContent(Annotation* annotation)
 {
     m_annotation = annotation;
     
@@ -129,8 +137,10 @@ AnnotationLineSizeWidget::updateContent(Annotation* annotation)
         else {
             AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
             if (twoDimAnn != NULL) {
-                value = twoDimAnn->getOutlineWidth();
-                widgetEnabled = true;
+                if (twoDimAnn->getType() != AnnotationTypeEnum::TEXT) {
+                    value = twoDimAnn->getOutlineWidth();
+                    widgetEnabled = true;
+                }
             }
         }
     }
@@ -150,7 +160,7 @@ AnnotationLineSizeWidget::updateContent(Annotation* annotation)
  *    An event for which this instance is listening.
  */
 void
-AnnotationLineSizeWidget::receiveEvent(Event* event)
+AnnotationThicknessWidget::receiveEvent(Event* event)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);

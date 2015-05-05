@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_LINE_SIZE_WIDGET_H__
-#define __ANNOTATION_LINE_SIZE_WIDGET_H__
+#ifndef __ANNOTATION_THICKNESS_WIDGET_H__
+#define __ANNOTATION_THICKNESS_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -31,15 +31,15 @@ class QDoubleSpinBox;
 namespace caret {
     class Annotation;
 
-    class AnnotationLineSizeWidget : public QWidget, public EventListenerInterface {
+    class AnnotationThicknessWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        AnnotationLineSizeWidget(const int32_t browserWindowIndex,
+        AnnotationThicknessWidget(const int32_t browserWindowIndex,
                                  QWidget* parent = 0);
         
-        virtual ~AnnotationLineSizeWidget();
+        virtual ~AnnotationThicknessWidget();
         
 
         // ADD_NEW_METHODS_HERE
@@ -52,9 +52,9 @@ namespace caret {
         void lineSizeSpinBoxValueChanged(double value);
         
     private:
-        AnnotationLineSizeWidget(const AnnotationLineSizeWidget&);
+        AnnotationThicknessWidget(const AnnotationThicknessWidget&);
 
-        AnnotationLineSizeWidget& operator=(const AnnotationLineSizeWidget&);
+        AnnotationThicknessWidget& operator=(const AnnotationThicknessWidget&);
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -65,9 +65,9 @@ namespace caret {
         Annotation* m_annotation;
     };
     
-#ifdef __ANNOTATION_LINE_SIZE_WIDGET_DECLARE__
+#ifdef __ANNOTATION_THICKNESS_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_LINE_SIZE_WIDGET_DECLARE__
+#endif // __ANNOTATION_THICKNESS_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_LINE_SIZE_WIDGET_H__
+#endif  //__ANNOTATION_THICKNESS_WIDGET_H__

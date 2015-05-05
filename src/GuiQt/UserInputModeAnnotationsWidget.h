@@ -35,10 +35,11 @@ namespace caret {
     class AnnotationCoordinateWidget;
     class AnnotationFontWidget;
     class AnnotationFormatWidget;
-    class AnnotationLineSizeWidget;
+    class AnnotationRotationWidget;
     class AnnotationTextAlignmentWidget;
     class AnnotationTextEditorWidget;
-    class AnnotationWidthHeightRotationWidget;
+    class AnnotationThicknessWidget;
+    class AnnotationWidthHeightWidget;
     class UserInputModeAnnotations;
     
     class UserInputModeAnnotationsWidget : public QWidget, public EventListenerInterface {
@@ -75,7 +76,9 @@ namespace caret {
         
         AnnotationCoordinateWidget* m_coordinateTwoWidget;
         
-        AnnotationWidthHeightRotationWidget* m_widthHeightRotationWidget;
+        AnnotationWidthHeightWidget* m_widthHeightWidget;
+        
+        AnnotationRotationWidget* m_rotationWidget;
         
         AnnotationFontWidget* m_fontWidget;
         
@@ -83,7 +86,7 @@ namespace caret {
         
         AnnotationTextAlignmentWidget* m_textAlignmentWidget;
         
-        AnnotationLineSizeWidget* m_lineSizeWidget;
+        AnnotationThicknessWidget* m_thicknessWidget;
         
         AnnotationFormatWidget* m_formatWidget;
         

@@ -35,12 +35,13 @@
 #include "AnnotationFontWidget.h"
 #include "AnnotationFormatWidget.h"
 #include "AnnotationInsertNewWidget.h"
-#include "AnnotationLineSizeWidget.h"
 #include "AnnotationOneDimensionalShape.h"
+#include "AnnotationRotationWidget.h"
 #include "AnnotationText.h"
 #include "AnnotationTextAlignmentWidget.h"
 #include "AnnotationTextEditorWidget.h"
-#include "AnnotationWidthHeightRotationWidget.h"
+#include "AnnotationThicknessWidget.h"
+#include "AnnotationWidthHeightWidget.h"
 #include "CaretAssert.h"
 #include "EventAnnotation.h"
 #include "EventBrainReset.h"
@@ -86,9 +87,11 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_coordinateTwoWidget        = new AnnotationCoordinateWidget(m_browserWindowIndex);
     
-    m_widthHeightRotationWidget  = new AnnotationWidthHeightRotationWidget(m_browserWindowIndex);
+    m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_browserWindowIndex);
     
-    m_lineSizeWidget             = new AnnotationLineSizeWidget(m_browserWindowIndex);
+    m_rotationWidget             = new AnnotationRotationWidget(m_browserWindowIndex);
+    
+    m_thicknessWidget             = new AnnotationThicknessWidget(m_browserWindowIndex);
     
     m_formatWidget               = new AnnotationFormatWidget(m_browserWindowIndex);
     
@@ -121,9 +124,11 @@ m_inputModeAnnotations(inputModeAnnotations)
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomRowLayout->addWidget(m_coordinateTwoWidget);
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomRowLayout->addWidget(m_widthHeightRotationWidget);
+    bottomRowLayout->addWidget(m_widthHeightWidget);
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomRowLayout->addWidget(m_lineSizeWidget);
+    bottomRowLayout->addWidget(m_rotationWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomRowLayout->addWidget(m_thicknessWidget);
     bottomRowLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -217,7 +222,9 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     m_textEditorWidget->updateContent(textAnnotation);
     m_colorWidget->updateContent(m_annotationBeingEdited);
     m_textAlignmentWidget->updateContent(textAnnotation);
-    m_widthHeightRotationWidget->updateContent(twoDimAnnotation);
+    m_widthHeightWidget->updateContent(twoDimAnnotation);
+    m_rotationWidget->updateContent(twoDimAnnotation);
+    m_thicknessWidget->updateContent(m_annotationBeingEdited);
     
     AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     if (m_annotationBeingEdited != NULL) {
@@ -229,14 +236,14 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     m_coordinateTwoWidget->updateContent(coordinateSpace,
                                          coordinateTwo);
     
-    m_colorWidget->setEnabled(m_annotationBeingEdited != NULL);
-    m_fontWidget->setEnabled(textAnnotation != NULL);
-    m_textAlignmentWidget->setEnabled(textAnnotation != NULL);
-    m_coordinateOneWidget->setEnabled(coordinateOne != NULL);
-    m_coordinateTwoWidget->setEnabled(coordinateTwo != NULL);
-    m_widthHeightRotationWidget->setEnabled(twoDimAnnotation != NULL);
+//    m_colorWidget->setEnabled(m_annotationBeingEdited != NULL);
+//    m_fontWidget->setEnabled(textAnnotation != NULL);
+//    m_textAlignmentWidget->setEnabled(textAnnotation != NULL);
+//    m_coordinateOneWidget->setEnabled(coordinateOne != NULL);
+//    m_coordinateTwoWidget->setEnabled(coordinateTwo != NULL);
+//    m_widthHeightWidget->setEnabled(twoDimAnnotation != NULL);
+//    m_rotationWidget->setEnabled(twoDimAnnotation != NULL);
     
-    m_lineSizeWidget->updateContent(m_annotationBeingEdited);
 }
 
 /**
