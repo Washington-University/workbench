@@ -29,6 +29,8 @@
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmCiftiReplaceStructure.h"
 
+#include <vector>
+
 using namespace caret;
 using namespace std;
 
@@ -74,8 +76,12 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
     
     ret->createOptionalParameter(9, "-average-output", "output the average of the gradient magnitude maps instead of each gradient map separately");
     
+    OptionalParameter* vectorOpt = ret->createOptionalParameter(10, "-vectors", "output gradient vectors");
+    vectorOpt->addCiftiOutputParameter(1, "vectors-out", "the vectors, as a dscalar file");
+    
     ret->setHelpText(
         AString("Performs gradient calculation on each component of the cifti file, and optionally averages the resulting gradients.  ") +
+        "The -vectors and -average-output options may not be used together.  " +
         "You must specify a surface for each surface structure in the cifti file.  The COLUMN direction should be faster, and is the " +
         "direction that works on dtseries.  For dconn, you probably want ROW, unless you are using -average-output."
     );
@@ -141,43 +147,59 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
         volKern = (float)presmoothVolOpt->getDouble(1);
     }
     bool outputAverage = myParams->getOptionalParameter(9)->m_present;
+    CiftiFile* ciftiVectorsOut = NULL;
+    OptionalParameter* vectorOpt = myParams->getOptionalParameter(10);
+    if (vectorOpt->m_present)
+    {
+        ciftiVectorsOut = vectorOpt->getOutputCifti(1);
+    }
     AlgorithmCiftiGradient(myProgObj, myCifti, myDir, myCiftiOut, surfKern, volKern,
                            myLeftSurf, myRightSurf, myCerebSurf, outputAverage,
-                           myLeftAreas, myRightAreas, myCerebAreas);
+                           myLeftAreas, myRightAreas, myCerebAreas, ciftiVectorsOut);
 }
 
 AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir,
                                                CiftiFile* myCiftiOut, const float& surfKern, const float& volKern,
                                                SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf, SurfaceFile* myCerebSurf,
                                                bool outputAverage,
-                                               const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas) : AbstractAlgorithm(myProgObj)
+                                               const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
+                                               CiftiFile* ciftiVectorsOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
-    CiftiXMLOld myNewXML = myXML;
-    vector<StructureEnum::Enum> surfaceList, volumeList;
-    if (myDir == CiftiXMLOld::ALONG_COLUMN)
+    const CiftiXML& myXML = myCifti->getCiftiXML();
+    CiftiXML myNewXML = myXML, myVecXML = myXML;
+    if (myXML.getNumberOfDimensions() != 2)
     {
-        if (!myXML.getStructureListsForColumns(surfaceList, volumeList))
-        {
-            throw AlgorithmException("specified direction does not contain brainordinates");
+        throw AlgorithmException("cifti gradient only supports 2D cifti");
+    }
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS)
+    {
+        throw AlgorithmException("specified direction does not contain brainordinates");
+    }
+    if (outputAverage && ciftiVectorsOut != NULL)
+    {
+        throw AlgorithmException("outputting gradient vectors while averaging gradient magnitude is not supported");
+    }
+    const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(myDir);
+    vector<StructureEnum::Enum> surfaceList = myDenseMap.getSurfaceStructureList(), volumeList = myDenseMap.getVolumeStructureList();
+    if (outputAverage)
+    {
+        if (myDir == CiftiXML::ALONG_ROW)
+        {//dscalar always has brainordinates on columns, so flip the mappings
+            myNewXML.setMap(CiftiXML::ALONG_COLUMN, *(myNewXML.getMap(CiftiXML::ALONG_ROW)));
         }
-        if (outputAverage)
-        {
-            myNewXML.resetRowsToScalars(1);
-            myNewXML.setMapNameForRowIndex(0, "gradient average");
-        }
+        CiftiScalarsMap magMap;
+        magMap.setLength(1);
+        magMap.setMapName(0, "gradient average");
+        myNewXML.setMap(CiftiXML::ALONG_ROW, magMap);
     } else {
-        if (!myXML.getStructureListsForRows(surfaceList, volumeList))
-        {
-            throw AlgorithmException("specified direction does not contain brainordinates");
+        if (myDir == CiftiXML::ALONG_ROW)
+        {//dscalar always has brainordinates on columns, so flip the mappings
+            myVecXML.setMap(CiftiXML::ALONG_COLUMN, *(myVecXML.getMap(CiftiXML::ALONG_ROW)));
         }
-        if (outputAverage)
-        {
-            myNewXML.applyRowMapToColumns();//dscalar always has brainordinates on columns, so flip it
-            myNewXML.resetRowsToScalars(1);
-            myNewXML.setMapNameForRowIndex(0, "gradient average");
-        }
+        CiftiScalarsMap vecMap;
+        vecMap.setLength(3 * myXML.getDimensionLength(1 - myDir));
+        myVecXML.setMap(CiftiXML::ALONG_ROW, vecMap);
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
@@ -209,24 +231,25 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (myDir == CiftiXMLOld::ALONG_COLUMN)
+        if (mySurf->getNumberOfNodes() != myDenseMap.getSurfaceNumberOfNodes(surfaceList[whichStruct]))
         {
-            if (mySurf->getNumberOfNodes() != myXML.getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
-            {
-                throw AlgorithmException(surfType + " surface has the wrong number of vertices");
-            }
-        } else {
-            if (mySurf->getNumberOfNodes() != myXML.getRowSurfaceNumberOfNodes(surfaceList[whichStruct]))
-            {
-                throw AlgorithmException(surfType + " surface has the wrong number of vertices");
-            }
+            throw AlgorithmException(surfType + " surface has the wrong number of vertices");
         }
-        if (myAreas != NULL && myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
+        checkStructureMatch(mySurf, surfaceList[whichStruct], "surface file", "the argument expects");
+        if (myAreas != NULL)
         {
-            throw AlgorithmException(surfType + " surface and vertex area metric have different number of vertices");
+            if (myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
+            {
+                throw AlgorithmException(surfType + " surface and vertex area metric have different number of vertices");
+            }
+            checkStructureMatch(myAreas, surfaceList[whichStruct], "vertex area metric", "the argument expects");
         }
     }
     myCiftiOut->setCiftiXML(myNewXML);
+    if (ciftiVectorsOut != NULL)
+    {
+        ciftiVectorsOut->setCiftiXML(myVecXML);
+    }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
         SurfaceFile* mySurf = NULL;
@@ -248,13 +271,14 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
             default:
                 break;
         }
-        MetricFile myMetric, myRoi, myMetricOut;
+        MetricFile myMetric, myRoi, myMetricOut, vectorsOut, *vectorPtr = NULL;
+        if (ciftiVectorsOut != NULL) vectorPtr = &vectorsOut;
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &myRoi);
-        AlgorithmMetricGradient(NULL, mySurf, &myMetric, &myMetricOut, NULL, surfKern, &myRoi, false, -1, myAreas);
+        AlgorithmMetricGradient(NULL, mySurf, &myMetric, &myMetricOut, vectorPtr, surfKern, &myRoi, false, -1, myAreas);
         if (outputAverage)
         {
             int numNodes = myMetricOut.getNumberOfNodes(), numCols = myMetricOut.getNumberOfColumns();
-            CaretArray<double> accum(numNodes, 0.0);//use double for numerical stability
+            vector<double> accum(numNodes, 0.0);//use double for numerical stability
             for (int i = 0; i < numCols; ++i)
             {
                 const float* column = myMetricOut.getValuePointerForColumn(i);
@@ -263,31 +287,36 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
                     accum[j] += column[j];
                 }
             }
-            CaretArray<float> temparray(numNodes);//copy result into float array so it can be put into a metric, and then into cifti (yes, really)
+            vector<float> temparray(numNodes);//copy result into float array so it can be put into a metric, and then into cifti (yes, really)
             for (int i = 0; i < numNodes; ++i)
             {
                 temparray[i] = (float)(accum[i] / numCols);
             }
             myMetricOut.setNumberOfNodesAndColumns(numNodes, 1);
-            myMetricOut.setValuesForColumn(0, temparray);
-            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &myMetricOut);//average always outputs a dtseries, so always along column
+            myMetricOut.setValuesForColumn(0, temparray.data());
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &myMetricOut);//average always outputs a dscalar, so always along column
         } else {
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
+            if (ciftiVectorsOut != NULL)
+            {//is always a dscalar, so always use column
+                AlgorithmCiftiReplaceStructure(NULL, ciftiVectorsOut, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &vectorsOut);
+            }
         }
     }
     for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
     {
-        VolumeFile myVol, myRoi, myVolOut;
+        VolumeFile myVol, myRoi, myVolOut, vecVolOut, *vecVolPtr = NULL;
+        if (ciftiVectorsOut != NULL) vecVolPtr = &vecVolOut;
         int64_t offset[3];
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, volumeList[whichStruct], &myVol, offset, &myRoi, true);
-        AlgorithmVolumeGradient(NULL, &myVol, &myVolOut, volKern, &myRoi);
+        AlgorithmVolumeGradient(NULL, &myVol, &myVolOut, volKern, &myRoi, vecVolPtr);
         if (outputAverage)
         {
             vector<int64_t> myDims;
             myVolOut.getDimensions(myDims);
             int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
-            CaretArray<double> accum(frameSize, 0.0);
-            for (int i = 0; i < myDims[3]; ++i)
+            vector<double> accum(frameSize, 0.0);
+            for (int64_t i = 0; i < myDims[3]; ++i)
             {
                 const float* myFrame = myVolOut.getFrame(i);
                 for (int64_t j = 0; j < frameSize; ++j)
@@ -295,17 +324,22 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
                     accum[j] += myFrame[j];
                 }
             }
-            CaretArray<float> temparray(frameSize);
-            for (int i = 0; i < frameSize; ++i)
+            vector<float> temparray(frameSize);
+            for (int64_t i = 0; i < frameSize; ++i)
             {
                 temparray[i] = (float)(accum[i] / myDims[3]);
             }
-            myDims.resize(3);
-            myVolOut.reinitialize(myDims, myVol.getSform());
-            myVolOut.setFrame(temparray);
-            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXMLOld::ALONG_COLUMN, volumeList[whichStruct], &myVolOut, true);
+            vector<int64_t> newDims = myDims;
+            newDims.resize(3);
+            myVolOut.reinitialize(newDims, myVol.getSform());
+            myVolOut.setFrame(temparray.data());
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXML::ALONG_COLUMN, volumeList[whichStruct], &myVolOut, true);
         } else {
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
+            if (ciftiVectorsOut != NULL)
+            {
+                AlgorithmCiftiReplaceStructure(NULL, ciftiVectorsOut, CiftiXML::ALONG_COLUMN, volumeList[whichStruct], &vecVolOut, true);
+            }
         }
     }
 }

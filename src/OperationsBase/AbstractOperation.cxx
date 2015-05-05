@@ -31,7 +31,7 @@ void AbstractOperation::checkStructureMatch(const CaretDataFile* toCheck, const 
     if (toCheck->getStructure() != correctStruct)
     {
         CaretLogWarning(fileDescrip + " has structure '" + StructureEnum::toName(toCheck->getStructure()) +
-                        "', while " + basisDescrip + " has structure '" + StructureEnum::toName(correctStruct) + "'");
+                        "', while " + basisDescrip + " structure '" + StructureEnum::toName(correctStruct) + "'");
     }
 }
 

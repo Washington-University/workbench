@@ -56,9 +56,12 @@ OperationParameters* AlgorithmMetricVectorOperation::getParameters()
     
     ret->createOptionalParameter(7, "-normalize-output", "normalize output vectors (not valid for dot product)");
     
+    ret->createOptionalParameter(8, "-magnitude", "output the magnitude of the result (not valid for dot product)");
+    
     ret->setHelpText(
         AString("Does a vector operation on two metric files (that must have a multiple of 3 columns).  ") +
-        "One of the inputs may have multiple vectors (more than 3 columns).  "
+        "One of the inputs may have multiple vectors (more than 3 columns).  " +
+        "-magnitude and -normalize-output may not be specified together, or with the DOT operation.  " +
         "The <operation> parameter must be one of the following:\n\n" +
         "DOT\nCROSS\nADD\nSUBTRACT"
     );
@@ -77,11 +80,12 @@ void AlgorithmMetricVectorOperation::useParameters(OperationParameters* myParams
     bool normA = myParams->getOptionalParameter(5)->m_present;
     bool normB = myParams->getOptionalParameter(6)->m_present;
     bool normOut = myParams->getOptionalParameter(7)->m_present;
-    AlgorithmMetricVectorOperation(myProgObj, metricA, metricB, myOper, myMetricOut, normA, normB, normOut);
+    bool magOut = myParams->getOptionalParameter(8)->m_present;
+    AlgorithmMetricVectorOperation(myProgObj, metricA, metricB, myOper, myMetricOut, normA, normB, normOut, magOut);
 }
 
 AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* myProgObj, const MetricFile* metricA, const MetricFile* metricB, const Operation& myOper,
-                                                               MetricFile* myMetricOut, const bool& normA, const bool& normB, const bool& normOut) : AbstractAlgorithm(myProgObj)
+                                                               MetricFile* myMetricOut, const bool& normA, const bool& normB, const bool& normOut, const bool& magOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     StructureEnum::Enum checkStruct = metricA->getStructure();
@@ -92,12 +96,13 @@ AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* m
     if (numColB % 3 != 0) throw AlgorithmException("number of columns of second input is not a multiple of 3");
     int numVecA = numColA / 3, numVecB = numColB / 3;
     if (numVecA > 1 && numVecB > 1) throw AlgorithmException("both inputs have more than 3 columns");
-    if (myOper == DOT && normOut) throw AlgorithmException("cannot vector normalize a dot product");
+    if (normOut && magOut) throw AlgorithmException("normalizing and taking the magnitude is meaningless");
+    if (myOper == DOT && (normOut || magOut)) throw AlgorithmException("cannot normalize or take magnitude of a dot product");
     if (checkStruct == StructureEnum::INVALID)
     {
         CaretLogWarning("first input vector file has INVALID structure");
     } else {
-        checkStructureMatch(metricB, checkStruct, "second input vector file", "the first");
+        checkStructureMatch(metricB, checkStruct, "second input vector file", "the first has");
     }
     bool swapped = false;
     if (numVecB > 1)
@@ -161,12 +166,17 @@ AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* m
             if (myOper != DOT)
             {
                 if (normOut) tempVec = tempVec.normal();
-                outCols[0][i] = tempVec[0];
-                outCols[1][i] = tempVec[1];
-                outCols[2][i] = tempVec[2];
+                if (magOut)
+                {
+                    outCols[0][i] = tempVec.length();
+                } else {
+                    outCols[0][i] = tempVec[0];
+                    outCols[1][i] = tempVec[1];
+                    outCols[2][i] = tempVec[2];
+                }
             }
         }
-        if (myOper == DOT)
+        if (myOper == DOT || magOut)
         {
             myMetricOut->setValuesForColumn(v, outCols[0].data());
         } else {

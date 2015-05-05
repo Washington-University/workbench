@@ -64,7 +64,7 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     roiOption->addMetricParameter(1, "roi-metric", "the area to take the gradient within, as a metric");
     roiOption->createOptionalParameter(2, "-match-columns", "for each input column, use the corresponding column from the roi");
     
-    OptionalParameter* vecOut = ret->createOptionalParameter(6, "-vectors", "output vectors");
+    OptionalParameter* vecOut = ret->createOptionalParameter(6, "-vectors", "output gradient vectors");
     vecOut->addMetricOutputParameter(1, "vector-metric-out", "the vectors as a metric file");
     
     OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "select a single column to compute the gradient of");
