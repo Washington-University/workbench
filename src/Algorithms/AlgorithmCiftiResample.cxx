@@ -355,9 +355,11 @@ pair<bool, AString> AlgorithmCiftiResample::checkForErrors(const CiftiFile* myCi
 {
     if (direction > 1) return make_pair(true, AString("unsupported mapping direction for cifti resample"));
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
+    if (myInputXML.getNumberOfDimensions() != 2) return make_pair(true, AString("cifti resample only supports 2D cifti"));
     if (myInputXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) return make_pair(true, AString("direction for input must contain brain models"));
     const CiftiBrainModelsMap& inModels = myInputXML.getBrainModelsMap(direction);
     const CiftiXML& myTemplateXML = myTemplate->getCiftiXML();
+    if (templateDir < 0 || templateDir >= myTemplateXML.getNumberOfDimensions()) return make_pair(true, AString("specified template direction does not exist in template file"));
     if (myTemplateXML.getMappingType(templateDir) != CiftiMappingType::BRAIN_MODELS) return make_pair(true, AString("direction for template must contain brain models"));
     const CiftiBrainModelsMap& outModels = myTemplate->getCiftiXML().getBrainModelsMap(templateDir);
     vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
@@ -449,9 +451,9 @@ namespace
                             const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
                             const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas)
     {
-        const CiftiXML& myInputXML = myCiftiIn->getCiftiXML(), myOutXML = myCiftiOut->getCiftiXML();
+        const CiftiXML& myInputXML = myCiftiIn->getCiftiXML(), &myOutXML = myCiftiOut->getCiftiXML();
         bool labelMode = (myInputXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS);
-        const CiftiBrainModelsMap& inModels = myInputXML.getBrainModelsMap(CiftiXML::ALONG_ROW), outModels = myOutXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+        const CiftiBrainModelsMap& inModels = myInputXML.getBrainModelsMap(CiftiXML::ALONG_ROW), &outModels = myOutXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
         vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
         int numSurfStructs = (int)surfList.size(), numVolStructs = (int)volList.size();
         for (int i = 0; i < numSurfStructs; ++i)//initialize reusables

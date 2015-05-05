@@ -214,6 +214,11 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         int64_t numNodes = myBrainModelsMap.getSurfaceNumberOfNodes(myStruct);
         metricOut->setNumberOfNodesAndColumns(numNodes, rowSize);
         metricOut->setStructure(myStruct);
+        const CiftiMappingType& myNamesMap = *(myXML.getMap(1 - myDir));
+        for (int j = 0; j < rowSize; ++j)
+        {
+            metricOut->setMapName(j, myNamesMap.getIndexName(j));
+        }
         if (roiOut != NULL)
         {
             roiOut->setNumberOfNodesAndColumns(numNodes, 1);
@@ -249,6 +254,11 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         int64_t numNodes = myBrainModelsMap.getSurfaceNumberOfNodes(myStruct);
         metricOut->setNumberOfNodesAndColumns(numNodes, colSize);
         metricOut->setStructure(myStruct);
+        const CiftiMappingType& myNamesMap = *(myXML.getMap(1 - myDir));
+        for (int j = 0; j < rowSize; ++j)
+        {
+            metricOut->setMapName(j, myNamesMap.getIndexName(j));
+        }
         if (roiOut != NULL)
         {
             roiOut->setNumberOfNodesAndColumns(numNodes, 1);
@@ -295,6 +305,11 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         int64_t numNodes = myBrainModelsMap.getSurfaceNumberOfNodes(myStruct);
         labelOut->setNumberOfNodesAndColumns(numNodes, rowSize);
         labelOut->setStructure(myStruct);
+        const CiftiMappingType& myNamesMap = *(myXML.getMap(1 - myDir));
+        for (int j = 0; j < rowSize; ++j)
+        {
+            labelOut->setMapName(j, myNamesMap.getIndexName(j));
+        }
         if (roiOut != NULL)
         {
             roiOut->setNumberOfNodesAndColumns(numNodes, 1);
@@ -346,6 +361,11 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         int64_t numNodes = myBrainModelsMap.getSurfaceNumberOfNodes(myStruct);
         labelOut->setNumberOfNodesAndColumns(numNodes, colSize);
         labelOut->setStructure(myStruct);
+        const CiftiMappingType& myNamesMap = *(myXML.getMap(1 - myDir));
+        for (int j = 0; j < rowSize; ++j)
+        {
+            labelOut->setMapName(j, myNamesMap.getIndexName(j));
+        }
         if (roiOut != NULL)
         {
             roiOut->setNumberOfNodesAndColumns(numNodes, 1);
@@ -440,6 +460,11 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         if (rowSize > 1) newdims.push_back(rowSize);
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
+        const CiftiMappingType& myNamesMap = *(myXML.getMap(1 - myDir));
+        for (int j = 0; j < rowSize; ++j)
+        {
+            volOut->setMapName(j, myNamesMap.getIndexName(j));
+        }
         if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS)
         {
             const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
@@ -466,6 +491,11 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         if (colSize > 1) newdims.push_back(colSize);
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
+        const CiftiMappingType& myNamesMap = *(myXML.getMap(1 - myDir));
+        for (int j = 0; j < rowSize; ++j)
+        {
+            volOut->setMapName(j, myNamesMap.getIndexName(j));
+        }
         if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS)
         {
             const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
@@ -547,6 +577,11 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         if (rowSize > 1) newdims.push_back(rowSize);
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
+        const CiftiMappingType& myNamesMap = *(myXML.getMap(1 - myDir));
+        for (int j = 0; j < rowSize; ++j)
+        {
+            volOut->setMapName(j, myNamesMap.getIndexName(j));
+        }
         if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS)
         {
             const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
@@ -573,6 +608,11 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         if (colSize > 1) newdims.push_back(colSize);
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
+        const CiftiMappingType& myNamesMap = *(myXML.getMap(1 - myDir));
+        for (int j = 0; j < rowSize; ++j)
+        {
+            volOut->setMapName(j, myNamesMap.getIndexName(j));
+        }
         if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS)
         {
             const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
