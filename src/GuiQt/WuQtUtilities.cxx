@@ -1257,4 +1257,52 @@ WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widgetForPixmap,
     return pm;
 }
 
+/**
+ * Create a painter for the given pixmap that will be placed
+ * into the given widget.  The pixmap's background is painted
+ * with the widget's background color, the painter's pen is set 
+ * to the widget's foreground color, and then the painter is 
+ * returned.
+ */
+QSharedPointer<QPainter>
+WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
+                                         QPixmap& pixmap)
+{
+    CaretAssert(widget);
+    CaretAssert(pixmap.width() > 0);
+    CaretAssert(pixmap.height() > 0);
+    
+    /*
+     * Get the widget's background and foreground color
+     */
+    const QPalette palette = widget->palette();
+    const QPalette::ColorRole backgroundRole = widget->backgroundRole();
+    const QBrush backgroundBrush = palette.brush(backgroundRole);
+    const QColor backgroundColor = backgroundBrush.color();
+    const QPalette::ColorRole foregroundRole = widget->foregroundRole();
+    const QBrush foregroundBrush = palette.brush(foregroundRole);
+    const QColor foregroundColor = foregroundBrush.color();
+    
+    
+    /*
+     * Create a painter and fill the pixmap with
+     * the background color
+     */
+    
+    QSharedPointer<QPainter> painter(new QPainter(&pixmap));
+    painter->setRenderHint(QPainter::Antialiasing,
+                          true);
+    painter->setBackgroundMode(Qt::OpaqueMode);
+    painter->fillRect(pixmap.rect(), backgroundColor);
+    
+    /*
+     * Draw lines (rectangle) around the perimeter of
+     * the pixmap
+     */
+    painter->setPen(foregroundColor);
+    
+    return painter;
+}
+
+
 

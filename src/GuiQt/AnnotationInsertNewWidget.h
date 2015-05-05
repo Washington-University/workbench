@@ -27,6 +27,8 @@
 #include "AnnotationTypeEnum.h"
 #include "EventListenerInterface.h"
 
+class QToolButton;
+
 namespace caret {
     class Annotation;
     
@@ -50,6 +52,8 @@ namespace caret {
     private slots:
         void coordinateSpaceEnumChanged();
         
+        void deleteActionTriggered();
+        
         void textActionTriggered();
         
         void shapeActionTriggered();
@@ -65,6 +69,8 @@ namespace caret {
         
         QWidget* createShapeToolButton();
         
+        QToolButton* createDeleteToolButton();
+        
         QPixmap createShapePixmap(const QWidget* widget,
                                   const AnnotationTypeEnum::Enum annotationType);
         
@@ -72,9 +78,15 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
+        Annotation* m_annotation;
+        
         QAction* m_textToolButtonAction;
         
         QAction* m_shapeToolButtonAction;
+        
+        QToolButton* m_deleteToolButton;
+        
+        QAction* m_deleteToolButtonAction;
         
         // ADD_NEW_MEMBERS_HERE
 

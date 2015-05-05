@@ -25,6 +25,7 @@
 #include <iosfwd>
 
 #include <QSize>
+#include <QSharedPointer>
 #include <QString>
 
 #include "CaretColorEnum.h"
@@ -87,6 +88,9 @@ namespace caret {
                                                   const CaretColorEnum::Enum caretColor,
                                                   const float    rgba[4],
                                                   const bool     outlineFlag);
+        
+        static QSharedPointer<QPainter> createPixmapWidgetPainter(const QWidget* widget,
+                                                                  QPixmap& pixmap);
         
         static void moveWindowToOffset(QWidget* parentWidget,
                                        QWidget* window,

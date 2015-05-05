@@ -42,10 +42,12 @@ namespace caret {
             MODE_INVALID,
             /** Begin creation of a new annotation with a specific type MOUSE MODE MUST BE Annotations */
             MODE_CREATE_NEW_ANNOTATION_TYPE,
+            /** Delete an annotation */
+            MODE_DELETE_ANNOTATION,
+            /** Deselect all annotations */
+            MODE_DESELECT_ALL_ANNOTATIONS,
             /** Edit an annotation */
             MODE_EDIT_ANNOTATION,
-            /** Deselect all annotations */
-            MODE_DESELECT_ALL_ANNOTATIONS
         };
    
         EventAnnotation();
@@ -63,6 +65,10 @@ namespace caret {
         AnnotationTypeEnum::Enum getModeCreateNewAnnotationType() const;
         
         EventAnnotation& setModeCreateNewAnnotationType(const AnnotationTypeEnum::Enum annotationType);
+        
+        const Annotation* getModeDeleteAnnotation() const;
+        
+        EventAnnotation& setModeDeleteAnnotation(Annotation* annotation);
         
         Mode getMode() const;
 

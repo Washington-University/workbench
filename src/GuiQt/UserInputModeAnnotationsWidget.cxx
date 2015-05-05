@@ -91,11 +91,11 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_rotationWidget             = new AnnotationRotationWidget(m_browserWindowIndex);
     
-    m_thicknessWidget             = new AnnotationThicknessWidget(m_browserWindowIndex);
+    m_thicknessWidget            = new AnnotationThicknessWidget(m_browserWindowIndex);
     
     m_formatWidget               = new AnnotationFormatWidget(m_browserWindowIndex);
     
-    QWidget* insertWidget        = new AnnotationInsertNewWidget(m_browserWindowIndex);
+    m_insertDeleteWidget         = new AnnotationInsertNewWidget(m_browserWindowIndex);
     
     /*
      * Layout top row of widgets
@@ -110,7 +110,7 @@ m_inputModeAnnotations(inputModeAnnotations)
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_textAlignmentWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(insertWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(m_insertDeleteWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_formatWidget, 0, Qt::AlignTop);
     topRowLayout->addStretch();
@@ -178,6 +178,8 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
                 break;
             case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
                 break;
+            case EventAnnotation::MODE_DELETE_ANNOTATION:
+                break;
             case EventAnnotation::MODE_EDIT_ANNOTATION:
             {
                 int32_t windowIndex = -1;
@@ -225,6 +227,7 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     m_widthHeightWidget->updateContent(twoDimAnnotation);
     m_rotationWidget->updateContent(twoDimAnnotation);
     m_thicknessWidget->updateContent(m_annotationBeingEdited);
+    m_insertDeleteWidget->updateContent(m_annotationBeingEdited);
     
     AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     if (m_annotationBeingEdited != NULL) {

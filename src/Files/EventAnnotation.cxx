@@ -139,6 +139,14 @@ EventAnnotation::getModeCreateNewAnnotationType() const
     return m_annotationType;
 }
 
+/**
+ * Set the mode for creating an new annotation of the given type.
+ *
+ * @param annotationType
+ *     Type of annotation that will be created.
+ * @return
+ *     Reference to "self".
+ */
 EventAnnotation&
 EventAnnotation::setModeCreateNewAnnotationType(const AnnotationTypeEnum::Enum annotationType)
 {
@@ -147,5 +155,34 @@ EventAnnotation::setModeCreateNewAnnotationType(const AnnotationTypeEnum::Enum a
     
     return *this;
 }
+
+/**
+ * @return Annotation for deletion in delete annotation mode.
+ */
+const Annotation*
+EventAnnotation::getModeDeleteAnnotation() const
+{
+    return m_annotation;
+}
+
+/**
+ * Set the mode for deleting the given annotation.
+ *
+ * @param annotation
+ *     Annotation that is to be deleted.
+ * @return
+ *     Reference to "self".
+ */
+EventAnnotation&
+EventAnnotation::setModeDeleteAnnotation(Annotation* annotation)
+{
+    CaretAssert(annotation);
+    
+    m_mode       = MODE_DELETE_ANNOTATION;
+    m_annotation = annotation;
+    
+    return *this;
+}
+
 
 

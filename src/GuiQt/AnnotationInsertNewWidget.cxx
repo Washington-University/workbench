@@ -34,7 +34,9 @@
 #include "Annotation.h"
 #include "CaretAssert.h"
 #include "EventAnnotation.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -60,25 +62,44 @@ AnnotationInsertNewWidget::AnnotationInsertNewWidget(const int32_t browserWindow
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    QLabel* insertLabel = new QLabel("Insert");
+    m_annotation = NULL;
     
+    QLabel* insertLabel = new QLabel("Insert");
+    QLabel* deleteLabel = new QLabel("Delete");
     QWidget* textToolButton = createTextToolButton();
     QWidget* shapeToolButton = createShapeToolButton();
+    m_deleteToolButton = createDeleteToolButton();
     
     WuQtUtilities::matchWidgetHeights(textToolButton,
-                                      shapeToolButton);
+                                      shapeToolButton,
+                                      m_deleteToolButton);
     
-    QHBoxLayout* toolButtonLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(toolButtonLayout, 2, 0);
-    toolButtonLayout->addStretch();
-    toolButtonLayout->addWidget(textToolButton);
-    toolButtonLayout->addWidget(shapeToolButton);
-    toolButtonLayout->addStretch();
+//    QHBoxLayout* toolButtonLayout = new QHBoxLayout();
+//    WuQtUtilities::setLayoutSpacingAndMargins(toolButtonLayout, 2, 0);
+//    toolButtonLayout->addStretch();
+//    toolButtonLayout->addWidget(textToolButton);
+//    toolButtonLayout->addWidget(shapeToolButton);
+//    toolButtonLayout->addSpacing(6);
+//    toolButtonLayout->addWidget(deleteToolButton);
+//    toolButtonLayout->addStretch();
+//    
+//    QVBoxLayout* layout = new QVBoxLayout(this);
+//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+//    layout->addWidget(insertLabel, 0, Qt::AlignHCenter);
+//    layout->addLayout(toolButtonLayout);
     
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(insertLabel, 0, Qt::AlignHCenter);
-    layout->addLayout(toolButtonLayout);
+    QGridLayout* gridLayout = new QGridLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
+    gridLayout->addWidget(insertLabel,
+                          0, 0, 1, 2, Qt::AlignHCenter);
+    gridLayout->addWidget(textToolButton,
+                          1, 0);
+    gridLayout->addWidget(shapeToolButton,
+                          1, 1);
+    gridLayout->addWidget(deleteLabel,
+                          0, 2, Qt::AlignHCenter);
+    gridLayout->addWidget(m_deleteToolButton,
+                          1, 2, Qt::AlignHCenter);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -118,6 +139,9 @@ AnnotationInsertNewWidget::receiveEvent(Event* event)
 void
 AnnotationInsertNewWidget::updateContent(Annotation* annotation)
 {
+    m_annotation = annotation;
+    
+    m_deleteToolButtonAction->setEnabled(m_annotation != NULL);
     
     //    if (m_annotation != NULL) {
     //        m_coordinateSpaceComboBox->setSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(m_annotation->getCoordinateSpace());
@@ -147,6 +171,9 @@ AnnotationInsertNewWidget::createTextToolButton()
                                                          this,
                                                          this,
                                                          SLOT(textActionTriggered()));
+    QFont font = m_textToolButtonAction->font();
+    font.setPixelSize(20);
+    m_textToolButtonAction->setFont(font);
     
     QToolButton* toolButton = new QToolButton();
     toolButton->setDefaultAction(m_textToolButtonAction);
@@ -228,6 +255,71 @@ AnnotationInsertNewWidget::createShapeToolButton()
     
     return toolButton;
 }
+
+/**
+ * @return The delete tool button.
+ */
+QToolButton*
+AnnotationInsertNewWidget::createDeleteToolButton()
+{
+    m_deleteToolButtonAction = WuQtUtilities::createAction("",
+                                                         "Delete the selected annotation",
+                                                         this,
+                                                         this,
+                                                         SLOT(deleteActionTriggered()));
+    QToolButton* toolButton = new QToolButton();
+
+    const float width  = 24.0;
+    const float height = 24.0;
+    QPixmap pixmap(static_cast<int>(width),
+                   static_cast<int>(height));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(toolButton,
+                                                                                pixmap);
+    
+    
+    /* trash can */
+    painter->drawLine(4, 6, 4, 22);
+    painter->drawLine(4, 22, 20, 22);
+    painter->drawLine(20, 22, 20, 6);
+    
+    /* trash can lines */
+    painter->drawLine(12, 8, 12, 20);
+    painter->drawLine(8,  8,  8, 20);
+    painter->drawLine(16, 8, 16, 20);
+    
+    /* trash can lid and handle */
+    painter->drawLine(2, 6, 22, 6);
+    painter->drawLine(8, 6, 8, 2);
+    painter->drawLine(8, 2, 16, 2);
+    painter->drawLine(16, 2, 16, 6);
+    
+    
+    m_deleteToolButtonAction->setIcon(QIcon(pixmap));
+
+    toolButton->setIconSize(pixmap.size());
+    toolButton->setDefaultAction(m_deleteToolButtonAction);
+    
+    return toolButton;
+}
+
+/**
+ * Gets called when the delete action is triggered.
+ */
+void
+AnnotationInsertNewWidget::deleteActionTriggered()
+{
+    if (m_annotation != NULL) {
+        if (WuQMessageBox::warningOkCancel(m_deleteToolButton, "Delete selected annotation?")) {
+            /*
+             * Delete the annotation, deselect the annotation, and update graphics.
+             */
+            EventManager::get()->sendEvent(EventAnnotation().setModeDeleteAnnotation(m_annotation).getPointer());
+            EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        }
+    }
+}
+
 
 /**
  * Create an annotation with the given type.
@@ -324,8 +416,8 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
      * Create a small, square pixmap that will contain
      * the foreground color around the pixmap's perimeter.
      */
-    const float width  = 16.0;
-    const float height = 16.0;
+    const float width  = 24.0;
+    const float height = 24.0;
     QPixmap pixmap(static_cast<int>(width),
                    static_cast<int>(height));
     

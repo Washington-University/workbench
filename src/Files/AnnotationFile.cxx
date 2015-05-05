@@ -312,6 +312,9 @@ AnnotationFile::receiveEvent(Event* event)
         switch (annotationEvent->getMode()) {
             case EventAnnotation::MODE_INVALID:
                 break;
+            case EventAnnotation::MODE_DELETE_ANNOTATION:
+                removeAnnotation(annotationEvent->getModeDeleteAnnotation());
+                break;
             case EventAnnotation::MODE_EDIT_ANNOTATION:
                 break;
             case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
@@ -396,6 +399,31 @@ AnnotationFile::addAnnotation(Annotation* annotation)
 {
     m_annotations.push_back(annotation);
     setModified();
+}
+
+/**
+ * Remove the given annotation from this file.
+ * If the annotation is not found in this file,
+ * no action is taken.
+ *
+ * @param annotation
+ *     Annotation for deletion.
+ */
+void
+AnnotationFile::removeAnnotation(const Annotation* annotation)
+{
+    for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
+         iter != m_annotations.end();
+         iter++) {
+        Annotation* annotationPointer = *iter;
+        if (annotationPointer == annotation) {
+            m_annotations.erase(iter);
+            delete annotationPointer;
+            setModified();
+            
+            break;
+        }
+    }
 }
 
 /**
