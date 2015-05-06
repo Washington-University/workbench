@@ -69,6 +69,30 @@ DummyFontTextRenderer::isValid() const
  * Draw annnotation text at the given viewport coordinates using
  * the the annotations attributes for the style of text.
  *
+ * Depth testing is DISABLED when drawing text with this method.
+ *
+ * @param viewportX
+ *     Viewport X-coordinate.
+ * @param viewportY
+ *     Viewport Y-coordinate.
+ * @param annotationText
+ *     Annotation text and attributes.
+ */
+void
+DummyFontTextRenderer::drawTextAtViewportCoords(const double /*viewportX*/,
+                                                const double /*viewportY*/,
+                                                const AnnotationText& /*annotationText*/)
+{
+    
+}
+
+
+/**
+ * Draw annnotation text at the given viewport coordinates using
+ * the the annotations attributes for the style of text.
+ *
+ * Depth testing is ENABLED when drawing text with this method.
+ *
  * @param viewportX
  *     Viewport X-coordinate.
  * @param viewportY
@@ -90,6 +114,8 @@ DummyFontTextRenderer::drawTextAtViewportCoords(const double /*viewportX*/,
 /**
  * Draw annnotation text at the given model coordinates using
  * the the annotations attributes for the style of text.
+ *
+ * Depth testing is ENABLED when drawing text with this method.
  *
  * @param modelX
  *     Model X-coordinate.

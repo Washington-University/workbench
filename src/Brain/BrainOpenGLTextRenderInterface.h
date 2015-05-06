@@ -46,6 +46,25 @@ namespace caret {
          * Draw annnotation text at the given viewport coordinates using
          * the the annotations attributes for the style of text.
          *
+         * Depth testing is DISABLED when drawing text with this method.
+         *
+         * @param viewportX
+         *     Viewport X-coordinate.
+         * @param viewportY
+         *     Viewport Y-coordinate.
+         * @param annotationText
+         *     Annotation text and attributes.
+         */
+        virtual void drawTextAtViewportCoords(const double viewportX,
+                                              const double viewportY,
+                                              const AnnotationText& annotationText) = 0;
+        
+        /**
+         * Draw annnotation text at the given viewport coordinates using
+         * the the annotations attributes for the style of text.
+         *
+         * Depth testing is ENABLED when drawing text with this method.
+         *
          * @param viewportX
          *     Viewport X-coordinate.
          * @param viewportY
@@ -63,6 +82,8 @@ namespace caret {
         /**
          * Draw annnotation text at the given model coordinates using
          * the the annotations attributes for the style of text.
+         *
+         * Depth testing is ENABLED when drawing text with this method.
          *
          * @param modelX
          *     Model X-coordinate.
@@ -82,6 +103,8 @@ namespace caret {
          * Draw annnotation text at the given model coordinates using
          * the the annotations attributes for the style of text.
          *
+         * Depth testing is ENABLED when drawing text with this method.
+         *
          * @param modelXYZ
          *     Model XYZ coordinate.
          * @param annotationText
@@ -95,6 +118,8 @@ namespace caret {
         /**
          * Draw annnotation text at the given model coordinates using
          * the the annotations attributes for the style of text.
+         *
+         * Depth testing is ENABLED when drawing text with this method.
          *
          * @param modelXYZ
          *     Model XYZ coordinate.

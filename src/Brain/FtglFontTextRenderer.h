@@ -41,6 +41,10 @@ namespace caret {
         
         virtual void drawTextAtViewportCoords(const double viewportX,
                                               const double viewportY,
+                                              const AnnotationText& annotationText);
+        
+        virtual void drawTextAtViewportCoords(const double viewportX,
+                                              const double viewportY,
                                               const double viewportZ,
                                               const AnnotationText& annotationText);
         
@@ -67,16 +71,23 @@ namespace caret {
         virtual AString getName() const;
         
     private:
+        enum DepthTestEnum {
+            DEPTH_TEST_NO,
+            DEPTH_TEST_YES
+        };
+        
         FtglFontTextRenderer(const FtglFontTextRenderer&);
 
         FtglFontTextRenderer& operator=(const FtglFontTextRenderer&);
         
         void drawHorizontalTextAtWindowCoords(const double windowX,
-                                            const double windowY,
-                                            const AnnotationText& annotationText);
+                                              const double windowY,
+                                              const double windowZ,
+                                              const AnnotationText& annotationText);
         
         void drawVerticalTextAtWindowCoords(const double windowX,
                                             const double windowY,
+                                            const double windowZ,
                                             const AnnotationText& annotationText);
         
         FTFont* getFont(const AnnotationText& annotationText,
@@ -146,6 +157,10 @@ namespace caret {
                                      const double topRightOut[3],
                                      const double topLeftOut[3]);
         
+        void saveStateOfOpenGL();
+        
+        void restoreStateOfOpenGL();
+        
         /**
          * The default font.  DO NOT delete it since it points to
          * a font in "m_fontNameToFontMap".
@@ -173,9 +188,8 @@ namespace caret {
          */
         std::set<AString> m_failedFontNames;
         
-        void saveStateOfOpenGL();
-        
-        void restoreStateOfOpenGL();
+        /** Depth testing enabled status */
+        DepthTestEnum m_depthTestingStatus;
         
         static const double s_textMarginSize;
     };

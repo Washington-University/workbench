@@ -123,6 +123,7 @@ FtglFontTextRenderer::FtglFontTextRenderer()
     m_defaultFont = getFont(defaultAnnotationText,
                             true);
 #endif // HAVE_FREETYPE
+    m_depthTestingStatus = DEPTH_TEST_NO;
 }
 
 /**
@@ -240,6 +241,48 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
  * Draw annnotation text at the given viewport coordinates using
  * the the annotations attributes for the style of text.
  *
+ * Depth testing is DISABLED when drawing text with this method.
+ *
+ * @param viewportX
+ *     Viewport X-coordinate.
+ * @param viewportY
+ *     Viewport Y-coordinate.
+ * @param annotationText
+ *     Annotation text and attributes.
+ */
+void
+FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
+                                               const double viewportY,
+                                               const AnnotationText& annotationText)
+{
+    m_depthTestingStatus = DEPTH_TEST_NO;
+    
+    if (annotationText.getText().isEmpty()) {
+        return;
+    }
+    
+    switch (annotationText.getOrientation()) {
+        case AnnotationTextOrientationEnum::HORIZONTAL:
+            drawHorizontalTextAtWindowCoords(viewportX,
+                                             viewportY,
+                                             0.0,
+                                             annotationText);
+            break;
+        case AnnotationTextOrientationEnum::STACKED:
+            drawVerticalTextAtWindowCoords(viewportX,
+                                           viewportY,
+                                           0.0,
+                                           annotationText);
+            break;
+    }
+}
+
+/**
+ * Draw annnotation text at the given viewport coordinates using
+ * the the annotations attributes for the style of text.
+ *
+ * Depth testing is ENABLED when drawing text with this method.
+ *
  * @param viewportX
  *     Viewport X-coordinate.
  * @param viewportY
@@ -255,6 +298,8 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                                const double viewportZ,
                                                const AnnotationText& annotationText)
 {
+    m_depthTestingStatus = DEPTH_TEST_YES;
+    
     //std::cout << "Drawing \"" << qPrintable(text) << "\" at " << windowX << ", " << windowY << std::endl;
     if (annotationText.getText().isEmpty()) {
         return;
@@ -264,11 +309,13 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
         case AnnotationTextOrientationEnum::HORIZONTAL:
             drawHorizontalTextAtWindowCoords(viewportX,
                                              viewportY,
+                                             viewportZ,
                                              annotationText);
             break;
         case AnnotationTextOrientationEnum::STACKED:
             drawVerticalTextAtWindowCoords(viewportX,
                                            viewportY,
+                                           viewportZ,
                                            annotationText);
             break;
     }
@@ -284,12 +331,15 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
  *   using the 'alignment'
  * @param windowY
  *   Y-coordinate in the window at which bottom of text is placed.
+ * @param windowZ
+ *   Z-coordinate (depth) in window.
  * @param annotationText
  *   Annotation Text that is to be drawn.
  */
 void
 FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
                                                        const double windowY,
+                                                       const double windowZ,
                                                        const AnnotationText& annotationText)
 {
 #ifdef HAVE_FREETYPE
@@ -302,9 +352,16 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     saveStateOfOpenGL();
     
     /*
-     * Disable depth testing so text not occluded
+     * Depth testing ?
      */
-    glDisable(GL_DEPTH_TEST);
+    switch (m_depthTestingStatus) {
+        case DEPTH_TEST_NO:
+            glDisable(GL_DEPTH_TEST);
+            break;
+        case DEPTH_TEST_YES:
+            glEnable(GL_DEPTH_TEST);
+            break;
+    }
     
     /*
      * Get the viewport
@@ -313,6 +370,13 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
 
+    /*
+     * Get depth range for orthographic projection.
+     */
+    GLdouble depthRange[2];
+    glGetDoublev(GL_DEPTH_RANGE,
+                 depthRange);
+    
     /*
      * Set the orthographic projection so that its origin is in the bottom
      * left corner.  It needs to be there since we are drawing in window
@@ -327,8 +391,8 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
             (viewport[2]),
             0,
             (viewport[3]),
-            -1,
-            1);
+            depthRange[0], //-1,
+            depthRange[1]); //1);
     
     /*
      * Viewing projection is just the identity matrix since
@@ -369,7 +433,7 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     double firstTextCharacterXYZ[3];
     double rotationPointXYZ[3];
     getBoundsForHorizontalTextAtWindowCoords(annotationText,
-                                             windowX, windowY, 0.0,
+                                             windowX, windowY, windowZ,
                                              bottomLeftOut, bottomRightOut, topRightOut, topLeftOut,
                                              firstTextCharacterXYZ,
                                              rotationPointXYZ);
@@ -389,7 +453,7 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     
     const double rotationAngle = annotationText.getRotationAngle();
     if (rotationAngle != 0.0) {
-        glTranslated(textX, textY, 0.0);
+        glTranslated(textX, textY, windowZ);
         glRotated(rotationAngle, 0.0, 0.0, -1.0);
         
 //        glTranslated(-rotationPointXYZ[0], -rotationPointXYZ[1], -rotationPointXYZ[2]);
@@ -403,7 +467,7 @@ FtglFontTextRenderer::drawHorizontalTextAtWindowCoords(const double windowX,
     else {
         glTranslated(textX,
                      textY,
-                     0.0);
+                     windowZ);
         font->Render(text.toAscii().constData());
     }
     glPopMatrix();
@@ -571,16 +635,16 @@ FtglFontTextRenderer::getBoundsForHorizontalTextAtWindowCoords(const AnnotationT
     
     bottomLeftOut[0]  = textMinX - s_textMarginSize;
     bottomLeftOut[1]  = textMinY - s_textMarginSize;
-    bottomLeftOut[2]  = 0.0;
+    bottomLeftOut[2]  = viewportZ;
     bottomRightOut[0] = textMaxX + s_textMarginSize;
     bottomRightOut[1] = textMinY - s_textMarginSize;
-    bottomRightOut[2] = 0.0;
+    bottomRightOut[2] = viewportZ;
     topRightOut[0]    = textMaxX + s_textMarginSize;
     topRightOut[1]    = textMaxY + s_textMarginSize;
-    topRightOut[2]    = 0.0;
+    topRightOut[2]    = viewportZ;
     topLeftOut[0]     = textMinX - s_textMarginSize;
     topLeftOut[1]     = textMaxY + s_textMarginSize;
-    topLeftOut[2]     = 0.0;
+    topLeftOut[2]     = viewportZ;
     
         double rotationX = textMinX;
         double rotationY = textMinY;
@@ -913,12 +977,15 @@ FtglFontTextRenderer::getBoundsForVerticalTextAtWindowCoords(const AnnotationTex
  *   using the 'alignment'
  * @param windowY
  *   Y-coordinate in the window at which bottom of text is placed.
+ * @param windowZ
+ *   Z-coordinate (depth) in window.
  * @param annotationText
  *   Text that is to be drawn.
  */
 void
 FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
                                                      const double windowY,
+                                                     const double windowZ,
                                                      const AnnotationText& annotationText)
 {
 #ifdef HAVE_FREETYPE
@@ -931,9 +998,16 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
     saveStateOfOpenGL();
     
     /*
-     * Disable depth testing so text not occluded
+     * Depth testing ?
      */
-    glDisable(GL_DEPTH_TEST);
+    switch (m_depthTestingStatus) {
+        case DEPTH_TEST_NO:
+            glDisable(GL_DEPTH_TEST);
+            break;
+        case DEPTH_TEST_YES:
+            glEnable(GL_DEPTH_TEST);
+            break;
+    }
     
     /*
      * Get the viewport
@@ -941,6 +1015,13 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
+    
+    /*
+     * Get depth range for orthographic projection.
+     */
+    GLdouble depthRange[2];
+    glGetDoublev(GL_DEPTH_RANGE,
+                 depthRange);
     
     /*
      * Set the orthographic projection so that its origin is in the bottom
@@ -956,8 +1037,8 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
             (viewport[2]),
             0,
             (viewport[3]),
-            -1,
-            1);
+            depthRange[0],  //-1,
+            depthRange[1]); //1);
     
     /*
      * Viewing projection is just the identity matrix since
@@ -997,7 +1078,7 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
     getBoundsForVerticalTextAtWindowCoords(annotationText,
                                            windowX,
                                            windowY,
-                                           0.0,
+                                           windowZ,
                                            bottomLeftOut,
                                            bottomRightOut,
                                            topRightOut,
@@ -1067,7 +1148,7 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
     
     
     glPushMatrix();
-    glTranslated(textX, textY, 0.0);
+    glTranslated(textX, textY, windowZ);
     if (rotationAngle != 0.0) {
         glRotated(rotationAngle, 0.0, 0.0, -1.0);
     }
@@ -1095,7 +1176,7 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
 //        << std::endl;
         
         glPushMatrix();
-        glTranslated(textIter->m_x, textIter->m_y - s_textMarginSize, 0.0);
+        glTranslated(textIter->m_x, textIter->m_y - s_textMarginSize, windowZ);
         font->Render(textIter->m_char.toAscii().constData());
         glPopMatrix();
 ///        glPopMatrix();
@@ -1384,6 +1465,8 @@ FtglFontTextRenderer::getVerticalTextCharInfo(const AnnotationText& annotationTe
  * Draw annnotation text at the given model coordinates using
  * the the annotations attributes for the style of text.
  *
+ * Depth testing is ENABLED when drawing text with this method.
+ *
  * @param modelX
  *     Model X-coordinate.
  * @param modelY
@@ -1399,6 +1482,8 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                           const double modelZ,
                                           const AnnotationText& annotationText)
 {
+    m_depthTestingStatus = DEPTH_TEST_YES;
+
     GLdouble modelMatrix[16];
     GLdouble projectionMatrix[16];
     GLint viewport[4];
@@ -1418,6 +1503,15 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                    modelMatrix, projectionMatrix, viewport,
                    &windowX, &windowY, &windowZ) == GL_TRUE) {
         
+        /*
+         * From OpenGL Programming Guide 3rd Ed, p 133:
+         *
+         * If the near value is 1.0 and the far value is 3.0,
+         * objects must have z-coordinates between -1.0 and -3.0 in order to be visible.
+         * So, negative the Z-value to be negative.
+         */
+        windowZ = -windowZ;
+        
 //        std::cout << "VP:" << AString::fromNumbers(viewport, 4, ",")
 //        << "   Window: " << windowX << ", " << windowY << std::endl;
         /*
@@ -1427,7 +1521,7 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
         const double y = windowY - viewport[1];
         drawTextAtViewportCoords(x,
                                  y,
-                                 0.0,
+                                 windowZ,
                                  annotationText);
     }
     else {

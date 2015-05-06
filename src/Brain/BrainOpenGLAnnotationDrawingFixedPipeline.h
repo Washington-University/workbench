@@ -132,6 +132,10 @@ namespace caret {
                                           const double secondPoint[3],
                                           const double lineThickness);
         
+        bool isDrawnWithDepthTesting(const Annotation* annotation);
+        
+        bool setDepthTestingStatus(const bool newDepthTestingStatus);
+        
         /** OpenGL Model Matrix */
         GLdouble m_modelSpaceModelMatrix[16];
         

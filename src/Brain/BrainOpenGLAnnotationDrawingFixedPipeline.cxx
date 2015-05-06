@@ -194,7 +194,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                        &windowX, &windowY, &windowZ) == GL_TRUE) {
             windowXYZ[0] = windowX - m_modelSpaceViewport[0];
             windowXYZ[1] = windowY - m_modelSpaceViewport[1];
-            windowXYZ[2] = windowZ;
+            
+            /*
+             * From OpenGL Programming Guide 3rd Ed, p 133:
+             *
+             * If the near value is 1.0 and the far value is 3.0, 
+             * objects must have z-coordinates between -1.0 and -3.0 in order to be visible.
+             * So, negative the Z-value to be negative.
+             */
+            windowXYZ[2] = -windowZ;
+            
             modelXYZValid = false;
             windowXYZValid = true;
         }
@@ -410,6 +419,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     glGetIntegerv(GL_VIEWPORT,
                   m_modelSpaceViewport);
 
+    GLdouble depthRange[2];
+    glGetDoublev(GL_DEPTH_RANGE,
+                 depthRange);
+    
     /*
      * All drawing is in window space
      */
@@ -418,7 +431,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     glLoadIdentity();
     glOrtho(0.0, m_modelSpaceViewport[2],
             0.0, m_modelSpaceViewport[3],
-            -1.0, 1.0);
+            depthRange[0], depthRange[1]);  // -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
@@ -743,6 +756,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
             drawBackgroundFlag = true;
         }
     }
+    
+    const bool depthTestFlag = isDrawnWithDepthTesting(arrow);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
     if (drawBackgroundFlag) {
         glLineWidth(lineWidth + 4.0);
         glBegin(GL_LINES);
@@ -791,6 +808,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
             }
         }
     }
+    
+    setDepthTestingStatus(savedDepthTestStatus);
 }
 
 /**
@@ -851,6 +870,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
     
     const float outlineWidth = box->getOutlineWidth();
     
+    const bool depthTestFlag = isDrawnWithDepthTesting(box);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+
     if (drawBackgroundFlag) {
         glBegin(GL_POLYGON);
         glVertex3dv(bottomLeft);
@@ -900,6 +922,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
             }
         }
     }
+    
+    setDepthTestingStatus(savedDepthTestStatus);
 }
 
 /**
@@ -973,6 +997,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
         glRotated(-rotationAngle, 0.0, 0.0, 1.0);
     }
     
+    const bool depthTestFlag = isDrawnWithDepthTesting(oval);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
     if (drawBackgroundFlag) {
         m_brainOpenGLFixedPipeline->drawEllipseFilled(backgroundRGBA,
                                                       majorAxis,
@@ -1020,6 +1047,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
                                          oval->getRotationAngle());
         }
     }
+    
+    setDepthTestingStatus(savedDepthTestStatus);
 }
 
 /**
@@ -1079,6 +1108,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
                                                                                windowXYZ[0], windowXYZ[1], windowXYZ[2],
                                                                                bottomLeft, bottomRight, topRight, topLeft);
     
+    
+    const bool depthTestFlag = isDrawnWithDepthTesting(text);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
     if (drawBackgroundFlag) {
         glBegin(GL_POLYGON);
         glVertex3dv(bottomLeft);
@@ -1093,10 +1126,19 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
     }
     
     if ( ! selectionFlag) {
-        m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
-                                                                           windowXYZ[1],
-                                                                           windowXYZ[2],
-                                                                           *text);
+        if (depthTestFlag) {
+            m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
+                                                                               windowXYZ[1],
+                                                                               windowXYZ[2],
+                                                                               *text);
+        }
+        else {
+            m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
+                                                                               windowXYZ[1],
+                                                                               *text);
+        }
+
+        setDepthTestingStatus(depthTestFlag);
         
         if (text->isUnderlineEnabled()) {
             if (text->getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
@@ -1135,6 +1177,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
             }
         }
     }
+    
+    setDepthTestingStatus(savedDepthTestStatus);
 }
 
 /**
@@ -1195,6 +1239,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
             drawBackgroundFlag = true;
         }
     }
+    const bool depthTestFlag = isDrawnWithDepthTesting(line);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
     if (drawBackgroundFlag) {
         glLineWidth(lineWidth + 4.0);
         glBegin(GL_LINES);
@@ -1234,6 +1281,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
             }
         }
     }
+    
+    setDepthTestingStatus(savedDepthTestStatus);
 }
 
 /**
@@ -1408,4 +1457,57 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSelector(const do
                        cornerSquareSize,
                        rotationAngle);
 }
+
+/**
+ * Is the annotation drawn with depth testing enabled (based upon coordinate space)?
+ *
+ * @param annotation
+ *     Annotation that will be drawn.
+ * @return 
+ *     True if the annotation is drawn with depth testing, else false.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* annotation)
+{
+    bool depthTestFlag = false;
+    
+    switch (annotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::MODEL:
+            depthTestFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            depthTestFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+
+    return depthTestFlag;
+}
+
+/**
+ * Set the depth testing to the given status.
+ *
+ * @param newDepthTestingStatus
+ *     New status for depth testing.
+ * @return
+ *     Depth testing status PRIOR to applying the new depth testing status.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::setDepthTestingStatus(const bool newDepthTestingStatus)
+{
+    GLboolean savedStatus = GL_FALSE;
+    glGetBooleanv(GL_DEPTH_TEST, &savedStatus);
+    
+    if (newDepthTestingStatus) glEnable(GL_DEPTH_TEST);
+    else glDisable(GL_DEPTH_TEST);
+    
+    return (savedStatus == GL_TRUE);
+}
+
+
 

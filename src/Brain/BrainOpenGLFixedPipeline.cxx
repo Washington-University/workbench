@@ -5691,6 +5691,8 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
  * Draw annnotation text at the given viewport coordinates using
  * the the annotations attributes for the style of text.
  *
+ * Depth testing is ENABLED for this method since it has Z-coordinate.
+ *
  * @param viewportX
  *     Viewport X-coordinate.
  * @param viewportY
@@ -5717,6 +5719,8 @@ BrainOpenGLFixedPipeline::drawTextAtViewportCoords(const double viewportX,
 /**
  * Draw annnotation text at the given model coordinates using
  * the the annotations attributes for the style of text.
+ *
+ * Depth testing is ENABLED for this method
  *
  * @param modelX
  *     Model X-coordinate.

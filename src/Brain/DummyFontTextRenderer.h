@@ -42,6 +42,10 @@ namespace caret {
                                               const double viewportZ,
                                               const AnnotationText& annotationText);
         
+        virtual void drawTextAtViewportCoords(const double viewportX,
+                                              const double viewportY,
+                                              const AnnotationText& annotationText);
+        
         virtual void drawTextAtModelCoords(const double modelX,
                                            const double modelY,
                                            const double modelZ,
