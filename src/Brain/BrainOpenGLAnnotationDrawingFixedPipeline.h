@@ -117,6 +117,21 @@ namespace caret {
                       const bool selectionFlag,
                       double selectionCenterXYZOut[3]);
         
+        void drawSelectorSquare(const double xyz[3],
+                                const double halfWidthHeight,
+                                const double rotationAngle);
+        
+        void drawAnnotationTwoDimSelector(const double bottomLeft[3],
+                                          const double bottomRight[3],
+                                          const double topRight[3],
+                                          const double topLeft[3],
+                                          const double lineThickness,
+                                          const double rotationAngle);
+
+        void drawAnnotationOneDimSelector(const double firstPoint[3],
+                                          const double secondPoint[3],
+                                          const double lineThickness);
+        
         /** OpenGL Model Matrix */
         GLdouble m_modelSpaceModelMatrix[16];
         

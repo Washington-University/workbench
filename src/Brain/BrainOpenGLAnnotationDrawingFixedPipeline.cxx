@@ -760,21 +760,21 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
         float foregroundRGBA[4];
         arrow->getForegroundColorRGBA(foregroundRGBA);
         
-        if (arrow->isSelected()) {
-            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[0];
-            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[1];
-            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[2];
-            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[3];
-        }
+//        if (arrow->isSelected()) {
+//            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[0];
+//            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[1];
+//            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[2];
+//            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[3];
+//        }
         
         if (foregroundRGBA[3] > 0.0) {
             glColor3fv(foregroundRGBA);
-            if (arrow->isSelected()) {
-                glLineWidth(lineWidth + 2.0);
-            }
-            else {
+//            if (arrow->isSelected()) {
+//                glLineWidth(lineWidth + 2.0);
+//            }
+//            else {
                 glLineWidth(lineWidth);
-            }
+//            }
             glBegin(GL_LINES);
             glVertex3dv(arrowStartXYZ);
             glVertex3dv(arrowEndXYZ);
@@ -783,6 +783,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
             glVertex3dv(arrowEndXYZ);
             glVertex3dv(leftTipEnd);
             glEnd();
+            
+            if (arrow->isSelected()) {
+                drawAnnotationOneDimSelector(arrowStartXYZ,
+                                             arrowEndXYZ,
+                                             lineWidth);
+            }
         }
     }
 }
@@ -862,27 +868,36 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
         float foregroundRGBA[4];
         box->getForegroundColorRGBA(foregroundRGBA);
 
-        if (box->isSelected()) {
-            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[0];
-            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[1];
-            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[2];
-            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[3];
-        }
+//        if (box->isSelected()) {
+//            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[0];
+//            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[1];
+//            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[2];
+//            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[3];
+//        }
         
         if (foregroundRGBA[3] > 0.0) {
             glColor3fv(foregroundRGBA);
-            if (box->isSelected()) {
-                glLineWidth(outlineWidth + 2.0);
-            }
-            else {
+//            if (box->isSelected()) {
+//                glLineWidth(outlineWidth + 2.0);
+//            }
+//            else {
                 glLineWidth(outlineWidth);
-            }
+//            }
             glBegin(GL_LINE_LOOP);
             glVertex3dv(bottomLeft);
             glVertex3dv(bottomRight);
             glVertex3dv(topRight);
             glVertex3dv(topLeft);
             glEnd();
+
+            if (box->isSelected()) {
+                drawAnnotationTwoDimSelector(bottomLeft,
+                                             bottomRight,
+                                             topRight,
+                                             topLeft,
+                                             outlineWidth,
+                                             box->getRotationAngle());
+            }
         }
     }
 }
@@ -972,28 +987,39 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
         uint8_t foregroundRGBA[4];
         oval->getForegroundColorRGBA(foregroundRGBA);
         
-        if (oval->isSelected()) {
-            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[0];
-            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[1];
-            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[2];
-            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[3];
-        }
-        
-        if (oval->isSelected()) {
-            m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
-                                                           majorAxis+2,
-                                                           minorAxis+2,
-                                                           outlineWidth);
-        }
-        else if (foregroundRGBA[3] > 0.0) {
+//        if (oval->isSelected()) {
+//            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[0];
+//            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[1];
+//            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[2];
+//            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[3];
+//        }
+//        
+//        if (oval->isSelected()) {
+//            m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
+//                                                           majorAxis+2,
+//                                                           minorAxis+2,
+//                                                           outlineWidth);
+//        }
+//        else if (foregroundRGBA[3] > 0.0) {
             m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
                                                            majorAxis,
                                                            minorAxis,
                                                            outlineWidth);
-        }
+//        }
     }
     
     glPopMatrix();
+    
+    if ( ! selectionFlag) {
+        if (oval->isSelected()) {
+            drawAnnotationTwoDimSelector(bottomLeft,
+                                         bottomRight,
+                                         topRight,
+                                         topLeft,
+                                         outlineWidth,
+                                         oval->getRotationAngle());
+        }
+    }
 }
 
 /**
@@ -1087,15 +1113,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
             }
         }
         
-        if (text->isSelected()) {
-            glColor4fv(m_brainOpenGLFixedPipeline->m_foregroundColorFloat);
-            glLineWidth(3.0);
-            glBegin(GL_LINE_LOOP);
-            glVertex3dv(bottomLeft);
-            glVertex3dv(bottomRight);
-            glVertex3dv(topRight);
-            glVertex3dv(topLeft);
-            glEnd();
+//        if (text->isSelected()) {
+//            glColor4fv(m_brainOpenGLFixedPipeline->m_foregroundColorFloat);
+//            glLineWidth(3.0);
+//            glBegin(GL_LINE_LOOP);
+//            glVertex3dv(bottomLeft);
+//            glVertex3dv(bottomRight);
+//            glVertex3dv(topRight);
+//            glVertex3dv(topLeft);
+//            glEnd();
+//        }
+        if ( ! selectionFlag) {
+            if (text->isSelected()) {
+                const double outlineWidth = 2.0;
+                drawAnnotationTwoDimSelector(bottomLeft,
+                                             bottomRight,
+                                             topRight,
+                                             topLeft,
+                                             outlineWidth,
+                                             text->getRotationAngle());
+            }
         }
     }
 }
@@ -1170,26 +1207,205 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
         float foregroundRGBA[4];
         line->getForegroundColorRGBA(foregroundRGBA);
 
-        if (line->isSelected()) {
-            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[0];
-            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[1];
-            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[2];
-            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[3];
-        }
+//        if (line->isSelected()) {
+//            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[0];
+//            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[1];
+//            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[2];
+//            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[3];
+//        }
         
         if (foregroundRGBA[3] > 0.0) {
-            if (line->isSelected()) {
-                glLineWidth(lineWidth + 2.0);
-            }
-            else {
+//            if (line->isSelected()) {
+//                glLineWidth(lineWidth + 2.0);
+//            }
+//            else {
                 glLineWidth(lineWidth);
-            }
+//            }
             glColor3fv(foregroundRGBA);
             glBegin(GL_LINES);
             glVertex3dv(lineStartXYZ);
             glVertex3dv(lineEndXYZ);
             glEnd();
+            
+            if (line->isSelected()) {
+                drawAnnotationOneDimSelector(lineStartXYZ,
+                                             lineEndXYZ,
+                                             lineWidth);
+            }
         }
     }
+}
+
+/**
+ * Draw a square at the given coordinate.
+ *
+ * @param xyz
+ *     Center of square.
+ * @param halfWidthHeight
+ *     Half Width/height of square.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawSelectorSquare(const double xyz[3],
+                                                      const double halfWidthHeight,
+                                                      const double rotationAngle)
+{
+    glPushMatrix();
+    glTranslated(xyz[0], xyz[1], xyz[2]);
+    if (rotationAngle != 0.0) {
+        glRotated(-rotationAngle, 0.0, 0.0, 1.0);
+    }
+    glBegin(GL_POLYGON);
+    glVertex3d(-halfWidthHeight, -halfWidthHeight, 0.0);
+    glVertex3d( halfWidthHeight, -halfWidthHeight, 0.0);
+    glVertex3d( halfWidthHeight,  halfWidthHeight, 0.0);
+    glVertex3d(-halfWidthHeight,  halfWidthHeight, 0.0);
+    glEnd();
+    glPopMatrix();
+}
+
+/**
+ * Draw a selector around a one-dimensional annotation.
+ *
+ * @param firstPoint
+ *     Top right corner of annotation.
+ * @param secondPoint
+ *     Top left corner of annotation.
+ * @param lineThickness
+ *     Thickness of line (when enabled).
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSelector(const double firstPoint[3],
+                                                                        const double secondPoint[3],
+                                                                        const double lineThickness)
+{
+    double lengthVector[3];
+    MathFunctions::subtractVectors(secondPoint, firstPoint, lengthVector);
+    MathFunctions::normalizeVector(lengthVector);
+    
+    const double dx = secondPoint[0] - firstPoint[0];
+    const double dy = secondPoint[1] - firstPoint[1];
+    
+    const double cornerSquareSize = 3.0 + lineThickness;
+    const double directionVector[3] = {
+        lengthVector[0] * cornerSquareSize,
+        lengthVector[1] * cornerSquareSize,
+        0.0
+    };
+    
+    const double firstPointSymbolXYZ[3] = {
+        firstPoint[0] - directionVector[0],
+        firstPoint[1] - directionVector[1],
+        firstPoint[2] - directionVector[2]
+    };
+    
+//    const double secondPointOffsetMultiplier = (applyThicknessToSecondPointFlag ? lineThickness : 0.0);
+    const double secondPointSymbolXYZ[3] = {
+        secondPoint[0] + directionVector[0],
+        secondPoint[1] + directionVector[1],
+        secondPoint[2] + directionVector[2]
+    };
+    
+    double rotationAngle = 0.0;
+    if ((dy != 0.0) && (dx != 0.0)) {
+//        const double angleRadians = std::atan2(dy, dx);
+        const double angleRadians = std::atan2(dx, dy);
+        rotationAngle = MathFunctions::toDegrees(angleRadians);
+    }
+    
+    glColor3ubv(m_brainOpenGLFixedPipeline->m_foregroundColorByte);
+    drawSelectorSquare(firstPointSymbolXYZ,
+                       cornerSquareSize,
+                       rotationAngle);
+    drawSelectorSquare(secondPointSymbolXYZ,
+                       cornerSquareSize,
+                       rotationAngle);
+}
+
+
+/**
+ * Draw a selector around a two-dimensional annotation.
+ *
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param lineThickness
+ *     Thickness of line (when enabled).
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSelector(const double bottomLeft[3],
+                                                                        const double bottomRight[3],
+                                                                        const double topRight[3],
+                                                                        const double topLeft[3],
+                                                                        const double lineThickness,
+                                                                        const double rotationAngle)
+{
+    double widthVector[3];
+    MathFunctions::subtractVectors(topRight, topLeft, widthVector);
+    MathFunctions::normalizeVector(widthVector);
+    
+    double heightVector[3];
+    MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
+    MathFunctions::normalizeVector(heightVector);
+    
+    const double innerSpacing = 2.0 + (lineThickness / 2.0);
+    
+    const double widthSpacingX = innerSpacing * widthVector[0];
+    const double widthSpacingY = innerSpacing * widthVector[1];
+    
+    const double heightSpacingX = innerSpacing * heightVector[0];
+    const double heightSpacingY = innerSpacing * heightVector[1];
+
+    const double selectorTopLeft[3] = {
+        topLeft[0] - widthSpacingX + heightSpacingX,
+        topLeft[1] - widthSpacingY + heightSpacingY,
+        topLeft[2]
+    };
+    
+    const double selectorTopRight[3] = {
+        topRight[0] + widthSpacingX + heightSpacingX,
+        topRight[1] + widthSpacingY + heightSpacingY,
+        topRight[2]
+    };
+    
+    const double selectorBottomLeft[3] = {
+        bottomLeft[0] - widthSpacingX - heightSpacingX,
+        bottomLeft[1] - widthSpacingY - heightSpacingY,
+        bottomLeft[2]
+    };
+    
+    const double selectorBottomRight[3] = {
+        bottomRight[0] + widthSpacingX - heightSpacingX,
+        bottomRight[1] + widthSpacingY - heightSpacingY,
+        bottomRight[2]
+    };
+    
+    glColor3ubv(m_brainOpenGLFixedPipeline->m_foregroundColorByte);
+    
+    glLineWidth(2.0);
+    glBegin(GL_LINE_LOOP);
+    glVertex3dv(selectorBottomLeft);
+    glVertex3dv(selectorBottomRight);
+    glVertex3dv(selectorTopRight);
+    glVertex3dv(selectorTopLeft);
+    glEnd();
+    
+    const double cornerSquareSize = 3.0;
+    drawSelectorSquare(selectorBottomLeft,
+                       cornerSquareSize,
+                       rotationAngle);
+    drawSelectorSquare(selectorBottomRight,
+                       cornerSquareSize,
+                       rotationAngle);
+    drawSelectorSquare(selectorTopRight,
+                       cornerSquareSize,
+                       rotationAngle);
+    drawSelectorSquare(selectorTopLeft,
+                       cornerSquareSize,
+                       rotationAngle);
 }
 
