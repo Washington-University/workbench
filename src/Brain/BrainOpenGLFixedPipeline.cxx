@@ -5691,27 +5691,23 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
  * Draw annnotation text at the given viewport coordinates using
  * the the annotations attributes for the style of text.
  *
- * Depth testing is ENABLED for this method since it has Z-coordinate.
+ * Depth testing is ENABLED for this method
  *
  * @param viewportX
  *     Viewport X-coordinate.
  * @param viewportY
  *     Viewport Y-coordinate.
- * @param viewportZ
- *     Viewport Z-coordinate.
  * @param annotationText
  *     Annotation text and attributes.
  */
 void
 BrainOpenGLFixedPipeline::drawTextAtViewportCoords(const double viewportX,
                                                    const double viewportY,
-                                                   const double viewportZ,
                                                    const AnnotationText& annotationText)
 {
     if (this->textRenderer != NULL) {
         this->textRenderer->drawTextAtViewportCoords(viewportX,
                                                      viewportY,
-                                                     viewportZ,
                                                      annotationText);
     }
 }
@@ -6271,7 +6267,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setText(textLeft);
         this->drawTextAtViewportCoords(textLeftX,
                                        textY,
-                                       0.0,
                                        annotationText);
     }
     
@@ -6294,7 +6289,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setText(textCenter);
         this->drawTextAtViewportCoords(textCenterX,
                                        textY,
-                                       0.0,
                                        annotationText);
     }
     
@@ -6308,7 +6302,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         annotationText.setText(textRight);
         this->drawTextAtViewportCoords(textRightX,
                                        textY,
-                                       0.0,
                                        annotationText);
     }
     

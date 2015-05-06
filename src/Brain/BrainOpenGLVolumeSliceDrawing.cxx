@@ -601,7 +601,6 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                         annotationText.setText(coordText);
                         m_fixedPipelineDrawing->drawTextAtViewportCoords((vpSizeX - 5),
                                                                          5,
-                                                                         0.0,
                                                                          annotationText);
                     }
                 }
@@ -3593,26 +3592,22 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
         annotationText.setText(horizontalLeftText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textLeftWindowXY[0],
                                                          textLeftWindowXY[1],
-                                                         0.0,
                                                          annotationText);
         
         annotationText.setText(horizontalRightText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textRightWindowXY[0],
                                                          textRightWindowXY[1],
-                                                         0.0,
                                                          annotationText);
         
         annotationText.setCustomForegroundColor(verticalAxisRGBA);
         annotationText.setText(verticalBottomText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textBottomWindowXY[0],
                                                          textBottomWindowXY[1],
-                                                         0.0,
                                                          annotationText);
         
         annotationText.setText(verticalTopText);
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textTopWindowXY[0],
                                                          textTopWindowXY[1],
-                                                         0.0,
                                                          annotationText);
     }
     

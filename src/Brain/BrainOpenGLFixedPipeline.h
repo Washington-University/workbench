@@ -418,7 +418,6 @@ namespace caret {
         
         void drawTextAtViewportCoords(const double viewportX,
                                       const double viewportY,
-                                      const double viewportZ,
                                       const AnnotationText& annotationText);
         
         void drawTextAtModelCoords(const double modelX,
