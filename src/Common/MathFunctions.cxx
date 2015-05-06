@@ -571,6 +571,23 @@ MathFunctions::subtractVectors(
     resultOut[2] = v1[2] - v2[2];
 }
 
+/**
+ * subtract vectors (3d)  result = v1 - v2.
+ * @param v1  1st vector input
+ * @param v2  2nd vector input
+ * @return  3D vector containing result of subtraction.
+ *
+ */
+void
+MathFunctions::subtractVectors(const double v1[3],
+                               const double v2[3],
+                               double resultOut[3])
+{
+    resultOut[0] = v1[0] - v2[0];
+    resultOut[1] = v1[1] - v2[1];
+    resultOut[2] = v1[2] - v2[2];
+}
+
 void MathFunctions::addVectors(const float v1[3], const float v2[3], float resultOut[3])
 {
     resultOut[0] = v1[0] + v2[0];

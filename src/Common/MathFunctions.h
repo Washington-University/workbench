@@ -142,11 +142,13 @@ public:
                                     const double x2,
                                     const double y2);
     
-    static void subtractVectors(
-                    const float v1[3],
-                    const float v2[3],
-                    float resultOut[3]);
+    static void subtractVectors(const float v1[3],
+                                const float v2[3],
+                                float resultOut[3]);
 
+    static void subtractVectors(const double v1[3],
+                                const double v2[3],
+                                double resultOut[3]);
     static void addVectors(
                     const float v1[3],
                     const float v2[3],
