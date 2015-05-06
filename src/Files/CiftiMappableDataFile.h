@@ -332,6 +332,13 @@ namespace caret {
                                             bool& numericalValueOutValid,
                                             AString& textValueOut) const;
         
+        virtual bool getMapVolumeVoxelValues(const std::vector<int32_t> mapIndices,
+                                             const float xyz[3],
+                                             int64_t ijkOut[3],
+                                             std::vector<float>& numericalValuesOut,
+                                             std::vector<bool>& numericalValuesOutValid,
+                                             AString& textValueOut) const;
+        
         int64_t getMapDataOffsetForVoxelAtCoordinate(const float coordinate[3],
                                                      const int32_t mapIndex) const;
         
@@ -372,7 +379,7 @@ namespace caret {
                                              const int32_t numberOfNodes,
                                              std::vector<float>& numericalValuesOut,
                                              std::vector<bool>& numericalValuesOutValid,
-                                             AString& textValuesOut) const;
+                                             AString& textValueOut) const;
         
         virtual bool getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                             const StructureEnum::Enum structure,

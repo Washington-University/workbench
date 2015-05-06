@@ -287,13 +287,80 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
                         }
                         
                         /*
-                         * Limit dense scalar and data series to maps selected in the overlay.
+                         * Limit dense scalar and data series to maps selected in the overlays
+                         * from all tabs.
                          */
-                        if ((ciftiFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
-                            || (ciftiFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
+                        bool limitMapIndicesFlag = false;
+                        switch (ciftiFile->getDataFileType()) {
+                            case DataFileTypeEnum::BORDER:
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                                limitMapIndicesFlag = true;
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                                limitMapIndicesFlag = true;
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                                limitMapIndicesFlag = true;
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                                limitMapIndicesFlag = true;
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                                limitMapIndicesFlag = true;
+                                break;
+                            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                                break;
+                            case DataFileTypeEnum::FOCI:
+                                break;
+                            case DataFileTypeEnum::IMAGE:
+                                break;
+                            case DataFileTypeEnum::LABEL:
+                                break;
+                            case DataFileTypeEnum::METRIC:
+                                break;
+                            case DataFileTypeEnum::PALETTE:
+                                break;
+                            case DataFileTypeEnum::RGBA:
+                                break;
+                            case DataFileTypeEnum::SCENE:
+                                break;
+                            case DataFileTypeEnum::SPECIFICATION:
+                                break;
+                            case DataFileTypeEnum::SURFACE:
+                                break;
+                            case DataFileTypeEnum::UNKNOWN:
+                                CaretAssert(0);
+                                break;
+                            case DataFileTypeEnum::VOLUME:
+                                break;
+                        }
+                        if (limitMapIndicesFlag) {
                             getMapIndicesOfFileUsedInOverlays(ciftiFile,
                                                               mapIndices);
                         }
+//                        /*
+//                         * Limit dense scalar and data series to maps selected in the overlay.
+//                         */
+//                        if ((ciftiFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
+//                            || (ciftiFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
+//                            getMapIndicesOfFileUsedInOverlays(ciftiFile,
+//                                                              mapIndices);
+//                        }
                         
                         AString textValue;
                         int64_t voxelIJK[3];
