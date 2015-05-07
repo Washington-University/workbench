@@ -404,6 +404,7 @@ void CiftiMemoryImpl::setColumn(const float* dataIn, const int64_t& index)
 CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename)
 {//opens existing file for reading
     m_nifti.openRead(filename);//read-only, so we don't need write permission to read a cifti file
+    if (m_nifti.getNumComponents() != 1) throw DataFileException("complex or rgb datatype found in file '" + filename + "', these are not supported in cifti");
     const NiftiHeader& myHeader = m_nifti.getHeader();
     int numExts = (int)myHeader.m_extensions.size(), whichExt = -1;
     for (int i = 0; i < numExts; ++i)
