@@ -25,7 +25,9 @@
 
 #include <QButtonGroup>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
+#include <QLineEdit>
 #include <QRadioButton>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -89,6 +91,8 @@ m_windowIndex(-1),
 m_tabIndex(-1),
 m_modelXYZValid(false)
 {
+    m_textLineEdit = NULL;
+    
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     const int mouseX = mouseEvent.getX();
     const int mouseY = mouseEvent.getY();
@@ -140,6 +144,9 @@ m_modelXYZValid(false)
     
     m_fileSelectionWidget = createFileSelectionWidget();
     QWidget* spaceSelectionWidget = createSpaceSelectionWidget();
+    QWidget* textWidget = ((m_annotationType == AnnotationTypeEnum::TEXT)
+                           ? createTextWidget()
+                           : NULL);
 
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
@@ -147,6 +154,9 @@ m_modelXYZValid(false)
         layout->addWidget(m_fileSelectionWidget);
     }
     layout->addWidget(spaceSelectionWidget);
+    if (textWidget != NULL) {
+        layout->addWidget(textWidget);
+    }
     
     setCentralWidget(dialogWidget,
                      SCROLL_AREA_NEVER);
@@ -166,7 +176,6 @@ AnnotationCreateDialog::~AnnotationCreateDialog()
 QWidget*
 AnnotationCreateDialog::createFileSelectionWidget()
 {
-    QLabel* fileLabel = new QLabel("File: ");
     m_annotationFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(GuiManager::get()->getBrain(),
                                                                                                   DataFileTypeEnum::ANNOTATION);
     if (s_previousAnnotationFile != NULL) {
@@ -183,11 +192,10 @@ AnnotationCreateDialog::createFileSelectionWidget()
     QToolButton* newFileToolButton = new QToolButton();
     newFileToolButton->setDefaultAction(newFileAction);
     
-    QWidget* widget = new QWidget();
+    QWidget* widget = new QGroupBox("Annotation File");
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    layout->addWidget(fileLabel, 0);
     layout->addWidget(m_annotationFileSelectionComboBox->getWidget(), 100);
-    layout->addWidget(newFileToolButton);
+    layout->addWidget(newFileToolButton, 0);
     
     return widget;
 }
@@ -233,7 +241,7 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
     const int COLUMN_COORD_Z      = columnIndex++;
     const int COLUMN_EXTRA        = columnIndex++;
     
-    QWidget* widget = new QWidget();
+    QWidget* widget = new QGroupBox("Coordinate Space");
     QGridLayout* gridLayout = new QGridLayout(widget);
     gridLayout->setColumnStretch(COLUMN_RADIO_BUTTON, 0);
     gridLayout->setColumnStretch(COLUMN_COORD_X,      0);
@@ -397,6 +405,24 @@ AnnotationCreateDialog::newAnnotationFileButtonClicked()
 }
 
 /**
+ * @return New instance of text widget.
+ */
+QWidget*
+AnnotationCreateDialog::createTextWidget()
+{
+    m_textLineEdit = new QLineEdit();
+    m_textLineEdit->setText("New Text");
+    m_textLineEdit->selectAll();
+    
+    QGroupBox* groupBox = new QGroupBox("Text");
+    QHBoxLayout* layout = new QHBoxLayout(groupBox);
+    layout->addWidget(m_textLineEdit, 100);
+    
+    return groupBox;
+}
+
+
+/**
  * Gets called when the OK button is clicked.
  */
 void
@@ -444,7 +470,7 @@ AnnotationCreateDialog::okButtonClicked()
         case AnnotationTypeEnum::TEXT:
         {
             AnnotationText* text = new AnnotationText();
-            text->setText("NewText");
+            text->setText(m_textLineEdit->text().trimmed());
             annotation.grabNew(text);
         }
             break;

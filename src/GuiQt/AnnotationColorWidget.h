@@ -28,6 +28,7 @@
 #include "EventListenerInterface.h"
 
 class QAction;
+class QDoubleSpinBox;
 class QToolButton;
 
 namespace caret {
@@ -57,6 +58,9 @@ namespace caret {
         
         void foregroundColorSelected(const CaretColorEnum::Enum);
         
+    private slots:
+        void foregroundThicknessSpinBoxValueChanged(double value);
+        
     private:
         AnnotationColorWidget(const AnnotationColorWidget&);
 
@@ -65,6 +69,8 @@ namespace caret {
         void updateBackgroundColorButton();
         
         void updateForegroundColorButton();
+        
+        void updateForegroundThicknessSpinBox();
         
         const int32_t m_browserWindowIndex;
         
@@ -79,6 +85,8 @@ namespace caret {
         CaretColorEnumMenu* m_foregroundColorMenu;
         
         CaretColorEnumMenu* m_backgroundColorMenu;
+        
+        QDoubleSpinBox* m_foregroundThicknessSpinBox;
         
         Annotation* m_annotation;
         

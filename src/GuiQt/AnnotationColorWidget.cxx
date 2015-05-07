@@ -24,17 +24,21 @@
 #undef __ANNOTATION_COLOR_WIDGET_DECLARE__
 
 #include <QAction>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "Annotation.h"
+#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoDimensionalShape.h"
+#include "BrainOpenGL.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumMenu.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "WuQFactory.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -60,9 +64,13 @@ m_browserWindowIndex(browserWindowIndex)
 {
     m_annotation = NULL;
     
-    QLabel* colorLabel = new QLabel("Color");
+    QLabel* fillLabel      = new QLabel("Fill");
+    QLabel* fillColorLabel = new QLabel("Color");
+    QLabel* lineLabel      = new QLabel("Line");
+    QLabel* lineColorLabel = new QLabel("Color");
+    QLabel* lineWidthLabel = new QLabel("Width");
     
-    const QSize toolButtonSize(24, 24);
+    const QSize toolButtonSize(16, 16);
     
     /*
      * Background color menu
@@ -77,7 +85,7 @@ m_browserWindowIndex(browserWindowIndex)
      */
     m_backgroundColorAction = new QAction("B",
                                           this);
-    m_backgroundColorAction->setToolTip("Adjust the background color");
+    m_backgroundColorAction->setToolTip("Adjust the fill color");
     m_backgroundColorAction->setMenu(m_backgroundColorMenu);
     m_backgroundToolButton = new QToolButton();
     m_backgroundToolButton->setDefaultAction(m_backgroundColorAction);
@@ -96,25 +104,61 @@ m_browserWindowIndex(browserWindowIndex)
      */
     m_foregroundColorAction = new QAction("F",
                                           this);
-    m_foregroundColorAction->setToolTip("Adjust the foreground color");
+    m_foregroundColorAction->setToolTip("Adjust the line color");
     m_foregroundColorAction->setMenu(m_foregroundColorMenu);
     m_foregroundToolButton = new QToolButton();
     m_foregroundToolButton->setDefaultAction(m_foregroundColorAction);
     m_foregroundToolButton->setIconSize(toolButtonSize);
     
     /*
+     * Foreground thickness
+     */
+    float minimumLineWidth = 0.0;
+    float maximumLineWidth = 1.0;
+    
+    BrainOpenGL::getMinMaxLineWidth(minimumLineWidth,
+                                    maximumLineWidth);
+    minimumLineWidth = std::max(minimumLineWidth, 1.0f);
+    m_foregroundThicknessSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minimumLineWidth,
+                                                                                                  maximumLineWidth,
+                                                                                                  1.0,
+                                                                                                  0,
+                                                                                                  this,
+                                                                                                  SLOT(foregroundThicknessSpinBoxValueChanged(double)));
+    WuQtUtilities::setWordWrappedToolTip(m_foregroundThicknessSpinBox,
+                                         "Adjust the line thickness");
+    m_foregroundThicknessSpinBox->setFixedWidth(45);
+    
+    /*
      * Layout widgets
      */
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
-    gridLayout->addWidget(colorLabel,
-                      0, 0,
-                      1, 2,
-                      Qt::AlignHCenter);
+    gridLayout->addWidget(lineLabel,
+                          0, 0,
+                          1, 2,
+                          Qt::AlignHCenter);
+    gridLayout->addWidget(lineWidthLabel,
+                          1, 0,
+                          Qt::AlignHCenter);
+    gridLayout->addWidget(lineColorLabel,
+                          1, 1,
+                          Qt::AlignHCenter);
+    gridLayout->addWidget(m_foregroundThicknessSpinBox,
+                          2, 0,
+                          Qt::AlignHCenter);
     gridLayout->addWidget(m_foregroundToolButton,
-                      1, 0);
+                          2, 1,
+                          Qt::AlignHCenter);
+    gridLayout->addWidget(fillLabel,
+                          0, 2,
+                          Qt::AlignHCenter);
+    gridLayout->addWidget(fillColorLabel,
+                          1, 2,
+                          Qt::AlignHCenter);
     gridLayout->addWidget(m_backgroundToolButton,
-                      1, 1);
+                          2, 2,
+                          Qt::AlignHCenter);
     
 //    QVBoxLayout* layout = new QVBoxLayout(this);
 //    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
@@ -154,6 +198,7 @@ AnnotationColorWidget::updateContent(Annotation* annotation)
     
     updateBackgroundColorButton();
     updateForegroundColorButton();
+    updateForegroundThicknessSpinBox();
 }
 
 /**
@@ -283,6 +328,67 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
+/**
+ * Gets called when the foreground thickness value changes.
+ *
+ * @param value
+ *     New value for foreground thickness.
+ */
+void
+AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
+{
+    bool updateGraphicsFlag = false;
+    if (m_annotation != NULL) {
+        AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
+        if (oneDimAnn != NULL) {
+            oneDimAnn->setLineWidth(value);
+            updateGraphicsFlag = true;
+        }
+        else {
+            AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
+            if (twoDimAnn != NULL) {
+                twoDimAnn->setOutlineWidth(value);
+                updateGraphicsFlag = true;
+            }
+        }
+    }
+    
+    if (updateGraphicsFlag) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    }
+}
+
+/**
+ * Update the foreground thickness spin box.
+ */
+void
+AnnotationColorWidget::updateForegroundThicknessSpinBox()
+{
+    float value = 0.0;
+    bool widgetEnabled = false;
+    if (m_annotation != NULL) {
+        AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
+        if (oneDimAnn != NULL) {
+            value = oneDimAnn->getLineWidth();
+            widgetEnabled = true;
+        }
+        else {
+            AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
+            if (twoDimAnn != NULL) {
+                if (twoDimAnn->getType() != AnnotationTypeEnum::TEXT) {
+                    value = twoDimAnn->getOutlineWidth();
+                    widgetEnabled = true;
+                }
+            }
+        }
+    }
+    
+    m_foregroundThicknessSpinBox->blockSignals(true);
+    m_foregroundThicknessSpinBox->setValue(value);
+    m_foregroundThicknessSpinBox->blockSignals(false);
+    m_foregroundThicknessSpinBox->setEnabled(widgetEnabled);
+    
+}
 /**
  * Receive an event.
  *

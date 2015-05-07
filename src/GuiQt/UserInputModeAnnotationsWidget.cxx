@@ -40,7 +40,6 @@
 #include "AnnotationText.h"
 #include "AnnotationTextAlignmentWidget.h"
 #include "AnnotationTextEditorWidget.h"
-#include "AnnotationThicknessWidget.h"
 #include "AnnotationWidthHeightWidget.h"
 #include "CaretAssert.h"
 #include "EventAnnotation.h"
@@ -91,8 +90,6 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_rotationWidget             = new AnnotationRotationWidget(m_browserWindowIndex);
     
-    m_thicknessWidget            = new AnnotationThicknessWidget(m_browserWindowIndex);
-    
     m_formatWidget               = new AnnotationFormatWidget(m_browserWindowIndex);
     
     m_insertDeleteWidget         = new AnnotationInsertNewWidget(m_browserWindowIndex);
@@ -127,8 +124,6 @@ m_inputModeAnnotations(inputModeAnnotations)
     bottomRowLayout->addWidget(m_widthHeightWidget);
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomRowLayout->addWidget(m_rotationWidget);
-    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomRowLayout->addWidget(m_thicknessWidget);
     bottomRowLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -226,7 +221,6 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     m_textAlignmentWidget->updateContent(textAnnotation);
     m_widthHeightWidget->updateContent(twoDimAnnotation);
     m_rotationWidget->updateContent(twoDimAnnotation);
-    m_thicknessWidget->updateContent(m_annotationBeingEdited);
     m_insertDeleteWidget->updateContent(m_annotationBeingEdited);
     
     AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;

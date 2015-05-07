@@ -26,6 +26,7 @@
 #include "WuQDialogModal.h"
 
 class QButtonGroup;
+class QLineEdit;
 class QRadioButton;
 
 namespace caret {
@@ -63,6 +64,8 @@ namespace caret {
         
         QWidget* createSpaceSelectionWidget();
         
+        QWidget* createTextWidget();
+        
         QRadioButton* createRadioButtonForSpace(const AnnotationCoordinateSpaceEnum::Enum space);
         
         const AnnotationTypeEnum::Enum m_annotationType;
@@ -77,6 +80,8 @@ namespace caret {
         
         SelectionItemSurfaceNode* m_surfaceNodeIdentification;
 
+        QLineEdit* m_textLineEdit;
+        
         double m_windowXYZ[3];
         
         int32_t m_windowIndex;

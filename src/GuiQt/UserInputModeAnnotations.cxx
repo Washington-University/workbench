@@ -91,8 +91,6 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         switch (annotationEvent->getMode()) {
             case EventAnnotation::MODE_INVALID:
                 break;
-            case EventAnnotation::MODE_EDIT_ANNOTATION:
-                break;
             case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
             {
                 m_modeNewAnnotationType = annotationEvent->getModeCreateNewAnnotationType();
@@ -101,7 +99,11 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
             }
                 break;
+            case EventAnnotation::MODE_DELETE_ANNOTATION:
+                break;
             case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
+                break;
+            case EventAnnotation::MODE_EDIT_ANNOTATION:
                 break;
         }
         

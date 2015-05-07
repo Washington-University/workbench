@@ -37,7 +37,6 @@ AnnotationMenuArrange.h
 AnnotationRotationWidget.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorWidget.h
-AnnotationThicknessWidget.h
 AnnotationWidthHeightWidget.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
@@ -181,7 +180,6 @@ AnnotationMenuArrange.h
 AnnotationRotationWidget.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorWidget.h
-AnnotationThicknessWidget.h
 AnnotationWidthHeightWidget.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
@@ -351,7 +349,6 @@ AnnotationMenuArrange.cxx
 AnnotationRotationWidget.cxx
 AnnotationTextAlignmentWidget.cxx
 AnnotationTextEditorWidget.cxx
-AnnotationThicknessWidget.cxx
 AnnotationWidthHeightWidget.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
