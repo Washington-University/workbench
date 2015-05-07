@@ -49,6 +49,7 @@ AlgorithmCiftiROIsFromExtrema.h
 AlgorithmCiftiSeparate.h
 AlgorithmCiftiSmoothing.h
 AlgorithmCiftiTranspose.h
+AlgorithmCiftiVectorOperation.h
 AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmFiberDotProducts.h
@@ -114,6 +115,7 @@ AlgorithmVolumeROIsFromExtrema.h
 AlgorithmVolumeSmoothing.h
 AlgorithmVolumeTFCE.h
 AlgorithmVolumeToSurfaceMapping.h
+AlgorithmVolumeVectorOperation.h
 AlgorithmVolumeWarpfieldResample.h
 OverlapLogicEnum.h
 
@@ -149,6 +151,7 @@ AlgorithmCiftiROIsFromExtrema.cxx
 AlgorithmCiftiSeparate.cxx
 AlgorithmCiftiSmoothing.cxx
 AlgorithmCiftiTranspose.cxx
+AlgorithmCiftiVectorOperation.cxx
 AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmFiberDotProducts.cxx
@@ -214,6 +217,7 @@ AlgorithmVolumeROIsFromExtrema.cxx
 AlgorithmVolumeSmoothing.cxx
 AlgorithmVolumeTFCE.cxx
 AlgorithmVolumeToSurfaceMapping.cxx
+AlgorithmVolumeVectorOperation.cxx
 AlgorithmVolumeWarpfieldResample.cxx
 OverlapLogicEnum.cxx
 )

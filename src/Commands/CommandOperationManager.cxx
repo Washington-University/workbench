@@ -54,6 +54,7 @@
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmCiftiSmoothing.h"
 #include "AlgorithmCiftiTranspose.h"
+#include "AlgorithmCiftiVectorOperation.h"
 #include "AlgorithmCreateSignedDistanceVolume.h"
 #include "AlgorithmFiberDotProducts.h"
 #include "AlgorithmGiftiAllLabelsToROIs.h"
@@ -118,6 +119,7 @@
 #include "AlgorithmVolumeSmoothing.h"
 #include "AlgorithmVolumeTFCE.h"
 #include "AlgorithmVolumeToSurfaceMapping.h"
+#include "AlgorithmVolumeVectorOperation.h"
 #include "AlgorithmVolumeWarpfieldResample.h"
 
 #include "OperationAddToSpecFile.h"
@@ -286,6 +288,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSeparate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiTranspose()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiVectorOperation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCreateSignedDistanceVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmFiberDotProducts()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiAllLabelsToROIs()));
@@ -350,6 +353,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeTFCE()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeVectorOperation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
     
     this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));

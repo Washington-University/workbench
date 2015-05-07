@@ -114,6 +114,7 @@ SystemUtilities.h
 TileTabsConfiguration.h
 TracksModificationInterface.h
 Vector3D.h
+VectorOperation.h
 VoxelIJK.h
 YokingGroupEnum.h
 
@@ -191,6 +192,7 @@ StructureEnum.cxx
 SystemUtilities.cxx
 TileTabsConfiguration.cxx
 Vector3D.cxx
+VectorOperation.cxx
 YokingGroupEnum.cxx
 )
 

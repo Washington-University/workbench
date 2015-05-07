@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_METRIC_VECTOR_OPERATION_H__
-#define __ALGORITHM_METRIC_VECTOR_OPERATION_H__
+#ifndef __ALGORITHM_VOLUME_VECTOR_OPERATION_H__
+#define __ALGORITHM_VOLUME_VECTOR_OPERATION_H__
 
 /*LICENSE_START*/
 /*
@@ -27,23 +27,24 @@
 
 namespace caret {
     
-    class AlgorithmMetricVectorOperation : public AbstractAlgorithm
+    class AlgorithmVolumeVectorOperation : public AbstractAlgorithm
     {
-        AlgorithmMetricVectorOperation();
+        AlgorithmVolumeVectorOperation();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricVectorOperation(ProgressObject* myProgObj, const MetricFile* metricA, const MetricFile* metricB, const VectorOperation::Operation& myOper,
-                                       MetricFile* myMetricOut, const bool& normA = false, const bool& normB = false, const bool& normOut = false, const bool& magOut = false);
+        AlgorithmVolumeVectorOperation(ProgressObject* myProgObj, const VolumeFile* volumeA, const VolumeFile* volumeB,
+                                       const VectorOperation::Operation& myOper, VolumeFile* myVolumeOut,
+                                       const bool& normA = false, const bool& normB = false, const bool& normOut = false, const bool& magOut = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmMetricVectorOperation> AutoAlgorithmMetricVectorOperation;
+    typedef TemplateAutoOperation<AlgorithmVolumeVectorOperation> AutoAlgorithmVolumeVectorOperation;
 
 }
 
-#endif //__ALGORITHM_METRIC_VECTOR_OPERATION_H__
+#endif //__ALGORITHM_VOLUME_VECTOR_OPERATION_H__

@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_METRIC_VECTOR_OPERATION_H__
-#define __ALGORITHM_METRIC_VECTOR_OPERATION_H__
+#ifndef __ALGORITHM_CIFTI_VECTOR_OPERATION_H__
+#define __ALGORITHM_CIFTI_VECTOR_OPERATION_H__
 
 /*LICENSE_START*/
 /*
@@ -27,23 +27,24 @@
 
 namespace caret {
     
-    class AlgorithmMetricVectorOperation : public AbstractAlgorithm
+    class AlgorithmCiftiVectorOperation : public AbstractAlgorithm
     {
-        AlgorithmMetricVectorOperation();
+        AlgorithmCiftiVectorOperation();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricVectorOperation(ProgressObject* myProgObj, const MetricFile* metricA, const MetricFile* metricB, const VectorOperation::Operation& myOper,
-                                       MetricFile* myMetricOut, const bool& normA = false, const bool& normB = false, const bool& normOut = false, const bool& magOut = false);
+        AlgorithmCiftiVectorOperation(ProgressObject* myProgObj, const CiftiFile* ciftiA, const CiftiFile* ciftiB,
+                                      const VectorOperation::Operation& myOper, CiftiFile* myCiftiOut,
+                                      const bool& normA = false, const bool& normB = false, const bool& normOut = false, const bool& magOut = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmMetricVectorOperation> AutoAlgorithmMetricVectorOperation;
+    typedef TemplateAutoOperation<AlgorithmCiftiVectorOperation> AutoAlgorithmCiftiVectorOperation;
 
 }
 
-#endif //__ALGORITHM_METRIC_VECTOR_OPERATION_H__
+#endif //__ALGORITHM_CIFTI_VECTOR_OPERATION_H__

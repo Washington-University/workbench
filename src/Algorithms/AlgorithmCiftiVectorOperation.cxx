@@ -18,37 +18,35 @@
  */
 /*LICENSE_END*/
 
-#include "AlgorithmMetricVectorOperation.h"
+#include "AlgorithmCiftiVectorOperation.h"
 #include "AlgorithmException.h"
 
-#include "CaretLogger.h"
-#include "MetricFile.h"
-#include "Vector3D.h"
+#include "CiftiFile.h"
 
 using namespace caret;
 using namespace std;
 
-AString AlgorithmMetricVectorOperation::getCommandSwitch()
+AString AlgorithmCiftiVectorOperation::getCommandSwitch()
 {
-    return "-metric-vector-operation";
+    return "-cifti-vector-operation";
 }
 
-AString AlgorithmMetricVectorOperation::getShortDescription()
+AString AlgorithmCiftiVectorOperation::getShortDescription()
 {
-    return "DO A VECTOR OPERATION ON METRIC FILES";
+    return "DO A VECTOR OPERATION ON VOLUME FILES";
 }
 
-OperationParameters* AlgorithmMetricVectorOperation::getParameters()
+OperationParameters* AlgorithmCiftiVectorOperation::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    ret->addMetricParameter(1, "vectors-a", "first vector input file");
+    ret->addCiftiParameter(1, "vectors-a", "first vector input file");
     
-    ret->addMetricParameter(2, "vectors-b", "second vector input file");
+    ret->addCiftiParameter(2, "vectors-b", "second vector input file");
     
     ret->addStringParameter(3, "operation", "what vector operation to do");
     
-    ret->addMetricOutputParameter(4, "metric-out", "the output file");
+    ret->addCiftiOutputParameter(4, "cifti-out", "the output file");
     
     ret->createOptionalParameter(5, "-normalize-a", "normalize vectors of first input");
 
@@ -59,7 +57,7 @@ OperationParameters* AlgorithmMetricVectorOperation::getParameters()
     ret->createOptionalParameter(8, "-magnitude", "output the magnitude of the result (not valid for dot product)");
     
     AString myText =
-        AString("Does a vector operation on two metric files (that must have a multiple of 3 columns).  ") +
+        AString("Does a vector operation on two cifti files (that must have a multiple of 3 columns).  ") +
         "Either of the inputs may have multiple vectors (more than 3 columns), but not both (at least one must have exactly 3 columns).  " +
         "The -magnitude and -normalize-output options may not be specified together, or with an operation that returns a scalar (dot product).  " +
         "The <operation> parameter must be one of the following:\n";
@@ -72,30 +70,37 @@ OperationParameters* AlgorithmMetricVectorOperation::getParameters()
     return ret;
 }
 
-void AlgorithmMetricVectorOperation::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmCiftiVectorOperation::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
-    MetricFile* metricA = myParams->getMetric(1);
-    MetricFile* metricB = myParams->getMetric(2);
+    CiftiFile* ciftiA = myParams->getCifti(1);
+    CiftiFile* ciftiB = myParams->getCifti(2);
     AString operString = myParams->getString(3);
     bool ok = false;
     VectorOperation::Operation myOper = VectorOperation::stringToOperation(operString, ok);
     if (!ok) throw AlgorithmException("unrecognized operation string: " + operString);
-    MetricFile* myMetricOut = myParams->getOutputMetric(4);
+    CiftiFile* myCiftiOut = myParams->getOutputCifti(4);
     bool normA = myParams->getOptionalParameter(5)->m_present;
     bool normB = myParams->getOptionalParameter(6)->m_present;
     bool normOut = myParams->getOptionalParameter(7)->m_present;
     bool magOut = myParams->getOptionalParameter(8)->m_present;
-    AlgorithmMetricVectorOperation(myProgObj, metricA, metricB, myOper, myMetricOut, normA, normB, normOut, magOut);
+    AlgorithmCiftiVectorOperation(myProgObj, ciftiA, ciftiB, myOper, myCiftiOut, normA, normB, normOut, magOut);
 }
 
-AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* myProgObj, const MetricFile* metricA, const MetricFile* metricB, const VectorOperation::Operation& myOper,
-                                                               MetricFile* myMetricOut, const bool& normA, const bool& normB, const bool& normOut, const bool& magOut) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiVectorOperation::AlgorithmCiftiVectorOperation(ProgressObject* myProgObj, const CiftiFile* ciftiA, const CiftiFile* ciftiB,
+                                                             const VectorOperation::Operation& myOper, CiftiFile* myCiftiOut,
+                                                             const bool& normA, const bool& normB, const bool& normOut, const bool& magOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    StructureEnum::Enum checkStruct = metricA->getStructure();
-    int numNodes = metricA->getNumberOfNodes();
-    if (numNodes != metricB->getNumberOfNodes()) throw AlgorithmException("inputs have different numbers of nodes");
-    int numColA = metricA->getNumberOfColumns(), numColB = metricB->getNumberOfColumns();
+    const CiftiXML& xmlA = ciftiA->getCiftiXML(), &xmlB = ciftiB->getCiftiXML();
+    if (xmlA.getNumberOfDimensions() != 2 || xmlB.getNumberOfDimensions() != 2)
+    {
+        throw AlgorithmException("cifti vector operation only supports 2D cifti");
+    }
+    if (!xmlA.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(*xmlB.getMap(CiftiXML::ALONG_COLUMN)))
+    {
+        throw AlgorithmException("input cifti files have non-matching mappings along column");
+    }
+    int64_t numColA = xmlA.getDimensionLength(CiftiXML::ALONG_ROW), numColB = xmlB.getDimensionLength(CiftiXML::ALONG_ROW);
     if (numColA % 3 != 0) throw AlgorithmException("number of columns of first input is not a multiple of 3");
     if (numColB % 3 != 0) throw AlgorithmException("number of columns of second input is not a multiple of 3");
     int numVecA = numColA / 3, numVecB = numColB / 3;
@@ -103,83 +108,72 @@ AlgorithmMetricVectorOperation::AlgorithmMetricVectorOperation(ProgressObject* m
     if (normOut && magOut) throw AlgorithmException("normalizing the output and taking the magnitude is meaningless");
     bool opScalarResult = VectorOperation::operationReturnsScalar(myOper);
     if (opScalarResult && (normOut || magOut)) throw AlgorithmException("cannot normalize or take magnitude of a scalar result (such as a dot product)");
-    if (checkStruct == StructureEnum::INVALID)
-    {
-        CaretLogWarning("first input vector file has INVALID structure");
-    } else {
-        checkStructureMatch(metricB, checkStruct, "second input vector file", "the first has");
-    }
     bool swapped = false;
-    const MetricFile* multiVec = metricA, *singleVec = metricB;
+    const CiftiFile* multiVec = ciftiA, *singleVec = ciftiB;
     int numOutVecs = numVecA;
     if (numVecB > 1)
     {
-        multiVec = metricB;
-        singleVec = metricA;
+        multiVec = ciftiB;
+        singleVec = ciftiA;
         numOutVecs = numVecB;
         swapped = true;
     }
+    CiftiXML outXML = multiVec->getCiftiXML();
     int numColsOut = numOutVecs * 3;
-    if (opScalarResult || magOut) numColsOut = numOutVecs;
-    myMetricOut->setNumberOfNodesAndColumns(numNodes, numColsOut);
-    myMetricOut->setStructure(checkStruct);
-    vector<float> outCols[3];//let the scalar result case overallocate
-    outCols[0].resize(numNodes);
-    outCols[1].resize(numNodes);
-    outCols[2].resize(numNodes);
-    const float* xColSingle = singleVec->getValuePointerForColumn(0);
-    const float* yColSingle = singleVec->getValuePointerForColumn(1);
-    const float* zColSingle = singleVec->getValuePointerForColumn(2);
-    for (int v = 0; v < numOutVecs; ++v)
+    if (opScalarResult || magOut)
     {
-        const float* xColMulti = multiVec->getValuePointerForColumn(v * 3);
-        const float* yColMulti = multiVec->getValuePointerForColumn(v * 3 + 1);
-        const float* zColMulti = multiVec->getValuePointerForColumn(v * 3 + 2);
-        for (int i = 0; i < numNodes; ++i)
+        numColsOut = numOutVecs;
+        CiftiScalarsMap outRowMap;
+        outRowMap.setLength(numColsOut);
+        outXML.setMap(CiftiXML::ALONG_ROW, outRowMap);
+    }
+    myCiftiOut->setCiftiXML(outXML);
+    vector<float> outRow(numColsOut), multiRow(numOutVecs * 3);
+    int64_t numRows = xmlA.getDimensionLength(CiftiXML::ALONG_COLUMN);
+    for (int64_t row = 0; row < numRows; ++row)
+    {
+        multiVec->getRow(multiRow.data(), row);
+        Vector3D vecSingle;
+        singleVec->getRow(vecSingle, row);
+        for (int64_t v = 0; v < numOutVecs; ++v)
         {
-            Vector3D vecA(xColMulti[i], yColMulti[i], zColMulti[i]);
-            Vector3D vecB(xColSingle[i], yColSingle[i], zColSingle[i]);
+            Vector3D vecA, vecB;
             if (swapped)
             {
-                Vector3D tempVec = vecA;
-                vecA = vecB;
-                vecB = tempVec;
+                vecA = multiRow.data() + v * 3;
+                vecB = vecSingle;
+            } else {
+                vecA = vecSingle;
+                vecB = multiRow.data() + v * 3;
             }
             if (normA) vecA = vecA.normal();
             if (normB) vecB = vecB.normal();
             if (opScalarResult)
             {
-                outCols[0][i] = VectorOperation::doScalarOperation(vecA, vecB, myOper);
+                outRow[v] = VectorOperation::doScalarOperation(vecA, vecB, myOper);
             } else {
                 Vector3D tempVec = VectorOperation::doVectorOperation(vecA, vecB, myOper);
                 if (normOut) tempVec = tempVec.normal();
                 if (magOut)
                 {
-                    outCols[0][i] = tempVec.length();
+                    outRow[v] = tempVec.length();
                 } else {
-                    outCols[0][i] = tempVec[0];
-                    outCols[1][i] = tempVec[1];
-                    outCols[2][i] = tempVec[2];
+                    outRow[v * 3] = tempVec[0];
+                    outRow[v * 3 + 1] = tempVec[1];
+                    outRow[v * 3 + 2] = tempVec[2];
                 }
             }
         }
-        if (opScalarResult || magOut)
-        {
-            myMetricOut->setValuesForColumn(v, outCols[0].data());
-        } else {
-            myMetricOut->setValuesForColumn(v * 3, outCols[0].data());
-            myMetricOut->setValuesForColumn(v * 3 + 1, outCols[1].data());
-            myMetricOut->setValuesForColumn(v * 3 + 2, outCols[2].data());
-        }
+        myCiftiOut->setRow(outRow.data(), row);
     }
 }
 
-float AlgorithmMetricVectorOperation::getAlgorithmInternalWeight()
+float AlgorithmCiftiVectorOperation::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
 }
 
-float AlgorithmMetricVectorOperation::getSubAlgorithmWeight()
+float AlgorithmCiftiVectorOperation::getSubAlgorithmWeight()
 {
     //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;
