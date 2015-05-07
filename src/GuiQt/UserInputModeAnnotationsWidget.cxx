@@ -95,6 +95,14 @@ m_inputModeAnnotations(inputModeAnnotations)
     m_insertDeleteWidget         = new AnnotationInsertNewWidget(m_browserWindowIndex);
     
     /*
+     * Connect signals for setting a coordinate with the mouse.
+     */
+    QObject::connect(m_coordinateOneWidget, SIGNAL(signalSelectCoordinateWithMouse()),
+                     this, SLOT(selectCoordinateOneWithMouse()));
+    QObject::connect(m_coordinateTwoWidget, SIGNAL(signalSelectCoordinateWithMouse()),
+                     this, SLOT(selectCoordinateTwoWithMouse()));
+    
+    /*
      * Layout top row of widgets
      */
     QHBoxLayout* topRowLayout = new QHBoxLayout();
@@ -244,6 +252,25 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
 }
 
 /**
+ * Select coordinate one with the mouse.
+ */
+void
+UserInputModeAnnotationsWidget::selectCoordinateOneWithMouse()
+{
+    m_inputModeAnnotations->setMode(UserInputModeAnnotations::MODE_SET_COORDINATE_ONE);
+}
+
+/**
+ * Select coordinate two with the mouse.
+ */
+void
+UserInputModeAnnotationsWidget::selectCoordinateTwoWithMouse()
+{
+    m_inputModeAnnotations->setMode(UserInputModeAnnotations::MODE_SET_COORDINATE_TWO);
+}
+
+
+/**
  * Update the widget.
  */
 void
@@ -263,6 +290,10 @@ UserInputModeAnnotationsWidget::updateWidget()
 //            this->operationStackedWidget->setCurrentWidget(this->widgetEditOperation);
 //            this->setActionGroupByActionData(this->editOperationActionGroup,
 //                                             inputModeBorders->getEditOperation());
+            break;
+        case UserInputModeAnnotations::MODE_SET_COORDINATE_ONE:
+            break;
+        case UserInputModeAnnotations::MODE_SET_COORDINATE_TWO:
             break;
     }
 }

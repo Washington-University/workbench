@@ -23,6 +23,7 @@
 
 #include "AnnotationTypeEnum.h"
 #include "EventListenerInterface.h"
+#include "StructureEnum.h"
 #include "UserInputModeView.h"
 
 namespace caret {
@@ -37,10 +38,14 @@ namespace caret {
          * Annotation mode
          */
         enum Mode {
+            /** Mouse creates an annotation */
+            MODE_NEW,
             /** Mouse selects annotation */
             MODE_SELECT,
-            /** Mouse creates an annotation */
-            MODE_NEW
+            /** Set coordinate one in annotation*/
+            MODE_SET_COORDINATE_ONE,
+            /** Set coordinate two in annotation*/
+            MODE_SET_COORDINATE_TWO
         };
         
         UserInputModeAnnotations(const int32_t windowIndex);
@@ -56,6 +61,8 @@ namespace caret {
         virtual void update();
         
         Mode getMode() const;
+        
+        virtual void keyPressEvent(const KeyEvent& /*keyEvent*/);
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
@@ -76,6 +83,36 @@ namespace caret {
 
         virtual AString toString() const;
         
+        class CoordinateInformation {
+        public:
+            CoordinateInformation() {
+                reset();
+            };
+            
+            void reset() {
+                m_modelXYZValid    = false;
+                m_surfaceNodeValid = false;
+                m_tabIndex         = -1;
+                m_windowIndex      = -1;
+            }
+            
+            double m_modelXYZ[3];
+            bool   m_modelXYZValid;
+            
+            double m_tabXYZ[3];
+            int32_t m_tabIndex;
+            
+            double m_windowXYZ[3];
+            int32_t m_windowIndex;
+            
+            StructureEnum::Enum m_surfaceStructure;
+            int32_t m_surfaceNumberOfNodes;
+            int32_t m_surfaceNodeIndex;
+            bool m_surfaceNodeValid;
+        };
+        static void getCoordinatesFromMouseLocation(const MouseEvent& mouseEvent,
+                                                    CoordinateInformation& coordInfoOut);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -90,6 +127,8 @@ namespace caret {
         void processModeSelectMouseLeftClick(const MouseEvent& mouseEvent,
                                              const bool shiftKeyDownFlag);
         
+        void processModeSetCoordinate(const MouseEvent& mouseEvent);
+        
         void deselectAllAnnotations();
         
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
@@ -99,6 +138,8 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         AnnotationTypeEnum::Enum m_modeNewAnnotationType;
+
+        Annotation* m_annotationBeingEdited;
         
         // ADD_NEW_MEMBERS_HERE
 

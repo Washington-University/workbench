@@ -31,6 +31,7 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrainOpenGLWidget;
+    class KeyEvent;
     class MouseEvent;
     
     class UserInputModeAbstract : public CaretObject {
@@ -85,6 +86,14 @@ namespace caret {
          * @return The cursor for display in the OpenGL widget.
          */
         virtual CursorEnum::Enum getCursor() const = 0;
+        
+        /**
+         * Process a key press event
+         *
+         * @param keyEvent
+         *     Key event information.
+         */
+        virtual void keyPressEvent(const KeyEvent& /*keyEvent*/) { }
         
         /**
          * Process a mouse left click event.

@@ -23,6 +23,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
+#include "UserInputModeAnnotations.h"
 #include "WuQDialogModal.h"
 
 class QButtonGroup;
@@ -35,7 +36,6 @@ namespace caret {
     class CaretDataFileSelectionComboBox;
     class CaretDataFileSelectionModel;
     class MouseEvent;
-    class SelectionItemSurfaceNode;
     
     class AnnotationCreateDialog : public WuQDialogModal {
         
@@ -78,25 +78,14 @@ namespace caret {
         
         QButtonGroup* m_spaceButtonGroup;
         
-        SelectionItemSurfaceNode* m_surfaceNodeIdentification;
-
         QLineEdit* m_textLineEdit;
         
-        double m_windowXYZ[3];
-        
-        int32_t m_windowIndex;
-        
-        double m_tabXYZ[3];
-        
-        int32_t m_tabIndex;
-        
-        double m_modelXYZ[3];
-        
-        bool m_modelXYZValid;
+        UserInputModeAnnotations::CoordinateInformation m_coordInfo;
         
         static AnnotationFile* s_previousAnnotationFile;
         
         static const QString s_SPACE_PROPERTY_NAME;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

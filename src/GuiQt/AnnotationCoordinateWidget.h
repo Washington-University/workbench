@@ -53,8 +53,13 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
 
+    signals:
+        void signalSelectCoordinateWithMouse();
+        
     private slots:
         void coordinateValueChanged();
+        
+        void setCoordinateActionTriggered();
         
     private:
         AnnotationCoordinateWidget(const AnnotationCoordinateWidget&);

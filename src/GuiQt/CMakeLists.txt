@@ -263,6 +263,7 @@ ImageCaptureDialog.h
 ImageSelectionViewController.h
 InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
+KeyEvent.h
 LabelSelectionViewController.h
 MacApplication.h
 MacDockMenu.h
@@ -431,6 +432,7 @@ ImageCaptureDialog.cxx
 ImageSelectionViewController.cxx
 InformationDisplayDialog.cxx
 InformationDisplayPropertiesDialog.cxx
+KeyEvent.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx
 MacDockMenu.cxx

@@ -22,6 +22,7 @@
 #include <cmath>
 
 #include <QContextMenuEvent>
+#include <QKeyEvent>
 #include <QMouseEvent>
 #include <QToolTip>
 #include <QWheelEvent>
@@ -55,6 +56,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FtglFontTextRenderer.h"
 #include "GuiManager.h"
+#include "KeyEvent.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "Model.h"
@@ -964,6 +966,25 @@ BrainOpenGLWidget::checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
 }
 
 /**
+ * Receive mouse move events from Qt.
+ * @param me
+ *    The mouse event.
+ */
+void
+BrainOpenGLWidget::keyPressEvent(QKeyEvent* e)
+{
+    KeyEvent keyEvent(this,
+                      this->windowIndex,
+                      e->key());
+    
+    this->selectedUserInputProcessor->keyPressEvent(keyEvent);
+    
+    e->accept();
+}
+
+
+
+/**
  * Receive mouse press events from Qt.
  * @param me
  *    The mouse event.
@@ -1237,8 +1258,7 @@ BrainOpenGLWidget::performProjection(const int x,
     }
 }
 
-
-/** 
+/**
  * Receive mouse move events from Qt.
  * @param me
  *    The mouse event.

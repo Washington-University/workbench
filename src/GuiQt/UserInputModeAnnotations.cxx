@@ -23,27 +23,35 @@
 #include "UserInputModeAnnotations.h"
 #undef __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
 
-#include "Annotation.h"
 #include "AnnotationCreateDialog.h"
+#include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
+#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CursorEnum.h"
 #include "EventAnnotation.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "IdentificationManager.h"
+#include "KeyEvent.h"
 #include "MouseEvent.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
 #include "SelectionItemSurfaceNode.h"
+#include "SelectionItemVoxel.h"
+#include "Surface.h"
 #include "UserInputModeAnnotationsWidget.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
 
-    
 /**
  * \class caret::UserInputModeAnnotations 
  * \brief Input mode processor for Annotations.
@@ -55,7 +63,8 @@ using namespace caret;
  */
 UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
 : UserInputModeView(UserInputModeAbstract::ANNOTATIONS),
-m_browserWindowIndex(windowIndex)
+m_browserWindowIndex(windowIndex),
+m_annotationBeingEdited(NULL)
 {
     m_mode = MODE_SELECT;
     m_modeNewAnnotationType = AnnotationTypeEnum::ARROW;
@@ -102,12 +111,20 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             case EventAnnotation::MODE_DELETE_ANNOTATION:
                 break;
             case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
+                m_annotationBeingEdited = NULL;
                 break;
             case EventAnnotation::MODE_EDIT_ANNOTATION:
+            {
+                int32_t windowIndex = -1;
+                Annotation* annotation = NULL;
+                annotationEvent->getModeEditAnnotation(windowIndex,
+                                                       annotation);
+                if (windowIndex == m_browserWindowIndex) {
+                    m_annotationBeingEdited = annotation;
+                }
+            }
                 break;
         }
-        
-        annotationEvent->setEventProcessed();
     }
     //    if (event->getEventType() == EventTypeEnum::) {
     //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -199,9 +216,42 @@ UserInputModeAnnotations::getCursor() const
         case MODE_SELECT:
             cursor = CursorEnum::CURSOR_POINTING_HAND;
             break;
+        case MODE_SET_COORDINATE_ONE:
+            cursor = CursorEnum::CURSOR_CROSS;
+            break;
+        case MODE_SET_COORDINATE_TWO:
+            cursor = CursorEnum::CURSOR_CROSS;
+            break;
     }
     
     return cursor;
+}
+
+/**
+ * Process a key press event
+ *
+ * @param keyEvent
+ *     Key event information.
+ */
+void
+UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
+{
+    if (keyEvent.getKeyCode() == Qt::Key_Escape) {
+        switch (m_mode) {
+            case MODE_NEW:
+                break;
+            case MODE_SELECT:
+                break;
+            case MODE_SET_COORDINATE_ONE:
+                setMode(MODE_SELECT);
+                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+                break;
+            case MODE_SET_COORDINATE_TWO:
+                setMode(MODE_SELECT);
+                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+                break;
+        }
+    }
 }
 
 /**
@@ -268,6 +318,12 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             processModeSelectMouseLeftClick(mouseEvent,
                                             false);
             break;
+        case MODE_SET_COORDINATE_ONE:
+            processModeSetCoordinate(mouseEvent);
+            break;
+        case MODE_SET_COORDINATE_TWO:
+            processModeSetCoordinate(mouseEvent);
+            break;
     }
 }
 
@@ -292,8 +348,217 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
             processModeSelectMouseLeftClick(mouseEvent,
                                             true);
             break;
+        case MODE_SET_COORDINATE_ONE:
+            break;
+        case MODE_SET_COORDINATE_TWO:
+            break;
     }
 }
+
+/**
+ * Get the different types of coordinates at the given mouse location.
+ *
+ * @param mouseEvent
+ *     Information about mouse event including mouse location.
+ * @param coordInfoOut
+ *     Output containing coordinate information.
+ */
+void
+UserInputModeAnnotations::getCoordinatesFromMouseLocation(const MouseEvent& mouseEvent,
+                                                          CoordinateInformation& coordInfoOut)
+{
+    coordInfoOut.reset();
+    
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    const int mouseX = mouseEvent.getX();
+    const int mouseY = mouseEvent.getY();
+    
+    SelectionManager* idManager =
+    openGLWidget->performIdentification(mouseX,
+                                        mouseY,
+                                        true);
+    
+    SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
+    SelectionItemSurfaceNode*  surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
+    if (surfaceNodeIdentification->isValid()) {
+        surfaceNodeIdentification->getModelXYZ(coordInfoOut.m_modelXYZ);
+        coordInfoOut.m_modelXYZValid = true;
+        
+        const Surface* surface = surfaceNodeIdentification->getSurface();
+        CaretAssert(surface);
+        coordInfoOut.m_surfaceNumberOfNodes = surface->getNumberOfNodes();
+        coordInfoOut.m_surfaceStructure     = surface->getStructure();
+        coordInfoOut.m_surfaceNodeIndex     = surfaceNodeIdentification->getNodeNumber();
+        coordInfoOut.m_surfaceNodeValid     = true;
+    }
+    else if (voxelID->isValid()) {
+        voxelID->getModelXYZ(coordInfoOut.m_modelXYZ);
+        coordInfoOut.m_modelXYZValid = true;
+    }
+    
+    BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
+    
+    const int* tabViewport = vpContent->getModelViewport();
+    coordInfoOut.m_tabXYZ[0] = mouseEvent.getX() - tabViewport[0];
+    coordInfoOut.m_tabXYZ[1] = mouseEvent.getY() - tabViewport[1];
+    coordInfoOut.m_tabXYZ[2] = 0.0;
+    coordInfoOut.m_tabIndex  = vpContent->getBrowserTabContent()->getTabNumber();
+    
+    /*
+     * Normalize tab coordinates (width and height range [0, 1]
+     */
+    coordInfoOut.m_tabXYZ[0] /= tabViewport[2];
+    coordInfoOut.m_tabXYZ[1] /= tabViewport[3];
+    
+    const int* windowViewport = vpContent->getWindowViewport();
+    coordInfoOut.m_windowXYZ[0] = windowViewport[0] + mouseEvent.getX(); // tabViewport[0] + tabViewport[2] + mouseEvent.getX();
+    coordInfoOut.m_windowXYZ[1] = windowViewport[1] + mouseEvent.getY(); // tabViewport[1] + tabViewport[3] + mouseEvent.getY();
+    coordInfoOut.m_windowXYZ[2] = 0.0;
+    coordInfoOut.m_windowIndex = vpContent->getWindowIndex();
+    
+    /*
+     * Normalize window coordinates (width and height range [0, 1]
+     */
+    coordInfoOut.m_windowXYZ[0] /= windowViewport[2];
+    coordInfoOut.m_windowXYZ[1] /= windowViewport[3];
+}
+
+/**
+ * Process a mouse left click to set a coordinate.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
+{
+    if (m_annotationBeingEdited == NULL) {
+        return;
+    }
+
+    CoordinateInformation coordInfo;
+    UserInputModeAnnotations::getCoordinatesFromMouseLocation(mouseEvent,
+                                                              coordInfo);
+    
+    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
+    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
+
+    AnnotationCoordinate* coordinate = NULL;
+    switch (m_mode) {
+        case MODE_NEW:
+            break;
+        case MODE_SELECT:
+            break;
+        case MODE_SET_COORDINATE_ONE:
+            if (oneDimAnn != NULL) {
+                coordinate = oneDimAnn->getStartCoordinate();
+            }
+            else if (twoDimAnn != NULL) {
+                coordinate = twoDimAnn->getCoordinate();
+            }
+            break;
+        case MODE_SET_COORDINATE_TWO:
+            if (oneDimAnn != NULL) {
+                coordinate = oneDimAnn->getEndCoordinate();
+            }
+            break;
+    }
+    
+    if (coordinate != NULL) {
+        AString errorMessage;
+        
+        switch (m_annotationBeingEdited->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::MODEL:
+                if (coordInfo.m_modelXYZValid) {
+                    coordinate->setXYZ(coordInfo.m_modelXYZ);
+                }
+                else {
+                    errorMessage = ("Annotation is attached to a model coordinate and "
+                                    "the location selected is not a model coordinate.");
+                }
+                break;
+            case AnnotationCoordinateSpaceEnum::PIXELS:
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+            {
+                StructureEnum::Enum structure = StructureEnum::INVALID;
+                int32_t numberOfNodes = -1;
+                int32_t nodeIndex = -1;
+                coordinate->getSurfaceSpace(structure,
+                                            numberOfNodes,
+                                            nodeIndex);
+                
+                if (coordInfo.m_surfaceNodeValid) {
+                    if (coordInfo.m_surfaceStructure == structure) {
+                        coordinate->setSurfaceSpace(coordInfo.m_surfaceStructure,
+                                                    coordInfo.m_surfaceNumberOfNodes,
+                                                    coordInfo.m_surfaceNodeIndex);
+                    }
+                    else {
+                        errorMessage = ("Moving annotation from "
+                                        + StructureEnum::toGuiName(structure)
+                                        + " surface to "
+                                        + StructureEnum::toGuiName(coordInfo.m_surfaceStructure)
+                                        + " surface is not allowed.  Annotation must remain on same surface.");
+                    }
+                }
+                else {
+                    errorMessage = ("Annotation is attached to a surface and "
+                                    "the location selected is not on a surface.");
+                }
+            }
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                if (coordInfo.m_tabIndex >= 0) {
+                    if (coordInfo.m_tabIndex == m_annotationBeingEdited->getTabIndex()) {
+                        coordinate->setXYZ(coordInfo.m_tabXYZ);
+                    }
+                    else {
+                        errorMessage = ("Moving annotation from tab "
+                                        + AString::number(m_annotationBeingEdited->getTabIndex() + 1)
+                                        + " to "
+                                        + AString::number(coordInfo.m_tabIndex + 1)
+                                        + " is not allowed.  Annotation must remain on same tab.");
+                    }
+                }
+                else {
+                    errorMessage = ("Annotation is attached to a tab and the location selected is not "
+                                    "in a tab.");
+                }
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                if (coordInfo.m_windowIndex >= 0) {
+                    if (coordInfo.m_windowIndex == m_annotationBeingEdited->getWindowIndex()) {
+                        coordinate->setXYZ(coordInfo.m_windowXYZ);
+                    }
+                    else {
+                        errorMessage = ("Moving annotation from window "
+                                        + AString::number(m_annotationBeingEdited->getWindowIndex() + 1)
+                                        + " to "
+                                        + AString::number(coordInfo.m_windowIndex + 1)
+                                        + " is not allowed.  Annotation must remain on same window.");
+                    }
+                }
+                else {
+                    errorMessage = ("Annotation is attached to a window and the location selected is not "
+                                    "in a window.");
+                }
+                break;
+        }
+        
+        if ( ! errorMessage.isEmpty()) {
+            setMode(MODE_SELECT);
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+            
+            WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                   errorMessage);
+        }
+    }
+    
+    setMode(MODE_SELECT);
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+}
+
 
 /**
  * Process a mouse left click for new mode.

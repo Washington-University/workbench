@@ -97,6 +97,8 @@ namespace caret {
         
         virtual bool event(QEvent* event);
         
+        virtual void keyPressEvent(QKeyEvent* e);
+        
         virtual void mouseMoveEvent(QMouseEvent* e);
         
         virtual void mousePressEvent(QMouseEvent* e);

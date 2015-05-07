@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QSpinBox>
+#include <QToolButton>
 
 #include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
@@ -100,6 +101,14 @@ m_browserWindowIndex(browserWindowIndex)
                                          "       1.0 => Away from viewer\n");
     
 
+    QAction* setCoordinateAction = WuQtUtilities::createAction("+",
+                                                               "Set coordinate with mouse",
+                                                               this,
+                                                               this,
+                                                               SLOT(setCoordinateActionTriggered()));
+    QToolButton* setCoordinateToolButton = new QToolButton();
+    setCoordinateToolButton->setDefaultAction(setCoordinateAction);
+    
     m_surfaceWidget = new QWidget();
     QHBoxLayout* surfaceLayout = new QHBoxLayout(m_surfaceWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(surfaceLayout, 2, 0);
@@ -122,6 +131,7 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(m_surfaceWidget);
     layout->addWidget(m_coordinateWidget);
+    layout->addWidget(setCoordinateToolButton);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -288,3 +298,11 @@ AnnotationCoordinateWidget::coordinateValueChanged()
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
+/**
+ * Called when the set coordinate button is clicked.
+ */
+void
+AnnotationCoordinateWidget::setCoordinateActionTriggered()
+{
+    signalSelectCoordinateWithMouse();
+}

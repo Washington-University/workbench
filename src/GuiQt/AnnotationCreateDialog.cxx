@@ -58,6 +58,7 @@
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "Surface.h"
+#include "UserInputModeAnnotations.h"
 #include "WuQtUtilities.h"
 #include "WuQMessageBox.h"
 
@@ -86,61 +87,65 @@ AnnotationCreateDialog::AnnotationCreateDialog(const MouseEvent& mouseEvent,
                                                QWidget* parent)
 : WuQDialogModal("Create Annotation",
                  parent),
-m_annotationType(annotationType),
-m_windowIndex(-1),
-m_tabIndex(-1),
-m_modelXYZValid(false)
+m_annotationType(annotationType)
 {
     m_textLineEdit = NULL;
     
-    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    const int mouseX = mouseEvent.getX();
-    const int mouseY = mouseEvent.getY();
-    
-    SelectionManager* idManager =
-    openGLWidget->performIdentification(mouseX,
-                                        mouseY,
-                                        true);
-    
-    SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
-    m_surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
-    if (m_surfaceNodeIdentification->isValid()) {
-        m_surfaceNodeIdentification->getModelXYZ(m_modelXYZ);
-        m_modelXYZValid = true;
-    }
-    else if (voxelID->isValid()) {
-        voxelID->getModelXYZ(m_modelXYZ);
-        m_modelXYZValid = true;
-    }
-    
-    BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
-    
-    const int* tabViewport = vpContent->getModelViewport();
-    m_tabXYZ[0] = mouseEvent.getX() - tabViewport[0];
-    m_tabXYZ[1] = mouseEvent.getY() - tabViewport[1];
-    m_tabXYZ[2] = 0.0;
-    m_tabIndex  = vpContent->getBrowserTabContent()->getTabNumber();
-    
     /*
-     * Normalize tab coordinates (width and height range [0, 1]
+     * Get coordinates at the mouse location.
      */
-    m_tabXYZ[0] /= tabViewport[2];
-    m_tabXYZ[1] /= tabViewport[3];
+    UserInputModeAnnotations::getCoordinatesFromMouseLocation(mouseEvent,
+                                                              m_coordInfo);
     
-    const int* windowViewport = vpContent->getWindowViewport();
-    m_windowXYZ[0] = windowViewport[0] + mouseEvent.getX(); // tabViewport[0] + tabViewport[2] + mouseEvent.getX();
-    m_windowXYZ[1] = windowViewport[1] + mouseEvent.getY(); // tabViewport[1] + tabViewport[3] + mouseEvent.getY();
-    m_windowXYZ[2] = 0.0;
-    m_windowIndex = vpContent->getWindowIndex();
     
-    /*
-     * Normalize window coordinates (width and height range [0, 1]
-     */
-    m_windowXYZ[0] /= windowViewport[2];
-    m_windowXYZ[1] /= windowViewport[3];
+//    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+//    const int mouseX = mouseEvent.getX();
+//    const int mouseY = mouseEvent.getY();
+//    
+//    SelectionManager* idManager =
+//    openGLWidget->performIdentification(mouseX,
+//                                        mouseY,
+//                                        true);
+//    
+//    SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
+//    m_surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
+//    if (m_surfaceNodeIdentification->isValid()) {
+//        m_surfaceNodeIdentification->getModelXYZ(m_modelXYZ);
+//        m_modelXYZValid = true;
+//    }
+//    else if (voxelID->isValid()) {
+//        voxelID->getModelXYZ(m_modelXYZ);
+//        m_modelXYZValid = true;
+//    }
+//    
+//    BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
+//    
+//    const int* tabViewport = vpContent->getModelViewport();
+//    m_tabXYZ[0] = mouseEvent.getX() - tabViewport[0];
+//    m_tabXYZ[1] = mouseEvent.getY() - tabViewport[1];
+//    m_tabXYZ[2] = 0.0;
+//    m_tabIndex  = vpContent->getBrowserTabContent()->getTabNumber();
+//    
+//    /*
+//     * Normalize tab coordinates (width and height range [0, 1]
+//     */
+//    m_tabXYZ[0] /= tabViewport[2];
+//    m_tabXYZ[1] /= tabViewport[3];
+//    
+//    const int* windowViewport = vpContent->getWindowViewport();
+//    m_windowXYZ[0] = windowViewport[0] + mouseEvent.getX(); // tabViewport[0] + tabViewport[2] + mouseEvent.getX();
+//    m_windowXYZ[1] = windowViewport[1] + mouseEvent.getY(); // tabViewport[1] + tabViewport[3] + mouseEvent.getY();
+//    m_windowXYZ[2] = 0.0;
+//    m_windowIndex = vpContent->getWindowIndex();
+//    
+//    /*
+//     * Normalize window coordinates (width and height range [0, 1]
+//     */
+//    m_windowXYZ[0] /= windowViewport[2];
+//    m_windowXYZ[1] /= windowViewport[3];
     
-    std::cout << "Tab:    " << qPrintable(AString::fromNumbers(tabViewport, 4, ",")) << std::endl;
-    std::cout << "Window: " << qPrintable(AString::fromNumbers(windowViewport, 4, ",")) << std::endl;
+//    std::cout << "Tab:    " << qPrintable(AString::fromNumbers(tabViewport, 4, ",")) << std::endl;
+//    std::cout << "Window: " << qPrintable(AString::fromNumbers(windowViewport, 4, ",")) << std::endl;
     
     m_fileSelectionWidget = createFileSelectionWidget();
     QWidget* spaceSelectionWidget = createSpaceSelectionWidget();
@@ -259,7 +264,7 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
     gridLayout->addWidget(new QLabel("Z"),
                           titleRow, COLUMN_COORD_Z);
     
-    if (m_modelXYZValid
+    if (m_coordInfo.m_modelXYZValid
         && enableModelSpaceFlag) {
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::MODEL);
         m_spaceButtonGroup->addButton(rb,
@@ -268,41 +273,41 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
                               rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_modelXYZ[0])),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[0])),
                               rowNum, COLUMN_COORD_X);
-        gridLayout->addWidget(new QLabel(AString::number(m_modelXYZ[1])),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[1])),
                               rowNum, COLUMN_COORD_Y);
-        gridLayout->addWidget(new QLabel(AString::number(m_modelXYZ[2])),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[2])),
                               rowNum, COLUMN_COORD_Z);
         enableModelSpaceFlag = false;
     }
     
-    if ((m_tabIndex >= 0)
+    if ((m_coordInfo.m_tabIndex >= 0)
         && enableTabSpaceFlag) {
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::TAB);
         rb->setText(rb->text()
                     + " "
-                    + AString::number(m_tabIndex + 1));
+                    + AString::number(m_coordInfo.m_tabIndex + 1));
         m_spaceButtonGroup->addButton(rb,
                                       AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::TAB));
         
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
                               rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_tabXYZ[0])),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[0])),
                               rowNum, COLUMN_COORD_X);
-        gridLayout->addWidget(new QLabel(AString::number(m_tabXYZ[1])),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[1])),
                               rowNum, COLUMN_COORD_Y);
-        gridLayout->addWidget(new QLabel(AString::number(m_tabXYZ[2])),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[2])),
                               rowNum, COLUMN_COORD_Z);
     }
     
-    if ((m_windowIndex >= 0)
+    if ((m_coordInfo.m_windowIndex >= 0)
         && enableWindowSpaceFlag) {
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::WINDOW);
         rb->setText(rb->text()
                     + " "
-                    + AString::number(m_windowIndex + 1));
+                    + AString::number(m_coordInfo.m_windowIndex + 1));
         m_spaceButtonGroup->addButton(rb,
                                       AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::WINDOW));
 
@@ -310,15 +315,15 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
                               rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_windowXYZ[0])),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[0])),
                               rowNum, COLUMN_COORD_X);
-        gridLayout->addWidget(new QLabel(AString::number(m_windowXYZ[1])),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[1])),
                               rowNum, COLUMN_COORD_Y);
-        gridLayout->addWidget(new QLabel(AString::number(m_windowXYZ[2])),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[2])),
                               rowNum, COLUMN_COORD_Z);
     }
     
-    if (m_surfaceNodeIdentification->isValid()
+    if (m_coordInfo.m_surfaceNodeValid
         && enableSurfaceSpaceFlag) {
         
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::SURFACE);
@@ -329,10 +334,9 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
                               rowNum, COLUMN_RADIO_BUTTON);
-        const StructureEnum::Enum structure = m_surfaceNodeIdentification->getSurface()->getStructure();
-        const AString infoText(StructureEnum::toGuiName(structure)
+        const AString infoText(StructureEnum::toGuiName(m_coordInfo.m_surfaceStructure)
                                + " Vertex: "
-                               +AString::number(m_surfaceNodeIdentification->getNodeNumber()));
+                               +AString::number(m_coordInfo.m_surfaceNodeIndex));
         gridLayout->addWidget(new QLabel(infoText),
                               rowNum, COLUMN_COORD_X, 1, 4);
     }
@@ -492,8 +496,8 @@ AnnotationCreateDialog::okButtonClicked()
 
     switch (space) {
         case AnnotationCoordinateSpaceEnum::MODEL:
-            if (m_modelXYZValid) {
-                firstCoordinate->setXYZ(m_modelXYZ);
+            if (m_coordInfo.m_modelXYZValid) {
+                firstCoordinate->setXYZ(m_coordInfo.m_modelXYZ);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
             }
             break;
@@ -501,25 +505,24 @@ AnnotationCreateDialog::okButtonClicked()
             CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            if (m_surfaceNodeIdentification->isValid()) {
-                const Surface* surface = m_surfaceNodeIdentification->getSurface();
-                firstCoordinate->setSurfaceSpace(surface->getStructure(),
-                                                 surface->getNumberOfNodes(),
-                                                 m_surfaceNodeIdentification->getNodeNumber());
+            if (m_coordInfo.m_surfaceNodeValid) {
+                firstCoordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
+                                                 m_coordInfo.m_surfaceNumberOfNodes,
+                                                 m_coordInfo.m_surfaceNodeIndex);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            if (m_tabIndex >= 0) {
-                firstCoordinate->setXYZ(m_tabXYZ);
+            if (m_coordInfo.m_tabIndex >= 0) {
+                firstCoordinate->setXYZ(m_coordInfo.m_tabXYZ);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-                annotation->setTabIndex(m_tabIndex);
+                annotation->setTabIndex(m_coordInfo.m_tabIndex);
                 
                 if (secondCoordinate != NULL) {
                     double xyz[3] = {
-                        m_tabXYZ[0],
-                        m_tabXYZ[1],
-                        m_tabXYZ[2]
+                        m_coordInfo.m_tabXYZ[0],
+                        m_coordInfo.m_tabXYZ[1],
+                        m_coordInfo.m_tabXYZ[2]
                     };
                     if (xyz[1] > 0.5) {
                         xyz[1] -= 0.25;
@@ -532,16 +535,16 @@ AnnotationCreateDialog::okButtonClicked()
             }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            if (m_windowIndex >= 0) {
-                firstCoordinate->setXYZ(m_windowXYZ);
+            if (m_coordInfo.m_windowIndex >= 0) {
+                firstCoordinate->setXYZ(m_coordInfo.m_windowXYZ);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-                annotation->setWindowIndex(m_windowIndex);
+                annotation->setWindowIndex(m_coordInfo.m_windowIndex);
                 
                 if (secondCoordinate != NULL) {
                     double xyz[3] = {
-                        m_tabXYZ[0],
-                        m_tabXYZ[1],
-                        m_tabXYZ[2]
+                        m_coordInfo.m_tabXYZ[0],
+                        m_coordInfo.m_tabXYZ[1],
+                        m_coordInfo.m_tabXYZ[2]
                     };
                     if (xyz[1] > 0.5) {
                         xyz[1] -= 0.25;
@@ -564,9 +567,9 @@ AnnotationCreateDialog::okButtonClicked()
     annotationFile->addAnnotation(annotationPointer);
 
     annotationPointer->setSelected(true);
-    EventManager::get()->sendEvent(EventAnnotation().setModeEditAnnotation(m_windowIndex,
+    EventManager::get()->sendEvent(EventAnnotation().setModeEditAnnotation(m_coordInfo.m_windowIndex,
                                                                            annotationPointer).getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_windowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_coordInfo.m_windowIndex).getPointer());
     
     WuQDialog::okButtonClicked();
 }
