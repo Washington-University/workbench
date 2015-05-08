@@ -21,6 +21,7 @@
 #include "CiftiSeriesMap.h"
 
 #include "CaretException.h"
+#include "CaretLogger.h"
 
 #include <cmath>
 
@@ -200,7 +201,7 @@ void CiftiSeriesMap::writeXML1(QXmlStreamWriter& xml) const
     CaretAssert(m_length != -1);
     if (m_unit != SECOND)
     {
-        throw CaretException("cifti-1 does not support writing series with non-time units");
+        CaretLogWarning("changing series units to seconds for CIFTI-1 XML");
     }
     xml.writeAttribute("IndicesMapToDataType", "CIFTI_INDEX_TYPE_TIME_POINTS");
     float mult = 1.0f;
