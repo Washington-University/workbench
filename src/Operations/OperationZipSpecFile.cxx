@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include "CaretLogger.h"
 #include "DataFile.h"
 #include "FileInformation.h"
 #include "OperationZipSpecFile.h"
@@ -52,12 +53,12 @@ OperationParameters* OperationZipSpecFile::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addStringParameter(1, "spec-file", "the specification file to add to zip file");
     
-    ret->addStringParameter(2, "extract-dir", "the directory created when the zip file is unzipped");
+    ret->addStringParameter(2, "extract-folder", "the name of the folder created when the zip file is unzipped");
     
     ret->addStringParameter(3, "zip-file", "out - the zip file that will be created");
     
-    OptionalParameter* baseOpt = ret->createOptionalParameter(4, "-base-dir", "specify a directory that all data files are somewhere within");
-    baseOpt->addStringParameter(1, "directory", "the directory that will become the root of the zipfile's directory structure");
+    OptionalParameter* baseOpt = ret->createOptionalParameter(4, "-base-dir", "specify a directory that all data files are somewhere within, this will become the root of the zipfile's directory structure");
+    baseOpt->addStringParameter(1, "directory", "the directory");
     
     ret->setHelpText(AString("If zip-file already exists, it will be overwritten.  ") +
         "If -base-dir is not specified, the directory containing the spec file is used for the base directory.  " +
@@ -90,16 +91,18 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         throw OperationException("extract-dir must contain characters");
     }
     
-    /*
-     * Verify that ZIP file DOES NOT exist
-     */
-    /*FileInformation zipFileInfo(zipFileName);
-    if (zipFileInfo.exists()) {
-        throw OperationException("ZIP file \""
-                                 + zipFileName
-                                 + "\" exists and this command will not overwrite the ZIP file.");
-    }//*/ //TSC: this is annoying, and all other commands overwrite existing output files without warning
-    
+    if (FileInformation(outputSubDirectory).isAbsolute())
+    {
+        CaretLogWarning("You have specified that the zip file should extract to an absolute path, this is generally frowned on.  "
+                        "The <extract-folder> parameter should generally be a string without '/' or '\\' in it.");
+    } else {
+        if (outputSubDirectory.indexOfAnyChar("/\\"))//assume backslashes work too
+        {
+            CaretLogWarning("You have specified that the zipfile should create multiple levels of otherwise empty directories "
+                            "before the file paths starting from the base directory, this is probably going to be inconvenient.  "
+                            "The <extract-folder> parameter should generally be a string without '/' or '\\' in it.");
+        }
+    }
     /*
      * Read the spec file and get the names of its data files.
      * Look for any files that are missing (name in spec file
