@@ -63,7 +63,7 @@ m_browserWindowIndex(browserWindowIndex)
                                                                                        this, SLOT(rotationValueChanged(double)));
     m_rotationSpinBox->setWrapping(true);
     WuQtUtilities::setWordWrappedToolTip(m_rotationSpinBox,
-                                         "Rotation, clockwise in degrees, of annotation");
+                                         "Rotation, clockwise in degrees");
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);

@@ -44,6 +44,7 @@ namespace caret {
         
         void setSelectedColor(const CaretColorEnum::Enum color);
         
+        void setCustomIconColor(const float rgba[4]);
 
         // ADD_NEW_METHODS_HERE
 
@@ -59,6 +60,8 @@ namespace caret {
         CaretColorEnumMenu& operator=(const CaretColorEnumMenu&);
         
         void initializeCaretColorEnumMenu(const int64_t caretColorOptions);
+        
+        QAction* m_customColorAction;
         
         // ADD_NEW_MEMBERS_HERE
 

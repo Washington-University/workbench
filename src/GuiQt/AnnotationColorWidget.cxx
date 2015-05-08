@@ -24,6 +24,7 @@
 #undef __ANNOTATION_COLOR_WIDGET_DECLARE__
 
 #include <QAction>
+#include <QColorDialog>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -104,7 +105,7 @@ m_browserWindowIndex(browserWindowIndex)
      */
     m_foregroundColorAction = new QAction("F",
                                           this);
-    m_foregroundColorAction->setToolTip("Adjust the line color");
+    m_foregroundColorAction->setToolTip("Adjust the line/text color");
     m_foregroundColorAction->setMenu(m_foregroundColorMenu);
     m_foregroundToolButton = new QToolButton();
     m_foregroundToolButton->setDefaultAction(m_foregroundColorAction);
@@ -192,8 +193,10 @@ AnnotationColorWidget::updateContent(Annotation* annotation)
     m_annotation = annotation;
     
     if (m_annotation != NULL) {
+        setEnabled(true);
     }
     else {
+        setEnabled(false);
     }
     
     updateBackgroundColorButton();
@@ -212,6 +215,24 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
 {
     if (m_annotation != NULL) {
         m_annotation->setBackgroundColor(caretColor);
+        
+        if (caretColor == CaretColorEnum::CUSTOM) {
+            float rgba[4];
+            m_annotation->getCustomBackgroundColor(rgba);
+            
+            QColor color;
+            color.setRgbF(rgba[0], rgba[1], rgba[2]);
+            
+            QColor newColor = QColorDialog::getColor(color,
+                                                     m_backgroundToolButton,
+                                                     "Background Color");
+            if (newColor.isValid()) {
+                rgba[0] = newColor.redF();
+                rgba[1] = newColor.greenF();
+                rgba[2] = newColor.blueF();
+                m_annotation->setCustomBackgroundColor(rgba);
+            }
+        }
     }
 
     updateBackgroundColorButton();
@@ -232,6 +253,10 @@ AnnotationColorWidget::updateBackgroundColorButton()
     if (m_annotation != NULL) {
         colorEnum = m_annotation->getBackgroundColor();
         m_annotation->getBackgroundColorRGBA(rgba);
+        
+        float customRGBA[4];
+        m_annotation->getCustomBackgroundColor(customRGBA);
+        m_backgroundColorMenu->setCustomIconColor(customRGBA);
     }
     
 //    QPixmap pm(24, 24);
@@ -261,6 +286,10 @@ AnnotationColorWidget::updateForegroundColorButton()
     if (m_annotation != NULL) {
         colorEnum = m_annotation->getForegroundColor();
         m_annotation->getForegroundColorRGBA(rgba);
+
+        float customRGBA[4];
+        m_annotation->getCustomForegroundColor(customRGBA);
+        m_foregroundColorMenu->setCustomIconColor(customRGBA);
     }
     
     
@@ -323,6 +352,24 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
 {
     if (m_annotation != NULL) {
         m_annotation->setForegroundColor(caretColor);
+        
+        if (caretColor == CaretColorEnum::CUSTOM) {
+            float rgba[4];
+            m_annotation->getCustomForegroundColor(rgba);
+            
+            QColor color;
+            color.setRgbF(rgba[0], rgba[1], rgba[2]);
+            
+            QColor newColor = QColorDialog::getColor(color,
+                                                     m_foregroundToolButton,
+                                                     "Foreground Color");
+            if (newColor.isValid()) {
+                rgba[0] = newColor.redF();
+                rgba[1] = newColor.greenF();
+                rgba[2] = newColor.blueF();
+                m_annotation->setCustomForegroundColor(rgba);
+            }
+        }
     }
     updateForegroundColorButton();
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());

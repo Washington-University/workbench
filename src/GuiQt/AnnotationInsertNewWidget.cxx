@@ -233,7 +233,7 @@ AnnotationInsertNewWidget::createShapeToolButton()
     
     m_shapeToolButtonAction = WuQtUtilities::createAction("Shape",
                                                           "Create the selected shape annotation\n"
-                                                          "Click right side fo button to change shape.",
+                                                          "Click right side of button to change shape.",
                                                           this,
                                                           this,
                                                           SLOT(shapeActionTriggered()));

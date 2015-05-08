@@ -42,43 +42,6 @@ CaretColorEnumMenu::CaretColorEnumMenu()
 : QMenu()
 {
     initializeCaretColorEnumMenu(CaretColorEnum::OPTION_NO_OPTIONS);
-    
-//    std::vector<CaretColorEnum::Enum> colors;
-//    CaretColorEnum::getColorEnums(colors);
-//    
-//    const int32_t numColors = static_cast<int32_t>(colors.size());
-//    for (int32_t i = 0; i < numColors; i++) {
-//        const CaretColorEnum::Enum colorEnum = colors[i];
-//        const int colorIntegerCode = CaretColorEnum::toIntegerCode(colorEnum);
-//        const AString name = CaretColorEnum::toGuiName(colorEnum);
-//        
-//        /*
-//         * Create an icon with the color.
-//         */
-//        const float* rgb = CaretColorEnum::toRGB(colorEnum);
-//        QPixmap pm(10, 10);
-//        pm.fill(QColor::fromRgbF(rgb[0],
-//                                 rgb[1],
-//                                 rgb[2]));
-//        QIcon icon(pm);
-//        
-//        /*
-//         * Add color action to menu and make it checkable
-//         */
-//        QAction* action = addAction(name);
-//        action->setData(colorIntegerCode);
-//        action->setIconText(name);
-//        action->setIcon(icon);
-//        action->setCheckable(true);
-//        
-//    }
-//    
-//    QObject::connect(this, SIGNAL(triggered(QAction*)),
-//                     this, SLOT(colorActionSelected(QAction*)));
-//    
-////    setSelectedColor(CaretColorEnum::BLACK);
-////    QObject::connect(this->colorComboBox, SIGNAL(currentIndexChanged(int)),
-////                     this, SLOT(colorComboBoxIndexChanged(int)));
 }
 
 /**
@@ -109,6 +72,8 @@ CaretColorEnumMenu::~CaretColorEnumMenu()
 void
 CaretColorEnumMenu::initializeCaretColorEnumMenu(const int64_t caretColorOptions)
 {
+    m_customColorAction = NULL;
+    
     std::vector<CaretColorEnum::Enum> colors;
     CaretColorEnum::getColorAndOptionalEnums(colors,
                                              caretColorOptions);
@@ -137,13 +102,6 @@ CaretColorEnumMenu::initializeCaretColorEnumMenu(const int64_t caretColorOptions
             rgba[3] = 1.0;
         }
         
-//        const float* rgb = CaretColorEnum::toRGB(colorEnum);
-//        QPixmap pm(10, 10);
-//        pm.fill(QColor::fromRgbF(rgb[0],
-//                                 rgb[1],
-//                                 rgb[2]));
-//        QIcon icon(pm);
-        
         /*
          * Add color action to menu and make it checkable
          */
@@ -155,6 +113,9 @@ CaretColorEnumMenu::initializeCaretColorEnumMenu(const int64_t caretColorOptions
         
         action->setCheckable(true);
         
+        if (colorEnum == CaretColorEnum::CUSTOM) {
+            m_customColorAction = action;
+        }
     }
     
     QObject::connect(this, SIGNAL(triggered(QAction*)),
@@ -223,4 +184,24 @@ CaretColorEnumMenu::colorActionSelected(QAction* action)
                        + AString::number(integerCode));
     }
 }
+
+/**
+ * Set the color for the custom color's icon.
+ *
+ * @param rgb
+ *     Red/Green/Blue/Alpha color components [0.0, 1.0]
+ */
+void
+CaretColorEnumMenu::setCustomIconColor(const float rgba[4])
+{
+    if (m_customColorAction != NULL) {
+        QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(this,
+                                                               10, 10,
+                                                               CaretColorEnum::CUSTOM,
+                                                               rgba,
+                                                               false);
+        m_customColorAction->setIcon(QIcon(pm));
+    }
+}
+
 
