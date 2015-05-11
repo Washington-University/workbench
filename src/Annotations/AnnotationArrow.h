@@ -21,7 +21,6 @@
  */
 /*LICENSE_END*/
 
-
 #include "AnnotationOneDimensionalShape.h"
 
 

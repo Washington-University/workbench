@@ -20,6 +20,9 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Files
 AffineFile.h
 AnnotationFile.h
+AnnotationFileXmlFormatBase.h
+AnnotationFileXmlReader.h
+AnnotationFileXmlWriter.h
 Border.h
 BorderException.h
 BorderFile.h
@@ -135,6 +138,9 @@ WarpfieldFile.h
 
 AffineFile.cxx
 AnnotationFile.cxx
+AnnotationFileXmlFormatBase.cxx
+AnnotationFileXmlReader.cxx
+AnnotationFileXmlWriter.cxx
 Border.cxx
 BorderException.cxx
 BorderFile.cxx

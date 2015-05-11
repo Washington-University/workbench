@@ -88,6 +88,12 @@ namespace caret {
         
         void setCustomBackgroundColor(const uint8_t rgba[4]);
         
+        float getForegroundLineWidth() const;
+        
+        void setForegroundLineWidth(const float lineWidth);
+        
+        virtual bool isForegroundLineWidthSupported() const;
+        
         bool isSelected() const;
         
         void setSelected(const bool selectedStatus) const;
@@ -137,6 +143,8 @@ namespace caret {
         
         float m_customColorBackground[4];
         
+        float m_foregroundLineWidth;
+
         mutable bool m_selectedFlag;
         
         // ADD_NEW_MEMBERS_HERE

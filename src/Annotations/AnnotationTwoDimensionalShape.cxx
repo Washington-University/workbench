@@ -96,7 +96,6 @@ AnnotationTwoDimensionalShape::copyHelperAnnotationTwoDimensionalShape(const Ann
     *m_coordinate   = *obj.m_coordinate;
     m_width         = obj.m_width;
     m_height        = obj.m_height;
-    m_outlineWidth  = obj.m_outlineWidth;
     m_rotationAngle = obj.m_rotationAngle;
 }
 
@@ -109,7 +108,6 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
     m_coordinate.grabNew(new AnnotationCoordinate());
     m_width  = 0.25;
     m_height = 0.25;
-    m_outlineWidth  = 1.0;
     m_rotationAngle = 0.0;
     
     
@@ -121,8 +119,6 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
                           &m_width);
     m_sceneAssistant->add("m_height",
                           &m_height);
-    m_sceneAssistant->add("m_outlineWidth",
-                          &m_outlineWidth);
     m_sceneAssistant->add("m_rotationAngle",
                           &m_rotationAngle);
 }
@@ -206,31 +202,6 @@ AnnotationTwoDimensionalShape::setWidth(const float width)
         setModified();
     }
 }
-
-/**
- * @return The outline width.
- */
-float
-AnnotationTwoDimensionalShape::getOutlineWidth() const
-{
-    return m_outlineWidth;
-}
-
-/**
- * Set the outline width.
- *
- * @param outlineWidth
- *    New value for outline width.
- */
-void
-AnnotationTwoDimensionalShape::setOutlineWidth(const float outlineWidth)
-{
-    if (outlineWidth != m_outlineWidth) {
-        m_outlineWidth = outlineWidth;
-        setModified();
-    }
-}
-
 
 /**
  * @return The rotation angle, in degrees, clockwise, from vertical at the top (12 o'clock).

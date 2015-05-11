@@ -356,6 +356,19 @@ AnnotationText::isUnderlineEnabled() const
 }
 
 /**
+ * @return Is foreground line width supported?
+ * Most annotations support a foreground line width.
+ * Annotations that do not support a foreground line width
+ * must override this method and return a value of false.
+ */
+bool
+AnnotationText::isForegroundLineWidthSupported() const
+{
+    return false;
+}
+
+
+/**
  * Set underline enabled.
  *
  * @param enabled

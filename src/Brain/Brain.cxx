@@ -5249,12 +5249,12 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
 
     
     
-    CaretLogSevere("Adding an annotation file for testing to the Brain."
-                   "NOTE: THIS WILL CAUSE A PRINTOUT OF UNDELETED OBJECTS since this file is "
-                   "added inside of resetBrain() which does all file deletion.");
-    AnnotationFile* testingAnnFile = new AnnotationFile();
-    testingAnnFile->setFileName("Testing." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION));
-    addDataFile(testingAnnFile);
+//    CaretLogSevere("Adding an annotation file for testing to the Brain."
+//                   "NOTE: THIS WILL CAUSE A PRINTOUT OF UNDELETED OBJECTS since this file is "
+//                   "added inside of resetBrain() which does all file deletion.");
+//    AnnotationFile* testingAnnFile = new AnnotationFile();
+//    testingAnnFile->setFileName("Testing." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION));
+//    addDataFile(testingAnnFile);
     
     
     

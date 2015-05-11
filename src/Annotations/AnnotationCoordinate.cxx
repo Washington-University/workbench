@@ -43,8 +43,7 @@ using namespace caret;
 AnnotationCoordinate::AnnotationCoordinate()
 : CaretObjectTracksModification()
 {
-    
-    m_sceneAssistant = new SceneClassAssistant();
+    initializeAnnotationCoordinateMembers();
     
 }
 
@@ -64,6 +63,7 @@ AnnotationCoordinate::~AnnotationCoordinate()
 AnnotationCoordinate::AnnotationCoordinate(const AnnotationCoordinate& obj)
 : CaretObjectTracksModification(obj)
 {
+    initializeAnnotationCoordinateMembers();
     this->copyHelperAnnotationCoordinate(obj);
 }
 
@@ -115,7 +115,7 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     m_surfaceSpaceNumberOfNodes = -1;
     m_surfaceSpaceNodeIndex     = -1;
     
-    
+    m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->addArray("m_xyz",
                                m_xyz, 3, 0.0);
 

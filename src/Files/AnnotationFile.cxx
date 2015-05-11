@@ -26,11 +26,14 @@
 #include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationFileXmlReader.h"
+#include "AnnotationFileXmlWriter.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
 #include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
+#include "DataFileException.h"
 #include "EventAnnotation.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
@@ -147,7 +150,7 @@ AnnotationFile::AnnotationFile()
         at->setWidth(0.2);
         at->setHeight(0.10);
         at->setRotationAngle(-20.0);
-        at->setOutlineWidth(3.0);
+        at->setForegroundLineWidth(3.0);
         addAnnotation(at);
     }
     {
@@ -174,7 +177,7 @@ AnnotationFile::AnnotationFile()
         //endCoord->setXYZ(0.7, 0.4, 0);
         at->setForegroundColor(CaretColorEnum::GREEN);
         at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setLineWidth(4.0);
+        at->setForegroundLineWidth(4.0);
         addAnnotation(at);
     }
     
@@ -188,7 +191,7 @@ AnnotationFile::AnnotationFile()
         at->setWidth(0.05);
         at->setHeight(0.1);
         at->setRotationAngle(30.0);
-        at->setOutlineWidth(3.0);
+        at->setForegroundLineWidth(3.0);
         addAnnotation(at);
     }
     
@@ -436,6 +439,46 @@ AnnotationFile::getAllAnnotations() const
 }
 
 /**
+ * @return Number of annotations in the file.
+ */
+int32_t
+AnnotationFile::getNumberOfAnnotations() const
+{
+    return m_annotations.size();
+}
+
+/**
+ * Get the annotation at the given index.
+ * 
+ * @param index
+ *     Index of the annotation.
+ * @return
+ *     Annotation at the given index.
+ */
+Annotation*
+AnnotationFile::getAnnotation(const int32_t index)
+{
+    CaretAssertVectorIndex(m_annotations, index);
+    return m_annotations[index];
+}
+
+/**
+ * Get the annotation at the given index (const method).
+ *
+ * @param index
+ *     Index of the annotation.
+ * @return
+ *     Annotation at the given index.
+ */
+const Annotation*
+AnnotationFile::getAnnotation(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_annotations, index);
+    return m_annotations[index];
+}
+
+
+/**
  * Read the data file.
  *
  * @param filename
@@ -446,7 +489,17 @@ AnnotationFile::getAllAnnotations() const
 void
 AnnotationFile::readFile(const AString& filename)
 {
+    clear();
     
+    checkFileReadability(filename);
+    
+    AnnotationFileXmlReader reader;
+    reader.readFile(filename,
+                    this);
+    
+    setFileName(filename);
+    
+    clearModified();
 }
 
 /**
@@ -460,7 +513,14 @@ AnnotationFile::readFile(const AString& filename)
 void
 AnnotationFile::writeFile(const AString& filename)
 {
+    checkFileWritability(filename);
     
+    setFileName(filename);
+
+    AnnotationFileXmlWriter writer;
+    writer.writeFile(this);
+    
+    clearModified();
 }
 
 /**

@@ -80,6 +80,8 @@ namespace caret {
         
         void setUnderlineEnabled(const bool enabled);
         
+        virtual bool isForegroundLineWidthSupported() const;
+        
         // ADD_NEW_METHODS_HERE
 
           

@@ -102,6 +102,7 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_coordinateSpace     = obj.m_coordinateSpace;
     m_tabIndex            = obj.m_tabIndex;
     m_windowIndex         = obj.m_windowIndex;
+    m_foregroundLineWidth = obj.m_foregroundLineWidth;
     m_colorForeground     = obj.m_colorForeground;
     m_colorBackground     = obj.m_colorBackground;
     m_customColorBackground[0]  = obj.m_customColorBackground[0];
@@ -132,6 +133,8 @@ Annotation::initializeAnnotationMembers()
     m_tabIndex    = -1;
     m_windowIndex = -1;
     
+    m_foregroundLineWidth = 1.0;
+    
     m_colorBackground = CaretColorEnum::NONE;
     m_colorForeground = CaretColorEnum::WHITE;
     
@@ -159,6 +162,8 @@ Annotation::initializeAnnotationMembers()
                           &m_tabIndex);
     m_sceneAssistant->add("m_windowIndex",
                           &m_windowIndex);
+    m_sceneAssistant->add("m_foregroundLineWidth",
+                          &m_foregroundLineWidth);
     m_sceneAssistant->addArray("m_customColorBackground",
                                m_customColorBackground, 4, 0.0);
     m_sceneAssistant->addArray("m_customColorForeground",
@@ -256,6 +261,43 @@ Annotation::toString() const
                       + AnnotationTypeEnum::toName(m_type));
     return msg;
 }
+
+/**
+ * @return The foreground line width.
+ */
+float
+Annotation::getForegroundLineWidth() const
+{
+    return m_foregroundLineWidth;
+}
+
+/**
+ * Set the foreground line width.
+ *
+ * @param lineWidth
+ *    New value for foreground line width.
+ */
+void
+Annotation::setForegroundLineWidth(const float lineWidth)
+{
+    if (lineWidth != m_foregroundLineWidth) {
+        m_foregroundLineWidth = lineWidth;
+        setModified();
+    }
+}
+
+/**
+ * @return Is foreground line width supported?
+ * Most annotations support a foreground line width.
+ * Annotations that do not support a foreground line width
+ * must override this method and return a value of false.
+ */
+bool
+Annotation::isForegroundLineWidthSupported() const
+{
+    return true;
+}
+
 
 /**
  * @return The foreground color.

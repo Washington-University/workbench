@@ -57,6 +57,12 @@ namespace caret {
 
         const std::vector<Annotation*>& getAllAnnotations() const;
         
+        int32_t getNumberOfAnnotations() const;
+        
+        Annotation* getAnnotation(const int32_t index);
+        
+        const Annotation* getAnnotation(const int32_t index) const;
+        
         void removeAnnotation(const Annotation* annotation);
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);

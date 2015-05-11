@@ -94,7 +94,6 @@ AnnotationOneDimensionalShape::copyHelperAnnotationOneDimensionalShape(const Ann
 {
     *m_startCoordinate = *obj.m_startCoordinate;
     *m_endCoordinate   = *obj.m_endCoordinate;
-    m_lineWidth        = m_lineWidth;
 }
 
 /**
@@ -106,8 +105,6 @@ AnnotationOneDimensionalShape::initializeMembersAnnotationOneDimensionalShape()
     m_startCoordinate.grabNew(new AnnotationCoordinate());
     m_endCoordinate.grabNew(new AnnotationCoordinate());
     
-    m_lineWidth = 1.0;
-    
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_startCoordinate",
                           "AnnotationCoordinate",
@@ -115,8 +112,6 @@ AnnotationOneDimensionalShape::initializeMembersAnnotationOneDimensionalShape()
     m_sceneAssistant->add("m_endCoordinate",
                           "AnnotationCoordinate",
                           m_endCoordinate);
-    m_sceneAssistant->add("m_lineWidth",
-                          &m_lineWidth);
 }
 
 /**
@@ -154,31 +149,6 @@ AnnotationOneDimensionalShape::getEndCoordinate() const
 {
     return m_endCoordinate;
 }
-
-/**
- * @return The line width.
- */
-float
-AnnotationOneDimensionalShape::getLineWidth() const
-{
-    return m_lineWidth;
-}
-
-/**
- * Set the line width.
- *
- * @param lineWidth
- *    New value for line width.
- */
-void
-AnnotationOneDimensionalShape::setLineWidth(const float lineWidth)
-{
-    if (lineWidth != m_lineWidth) {
-        m_lineWidth = lineWidth;
-        setModified();
-    }
-}
-
 
 /**
  * Is the object modified?

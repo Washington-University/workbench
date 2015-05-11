@@ -57,6 +57,18 @@ AnnotationImage::~AnnotationImage()
 }
 
 /**
+ * @return Is foreground line width supported?
+ * Most annotations support a foreground line width.
+ * Annotations that do not support a foreground line width
+ * must override this method and return a value of false.
+ */
+bool
+AnnotationImage::isForegroundLineWidthSupported() const
+{
+    return false;
+}
+
+/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes

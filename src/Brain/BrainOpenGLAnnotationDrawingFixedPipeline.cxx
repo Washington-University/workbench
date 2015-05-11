@@ -677,7 +677,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
                                          arrowEndXYZ)) {
         return;
     }
-    const double lineWidth = arrow->getLineWidth();
+    const double lineWidth = arrow->getForegroundLineWidth();
     
     selectionCenterXYZOut[0] = (arrowStartXYZ[0] + arrowEndXYZ[0]) / 2.0;
     selectionCenterXYZOut[1] = (arrowStartXYZ[1] + arrowEndXYZ[1]) / 2.0;
@@ -868,7 +868,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
         return;
     }
     
-    const float outlineWidth = box->getOutlineWidth();
+    const float outlineWidth = box->getForegroundLineWidth();
     
     const bool depthTestFlag = isDrawnWithDepthTesting(box);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
@@ -989,7 +989,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
     const double majorAxis     = (oval->getWidth()  * m_modelSpaceViewport[2]) / 2.0;
     const double minorAxis     = (oval->getHeight() * m_modelSpaceViewport[3]) / 2.0;
     const double rotationAngle = oval->getRotationAngle();
-    const double outlineWidth  = oval->getOutlineWidth();
+    const double outlineWidth  = oval->getForegroundLineWidth();
     
     glPushMatrix();
     glTranslatef(windowXYZ[0], windowXYZ[1], windowXYZ[2]);
@@ -1220,7 +1220,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
                                          lineEndXYZ)) {
         return;
     }
-    const double lineWidth = line->getLineWidth();
+    const double lineWidth = line->getForegroundLineWidth();
     
     bool drawBackgroundFlag = false;
     if (selectionFlag) {

@@ -386,21 +386,7 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
 {
     bool updateGraphicsFlag = false;
     if (m_annotation != NULL) {
-        AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
-        if (oneDimAnn != NULL) {
-            oneDimAnn->setLineWidth(value);
-            updateGraphicsFlag = true;
-        }
-        else {
-            AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
-            if (twoDimAnn != NULL) {
-                twoDimAnn->setOutlineWidth(value);
-                updateGraphicsFlag = true;
-            }
-        }
-    }
-    
-    if (updateGraphicsFlag) {
+        m_annotation->setForegroundLineWidth(value);
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
     }
 }
@@ -414,19 +400,9 @@ AnnotationColorWidget::updateForegroundThicknessSpinBox()
     float value = 0.0;
     bool widgetEnabled = false;
     if (m_annotation != NULL) {
-        AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
-        if (oneDimAnn != NULL) {
-            value = oneDimAnn->getLineWidth();
+        if (m_annotation->isForegroundLineWidthSupported()) {
+            value = m_annotation->getForegroundLineWidth();
             widgetEnabled = true;
-        }
-        else {
-            AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
-            if (twoDimAnn != NULL) {
-                if (twoDimAnn->getType() != AnnotationTypeEnum::TEXT) {
-                    value = twoDimAnn->getOutlineWidth();
-                    widgetEnabled = true;
-                }
-            }
         }
     }
     
@@ -434,8 +410,8 @@ AnnotationColorWidget::updateForegroundThicknessSpinBox()
     m_foregroundThicknessSpinBox->setValue(value);
     m_foregroundThicknessSpinBox->blockSignals(false);
     m_foregroundThicknessSpinBox->setEnabled(widgetEnabled);
-    
 }
+
 /**
  * Receive an event.
  *

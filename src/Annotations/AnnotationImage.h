@@ -35,6 +35,8 @@ namespace caret {
         
         virtual ~AnnotationImage();
         
+        virtual bool isForegroundLineWidthSupported() const;
+        
 
         // ADD_NEW_METHODS_HERE
 
