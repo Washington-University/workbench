@@ -37,6 +37,7 @@
 #include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "DataFileException.h"
+#include "XmlStreamWriterHelper.h"
 
 using namespace caret;
 
@@ -55,6 +56,7 @@ AnnotationFileXmlWriter::AnnotationFileXmlWriter()
 : AnnotationFileXmlFormatBase()
 {
     m_stream.grabNew(NULL);
+    m_streamHelper.grabNew(NULL);
 }
 
 /**
@@ -79,12 +81,17 @@ AnnotationFileXmlWriter::writeFile(const AnnotationFile* annotationFile)
 {
     CaretAssert(annotationFile);
     
+    const QString filename = annotationFile->getFileName();
+    if (filename.isEmpty()) {
+        throw DataFileException("Name for writing annotation file is empty.");
+    }
+    
     /*
      * Open the file
      */
-    QFile file(annotationFile->getFileName());
+    QFile file(filename);
     if ( ! file.open(QFile::WriteOnly)) {
-        throw DataFileException(annotationFile->getFileName(),
+        throw DataFileException(filename,
                                 "Error opening for writing: "
                                 + file.errorString());
     }
@@ -93,13 +100,24 @@ AnnotationFileXmlWriter::writeFile(const AnnotationFile* annotationFile)
      * Create an XML stream writer
      */
     m_stream.grabNew(new QXmlStreamWriter(&file));
-    
     m_stream->setAutoFormatting(true);
+    
+    /*
+     * Create the helper for reading XML
+     */
+    if (m_streamHelper != NULL) {
+        m_streamHelper.grabNew(NULL);
+    }
+    m_streamHelper.grabNew(new XmlStreamWriterHelper(filename,
+                                                     m_stream));
+    
     m_stream->writeStartDocument();
     
     m_stream->writeStartElement(ELEMENT_ANNOTATION_FILE);
     m_stream->writeAttribute(ATTRIBUTE_VERSION,
                              AString::number(XML_VERSION_ONE));
+    
+    m_streamHelper->writeMetaData(annotationFile->getFileMetaData());
     
     const int32_t numberOfAnnotations = annotationFile->getNumberOfAnnotations();
     for (int32_t i = 0; i < numberOfAnnotations; i++) {
@@ -135,7 +153,7 @@ AnnotationFileXmlWriter::writeFile(const AnnotationFile* annotationFile)
     file.close();
     
     if (m_stream->hasError()) {
-        throw DataFileException(annotationFile->getFileName(),
+        throw DataFileException(filename,
                                 "There was an error writing the annotation file in XML format (reported by QXmlStreamWriter).");
     }
 }
@@ -318,6 +336,8 @@ void
 AnnotationFileXmlWriter::getTwoDimAnnotationPropertiesAsAttributes(const AnnotationTwoDimensionalShape* shape,
                                                QXmlStreamAttributes& attributes)
 {
+    CaretAssert(shape);
+    
     getAnnotationPropertiesAsAttributes(shape,
                                         attributes);
     
@@ -385,7 +405,7 @@ AnnotationFileXmlWriter::writeOneDimensionalAnnotation(const AnnotationOneDimens
     writeCoordinate(shape->getStartCoordinate(),
                     ELEMENT_COORDINATE_ONE);
     
-    writeCoordinate(shape->getStartCoordinate(),
+    writeCoordinate(shape->getEndCoordinate(),
                     ELEMENT_COORDINATE_TWO);
     
     m_stream->writeEndElement();

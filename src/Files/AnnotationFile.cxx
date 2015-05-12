@@ -59,167 +59,170 @@ AnnotationFile::AnnotationFile()
     m_metadata.grabNew(new GiftiMetaData());
     m_sceneAssistant = new SceneClassAssistant();
     
-    {
-        AnnotationText* at = new AnnotationText();
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-        at->setTabIndex(3);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        coord->setXYZ(0.4, 0.2, 0);
-        at->setForegroundColor(CaretColorEnum::WHITE);
-        at->setText("TAB-4-LEFT-MIDDLE,0.4, 0.2");
-        addAnnotation(at);
-    }
-    
-    {
-        AnnotationText* at = new AnnotationText();
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        coord->setXYZ(0.5, 0.9, 0);
-        at->setForegroundColor(CaretColorEnum::BLUE);
-        at->setBackgroundColor(CaretColorEnum::GRAY);
-        at->setFontSize(AnnotationFontSizeEnum::SIZE20);
-        at->setBoldEnabled(true);
-        at->setText("WINDOW-CENTER-MIDDLE,0.5,0.9");
-        addAnnotation(at);
-    }
-    
-    {
-        AnnotationText* at = new AnnotationText();
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        coord->setXYZ(0.1, 0.6, 0);
-        at->setRotationAngle(30.0);
-        at->setForegroundColor(CaretColorEnum::FUCHSIA);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setFontSize(AnnotationFontSizeEnum::SIZE16);
-        at->setBoldEnabled(true);
-        at->setText("Rotated");
-        addAnnotation(at);
-    }
-    
-    {
-        AnnotationText* at = new AnnotationText();
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-        at->setOrientation(AnnotationTextOrientationEnum::STACKED);
-        coord->setXYZ(0.9, 0.5, 0);
-        at->setForegroundColor(CaretColorEnum::PURPLE);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setFontSize(AnnotationFontSizeEnum::SIZE24);
-        at->setBoldEnabled(false);
-        at->setText("STACKED-VERT-0.9-0.5");
-        addAnnotation(at);
-    }
-    
-    {
-        AnnotationText* at = new AnnotationText();
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-        at->setOrientation(AnnotationTextOrientationEnum::STACKED);
-        coord->setXYZ(0.7, 0.7, 0);
-        at->setForegroundColor(CaretColorEnum::TEAL);
-        at->setBackgroundColor(CaretColorEnum::SILVER);
-        at->setFontSize(AnnotationFontSizeEnum::SIZE24);
-        at->setBoldEnabled(false);
-        at->setText("STACK-ROT");
-        at->setRotationAngle(-90.0);
-        addAnnotation(at);
-    }
-    {
-        AnnotationBox* at = new AnnotationBox();
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        coord->setXYZ(0.5, 0.5, 0);
-        at->setForegroundColor(CaretColorEnum::GREEN);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setWidth(0.2);
-        at->setHeight(0.10);
-        at->setRotationAngle(-20.0);
-        at->setForegroundLineWidth(3.0);
-        addAnnotation(at);
-    }
-    {
-        AnnotationLine* at = new AnnotationLine();
-        AnnotationCoordinate* startCoord = at->getStartCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        startCoord->setXYZ(0.1, 0.1, 0);
-        AnnotationCoordinate* endCoord = at->getEndCoordinate();
-        endCoord->setXYZ(0.2, 0.3, 0);
-        at->setForegroundColor(CaretColorEnum::RED);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        addAnnotation(at);
-    }
-
-    {
-        AnnotationArrow* at = new AnnotationArrow();
-        AnnotationCoordinate* startCoord = at->getStartCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        startCoord->setXYZ(0.7, 0.1, 0);
-        AnnotationCoordinate* endCoord = at->getEndCoordinate();
-        endCoord->setXYZ(0.4, 0.3, 0);
-        //endCoord->setXYZ(0.7, 0.4, 0);
-        at->setForegroundColor(CaretColorEnum::GREEN);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setForegroundLineWidth(4.0);
-        addAnnotation(at);
-    }
-    
-    {
-        AnnotationOval* at = new AnnotationOval();
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        at->setWindowIndex(0);
-        coord->setXYZ(0.5, 0.2, 0);
-        at->setForegroundColor(CaretColorEnum::BLUE);
-        at->setWidth(0.05);
-        at->setHeight(0.1);
-        at->setRotationAngle(30.0);
-        at->setForegroundLineWidth(3.0);
-        addAnnotation(at);
-    }
-    
-    {
-        AnnotationText* at = new AnnotationText();
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-        coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32942, 7883);
-        at->setForegroundColor(CaretColorEnum::PURPLE);
-        at->setText("Vertex 7883");
-        addAnnotation(at);
-    }
-    
-    for (int32_t iTab = 0; iTab < 10; iTab++) {
-        AnnotationText* at = new AnnotationText();
-        AnnotationCoordinate* coord = at->getCoordinate();
-        at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-        at->setTabIndex(iTab);
-        at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-        at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        at->setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
-        coord->setXYZ(0.95, 0.05, 0);
-        at->setForegroundColor(CaretColorEnum::TEAL);
-        at->setBackgroundColor(CaretColorEnum::WHITE);
-        at->setFontSize(AnnotationFontSizeEnum::SIZE18);
-        at->setBoldEnabled(true);
-        at->setText(AString::number(iTab + 1));
-        addAnnotation(at);
+    const bool addExampleDataFlag = false;
+    if (addExampleDataFlag) {
+        {
+            AnnotationText* at = new AnnotationText();
+            AnnotationCoordinate* coord = at->getCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+            at->setTabIndex(3);
+            at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+            coord->setXYZ(0.4, 0.2, 0);
+            at->setForegroundColor(CaretColorEnum::WHITE);
+            at->setText("TAB-4-LEFT-MIDDLE,0.4, 0.2");
+            addAnnotation(at);
+        }
+        
+        {
+            AnnotationText* at = new AnnotationText();
+            AnnotationCoordinate* coord = at->getCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+            at->setWindowIndex(0);
+            at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+            coord->setXYZ(0.5, 0.9, 0);
+            at->setForegroundColor(CaretColorEnum::BLUE);
+            at->setBackgroundColor(CaretColorEnum::GRAY);
+            at->setFontSize(AnnotationFontSizeEnum::SIZE20);
+            at->setBoldEnabled(true);
+            at->setText("WINDOW-CENTER-MIDDLE,0.5,0.9");
+            addAnnotation(at);
+        }
+        
+        {
+            AnnotationText* at = new AnnotationText();
+            AnnotationCoordinate* coord = at->getCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+            at->setWindowIndex(0);
+            at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            coord->setXYZ(0.1, 0.6, 0);
+            at->setRotationAngle(30.0);
+            at->setForegroundColor(CaretColorEnum::FUCHSIA);
+            at->setBackgroundColor(CaretColorEnum::WHITE);
+            at->setFontSize(AnnotationFontSizeEnum::SIZE16);
+            at->setBoldEnabled(true);
+            at->setText("Rotated");
+            addAnnotation(at);
+        }
+        
+        {
+            AnnotationText* at = new AnnotationText();
+            AnnotationCoordinate* coord = at->getCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+            at->setWindowIndex(0);
+            at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            at->setOrientation(AnnotationTextOrientationEnum::STACKED);
+            coord->setXYZ(0.9, 0.5, 0);
+            at->setForegroundColor(CaretColorEnum::PURPLE);
+            at->setBackgroundColor(CaretColorEnum::WHITE);
+            at->setFontSize(AnnotationFontSizeEnum::SIZE24);
+            at->setBoldEnabled(false);
+            at->setText("STACKED-VERT-0.9-0.5");
+            addAnnotation(at);
+        }
+        
+        {
+            AnnotationText* at = new AnnotationText();
+            AnnotationCoordinate* coord = at->getCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+            at->setWindowIndex(0);
+            at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            at->setOrientation(AnnotationTextOrientationEnum::STACKED);
+            coord->setXYZ(0.7, 0.7, 0);
+            at->setForegroundColor(CaretColorEnum::TEAL);
+            at->setBackgroundColor(CaretColorEnum::SILVER);
+            at->setFontSize(AnnotationFontSizeEnum::SIZE24);
+            at->setBoldEnabled(false);
+            at->setText("STACK-ROT");
+            at->setRotationAngle(-90.0);
+            addAnnotation(at);
+        }
+        {
+            AnnotationBox* at = new AnnotationBox();
+            AnnotationCoordinate* coord = at->getCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+            at->setWindowIndex(0);
+            coord->setXYZ(0.5, 0.5, 0);
+            at->setForegroundColor(CaretColorEnum::GREEN);
+            at->setBackgroundColor(CaretColorEnum::WHITE);
+            at->setWidth(0.2);
+            at->setHeight(0.10);
+            at->setRotationAngle(-20.0);
+            at->setForegroundLineWidth(3.0);
+            addAnnotation(at);
+        }
+        {
+            AnnotationLine* at = new AnnotationLine();
+            AnnotationCoordinate* startCoord = at->getStartCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+            at->setWindowIndex(0);
+            startCoord->setXYZ(0.1, 0.1, 0);
+            AnnotationCoordinate* endCoord = at->getEndCoordinate();
+            endCoord->setXYZ(0.2, 0.3, 0);
+            at->setForegroundColor(CaretColorEnum::RED);
+            at->setBackgroundColor(CaretColorEnum::WHITE);
+            addAnnotation(at);
+        }
+        
+        {
+            AnnotationArrow* at = new AnnotationArrow();
+            AnnotationCoordinate* startCoord = at->getStartCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+            at->setWindowIndex(0);
+            startCoord->setXYZ(0.7, 0.1, 0);
+            AnnotationCoordinate* endCoord = at->getEndCoordinate();
+            endCoord->setXYZ(0.4, 0.3, 0);
+            //endCoord->setXYZ(0.7, 0.4, 0);
+            at->setForegroundColor(CaretColorEnum::GREEN);
+            at->setBackgroundColor(CaretColorEnum::WHITE);
+            at->setForegroundLineWidth(4.0);
+            addAnnotation(at);
+        }
+        
+        {
+            AnnotationOval* at = new AnnotationOval();
+            AnnotationCoordinate* coord = at->getCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+            at->setWindowIndex(0);
+            coord->setXYZ(0.5, 0.2, 0);
+            at->setForegroundColor(CaretColorEnum::BLUE);
+            at->setWidth(0.05);
+            at->setHeight(0.1);
+            at->setRotationAngle(30.0);
+            at->setForegroundLineWidth(3.0);
+            addAnnotation(at);
+        }
+        
+        {
+            AnnotationText* at = new AnnotationText();
+            AnnotationCoordinate* coord = at->getCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+            coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32942, 7883);
+            at->setForegroundColor(CaretColorEnum::PURPLE);
+            at->setText("Vertex 7883");
+            addAnnotation(at);
+        }
+        
+        for (int32_t iTab = 0; iTab < 10; iTab++) {
+            AnnotationText* at = new AnnotationText();
+            AnnotationCoordinate* coord = at->getCoordinate();
+            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+            at->setTabIndex(iTab);
+            at->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+            at->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            at->setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
+            coord->setXYZ(0.95, 0.05, 0);
+            at->setForegroundColor(CaretColorEnum::TEAL);
+            at->setBackgroundColor(CaretColorEnum::WHITE);
+            at->setFontSize(AnnotationFontSizeEnum::SIZE18);
+            at->setBoldEnabled(true);
+            at->setText(AString::number(iTab + 1));
+            addAnnotation(at);
+        }
     }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION);

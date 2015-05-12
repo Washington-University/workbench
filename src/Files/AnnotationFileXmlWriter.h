@@ -41,6 +41,7 @@ namespace caret {
     class AnnotationOval;
     class AnnotationText;
     class AnnotationTwoDimensionalShape;
+    class XmlStreamWriterHelper;
 
     class AnnotationFileXmlWriter : public AnnotationFileXmlFormatBase {
         
@@ -91,6 +92,8 @@ namespace caret {
         void writeText(const AnnotationText* text);
         
         CaretPointer<QXmlStreamWriter> m_stream;
+        
+        CaretPointer<XmlStreamWriterHelper> m_streamHelper;
         
         // ADD_NEW_MEMBERS_HERE
 

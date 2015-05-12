@@ -135,6 +135,8 @@ VolumeSliceProjectionTypeEnum.h
 VolumeSpline.h
 VtkFileExporter.h
 WarpfieldFile.h
+XmlStreamReaderHelper.h
+XmlStreamWriterHelper.h
 
 AffineFile.cxx
 AnnotationFile.cxx
@@ -248,6 +250,8 @@ VolumeSliceProjectionTypeEnum.cxx
 VolumeSpline.cxx
 VtkFileExporter.cxx
 WarpfieldFile.cxx
+XmlStreamReaderHelper.cxx
+XmlStreamWriterHelper.cxx
 )
 
 

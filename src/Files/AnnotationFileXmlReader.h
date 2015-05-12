@@ -36,6 +36,7 @@ namespace caret {
     class AnnotationOneDimensionalShape;
     class AnnotationText;
     class AnnotationTwoDimensionalShape;
+    class XmlStreamReaderHelper;
     
     class AnnotationFileXmlReader : public AnnotationFileXmlFormatBase {
         
@@ -54,7 +55,7 @@ namespace caret {
 
         AnnotationFileXmlReader& operator=(const AnnotationFileXmlReader&);
         
-        void readVersionOne();
+        void readVersionOne(AnnotationFile* annotationFile);
         
         void readOneDimensionalAnnotation(const QString& annotationElementName,
                                           AnnotationOneDimensionalShape* annotation);
@@ -71,26 +72,9 @@ namespace caret {
         
         void readTextDataElement(AnnotationText* textAnnotation);
         
-        
-        QString getRequiredAttributeStringValue(const QXmlStreamAttributes& attributes,
-                                                const QString& elementName,
-                                                const QString& attributeName);
-        
-        int getRequiredAttributeIntValue(const QXmlStreamAttributes& attributes,
-                                                const QString& elementName,
-                                                const QString& attributeName);
-        
-        float getRequiredAttributeFloatValue(const QXmlStreamAttributes& attributes,
-                                         const QString& elementName,
-                                         const QString& attributeName);
-        
-        bool getRequiredAttributeBoolValue(const QXmlStreamAttributes& attributes,
-                                             const QString& elementName,
-                                             const QString& attributeName);
-        
-        void throwDataFileException(const QString message);
-        
         CaretPointer<QXmlStreamReader> m_stream;
+        
+        CaretPointer<XmlStreamReaderHelper> m_streamHelper;
         
         QString m_filename;
         

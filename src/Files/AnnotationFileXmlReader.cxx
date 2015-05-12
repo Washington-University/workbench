@@ -30,12 +30,15 @@
 #include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationFile.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
 #include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "DataFileException.h"
+#include "GiftiXmlElements.h"
+#include "XmlStreamReaderHelper.h"
 
 using namespace caret;
 
@@ -54,6 +57,7 @@ AnnotationFileXmlReader::AnnotationFileXmlReader()
 : AnnotationFileXmlFormatBase()
 {
     m_stream.grabNew(new QXmlStreamReader());
+    m_streamHelper.grabNew(NULL);
 }
 
 /**
@@ -79,7 +83,7 @@ AnnotationFileXmlReader::readFile(const AString& filename,
 {
     CaretAssert(annotationFile);
     m_filename = filename;
-    
+
     /*
      * Open the file
      */
@@ -96,18 +100,27 @@ AnnotationFileXmlReader::readFile(const AString& filename,
      */
     m_stream.grabNew(new QXmlStreamReader(&file));
     
+    /*
+     * Create the helper for reading XML
+     */
+    if (m_streamHelper != NULL) {
+        m_streamHelper.grabNew(NULL);
+    }
+    m_streamHelper.grabNew(new XmlStreamReaderHelper(filename,
+                                                     m_stream));
+    
     if (m_stream->atEnd()) {
-        throwDataFileException("Error reading.  File appears to have no XML content.");
+        m_streamHelper->throwDataFileException("Error reading.  File appears to have no XML content.");
     }
     
     const bool fileElementValid = m_stream->readNextStartElement();
     if ( ! fileElementValid) {
-        throwDataFileException("Appears to have no XML elements.");
+        m_streamHelper->throwDataFileException("Appears to have no XML elements.");
     }
     
     const QStringRef fileElementName = m_stream->name();
     if (fileElementName != ELEMENT_ANNOTATION_FILE) {
-        throwDataFileException("First element is "
+        m_streamHelper->throwDataFileException("First element is "
                                 + fileElementName.toString()
                                 + " but should be "
                                 + ELEMENT_ANNOTATION_FILE);
@@ -116,7 +129,7 @@ AnnotationFileXmlReader::readFile(const AString& filename,
     QXmlStreamAttributes fileAttributes = m_stream->attributes();
     const QStringRef versionText = fileAttributes.value(ATTRIBUTE_VERSION);
     if (versionText.isEmpty()) {
-        throwDataFileException("Version attribute ("
+        m_streamHelper->throwDataFileException("Version attribute ("
                                 + ATTRIBUTE_VERSION
                                 + ") is missing from the file element "
                                 + ELEMENT_ANNOTATION_FILE);
@@ -124,10 +137,10 @@ AnnotationFileXmlReader::readFile(const AString& filename,
     
     const int32_t versionNumber  = versionText.toString().toInt();
     if (versionNumber == XML_VERSION_ONE) {
-        readVersionOne();
+        readVersionOne(annotationFile);
     }
     else {
-        throwDataFileException("File version number "
+        m_streamHelper->throwDataFileException("File version number "
                                  + versionText.toString()
                                  + " is not supported by this version of the software.");
     }
@@ -135,74 +148,70 @@ AnnotationFileXmlReader::readFile(const AString& filename,
     file.close();
     
     if (m_stream->hasError()) {
-        throwDataFileException("There was an error reading the annotation file in XML format (reported by QXmlStreamReader): "
+        m_streamHelper->throwDataFileException("There was an error reading the annotation file in XML format (reported by QXmlStreamReader): "
                                 + m_stream->errorString());
     }
 }
 
 /**
  * Read a version one Annotation XML file.
+ *
+ * @param annotationFile
+ *     Add annotations to this file.
  */
 void
-AnnotationFileXmlReader::readVersionOne()
+AnnotationFileXmlReader::readVersionOne(AnnotationFile* annotationFile)
 {
     while (m_stream->readNextStartElement()) {
-        const QString annotationName = m_stream->name().toString();
-        if (annotationName == ELEMENT_ARROW) {
+        bool skipCurrentElementFlag = true;
+        
+        const QString elementName = m_stream->name().toString();
+        if (elementName == GiftiXmlElements::TAG_METADATA) {
+            m_streamHelper->readMetaData(annotationFile->getFileMetaData());
+            skipCurrentElementFlag = false;
+        }
+        else if (elementName == ELEMENT_ARROW) {
             CaretPointer<AnnotationArrow> annotation(new AnnotationArrow());
             readOneDimensionalAnnotation(ELEMENT_ARROW,
                                          annotation);
+            annotationFile->addAnnotation(annotation.releasePointer());
         }
-        else if (annotationName == ELEMENT_BOX) {
+        else if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox());
             readTwoDimensionalAnnotation(ELEMENT_BOX,
                                          annotation);
+            annotationFile->addAnnotation(annotation.releasePointer());
         }
-        else if (annotationName == ELEMENT_LINE) {
+        else if (elementName == ELEMENT_LINE) {
             CaretPointer<AnnotationLine> annotation(new AnnotationLine());
             readOneDimensionalAnnotation(ELEMENT_LINE,
                                          annotation);
+            annotationFile->addAnnotation(annotation.releasePointer());
         }
-        else if (annotationName == ELEMENT_OVAL) {
+        else if (elementName == ELEMENT_OVAL) {
             CaretPointer<AnnotationOval> annotation(new AnnotationOval());
             readTwoDimensionalAnnotation(ELEMENT_OVAL,
                                          annotation);
+            annotationFile->addAnnotation(annotation.releasePointer());
         }
-        else if (annotationName == ELEMENT_TEXT) {
+        else if (elementName == ELEMENT_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationText());
             readTwoDimensionalAnnotation(ELEMENT_TEXT,
                                          annotation);
+            annotationFile->addAnnotation(annotation.releasePointer());
         }
         else {
-            throwDataFileException("Unexpected XML element "
-                                   + annotationName);
+            m_streamHelper->throwDataFileException("Unexpected XML element "
+                                   + elementName);
         }
 
         /*
          * These elements have no other child elements so move on
          */
-        m_stream->skipCurrentElement();
+        if (skipCurrentElementFlag) {
+            m_stream->skipCurrentElement();
+        }
     }
-}
-
-/**
- * Throw a data file exception with the given message and add
- * the line and column numbers to the message.
- *
- * @param message
- *     Message included in the exception.
- * @throw 
- *     Always throws a DataFileException.
- */
-void
-AnnotationFileXmlReader::throwDataFileException(const QString message)
-{
-    throw DataFileException(m_filename,
-                            (message
-                             + " at line "
-                             + QString::number(m_stream->lineNumber())
-                             + ", column "
-                             + QString::number(m_stream->columnNumber())));
 }
 
 /**
@@ -218,14 +227,16 @@ void
 AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
                                         AnnotationCoordinate* coordinate)
 {
+    CaretAssert(coordinate);
+    
     const bool elementValid = m_stream->readNextStartElement();
     if ( ! elementValid) {
-        throwDataFileException("Failed to read element "
+        m_streamHelper->throwDataFileException("Failed to read element "
                                + coordinateElementName);
     }
     
     if (m_stream->name() != coordinateElementName) {
-        throwDataFileException("Expected elment "
+        m_streamHelper->throwDataFileException("Expected elment "
                                + coordinateElementName
                                + " but read element "
                                + m_stream->name().toString());
@@ -237,22 +248,22 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
      * XYZ coordinate
      */
     const float xyz[3] = {
-        getRequiredAttributeFloatValue(attributes, coordinateElementName, ATTRIBUTE_COORD_X),
-        getRequiredAttributeFloatValue(attributes, coordinateElementName, ATTRIBUTE_COORD_Y),
-        getRequiredAttributeFloatValue(attributes, coordinateElementName, ATTRIBUTE_COORD_Z)
+        m_streamHelper->getRequiredAttributeFloatValue(attributes, coordinateElementName, ATTRIBUTE_COORD_X),
+        m_streamHelper->getRequiredAttributeFloatValue(attributes, coordinateElementName, ATTRIBUTE_COORD_Y),
+        m_streamHelper->getRequiredAttributeFloatValue(attributes, coordinateElementName, ATTRIBUTE_COORD_Z)
     };
     coordinate->setXYZ(xyz);
     
     /*
      * Surface coordinate
      */
-    const int32_t numberOfNodes = getRequiredAttributeFloatValue(attributes,
+    const int32_t numberOfNodes = m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                                  coordinateElementName,
                                                                  ATTRIBUTE_COORD_SURFACE_NUMBER_OF_NODES);
-    const int32_t nodeIndex = getRequiredAttributeFloatValue(attributes,
+    const int32_t nodeIndex = m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                                  coordinateElementName,
                                                                  ATTRIBUTE_COORD_SURFACE_NODE_INDEX);
-    const QString valueString = getRequiredAttributeStringValue(attributes,
+    const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                 coordinateElementName,
                                                                 ATTRIBUTE_COORD_SURFACE_STRUCTURE);
     bool valid = false;
@@ -262,7 +273,7 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
         coordinate->setSurfaceSpace(structure, numberOfNodes, nodeIndex);
     }
     else {
-        throwDataFileException("Invalid value "
+        m_streamHelper->throwDataFileException("Invalid value "
                                + valueString
                                + " for attribute "
                                + ATTRIBUTE_COORD_SURFACE_STRUCTURE);
@@ -291,11 +302,13 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
                                                   const QString& annotationElementName,
                                                   const QXmlStreamAttributes& attributes)
 {
+    CaretAssert(annotation);
+    
     {
         /*
          * Coordinate space
          */
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     annotationElementName,
                                                                     ATTRIBUTE_COORDINATE_SPACE);
         bool valid = false;
@@ -305,7 +318,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
             annotation->setCoordinateSpace(value);
         }
         else {
-            throwDataFileException("Invalid value "
+            m_streamHelper->throwDataFileException("Invalid value "
                                    + valueString
                                    + " for attribute "
                                    + ATTRIBUTE_COORDINATE_SPACE);
@@ -316,7 +329,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
         /*
          * Background color
          */
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     annotationElementName,
                                                                     ATTRIBUTE_BACKGROUND_CARET_COLOR);
         bool valid = false;
@@ -326,7 +339,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
             annotation->setBackgroundColor(value);
         }
         else {
-            throwDataFileException("Invalid value "
+            m_streamHelper->throwDataFileException("Invalid value "
                                    + valueString
                                    + " for attribute "
                                    + ATTRIBUTE_BACKGROUND_CARET_COLOR);
@@ -337,7 +350,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
         /*
          * Background custom color
          */
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     annotationElementName,
                                                                     ATTRIBUTE_BACKGROUND_CUSTOM_RGBA);
         std::vector<float> rgba;
@@ -346,7 +359,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
             annotation->setCustomBackgroundColor(&rgba[0]);
         }
         else {
-            throwDataFileException(ATTRIBUTE_BACKGROUND_CUSTOM_RGBA
+            m_streamHelper->throwDataFileException(ATTRIBUTE_BACKGROUND_CUSTOM_RGBA
                                    + " must contain 4 elements but "
                                    + valueString
                                    + " contains "
@@ -359,7 +372,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
         /*
          * Foreground color
          */
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     annotationElementName,
                                                                     ATTRIBUTE_FOREGROUND_CARET_COLOR);
         bool valid = false;
@@ -369,7 +382,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
             annotation->setForegroundColor(value);
         }
         else {
-            throwDataFileException("Invalid value "
+            m_streamHelper->throwDataFileException("Invalid value "
                                    + valueString
                                    + " for attribute "
                                    + ATTRIBUTE_FOREGROUND_CARET_COLOR);
@@ -380,7 +393,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
         /*
          * Foreground custom color
          */
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     annotationElementName,
                                                                     ATTRIBUTE_FOREGROUND_CUSTOM_RGBA);
         std::vector<float> rgba;
@@ -389,7 +402,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
             annotation->setCustomForegroundColor(&rgba[0]);
         }
         else {
-            throwDataFileException(ATTRIBUTE_FOREGROUND_CUSTOM_RGBA
+            m_streamHelper->throwDataFileException(ATTRIBUTE_FOREGROUND_CUSTOM_RGBA
                                    + " must contain 4 elements but "
                                    + valueString
                                    + " contains "
@@ -401,174 +414,21 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
     /*
      * Foreground line width
      */
-    annotation->setForegroundLineWidth(getRequiredAttributeFloatValue(attributes,
+    annotation->setForegroundLineWidth(m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                                       annotationElementName,
                                                                       ATTRIBUTE_FOREGROUND_LINE_WIDTH));
     /*
      * Tab Index
      */
-    annotation->setTabIndex(getRequiredAttributeIntValue(attributes,
+    annotation->setTabIndex(m_streamHelper->getRequiredAttributeIntValue(attributes,
                                                          annotationElementName,
                                                          ATTRIBUTE_TAB_INDEX));
     /*
      * Window Index
      */
-    annotation->setWindowIndex(getRequiredAttributeIntValue(attributes,
+    annotation->setWindowIndex(m_streamHelper->getRequiredAttributeIntValue(attributes,
                                                             annotationElementName,
                                                             ATTRIBUTE_WINDOW_INDEX));
-}
-
-
-/**
- * Get the string value for the given attribute name from the
- * given attributes.  If the attribute name is not found or
- * its value is an empty string, a DataFileException is thrown.
- *
- * @param attributes
- *     The XML attributes.
- * @param elementName
- *     Name of element containing the attributes.
- * @param attributeName
- *     Name of the attribute.
- * @return
- *     String value for the attribute.
- * @throw
- *     DataFileException if attribute is missing or value is
- *     an empty string.
- */
-QString
-AnnotationFileXmlReader::getRequiredAttributeStringValue(const QXmlStreamAttributes& attributes,
-                                                         const QString& elementName,
-                                                         const QString& attributeName)
-{
-    QString valueString;
-    
-    if (attributes.hasAttribute(attributeName)) {
-        valueString = attributes.value(attributeName).toString();
-        if (valueString.isEmpty()) {
-            throwDataFileException("Value for attribute "
-                                   + attributeName
-                                   + " in element "
-                                   + elementName
-                                   + " is empty");
-        }
-    }
-    else {
-        throwDataFileException(attributeName
-                               + " is missing from element "
-                               + elementName);
-    }
-
-    return valueString;
-}
-
-/**
- * Get the bool value for the given attribute name from the
- * given attributes.  If the attribute name is not found or
- * its value is an empty string, a DataFileException is thrown.
- *
- * @param attributes
- *     The XML attributes.
- * @param elementName
- *     Name of element containing the attributes.
- * @param attributeName
- *     Name of the attribute.
- * @return
- *     Boolean value for the attribute.
- * @throw
- *     DataFileException if attribute is missing or value is
- *     an empty string.
- */
-bool
-AnnotationFileXmlReader::getRequiredAttributeBoolValue(const QXmlStreamAttributes& attributes,
-                                                      const QString& elementName,
-                                                      const QString& attributeName)
-{
-    const AString stringValue = getRequiredAttributeStringValue(attributes,
-                                                                elementName,
-                                                                attributeName);
-    
-    const bool value = stringValue.toBool();
-    
-    return value;
-}
-
-/**
- * Get the int value for the given attribute name from the
- * given attributes.  If the attribute name is not found or
- * its value is an empty string, a DataFileException is thrown.
- *
- * @param attributes
- *     The XML attributes.
- * @param elementName
- *     Name of element containing the attributes.
- * @param attributeName
- *     Name of the attribute.
- * @return
- *     Integer value for the attribute.
- * @throw
- *     DataFileException if attribute is missing or value is
- *     an empty string.
- */
-int
-AnnotationFileXmlReader::getRequiredAttributeIntValue(const QXmlStreamAttributes& attributes,
-                                                      const QString& elementName,
-                                                      const QString& attributeName)
-{
-    const QString stringValue = getRequiredAttributeStringValue(attributes,
-                                                                elementName,
-                                                                attributeName);
-    
-    bool valid;
-    const int value = stringValue.toInt(&valid);
-    
-    if ( ! valid) {
-        throwDataFileException("Value for attribute "
-                               + attributeName
-                               + " is not a valid integer value "
-                               + stringValue);
-    }
-    
-    return value;
-}
-
-/**
- * Get the int value for the given attribute name from the
- * given attributes.  If the attribute name is not found or
- * its value is an empty string, a DataFileException is thrown.
- *
- * @param attributes
- *     The XML attributes.
- * @param elementName
- *     Name of element containing the attributes.
- * @param attributeName
- *     Name of the attribute.
- * @return
- *     Integer value for the attribute.
- * @throw
- *     DataFileException if attribute is missing or value is
- *     an empty string.
- */
-float
-AnnotationFileXmlReader::getRequiredAttributeFloatValue(const QXmlStreamAttributes& attributes,
-                                                      const QString& elementName,
-                                                      const QString& attributeName)
-{
-    const QString stringValue = getRequiredAttributeStringValue(attributes,
-                                                                elementName,
-                                                                attributeName);
-    
-    bool valid;
-    const float value = stringValue.toFloat(&valid);
-    
-    if ( ! valid) {
-        throwDataFileException("Value for attribute "
-                               + attributeName
-                               + " is not a valid integer value "
-                               + stringValue);
-    }
-    
-    return value;
 }
 
 /**
@@ -583,6 +443,8 @@ void
 AnnotationFileXmlReader::readOneDimensionalAnnotation(const QString& annotationElementName,
                                                       AnnotationOneDimensionalShape* annotation)
 {
+    CaretAssert(annotation);
+
     const QXmlStreamAttributes attributes = m_stream->attributes();
     
     readAnnotationAttributes(annotation,
@@ -607,6 +469,8 @@ void
 AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationElementName,
                                                       AnnotationTwoDimensionalShape* annotation)
 {
+    CaretAssert(annotation);
+    
     const QXmlStreamAttributes attributes = m_stream->attributes();
     
     readAnnotationAttributes(annotation,
@@ -616,19 +480,19 @@ AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationE
     /*
      * Shape width
      */
-    annotation->setWidth(getRequiredAttributeFloatValue(attributes,
+    annotation->setWidth(m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                         annotationElementName,
                                                         ATTRIBUTE_WIDTH));
     /*
      * Shape height
      */
-    annotation->setHeight(getRequiredAttributeFloatValue(attributes,
+    annotation->setHeight(m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                         annotationElementName,
                                                         ATTRIBUTE_HEIGHT));
     /*
      * Shape rotation angle
      */
-    annotation->setRotationAngle(getRequiredAttributeFloatValue(attributes,
+    annotation->setRotationAngle(m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                         annotationElementName,
                                                         ATTRIBUTE_ROTATION_ANGLE));
     
@@ -643,6 +507,7 @@ AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationE
      */
     if (annotationElementName == ELEMENT_TEXT) {
         AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
+        readTextDataElement(textAnn);
         CaretAssert(textAnn);
         
     }
@@ -660,14 +525,16 @@ AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationE
 void
 AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
 {
+    CaretAssert(textAnnotation);
+    
     const bool elementValid = m_stream->readNextStartElement();
     if ( ! elementValid) {
-        throwDataFileException("Failed to read element "
+        m_streamHelper->throwDataFileException("Failed to read element "
                                + ELEMENT_TEXT_DATA);
     }
     
     if (m_stream->name() != ELEMENT_TEXT_DATA) {
-        throwDataFileException("Expected elment "
+        m_streamHelper->throwDataFileException("Expected elment "
                                + ELEMENT_TEXT_DATA
                                + " but read element "
                                + m_stream->name().toString());
@@ -675,18 +542,18 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
     
     const QXmlStreamAttributes attributes = m_stream->attributes();
     
-    textAnnotation->setBoldEnabled(getRequiredAttributeBoolValue(attributes,
+    textAnnotation->setBoldEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
                                                                  ELEMENT_TEXT_DATA,
                                                                  ATTRIBUTE_TEXT_FONT_BOLD));
-    textAnnotation->setItalicEnabled(getRequiredAttributeBoolValue(attributes,
+    textAnnotation->setItalicEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
                                                                    ELEMENT_TEXT_DATA,
                                                                    ATTRIBUTE_TEXT_FONT_ITALIC));
-    textAnnotation->setUnderlineEnabled(getRequiredAttributeBoolValue(attributes,
+    textAnnotation->setUnderlineEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
                                                                    ELEMENT_TEXT_DATA,
                                                                    ATTRIBUTE_TEXT_FONT_UNDERLINE));
     
     {
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     ELEMENT_TEXT_DATA,
                                                                     ATTRIBUTE_TEXT_FONT_NAME);
         bool valid = false;
@@ -696,7 +563,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
             textAnnotation->setFont(fontName);
         }
         else {
-            throwDataFileException("Invalid value "
+            m_streamHelper->throwDataFileException("Invalid value "
                                    + valueString
                                    + " for attribute "
                                    + ATTRIBUTE_TEXT_FONT_NAME);
@@ -704,7 +571,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
     }
     
     {
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     ELEMENT_TEXT_DATA,
                                                                     ATTRIBUTE_TEXT_FONT_SIZE);
         bool valid = false;
@@ -714,7 +581,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
             textAnnotation->setFontSize(fontSize);
         }
         else {
-            throwDataFileException("Invalid value "
+            m_streamHelper->throwDataFileException("Invalid value "
                                    + valueString
                                    + " for attribute "
                                    + ATTRIBUTE_TEXT_FONT_SIZE);
@@ -722,7 +589,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
     }
 
     {
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     ELEMENT_TEXT_DATA,
                                                                     ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT);
         bool valid = false;
@@ -732,7 +599,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
             textAnnotation->setHorizontalAlignment(alignment);
         }
         else {
-            throwDataFileException("Invalid value "
+            m_streamHelper->throwDataFileException("Invalid value "
                                    + valueString
                                    + " for attribute "
                                    + ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT);
@@ -740,7 +607,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
     }
     
     {
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     ELEMENT_TEXT_DATA,
                                                                     ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT);
         bool valid = false;
@@ -750,7 +617,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
             textAnnotation->setVerticalAlignment(alignment);
         }
         else {
-            throwDataFileException("Invalid value "
+            m_streamHelper->throwDataFileException("Invalid value "
                                    + valueString
                                    + " for attribute "
                                    + ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT);
@@ -758,7 +625,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
     }
     
     {
-        const QString valueString = getRequiredAttributeStringValue(attributes,
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                     ELEMENT_TEXT_DATA,
                                                                     ATTRIBUTE_TEXT_ORIENTATION);
         bool valid = false;
@@ -768,7 +635,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
             textAnnotation->setOrientation(orientation);
         }
         else {
-            throwDataFileException("Invalid value "
+            m_streamHelper->throwDataFileException("Invalid value "
                                    + valueString
                                    + " for attribute "
                                    + ATTRIBUTE_TEXT_ORIENTATION);
@@ -776,14 +643,20 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
     }
     
     /*
-     * Read the annotation's text.
+     * Read the annotation's text which will also finish reading through
+     * the closing element.
      */
-    textAnnotation->setText(m_stream->text().toString());
+    const QString textChars = m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
+    if (m_stream->hasError()) {
+        m_streamHelper->throwDataFileException("There was an error reading the text annotation's characters: "
+                               + m_stream->errorString());
+    }
+    textAnnotation->setText(textChars);
     
-    /*
-     * No other child elements so move on
-     */
-    m_stream->skipCurrentElement();
+    if (m_stream->hasError()) {
+        m_streamHelper->throwDataFileException("There was an error reading the annotation file in XML format (reported by QXmlStreamReader): "
+                               + m_stream->errorString());
+    }
 }
 
 

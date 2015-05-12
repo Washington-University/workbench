@@ -128,77 +128,77 @@ namespace caret {
     
 #ifdef __ANNOTATION_FILE_XML_FORMAT_BASE_DECLARE__
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_BACKGROUND_CARET_COLOR = "BackgroundCaretColor";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_BACKGROUND_CARET_COLOR = "backgroundCaretColor";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_BACKGROUND_CUSTOM_RGBA = "BackgroundCustomRGBA";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_BACKGROUND_CUSTOM_RGBA = "backgroundCustomRGBA";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORDINATE_SPACE = "CoordinateSpace";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORDINATE_SPACE = "coordinateSpace";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_X = "X";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_X = "x";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_Y = "Y";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_Y = "y";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_Z = "Z";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_Z = "z";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_STRUCTURE = "Structure";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_STRUCTURE = "structure";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NUMBER_OF_NODES = "NumberOfNodes";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NUMBER_OF_NODES = "numberOfNodes";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_INDEX = "NodeIndex";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_INDEX = "nodeIndex";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_CARET_COLOR = "ForegroundCaretColor";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_CARET_COLOR = "foregroundCaretColor";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_CUSTOM_RGBA = "ForegroundCustomRGBA";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_CUSTOM_RGBA = "foregroundCustomRGBA";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_LINE_WIDTH = "ForegroundLineWidth";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_LINE_WIDTH = "foregroundLineWidth";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_HEIGHT = "Height";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_HEIGHT = "height";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "RotationAngle";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TAB_INDEX = "TabIndex";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TAB_INDEX = "tabIndex";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_BOLD = "FontBold";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_BOLD = "fontBold";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_ITALIC = "FontItalic";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_ITALIC = "fontItalic";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_NAME = "FontName";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_NAME = "fontName";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_SIZE = "FontSize";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_SIZE = "fontSize";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_UNDERLINE = "FontUnderline";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_UNDERLINE = "fontUnderline";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT = "HorizontalAlignment";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT = "horizontalAlignment";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_ORIENTATION = "Orientation";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_ORIENTATION = "orientation";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT = "VerticalAlignment";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT = "verticalAlignment";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_VERSION = "Version";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_VERSION = "version";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_WIDTH = "Width";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_WIDTH = "width";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_WINDOW_INDEX = "WindowIndex";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_WINDOW_INDEX = "windowIndex";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_ANNOTATION_FILE = "AnnotationFile";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_ARROW = "Arrow";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_ARROW = "arrow";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_BOX = "Box";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_BOX = "box";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_ONE = "CoordOne";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_ONE = "coordOne";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_TWO = "CoordTwo";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_TWO = "coordTwo";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_IMAGE = "Image";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_IMAGE = "image";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_LINE = "Line";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_LINE = "line";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_OVAL = "Oval";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_OVAL = "oval";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_TEXT = "Text";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_TEXT = "text";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_TEXT_DATA = "TextData";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_TEXT_DATA = "textData";
     
     const int32_t AnnotationFileXmlFormatBase::XML_VERSION_ONE = 1;
     
