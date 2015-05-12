@@ -480,6 +480,50 @@ AnnotationFile::getAnnotation(const int32_t index) const
     return m_annotations[index];
 }
 
+/**
+ * @return true if file is modified, else false.
+ */
+bool
+AnnotationFile::isModified() const
+{
+    if (CaretDataFile::isModified()) {
+        return true;
+    }
+    
+    if (m_metadata->isModified()) {
+        return true;
+    }
+    
+    for (std::vector<const Annotation*>::const_iterator iter = m_annotations.begin();
+         iter != m_annotations.end();
+         iter++) {
+        const Annotation* annotationPointer = *iter;
+        if (annotationPointer->isModified()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Clear the modified status of this file.
+ */
+void
+AnnotationFile::clearModified()
+{
+    CaretDataFile::clearModified();
+    
+    m_metadata->clearModified();
+    
+    for (std::vector<Annotation*>::const_iterator iter = m_annotations.begin();
+         iter != m_annotations.end();
+         iter++) {
+        Annotation* annotationPointer = *iter;
+        annotationPointer->clearModified();
+    }
+}
+
 
 /**
  * Read the data file.

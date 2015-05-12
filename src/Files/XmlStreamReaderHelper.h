@@ -56,14 +56,14 @@ namespace caret {
         
         void readMetaData(GiftiMetaData* metadata);
         
-        void readMetaDataElement(GiftiMetaData* metadata);
-        
         void throwDataFileException(const QString message);
         
     private:
         XmlStreamReaderHelper(const XmlStreamReaderHelper&);
 
         XmlStreamReaderHelper& operator=(const XmlStreamReaderHelper&);
+        
+        void readMetaDataElement(GiftiMetaData* metadata);
         
         const QString m_filename;
         

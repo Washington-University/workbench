@@ -75,6 +75,10 @@ namespace caret {
         
         virtual void writeFile(const AString& filename);
         
+        virtual bool isModified() const;
+        
+        virtual void clearModified();
+        
         // ADD_NEW_METHODS_HERE
         
           
