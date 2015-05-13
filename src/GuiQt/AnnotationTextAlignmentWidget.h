@@ -28,9 +28,7 @@
 #include "AnnotationTextAlignVerticalEnum.h"
 #include "EventListenerInterface.h"
 
-class QAction;
 class QActionGroup;
-class QPixmap;
 class QToolButton;
 
 namespace caret {

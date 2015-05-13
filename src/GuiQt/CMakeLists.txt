@@ -37,6 +37,7 @@ AnnotationMenuArrange.h
 AnnotationRotationWidget.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorWidget.h
+AnnotationTextOrientationWidget.h
 AnnotationWidthHeightWidget.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
@@ -180,6 +181,7 @@ AnnotationMenuArrange.h
 AnnotationRotationWidget.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorWidget.h
+AnnotationTextOrientationWidget.h
 AnnotationWidthHeightWidget.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
@@ -350,6 +352,7 @@ AnnotationMenuArrange.cxx
 AnnotationRotationWidget.cxx
 AnnotationTextAlignmentWidget.cxx
 AnnotationTextEditorWidget.cxx
+AnnotationTextOrientationWidget.cxx
 AnnotationWidthHeightWidget.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx

@@ -40,6 +40,7 @@
 #include "AnnotationText.h"
 #include "AnnotationTextAlignmentWidget.h"
 #include "AnnotationTextEditorWidget.h"
+#include "AnnotationTextOrientationWidget.h"
 #include "AnnotationWidthHeightWidget.h"
 #include "CaretAssert.h"
 #include "EventAnnotation.h"
@@ -82,6 +83,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_textAlignmentWidget        = new AnnotationTextAlignmentWidget(m_browserWindowIndex);
     
+    m_textOrientationWidget      = new AnnotationTextOrientationWidget(m_browserWindowIndex);
+    
     m_coordinateOneWidget        = new AnnotationCoordinateWidget(m_browserWindowIndex);
     
     m_coordinateTwoWidget        = new AnnotationCoordinateWidget(m_browserWindowIndex);
@@ -114,6 +117,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     topRowLayout->addWidget(m_fontWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_textAlignmentWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_textOrientationWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_insertDeleteWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
@@ -227,6 +232,7 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     m_textEditorWidget->updateContent(textAnnotation);
     m_colorWidget->updateContent(m_annotationBeingEdited);
     m_textAlignmentWidget->updateContent(textAnnotation);
+    m_textOrientationWidget->updateContent(textAnnotation);
     m_widthHeightWidget->updateContent(twoDimAnnotation);
     m_rotationWidget->updateContent(twoDimAnnotation);
     m_insertDeleteWidget->updateContent(m_annotationBeingEdited);
