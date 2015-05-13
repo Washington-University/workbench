@@ -589,4 +589,259 @@ BrainOpenGLPrimitiveDrawing::drawQuadIndicesVertexArrays(const std::vector<float
     glDisableClientState(GL_NORMAL_ARRAY);
 }
 
+/**
+ * Draw a line between each pair of three-dimensional coordinates in the given color
+ * with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param rgba
+ *     One RGBA colors (4 elements) ranging [0.0, 1.0] that is used for drawing all of the lines.
+ * @param lineWidth
+ *     Line width used by line drawing modes.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawLineLoop(const std::vector<float>& coordinates,
+                                       const float rgba[4],
+                                       const float lineWidth)
+{
+    const uint8_t rgbaByte[4] = {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        static_cast<uint8_t>(rgba[3] * 255.0)
+    };
+    
+    std::vector<float> emptyNormals;
+    drawPrimitiveWithVertexArrays(GL_LINE_LOOP,
+                                  coordinates,
+                                  emptyNormals,
+                                  rgbaByte,
+                                  lineWidth);
+}
+
+/**
+ * Draw a line between each pair of three-dimensional coordinates in the given color
+ * with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param rgba
+ *     One RGBA colors (4 elements) ranging [0, 255] that is used for drawing all of the lines.
+ * @param lineWidth
+ *     Line width used by line drawing modes.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawLineLoop(const std::vector<float>& coordinates,
+                                       const uint8_t rgba[4],
+                                       const float lineWidth)
+{
+    std::vector<float> emptyNormals;
+    drawPrimitiveWithVertexArrays(GL_LINE_LOOP,
+                                  coordinates,
+                                  emptyNormals,
+                                  rgba,
+                                  lineWidth);
+}
+
+/**
+ * Draw a line between each pair of three-dimensional coordinates in the given color
+ * with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param rgba
+ *     One RGBA colors (4 elements) ranging [0.0, 1.0] that is used for drawing all of the lines.
+ * @param lineWidth
+ *     Line width used by line drawing modes.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawLines(const std::vector<float>& coordinates,
+                                       const float rgba[4],
+                                       const float lineWidth)
+{
+    const uint8_t rgbaByte[4] = {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        static_cast<uint8_t>(rgba[3] * 255.0)
+    };
+    
+    std::vector<float> emptyNormals;
+    drawPrimitiveWithVertexArrays(GL_LINES,
+                                  coordinates,
+                                  emptyNormals,
+                                  rgbaByte,
+                                  lineWidth);
+}
+
+/**
+ * Draw a line between each pair of three-dimensional coordinates in the given color
+ * with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param rgba
+ *     One RGBA colors (4 elements) ranging [0, 255] that is used for drawing all of the lines.
+ * @param lineWidth
+ *     Line width used by line drawing modes.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawLines(const std::vector<float>& coordinates,
+                                       const uint8_t rgba[4],
+                                       const float lineWidth)
+{
+    std::vector<float> emptyNormals;
+    drawPrimitiveWithVertexArrays(GL_LINES,
+                                  coordinates,
+                                  emptyNormals,
+                                  rgba,
+                                  lineWidth);
+}
+
+/**
+ * Draw a polygon with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param normals
+ *     Normal vectors.  There number of elements must match the numer of
+ *     coordinates (in which case normal vectors are applied) or empty
+ *     (in which case normal vectors are not applied).
+ * @param rgba
+ *     One RGBA colors (4 elements) ranging [0.0, 1.0] that is used for drawing all of the lines.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawPolygon(const std::vector<float>& coordinates,
+                                         const std::vector<float>& normals,
+                                         const float rgba[4])
+{
+    const uint8_t rgbaByte[4] = {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        static_cast<uint8_t>(rgba[3] * 255.0)
+    };
+    
+    const float lineWidth = 1.0;
+    drawPrimitiveWithVertexArrays(GL_POLYGON,
+                                  coordinates,
+                                  normals,
+                                  rgbaByte,
+                                  lineWidth);
+}
+
+/**
+ * Draw a polygon with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param normals
+ *     Normal vectors.  There number of elements must match the numer of
+ *     coordinates (in which case normal vectors are applied) or empty
+ *     (in which case normal vectors are not applied).
+ * @param rgba
+ *     One RGBA colors (4 elements) ranging [0.0, 1.0] that is used for drawing all of the lines.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawPolygon(const std::vector<float>& coordinates,
+                                         const std::vector<float>& normals,
+                                         const uint8_t rgba[4])
+{
+    const float lineWidth = 1.0;
+    drawPrimitiveWithVertexArrays(GL_POLYGON,
+                                  coordinates,
+                                  normals,
+                                  rgba,
+                                  lineWidth);
+}
+
+/**
+ * Draw a line between each pair of three-dimensional coordinates in the given color
+ * with optional normal vectors using the given OpenGL mode.
+ *
+ * @param mode
+ *     The OpenGL drawing mode.
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param normals
+ *     Normal vectors.  There number of elements must match the numer of
+ *     coordinates (in which case normal vectors are applied) or empty
+ *     (in which case normal vectors are not applied).
+ * @param rgba
+ *     One RGBA color (size=4) that is used for drawing all of the lines.
+ * @param lineWidth
+ *     Line width used by line drawing modes.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawPrimitiveWithVertexArrays(GLenum mode,
+                                                           const std::vector<float>& coordinates,
+                                                           const std::vector<float>& normals,
+                                                           const uint8_t rgba[4],
+                                                           const float lineWidth)
+{
+    const int64_t numCoords = static_cast<int32_t>(coordinates.size() / 3);
+    if (numCoords < 1) {
+        CaretLogWarning("Invalid number of coordinates=" + QString::number(numCoords));
+        return;
+    }
+    
+    std::vector<GLubyte> rgbaVector;
+    rgbaVector.reserve(numCoords * 4);
+    for (int32_t i = 0; i < numCoords; i++) {
+        rgbaVector.push_back(rgba[0]);
+        rgbaVector.push_back(rgba[1]);
+        rgbaVector.push_back(rgba[2]);
+        rgbaVector.push_back(rgba[3]);
+    }
+    
+    CaretAssert(numCoords == (rgbaVector.size() / 4));
+    
+    const int64_t numNormals = static_cast<int64_t>(normals.size());
+    if (numNormals > 0) {
+        if (numCoords != numNormals) {
+            const AString msg("Number of coordinates "
+                              + QString::number(numCoords)
+                              + " does not equal number of normals="
+                              + QString::number(numNormals));
+            CaretAssertMessage(0, msg);
+            CaretLogWarning(msg);
+            return;
+        }
+    }
+    
+
+    if ((mode == GL_LINES)
+        || (mode == GL_LINE_LOOP)
+        || (mode == GL_LINE_STRIP)) {
+        glLineWidth(lineWidth);
+    }
+    
+    glVertexPointer(3,
+                    GL_FLOAT,
+                    0,
+                    reinterpret_cast<const GLvoid*>(&coordinates[0]));
+    glColorPointer(4,
+                   GL_UNSIGNED_BYTE,
+                   0,
+                   reinterpret_cast<const GLvoid*>(&rgbaVector[0]));
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    if (numNormals > 0) {
+        glNormalPointer(GL_FLOAT,
+                        0,
+                        reinterpret_cast<const GLvoid*>(&normals[0]));
+        glEnableClientState(GL_NORMAL_ARRAY);
+    }
+    
+    glDrawArrays(mode, 0, numCoords);
+    
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+    if (numNormals > 0) {
+        glDisableClientState(GL_NORMAL_ARRAY);
+    }
+}
+
 

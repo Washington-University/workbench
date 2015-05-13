@@ -35,6 +35,7 @@
 #include "AnnotationText.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
@@ -677,7 +678,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
                                          arrowEndXYZ)) {
         return;
     }
-    const double lineWidth = arrow->getForegroundLineWidth();
+    const float lineWidth = arrow->getForegroundLineWidth();
+    const float backgroundLineWidth = lineWidth + 4;
     
     selectionCenterXYZOut[0] = (arrowStartXYZ[0] + arrowEndXYZ[0]) / 2.0;
     selectionCenterXYZOut[1] = (arrowStartXYZ[1] + arrowEndXYZ[1]) / 2.0;
@@ -743,63 +745,40 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
         arrowTipsOnLine[2] + leftRightTipOffset[2]
     };
     
-    bool drawBackgroundFlag = false;
+    const bool depthTestFlag = isDrawnWithDepthTesting(arrow);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
+    std::vector<float> coords;
+    coords.insert(coords.end(), arrowStartXYZ, arrowStartXYZ + 3);
+    coords.insert(coords.end(), arrowEndXYZ,   arrowEndXYZ + 3);
+    coords.insert(coords.end(), arrowEndXYZ,   arrowEndXYZ + 3);
+    coords.insert(coords.end(), rightTipEnd,   rightTipEnd + 3);
+    coords.insert(coords.end(), arrowEndXYZ,   arrowEndXYZ + 3);
+    coords.insert(coords.end(), leftTipEnd,    leftTipEnd + 3);
+    
     if (selectionFlag) {
-        glColor3ubv(selectionColorRGBA);
-        drawBackgroundFlag = true;
+        BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                               selectionColorRGBA,
+                                               backgroundLineWidth);
     }
     else {
         float backgroundRGBA[4];
         arrow->getBackgroundColorRGBA(backgroundRGBA);
         if (backgroundRGBA[3] > 0.0) {
-            glColor3fv(backgroundRGBA);
-            drawBackgroundFlag = true;
+            BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                                   backgroundRGBA,
+                                                   backgroundLineWidth);
         }
     }
-    
-    const bool depthTestFlag = isDrawnWithDepthTesting(arrow);
-    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
-    
-    if (drawBackgroundFlag) {
-        glLineWidth(lineWidth + 4.0);
-        glBegin(GL_LINES);
-        glVertex3dv(arrowStartXYZ);
-        glVertex3dv(arrowEndXYZ);
-        glVertex3dv(arrowEndXYZ);
-        glVertex3dv(rightTipEnd);
-        glVertex3dv(arrowEndXYZ);
-        glVertex3dv(leftTipEnd);
-        glEnd();
-    }
-    
     
     if ( ! selectionFlag) {
         float foregroundRGBA[4];
         arrow->getForegroundColorRGBA(foregroundRGBA);
         
-//        if (arrow->isSelected()) {
-//            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[0];
-//            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[1];
-//            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[2];
-//            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[3];
-//        }
-        
         if (foregroundRGBA[3] > 0.0) {
-            glColor3fv(foregroundRGBA);
-//            if (arrow->isSelected()) {
-//                glLineWidth(lineWidth + 2.0);
-//            }
-//            else {
-                glLineWidth(lineWidth);
-//            }
-            glBegin(GL_LINES);
-            glVertex3dv(arrowStartXYZ);
-            glVertex3dv(arrowEndXYZ);
-            glVertex3dv(arrowEndXYZ);
-            glVertex3dv(rightTipEnd);
-            glVertex3dv(arrowEndXYZ);
-            glVertex3dv(leftTipEnd);
-            glEnd();
+            BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                                   foregroundRGBA,
+                                                   lineWidth);
             
             if (arrow->isSelected()) {
                 drawAnnotationOneDimSelector(arrowStartXYZ,
@@ -835,21 +814,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
 {
     CaretAssert(box);
     CaretAssert(box->getType() == AnnotationTypeEnum::BOX);
-    bool drawBackgroundFlag = false;
-    
-    if (selectionFlag) {
-        drawBackgroundFlag = true;
-        glColor3ubv(selectionColorRGBA);
-    }
-    else {
-        float backgroundRGBA[4];
-        box->getBackgroundColorRGBA(backgroundRGBA);
-        if (backgroundRGBA[3] > 0.0) {
-            glColor3fv(backgroundRGBA);
-            drawBackgroundFlag = true;
-        }
-    }
-    
     
     double windowXYZ[3];
     if ( ! getAnnotationWindowCoordinate(box->getCoordinate(),
@@ -868,50 +832,47 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
         return;
     }
     
+    selectionCenterXYZOut[0] = (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0;
+    selectionCenterXYZOut[1] = (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0;
+    selectionCenterXYZOut[2] = (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0;
+    
     const float outlineWidth = box->getForegroundLineWidth();
     
     const bool depthTestFlag = isDrawnWithDepthTesting(box);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
 
-    if (drawBackgroundFlag) {
-        glBegin(GL_POLYGON);
-        glVertex3dv(bottomLeft);
-        glVertex3dv(bottomRight);
-        glVertex3dv(topRight);
-        glVertex3dv(topLeft);
-        glEnd();
-        
-        selectionCenterXYZOut[0] = (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0;
-        selectionCenterXYZOut[1] = (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0;
-        selectionCenterXYZOut[2] = (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0;
+    std::vector<float> coords;
+    coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);
+    coords.insert(coords.end(), bottomRight, bottomRight + 3);
+    coords.insert(coords.end(), topRight,    topRight + 3);
+    coords.insert(coords.end(), topLeft,     topLeft + 3);
+    
+    std::vector<float> dummyNormals;
+    
+    if (selectionFlag) {
+        BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                 dummyNormals,
+                                                 selectionColorRGBA);
     }
+    else {
+        float backgroundRGBA[4];
+        box->getBackgroundColorRGBA(backgroundRGBA);
+        if (backgroundRGBA[3] > 0.0) {
+            BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                     dummyNormals,
+                                                     backgroundRGBA);
+        }
+    }
+    
     
     if ( ! selectionFlag) {
         float foregroundRGBA[4];
         box->getForegroundColorRGBA(foregroundRGBA);
-
-//        if (box->isSelected()) {
-//            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[0];
-//            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[1];
-//            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[2];
-//            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[3];
-//        }
-        
         if (foregroundRGBA[3] > 0.0) {
-            glColor3fv(foregroundRGBA);
-//            if (box->isSelected()) {
-//                glLineWidth(outlineWidth + 2.0);
-//            }
-//            else {
-                glLineWidth(outlineWidth);
-//            }
-            glBegin(GL_LINE_LOOP);
-            glVertex3dv(bottomLeft);
-            glVertex3dv(bottomRight);
-            glVertex3dv(topRight);
-            glVertex3dv(topLeft);
-            glEnd();
-
+            BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+                                                      foregroundRGBA,
+                                                      outlineWidth);
+            
             if (box->isSelected()) {
                 drawAnnotationTwoDimSelector(bottomLeft,
                                              bottomRight,
@@ -1013,26 +974,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
     if ( ! selectionFlag) {
         uint8_t foregroundRGBA[4];
         oval->getForegroundColorRGBA(foregroundRGBA);
-        
-//        if (oval->isSelected()) {
-//            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[0];
-//            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[1];
-//            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[2];
-//            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[3];
-//        }
-//        
-//        if (oval->isSelected()) {
-//            m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
-//                                                           majorAxis+2,
-//                                                           minorAxis+2,
-//                                                           outlineWidth);
-//        }
-//        else if (foregroundRGBA[3] > 0.0) {
             m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
                                                            majorAxis,
                                                            minorAxis,
                                                            outlineWidth);
-//        }
     }
     
     glPopMatrix();
@@ -1075,20 +1020,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
     CaretAssert(text);
     CaretAssert(text->getType() == AnnotationTypeEnum::TEXT);
     
-    bool drawBackgroundFlag = false;
-    
-    if (selectionFlag) {
-        drawBackgroundFlag = true;
-        glColor3ubv(selectionColorRGBA);
-    }
-    else {
-        float backgroundRGBA[4];
-        text->getBackgroundColorRGBA(backgroundRGBA);
-        if (backgroundRGBA[3] > 0.0) {
-            glColor3fv(backgroundRGBA);
-            drawBackgroundFlag = true;
-        }
-    }
     
 
     double windowXYZ[3];
@@ -1107,22 +1038,36 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
     m_brainOpenGLFixedPipeline->textRenderer->getBoundsForTextAtViewportCoords(*text,
                                                                                windowXYZ[0], windowXYZ[1], windowXYZ[2],
                                                                                bottomLeft, bottomRight, topRight, topLeft);
+
+    std::vector<float> coords;
+    coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);
+    coords.insert(coords.end(), bottomRight, bottomRight + 3);
+    coords.insert(coords.end(), topRight,    topRight + 3);
+    coords.insert(coords.end(), topLeft,     topLeft + 3);
     
-    
+    std::vector<float> dummyNormals;
+
+    selectionCenterXYZOut[0] = (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0;
+    selectionCenterXYZOut[1] = (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0;
+    selectionCenterXYZOut[2] = (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0;
+
     const bool depthTestFlag = isDrawnWithDepthTesting(text);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
-    if (drawBackgroundFlag) {
-        glBegin(GL_POLYGON);
-        glVertex3dv(bottomLeft);
-        glVertex3dv(bottomRight);
-        glVertex3dv(topRight);
-        glVertex3dv(topLeft);
-        glEnd();
-        
-        selectionCenterXYZOut[0] = (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0;
-        selectionCenterXYZOut[1] = (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0;
-        selectionCenterXYZOut[2] = (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0;
+    
+    if (selectionFlag) {
+        BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                 dummyNormals,
+                                                 selectionColorRGBA);
+    }
+    else {
+        float backgroundRGBA[4];
+        text->getBackgroundColorRGBA(backgroundRGBA);
+        if (backgroundRGBA[3] > 0.0) {
+            BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                     dummyNormals,
+                                                     backgroundRGBA);
+        }
     }
     
     if ( ! selectionFlag) {
@@ -1145,26 +1090,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
                 float foregroundColor[4];
                 text->getForegroundColorRGBA(foregroundColor);
                 if (foregroundColor[3] > 0.0) {
-                    glColor4fv(foregroundColor);
-                    glLineWidth(2.0);
-                    glBegin(GL_LINES);
-                    glVertex3dv(bottomLeft);
-                    glVertex3dv(bottomRight);
-                    glEnd();
+                    std::vector<float> underlineCoords;
+                    underlineCoords.insert(underlineCoords.end(), bottomLeft,  bottomLeft + 3);
+                    underlineCoords.insert(underlineCoords.end(), bottomRight, bottomRight + 3);
+                    
+                    BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
+                                                           foregroundColor,
+                                                           2.0);
                 }
             }
         }
         
-//        if (text->isSelected()) {
-//            glColor4fv(m_brainOpenGLFixedPipeline->m_foregroundColorFloat);
-//            glLineWidth(3.0);
-//            glBegin(GL_LINE_LOOP);
-//            glVertex3dv(bottomLeft);
-//            glVertex3dv(bottomRight);
-//            glVertex3dv(topRight);
-//            glVertex3dv(topLeft);
-//            glEnd();
-//        }
         if ( ! selectionFlag) {
             if (text->isSelected()) {
                 const double outlineWidth = 2.0;
@@ -1220,59 +1156,43 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
                                          lineEndXYZ)) {
         return;
     }
-    const double lineWidth = line->getForegroundLineWidth();
+    const float lineWidth = line->getForegroundLineWidth();
+    const float backgroundLineWidth = lineWidth * 4;
     
-    bool drawBackgroundFlag = false;
+    const bool depthTestFlag = isDrawnWithDepthTesting(line);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
+    std::vector<float> coords;
+    coords.insert(coords.end(), lineStartXYZ, lineStartXYZ + 3);
+    coords.insert(coords.end(), lineEndXYZ,   lineEndXYZ + 3);
+    
     if (selectionFlag) {
-        glColor3ubv(selectionColorRGBA);
-        drawBackgroundFlag = true;
-
         selectionCenterXYZOut[0] = (lineStartXYZ[0] + lineEndXYZ[0]) / 2.0;
         selectionCenterXYZOut[1] = (lineStartXYZ[1] + lineEndXYZ[1]) / 2.0;
         selectionCenterXYZOut[2] = (lineStartXYZ[2] + lineEndXYZ[2]) / 2.0;
+        
+        BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                               selectionColorRGBA,
+                                               backgroundLineWidth);
     }
     else {
         float backgroundRGBA[4];
         line->getBackgroundColorRGBA(backgroundRGBA);
         if (backgroundRGBA[3] > 0.0) {
-            glColor3fv(backgroundRGBA);
-            drawBackgroundFlag = true;
+            BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                                   backgroundRGBA,
+                                                   backgroundLineWidth);
         }
-    }
-    const bool depthTestFlag = isDrawnWithDepthTesting(line);
-    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
-    
-    if (drawBackgroundFlag) {
-        glLineWidth(lineWidth + 4.0);
-        glBegin(GL_LINES);
-        glVertex3dv(lineStartXYZ);
-        glVertex3dv(lineEndXYZ);
-        glEnd();
     }
     
     if ( ! selectionFlag) {
         float foregroundRGBA[4];
         line->getForegroundColorRGBA(foregroundRGBA);
-
-//        if (line->isSelected()) {
-//            foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[0];
-//            foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[1];
-//            foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[2];
-//            foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorFloat[3];
-//        }
         
         if (foregroundRGBA[3] > 0.0) {
-//            if (line->isSelected()) {
-//                glLineWidth(lineWidth + 2.0);
-//            }
-//            else {
-                glLineWidth(lineWidth);
-//            }
-            glColor3fv(foregroundRGBA);
-            glBegin(GL_LINES);
-            glVertex3dv(lineStartXYZ);
-            glVertex3dv(lineEndXYZ);
-            glEnd();
+            BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                                   foregroundRGBA,
+                                                   lineWidth);
             
             if (line->isSelected()) {
                 drawAnnotationOneDimSelector(lineStartXYZ,
@@ -1299,16 +1219,31 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSelectorSquare(const double xyz[3
                                                       const double rotationAngle)
 {
     glPushMatrix();
+    
     glTranslated(xyz[0], xyz[1], xyz[2]);
     if (rotationAngle != 0.0) {
         glRotated(-rotationAngle, 0.0, 0.0, 1.0);
     }
-    glBegin(GL_POLYGON);
-    glVertex3d(-halfWidthHeight, -halfWidthHeight, 0.0);
-    glVertex3d( halfWidthHeight, -halfWidthHeight, 0.0);
-    glVertex3d( halfWidthHeight,  halfWidthHeight, 0.0);
-    glVertex3d(-halfWidthHeight,  halfWidthHeight, 0.0);
-    glEnd();
+    
+    std::vector<float> coords;
+    coords.push_back(-halfWidthHeight);
+    coords.push_back(-halfWidthHeight);
+    coords.push_back(0.0);
+    coords.push_back( halfWidthHeight);
+    coords.push_back(-halfWidthHeight);
+    coords.push_back(0.0);
+    coords.push_back( halfWidthHeight);
+    coords.push_back( halfWidthHeight);
+    coords.push_back(0.0);
+    coords.push_back(-halfWidthHeight);
+    coords.push_back( halfWidthHeight);
+    coords.push_back(0.0);
+    
+    std::vector<float> dummyNormals;
+    BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                             dummyNormals,
+                                             m_brainOpenGLFixedPipeline->m_foregroundColorByte);
+
     glPopMatrix();
 }
 
@@ -1347,7 +1282,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSelector(const do
         firstPoint[2] - directionVector[2]
     };
     
-//    const double secondPointOffsetMultiplier = (applyThicknessToSecondPointFlag ? lineThickness : 0.0);
     const double secondPointSymbolXYZ[3] = {
         secondPoint[0] + directionVector[0],
         secondPoint[1] + directionVector[1],
@@ -1356,12 +1290,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSelector(const do
     
     double rotationAngle = 0.0;
     if ((dy != 0.0) && (dx != 0.0)) {
-//        const double angleRadians = std::atan2(dy, dx);
         const double angleRadians = std::atan2(dx, dy);
         rotationAngle = MathFunctions::toDegrees(angleRadians);
     }
     
-    glColor3ubv(m_brainOpenGLFixedPipeline->m_foregroundColorByte);
     drawSelectorSquare(firstPointSymbolXYZ,
                        cornerSquareSize,
                        rotationAngle);
@@ -1433,15 +1365,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSelector(const do
         bottomRight[2]
     };
     
-    glColor3ubv(m_brainOpenGLFixedPipeline->m_foregroundColorByte);
+    std::vector<float> coords;
+    coords.insert(coords.end(), selectorBottomLeft,  selectorBottomLeft + 3);
+    coords.insert(coords.end(), selectorBottomRight, selectorBottomRight + 3);
+    coords.insert(coords.end(), selectorTopRight,    selectorTopRight + 3);
+    coords.insert(coords.end(), selectorTopLeft,     selectorTopLeft + 3);
     
-    glLineWidth(2.0);
-    glBegin(GL_LINE_LOOP);
-    glVertex3dv(selectorBottomLeft);
-    glVertex3dv(selectorBottomRight);
-    glVertex3dv(selectorTopRight);
-    glVertex3dv(selectorTopLeft);
-    glEnd();
+    BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+                                              m_brainOpenGLFixedPipeline->m_foregroundColorByte,
+                                              2.0);
     
     const double cornerSquareSize = 3.0;
     drawSelectorSquare(selectorBottomLeft,
