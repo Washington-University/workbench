@@ -82,6 +82,8 @@ namespace caret {
         
         AnnotationText* m_annotationText;
         
+        bool m_smallLayoutFlag;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

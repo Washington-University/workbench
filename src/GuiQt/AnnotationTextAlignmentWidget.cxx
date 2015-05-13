@@ -64,9 +64,9 @@ AnnotationTextAlignmentWidget::AnnotationTextAlignmentWidget(const int32_t brows
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
+    m_smallLayoutFlag = true;
     m_annotationText = NULL;
     
-    QLabel* horizontalLabel = new QLabel("Text Horizontal");
     QToolButton* leftAlignToolButton   = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::LEFT);
     QToolButton* centerAlignToolButton = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::CENTER);
     QToolButton* rightAlignToolButton  = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::RIGHT);
@@ -80,13 +80,6 @@ m_browserWindowIndex(browserWindowIndex)
                      this, SLOT(horizontalAlignmentActionSelected(QAction*)));
     
     
-    QHBoxLayout* horizontalAlignLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(horizontalAlignLayout, 2, 0);
-    horizontalAlignLayout->addWidget(leftAlignToolButton);
-    horizontalAlignLayout->addWidget(centerAlignToolButton);
-    horizontalAlignLayout->addWidget(rightAlignToolButton);
-    
-    QLabel* verticalLabel = new QLabel("Text Vertical");
     QToolButton* topAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::TOP);
     QToolButton* middleAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::MIDDLE);
     QToolButton* bottomAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::BOTTOM);
@@ -99,27 +92,52 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_verticalAlignActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(verticalAlignmentActionSelected(QAction*)));
     
-    QHBoxLayout* verticalAlignLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(verticalAlignLayout, 2, 0);
-    verticalAlignLayout->addWidget(topAlignToolButton);
-    verticalAlignLayout->addWidget(middleAlignToolButton);
-    verticalAlignLayout->addWidget(bottomAlignToolButton);
-    
+
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
-    gridLayout->addWidget(horizontalLabel,
-                          0, 0,
-                          Qt::AlignHCenter);
-    gridLayout->addLayout(horizontalAlignLayout,
-                          1, 0);
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
-                          0, 1,
-                          2, 1);
-    gridLayout->addWidget(verticalLabel,
-                          0, 2,
-                          Qt::AlignHCenter);
-    gridLayout->addLayout(verticalAlignLayout,
-                          1, 2);
+    if (m_smallLayoutFlag) {
+        QLabel* alignmentLabel = new QLabel("Alignment");
+        int row = gridLayout->rowCount();
+        gridLayout->addWidget(alignmentLabel, row, 0, 1, 3, Qt::AlignHCenter);
+        row++;
+        gridLayout->addWidget(leftAlignToolButton, row, 0);
+        gridLayout->addWidget(centerAlignToolButton, row, 1);
+        gridLayout->addWidget(rightAlignToolButton, row, 2);
+        row++;
+        gridLayout->addWidget(topAlignToolButton, row, 0);
+        gridLayout->addWidget(middleAlignToolButton, row, 1);
+        gridLayout->addWidget(bottomAlignToolButton, row, 2);
+    }
+    else {
+        QLabel* horizontalLabel = new QLabel("Text Horizontal");
+        QHBoxLayout* horizontalAlignLayout = new QHBoxLayout();
+        WuQtUtilities::setLayoutSpacingAndMargins(horizontalAlignLayout, 2, 0);
+        horizontalAlignLayout->addWidget(leftAlignToolButton);
+        horizontalAlignLayout->addWidget(centerAlignToolButton);
+        horizontalAlignLayout->addWidget(rightAlignToolButton);
+        
+        QLabel* verticalLabel = new QLabel("Text Vertical");
+        QHBoxLayout* verticalAlignLayout = new QHBoxLayout();
+        WuQtUtilities::setLayoutSpacingAndMargins(verticalAlignLayout, 2, 0);
+        verticalAlignLayout->addWidget(topAlignToolButton);
+        verticalAlignLayout->addWidget(middleAlignToolButton);
+        verticalAlignLayout->addWidget(bottomAlignToolButton);
+        
+        gridLayout->addWidget(horizontalLabel,
+                              0, 0,
+                              Qt::AlignHCenter);
+        gridLayout->addLayout(horizontalAlignLayout,
+                              1, 0);
+        gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
+                              0, 1,
+                              2, 1);
+        gridLayout->addWidget(verticalLabel,
+                              0, 2,
+                              Qt::AlignHCenter);
+        gridLayout->addLayout(verticalAlignLayout,
+                              1, 2);
+    }
+    
     
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
@@ -283,13 +301,13 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentToolButton(const Annotat
     QString toolTipText;
     switch (horizontalAlignment) {
         case AnnotationTextAlignHorizontalEnum::CENTER:
-            toolTipText = "Align Center";
+            toolTipText = "Align Text Center";
             break;
         case AnnotationTextAlignHorizontalEnum::LEFT:
-            toolTipText = "Align Left";
+            toolTipText = "Align Text Left";
             break;
         case AnnotationTextAlignHorizontalEnum::RIGHT:
-            toolTipText = "Align Right";
+            toolTipText = "Align Text Right";
             break;
     }
     
@@ -322,13 +340,13 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentToolButton(const Annotatio
     QString toolTipText;
     switch (verticalAlignment) {
         case AnnotationTextAlignVerticalEnum::BOTTOM:
-            toolTipText = "Align Bottom";
+            toolTipText = "Align Text Bottom";
             break;
         case AnnotationTextAlignVerticalEnum::MIDDLE:
-            toolTipText = "Align Middle";
+            toolTipText = "Align Text Middle";
             break;
         case AnnotationTextAlignVerticalEnum::TOP:
-            toolTipText = "Align Top";
+            toolTipText = "Align Text Top";
             break;
     }
     
@@ -380,8 +398,16 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* wi
      * Create a small, square pixmap that will contain
      * the foreground color around the pixmap's perimeter.
      */
-    const float width  = 24.0;
-    const float height = 24.0;
+    float width  = 24.0;
+    float height = 24.0;
+    int32_t numLines = 5;
+    
+    if (m_smallLayoutFlag) {
+        width    = 12.0;
+        height   = 12.0;
+        numLines = 3;
+    }
+    
     QPixmap pixmap(static_cast<int>(width),
               static_cast<int>(height));
     
@@ -404,9 +430,9 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* wi
     const qreal margin          = width * 0.05;
     const qreal longLineLength  = width - (margin * 2.0);
     const qreal shortLineLength = width / 2.0;
-    const qreal yStep = std::round(height / 6.0);
+    const qreal yStep = std::round(height / (numLines + 1));  //6.0);
     
-    for (int32_t i = 1; i <= 5; i++) {
+    for (int32_t i = 1; i <= numLines; i++) {
         const qreal lineLength = (((i % 2) == 0)
                                   ? shortLineLength
                                   : longLineLength);
@@ -471,8 +497,20 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widg
      * Create a small, square pixmap that will contain
      * the foreground color around the pixmap's perimeter.
      */
-    const float width  = 24.0;
-    const float height = 24.0;
+    /*
+     * Create a small, square pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
+     */
+    float width      = 24.0;
+    float height     = 24.0;
+    int32_t numLines = 3;
+    
+    if (m_smallLayoutFlag) {
+        width    = 12.0;
+        height   = 12.0;
+        numLines = 2;
+    }
+    
     QPixmap pixmap(static_cast<int>(width),
                    static_cast<int>(height));
     
@@ -493,37 +531,67 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widg
     painter.setPen(foregroundColor);
     
     const qreal margin          = width * 0.05;
-    const qreal longLineLength  = width - (margin * 2.0);
-    const qreal shortLineLength = width / 2.0;
-    const qreal yStep = std::round(height / 6.0);
     
-    for (int32_t i = 1; i <= 3; i++) {
-        const qreal lineLength = (((i % 2) == 0)
-                                  ? shortLineLength
-                                  : longLineLength);
-        
-        int32_t iOffset = i;
+    if (m_smallLayoutFlag) {
+        float yStep = 3.0;
+        float y1 = 0.0;
+        float y2 = 0.0;
         switch (verticalAlignment) {
             case AnnotationTextAlignVerticalEnum::BOTTOM:
-                iOffset += 2;
+                y1 = (height - 1 - yStep);
+                y2 = y1 + yStep;
                 break;
             case AnnotationTextAlignVerticalEnum::MIDDLE:
-                iOffset += 1;
+                y1 = std::round((height / 2.0) - (yStep / 2.0));
+                y2 = y1 + yStep;
                 break;
             case AnnotationTextAlignVerticalEnum::TOP:
+                y1 = yStep;
+                y2 = y1 + yStep;
                 break;
         }
-        const qreal y = yStep * iOffset;
         
-        const qreal xStart = margin;
-        const qreal xEnd   = xStart + lineLength;
-
+        const float xStart = margin;
+        const float xEnd   = width - (margin * 2.0);
         
-        painter.drawLine(QLineF(xStart,
-                                y,
-                                xEnd,
-                                y));
+        painter.drawLine(QLineF(xStart, y1,
+                                xEnd,   y1));
+        painter.drawLine(QLineF(xStart, y2,
+                                xEnd,   y2));
     }
+    else {
+        const qreal longLineLength  = width - (margin * 2.0);
+        const qreal shortLineLength = width / 2.0;
+        const qreal yStep = std::round(height / 6.0);
+        for (int32_t i = 1; i <= numLines; i++) {
+            const qreal lineLength = (((i % 2) == 0)
+                                      ? shortLineLength
+                                      : longLineLength);
+            
+            int32_t iOffset = i;
+            switch (verticalAlignment) {
+                case AnnotationTextAlignVerticalEnum::BOTTOM:
+                    iOffset += 2;
+                    break;
+                case AnnotationTextAlignVerticalEnum::MIDDLE:
+                    iOffset += 1;
+                    break;
+                case AnnotationTextAlignVerticalEnum::TOP:
+                    break;
+            }
+            const qreal y = yStep * iOffset;
+            
+            const qreal xStart = margin;
+            const qreal xEnd   = xStart + lineLength;
+            
+            
+            painter.drawLine(QLineF(xStart,
+                                    y,
+                                    xEnd,
+                                    y));
+        }
+    }
+    
     return pixmap;
 }
 
