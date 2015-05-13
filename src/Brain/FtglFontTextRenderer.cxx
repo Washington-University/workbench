@@ -626,9 +626,6 @@ FtglFontTextRenderer::getBoundsForHorizontalTextAtWindowCoords(const AnnotationT
     const double textMinY = viewportY + textOffsetY;
     const double textMaxY = textMinY + (upper.Y() - lower.Y());
     
-    const double halfWidth  = (textMaxX - textMinX) / 2.0;
-    const double halfHeight = (textMaxY - textMinY) / 2.0;
-    
     firstTextCharacterXYZOut[0] = textMinX;
     firstTextCharacterXYZOut[1] = textMinY;
     firstTextCharacterXYZOut[2] = 0.0;
@@ -816,12 +813,6 @@ FtglFontTextRenderer::getBoundsForVerticalTextAtWindowCoords(const AnnotationTex
     const double backMaxY = viewportY + textBackgroundTopOffsetY;
     const double backMinY = backMaxY - textBoundsHeight;
     
-    const double translateValueForRotation[3] = {
-        -(backMinX + backMaxX) / 2.0,
-        -(backMaxY + backMaxY) / 2.0,
-        -(viewportZ + viewportZ) / 2.0
-    };
-    
     bottomLeftOut[0]  = backMinX - s_textMarginSize;
     bottomLeftOut[1]  = backMinY - s_textMarginSize;
     bottomLeftOut[2]  = viewportZ;
@@ -900,11 +891,6 @@ FtglFontTextRenderer::getBoundsForVerticalTextAtWindowCoords(const AnnotationTex
             translateFirstChar[0] = textCharsToDraw[0].m_x;
             translateFirstChar[1] = textCharsToDraw[0].m_y;
         }
-        const double zeroCharPos[3] = {
-            0.0,
-            0.0,
-            0.0
-        };
         
         Matrix4x4 matrix;
         matrix.translate(-rotationX, -rotationY, 0.0);
@@ -1140,7 +1126,6 @@ FtglFontTextRenderer::drawVerticalTextAtWindowCoords(const double windowX,
 //    const double textOffsetY = s_textMarginSize;
     
     const double halfTextWidth = MathFunctions::distance3D(topLeftOut, topRightOut) / 2.0;
-    const double textOffsetX = halfTextWidth * std::cos(MathFunctions::toRadians(rotationAngle));
     const double textOffsetY = halfTextWidth * std::sin(MathFunctions::toRadians(rotationAngle));
 //    std::cout << "Text offset X: " << textOffsetX << " Offset Y: " << textOffsetY << " angle=" << rotationAngle << std::endl;
     //textX -= textOffsetX;

@@ -95,7 +95,7 @@ AnnotationTextOrientationWidget::~AnnotationTextOrientationWidget()
  *    An event for which this instance is listening.
  */
 void
-AnnotationTextOrientationWidget::receiveEvent(Event* event)
+AnnotationTextOrientationWidget::receiveEvent(Event* /*event*/)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);

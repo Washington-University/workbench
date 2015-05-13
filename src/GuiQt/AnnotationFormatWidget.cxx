@@ -85,7 +85,7 @@ AnnotationFormatWidget::~AnnotationFormatWidget()
  *    An event for which this instance is listening.
  */
 void
-AnnotationFormatWidget::receiveEvent(Event* event)
+AnnotationFormatWidget::receiveEvent(Event* /*event*/)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
@@ -101,7 +101,7 @@ AnnotationFormatWidget::receiveEvent(Event* event)
  * @param annotation.
  */
 void
-AnnotationFormatWidget::updateContent(Annotation* annotation)
+AnnotationFormatWidget::updateContent(Annotation* /*annotation*/)
 {
     
     //    if (m_annotation != NULL) {

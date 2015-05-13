@@ -121,7 +121,7 @@ AnnotationInsertNewWidget::~AnnotationInsertNewWidget()
  *    An event for which this instance is listening.
  */
 void
-AnnotationInsertNewWidget::receiveEvent(Event* event)
+AnnotationInsertNewWidget::receiveEvent(Event* /*event*/)
 {
     //    if (event->getEventType() == EventTypeEnum::) {
     //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);

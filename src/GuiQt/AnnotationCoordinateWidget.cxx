@@ -153,7 +153,7 @@ AnnotationCoordinateWidget::~AnnotationCoordinateWidget()
  *    An event for which this instance is listening.
  */
 void
-AnnotationCoordinateWidget::receiveEvent(Event* event)
+AnnotationCoordinateWidget::receiveEvent(Event* /* event */)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);

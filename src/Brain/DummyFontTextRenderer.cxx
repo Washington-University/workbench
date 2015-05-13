@@ -163,10 +163,10 @@ DummyFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& /*
                                                         const double /*viewportX*/,
                                                         const double /*viewportY*/,
                                                         const double /*viewportZ*/,
-                                                        double bottomLeftOut[3],
-                                                        double bottomRightOut[3],
-                                                        double topRightOut[3],
-                                                        double topLeftOut[3])
+                                                        double* /*bottomLeftOut[3]*/,
+                                                        double* /*bottomRightOut[3]*/,
+                                                        double* /*topRightOut[3]*/,
+                                                        double* /*topLeftOut[3]*/)
 {
     
 }

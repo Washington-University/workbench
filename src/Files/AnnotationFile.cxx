@@ -295,7 +295,7 @@ AnnotationFile::operator=(const AnnotationFile& obj)
  *    Object that is copied.
  */
 void 
-AnnotationFile::copyHelperAnnotationFile(const AnnotationFile& obj)
+AnnotationFile::copyHelperAnnotationFile(const AnnotationFile& /* obj */)
 {
     CaretAssertMessage(0, "Copying of annotation file not implemented.  "
                        "Will need to check subtype or have a 'clone' method' that each "

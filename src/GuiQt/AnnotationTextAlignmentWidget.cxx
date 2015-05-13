@@ -231,7 +231,7 @@ AnnotationTextAlignmentWidget::updateContent(AnnotationText* annotationText)
  *    An event for which this instance is listening.
  */
 void
-AnnotationTextAlignmentWidget::receiveEvent(Event* event)
+AnnotationTextAlignmentWidget::receiveEvent(Event* /*event*/)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
