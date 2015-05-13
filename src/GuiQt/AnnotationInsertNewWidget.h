@@ -50,8 +50,6 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private slots:
-        void coordinateSpaceEnumChanged();
-        
         void deleteActionTriggered();
         
         void textActionTriggered();
@@ -79,8 +77,6 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         Annotation* m_annotation;
-        
-        QAction* m_textToolButtonAction;
         
         QAction* m_shapeToolButtonAction;
         

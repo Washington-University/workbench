@@ -66,36 +66,29 @@ m_browserWindowIndex(browserWindowIndex)
     
     QLabel* insertLabel = new QLabel("Insert");
     QLabel* deleteLabel = new QLabel("Delete");
-    QWidget* textToolButton = createTextToolButton();
+    QWidget* textToolButton = NULL; //createTextToolButton();
     QWidget* shapeToolButton = createShapeToolButton();
     m_deleteToolButton = createDeleteToolButton();
     
-    WuQtUtilities::matchWidgetHeights(textToolButton,
-                                      shapeToolButton,
-                                      m_deleteToolButton);
-    
-//    QHBoxLayout* toolButtonLayout = new QHBoxLayout();
-//    WuQtUtilities::setLayoutSpacingAndMargins(toolButtonLayout, 2, 0);
-//    toolButtonLayout->addStretch();
-//    toolButtonLayout->addWidget(textToolButton);
-//    toolButtonLayout->addWidget(shapeToolButton);
-//    toolButtonLayout->addSpacing(6);
-//    toolButtonLayout->addWidget(deleteToolButton);
-//    toolButtonLayout->addStretch();
-//    
-//    QVBoxLayout* layout = new QVBoxLayout(this);
-//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-//    layout->addWidget(insertLabel, 0, Qt::AlignHCenter);
-//    layout->addLayout(toolButtonLayout);
+    WuQtUtilities::matchWidgetHeights(shapeToolButton,
+                                      m_deleteToolButton,
+                                      textToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     gridLayout->addWidget(insertLabel,
                           0, 0, 1, 2, Qt::AlignHCenter);
-    gridLayout->addWidget(textToolButton,
-                          1, 0);
-    gridLayout->addWidget(shapeToolButton,
-                          1, 1);
+    if (textToolButton != NULL) {
+        gridLayout->addWidget(textToolButton,
+                              1, 0);
+        gridLayout->addWidget(shapeToolButton,
+                              1, 1);
+    }
+    else {
+        gridLayout->addWidget(shapeToolButton,
+                              1, 0,
+                              1, 2, Qt::AlignHCenter);
+    }
     gridLayout->addWidget(deleteLabel,
                           0, 2, Qt::AlignHCenter);
     gridLayout->addWidget(m_deleteToolButton,
@@ -142,22 +135,6 @@ AnnotationInsertNewWidget::updateContent(Annotation* annotation)
     m_annotation = annotation;
     
     m_deleteToolButtonAction->setEnabled(m_annotation != NULL);
-    
-    //    if (m_annotation != NULL) {
-    //        m_coordinateSpaceComboBox->setSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(m_annotation->getCoordinateSpace());
-    //        m_typeComboBox->setSelectedItem<AnnotationTypeEnum, AnnotationTypeEnum::Enum>(m_annotation->getType());
-    //    }
-}
-
-/**
- * Gets called when the coordinate space is changed.
- */
-void
-AnnotationInsertNewWidget::coordinateSpaceEnumChanged()
-{
-    //    if (m_annotation != NULL) {
-    //        m_annotation->setCoordinateSpace(m_coordinateSpaceComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>());
-    //    }
 }
 
 /**
@@ -166,17 +143,18 @@ AnnotationInsertNewWidget::coordinateSpaceEnumChanged()
 QWidget*
 AnnotationInsertNewWidget::createTextToolButton()
 {
-    m_textToolButtonAction = WuQtUtilities::createAction("A",
+    QAction* textToolButtonAction;
+    textToolButtonAction = WuQtUtilities::createAction("A",
                                                          "Create a text annotation",
                                                          this,
                                                          this,
                                                          SLOT(textActionTriggered()));
-    QFont font = m_textToolButtonAction->font();
+    QFont font = textToolButtonAction->font();
     font.setPixelSize(20);
-    m_textToolButtonAction->setFont(font);
+    textToolButtonAction->setFont(font);
     
     QToolButton* toolButton = new QToolButton();
-    toolButton->setDefaultAction(m_textToolButtonAction);
+    toolButton->setDefaultAction(textToolButtonAction);
     return toolButton;
 }
 
@@ -194,6 +172,7 @@ AnnotationInsertNewWidget::createShapeToolButton()
     AnnotationTypeEnum::getAllEnums(allTypes);
     
     QAction* boxAction = NULL;
+    QAction* textAction = NULL;
     for (std::vector<AnnotationTypeEnum::Enum>::iterator iter = allTypes.begin();
          iter != allTypes.end();
          iter++) {
@@ -216,6 +195,7 @@ AnnotationInsertNewWidget::createShapeToolButton()
                 useTypeFlag = true;
                 break;
             case AnnotationTypeEnum::TEXT:
+                useTypeFlag = true;
                 break;
         }
         
@@ -228,8 +208,15 @@ AnnotationInsertNewWidget::createShapeToolButton()
             if (annType == AnnotationTypeEnum::BOX) {
                 boxAction = typeAction;
             }
+            else if (annType == AnnotationTypeEnum::TEXT) {
+                textAction = typeAction;
+            }
         }
     }
+    
+    QAction* selectedAction = ((textAction != NULL)
+                               ? textAction
+                               : boxAction);
     
     m_shapeToolButtonAction = WuQtUtilities::createAction("Shape",
                                                           "Create the selected shape annotation\n"
@@ -246,12 +233,13 @@ AnnotationInsertNewWidget::createShapeToolButton()
     /*
      * Initialize the shape tool button action to the BOX action.
      */
-    CaretAssert(boxAction);
-    m_shapeToolButtonAction->blockSignals(true);
-    m_shapeToolButtonAction->setIcon(boxAction->icon());
-    m_shapeToolButtonAction->setData(boxAction->data());
-    m_shapeToolButtonAction->setText("");
-    m_shapeToolButtonAction->blockSignals(false);
+    if (selectedAction != NULL) {
+        m_shapeToolButtonAction->blockSignals(true);
+        m_shapeToolButtonAction->setIcon(selectedAction->icon());
+        m_shapeToolButtonAction->setData(selectedAction->data());
+        m_shapeToolButtonAction->setText("");
+        m_shapeToolButtonAction->blockSignals(false);
+    }
     
     return toolButton;
 }
@@ -330,7 +318,6 @@ AnnotationInsertNewWidget::deleteActionTriggered()
 void
 AnnotationInsertNewWidget::createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType)
 {
-    std::cout << "Create Shape Type: " << qPrintable(AnnotationTypeEnum::toName(annotationType)) << std::endl;
     EventManager::get()->sendEvent(EventAnnotation().setModeCreateNewAnnotationType(annotationType).getPointer());
 }
 
@@ -459,7 +446,14 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
             painter.drawEllipse(1, 1, width - 1, height - 1);
             break;
         case AnnotationTypeEnum::TEXT:
-            CaretAssertMessage(0, "TEXT is not a shape.");
+        {
+            QFont font = painter.font();
+            font.setPixelSize(20);
+            painter.setFont(font);
+            painter.drawText(pixmap.rect(),
+                             (Qt::AlignCenter),
+                             "A");
+        }
             break;
     }
     
