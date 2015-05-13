@@ -103,7 +103,7 @@ bool
 BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const AnnotationCoordinate* coordinate,
                                                                          const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace,
                                                                           const Surface* surfaceDisplayed,
-                                                                          double windowXYZOut[3]) const
+                                                                          float windowXYZOut[3]) const
 {
     double modelXYZ[3]  = { 0.0, 0.0, 0.0 };
     bool modelXYZValid = false;
@@ -243,14 +243,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
                                                                           const GLint viewport[4],
-                                                                          const double windowXYZ[3],
-                                                                          double bottomLeftOut[3],
-                                                                          double bottomRightOut[3],
-                                                                          double topRightOut[3],
-                                                                          double topLeftOut[3]) const
+                                                                          const float windowXYZ[3],
+                                                                          float bottomLeftOut[3],
+                                                                          float bottomRightOut[3],
+                                                                          float topRightOut[3],
+                                                                          float topLeftOut[3]) const
 {
-    const double viewportWidth  = viewport[2];
-    const double viewportHeight = viewport[3];
+    const float viewportWidth  = viewport[2];
+    const float viewportHeight = viewport[3];
     
     bool boundsValid = false;
     const AnnotationText* textAnnotation = dynamic_cast<const AnnotationText*>(annotation2D);
@@ -265,8 +265,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
         /*
          * NOTE: Annotation's height and width are 'relative' ([0.0, 1.0] percentage) of window size.
          */
-        const double halfWidth  = (annotation2D->getWidth()  / 2.0) * viewportWidth;
-        const double halfHeight = (annotation2D->getHeight() / 2.0) * viewportHeight;
+        const float halfWidth  = (annotation2D->getWidth()  / 2.0) * viewportWidth;
+        const float halfHeight = (annotation2D->getHeight() / 2.0) * viewportHeight;
         
         bottomLeftOut[0]  = windowXYZ[0] - halfWidth;
         bottomLeftOut[1]  = windowXYZ[1] - halfHeight;
@@ -309,12 +309,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
  *     The top left corner of the annotation bounds.
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const double rotationAngle,
-                                                                const double rotationPoint[3],
-                                                                double bottomLeftOut[3],
-                                                                double bottomRightOut[3],
-                                                                double topRightOut[3],
-                                                                double topLeftOut[3]) const
+BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const float rotationAngle,
+                                                                const float rotationPoint[3],
+                                                                float bottomLeftOut[3],
+                                                                float bottomRightOut[3],
+                                                                float topRightOut[3],
+                                                                float topLeftOut[3]) const
 {
     if (rotationAngle != 0) {
         Matrix4x4 matrix;
@@ -331,27 +331,27 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const double rot
     }
 }
 
-void
-BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToPoints(const double rotationAngle,
-                                                                 const double windowXYZ[3],
-                                                                 const std::vector<double*>& points3D) const
-{
-    if (rotationAngle == 0.0) {
-        return;
-    }
-    
-    Matrix4x4 matrix;
-    matrix.translate(-windowXYZ[0], -windowXYZ[1], -windowXYZ[2]);
-    matrix.rotateZ(-rotationAngle);
-    matrix.translate(windowXYZ[0], windowXYZ[1], windowXYZ[2]);
-    
-    for (std::vector<double*>::const_iterator iter = points3D.begin();
-         iter != points3D.end();
-         iter++) {
-        double* p3D = *iter;
-        matrix.multiplyPoint3(p3D);
-    }
-}
+//void
+//BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToPoints(const float rotationAngle,
+//                                                                 const float windowXYZ[3],
+//                                                                 const std::vector<double*>& points3D) const
+//{
+//    if (rotationAngle == 0.0) {
+//        return;
+//    }
+//    
+//    Matrix4x4 matrix;
+//    matrix.translate(-windowXYZ[0], -windowXYZ[1], -windowXYZ[2]);
+//    matrix.rotateZ(-rotationAngle);
+//    matrix.translate(windowXYZ[0], windowXYZ[1], windowXYZ[2]);
+//    
+//    for (std::vector<double*>::const_iterator iter = points3D.begin();
+//         iter != points3D.end();
+//         iter++) {
+//        double* p3D = *iter;
+//        matrix.multiplyPoint3(p3D);
+//    }
+//}
 
 /**
  * Draw the annotations in the given coordinate space.
@@ -541,7 +541,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                 annotationsDrawnForSelection.push_back(annotation);
             }
             
-            double selectionCenterXYZ[3];
+            float selectionCenterXYZ[3];
             
             switch (annotation->getType()) {
                 case AnnotationTypeEnum::ARROW:
@@ -658,13 +658,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
                                                      const Surface* surfaceDisplayed,
                                                      const uint8_t selectionColorRGBA[4],
                                                      const bool selectionFlag,
-                                                     double selectionCenterXYZOut[3])
+                                                     float selectionCenterXYZOut[3])
 {
     CaretAssert(arrow);
     CaretAssert(arrow->getType() == AnnotationTypeEnum::ARROW);
     
-    double arrowStartXYZ[3];
-    double arrowEndXYZ[3];
+    float arrowStartXYZ[3];
+    float arrowEndXYZ[3];
     
     if ( ! getAnnotationWindowCoordinate(arrow->getStartCoordinate(),
                                          arrow->getCoordinateSpace(),
@@ -688,21 +688,21 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
     /*
      * Length of arrow's line
      */
-    const double lineLength = MathFunctions::distance3D(arrowStartXYZ,
+    const float lineLength = MathFunctions::distance3D(arrowStartXYZ,
                                                         arrowEndXYZ);
     
     /*
      * Length of arrow's right and left pointer tips
      */
-    const double pointerPercent = 0.2;
-    const double tipLength = lineLength * pointerPercent;
+    const float pointerPercent = 0.2;
+    const float tipLength = lineLength * pointerPercent;
     
     /*
      * Pointer on arrow's line that is between the arrow's left and right arrow tips
      */
-    double endToStartVector[3];
+    float endToStartVector[3];
     MathFunctions::createUnitVector(arrowEndXYZ, arrowStartXYZ, endToStartVector);
-    const double arrowTipsOnLine[3] = {
+    const float arrowTipsOnLine[3] = {
         arrowEndXYZ[0] + endToStartVector[0] * tipLength,
         arrowEndXYZ[1] + endToStartVector[1] * tipLength,
         arrowEndXYZ[2] + endToStartVector[2] * tipLength
@@ -714,7 +714,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
      * Create a perpendicular vector by swapping first two elements
      * and negating the second element.
      */
-    double leftRightTipOffset[3] = {
+    float leftRightTipOffset[3] = {
         endToStartVector[0],
         endToStartVector[1],
         endToStartVector[2]
@@ -730,7 +730,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
     /*
      * Tip of arrow's pointer on the right
      */
-    const double rightTipEnd[3] = {
+    const float rightTipEnd[3] = {
         arrowTipsOnLine[0] - leftRightTipOffset[0],
         arrowTipsOnLine[1] - leftRightTipOffset[1],
         arrowTipsOnLine[2] - leftRightTipOffset[2]
@@ -739,7 +739,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
     /*
      * Tip of arrow's pointer on the left
      */
-    const double leftTipEnd[3] = {
+    const float leftTipEnd[3] = {
         arrowTipsOnLine[0] + leftRightTipOffset[0],
         arrowTipsOnLine[1] + leftRightTipOffset[1],
         arrowTipsOnLine[2] + leftRightTipOffset[2]
@@ -810,12 +810,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
                                                    const Surface* surfaceDisplayed,
                                                    const uint8_t selectionColorRGBA[4],
                                                    const bool selectionFlag,
-                                                   double selectionCenterXYZOut[3])
+                                                   float selectionCenterXYZOut[3])
 {
     CaretAssert(box);
     CaretAssert(box->getType() == AnnotationTypeEnum::BOX);
     
-    double windowXYZ[3];
+    float windowXYZ[3];
     if ( ! getAnnotationWindowCoordinate(box->getCoordinate(),
                                          box->getCoordinateSpace(),
                                          surfaceDisplayed,
@@ -823,10 +823,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(const AnnotationBox* box,
         return;
     }
     
-    double bottomLeft[3];
-    double bottomRight[3];
-    double topRight[3];
-    double topLeft[3];
+    float bottomLeft[3];
+    float bottomRight[3];
+    float topRight[3];
+    float topLeft[3];
     if ( ! getAnnotationTwoDimShapeBounds(box, m_modelSpaceViewport, windowXYZ,
                                bottomLeft, bottomRight, topRight, topLeft)) {
         return;
@@ -906,7 +906,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
                                                     const Surface* surfaceDisplayed,
                                                     const uint8_t selectionColorRGBA[4],
                                                     const bool selectionFlag,
-                                                    double selectionCenterXYZOut[3])
+                                                    float selectionCenterXYZOut[3])
 {
     CaretAssert(oval);
     CaretAssert(oval->getType() == AnnotationTypeEnum::OVAL);
@@ -929,7 +929,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
     }
     
     
-    double windowXYZ[3];
+    float windowXYZ[3];
     
     if ( ! getAnnotationWindowCoordinate(oval->getCoordinate(),
                                          oval->getCoordinateSpace(),
@@ -938,24 +938,24 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
         return;
     }
     
-    double bottomLeft[3];
-    double bottomRight[3];
-    double topRight[3];
-    double topLeft[3];
+    float bottomLeft[3];
+    float bottomRight[3];
+    float topRight[3];
+    float topLeft[3];
     if ( ! getAnnotationTwoDimShapeBounds(oval, m_modelSpaceViewport, windowXYZ,
                                           bottomLeft, bottomRight, topRight, topLeft)) {
         return;
     }
     
-    const double majorAxis     = (oval->getWidth()  * m_modelSpaceViewport[2]) / 2.0;
-    const double minorAxis     = (oval->getHeight() * m_modelSpaceViewport[3]) / 2.0;
-    const double rotationAngle = oval->getRotationAngle();
-    const double outlineWidth  = oval->getForegroundLineWidth();
+    const float majorAxis     = (oval->getWidth()  * m_modelSpaceViewport[2]) / 2.0;
+    const float minorAxis     = (oval->getHeight() * m_modelSpaceViewport[3]) / 2.0;
+    const float rotationAngle = oval->getRotationAngle();
+    const float outlineWidth  = oval->getForegroundLineWidth();
     
     glPushMatrix();
     glTranslatef(windowXYZ[0], windowXYZ[1], windowXYZ[2]);
     if (rotationAngle != 0.0) {
-        glRotated(-rotationAngle, 0.0, 0.0, 1.0);
+        glRotatef(-rotationAngle, 0.0, 0.0, 1.0);
     }
     
     const bool depthTestFlag = isDrawnWithDepthTesting(oval);
@@ -1015,14 +1015,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
                                                     const Surface* surfaceDisplayed,
                                                     const uint8_t selectionColorRGBA[4],
                                                     const bool selectionFlag,
-                                                    double selectionCenterXYZOut[3])
+                                                    float selectionCenterXYZOut[3])
 {
     CaretAssert(text);
     CaretAssert(text->getType() == AnnotationTypeEnum::TEXT);
     
     
 
-    double windowXYZ[3];
+    float windowXYZ[3];
     
     if ( ! getAnnotationWindowCoordinate(text->getCoordinate(),
                                          text->getCoordinateSpace(),
@@ -1031,10 +1031,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
         return;
     }
     
-    double bottomLeft[3];
-    double bottomRight[3];
-    double topRight[3];
-    double topLeft[3];
+    float bottomLeft[3];
+    float bottomRight[3];
+    float topRight[3];
+    float topLeft[3];
     m_brainOpenGLFixedPipeline->textRenderer->getBoundsForTextAtViewportCoords(*text,
                                                                                windowXYZ[0], windowXYZ[1], windowXYZ[2],
                                                                                bottomLeft, bottomRight, topRight, topLeft);
@@ -1103,7 +1103,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
         
         if ( ! selectionFlag) {
             if (text->isSelected()) {
-                const double outlineWidth = 2.0;
+                const float outlineWidth = 2.0;
                 drawAnnotationTwoDimSelector(bottomLeft,
                                              bottomRight,
                                              topRight,
@@ -1136,13 +1136,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
                                                     const Surface* surfaceDisplayed,
                                                     const uint8_t selectionColorRGBA[4],
                                                     const bool selectionFlag,
-                                                    double selectionCenterXYZOut[3])
+                                                    float selectionCenterXYZOut[3])
 {
     CaretAssert(line);
     CaretAssert(line->getType() == AnnotationTypeEnum::LINE);
     
-    double lineStartXYZ[3];
-    double lineEndXYZ[3];
+    float lineStartXYZ[3];
+    float lineEndXYZ[3];
     
     if ( ! getAnnotationWindowCoordinate(line->getStartCoordinate(),
                                          line->getCoordinateSpace(),
@@ -1214,15 +1214,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
  *     Half Width/height of square.
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawSelectorSquare(const double xyz[3],
-                                                      const double halfWidthHeight,
-                                                      const double rotationAngle)
+BrainOpenGLAnnotationDrawingFixedPipeline::drawSelectorSquare(const float xyz[3],
+                                                      const float halfWidthHeight,
+                                                      const float rotationAngle)
 {
     glPushMatrix();
     
-    glTranslated(xyz[0], xyz[1], xyz[2]);
+    glTranslatef(xyz[0], xyz[1], xyz[2]);
     if (rotationAngle != 0.0) {
-        glRotated(-rotationAngle, 0.0, 0.0, 1.0);
+        glRotatef(-rotationAngle, 0.0, 0.0, 1.0);
     }
     
     std::vector<float> coords;
@@ -1258,39 +1258,39 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSelectorSquare(const double xyz[3
  *     Thickness of line (when enabled).
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSelector(const double firstPoint[3],
-                                                                        const double secondPoint[3],
-                                                                        const double lineThickness)
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSelector(const float firstPoint[3],
+                                                                        const float secondPoint[3],
+                                                                        const float lineThickness)
 {
-    double lengthVector[3];
+    float lengthVector[3];
     MathFunctions::subtractVectors(secondPoint, firstPoint, lengthVector);
     MathFunctions::normalizeVector(lengthVector);
     
-    const double dx = secondPoint[0] - firstPoint[0];
-    const double dy = secondPoint[1] - firstPoint[1];
+    const float dx = secondPoint[0] - firstPoint[0];
+    const float dy = secondPoint[1] - firstPoint[1];
     
-    const double cornerSquareSize = 3.0 + lineThickness;
-    const double directionVector[3] = {
+    const float cornerSquareSize = 3.0 + lineThickness;
+    const float directionVector[3] = {
         lengthVector[0] * cornerSquareSize,
         lengthVector[1] * cornerSquareSize,
         0.0
     };
     
-    const double firstPointSymbolXYZ[3] = {
+    const float firstPointSymbolXYZ[3] = {
         firstPoint[0] - directionVector[0],
         firstPoint[1] - directionVector[1],
         firstPoint[2] - directionVector[2]
     };
     
-    const double secondPointSymbolXYZ[3] = {
+    const float secondPointSymbolXYZ[3] = {
         secondPoint[0] + directionVector[0],
         secondPoint[1] + directionVector[1],
         secondPoint[2] + directionVector[2]
     };
     
-    double rotationAngle = 0.0;
+    float rotationAngle = 0.0;
     if ((dy != 0.0) && (dx != 0.0)) {
-        const double angleRadians = std::atan2(dx, dy);
+        const float angleRadians = std::atan2(dx, dy);
         rotationAngle = MathFunctions::toDegrees(angleRadians);
     }
     
@@ -1318,48 +1318,47 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSelector(const do
  *     Thickness of line (when enabled).
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSelector(const double bottomLeft[3],
-                                                                        const double bottomRight[3],
-                                                                        const double topRight[3],
-                                                                        const double topLeft[3],
-                                                                        const double lineThickness,
-                                                                        const double rotationAngle)
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSelector(const float bottomLeft[3],
+                                                                        const float bottomRight[3],
+                                                                        const float topRight[3],
+                                                                        const float topLeft[3],
+                                                                        const float lineThickness,
+                                                                        const float rotationAngle)
 {
-    double widthVector[3];
+    float widthVector[3];
     MathFunctions::subtractVectors(topRight, topLeft, widthVector);
     MathFunctions::normalizeVector(widthVector);
     
-    double heightVector[3];
+    float heightVector[3];
     MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
     MathFunctions::normalizeVector(heightVector);
     
-    const double innerSpacing = 2.0 + (lineThickness / 2.0);
+    const float innerSpacing = 2.0 + (lineThickness / 2.0);
     
-    const double widthSpacingX = innerSpacing * widthVector[0];
-    const double widthSpacingY = innerSpacing * widthVector[1];
+    const float widthSpacingX = innerSpacing * widthVector[0];
+    const float widthSpacingY = innerSpacing * widthVector[1];
     
-    const double heightSpacingX = innerSpacing * heightVector[0];
-    const double heightSpacingY = innerSpacing * heightVector[1];
+    const float heightSpacingX = innerSpacing * heightVector[0];
+    const float heightSpacingY = innerSpacing * heightVector[1];
 
-    const double selectorTopLeft[3] = {
+    const float selectorTopLeft[3] = {
         topLeft[0] - widthSpacingX + heightSpacingX,
         topLeft[1] - widthSpacingY + heightSpacingY,
         topLeft[2]
     };
     
-    const double selectorTopRight[3] = {
+    const float selectorTopRight[3] = {
         topRight[0] + widthSpacingX + heightSpacingX,
         topRight[1] + widthSpacingY + heightSpacingY,
         topRight[2]
     };
     
-    const double selectorBottomLeft[3] = {
+    const float selectorBottomLeft[3] = {
         bottomLeft[0] - widthSpacingX - heightSpacingX,
         bottomLeft[1] - widthSpacingY - heightSpacingY,
         bottomLeft[2]
     };
-    
-    const double selectorBottomRight[3] = {
+    const float selectorBottomRight[3] = {
         bottomRight[0] + widthSpacingX - heightSpacingX,
         bottomRight[1] + widthSpacingY - heightSpacingY,
         bottomRight[2]
@@ -1375,7 +1374,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSelector(const do
                                               m_brainOpenGLFixedPipeline->m_foregroundColorByte,
                                               2.0);
     
-    const double cornerSquareSize = 3.0;
+    const float cornerSquareSize = 3.0;
     drawSelectorSquare(selectorBottomLeft,
                        cornerSquareSize,
                        rotationAngle);

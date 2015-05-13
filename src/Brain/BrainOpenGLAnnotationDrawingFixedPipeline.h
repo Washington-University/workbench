@@ -66,71 +66,71 @@ namespace caret {
         bool getAnnotationWindowCoordinate(const AnnotationCoordinate* coordinate,
                                            const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace,
                                             const Surface* surfaceDisplayed,
-                                            double windowXYZOut[3]) const;
+                                            float windowXYZOut[3]) const;
         
         bool getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
                                  const GLint viewport[4],
-                                 const double windowXYZ[3],
-                                 double bottomLeftOut[3],
-                                 double bottomRightOut[3],
-                                 double topRightOut[3],
-                                 double topLeftOut[3]) const;
+                                 const float windowXYZ[3],
+                                 float bottomLeftOut[3],
+                                 float bottomRightOut[3],
+                                 float topRightOut[3],
+                                 float topLeftOut[3]) const;
         
-        void applyRotationToShape(const double rotationAngle,
-                                  const double rotationPoint[3],
-                                  double bottomLeftOut[3],
-                                  double bottomRightOut[3],
-                                  double topRightOut[3],
-                                  double topLeftOut[3]) const;
+        void applyRotationToShape(const float rotationAngle,
+                                  const float rotationPoint[3],
+                                  float bottomLeftOut[3],
+                                  float bottomRightOut[3],
+                                  float topRightOut[3],
+                                  float topLeftOut[3]) const;
         
-        void applyRotationToPoints(const double rotationAngle,
-                                   const double windowXYZ[3],
-                                   const std::vector<double*>& points3D) const;
+//        void applyRotationToPoints(const double rotationAngle,
+//                                   const double windowXYZ[3],
+//                                   const std::vector<double*>& points3D) const;
         
         void drawArrow(const AnnotationArrow* arrow,
                        const Surface* surfaceDisplayed,
                        const uint8_t selectionColorRGBA[4],
                        const bool selectionFlag,
-                       double selectionCenterXYZOut[3]);
+                       float selectionCenterXYZOut[3]);
         
         void drawBox(const AnnotationBox* box,
                        const Surface* surfaceDisplayed,
                        const uint8_t selectionColorRGBA[4],
                      const bool selectionFlag,
-                     double selectionCenterXYZOut[3]);
+                     float selectionCenterXYZOut[3]);
         
         void drawLine(const AnnotationLine* line,
                       const Surface* surfaceDisplayed,
                       const uint8_t selectionColorRGBA[4],
                       const bool selectionFlag,
-                      double selectionCenterXYZOut[3]);
+                      float selectionCenterXYZOut[3]);
         
         void drawOval(const AnnotationOval* oval,
                       const Surface* surfaceDisplayed,
                       const uint8_t selectionColorRGBA[4],
                       const bool selectionFlag,
-                      double selectionCenterXYZOut[3]);
+                      float selectionCenterXYZOut[3]);
         
         void drawText(const AnnotationText* text,
                        const Surface* surfaceDisplayed,
                        const uint8_t selectionColorRGBA[4],
                       const bool selectionFlag,
-                      double selectionCenterXYZOut[3]);
+                      float selectionCenterXYZOut[3]);
         
-        void drawSelectorSquare(const double xyz[3],
-                                const double halfWidthHeight,
-                                const double rotationAngle);
+        void drawSelectorSquare(const float xyz[3],
+                                const float halfWidthHeight,
+                                const float rotationAngle);
         
-        void drawAnnotationTwoDimSelector(const double bottomLeft[3],
-                                          const double bottomRight[3],
-                                          const double topRight[3],
-                                          const double topLeft[3],
-                                          const double lineThickness,
-                                          const double rotationAngle);
+        void drawAnnotationTwoDimSelector(const float bottomLeft[3],
+                                          const float bottomRight[3],
+                                          const float topRight[3],
+                                          const float topLeft[3],
+                                          const float lineThickness,
+                                          const float rotationAngle);
 
-        void drawAnnotationOneDimSelector(const double firstPoint[3],
-                                          const double secondPoint[3],
-                                          const double lineThickness);
+        void drawAnnotationOneDimSelector(const float firstPoint[3],
+                                          const float secondPoint[3],
+                                          const float lineThickness);
         
         bool isDrawnWithDepthTesting(const Annotation* annotation);
         
