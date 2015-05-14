@@ -33,6 +33,7 @@
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
 #include "AnnotationText.h"
+#include "DisplayPropertiesAnnotation.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
@@ -369,6 +370,33 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
         return;
     }
     
+    const DisplayPropertiesAnnotation* dpa = m_brainOpenGLFixedPipeline->m_brain->getDisplayPropertiesAnnotation();
+    switch (drawingCoordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::MODEL:
+            if ( ! dpa->isDisplayModelAnnotations(m_brainOpenGLFixedPipeline->windowTabIndex)) {
+                return;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            CaretAssertMessage(0, "Never draw annotations in pixel space.");
+            return;
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            if ( ! dpa->isDisplaySurfaceAnnotations(m_brainOpenGLFixedPipeline->windowTabIndex)) {
+                return;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            if ( ! dpa->isDisplayTabAnnotations(m_brainOpenGLFixedPipeline->windowTabIndex)) {
+                return;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            if ( ! dpa->isDisplayWindowAnnotations(m_brainOpenGLFixedPipeline->windowIndex)) {
+                return;
+            }
+            break;
+    }
     SelectionItemAnnotation* annotationID = m_brainOpenGLFixedPipeline->m_brain->getSelectionManager()->getAnnotationIdentification();
     
     GLint savedShadeModel;

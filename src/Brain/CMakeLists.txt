@@ -77,6 +77,7 @@ CiftiConnectivityMatrixDataFileManager.h
 CiftiFiberTrajectoryManager.h
 ClippingPlaneGroup.h
 DisplayProperties.h
+DisplayPropertiesAnnotation.h
 DisplayPropertiesBorders.h
 DisplayPropertiesFiberOrientation.h
 DisplayPropertiesFoci.h
@@ -199,6 +200,7 @@ CiftiConnectivityMatrixDataFileManager.cxx
 CiftiFiberTrajectoryManager.cxx
 ClippingPlaneGroup.cxx
 DisplayProperties.cxx
+DisplayPropertiesAnnotation.cxx
 DisplayPropertiesBorders.cxx
 DisplayPropertiesFiberOrientation.cxx
 DisplayPropertiesFoci.cxx

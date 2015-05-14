@@ -51,6 +51,7 @@
 #include "CiftiParcelSeriesFile.h"
 #include "CiftiParcelScalarFile.h"
 #include "CiftiScalarDataSeriesFile.h"
+#include "DisplayPropertiesAnnotation.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
@@ -133,6 +134,9 @@ Brain::Brain()
     m_volumeSliceModel = NULL;
     m_wholeBrainModel = NULL;
     
+    m_displayPropertiesAnnotation = new DisplayPropertiesAnnotation(this);
+    m_displayProperties.push_back(m_displayPropertiesAnnotation);
+    
     m_displayPropertiesBorders = new DisplayPropertiesBorders();
     m_displayProperties.push_back(m_displayPropertiesBorders);
     
@@ -174,6 +178,10 @@ Brain::Brain()
     m_isSpecFileBeingRead = false;
     
     m_sceneAssistant = new SceneClassAssistant();
+    
+    m_sceneAssistant->add("displayPropertiesAnnotation",
+                          "DisplayPropertiesAnnotation",
+                          m_displayPropertiesAnnotation);
     
     m_sceneAssistant->add("displayPropertiesBorders", 
                           "DisplayPropertiesBorders", 
@@ -6458,6 +6466,24 @@ Brain::removeAndDeleteDataFile(CaretDataFile* caretDataFile)
     }
     
     return false;
+}
+
+/**
+ * @return The annotation display properties.
+ */
+DisplayPropertiesAnnotation*
+Brain::getDisplayPropertiesAnnotation()
+{
+    return m_displayPropertiesAnnotation;
+}
+
+/**
+ * @return The annotation display properties.
+ */
+const DisplayPropertiesAnnotation*
+Brain::getDisplayPropertiesAnnotation() const
+{
+    return m_displayPropertiesAnnotation;
 }
 
 /**

@@ -575,8 +575,6 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
     //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
     m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::WINDOW,
                                       NULL);
-    m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::PIXELS,
-                                      NULL);
     
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);

@@ -35,6 +35,7 @@ AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
 AnnotationMenuArrange.h
 AnnotationRotationWidget.h
+AnnotationSelectionViewController.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
@@ -179,6 +180,7 @@ AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
 AnnotationMenuArrange.h
 AnnotationRotationWidget.h
+AnnotationSelectionViewController.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
@@ -350,6 +352,7 @@ AnnotationFormatWidget.cxx
 AnnotationInsertNewWidget.cxx
 AnnotationMenuArrange.cxx
 AnnotationRotationWidget.cxx
+AnnotationSelectionViewController.cxx
 AnnotationTextAlignmentWidget.cxx
 AnnotationTextEditorWidget.cxx
 AnnotationTextOrientationWidget.cxx

@@ -65,6 +65,7 @@ namespace caret {
     class CiftiParcelScalarFile;
     class CiftiScalarDataSeriesFile;
     class DisplayProperties;
+    class DisplayPropertiesAnnotation;
     class DisplayPropertiesBorders;
     class DisplayPropertiesFiberOrientation;
     class DisplayPropertiesFoci;
@@ -350,6 +351,10 @@ namespace caret {
                                  std::vector<CaretDataFile*>& modifiedDataFilesOut) const;
         
         void writeDataFile(CaretDataFile* caretDataFile);
+        
+        DisplayPropertiesAnnotation* getDisplayPropertiesAnnotation();
+        
+        const DisplayPropertiesAnnotation* getDisplayPropertiesAnnotation() const;
         
         DisplayPropertiesBorders* getDisplayPropertiesBorders();
         
@@ -763,6 +768,12 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesLabels* m_displayPropertiesLabels;
+        
+        /**
+         * Display properties for annotations - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesAnnotation* m_displayPropertiesAnnotation;
         
         /**
          * Display properties for borders - DO NOT delete since this

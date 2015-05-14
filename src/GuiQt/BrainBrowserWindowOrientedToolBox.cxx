@@ -27,6 +27,7 @@
 #include <QTabWidget>
 #include <QTimer>
 
+#include "AnnotationSelectionViewController.h"
 #include "BorderSelectionViewController.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -112,18 +113,20 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                   + "_"
                   + AString::number(browserWindowIndex));
     
-    m_borderSelectionViewController = NULL;
-    m_chartToolBoxViewController = NULL;
+    m_annotationViewController         = NULL;
+    m_borderSelectionViewController    = NULL;
+    m_chartToolBoxViewController       = NULL;
     m_connectivityMatrixViewController = NULL;
-    m_fiberOrientationViewController = NULL;
-    m_fociSelectionViewController = NULL;
-    m_imageSelectionViewController = NULL;
-    m_labelSelectionViewController = NULL;
-    m_overlaySetViewController = NULL;
+    m_fiberOrientationViewController   = NULL;
+    m_fociSelectionViewController      = NULL;
+    m_imageSelectionViewController     = NULL;
+    m_labelSelectionViewController     = NULL;
+    m_overlaySetViewController         = NULL;
     m_volumeSurfaceOutlineSetViewController = NULL;
 
     m_tabWidget = new QTabWidget();
     
+    m_annotationTabIndex = -1;
     m_borderTabIndex = -1;
     m_chartTabIndex = -1;
     m_connectivityTabIndex = -1;
@@ -153,6 +156,12 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                        this);
         m_connectivityTabIndex = addToTabWidget(m_connectivityMatrixViewController,
                              "Connectivity");
+    }
+    if (isFeaturesToolBox) {
+        m_annotationViewController = new AnnotationSelectionViewController(browserWindowIndex,
+                                                                           this);
+        m_annotationTabIndex = addToTabWidget(m_annotationViewController,
+                                              "Annot");
     }
     if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
@@ -330,6 +339,10 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
     /*
      * Save controllers in the toolbox
      */
+    if (m_annotationViewController != NULL) {
+        sceneClass->addClass(m_annotationViewController->saveToScene(sceneAttributes,
+                                                                     "m_annotationViewController"));
+    }
     if (m_borderSelectionViewController != NULL) {
         sceneClass->addClass(m_borderSelectionViewController->saveToScene(sceneAttributes,
                                                      "m_borderSelectionViewController"));
@@ -401,6 +414,10 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
     /*
      * Restore controllers in the toolbox
      */
+    if (m_annotationViewController != NULL) {
+        m_annotationViewController->restoreFromScene(sceneAttributes,
+                                                     sceneClass->getClass("m_annotationViewController"));
+    }
     if (m_borderSelectionViewController != NULL) {
         m_borderSelectionViewController->restoreFromScene(sceneAttributes,
                                                           sceneClass->getClass("m_borderSelectionViewController"));
@@ -504,6 +521,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         /*
          * Determine types of data this is loaded
          */
+        bool haveAnnotation = false;
         bool haveBorders    = false;
         bool haveConnFiles  = false;
         bool haveFibers     = false;
@@ -523,6 +541,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
             const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
             switch (dataFileType) {
                 case DataFileTypeEnum::ANNOTATION:
+                    haveAnnotation = true;
                     break;
                 case DataFileTypeEnum::BORDER:
                     haveBorders = true;
@@ -661,6 +680,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveConnFiles);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         
+        if (m_annotationTabIndex >= 0) m_tabWidget->setTabEnabled(m_annotationTabIndex, haveAnnotation);
         if (m_borderTabIndex >= 0) m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
         if (m_fiberOrientationTabIndex >= 0) m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
         if (m_fociTabIndex >= 0) m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
