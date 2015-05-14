@@ -66,6 +66,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_COORD_SURFACE_NODE_INDEX;
         
+        static const QString ATTRIBUTE_COORD_SURFACE_NODE_OFFSET;
+        
         static const QString ATTRIBUTE_FOREGROUND_CARET_COLOR;
         
         static const QString ATTRIBUTE_FOREGROUND_CUSTOM_RGBA;
@@ -145,6 +147,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NUMBER_OF_NODES = "numberOfNodes";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_INDEX = "nodeIndex";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_OFFSET = "nodeOffset";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_CARET_COLOR = "foregroundCaretColor";
     

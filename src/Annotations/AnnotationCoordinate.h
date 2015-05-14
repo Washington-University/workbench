@@ -55,11 +55,13 @@ namespace caret {
         
         void getSurfaceSpace(StructureEnum::Enum& structureOut,
                              int32_t& surfaceNumberOfNodesOut,
-                             int32_t& surfaceNodeIndexOut) const;
+                             int32_t& surfaceNodeIndexOut,
+                             float& surfaceOffsetLengthOut) const;
         
         void setSurfaceSpace(const StructureEnum::Enum structure,
                              const int32_t surfaceNumberOfNodes,
-                             const int32_t surfaceNodeIndex);
+                             const int32_t surfaceNodeIndex,
+                             const int32_t surfaceOffsetLength);
         
 
         // ADD_NEW_METHODS_HERE
@@ -73,8 +75,9 @@ namespace caret {
                                       const SceneClass* sceneClass);
 
           
-          
-          
+        static float getDefaultSurfaceOffsetLength();
+
+        
           
           
 // If there will be sub-classes of this class that need to save
@@ -101,6 +104,8 @@ namespace caret {
         int32_t m_surfaceSpaceNumberOfNodes;
         
         StructureEnum::Enum m_surfaceSpaceStructure;
+        
+        float m_surfaceOffsetLength;
         
         // ADD_NEW_MEMBERS_HERE
 

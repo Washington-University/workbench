@@ -266,11 +266,14 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
     const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
                                                                 coordinateElementName,
                                                                 ATTRIBUTE_COORD_SURFACE_STRUCTURE);
+    const float offsetDistance = m_streamHelper->getRequiredAttributeFloatValue(attributes,
+                                                                                coordinateElementName,
+                                                                                ATTRIBUTE_COORD_SURFACE_NODE_OFFSET);
     bool valid = false;
     StructureEnum::Enum structure = StructureEnum::fromName(valueString,
                                                           &valid);
     if (valid) {
-        coordinate->setSurfaceSpace(structure, numberOfNodes, nodeIndex);
+        coordinate->setSurfaceSpace(structure, numberOfNodes, nodeIndex, offsetDistance);
     }
     else {
         m_streamHelper->throwDataFileException("Invalid value "

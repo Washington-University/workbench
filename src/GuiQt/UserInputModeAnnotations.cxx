@@ -37,6 +37,7 @@
 #include "EventAnnotation.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "KeyEvent.h"
@@ -484,15 +485,18 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
                 StructureEnum::Enum structure = StructureEnum::INVALID;
                 int32_t numberOfNodes = -1;
                 int32_t nodeIndex = -1;
+                float   nodeOffset = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
                 coordinate->getSurfaceSpace(structure,
                                             numberOfNodes,
-                                            nodeIndex);
+                                            nodeIndex,
+                                            nodeOffset);
                 
                 if (coordInfo.m_surfaceNodeValid) {
                     if (coordInfo.m_surfaceStructure == structure) {
                         coordinate->setSurfaceSpace(coordInfo.m_surfaceStructure,
                                                     coordInfo.m_surfaceNumberOfNodes,
-                                                    coordInfo.m_surfaceNodeIndex);
+                                                    coordInfo.m_surfaceNodeIndex,
+                                                    coordInfo.m_surfaceNodeOffset);
                     }
                     else {
                         errorMessage = ("Moving annotation from "
@@ -557,6 +561,7 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
     
     setMode(MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 

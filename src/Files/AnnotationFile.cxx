@@ -201,7 +201,7 @@ AnnotationFile::AnnotationFile()
             AnnotationText* at = new AnnotationText();
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-            coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32942, 7883);
+            coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 7883, 20.0);
             at->setForegroundColor(CaretColorEnum::PURPLE);
             at->setText("Vertex 7883");
             addAnnotation(at);

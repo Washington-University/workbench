@@ -108,6 +108,7 @@ namespace caret {
             StructureEnum::Enum m_surfaceStructure;
             int32_t m_surfaceNumberOfNodes;
             int32_t m_surfaceNodeIndex;
+            float m_surfaceNodeOffset;
             bool m_surfaceNodeValid;
         };
         static void getCoordinatesFromMouseLocation(const MouseEvent& mouseEvent,

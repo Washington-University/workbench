@@ -46,6 +46,7 @@
 #include "EventAnnotation.h"
 #include "EventBrainReset.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "UserInputModeAnnotations.h"
 #include "WuQtUtilities.h"
 
@@ -150,6 +151,7 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -205,6 +207,10 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
         }
         
         annotationEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* updateEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(updateEvent);
     }
 
     AnnotationText* textAnnotation = NULL;

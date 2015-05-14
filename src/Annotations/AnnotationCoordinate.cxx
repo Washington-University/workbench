@@ -99,6 +99,7 @@ AnnotationCoordinate::copyHelperAnnotationCoordinate(const AnnotationCoordinate&
     m_surfaceSpaceStructure     = obj.m_surfaceSpaceStructure;
     m_surfaceSpaceNumberOfNodes = obj.m_surfaceSpaceNumberOfNodes;
     m_surfaceSpaceNodeIndex     = obj.m_surfaceSpaceNodeIndex;
+    m_surfaceOffsetLength       = obj.m_surfaceOffsetLength;
 }
 
 /**
@@ -114,6 +115,7 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     m_surfaceSpaceStructure     = StructureEnum::INVALID;
     m_surfaceSpaceNumberOfNodes = -1;
     m_surfaceSpaceNodeIndex     = -1;
+    m_surfaceOffsetLength       = getDefaultSurfaceOffsetLength();
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->addArray("m_xyz",
@@ -125,6 +127,8 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
                           &m_surfaceSpaceNumberOfNodes);
     m_sceneAssistant->add("m_surfaceSpaceNodeIndex",
                           &m_surfaceSpaceNodeIndex);
+    m_sceneAssistant->add("m_surfaceOffsetLength",
+                          &m_surfaceOffsetLength);
     
 }
 
@@ -222,12 +226,14 @@ AnnotationCoordinate::setXYZ(const float x,
  */
 void
 AnnotationCoordinate::getSurfaceSpace(StructureEnum::Enum& structureOut,
-                            int32_t& surfaceNumberOfNodesOut,
-                            int32_t& surfaceNodeIndexOut) const
+                                      int32_t& surfaceNumberOfNodesOut,
+                                      int32_t& surfaceNodeIndexOut,
+                                      float& surfaceOffsetLengthOut) const
 {
     structureOut            = m_surfaceSpaceStructure;
     surfaceNumberOfNodesOut = m_surfaceSpaceNumberOfNodes;
     surfaceNodeIndexOut     = m_surfaceSpaceNodeIndex;
+    surfaceOffsetLengthOut  = m_surfaceOffsetLength;
 }
 
 /**
@@ -242,8 +248,9 @@ AnnotationCoordinate::getSurfaceSpace(StructureEnum::Enum& structureOut,
  */
 void
 AnnotationCoordinate::setSurfaceSpace(const StructureEnum::Enum structure,
-                            const int32_t surfaceNumberOfNodes,
-                            const int32_t surfaceNodeIndex)
+                                      const int32_t surfaceNumberOfNodes,
+                                      const int32_t surfaceNodeIndex,
+                                      const int32_t surfaceOffsetLength)
 {
     if (structure != m_surfaceSpaceStructure) {
         m_surfaceSpaceStructure = structure;
@@ -257,6 +264,19 @@ AnnotationCoordinate::setSurfaceSpace(const StructureEnum::Enum structure,
         m_surfaceSpaceNodeIndex = surfaceNodeIndex;
         setModified();
     }
+    if (surfaceOffsetLength != m_surfaceOffsetLength) {
+        m_surfaceOffsetLength = surfaceOffsetLength;
+        setModified();
+    }
+}
+
+/**
+ * @return The default surface offset length.
+ */
+float
+AnnotationCoordinate::getDefaultSurfaceOffsetLength()
+{
+    return 10.0;
 }
 
 

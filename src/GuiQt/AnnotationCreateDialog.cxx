@@ -508,7 +508,8 @@ AnnotationCreateDialog::okButtonClicked()
             if (m_coordInfo.m_surfaceNodeValid) {
                 firstCoordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
                                                  m_coordInfo.m_surfaceNumberOfNodes,
-                                                 m_coordInfo.m_surfaceNodeIndex);
+                                                 m_coordInfo.m_surfaceNodeIndex,
+                                                 m_coordInfo.m_surfaceNodeOffset);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
             }
             break;

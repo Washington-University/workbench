@@ -431,9 +431,11 @@ AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
     StructureEnum::Enum structure = StructureEnum::INVALID;
     int32_t numberOfNodes = -1;
     int32_t nodeIndex     = -1;
+    float nodeOffset      = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
     coordinate->getSurfaceSpace(structure,
                                 numberOfNodes,
-                                nodeIndex);
+                                nodeIndex,
+                                nodeOffset);
     
     m_stream->writeStartElement(coordinateXmlElement);
     
@@ -454,6 +456,9 @@ AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
     
     m_stream->writeAttribute(ATTRIBUTE_COORD_SURFACE_NODE_INDEX,
                              QString::number(nodeIndex));
+    
+    m_stream->writeAttribute(ATTRIBUTE_COORD_SURFACE_NODE_OFFSET,
+                             realToString(nodeOffset));
     
     m_stream->writeEndElement();
 }

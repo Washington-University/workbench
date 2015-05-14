@@ -133,9 +133,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                 StructureEnum::Enum annotationStructure = StructureEnum::INVALID;
                 int32_t annotationNumberOfNodes  = -1;
                 int32_t annotationNodeIndex      = -1;
+                float annotationOffsetLength     = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
                 coordinate->getSurfaceSpace(annotationStructure,
                                             annotationNumberOfNodes,
-                                            annotationNodeIndex);
+                                            annotationNodeIndex,
+                                            annotationOffsetLength);
                 
                 const StructureEnum::Enum surfaceStructure = surfaceDisplayed->getStructure();
                 const int32_t surfaceNumberOfNodes = surfaceDisplayed->getNumberOfNodes();
@@ -150,12 +152,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                         modelXYZ[1] = nodeXYZ[1];
                         modelXYZ[2] = nodeXYZ[2];
                         
-                        const float offset = 5.0;
                         const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
                         
-                        modelXYZ[0] += (normalVector[0] * offset);
-                        modelXYZ[1] += (normalVector[1] * offset);
-                        modelXYZ[2] += (normalVector[2] * offset);
+                        modelXYZ[0] += (normalVector[0] * annotationOffsetLength);
+                        modelXYZ[1] += (normalVector[1] * annotationOffsetLength);
+                        modelXYZ[2] += (normalVector[2] * annotationOffsetLength);
                         modelXYZValid = true;
                     }
                 }

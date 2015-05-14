@@ -57,7 +57,9 @@ namespace caret {
         void signalSelectCoordinateWithMouse();
         
     private slots:
-        void coordinateValueChanged();
+        void xyzValueChanged();
+        
+        void surfaceValueChanged();
         
         void setCoordinateActionTriggered();
         
@@ -77,6 +79,8 @@ namespace caret {
         StructureEnumComboBox* m_surfaceStructureComboBox;
         
         QSpinBox* m_surfaceNodeIndexSpinBox;
+        
+        QDoubleSpinBox* m_surfaceOffsetLengthSpinBox;
         
         QDoubleSpinBox* m_xCoordSpinBox;
         
