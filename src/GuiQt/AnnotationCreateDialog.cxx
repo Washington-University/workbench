@@ -97,56 +97,6 @@ m_annotationType(annotationType)
     UserInputModeAnnotations::getCoordinatesFromMouseLocation(mouseEvent,
                                                               m_coordInfo);
     
-    
-//    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-//    const int mouseX = mouseEvent.getX();
-//    const int mouseY = mouseEvent.getY();
-//    
-//    SelectionManager* idManager =
-//    openGLWidget->performIdentification(mouseX,
-//                                        mouseY,
-//                                        true);
-//    
-//    SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
-//    m_surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
-//    if (m_surfaceNodeIdentification->isValid()) {
-//        m_surfaceNodeIdentification->getModelXYZ(m_modelXYZ);
-//        m_modelXYZValid = true;
-//    }
-//    else if (voxelID->isValid()) {
-//        voxelID->getModelXYZ(m_modelXYZ);
-//        m_modelXYZValid = true;
-//    }
-//    
-//    BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
-//    
-//    const int* tabViewport = vpContent->getModelViewport();
-//    m_tabXYZ[0] = mouseEvent.getX() - tabViewport[0];
-//    m_tabXYZ[1] = mouseEvent.getY() - tabViewport[1];
-//    m_tabXYZ[2] = 0.0;
-//    m_tabIndex  = vpContent->getBrowserTabContent()->getTabNumber();
-//    
-//    /*
-//     * Normalize tab coordinates (width and height range [0, 1]
-//     */
-//    m_tabXYZ[0] /= tabViewport[2];
-//    m_tabXYZ[1] /= tabViewport[3];
-//    
-//    const int* windowViewport = vpContent->getWindowViewport();
-//    m_windowXYZ[0] = windowViewport[0] + mouseEvent.getX(); // tabViewport[0] + tabViewport[2] + mouseEvent.getX();
-//    m_windowXYZ[1] = windowViewport[1] + mouseEvent.getY(); // tabViewport[1] + tabViewport[3] + mouseEvent.getY();
-//    m_windowXYZ[2] = 0.0;
-//    m_windowIndex = vpContent->getWindowIndex();
-//    
-//    /*
-//     * Normalize window coordinates (width and height range [0, 1]
-//     */
-//    m_windowXYZ[0] /= windowViewport[2];
-//    m_windowXYZ[1] /= windowViewport[3];
-    
-//    std::cout << "Tab:    " << qPrintable(AString::fromNumbers(tabViewport, 4, ",")) << std::endl;
-//    std::cout << "Window: " << qPrintable(AString::fromNumbers(windowViewport, 4, ",")) << std::endl;
-    
     m_fileSelectionWidget = createFileSelectionWidget();
     QWidget* spaceSelectionWidget = createSpaceSelectionWidget();
     QWidget* textWidget = ((m_annotationType == AnnotationTypeEnum::TEXT)
@@ -165,6 +115,11 @@ m_annotationType(annotationType)
     
     setCentralWidget(dialogWidget,
                      SCROLL_AREA_NEVER);
+    
+    if (annotationType == AnnotationTypeEnum::TEXT) {
+        CaretAssert(m_textLineEdit);
+        m_textLineEdit->setFocus();
+    }
 }
 
 /**
@@ -433,7 +388,7 @@ QWidget*
 AnnotationCreateDialog::createTextWidget()
 {
     m_textLineEdit = new QLineEdit();
-    m_textLineEdit->setText("New Text");
+    m_textLineEdit->setText("");
     m_textLineEdit->selectAll();
     
     QGroupBox* groupBox = new QGroupBox("Text");
@@ -450,26 +405,45 @@ AnnotationCreateDialog::createTextWidget()
 void
 AnnotationCreateDialog::okButtonClicked()
 {
+    AString errorMessage;
+    
     AnnotationFile* annotationFile = NULL;
     if (m_brainAnnotationFileRadioButton->isChecked()) {
         annotationFile = m_annotationFileSelectionModel->getSelectedFileOfType<AnnotationFile>();
         if (annotationFile == NULL) {
-            WuQMessageBox::errorOk(this, "An annotation file must be selected.");
-            return;
+            errorMessage.appendWithNewLine("An annotation file must be selected.");
+            //WuQMessageBox::errorOk(this, "An annotation file must be selected.");
+            //return;
         }
     }
     else if (m_sceneAnnotationFileRadioButton->isChecked()) {
         annotationFile = GuiManager::get()->getBrain()->getSceneAnnotationFile();
     }
     else {
-        WuQMessageBox::errorOk(this, "Type of anotation file is not selected.");
-        return;
+        errorMessage.appendWithNewLine("Type of anotation file is not selected.");
+        //WuQMessageBox::errorOk(this, );
+        //return;
     }
-    CaretAssert(annotationFile);
-    
     const int checkedButtonID = m_spaceButtonGroup->checkedId();
     if (checkedButtonID < 0) {
-        WuQMessageBox::errorOk(this, "A space must be selected.");
+        errorMessage.appendWithNewLine("A coordinate space must be selected.");
+        //WuQMessageBox::errorOk(this, "A space must be selected.");
+        //return;
+    }
+    
+    
+    QString userText;
+    if (m_annotationType == AnnotationTypeEnum::TEXT) {
+        userText = m_textLineEdit->text().trimmed();
+        if (userText.isEmpty()) {
+            errorMessage.appendWithNewLine("Text is missing.");
+        }
+        
+    }
+    
+    if ( ! errorMessage.isEmpty()) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
         return;
     }
     
@@ -477,10 +451,13 @@ AnnotationCreateDialog::okButtonClicked()
     const AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::fromIntegerCode(checkedButtonID,
                                                                                                      &valid);
     if ( ! valid) {
-        CaretAssertMessage(0, "Space should have been valid.  This should not happen.");
-        WuQMessageBox::errorOk(this, "A space must be selected.");
+        const QString msg("PROGRAM ERROR: Annotation coordinate space is not valid.  This should not happen.");
+        WuQMessageBox::errorOk(this,
+                               msg);
         return;
     }
+    CaretAssert(annotationFile);
+    
     
     CaretPointer<Annotation> annotation;
     annotation.grabNew(NULL);
@@ -503,7 +480,7 @@ AnnotationCreateDialog::okButtonClicked()
         case AnnotationTypeEnum::TEXT:
         {
             AnnotationText* text = new AnnotationText();
-            text->setText(m_textLineEdit->text().trimmed());
+            text->setText(userText);
             annotation.grabNew(text);
         }
             break;

@@ -218,6 +218,8 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
 /**
  * Selection on a model.
  *
+ * @param brain
+ *    The brain (must be valid!)
  * @param viewportConent
  *    Viewport content in which mouse was clicked
  * @param mouseX
@@ -233,12 +235,13 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
  *    selected.
  */
 void 
-BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportContent,
+BrainOpenGLFixedPipeline::selectModel(Brain* brain,
+                                      BrainOpenGLViewportContent* viewportContent,
                                       const int32_t mouseX,
                                       const int32_t mouseY,
                                       const bool applySelectionBackgroundFiltering)
 {
-    m_brain = viewportContent->getBrain();
+    m_brain = brain;
     CaretAssert(m_brain);
     
     m_clippingPlaneGroup = NULL;
@@ -274,20 +277,25 @@ BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportConten
  * coordinate in 'projectionOut' will be valid.  In addition,
  * the barycentric coordinate may also be valid in 'projectionOut'.
  *
+ * @param brain
+ *    The brain (must be valid!)
  * @param viewportContent
  *    Viewport content in which mouse was clicked
  * @param mouseX
  *    X position of mouse click
  * @param mouseY
  *    Y position of mouse click
+ * @param projectionOut
+ *    Contains projection result upon exit.
  */
 void 
-BrainOpenGLFixedPipeline::projectToModel(BrainOpenGLViewportContent* viewportContent,
+BrainOpenGLFixedPipeline::projectToModel(Brain* brain,
+                                         BrainOpenGLViewportContent* viewportContent,
                                          const int32_t mouseX,
                                          const int32_t mouseY,
                                          SurfaceProjectedItem& projectionOut)
 {
-    m_brain = viewportContent->getBrain();
+    m_brain = brain;
     CaretAssert(m_brain);
     
     m_clippingPlaneGroup = NULL;
@@ -379,12 +387,18 @@ BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(BrainOpenGLViewpor
 /**
  * Draw models in their respective viewports.
  *
+ * @param brain
+ *    The brain (must be valid!)
  * @param viewportContents
  *    Viewport info for drawing.
  */
 void 
-BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& viewportContents)
+BrainOpenGLFixedPipeline::drawModels(Brain* brain,
+                                     std::vector<BrainOpenGLViewportContent*>& viewportContents)
 {
+    m_brain = brain;
+    CaretAssert(m_brain);
+    
     this->inverseRotationMatrixValid = false;
     
     m_clippingPlaneGroup = NULL;
@@ -464,8 +478,6 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
 
         drawBackgroundImage(vpContent);
         
-        m_brain = vpContent->getBrain();
-        CaretAssert(m_brain);
         this->drawModelInternal(MODE_DRAWING,
                                 vpContent);
         
@@ -535,16 +547,12 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
             
             glMatrixMode(GL_MODELVIEW);
         }
-        
-        m_brain = NULL;
     }
     
     if ( ! viewportContents.empty()) {
         const int* windowViewport = viewportContents[0]->getWindowViewport();
-        m_brain = viewportContents[0]->getBrain();
         this->windowIndex = viewportContents[0]->getWindowIndex();
         drawWindowAnnotations(windowViewport);
-        m_brain = NULL;
     }
     
     this->checkForOpenGLError(NULL, "At end of drawModels()");
@@ -667,7 +675,6 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 this->drawAllPalettes(model->getBrain());
             }
             
-            //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::TAB,
                                                  NULL);
         }
@@ -4563,8 +4570,6 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
     
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainModel->getSelectedSurfaceType(tabNumberIndex);
     
-    Brain* brain = wholeBrainModel->getBrain();
-
     /*
      * Need depth testing for drawing slices
      */
@@ -4576,7 +4581,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
     if (underlayVolumeFile != NULL) {
         std::vector<VolumeDrawInfo> volumeDrawInfo;
         this->setupVolumeDrawInfo(browserTabContent,
-                                  brain,
+                                  m_brain,
                                   volumeDrawInfo);
         if (volumeDrawInfo.empty() == false) {
             /*
@@ -4629,9 +4634,9 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
      * Draw surfaces last so that opacity works.
      */
     std::vector<Surface*> surfacesToDraw;
-    const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
+    const int32_t numberOfBrainStructures = m_brain->getNumberOfBrainStructures();
     for (int32_t i = 0; i < numberOfBrainStructures; i++) {
-        BrainStructure* brainStructure = brain->getBrainStructure(i);
+        BrainStructure* brainStructure = m_brain->getBrainStructure(i);
         const StructureEnum::Enum structure = brainStructure->getStructure();
         Surface* surface = wholeBrainModel->getSelectedSurface(structure,
                                                                tabNumberIndex);
@@ -5584,8 +5589,7 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
         return;
     }
     
-    Brain* brain = vpContent->getBrain();
-    DisplayPropertiesImages* dpi = brain->getDisplayPropertiesImages();
+    DisplayPropertiesImages* dpi = m_brain->getDisplayPropertiesImages();
     const int32_t tabIndex = btc->getTabNumber();
     const DisplayGroupEnum::Enum displayGroup = dpi->getDisplayGroupForTab(tabIndex);
     if (dpi->isDisplayed(displayGroup,

@@ -563,7 +563,6 @@ BrainOpenGLWidget::paintGL()
         BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(windowViewport,
                                                                         windowViewport,
                                                                         false,
-                                                                        GuiManager::get()->getBrain(),
                                                                         getModelEvent.getTabContentToDraw(0));
         this->drawingViewportContents.push_back(vc);
     }
@@ -736,7 +735,6 @@ BrainOpenGLWidget::paintGL()
 //                }
 //            }
 //        }
-        
         /*
          * Create the viewport drawing contents for all tabs
          */
@@ -802,7 +800,8 @@ BrainOpenGLWidget::paintGL()
     else {
         this->openGL->setBorderBeingDrawn(NULL);
     }
-    this->openGL->drawModels(this->drawingViewportContents);
+    this->openGL->drawModels(GuiManager::get()->getBrain(),
+                             this->drawingViewportContents);
     
     /*
      * Issue browser window redrawn event
@@ -1179,7 +1178,8 @@ BrainOpenGLWidget::performIdentification(const int x,
     idManager->getVoxelEditingIdentification()->setEnabledForSelection(false);
     
     if (idViewport != NULL) {
-        this->openGL->selectModel(idViewport, 
+        this->openGL->selectModel(GuiManager::get()->getBrain(),
+                                  idViewport,
                                   x, 
                                   y,
                                   applySelectionBackgroundFiltering);
@@ -1224,7 +1224,8 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
          const int idX = x - vp[0];
          const int idY = y - vp[1];
          */
-        this->openGL->selectModel(idViewport,
+        this->openGL->selectModel(GuiManager::get()->getBrain(),
+                                  idViewport,
                                   x,
                                   y,
                                   true);
@@ -1251,7 +1252,8 @@ BrainOpenGLWidget::performProjection(const int x,
          const int idX = x - vp[0];
          const int idY = y - vp[1];
          */
-        this->openGL->projectToModel(projectionViewport,
+        this->openGL->projectToModel(GuiManager::get()->getBrain(),
+                                     projectionViewport,
                                      x,
                                      y,
                                      projectionOut);

@@ -60,6 +60,7 @@
 namespace caret {
     
     class Border;
+    class Brain;
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class SurfaceProjectedItem;
@@ -95,14 +96,19 @@ namespace caret {
         /**
          * Draw models in their respective viewports.
          *
+         * @param brain
+         *    The brain (must be valid!)
          * @param viewportContents
          *    Viewport info for drawing.
          */
-        virtual void drawModels(std::vector<BrainOpenGLViewportContent*>& viewportContents) = 0;
+        virtual void drawModels(Brain* brain,
+                                std::vector<BrainOpenGLViewportContent*>& viewportContents) = 0;
         
         /**
          * Selection on a model.
          *
+         * @param brain
+         *    The brain (must be valid!)
          * @param viewportContent
          *    Viewport content in which mouse was clicked
          * @param mouseX
@@ -117,7 +123,8 @@ namespace caret {
          *    selected.  If this parameter is false, the node will be
          *    selected.
          */
-        virtual void selectModel(BrainOpenGLViewportContent* viewportContent,
+        virtual void selectModel(Brain* brain,
+                                 BrainOpenGLViewportContent* viewportContent,
                                  const int32_t mouseX,
                                  const int32_t mouseY,
                                  const bool applySelectionBackgroundFiltering) = 0;
@@ -128,6 +135,8 @@ namespace caret {
          * coordinate in 'projectionOut' will be valid.  In addition,
          * the barycentric coordinate may also be valid in 'projectionOut'.
          *
+         * @param brain
+         *    The brain (must be valid!)
          * @param viewportContent
          *    Viewport content in which mouse was clicked
          * @param mouseX
@@ -135,7 +144,8 @@ namespace caret {
          * @param mouseY
          *    Y position of mouse click
          */
-        virtual void projectToModel(BrainOpenGLViewportContent* viewportContent,
+        virtual void projectToModel(Brain* brain,
+                                    BrainOpenGLViewportContent* viewportContent,
                                     const int32_t mouseX,
                                     const int32_t mouseY,
                                     SurfaceProjectedItem& projectionOut) = 0;

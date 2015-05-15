@@ -105,14 +105,17 @@ namespace caret {
 
         ~BrainOpenGLFixedPipeline();
         
-        void drawModels(std::vector<BrainOpenGLViewportContent*>& viewportContents);
+        void drawModels(Brain* brain,
+                        std::vector<BrainOpenGLViewportContent*>& viewportContents);
         
-        void selectModel(BrainOpenGLViewportContent* viewportContent,
+        void selectModel(Brain* brain,
+                         BrainOpenGLViewportContent* viewportContent,
                          const int32_t mouseX,
                          const int32_t mouseY,
                          const bool applySelectionBackgroundFiltering);
         
-        void projectToModel(BrainOpenGLViewportContent* viewportContent,
+        void projectToModel(Brain* brain,
+                            BrainOpenGLViewportContent* viewportContent,
                             const int32_t mouseX,
                             const int32_t mouseY,
                             SurfaceProjectedItem& projectionOut);
