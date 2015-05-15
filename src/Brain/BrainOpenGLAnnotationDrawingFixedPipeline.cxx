@@ -41,6 +41,8 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
+#include "EventAnnotation.h"
+#include "EventManager.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -486,14 +488,19 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     std::vector<double> annotationSelectionWindowXYZ;
     std::vector<Annotation*> annotationsDrawnForSelection;
     
-    std::vector<AnnotationFile*> allAnnotationFiles;
-    m_brainOpenGLFixedPipeline->m_brain->getAllAnnotationFiles(allAnnotationFiles);
-    for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
-         fileIter != allAnnotationFiles.end();
-         fileIter++) {
-        AnnotationFile* annotationFile = *fileIter;
-        const std::vector<Annotation*> allAnnotations = annotationFile->getAllAnnotations();
-        
+//    std::vector<AnnotationFile*> allAnnotationFiles;
+//    m_brainOpenGLFixedPipeline->m_brain->getAllAnnotationFiles(allAnnotationFiles);
+//    for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
+//         fileIter != allAnnotationFiles.end();
+//         fileIter++) {
+//        AnnotationFile* annotationFile = *fileIter;
+//        const std::vector<Annotation*> allAnnotations = annotationFile->getAllAnnotations();
+    
+    EventAnnotation annotationEvent;
+    annotationEvent.setModeGetAllAnnotations();
+    EventManager::get()->sendEvent(annotationEvent.getPointer());
+    const std::vector<Annotation*> allAnnotations = annotationEvent.getModeGetAllAnnotations();
+    
         const int32_t annotationCount = static_cast<int32_t>(allAnnotations.size());
         for (int32_t iAnn = 0; iAnn < annotationCount; iAnn++) {
             CaretAssertVectorIndex(allAnnotations, iAnn);
@@ -619,7 +626,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                 annotationSelectionWindowXYZ.push_back(selectionCenterXYZ[2]);
             }
         }
-    }
+//    }
     
     if (isSelect) {
         CaretAssert(annotationID);

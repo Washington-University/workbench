@@ -129,6 +129,10 @@ Brain::Brain()
     m_specFile->setFileName("");
     m_specFile->clearModified();
     
+    m_sceneAnnotationFile = new AnnotationFile();
+    m_sceneAnnotationFile->setFileName("");
+    m_sceneAnnotationFile->clearModified();
+    
     m_modelChart = NULL;
     m_surfaceMontageModel = NULL;
     m_volumeSliceModel = NULL;
@@ -178,6 +182,10 @@ Brain::Brain()
     m_isSpecFileBeingRead = false;
     
     m_sceneAssistant = new SceneClassAssistant();
+    
+    m_sceneAssistant->add("m_sceneAnnotationFile",
+                          "SceneAnnotationFile",
+                          m_sceneAnnotationFile);
     
     m_sceneAssistant->add("displayPropertiesAnnotation",
                           "DisplayPropertiesAnnotation",
@@ -238,6 +246,7 @@ Brain::~Brain()
     
     resetBrain();
 
+    delete m_sceneAnnotationFile;
     delete m_specFile;
     delete m_chartingDataManager;
     delete m_fiberOrientationSamplesLoader;
@@ -450,6 +459,10 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         delete af;
     }
     m_annotationFiles.clear();
+    
+    m_sceneAnnotationFile->clear();
+    m_sceneAnnotationFile->setFileName("");
+    m_sceneAnnotationFile->clearModified();
     
     for (std::vector<BorderFile*>::iterator bfi = m_borderFiles.begin();
          bfi != m_borderFiles.end();
@@ -4245,7 +4258,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
  * @return Number of annotation files.
  */
 int
-Brain::getNumberOfAnnotationFile() const
+Brain::getNumberOfAnnotationFiles() const
 {
     return m_annotationFiles.size();
 }
@@ -4284,6 +4297,26 @@ void
 Brain::getAllAnnotationFiles(std::vector<AnnotationFile*>& allAnnotationFilesOut) const
 {
     allAnnotationFilesOut = m_annotationFiles;
+}
+
+/**
+ * @return The annotation file associated with the current scene.
+ */
+AnnotationFile*
+Brain::getSceneAnnotationFile()
+{
+    CaretAssert(m_sceneAnnotationFile);
+    return m_sceneAnnotationFile;
+}
+
+/**
+ * @return The annotation file associated with the current scene.
+ */
+const AnnotationFile*
+Brain::getSceneAnnotationFile() const
+{
+    CaretAssert(m_sceneAnnotationFile);
+    return m_sceneAnnotationFile;
 }
 
 /**

@@ -233,16 +233,40 @@ AnnotationFile::AnnotationFile()
  */
 AnnotationFile::~AnnotationFile()
 {
+    clearPrivate();
+    
+    EventManager::get()->removeAllEventsFromListener(this);
+    delete m_sceneAssistant;
+}
+
+/**
+ * Clear the content of this file.
+ * This method is virtual so do not call from constructor/destructor.
+ */
+void
+AnnotationFile::clear()
+{
+    CaretDataFile::clear();
+    
+    clearPrivate();
+}
+
+/**
+ * Clear the content of this file.
+ */
+void
+AnnotationFile::clearPrivate()
+{
+    m_metadata->clear();
+
     for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
          iter != m_annotations.end();
          iter++) {
         delete *iter;
     }
     m_annotations.clear();
-    
-    EventManager::get()->removeAllEventsFromListener(this);
-    delete m_sceneAssistant;
 }
+
 
 /**
  * Set the selection status of all annotations.
@@ -320,6 +344,7 @@ AnnotationFile::receiveEvent(Event* event)
                 break;
             case EventAnnotation::MODE_DELETE_ANNOTATION:
                 removeAnnotation(annotationEvent->getModeDeleteAnnotation());
+                annotationEvent->setEventProcessed();
                 break;
             case EventAnnotation::MODE_EDIT_ANNOTATION:
                 break;
@@ -327,10 +352,13 @@ AnnotationFile::receiveEvent(Event* event)
                 break;
             case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
                 setAllAnnotationsSelected(false);
+                annotationEvent->setEventProcessed();
+                break;
+            case EventAnnotation::MODE_GET_ALL_ANNOTATIONS:
+                annotationEvent->setEventProcessed();
+                annotationEvent->addAnnotationsForModeGetAllAnnotations(m_annotations);
                 break;
         }
-        
-        annotationEvent->setEventProcessed();
     }
 }
 
@@ -588,6 +616,20 @@ AnnotationFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
 {
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
+    
+    if ( ! isEmpty()) {
+        try {
+        AnnotationFileXmlWriter writer;
+        QString fileContentInString;
+        writer.writeFileToString(this,
+                                 fileContentInString);
+        sceneClass->addString("AnnotationFileContent",
+                              fileContentInString);
+        }
+        catch (const DataFileException& dfe) {
+            sceneAttributes->addToErrorMessage(dfe.whatString());
+        }
+    }
 }
 
 /**
@@ -606,7 +648,24 @@ void
 AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                          const SceneClass* sceneClass)
 {
+    
+    clear(); //????
+    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    QString fileContentInString = sceneClass->getStringValue("AnnotationFileContent");
+    if ( ! fileContentInString.isEmpty()) {
+        try {
+            AnnotationFileXmlReader reader;
+            reader.readFileFromString(fileContentInString,
+                                      this);
+            
+            clearModified();
+        }
+        catch (const DataFileException& dfe) {
+            sceneAttributes->addToErrorMessage(dfe.whatString());
+        }
+    }
 }
 

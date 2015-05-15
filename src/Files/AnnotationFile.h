@@ -45,6 +45,8 @@ namespace caret {
 
         bool isEmpty() const;
 
+        virtual void clear();
+        
         virtual StructureEnum::Enum getStructure() const;
         
         virtual void setStructure(const StructureEnum::Enum structure);
@@ -95,6 +97,8 @@ namespace caret {
     private:
         void copyHelperAnnotationFile(const AnnotationFile& obj);
 
+        void clearPrivate();
+        
         SceneClassAssistant* m_sceneAssistant;
 
         CaretPointer<GiftiMetaData> m_metadata;

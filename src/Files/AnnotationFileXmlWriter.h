@@ -52,6 +52,9 @@ namespace caret {
         
         void writeFile(const AnnotationFile* annotationFile);
         
+        void writeFileToString(const AnnotationFile* annotationFile,
+                               QString& fileContentString);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -69,6 +72,9 @@ namespace caret {
         
         void getTwoDimAnnotationPropertiesAsAttributes(const AnnotationTwoDimensionalShape* shape,
                                                  QXmlStreamAttributes& attributes);
+        
+        void writeFileContentToXmlStreamWriter(const AnnotationFile* annotationFile,
+                                               const QString& filename);
         
         void writeArrow(const AnnotationArrow* arrow);
         

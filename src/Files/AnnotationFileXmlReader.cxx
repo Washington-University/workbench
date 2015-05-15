@@ -78,7 +78,7 @@ AnnotationFileXmlReader::~AnnotationFileXmlReader()
  *    DataFileException if there is an error reading the file.
  */
 void
-AnnotationFileXmlReader::readFile(const AString& filename,
+AnnotationFileXmlReader::readFile(const QString& filename,
                                   AnnotationFile* annotationFile)
 {
     CaretAssert(annotationFile);
@@ -100,6 +100,59 @@ AnnotationFileXmlReader::readFile(const AString& filename,
      */
     m_stream.grabNew(new QXmlStreamReader(&file));
     
+    readFileContentFromXmlStreamReader(filename,
+                                       annotationFile);
+    
+    file.close();
+    
+    if (m_stream->hasError()) {
+        m_streamHelper->throwDataFileException("There was an error reading the annotation file in XML format (reported by QXmlStreamReader): "
+                                + m_stream->errorString());
+    }
+}
+
+/**
+ * Read the given annotation file contained in a string in XML format.
+ *
+ * @param fileInString
+ *    String containing the file.
+ * @param annotationFile
+ *    Read into this annotation file.
+ * @throws
+ *    DataFileException if there is an error reading the file.
+ */
+void
+AnnotationFileXmlReader::readFileFromString(const QString& fileInString,
+                                            AnnotationFile* annotationFile)
+{
+    /*
+     * Create an XML stream writer
+     */
+    m_stream.grabNew(new QXmlStreamReader(fileInString));
+    
+    readFileContentFromXmlStreamReader("SceneFileName",
+                                       annotationFile);
+    
+    if (m_stream->hasError()) {
+        m_streamHelper->throwDataFileException("There was an error reading the annotation file in XML format (reported by QXmlStreamReader): "
+                                               + m_stream->errorString());
+    }
+}
+
+/**
+ * Read content of the file from the XML stream reader.
+ *
+ * @param filename
+ *    Name of the file.
+ * @param annotationFile
+ *    Read into this annotation file.
+ * @throws
+ *    DataFileException if there is an error reading the file.
+ */
+void
+AnnotationFileXmlReader::readFileContentFromXmlStreamReader(const QString& filename,
+                                        AnnotationFile* annotationFile)
+{
     /*
      * Create the helper for reading XML
      */
@@ -121,18 +174,18 @@ AnnotationFileXmlReader::readFile(const AString& filename,
     const QStringRef fileElementName = m_stream->name();
     if (fileElementName != ELEMENT_ANNOTATION_FILE) {
         m_streamHelper->throwDataFileException("First element is "
-                                + fileElementName.toString()
-                                + " but should be "
-                                + ELEMENT_ANNOTATION_FILE);
+                                               + fileElementName.toString()
+                                               + " but should be "
+                                               + ELEMENT_ANNOTATION_FILE);
     }
     
     QXmlStreamAttributes fileAttributes = m_stream->attributes();
     const QStringRef versionText = fileAttributes.value(ATTRIBUTE_VERSION);
     if (versionText.isEmpty()) {
         m_streamHelper->throwDataFileException("Version attribute ("
-                                + ATTRIBUTE_VERSION
-                                + ") is missing from the file element "
-                                + ELEMENT_ANNOTATION_FILE);
+                                               + ATTRIBUTE_VERSION
+                                               + ") is missing from the file element "
+                                               + ELEMENT_ANNOTATION_FILE);
     }
     
     const int32_t versionNumber  = versionText.toString().toInt();
@@ -141,15 +194,8 @@ AnnotationFileXmlReader::readFile(const AString& filename,
     }
     else {
         m_streamHelper->throwDataFileException("File version number "
-                                 + versionText.toString()
-                                 + " is not supported by this version of the software.");
-    }
-    
-    file.close();
-    
-    if (m_stream->hasError()) {
-        m_streamHelper->throwDataFileException("There was an error reading the annotation file in XML format (reported by QXmlStreamReader): "
-                                + m_stream->errorString());
+                                               + versionText.toString()
+                                               + " is not supported by this version of the software.");
     }
 }
 

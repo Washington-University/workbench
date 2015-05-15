@@ -204,6 +204,8 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
             case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
                 m_annotationBeingEdited = NULL;
                 break;
+            case EventAnnotation::MODE_GET_ALL_ANNOTATIONS:
+                break;
         }
         
         annotationEvent->setEventProcessed();

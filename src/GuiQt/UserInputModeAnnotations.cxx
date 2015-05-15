@@ -125,6 +125,8 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 }
             }
                 break;
+            case EventAnnotation::MODE_GET_ALL_ANNOTATIONS:
+                break;
         }
     }
     //    if (event->getEventType() == EventTypeEnum::) {
@@ -727,14 +729,14 @@ UserInputModeAnnotations::processModeSelectMouseLeftClick(const MouseEvent& mous
 void
 UserInputModeAnnotations::deselectAllAnnotations()
 {
-    std::vector<AnnotationFile*> allAnnotationFiles;
-    GuiManager::get()->getBrain()->getAllAnnotationFiles(allAnnotationFiles);
-    for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
-         fileIter != allAnnotationFiles.end();
-         fileIter++) {
-        AnnotationFile* annotationFile = *fileIter;
-        annotationFile->setAllAnnotationsSelected(false);
-    }
+//    std::vector<AnnotationFile*> allAnnotationFiles;
+//    GuiManager::get()->getBrain()->getAllAnnotationFiles(allAnnotationFiles);
+//    for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
+//         fileIter != allAnnotationFiles.end();
+//         fileIter++) {
+//        AnnotationFile* annotationFile = *fileIter;
+//        annotationFile->setAllAnnotationsSelected(false);
+//    }
     
     EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
 }

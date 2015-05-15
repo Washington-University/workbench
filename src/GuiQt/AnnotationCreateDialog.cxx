@@ -197,10 +197,28 @@ AnnotationCreateDialog::createFileSelectionWidget()
     QToolButton* newFileToolButton = new QToolButton();
     newFileToolButton->setDefaultAction(newFileAction);
     
+    m_sceneAnnotationFileRadioButton = new QRadioButton("Scene Annotation File");
+    m_brainAnnotationFileRadioButton = new QRadioButton("File");
+    
+    QButtonGroup* fileButtonGroup = new QButtonGroup(this);
+    fileButtonGroup->addButton(m_brainAnnotationFileRadioButton);
+    fileButtonGroup->addButton(m_sceneAnnotationFileRadioButton);
+    
     QWidget* widget = new QGroupBox("Annotation File");
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    layout->addWidget(m_annotationFileSelectionComboBox->getWidget(), 100);
-    layout->addWidget(newFileToolButton, 0);
+    QGridLayout* layout = new QGridLayout(widget);
+    layout->setColumnStretch(0,   0);
+    layout->setColumnStretch(1, 100);
+    layout->setColumnStretch(2,   0);
+    layout->addWidget(m_brainAnnotationFileRadioButton,
+                      0, 0);
+    layout->addWidget(m_annotationFileSelectionComboBox->getWidget(),
+                      0, 1);
+    layout->addWidget(newFileToolButton,
+                      0, 2);
+    layout->addWidget(m_sceneAnnotationFileRadioButton,
+                      1, 0,
+                      1, 3,
+                      Qt::AlignLeft);
     
     return widget;
 }
@@ -432,11 +450,22 @@ AnnotationCreateDialog::createTextWidget()
 void
 AnnotationCreateDialog::okButtonClicked()
 {
-    AnnotationFile* annotationFile = m_annotationFileSelectionModel->getSelectedFileOfType<AnnotationFile>();
-    if (annotationFile == NULL) {
-        WuQMessageBox::errorOk(this, "An annotation file must be selected.");
+    AnnotationFile* annotationFile = NULL;
+    if (m_brainAnnotationFileRadioButton->isChecked()) {
+        annotationFile = m_annotationFileSelectionModel->getSelectedFileOfType<AnnotationFile>();
+        if (annotationFile == NULL) {
+            WuQMessageBox::errorOk(this, "An annotation file must be selected.");
+            return;
+        }
+    }
+    else if (m_sceneAnnotationFileRadioButton->isChecked()) {
+        annotationFile = GuiManager::get()->getBrain()->getSceneAnnotationFile();
+    }
+    else {
+        WuQMessageBox::errorOk(this, "Type of anotation file is not selected.");
         return;
     }
+    CaretAssert(annotationFile);
     
     const int checkedButtonID = m_spaceButtonGroup->checkedId();
     if (checkedButtonID < 0) {

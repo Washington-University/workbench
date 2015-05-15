@@ -184,5 +184,45 @@ EventAnnotation::setModeDeleteAnnotation(Annotation* annotation)
     return *this;
 }
 
+/**
+ * Set the mode for getting all annotations.
+ *
+ * @return
+ *     Reference to "self".
+ */
+EventAnnotation&
+EventAnnotation::setModeGetAllAnnotations()
+{
+    m_mode = MODE_GET_ALL_ANNOTATIONS;
+    m_allAnnotations.clear();
+    
+    return *this;
+}
+
+/**
+ * @return All annotations retrieved from the get all annotations mode.
+ */
+const std::vector<Annotation*>
+EventAnnotation::getModeGetAllAnnotations() const
+{
+    return m_allAnnotations;
+}
+
+/**
+ * Add annotations when in get all annotations mode.
+ *
+ * @param annotations
+ *     The annotation that are added.
+ */
+void
+EventAnnotation::addAnnotationsForModeGetAllAnnotations(std::vector<Annotation*> annotations)
+{
+    m_allAnnotations.insert(m_allAnnotations.end(),
+                            annotations.begin(),
+                            annotations.end());
+}
+
+
+
 
 

@@ -124,13 +124,17 @@ namespace caret {
         
         const BorderFile* getBorderFile(const int32_t indx) const;
 
-        int getNumberOfAnnotationFile() const;
+        int getNumberOfAnnotationFiles() const;
         
         AnnotationFile* getAnnotationFile(const int32_t indx);
         
         const AnnotationFile* getAnnotationFile(const int32_t indx) const;
         
         void getAllAnnotationFiles(std::vector<AnnotationFile*>& allAnnotationFilesOut) const;
+        
+        AnnotationFile* getSceneAnnotationFile();
+        
+        const AnnotationFile* getSceneAnnotationFile() const;
         
         int32_t getNumberOfFociFiles() const;
         
@@ -687,6 +691,8 @@ namespace caret {
         std::vector<BrainStructure*> m_brainStructures;
         
         std::vector<AnnotationFile*> m_annotationFiles;
+        
+        AnnotationFile* m_sceneAnnotationFile;
         
         std::vector<BorderFile*> m_borderFiles;
         

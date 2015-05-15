@@ -48,6 +48,8 @@ namespace caret {
             MODE_DESELECT_ALL_ANNOTATIONS,
             /** Edit an annotation */
             MODE_EDIT_ANNOTATION,
+            /** Get all annotations */
+            MODE_GET_ALL_ANNOTATIONS
         };
    
         EventAnnotation();
@@ -70,6 +72,12 @@ namespace caret {
         
         EventAnnotation& setModeDeleteAnnotation(Annotation* annotation);
         
+        void addAnnotationsForModeGetAllAnnotations(std::vector<Annotation*> annotations);
+        
+        EventAnnotation& setModeGetAllAnnotations();
+        
+        const std::vector<Annotation*> getModeGetAllAnnotations() const;
+        
         Mode getMode() const;
 
         // ADD_NEW_METHODS_HERE
@@ -86,6 +94,8 @@ namespace caret {
         Annotation* m_annotation;
         
         AnnotationTypeEnum::Enum m_annotationType;
+        
+        std::vector<Annotation*> m_allAnnotations;
         
         // ADD_NEW_MEMBERS_HERE
 

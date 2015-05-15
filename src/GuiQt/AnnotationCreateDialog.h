@@ -74,6 +74,10 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_annotationFileSelectionComboBox;
         
+        QRadioButton* m_sceneAnnotationFileRadioButton;
+        
+        QRadioButton* m_brainAnnotationFileRadioButton;
+        
         QWidget* m_fileSelectionWidget;
         
         QButtonGroup* m_spaceButtonGroup;

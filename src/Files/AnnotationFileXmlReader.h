@@ -45,8 +45,11 @@ namespace caret {
         
         virtual ~AnnotationFileXmlReader();
 
-        void readFile(const AString& filename,
+        void readFile(const QString& filename,
                       AnnotationFile* annotationFile);
+        
+        void readFileFromString(const QString& fileInString,
+                                AnnotationFile* annotationFile);
 
         // ADD_NEW_METHODS_HERE
 
@@ -54,6 +57,9 @@ namespace caret {
         AnnotationFileXmlReader(const AnnotationFileXmlReader&);
 
         AnnotationFileXmlReader& operator=(const AnnotationFileXmlReader&);
+        
+        void readFileContentFromXmlStreamReader(const QString& filename,
+                                                AnnotationFile* annotationFile);
         
         void readVersionOne(AnnotationFile* annotationFile);
         

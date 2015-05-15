@@ -38,6 +38,7 @@
 #include "CaretAssert.h"
 #include "DataFileException.h"
 #include "XmlStreamWriterHelper.h"
+#include "XmlUtilities.h"
 
 using namespace caret;
 
@@ -100,6 +101,58 @@ AnnotationFileXmlWriter::writeFile(const AnnotationFile* annotationFile)
      * Create an XML stream writer
      */
     m_stream.grabNew(new QXmlStreamWriter(&file));
+
+    writeFileContentToXmlStreamWriter(annotationFile,
+                                      filename);
+    
+    
+    file.close();
+    
+    if (m_stream->hasError()) {
+        throw DataFileException(filename,
+                                "There was an error writing the annotation file in XML format (reported by QXmlStreamWriter).");
+    }
+}
+
+/**
+ * Write the given Annotation File in XML format into the given string.
+ *
+ * @param annotationFile
+ *     The annotation file written to the stream writer.
+ * @param fileContentString
+ *     Will contain XML version of the file on exit.
+ * @throws
+ *     DataFileException if there is an error writing the file.
+ */
+void
+AnnotationFileXmlWriter::writeFileToString(const AnnotationFile* annotationFile,
+                                           QString& fileContentString)
+{
+    fileContentString.clear();
+    
+    m_stream.grabNew(new QXmlStreamWriter(&fileContentString));
+    
+    writeFileContentToXmlStreamWriter(annotationFile,
+                                      "Scene Annotation File");
+    
+    if (m_stream->hasError()) {
+        throw DataFileException("There was an error writing the scene annotation file in XML format (reported by QXmlStreamWriter).");
+    }
+}
+
+/**
+ * Write the content of the file to the XML Stream Writer.
+ *
+ * @param annotationFile
+ *     The annotation file written to the stream writer.
+ * @param filename
+ *     Name of the file.
+ */
+void
+AnnotationFileXmlWriter::writeFileContentToXmlStreamWriter(const AnnotationFile* annotationFile,
+                                                           const QString& filename)
+{
+    CaretAssert(m_stream);
     m_stream->setAutoFormatting(true);
     
     /*
@@ -149,14 +202,8 @@ AnnotationFileXmlWriter::writeFile(const AnnotationFile* annotationFile)
     m_stream->writeEndElement(); // ELEMENT_ANNOTATION_FILE
     
     m_stream->writeEndDocument();
-    
-    file.close();
-    
-    if (m_stream->hasError()) {
-        throw DataFileException(filename,
-                                "There was an error writing the annotation file in XML format (reported by QXmlStreamWriter).");
-    }
 }
+
 
 /**
  * Write the given annotation arrow in XML.
@@ -274,7 +321,8 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     
     m_stream->writeStartElement(ELEMENT_TEXT_DATA);
     m_stream->writeAttributes(textDataAttributes);
-    m_stream->writeCDATA(text->getText());
+    m_stream->writeCharacters(XmlUtilities::encodeXmlSpecialCharacters(text->getText()));
+    //m_stream->writeCDATA(text->getText());
     m_stream->writeEndElement();
     
     m_stream->writeEndElement();
