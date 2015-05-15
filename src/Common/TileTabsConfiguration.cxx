@@ -121,6 +121,145 @@ TileTabsConfiguration::copyHelperTileTabsConfiguration(const TileTabsConfigurati
 }
 
 /**
+ * Get the row heights and column widths for this tile tabs configuration using the
+ * given window width and height.
+ *
+ * @param windowWidth
+ *      Width of window.
+ * @param windowHeight
+ *      Height of window.
+ * @param numberOfModelsToDraw
+ *      Number of models to draw.
+ * @param rowHeightsOut
+ *      Output containing height of each row.
+ * @param columnWidthsOut
+ *      Output containing width of each column.
+ * @return
+ *      True if the ouput is valid, else false.
+ */
+bool
+TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
+                                                                 const int32_t windowHeight,
+                                                                 const int32_t numberOfModelsToDraw,
+                                                                 std::vector<int32_t>& rowHeightsOut,
+                                                                 std::vector<int32_t>& columnWidthsOut)
+{
+    /*
+     * NOTE: When computing widths and heights, do not round.
+     * Rounding may cause the bottom most row or column to extend
+     * outside the graphics region.  Shrinking the last row or
+     * column is not desired since it might cause the last model
+     * to be drawn slightly smaller than the others.
+     */
+    
+    int32_t numRows = 0;
+    int32_t numCols = 0;
+    
+    rowHeightsOut.clear();
+    columnWidthsOut.clear();
+    
+    if (isDefaultConfiguration()) {
+        /*
+         * Update number of rows/columns in the default configuration
+         * so that if a scene is saved, the correct number of rows
+         * and columns are saved to the scene.
+         */
+        updateDefaultConfigurationRowsAndColumns(numberOfModelsToDraw);
+        numRows = getNumberOfRows();
+        numCols = getNumberOfColumns();
+        
+        for (int32_t i = 0; i < numRows; i++) {
+            rowHeightsOut.push_back(windowHeight / numRows);
+        }
+        for (int32_t i = 0; i < numCols; i++) {
+            columnWidthsOut.push_back(windowWidth / numCols);
+        }
+    }
+    else {
+        /*
+         * Rows/columns from user configuration
+         */
+        numRows = getNumberOfRows();
+        numCols = getNumberOfColumns();
+        
+        /*
+         * Determine height of each row
+         */
+        float rowStretchTotal = 0.0;
+        for (int32_t i = 0; i < numRows; i++) {
+            rowStretchTotal += getRowStretchFactor(i);
+        }
+        CaretAssert(rowStretchTotal > 0.0);
+        for (int32_t i = 0; i < numRows; i++) {
+            const int32_t h = static_cast<int32_t>((getRowStretchFactor(i) / rowStretchTotal)
+                                                   * windowHeight);
+            
+            rowHeightsOut.push_back(h);
+        }
+        
+        /*
+         * Determine width of each column
+         */
+        float columnStretchTotal = 0.0;
+        for (int32_t i = 0; i < numCols; i++) {
+            columnStretchTotal += getColumnStretchFactor(i);
+        }
+        CaretAssert(columnStretchTotal > 0.0);
+        for (int32_t i = 0; i < numCols; i++) {
+            const int32_t w = static_cast<int32_t>((getColumnStretchFactor(i) / columnStretchTotal)
+                                                   * windowWidth);
+            columnWidthsOut.push_back(w);
+        }
+    }
+    
+    if ((numRows == static_cast<int32_t>(rowHeightsOut.size()))
+        && (numCols == static_cast<int32_t>(columnWidthsOut.size()))) {
+        /*
+         * Verify all rows fit within the window
+         */
+        int32_t rowHeightsSum = 0;
+        for (int32_t i = 0; i < numRows; i++) {
+            rowHeightsSum += rowHeightsOut[i];
+        }
+        if (rowHeightsSum > windowHeight) {
+            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
+            rowHeightsOut[numRows - 1] -= (rowHeightsSum - windowHeight);
+        }
+        
+        /*
+         * Adjust width of last column so that it does not extend beyond viewport
+         */
+        int32_t columnWidthsSum = 0;
+        for (int32_t i = 0; i < numCols; i++) {
+            columnWidthsSum += columnWidthsOut[i];
+        }
+        if (columnWidthsSum > windowWidth) {
+            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
+            columnWidthsOut[numCols - 1] = columnWidthsSum - windowWidth;
+        }
+        
+        CaretLogFiner("Tile Tabs Row Heights: "
+                      + AString::fromNumbers(rowHeightsOut, ", "));
+        CaretLogFiner("Tile Tabs Column Widths: "
+                      + AString::fromNumbers(columnWidthsOut, ", "));
+        return true;
+    }
+    
+    const QString msg("Row and heights failed rows="
+                      + AString::number(numRows)
+                      + " rowHeights="
+                      + AString::number(rowHeightsOut.size())
+                      + " cols="
+                      + AString::number(numCols)
+                      + " rowHeights="
+                      + AString::number(columnWidthsOut.size()));
+    CaretAssertMessage(0, msg);
+    CaretLogSevere(msg);
+    return false;
+}
+
+
+/**
  * @return the name of the tile tabs configuration.
  */
 AString

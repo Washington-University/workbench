@@ -40,6 +40,12 @@ namespace caret {
 
         TileTabsConfiguration& operator=(const TileTabsConfiguration& obj);
         
+        bool getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
+                                                       const int32_t windowHeight,
+                                                       const int32_t numberOfModelsToDraw,
+                                                       std::vector<int32_t>& rowHeightsOut,
+                                                       std::vector<int32_t>& columnWidthsOut);
+        
         AString getName() const;
         
         void setName(const AString& name);

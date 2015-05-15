@@ -49,7 +49,9 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneFile.h"
+#include "ScenePrimitiveArray.h"
 #include "SessionManager.h"
+#include "TileTabsConfiguration.h"
 #include "VolumeFile.h"
 
 //#include "workbench_png.h"
@@ -284,45 +286,139 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         for (int32_t i = 0; i < numBrowserClasses; i++) {
             const SceneClass* browserClass = browserWindowArray->getClassAtIndex(i);
             
+            const bool restoreToTabTiles = browserClass->getBooleanValue("m_viewTileTabsAction",
+                                                                         false);
+            
             /*
-             * Restore toolbar
+             * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
              */
-            const SceneClass* toolbarClass = browserClass->getClass("m_toolbar");
-            if (toolbarClass != NULL) {
-                /*
-                 * Index of selected browser tab (NOT the tabBar)
-                 */
-                const int32_t selectedTabIndex = toolbarClass->getIntegerValue("selectedTabIndex", -1);
+            if (restoreToTabTiles) {
+                const AString tileTabsConfigString = browserClass->getStringValue("m_sceneTileTabsConfiguration");
+                if ( ! tileTabsConfigString.isEmpty()) {
+                    TileTabsConfiguration tileTabsConfiguration;
+                    tileTabsConfiguration.decodeFromXML(tileTabsConfigString);
+                    
+                    std::cout << "RESTORE TAB TILES"
+                    << " rows " << tileTabsConfiguration.getNumberOfRows()
+                    << " cols " << tileTabsConfiguration.getNumberOfColumns()
+                    << std::endl;
+                    
+                    /*
+                     * Restore toolbar
+                     */
+                    const SceneClass* toolbarClass = browserClass->getClass("m_toolbar");
+                    if (toolbarClass != NULL) {
+                        /*
+                         * Index of selected browser tab (NOT the tabBar)
+                         */
+                        std::vector<BrowserTabContent*> allTabContent;
+                        const ScenePrimitiveArray* tabIndexArray = toolbarClass->getPrimitiveArray("tabIndices");
+                        if (tabIndexArray != NULL) {
+                            const int32_t numTabs = tabIndexArray->getNumberOfArrayElements();
+                            for (int32_t iTab = 0; iTab < numTabs; iTab++) {
+                                const int32_t tabIndex = tabIndexArray->integerValue(iTab);
+                                
+                                EventBrowserTabGet getTabContent(tabIndex);
+                                EventManager::get()->sendEvent(getTabContent.getPointer());
+                                BrowserTabContent* tabContent = getTabContent.getBrowserTab();
+                                if (tabContent == NULL) {
+                                    throw OperationException("Failed to obtain tab number "
+                                                             + AString::number(tabIndex + 1)
+                                                             + " for window "
+                                                             + AString::number(i + 1));
+                                }
+                                allTabContent.push_back(tabContent);
+                            }
+                        }
+                        
+                        const int32_t numTabContent = static_cast<int32_t>(allTabContent.size());
+                        if (numTabContent <= 0) {
+                            throw OperationException("Failed to find any tab content");
+                        }
+                        std::vector<int32_t> rowHeights;
+                        std::vector<int32_t> columnWidths;
+                        if ( ! tileTabsConfiguration.getRowHeightsAndColumnWidthsForWindowSize(imageWidth,
+                                                                                               imageHeight,
+                                                                                               numTabContent,
+                                                                                               rowHeights,
+                                                                                               columnWidths)) {
+                            throw OperationException("Tile Tabs Row/Column sizing failed !!!");
+                        }
+                        
+                        const int32_t tabIndexToHighlight = -1;
+                        std::vector<BrainOpenGLViewportContent*> viewports = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabContent,
+                                                                                                                                          brain,
+                                                                                                                                          imageWidth,
+                                                                                                                                          imageHeight,
+                                                                                                                                          rowHeights,
+                                                                                                                                          columnWidths,
+                                                                                                                                          tabIndexToHighlight);
+                        
+                        brainOpenGL->drawModels(viewports);
 
-                EventBrowserTabGet getTabContent(selectedTabIndex);
-                EventManager::get()->sendEvent(getTabContent.getPointer());
-                BrowserTabContent* tabContent = getTabContent.getBrowserTab();
-                if (tabContent == NULL) {
-                    throw OperationException("Failed to obtain tab number "
-                                             + AString::number(selectedTabIndex + 1)
-                                             + " for window "
-                                             + AString::number(i + 1));
+                        const int32_t outputImageIndex = ((numBrowserClasses > 1)
+                                                          ? i
+                                                          : -1);
+                        
+                        writeImage(imageFileName,
+                                   outputImageIndex,
+                                   imageBuffer,
+                                   imageWidth,
+                                   imageHeight);
+                        
+                        for (std::vector<BrainOpenGLViewportContent*>::iterator vpIter = viewports.begin();
+                             vpIter != viewports.end();
+                             vpIter++) {
+                            delete *vpIter;
+                        }
+                        viewports.clear();
+                    }
                 }
-                
-                BrainOpenGLViewportContent content(viewport,
-                                                   viewport,
-                                                   false,
-                                                   brain,
-                                                   tabContent);
-                std::vector<BrainOpenGLViewportContent*> viewportContents;
-                viewportContents.push_back(&content);
-                
-                brainOpenGL->drawModels(viewportContents);
-                
-                const int32_t outputImageIndex = ((numBrowserClasses > 1)
-                                             ? i
-                                             : -1);
-                
-                writeImage(imageFileName,
-                           outputImageIndex,
-                           imageBuffer,
-                           imageWidth,
-                           imageHeight);
+                else {
+                    throw OperationException("Tile tabs configuration is corrupted.");
+                }
+            }
+            else {
+                /*
+                 * Restore toolbar
+                 */
+                const SceneClass* toolbarClass = browserClass->getClass("m_toolbar");
+                if (toolbarClass != NULL) {
+                    /*
+                     * Index of selected browser tab (NOT the tabBar)
+                     */
+                    const int32_t selectedTabIndex = toolbarClass->getIntegerValue("selectedTabIndex", -1);
+                    
+                    EventBrowserTabGet getTabContent(selectedTabIndex);
+                    EventManager::get()->sendEvent(getTabContent.getPointer());
+                    BrowserTabContent* tabContent = getTabContent.getBrowserTab();
+                    if (tabContent == NULL) {
+                        throw OperationException("Failed to obtain tab number "
+                                                 + AString::number(selectedTabIndex + 1)
+                                                 + " for window "
+                                                 + AString::number(i + 1));
+                    }
+                    
+                    BrainOpenGLViewportContent content(viewport,
+                                                       viewport,
+                                                       false,
+                                                       brain,
+                                                       tabContent);
+                    std::vector<BrainOpenGLViewportContent*> viewportContents;
+                    viewportContents.push_back(&content);
+                    
+                    brainOpenGL->drawModels(viewportContents);
+                    
+                    const int32_t outputImageIndex = ((numBrowserClasses > 1)
+                                                      ? i
+                                                      : -1);
+                    
+                    writeImage(imageFileName,
+                               outputImageIndex,
+                               imageBuffer,
+                               imageWidth,
+                               imageHeight);
+                }
             }
         }
     }

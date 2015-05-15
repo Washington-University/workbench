@@ -23,6 +23,9 @@
 #include "BrainOpenGLViewportContent.h"
 #undef __BRAIN_OPEN_G_L_VIEWPORT_CONTENT_DECLARE__
 
+#include "BrowserTabContent.h"
+#include "CaretAssert.h"
+
 using namespace caret;
 
 
@@ -147,3 +150,89 @@ BrainOpenGLViewportContent::toString() const
 {
     return "BrainOpenGLViewportContent";
 }
+
+/**
+ * Create Viewport Contents for the given tab contents, window sizes, and tile sizes.
+ *
+ * @paramj tabContents
+ *     Content of each tab.
+ * @param brain
+ *     The brain.
+ * @param windowWidth
+ *     Width of the window.
+ * @param windowHeight
+ *     Height of the window.
+ * @param rowHeights
+ *     Height of each row.
+ * @param columnWidths
+ *     Width of each column.
+ * @param hightlightTabIndex
+ *     Index of tab that is highlighted when selected by user.
+ * @return 
+ *     Vector containing data for drawing each model.
+ */
+std::vector<BrainOpenGLViewportContent*>
+BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
+                                                             Brain* brain,
+                                                             const int32_t windowWidth,
+                                                             const int32_t windowHeight,
+                                                             const std::vector<int32_t>& rowHeights,
+                                                             const std::vector<int32_t>& columnWidths,
+                                                             const int32_t highlightTabIndex)
+{
+    const int32_t numRows = static_cast<int32_t>(rowHeights.size());
+    const int32_t numCols = static_cast<int32_t>(columnWidths.size());
+    const int32_t numTabs = static_cast<int32_t>(tabContents.size());
+    
+    std::vector<BrainOpenGLViewportContent*> viewportContentsOut;
+    
+    /*
+     * Arrange models left-to-right and top-to-bottom.
+     */
+    int32_t vpX = 0;
+    int32_t vpY = windowHeight;
+    
+    int32_t iTab = 0;
+    for (int32_t i = 0; i < numRows; i++) {
+        const int32_t vpHeight = rowHeights[i];
+        vpX = 0;
+        vpY -= vpHeight;
+        for (int32_t j = 0; j < numCols; j++) {
+            const int32_t vpWidth = columnWidths[j];
+            if (iTab < numTabs) {
+                const int modelViewport[4] = {
+                    vpX,
+                    vpY,
+                    vpWidth,
+                    vpHeight
+                };
+                
+                CaretAssertVectorIndex(tabContents, iTab);
+                BrowserTabContent* tabContent = tabContents[iTab];
+                const bool highlightTab = (highlightTabIndex == tabContent->getTabNumber());
+                BrainOpenGLViewportContent* vc =
+                new BrainOpenGLViewportContent(modelViewport,
+                                               modelViewport,
+                                               highlightTab,
+                                               brain,
+                                               tabContent);
+                viewportContentsOut.push_back(vc);
+            }
+            iTab++;
+            vpX += vpWidth;
+            
+            if (iTab >= numTabs) {
+                /*
+                 * More cells than models for drawing so set loop
+                 * indices so that loops terminate
+                 */
+                j = numCols;
+                i = numRows;
+            }
+        }
+    }
+
+    return viewportContentsOut;
+}
+
+
