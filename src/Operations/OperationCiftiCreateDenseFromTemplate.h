@@ -21,40 +21,6 @@
  */
 /*LICENSE_END*/
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings in plain text mode (not "whole word only"):
-
-OperationCiftiCreateDenseFromTemplate     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
-OPERATION_CIFTI_CREATE_DENSE_FROM_TEMPLATE    : uppercase of operation name, with underscore between words, used in #ifdef guards
-
-next, make OperationCiftiCreateDenseFromTemplate.cxx from OperationTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiCreateDenseFromTemplate/g' > OperationCiftiCreateDenseFromTemplate.cxx
-cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiCreateDenseFromTemplate/g' > Operations/OperationCiftiCreateDenseFromTemplate.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiCreateDenseFromTemplate/g' > src/Operations/OperationCiftiCreateDenseFromTemplate.cxx
-
-or manually copy and replace
-
-next, implement its functions
-
-add these to Operations/CMakeLists.txt:
-
-OperationCiftiCreateDenseFromTemplate.h
-OperationCiftiCreateDenseFromTemplate.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "OperationCiftiCreateDenseFromTemplate.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiCreateDenseFromTemplate()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractOperation.h"
 
 namespace caret {
