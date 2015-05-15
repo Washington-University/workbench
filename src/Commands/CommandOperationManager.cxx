@@ -132,6 +132,7 @@
 #include "OperationCiftiConvert.h"
 #include "OperationCiftiConvertToScalar.h"
 #include "OperationCiftiCopyMapping.h"
+#include "OperationCiftiCreateDenseFromTemplate.h"
 #include "OperationCiftiCreateScalarSeries.h"
 #include "OperationCiftiEstimateFWHM.h"
 #include "OperationCiftiExportDenseMapping.h"
@@ -366,6 +367,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvertToScalar()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiCopyMapping()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiCreateDenseFromTemplate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiCreateScalarSeries()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiExportDenseMapping()));

@@ -27,6 +27,7 @@ OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
 OperationCiftiCopyMapping.h
+OperationCiftiCreateDenseFromTemplate.h
 OperationCiftiCreateScalarSeries.h
 OperationCiftiEstimateFWHM.h
 OperationCiftiExportDenseMapping.h
@@ -107,6 +108,7 @@ OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
 OperationCiftiConvertToScalar.cxx
 OperationCiftiCopyMapping.cxx
+OperationCiftiCreateDenseFromTemplate.cxx
 OperationCiftiCreateScalarSeries.cxx
 OperationCiftiEstimateFWHM.cxx
 OperationCiftiExportDenseMapping.cxx
