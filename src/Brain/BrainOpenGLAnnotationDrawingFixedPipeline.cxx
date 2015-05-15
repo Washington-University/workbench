@@ -372,6 +372,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     if (m_brainOpenGLFixedPipeline->m_brain == NULL) {
         return;
     }
+    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawing in space "
+                                                           + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
     
     const DisplayPropertiesAnnotation* dpa = m_brainOpenGLFixedPipeline->m_brain->getDisplayPropertiesAnnotation();
     switch (drawingCoordinateSpace) {
@@ -673,6 +675,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
+
+    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At end of annotation drawing in space "
+                                                           + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
 }
 
 /**

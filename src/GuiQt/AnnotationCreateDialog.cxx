@@ -136,11 +136,10 @@ AnnotationCreateDialog::~AnnotationCreateDialog()
 QWidget*
 AnnotationCreateDialog::createFileSelectionWidget()
 {
-    m_annotationFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(GuiManager::get()->getBrain(),
+    Brain* brain = GuiManager::get()->getBrain();
+    
+    m_annotationFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(brain,
                                                                                                   DataFileTypeEnum::ANNOTATION);
-    if (s_previousAnnotationFile != NULL) {
-        m_annotationFileSelectionModel->setSelectedFile(s_previousAnnotationFile);
-    }
     m_annotationFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     m_annotationFileSelectionComboBox->updateComboBox(m_annotationFileSelectionModel);
     
@@ -158,6 +157,19 @@ AnnotationCreateDialog::createFileSelectionWidget()
     QButtonGroup* fileButtonGroup = new QButtonGroup(this);
     fileButtonGroup->addButton(m_brainAnnotationFileRadioButton);
     fileButtonGroup->addButton(m_sceneAnnotationFileRadioButton);
+    
+    if (s_previousSelections.m_valid) {
+        if (s_previousSelections.m_annotationFile == brain->getSceneAnnotationFile()) {
+            m_sceneAnnotationFileRadioButton->setChecked(true);
+        }
+        else {
+            m_annotationFileSelectionModel->setSelectedFile(s_previousSelections.m_annotationFile);
+            m_annotationFileSelectionComboBox->updateComboBox(m_annotationFileSelectionModel);
+            if (m_annotationFileSelectionModel->getSelectedFile() == s_previousSelections.m_annotationFile) {
+                m_brainAnnotationFileRadioButton->setChecked(true);
+            }
+        }
+    }
     
     QWidget* widget = new QGroupBox("Annotation File");
     QGridLayout* layout = new QGridLayout(widget);
@@ -237,6 +249,8 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
     gridLayout->addWidget(new QLabel("Z"),
                           titleRow, COLUMN_COORD_Z);
     
+    QRadioButton* defaultRadioButton = NULL;
+    
     if (m_coordInfo.m_modelXYZValid
         && enableModelSpaceFlag) {
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::MODEL);
@@ -253,6 +267,12 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
         gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[2])),
                               rowNum, COLUMN_COORD_Z);
         enableModelSpaceFlag = false;
+        
+        if (s_previousSelections.m_valid) {
+            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::MODEL) {
+                defaultRadioButton = rb;
+            }
+        }
     }
     
     if ((m_coordInfo.m_tabIndex >= 0)
@@ -273,6 +293,12 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
                               rowNum, COLUMN_COORD_Y);
         gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[2])),
                               rowNum, COLUMN_COORD_Z);
+        
+        if (s_previousSelections.m_valid) {
+            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
+                defaultRadioButton = rb;
+            }
+        }
     }
     
     if ((m_coordInfo.m_windowIndex >= 0)
@@ -294,6 +320,12 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
                               rowNum, COLUMN_COORD_Y);
         gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[2])),
                               rowNum, COLUMN_COORD_Z);
+        
+        if (s_previousSelections.m_valid) {
+            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+                defaultRadioButton = rb;
+            }
+        }
     }
     
     if (m_coordInfo.m_surfaceNodeValid
@@ -312,6 +344,16 @@ AnnotationCreateDialog::createSpaceSelectionWidget()
                                +AString::number(m_coordInfo.m_surfaceNodeIndex));
         gridLayout->addWidget(new QLabel(infoText),
                               rowNum, COLUMN_COORD_X, 1, 4);
+        
+        if (s_previousSelections.m_valid) {
+            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::SURFACE) {
+                defaultRadioButton = rb;
+            }
+        }
+    }
+    
+    if (defaultRadioButton != NULL) {
+        defaultRadioButton->setChecked(true);
     }
     
     /*
@@ -376,8 +418,7 @@ AnnotationCreateDialog::newAnnotationFileButtonClicked()
      */
     newFile->setFileName(newFileName);
     EventManager::get()->sendEvent(EventDataFileAdd(newFile).getPointer());
-    s_previousAnnotationFile = newFile;
-    m_annotationFileSelectionModel->setSelectedFile(s_previousAnnotationFile);
+    m_annotationFileSelectionModel->setSelectedFile(newFile);
     m_annotationFileSelectionComboBox->updateComboBox(m_annotationFileSelectionModel);
 }
 
@@ -458,6 +499,12 @@ AnnotationCreateDialog::okButtonClicked()
     }
     CaretAssert(annotationFile);
     
+    /*
+     * Save for next time
+     */
+    s_previousSelections.m_annotationFile  = annotationFile;
+    s_previousSelections.m_coordinateSpace = space;
+    s_previousSelections.m_valid = true;
     
     CaretPointer<Annotation> annotation;
     annotation.grabNew(NULL);

@@ -252,7 +252,6 @@ XmlStreamReaderHelper::readMetaData(GiftiMetaData* metadata)
     
     metadata->clear();
     
-    std::cout << "When starting to read metadata name is: " << qPrintable(m_stream->name().toString()) << std::endl;
     while (!(m_stream->isEndElement() && (m_stream->name().toString() == "MetaData"))
            && !m_stream->hasError()) {
         

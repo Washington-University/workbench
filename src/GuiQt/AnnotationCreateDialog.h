@@ -56,6 +56,15 @@ namespace caret {
         void newAnnotationFileButtonClicked();
         
     private:
+        class PreviousSelections {
+        public:
+            PreviousSelections() {
+                m_valid = false;
+            }
+            AnnotationFile* m_annotationFile;
+            AnnotationCoordinateSpaceEnum::Enum m_coordinateSpace;
+            bool m_valid;
+        };
         AnnotationCreateDialog(const AnnotationCreateDialog&);
 
         AnnotationCreateDialog& operator=(const AnnotationCreateDialog&);
@@ -86,7 +95,7 @@ namespace caret {
         
         UserInputModeAnnotations::CoordinateInformation m_coordInfo;
         
-        static AnnotationFile* s_previousAnnotationFile;
+        static PreviousSelections s_previousSelections;
         
         static const QString s_SPACE_PROPERTY_NAME;
         
@@ -95,7 +104,7 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_CREATE_DIALOG_DECLARE__
-    AnnotationFile* AnnotationCreateDialog::s_previousAnnotationFile = NULL;
+    AnnotationCreateDialog::PreviousSelections AnnotationCreateDialog::s_previousSelections;
     const QString AnnotationCreateDialog::s_SPACE_PROPERTY_NAME = "SPACE_NAME";
 #endif // __ANNOTATION_CREATE_DIALOG_DECLARE__;
 
