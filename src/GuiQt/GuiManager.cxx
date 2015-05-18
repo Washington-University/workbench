@@ -33,6 +33,7 @@
 #include "GuiManager.h"
 #undef __GUI_MANAGER_DEFINE__
 
+#include "AnnotationFile.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGL.h"
@@ -600,24 +601,37 @@ GuiManager::exitProgram(QWidget* parent)
     getBrain()->getAllModifiedFiles(dataFileTypesToExclude,
                                     modifiedDataFiles);
     const int32_t modFileCount = static_cast<int32_t>(modifiedDataFiles.size());
-         
-    if (modFileCount > 0) {
+    
+    /*
+     * Are there scene annotations ?
+     */
+    const bool haveSceneAnnotationsFlag = ( ! getBrain()->getSceneAnnotationFile()->isEmpty());
+    
+    if ((modFileCount > 0)
+        || haveSceneAnnotationsFlag) {
         /*
          * Display dialog allowing user to save files (goes to Save/Manage
          * Files dialog), exit without saving, or cancel.
          */
         const AString textMsg("Do you want to save changes you made to these files?");
         
-        AString infoTextMsg("Changes to these files will be lost if you don't save them:\n");
-        for (std::vector<CaretDataFile*>::iterator iter = modifiedDataFiles.begin();
-             iter != modifiedDataFiles.end();
-             iter++) {
-            const CaretDataFile* cdf = *iter;
-            infoTextMsg.appendWithNewLine("   "
-                                  + cdf->getFileNameNoPath());
+        AString infoTextMsg;
+        if (modFileCount > 0) {
+            infoTextMsg.appendWithNewLine("Changes to these files will be lost if you don't save them:\n");
+            for (std::vector<CaretDataFile*>::iterator iter = modifiedDataFiles.begin();
+                 iter != modifiedDataFiles.end();
+                 iter++) {
+                const CaretDataFile* cdf = *iter;
+                infoTextMsg.appendWithNewLine("   "
+                                              + cdf->getFileNameNoPath());
+            }
         }
-        infoTextMsg.appendWithNewLine("");
         
+        if (haveSceneAnnotationsFlag) {
+            infoTextMsg.appendWithNewLine("There are scene annotations but a scene has not been saved.");
+        }
+        
+        infoTextMsg.appendWithNewLine("");
         QMessageBox quitDialog(QMessageBox::Warning,
                                "Exit Workbench",
                                textMsg,

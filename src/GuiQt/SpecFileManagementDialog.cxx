@@ -42,6 +42,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationFile.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
@@ -231,6 +232,7 @@ m_specFile(specFile)
     m_manageFilesLoadedNotLoadedActionGroup = NULL;
     m_specFileDataFileCounter = 0;
     m_specFileTableRowIndex = -1;
+    m_sceneAnnotationFileRowIndex = -1;
     m_fileSorting = SpecFileManagementDialogRowContent::SORTING_TYPE_STRUCTURE_NAME;
 
     /*
@@ -279,6 +281,7 @@ m_specFile(specFile)
      */
     if (enableManageItems) {
         m_specFileTableRowIndex = tableRowCounter++;
+        m_sceneAnnotationFileRowIndex = tableRowCounter++;
     }
     
     bool testForDisplayedDataFiles = false;
@@ -319,7 +322,7 @@ m_specFile(specFile)
     m_COLUMN_DISPLAYED_LABEL             = -1;
     m_COLUMN_IN_SPEC_FILE_CHECKBOX       = -1;
     m_COLUMN_READ_BUTTON                 = -1;
-    m_COLUMN_CLOSE_BUTTON               = -1;
+    m_COLUMN_CLOSE_BUTTON                = -1;
     m_COLUMN_OPTIONS_TOOLBUTTON          = -1;
     m_COLUMN_DATA_FILE_TYPE_LABEL        = -1;
     m_COLUMN_STRUCTURE                   = -1;
@@ -574,7 +577,12 @@ SpecFileManagementDialog::filesTableWidgetCellChanged(int rowIndex, int columnIn
          * Is this the row containing the spec file?
          */
         if (rowIndex == m_specFileTableRowIndex) {
-            
+            /*
+             * Nothing to do for spec file
+             */
+        }
+        else if (rowIndex == m_sceneAnnotationFileRowIndex) {
+            bool causeCompilationWarningFlag;
         }
         else {
             SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);
@@ -594,7 +602,8 @@ SpecFileManagementDialog::filesTableWidgetCellChanged(int rowIndex, int columnIn
                 updateSpecFileRowInTable();
                 
                 /*
-                 * Check the Spec File SAVE checkbox
+                 * Check the Spec File SAVE checkbox since the user has changed the
+                 * "in spec" status for a data file
                  */
                 if (m_specFileTableRowIndex >= 0) {
                     QTableWidgetItem* saveItem = getTableWidgetItem(m_specFileTableRowIndex,
@@ -787,12 +796,17 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
      * If needed, add a row for the spec file
      */
     m_specFileTableRowIndex = -1;
+    m_sceneAnnotationFileRowIndex = -1;
     int numberOfRows = 0;
     switch (m_dialogMode) {
         case MODE_MANAGE_FILES:
         case MODE_SAVE_FILES_WHILE_QUITTING:
             m_specFileTableRowIndex = numberOfRows;
             numberOfRows++;
+            if ( ! m_brain->getSceneAnnotationFile()->isEmpty()) {
+                m_sceneAnnotationFileRowIndex = numberOfRows;
+                numberOfRows++;
+            }
             break;
         case MODE_OPEN_SPEC_FILE:
             break;
@@ -837,9 +851,31 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
      * Add new cells to the table widget
      */
     for (int32_t iRow = firstNewRowIndex; iRow < lastNewRowIndex; iRow++) {
-        const bool isDataFileRow = (m_specFileTableRowIndex != iRow);
+        bool hasCloseCheckBoxFlag  = true;
+        bool hasDisplayedLabelFlag = true;
+        bool hasInSpecCheckBoxFlag = true;
+        bool hasLoadCheckBoxFlag   = true;
+        bool hasOptionsButtonFlag  = true;
+        bool hasReadCheckBoxFlag   = true;
+        bool hasSaveCheckBoxFlag   = true;
+        bool hasStatusLabelFlag    = true;
+        if (iRow == m_specFileTableRowIndex) {
+            hasCloseCheckBoxFlag  = false;
+            hasDisplayedLabelFlag = false;
+            hasInSpecCheckBoxFlag = false;
+            hasLoadCheckBoxFlag   = false;
+            hasReadCheckBoxFlag   = false;
+        }
+        else if (iRow == m_sceneAnnotationFileRowIndex) {
+            hasDisplayedLabelFlag = false;
+            hasInSpecCheckBoxFlag = false;
+            hasLoadCheckBoxFlag   = false;
+            hasOptionsButtonFlag  = false;
+            hasReadCheckBoxFlag   = false;
+            hasSaveCheckBoxFlag   = false;
+        }
         
-        if (isDataFileRow) {
+        if (hasLoadCheckBoxFlag) {
             if (m_COLUMN_LOAD_CHECKBOX >= 0) {
                 QTableWidgetItem* item = createCheckableItem();
                 item->setTextAlignment(Qt::AlignHCenter);
@@ -849,37 +885,44 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
             }
         }
 
-        if (m_COLUMN_SAVE_CHECKBOX >= 0) {
-            QTableWidgetItem* item = createCheckableItem();
-            item->setTextAlignment(Qt::AlignHCenter);
-            setTableWidgetItem(iRow,
-                               m_COLUMN_SAVE_CHECKBOX,
-                               item);
+        if (hasSaveCheckBoxFlag) {
+            if (m_COLUMN_SAVE_CHECKBOX >= 0) {
+                QTableWidgetItem* item = createCheckableItem();
+                item->setTextAlignment(Qt::AlignHCenter);
+                setTableWidgetItem(iRow,
+                                   m_COLUMN_SAVE_CHECKBOX,
+                                   item);
+            }
         }
         
-        if (m_COLUMN_STATUS_LABEL >= 0) {
-            QTableWidgetItem* item = createTextItem();
-            setTableWidgetItem(iRow,
-                               m_COLUMN_STATUS_LABEL,
-                               item);
-            
-            /*
-             * Text for modified cell is always red and centered
-             */
-            item->setTextAlignment(Qt::AlignCenter);
-            QBrush modifiedBrush = item->foreground();
-            modifiedBrush.setColor(Qt::red);
-            item->setForeground(modifiedBrush);
+        if (hasStatusLabelFlag) {
+            if (m_COLUMN_STATUS_LABEL >= 0) {
+                QTableWidgetItem* item = createTextItem();
+                setTableWidgetItem(iRow,
+                                   m_COLUMN_STATUS_LABEL,
+                                   item);
+                
+                /*
+                 * Text for modified cell is always red and centered
+                 */
+                item->setTextAlignment(Qt::AlignCenter);
+                QBrush modifiedBrush = item->foreground();
+                modifiedBrush.setColor(Qt::red);
+                item->setForeground(modifiedBrush);
+            }
         }
         
-        if (m_COLUMN_DISPLAYED_LABEL >= 0) {
-            QTableWidgetItem* item = createTextItem();
-            setTableWidgetItem(iRow,
-                               m_COLUMN_DISPLAYED_LABEL,
-                               item);
-            item->setTextAlignment(Qt::AlignCenter);
+        if (hasDisplayedLabelFlag) {
+            if (m_COLUMN_DISPLAYED_LABEL >= 0) {
+                QTableWidgetItem* item = createTextItem();
+                setTableWidgetItem(iRow,
+                                   m_COLUMN_DISPLAYED_LABEL,
+                                   item);
+                item->setTextAlignment(Qt::AlignCenter);
+            }
         }
-        if (isDataFileRow) {
+        
+        if (hasInSpecCheckBoxFlag) {
             if (m_COLUMN_IN_SPEC_FILE_CHECKBOX >= 0) {
                 QTableWidgetItem* item = createCheckableItem();
                 item->setTextAlignment(Qt::AlignHCenter);
@@ -887,9 +930,11 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
                                    m_COLUMN_IN_SPEC_FILE_CHECKBOX,
                                    item);
             }
+        }
+        if (hasReadCheckBoxFlag) {
             if (m_COLUMN_READ_BUTTON >= 0) {
                 WuQImageLabel* loadImageLabel = new WuQImageLabel(m_iconReloadFile,
-                                                                     "Reload");
+                                                                  "Reload");
                 QObject::connect(loadImageLabel, SIGNAL(clicked()),
                                  m_fileReloadOrOpenFileActionSignalMapper, SLOT(map()));
                 m_fileReloadOrOpenFileActionSignalMapper->setMapping(loadImageLabel, iRow);
@@ -897,10 +942,12 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
                                                   m_COLUMN_READ_BUTTON,
                                                   loadImageLabel);
             }
-            
+        }
+        
+        if (hasCloseCheckBoxFlag) {
             if (m_COLUMN_CLOSE_BUTTON >= 0) {
                 WuQImageLabel* closeImageLabel = new WuQImageLabel(m_iconCloseFile,
-                                                                     "Close");
+                                                                   "Close");
                 QObject::connect(closeImageLabel, SIGNAL(clicked()),
                                  m_fileCloseFileActionSignalMapper, SLOT(map()));
                 m_fileCloseFileActionSignalMapper->setMapping(closeImageLabel, iRow);
@@ -909,17 +956,20 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
                                                   closeImageLabel);
             }
         }
-        
-        if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0) {
-            WuQImageLabel* optionsImageLabel = new WuQImageLabel(m_iconOptions,
-                                                                 "Options");
-            QObject::connect(optionsImageLabel, SIGNAL(clicked()),
-                             m_fileOptionsActionSignalMapper, SLOT(map()));
-            m_fileOptionsActionSignalMapper->setMapping(optionsImageLabel, iRow);
-            m_filesTableWidget->setCellWidget(iRow,
-                                              m_COLUMN_OPTIONS_TOOLBUTTON,
-                                              optionsImageLabel);
+    
+        if (hasOptionsButtonFlag) {
+            if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0) {
+                WuQImageLabel* optionsImageLabel = new WuQImageLabel(m_iconOptions,
+                                                                     "Options");
+                QObject::connect(optionsImageLabel, SIGNAL(clicked()),
+                                 m_fileOptionsActionSignalMapper, SLOT(map()));
+                m_fileOptionsActionSignalMapper->setMapping(optionsImageLabel, iRow);
+                m_filesTableWidget->setCellWidget(iRow,
+                                                  m_COLUMN_OPTIONS_TOOLBUTTON,
+                                                  optionsImageLabel);
+            }
         }
+        
         if (m_COLUMN_DATA_FILE_TYPE_LABEL >= 0) {
             setTableWidgetItem(iRow,
                                         m_COLUMN_DATA_FILE_TYPE_LABEL,
@@ -964,12 +1014,6 @@ SpecFileManagementDialog::updateSpecFileRowInTable()
                                                             m_COLUMN_DATA_FILE_TYPE_LABEL);
             dataTypeItem->setText(getEditedDataFileTypeName(DataFileTypeEnum::SPECIFICATION));
             
-//            CaretAssert(m_COLUMN_SAVE_CHECKBOX >= 0);
-//            QTableWidgetItem* saveItem = getTableWidgetItem(m_specFileTableRowIndex,
-//                                                            m_COLUMN_SAVE_CHECKBOX);
-//            CaretAssert(saveItem);
-//            // saveItem->setCheckState(WuQtUtilities::boolToCheckState(m_specFile->is()));
-            
             CaretAssert(m_COLUMN_FILE_NAME_LABEL >= 0);
             QTableWidgetItem* nameItem = getTableWidgetItem(m_specFileTableRowIndex,
                                                             m_COLUMN_FILE_NAME_LABEL);
@@ -998,17 +1042,6 @@ SpecFileManagementDialog::updateSpecFileRowInTable()
                 statusItem->setText("");
             }
 
-//            /*
-//             * Hide in Spec Check Box
-//             */
-//            CaretAssert(m_COLUMN_IN_SPEC_FILE_CHECKBOX);
-//            QTableWidgetItem* inSpecItem = getTableWidgetItem(m_specFileTableRowIndex,
-//                                                              m_COLUMN_IN_SPEC_FILE_CHECKBOX);
-//            inSpecItem->setFlags(inSpecItem->flags()
-//                                 & (~Qt::ItemIsEnabled));
-//            inSpecItem->setFlags(inSpecItem->flags()
-//                                 & (~Qt::ItemIsUserCheckable));
-            
             /*
              * Get filtering selections
              */
@@ -1056,6 +1089,108 @@ SpecFileManagementDialog::updateSpecFileRowInTable()
         }
     }
 }
+
+/**
+ * Update the table row containing the annotation scene.
+ */
+void
+SpecFileManagementDialog::updateAnnotationSceneFileRowInTable()
+{
+    bool isUpdateRow = false;
+    switch (m_dialogMode) {
+        case MODE_MANAGE_FILES:
+        case MODE_SAVE_FILES_WHILE_QUITTING:
+            isUpdateRow = true;
+            break;
+        case MODE_OPEN_SPEC_FILE:
+            break;
+    }
+    
+    /*
+     * Update spec file data
+     */
+    if (isUpdateRow) {
+        if (m_sceneAnnotationFileRowIndex >= 0) {
+            const AnnotationFile* sceneAnnotationFile = m_brain->getSceneAnnotationFile();
+            
+            CaretAssert(m_COLUMN_DATA_FILE_TYPE_LABEL >= 0);
+            QTableWidgetItem* dataTypeItem = getTableWidgetItem(m_sceneAnnotationFileRowIndex,
+                                                                m_COLUMN_DATA_FILE_TYPE_LABEL);
+            dataTypeItem->setText("Scene Annotations");
+            
+            CaretAssert(m_COLUMN_FILE_NAME_LABEL >= 0);
+            QTableWidgetItem* nameItem = getTableWidgetItem(m_sceneAnnotationFileRowIndex,
+                                                            m_COLUMN_FILE_NAME_LABEL);
+            CaretAssert(nameItem);
+            nameItem->setText("");
+            nameItem->setToolTip("");
+            
+            CaretAssert(m_COLUMN_STATUS_LABEL >= 0);
+            QTableWidgetItem* statusItem = getTableWidgetItem(m_sceneAnnotationFileRowIndex,
+                                                              m_COLUMN_STATUS_LABEL);
+            
+            /*
+             * Scene annotation file is considered modified if 
+             * it is NOT empty.
+             */
+            const bool modifiedStatusFlag = ( ! sceneAnnotationFile->isEmpty());
+
+            CaretAssert(statusItem);
+            if (modifiedStatusFlag) {
+                statusItem->setText("YES");
+            }
+            else {
+                statusItem->setText("");
+            }
+            
+            /*
+             * Get filtering selections
+             */
+            SpecFileDialogViewFilesTypeEnum::Enum viewFilesType;
+            DataFileTypeEnum::Enum filteredDataFileType;
+            StructureEnum::Enum filteredStructureType;
+            getFilterSelections(viewFilesType,
+                                filteredDataFileType,
+                                filteredStructureType);
+            
+            bool hideSceneAnnontationFileRow = false;
+            
+            if ((filteredStructureType != StructureEnum::ALL)
+                && (filteredStructureType != StructureEnum::OTHER)) {
+                hideSceneAnnontationFileRow = true;
+            }
+            
+            switch (viewFilesType) {
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_ALL:
+                    break;
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_LOADED:
+                    break;
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_LOADED_MODIFIED:
+                    if (! modifiedStatusFlag) {
+                        hideSceneAnnontationFileRow = true;
+                    }
+                    break;
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_LOADED_NOT_MODIFIED:
+                    if (modifiedStatusFlag) {
+                        hideSceneAnnontationFileRow = true;
+                    }
+                    break;
+                case SpecFileDialogViewFilesTypeEnum::VIEW_FILES_NOT_LOADED:
+                    hideSceneAnnontationFileRow = true;
+                    break;
+                    
+            }
+            
+            if (filteredDataFileType != DataFileTypeEnum::UNKNOWN) {
+                hideSceneAnnontationFileRow = true;
+            }
+            
+            m_filesTableWidget->setRowHidden(m_sceneAnnotationFileRowIndex,
+                                             hideSceneAnnontationFileRow);
+        }
+    }
+}
+
 
 /**
  * Gets called when a column header is selected.
@@ -1223,7 +1358,10 @@ SpecFileManagementDialog::sortFileContent()
      */
     int rowCounter = 0;
     if (m_specFileTableRowIndex >= 0) {
-        rowCounter = 1;
+        rowCounter++;
+    }
+    if (m_sceneAnnotationFileRowIndex >= 0) {
+        rowCounter++;
     }
     for (int32_t i = 0; i < numDataFiles; i++) {
         m_tableRowDataFileContent[i]->m_tableRowIndex= rowCounter;
@@ -1257,6 +1395,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                         filteredStructureType);
     
     updateSpecFileRowInTable();
+    updateAnnotationSceneFileRowInTable();
     
     /*
      * Load all of the data file content.
@@ -1793,22 +1932,45 @@ SpecFileManagementDialog::writeSpecFile(const bool writeOnlyIfModified)
 void
 SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
 {
-    SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);
-    SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
-    
     QWidget* removeButtonWidget = m_filesTableWidget->cellWidget(rowIndex,
-                                                               m_COLUMN_CLOSE_BUTTON);
+                                                                 m_COLUMN_CLOSE_BUTTON);
     CaretAssert(removeButtonWidget);
-    CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
-    if (caretDataFile != NULL) {
-        if (caretDataFile->isModified()) {
-            const QString msg = (caretDataFile->getFileNameNoPath()
-                                 + " is modified.  Close without saving changes?");
-            if (WuQMessageBox::warningOkCancel(removeButtonWidget, msg) == false) {
+    
+    bool updateFlag = false;
+    
+    if (rowIndex == m_sceneAnnotationFileRowIndex) {
+        AnnotationFile* sceneAnnotationFile = m_brain->getSceneAnnotationFile();
+        CaretAssert(sceneAnnotationFile);
+        
+        if ( ! sceneAnnotationFile->isEmpty()) {
+            const QString msg = ("Remove all scene annotations?");
+            if ( ! WuQMessageBox::warningOkCancel(removeButtonWidget, msg)) {
                 return;
             }
+            
+            sceneAnnotationFile->clear();
+            updateFlag = true;
         }
-        EventManager::get()->sendEvent(EventDataFileDelete(caretDataFile).getPointer());
+    }
+    else {
+        SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);
+        SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
+        
+        CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
+        if (caretDataFile != NULL) {
+            if (caretDataFile->isModified()) {
+                const QString msg = (caretDataFile->getFileNameNoPath()
+                                     + " is modified.  Close without saving changes?");
+                if ( ! WuQMessageBox::warningOkCancel(removeButtonWidget, msg)) {
+                    return;
+                }
+            }
+            EventManager::get()->sendEvent(EventDataFileDelete(caretDataFile).getPointer());
+            updateFlag = true;
+        }
+    }
+
+    if (updateFlag) {
         getDataFileContentFromSpecFile();
         loadSpecFileContentIntoDialog();
         updateGraphicWindowsAndUserInterface();
@@ -2013,6 +2175,11 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
             CaretAssertMessage(0,
                                ("Unhandled Menu Action: " + selectedAction->text()));
         }
+    }
+    else if (rowIndex == m_sceneAnnotationFileRowIndex) {
+        /* 
+         * No file options for scene annotation file
+         */
     }
     else {
         SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);

@@ -171,11 +171,14 @@ UserInputModeAnnotationsWidget::~UserInputModeAnnotationsWidget()
 void
 UserInputModeAnnotationsWidget::receiveEvent(Event* event)
 {
+    bool updateAnnotationWidgetsFlag = false;
+    
     if (event->getEventType() == EventTypeEnum::EVENT_BRAIN_RESET) {
         EventBrainReset* brainEvent = dynamic_cast<EventBrainReset*>(event);
         CaretAssert(brainEvent);
         
         m_annotationBeingEdited = NULL;
+        updateAnnotationWidgetsFlag = true;
         
         brainEvent->setEventProcessed();
     }
@@ -189,6 +192,7 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
             case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
                 break;
             case EventAnnotation::MODE_DELETE_ANNOTATION:
+                updateAnnotationWidgetsFlag = true;
                 break;
             case EventAnnotation::MODE_EDIT_ANNOTATION:
             {
@@ -199,10 +203,12 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
                 if (windowIndex == m_browserWindowIndex) {
                     m_annotationBeingEdited = annotation;
                 }
+                updateAnnotationWidgetsFlag = true;
             }
                 break;
             case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
                 m_annotationBeingEdited = NULL;
+                updateAnnotationWidgetsFlag = true;
                 break;
             case EventAnnotation::MODE_GET_ALL_ANNOTATIONS:
                 break;
@@ -213,8 +219,33 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* updateEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(updateEvent);
+        
+        updateAnnotationWidgetsFlag = true;
+        
+    }
+    else {
+        return;
     }
 
+    if (! updateAnnotationWidgetsFlag) {
+        return;
+    }
+    
+    /*
+     * Is the annotation being edited still valid?
+     */
+    if (m_annotationBeingEdited != NULL) {
+        EventAnnotation annEvent;
+        annEvent.setModeGetAllAnnotations();
+        EventManager::get()->sendEvent(annEvent.getPointer());
+        const std::vector<Annotation*> allAnnotations = annEvent.getModeGetAllAnnotations();
+        if (std::find(allAnnotations.begin(),
+                      allAnnotations.end(),
+                      m_annotationBeingEdited) == allAnnotations.end()) {
+            m_annotationBeingEdited = NULL;
+        }
+    }
+    
     AnnotationText* textAnnotation = NULL;
     AnnotationTwoDimensionalShape* twoDimAnnotation = NULL;
     AnnotationOneDimensionalShape* oneDimAnnotation = NULL;
