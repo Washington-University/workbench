@@ -298,11 +298,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     TileTabsConfiguration tileTabsConfiguration;
                     tileTabsConfiguration.decodeFromXML(tileTabsConfigString);
                     
-                    std::cout << "RESTORE TAB TILES"
-                    << " rows " << tileTabsConfiguration.getNumberOfRows()
-                    << " cols " << tileTabsConfiguration.getNumberOfColumns()
-                    << std::endl;
-                    
                     /*
                      * Restore toolbar
                      */
