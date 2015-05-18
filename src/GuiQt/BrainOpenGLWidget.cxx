@@ -562,8 +562,8 @@ BrainOpenGLWidget::paintGL()
         this->drawingViewportContents.push_back(vc);
     }
     else if (numToDraw > 1) {
-        int32_t numRows = 0;
-        int32_t numCols = 0;
+        //int32_t numRows = 0;
+        //int32_t numCols = 0;
         
         const int32_t windowWidth = this->windowWidth[this->windowIndex];
         const int32_t windowHeight = this->windowHeight[this->windowIndex];

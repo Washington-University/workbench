@@ -174,7 +174,7 @@ BrainOpenGLViewportContent::toString() const
 std::vector<BrainOpenGLViewportContent*>
 BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
                                                              Brain* brain,
-                                                             const int32_t windowWidth,
+                                                             const int32_t /*windowWidth*/,
                                                              const int32_t windowHeight,
                                                              const std::vector<int32_t>& rowHeights,
                                                              const std::vector<int32_t>& columnWidths,
