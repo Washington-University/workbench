@@ -26,7 +26,7 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "CaretObject.h"
 #include "CaretOpenGLInclude.h"
-
+#include "Plane.h"
 
 
 namespace caret {
@@ -52,6 +52,8 @@ namespace caret {
         void drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                              const Surface* surfaceDisplayed);
 
+        void drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -140,6 +142,11 @@ namespace caret {
         
         /** OpenGL Viewport */
         GLint    m_modelSpaceViewport[4];
+        
+        /** volume space plane */
+        Plane m_volumeSpacePlane;
+        
+        bool m_volumeSpacePlaneValid;
         
         // ADD_NEW_MEMBERS_HERE
 

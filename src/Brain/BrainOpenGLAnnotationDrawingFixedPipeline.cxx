@@ -68,7 +68,8 @@ using namespace caret;
  */
 BrainOpenGLAnnotationDrawingFixedPipeline::BrainOpenGLAnnotationDrawingFixedPipeline(BrainOpenGLFixedPipeline* brainOpenGLFixedPipeline)
 : CaretObject(),
-m_brainOpenGLFixedPipeline(brainOpenGLFixedPipeline)
+m_brainOpenGLFixedPipeline(brainOpenGLFixedPipeline),
+m_volumeSpacePlaneValid(false)
 {
     CaretAssert(brainOpenGLFixedPipeline);
 }
@@ -123,6 +124,22 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
             modelXYZ[1] = annotationXYZ[1];
             modelXYZ[2] = annotationXYZ[2];
             modelXYZValid = true;
+            
+            if (m_volumeSpacePlaneValid) {
+                float xyzFloat[3] = {
+                    modelXYZ[0],
+                    modelXYZ[1],
+                    modelXYZ[2]
+                };
+                const float thickness = 1.5;
+                const float distToPlaneAbs = std::fabs(m_volumeSpacePlane.signedDistanceToPlane(xyzFloat));
+                if (distToPlaneAbs < 1.5) {
+                    modelXYZValid = true;
+                }
+                else {
+                    modelXYZValid = false;
+                }
+            }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
             windowXYZ[0] = annotationXYZ[0];
@@ -331,6 +348,27 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const float rota
         matrix.multiplyPoint3(topLeftOut);
     }
 }
+
+/**
+ * Draw model space annotations on the volume slice with the given plane.
+ *
+ * @param plane
+ *     The volume slice's plane.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane)
+{
+    if (plane.isValidPlane()) {
+        m_volumeSpacePlane = plane;
+        m_volumeSpacePlaneValid = true;
+        
+        drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                        NULL);
+    }
+    
+    m_volumeSpacePlaneValid = false;
+}
+
 
 /**
  * Draw the annotations in the given coordinate space.

@@ -29,6 +29,7 @@
 #include "AnnotationText.h"
 #include "BoundingBox.h"
 #include "Brain.h"
+#include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainordinateRegionOfInterest.h"
 #include "BrowserTabContent.h"
@@ -786,6 +787,11 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
                        sliceCoordinates);
         }
     }
+    
+    /*
+     * Draw model space annotaitons on the volume slice
+     */
+    m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(slicePlane);
     
     m_fixedPipelineDrawing->disableClippingPlanes();
     
