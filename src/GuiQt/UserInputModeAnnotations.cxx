@@ -23,6 +23,7 @@
 #include "UserInputModeAnnotations.h"
 #undef __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
 
+#include "AnnotationChangeCoordinateDialog.h"
 #include "AnnotationCreateDialog.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
@@ -401,17 +402,24 @@ UserInputModeAnnotations::getCoordinatesFromMouseLocation(const MouseEvent& mous
     
     BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
     
-    const int* tabViewport = vpContent->getModelViewport();
-    coordInfoOut.m_tabXYZ[0] = mouseEvent.getX() - tabViewport[0];
-    coordInfoOut.m_tabXYZ[1] = mouseEvent.getY() - tabViewport[1];
-    coordInfoOut.m_tabXYZ[2] = 0.0;
-    coordInfoOut.m_tabIndex  = vpContent->getBrowserTabContent()->getTabNumber();
-    
     /*
-     * Normalize tab coordinates (width and height range [0, 1]
+     * In tile tabs, some regions may not contain a tab such
+     * as three tabs in a two-by-two configuration
      */
-    coordInfoOut.m_tabXYZ[0] /= tabViewport[2];
-    coordInfoOut.m_tabXYZ[1] /= tabViewport[3];
+    BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
+    if (tabContent != NULL) {
+        const int* tabViewport = vpContent->getModelViewport();
+        coordInfoOut.m_tabXYZ[0] = mouseEvent.getX() - tabViewport[0];
+        coordInfoOut.m_tabXYZ[1] = mouseEvent.getY() - tabViewport[1];
+        coordInfoOut.m_tabXYZ[2] = 0.0;
+        coordInfoOut.m_tabIndex  = tabContent->getTabNumber();
+
+        /*
+         * Normalize tab coordinates (width and height range [0, 1]
+         */
+        coordInfoOut.m_tabXYZ[0] /= tabViewport[2];
+        coordInfoOut.m_tabXYZ[1] /= tabViewport[3];
+    }
     
     const int* windowViewport = vpContent->getWindowViewport();
     coordInfoOut.m_windowXYZ[0] = windowViewport[0] + mouseEvent.getX(); // tabViewport[0] + tabViewport[2] + mouseEvent.getX();
@@ -447,6 +455,7 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
     AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
 
     AnnotationCoordinate* coordinate = NULL;
+    AnnotationCoordinate* otherCoordinate = NULL;
     switch (m_mode) {
         case MODE_NEW:
             break;
@@ -454,7 +463,8 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
             break;
         case MODE_SET_COORDINATE_ONE:
             if (oneDimAnn != NULL) {
-                coordinate = oneDimAnn->getStartCoordinate();
+                coordinate      = oneDimAnn->getStartCoordinate();
+                otherCoordinate = oneDimAnn->getEndCoordinate();
             }
             else if (twoDimAnn != NULL) {
                 coordinate = twoDimAnn->getCoordinate();
@@ -462,104 +472,114 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
             break;
         case MODE_SET_COORDINATE_TWO:
             if (oneDimAnn != NULL) {
-                coordinate = oneDimAnn->getEndCoordinate();
+                coordinate      = oneDimAnn->getEndCoordinate();
+                otherCoordinate = oneDimAnn->getStartCoordinate();
             }
             break;
     }
     
-    if (coordinate != NULL) {
-        AString errorMessage;
+    AnnotationChangeCoordinateDialog changeCoordDialog(coordInfo,
+                                                       m_annotationBeingEdited,
+                                                       coordinate,
+                                                       otherCoordinate,
+                                                       m_annotationToolsWidget);
+    if (changeCoordDialog.exec() == AnnotationChangeCoordinateDialog::Accepted) {
         
-        switch (m_annotationBeingEdited->getCoordinateSpace()) {
-            case AnnotationCoordinateSpaceEnum::MODEL:
-                if (coordInfo.m_modelXYZValid) {
-                    coordinate->setXYZ(coordInfo.m_modelXYZ);
-                }
-                else {
-                    errorMessage = ("Annotation is attached to a model coordinate and "
-                                    "the location selected is not a model coordinate.");
-                }
-                break;
-            case AnnotationCoordinateSpaceEnum::PIXELS:
-                break;
-            case AnnotationCoordinateSpaceEnum::SURFACE:
-            {
-                StructureEnum::Enum structure = StructureEnum::INVALID;
-                int32_t numberOfNodes = -1;
-                int32_t nodeIndex = -1;
-                float   nodeOffset = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
-                coordinate->getSurfaceSpace(structure,
-                                            numberOfNodes,
-                                            nodeIndex,
-                                            nodeOffset);
-                
-                if (coordInfo.m_surfaceNodeValid) {
-                    if (coordInfo.m_surfaceStructure == structure) {
-                        coordinate->setSurfaceSpace(coordInfo.m_surfaceStructure,
-                                                    coordInfo.m_surfaceNumberOfNodes,
-                                                    coordInfo.m_surfaceNodeIndex,
-                                                    coordInfo.m_surfaceNodeOffset);
-                    }
-                    else {
-                        errorMessage = ("Moving annotation from "
-                                        + StructureEnum::toGuiName(structure)
-                                        + " surface to "
-                                        + StructureEnum::toGuiName(coordInfo.m_surfaceStructure)
-                                        + " surface is not allowed.  Annotation must remain on same surface.");
-                    }
-                }
-                else {
-                    errorMessage = ("Annotation is attached to a surface and "
-                                    "the location selected is not on a surface.");
-                }
-            }
-                break;
-            case AnnotationCoordinateSpaceEnum::TAB:
-                if (coordInfo.m_tabIndex >= 0) {
-                    if (coordInfo.m_tabIndex == m_annotationBeingEdited->getTabIndex()) {
-                        coordinate->setXYZ(coordInfo.m_tabXYZ);
-                    }
-                    else {
-                        errorMessage = ("Moving annotation from tab "
-                                        + AString::number(m_annotationBeingEdited->getTabIndex() + 1)
-                                        + " to "
-                                        + AString::number(coordInfo.m_tabIndex + 1)
-                                        + " is not allowed.  Annotation must remain on same tab.");
-                    }
-                }
-                else {
-                    errorMessage = ("Annotation is attached to a tab and the location selected is not "
-                                    "in a tab.");
-                }
-                break;
-            case AnnotationCoordinateSpaceEnum::WINDOW:
-                if (coordInfo.m_windowIndex >= 0) {
-                    if (coordInfo.m_windowIndex == m_annotationBeingEdited->getWindowIndex()) {
-                        coordinate->setXYZ(coordInfo.m_windowXYZ);
-                    }
-                    else {
-                        errorMessage = ("Moving annotation from window "
-                                        + AString::number(m_annotationBeingEdited->getWindowIndex() + 1)
-                                        + " to "
-                                        + AString::number(coordInfo.m_windowIndex + 1)
-                                        + " is not allowed.  Annotation must remain on same window.");
-                    }
-                }
-                else {
-                    errorMessage = ("Annotation is attached to a window and the location selected is not "
-                                    "in a window.");
-                }
-                break;
-        }
-        
-        if ( ! errorMessage.isEmpty()) {
-            setMode(MODE_SELECT);
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-            
-            WuQMessageBox::errorOk(m_annotationToolsWidget,
-                                   errorMessage);
-        }
     }
+    
+//    if (coordinate != NULL) {
+//        AString errorMessage;
+//        
+//        switch (m_annotationBeingEdited->getCoordinateSpace()) {
+//            case AnnotationCoordinateSpaceEnum::MODEL:
+//                if (coordInfo.m_modelXYZValid) {
+//                    coordinate->setXYZ(coordInfo.m_modelXYZ);
+//                }
+//                else {
+//                    errorMessage = ("Annotation is attached to a model coordinate and "
+//                                    "the location selected is not a model coordinate.");
+//                }
+//                break;
+//            case AnnotationCoordinateSpaceEnum::PIXELS:
+//                break;
+//            case AnnotationCoordinateSpaceEnum::SURFACE:
+//            {
+//                StructureEnum::Enum structure = StructureEnum::INVALID;
+//                int32_t numberOfNodes = -1;
+//                int32_t nodeIndex = -1;
+//                float   nodeOffset = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
+//                coordinate->getSurfaceSpace(structure,
+//                                            numberOfNodes,
+//                                            nodeIndex,
+//                                            nodeOffset);
+//                
+//                if (coordInfo.m_surfaceNodeValid) {
+//                    if (coordInfo.m_surfaceStructure == structure) {
+//                        coordinate->setSurfaceSpace(coordInfo.m_surfaceStructure,
+//                                                    coordInfo.m_surfaceNumberOfNodes,
+//                                                    coordInfo.m_surfaceNodeIndex,
+//                                                    coordInfo.m_surfaceNodeOffset);
+//                    }
+//                    else {
+//                        errorMessage = ("Moving annotation from "
+//                                        + StructureEnum::toGuiName(structure)
+//                                        + " surface to "
+//                                        + StructureEnum::toGuiName(coordInfo.m_surfaceStructure)
+//                                        + " surface is not allowed.  Annotation must remain on same surface.");
+//                    }
+//                }
+//                else {
+//                    errorMessage = ("Annotation is attached to a surface and "
+//                                    "the location selected is not on a surface.");
+//                }
+//            }
+//                break;
+//            case AnnotationCoordinateSpaceEnum::TAB:
+//                if (coordInfo.m_tabIndex >= 0) {
+//                    if (coordInfo.m_tabIndex == m_annotationBeingEdited->getTabIndex()) {
+//                        coordinate->setXYZ(coordInfo.m_tabXYZ);
+//                    }
+//                    else {
+//                        errorMessage = ("Moving annotation from tab "
+//                                        + AString::number(m_annotationBeingEdited->getTabIndex() + 1)
+//                                        + " to "
+//                                        + AString::number(coordInfo.m_tabIndex + 1)
+//                                        + " is not allowed.  Annotation must remain on same tab.");
+//                    }
+//                }
+//                else {
+//                    errorMessage = ("Annotation is attached to a tab and the location selected is not "
+//                                    "in a tab.");
+//                }
+//                break;
+//            case AnnotationCoordinateSpaceEnum::WINDOW:
+//                if (coordInfo.m_windowIndex >= 0) {
+//                    if (coordInfo.m_windowIndex == m_annotationBeingEdited->getWindowIndex()) {
+//                        coordinate->setXYZ(coordInfo.m_windowXYZ);
+//                    }
+//                    else {
+//                        errorMessage = ("Moving annotation from window "
+//                                        + AString::number(m_annotationBeingEdited->getWindowIndex() + 1)
+//                                        + " to "
+//                                        + AString::number(coordInfo.m_windowIndex + 1)
+//                                        + " is not allowed.  Annotation must remain on same window.");
+//                    }
+//                }
+//                else {
+//                    errorMessage = ("Annotation is attached to a window and the location selected is not "
+//                                    "in a window.");
+//                }
+//                break;
+//        }
+//        
+//        if ( ! errorMessage.isEmpty()) {
+//            setMode(MODE_SELECT);
+//            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+//            
+//            WuQMessageBox::errorOk(m_annotationToolsWidget,
+//                                   errorMessage);
+//        }
+//    }
     
     setMode(MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());

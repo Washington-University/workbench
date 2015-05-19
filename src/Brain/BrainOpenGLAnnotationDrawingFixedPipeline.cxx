@@ -1335,8 +1335,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSelector(const fl
         rotationAngle = MathFunctions::toDegrees(angleRadians);
     }
     
+    /*
+     * Symbol for first coordinate is a little bigger
+     */
     drawSelectorSquare(firstPointSymbolXYZ,
-                       cornerSquareSize,
+                       cornerSquareSize + 2.0,
                        rotationAngle);
     drawSelectorSquare(secondPointSymbolXYZ,
                        cornerSquareSize,

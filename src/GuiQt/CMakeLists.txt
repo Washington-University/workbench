@@ -27,7 +27,9 @@ INCLUDE(${QT_USE_FILE})
 #
 SET(MOC_INPUT_HEADER_FILES
 AboutWorkbenchDialog.h
+AnnotationChangeCoordinateDialog.h
 AnnotationColorWidget.h
+AnnotationCoordinateSelectionWidget.h
 AnnotationCoordinateWidget.h
 AnnotationCreateDialog.h
 AnnotationFontWidget.h
@@ -172,7 +174,9 @@ WuQWidgetObjectGroup.h
 #
 SET(SOURCE_FILES
 AboutWorkbenchDialog.h
+AnnotationChangeCoordinateDialog.h
 AnnotationColorWidget.h
+AnnotationCoordinateSelectionWidget.h
 AnnotationCoordinateWidget.h
 AnnotationCreateDialog.h
 AnnotationFontWidget.h
@@ -344,7 +348,9 @@ WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
 AboutWorkbenchDialog.cxx
+AnnotationChangeCoordinateDialog.cxx
 AnnotationColorWidget.cxx
+AnnotationCoordinateSelectionWidget.cxx
 AnnotationCoordinateWidget.cxx
 AnnotationCreateDialog.cxx
 AnnotationFontWidget.cxx

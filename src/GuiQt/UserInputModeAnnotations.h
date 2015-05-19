@@ -29,6 +29,8 @@
 namespace caret {
 
     class Annotation;
+    class KeyEvent;
+    class MouseEvent;
     class UserInputModeAnnotationsWidget;
     
     class UserInputModeAnnotations : public UserInputModeView, EventListenerInterface {

@@ -32,6 +32,7 @@ class QRadioButton;
 
 namespace caret {
     class Annotation;
+    class AnnotationCoordinateSelectionWidget;
     class AnnotationFile;
     class CaretDataFileSelectionComboBox;
     class CaretDataFileSelectionModel;
@@ -71,7 +72,7 @@ namespace caret {
         
         QWidget* createFileSelectionWidget();
         
-        QWidget* createSpaceSelectionWidget();
+//        QWidget* createSpaceSelectionWidget();
         
         QWidget* createTextWidget();
         
@@ -89,7 +90,9 @@ namespace caret {
         
         QWidget* m_fileSelectionWidget;
         
-        QButtonGroup* m_spaceButtonGroup;
+        AnnotationCoordinateSelectionWidget* m_coordinateSelectionWidget;
+        
+        //QButtonGroup* m_spaceButtonGroup;
         
         QLineEdit* m_textLineEdit;
         

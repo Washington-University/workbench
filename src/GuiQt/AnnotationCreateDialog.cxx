@@ -35,6 +35,7 @@
 #include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationCoordinateSelectionWidget.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
 #include "AnnotationText.h"
@@ -98,7 +99,18 @@ m_annotationType(annotationType)
                                                               m_coordInfo);
     
     m_fileSelectionWidget = createFileSelectionWidget();
-    QWidget* spaceSelectionWidget = createSpaceSelectionWidget();
+    //QWidget* spaceSelectionWidget = createSpaceSelectionWidget();
+    m_coordinateSelectionWidget = new AnnotationCoordinateSelectionWidget(annotationType,
+                                                                          m_coordInfo);
+    QGroupBox* coordGroupBox = new QGroupBox("Coordinate Space");
+    QVBoxLayout* coordGroupLayout = new QVBoxLayout(coordGroupBox);
+    coordGroupLayout->setMargin(0);
+    coordGroupLayout->addWidget(m_coordinateSelectionWidget);
+    
+    if (s_previousSelections.m_valid) {
+        m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
+    }
+    
     QWidget* textWidget = ((m_annotationType == AnnotationTypeEnum::TEXT)
                            ? createTextWidget()
                            : NULL);
@@ -108,7 +120,7 @@ m_annotationType(annotationType)
     if (m_fileSelectionWidget != NULL) {
         layout->addWidget(m_fileSelectionWidget);
     }
-    layout->addWidget(spaceSelectionWidget);
+    layout->addWidget(coordGroupBox);
     if (textWidget != NULL) {
         layout->addWidget(textWidget);
     }
@@ -190,190 +202,190 @@ AnnotationCreateDialog::createFileSelectionWidget()
     return widget;
 }
 
-/**
- * @return New instance of the space selection widget.
- */
-QWidget*
-AnnotationCreateDialog::createSpaceSelectionWidget()
-{
-    bool enableModelSpaceFlag   = false;
-    bool enableSurfaceSpaceFlag = false;
-    bool enableTabSpaceFlag     = true;
-    bool enableWindowSpaceFlag  = true;
-    
-    switch (m_annotationType) {
-        case AnnotationTypeEnum::ARROW:
-            break;
-        case AnnotationTypeEnum::BOX:
-            enableModelSpaceFlag   = true;
-            enableSurfaceSpaceFlag = true;
-            break;
-        case AnnotationTypeEnum::IMAGE:
-            break;
-        case AnnotationTypeEnum::LINE:
-            break;
-        case AnnotationTypeEnum::OVAL:
-            enableModelSpaceFlag   = true;
-            enableSurfaceSpaceFlag = true;
-            break;
-        case AnnotationTypeEnum::TEXT:
-            enableModelSpaceFlag   = true;
-            enableSurfaceSpaceFlag = true;
-            break;
-    }
-    
-    m_spaceButtonGroup = new QButtonGroup(this);
-    
-    int columnIndex = 0;
-    const int COLUMN_RADIO_BUTTON = columnIndex++;
-    const int COLUMN_COORD_X      = columnIndex++;
-    const int COLUMN_COORD_Y      = columnIndex++;
-    const int COLUMN_COORD_Z      = columnIndex++;
-    const int COLUMN_EXTRA        = columnIndex++;
-    
-    QWidget* widget = new QGroupBox("Coordinate Space");
-    QGridLayout* gridLayout = new QGridLayout(widget);
-    gridLayout->setColumnStretch(COLUMN_RADIO_BUTTON, 0);
-    gridLayout->setColumnStretch(COLUMN_COORD_X,      0);
-    gridLayout->setColumnStretch(COLUMN_COORD_Y,      0);
-    gridLayout->setColumnStretch(COLUMN_COORD_Z,      0);
-    gridLayout->setColumnStretch(COLUMN_EXTRA,      100);
-    
-    const int titleRow = gridLayout->rowCount();
-    gridLayout->addWidget(new QLabel("Space"),
-                          titleRow, COLUMN_RADIO_BUTTON);
-    gridLayout->addWidget(new QLabel("X"),
-                          titleRow, COLUMN_COORD_X);
-    gridLayout->addWidget(new QLabel("Y"),
-                          titleRow, COLUMN_COORD_Y);
-    gridLayout->addWidget(new QLabel("Z"),
-                          titleRow, COLUMN_COORD_Z);
-    
-    QRadioButton* defaultRadioButton = NULL;
-    
-    if (m_coordInfo.m_modelXYZValid
-        && enableModelSpaceFlag) {
-        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::MODEL);
-        m_spaceButtonGroup->addButton(rb,
-                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::MODEL));
-        
-        const int rowNum = gridLayout->rowCount();
-        gridLayout->addWidget(rb,
-                              rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[0])),
-                              rowNum, COLUMN_COORD_X);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[1])),
-                              rowNum, COLUMN_COORD_Y);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[2])),
-                              rowNum, COLUMN_COORD_Z);
-        enableModelSpaceFlag = false;
-        
-        if (s_previousSelections.m_valid) {
-            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::MODEL) {
-                defaultRadioButton = rb;
-            }
-        }
-    }
-    
-    if ((m_coordInfo.m_tabIndex >= 0)
-        && enableTabSpaceFlag) {
-        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::TAB);
-        rb->setText(rb->text()
-                    + " "
-                    + AString::number(m_coordInfo.m_tabIndex + 1));
-        m_spaceButtonGroup->addButton(rb,
-                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::TAB));
-        
-        const int rowNum = gridLayout->rowCount();
-        gridLayout->addWidget(rb,
-                              rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[0])),
-                              rowNum, COLUMN_COORD_X);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[1])),
-                              rowNum, COLUMN_COORD_Y);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[2])),
-                              rowNum, COLUMN_COORD_Z);
-        
-        if (s_previousSelections.m_valid) {
-            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
-                defaultRadioButton = rb;
-            }
-        }
-    }
-    
-    if ((m_coordInfo.m_windowIndex >= 0)
-        && enableWindowSpaceFlag) {
-        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-        rb->setText(rb->text()
-                    + " "
-                    + AString::number(m_coordInfo.m_windowIndex + 1));
-        m_spaceButtonGroup->addButton(rb,
-                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::WINDOW));
-
-        
-        const int rowNum = gridLayout->rowCount();
-        gridLayout->addWidget(rb,
-                              rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[0])),
-                              rowNum, COLUMN_COORD_X);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[1])),
-                              rowNum, COLUMN_COORD_Y);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[2])),
-                              rowNum, COLUMN_COORD_Z);
-        
-        if (s_previousSelections.m_valid) {
-            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
-                defaultRadioButton = rb;
-            }
-        }
-    }
-    
-    if (m_coordInfo.m_surfaceNodeValid
-        && enableSurfaceSpaceFlag) {
-        
-        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-        m_spaceButtonGroup->addButton(rb,
-                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::SURFACE));
-
-        
-        const int rowNum = gridLayout->rowCount();
-        gridLayout->addWidget(rb,
-                              rowNum, COLUMN_RADIO_BUTTON);
-        const AString infoText(StructureEnum::toGuiName(m_coordInfo.m_surfaceStructure)
-                               + " Vertex: "
-                               +AString::number(m_coordInfo.m_surfaceNodeIndex));
-        gridLayout->addWidget(new QLabel(infoText),
-                              rowNum, COLUMN_COORD_X, 1, 4);
-        
-        if (s_previousSelections.m_valid) {
-            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::SURFACE) {
-                defaultRadioButton = rb;
-            }
-        }
-    }
-    
-    if (defaultRadioButton != NULL) {
-        defaultRadioButton->setChecked(true);
-    }
-    
-    /*
-     * This switch statment does nothing.  But, if a new space is added
-     * the missing enumerated value in the switch statement will cause a
-     * compilation error which may indicate the code in this method
-     * needs to be updated.
-     */
-    const AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::TAB;
-    switch (space) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-        case AnnotationCoordinateSpaceEnum::TAB:
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            break;
-    }
-    
-    return widget;
-}
+///**
+// * @return New instance of the space selection widget.
+// */
+//QWidget*
+//AnnotationCreateDialog::createSpaceSelectionWidget()
+//{
+//    bool enableModelSpaceFlag   = false;
+//    bool enableSurfaceSpaceFlag = false;
+//    bool enableTabSpaceFlag     = true;
+//    bool enableWindowSpaceFlag  = true;
+//    
+//    switch (m_annotationType) {
+//        case AnnotationTypeEnum::ARROW:
+//            break;
+//        case AnnotationTypeEnum::BOX:
+//            enableModelSpaceFlag   = true;
+//            enableSurfaceSpaceFlag = true;
+//            break;
+//        case AnnotationTypeEnum::IMAGE:
+//            break;
+//        case AnnotationTypeEnum::LINE:
+//            break;
+//        case AnnotationTypeEnum::OVAL:
+//            enableModelSpaceFlag   = true;
+//            enableSurfaceSpaceFlag = true;
+//            break;
+//        case AnnotationTypeEnum::TEXT:
+//            enableModelSpaceFlag   = true;
+//            enableSurfaceSpaceFlag = true;
+//            break;
+//    }
+//    
+//    m_spaceButtonGroup = new QButtonGroup(this);
+//    
+//    int columnIndex = 0;
+//    const int COLUMN_RADIO_BUTTON = columnIndex++;
+//    const int COLUMN_COORD_X      = columnIndex++;
+//    const int COLUMN_COORD_Y      = columnIndex++;
+//    const int COLUMN_COORD_Z      = columnIndex++;
+//    const int COLUMN_EXTRA        = columnIndex++;
+//    
+//    QWidget* widget = new QGroupBox("Coordinate Space");
+//    QGridLayout* gridLayout = new QGridLayout(widget);
+//    gridLayout->setColumnStretch(COLUMN_RADIO_BUTTON, 0);
+//    gridLayout->setColumnStretch(COLUMN_COORD_X,      0);
+//    gridLayout->setColumnStretch(COLUMN_COORD_Y,      0);
+//    gridLayout->setColumnStretch(COLUMN_COORD_Z,      0);
+//    gridLayout->setColumnStretch(COLUMN_EXTRA,      100);
+//    
+//    const int titleRow = gridLayout->rowCount();
+//    gridLayout->addWidget(new QLabel("Space"),
+//                          titleRow, COLUMN_RADIO_BUTTON);
+//    gridLayout->addWidget(new QLabel("X"),
+//                          titleRow, COLUMN_COORD_X);
+//    gridLayout->addWidget(new QLabel("Y"),
+//                          titleRow, COLUMN_COORD_Y);
+//    gridLayout->addWidget(new QLabel("Z"),
+//                          titleRow, COLUMN_COORD_Z);
+//    
+//    QRadioButton* defaultRadioButton = NULL;
+//    
+//    if (m_coordInfo.m_modelXYZValid
+//        && enableModelSpaceFlag) {
+//        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::MODEL);
+//        m_spaceButtonGroup->addButton(rb,
+//                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::MODEL));
+//        
+//        const int rowNum = gridLayout->rowCount();
+//        gridLayout->addWidget(rb,
+//                              rowNum, COLUMN_RADIO_BUTTON);
+//        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[0])),
+//                              rowNum, COLUMN_COORD_X);
+//        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[1])),
+//                              rowNum, COLUMN_COORD_Y);
+//        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[2])),
+//                              rowNum, COLUMN_COORD_Z);
+//        enableModelSpaceFlag = false;
+//        
+//        if (s_previousSelections.m_valid) {
+//            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::MODEL) {
+//                defaultRadioButton = rb;
+//            }
+//        }
+//    }
+//    
+//    if ((m_coordInfo.m_tabIndex >= 0)
+//        && enableTabSpaceFlag) {
+//        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::TAB);
+//        rb->setText(rb->text()
+//                    + " "
+//                    + AString::number(m_coordInfo.m_tabIndex + 1));
+//        m_spaceButtonGroup->addButton(rb,
+//                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::TAB));
+//        
+//        const int rowNum = gridLayout->rowCount();
+//        gridLayout->addWidget(rb,
+//                              rowNum, COLUMN_RADIO_BUTTON);
+//        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[0])),
+//                              rowNum, COLUMN_COORD_X);
+//        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[1])),
+//                              rowNum, COLUMN_COORD_Y);
+//        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[2])),
+//                              rowNum, COLUMN_COORD_Z);
+//        
+//        if (s_previousSelections.m_valid) {
+//            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
+//                defaultRadioButton = rb;
+//            }
+//        }
+//    }
+//    
+//    if ((m_coordInfo.m_windowIndex >= 0)
+//        && enableWindowSpaceFlag) {
+//        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+//        rb->setText(rb->text()
+//                    + " "
+//                    + AString::number(m_coordInfo.m_windowIndex + 1));
+//        m_spaceButtonGroup->addButton(rb,
+//                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::WINDOW));
+//
+//        
+//        const int rowNum = gridLayout->rowCount();
+//        gridLayout->addWidget(rb,
+//                              rowNum, COLUMN_RADIO_BUTTON);
+//        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[0])),
+//                              rowNum, COLUMN_COORD_X);
+//        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[1])),
+//                              rowNum, COLUMN_COORD_Y);
+//        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[2])),
+//                              rowNum, COLUMN_COORD_Z);
+//        
+//        if (s_previousSelections.m_valid) {
+//            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+//                defaultRadioButton = rb;
+//            }
+//        }
+//    }
+//    
+//    if (m_coordInfo.m_surfaceNodeValid
+//        && enableSurfaceSpaceFlag) {
+//        
+//        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+//        m_spaceButtonGroup->addButton(rb,
+//                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::SURFACE));
+//
+//        
+//        const int rowNum = gridLayout->rowCount();
+//        gridLayout->addWidget(rb,
+//                              rowNum, COLUMN_RADIO_BUTTON);
+//        const AString infoText(StructureEnum::toGuiName(m_coordInfo.m_surfaceStructure)
+//                               + " Vertex: "
+//                               +AString::number(m_coordInfo.m_surfaceNodeIndex));
+//        gridLayout->addWidget(new QLabel(infoText),
+//                              rowNum, COLUMN_COORD_X, 1, 4);
+//        
+//        if (s_previousSelections.m_valid) {
+//            if (s_previousSelections.m_coordinateSpace == AnnotationCoordinateSpaceEnum::SURFACE) {
+//                defaultRadioButton = rb;
+//            }
+//        }
+//    }
+//    
+//    if (defaultRadioButton != NULL) {
+//        defaultRadioButton->setChecked(true);
+//    }
+//    
+//    /*
+//     * This switch statment does nothing.  But, if a new space is added
+//     * the missing enumerated value in the switch statement will cause a
+//     * compilation error which may indicate the code in this method
+//     * needs to be updated.
+//     */
+//    const AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::TAB;
+//    switch (space) {
+//        case AnnotationCoordinateSpaceEnum::MODEL:
+//        case AnnotationCoordinateSpaceEnum::PIXELS:
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            break;
+//    }
+//    
+//    return widget;
+//}
 
 /**
  * Create a radio button that displays the text for and contains the 
@@ -465,12 +477,12 @@ AnnotationCreateDialog::okButtonClicked()
         //WuQMessageBox::errorOk(this, );
         //return;
     }
-    const int checkedButtonID = m_spaceButtonGroup->checkedId();
-    if (checkedButtonID < 0) {
-        errorMessage.appendWithNewLine("A coordinate space must be selected.");
-        //WuQMessageBox::errorOk(this, "A space must be selected.");
-        //return;
-    }
+//    const int checkedButtonID = m_spaceButtonGroup->checkedId();
+//    if (checkedButtonID < 0) {
+//        errorMessage.appendWithNewLine("A coordinate space must be selected.");
+//        //WuQMessageBox::errorOk(this, "A space must be selected.");
+//        //return;
+//    }
     
     
     QString userText;
@@ -489,10 +501,9 @@ AnnotationCreateDialog::okButtonClicked()
     }
     
     bool valid = false;
-    const AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::fromIntegerCode(checkedButtonID,
-                                                                                                     &valid);
+    const AnnotationCoordinateSpaceEnum::Enum space = m_coordinateSelectionWidget->getSelectedCoordinateSpace(valid);
     if ( ! valid) {
-        const QString msg("PROGRAM ERROR: Annotation coordinate space is not valid.  This should not happen.");
+        const QString msg("A coordinate space has not been selected.");
         WuQMessageBox::errorOk(this,
                                msg);
         return;
@@ -533,84 +544,90 @@ AnnotationCreateDialog::okButtonClicked()
             break;
     }
     
-    AnnotationTwoDimensionalShape* twoDimAnnotation = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation.getPointer());
-    AnnotationOneDimensionalShape* oneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(annotation.getPointer());
-    
-    AnnotationCoordinate* firstCoordinate  = NULL;
-    AnnotationCoordinate* secondCoordinate = NULL;
-    
-    if (twoDimAnnotation != NULL) {
-        firstCoordinate = twoDimAnnotation->getCoordinate();
-    }
-    else if (oneDimAnnotation != NULL) {
-        firstCoordinate = oneDimAnnotation->getStartCoordinate();
-        secondCoordinate = oneDimAnnotation->getEndCoordinate();
-    }
+//    AnnotationTwoDimensionalShape* twoDimAnnotation = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation.getPointer());
+//    AnnotationOneDimensionalShape* oneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(annotation.getPointer());
+//    
+//    AnnotationCoordinate* firstCoordinate  = NULL;
+//    AnnotationCoordinate* secondCoordinate = NULL;
+//    
+//    if (twoDimAnnotation != NULL) {
+//        firstCoordinate = twoDimAnnotation->getCoordinate();
+//    }
+//    else if (oneDimAnnotation != NULL) {
+//        firstCoordinate = oneDimAnnotation->getStartCoordinate();
+//        secondCoordinate = oneDimAnnotation->getEndCoordinate();
+//    }
 
-    switch (space) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
-            if (m_coordInfo.m_modelXYZValid) {
-                firstCoordinate->setXYZ(m_coordInfo.m_modelXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssert(0);
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            if (m_coordInfo.m_surfaceNodeValid) {
-                firstCoordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
-                                                 m_coordInfo.m_surfaceNumberOfNodes,
-                                                 m_coordInfo.m_surfaceNodeIndex,
-                                                 m_coordInfo.m_surfaceNodeOffset);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            if (m_coordInfo.m_tabIndex >= 0) {
-                firstCoordinate->setXYZ(m_coordInfo.m_tabXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-                annotation->setTabIndex(m_coordInfo.m_tabIndex);
-                
-                if (secondCoordinate != NULL) {
-                    double xyz[3] = {
-                        m_coordInfo.m_tabXYZ[0],
-                        m_coordInfo.m_tabXYZ[1],
-                        m_coordInfo.m_tabXYZ[2]
-                    };
-                    if (xyz[1] > 0.5) {
-                        xyz[1] -= 0.25;
-                    }
-                    else {
-                        xyz[1] += 0.25;
-                    }
-                    secondCoordinate->setXYZ(xyz);
-                }
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            if (m_coordInfo.m_windowIndex >= 0) {
-                firstCoordinate->setXYZ(m_coordInfo.m_windowXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-                annotation->setWindowIndex(m_coordInfo.m_windowIndex);
-                
-                if (secondCoordinate != NULL) {
-                    double xyz[3] = {
-                        m_coordInfo.m_tabXYZ[0],
-                        m_coordInfo.m_tabXYZ[1],
-                        m_coordInfo.m_tabXYZ[2]
-                    };
-                    if (xyz[1] > 0.5) {
-                        xyz[1] -= 0.25;
-                    }
-                    else {
-                        xyz[1] += 0.25;
-                    }
-                    secondCoordinate->setXYZ(xyz);
-                }
-            }
-            break;
+    if ( ! m_coordinateSelectionWidget->setCoordinateForNewAnnotation(annotation,
+                                                                      errorMessage)) {
+        WuQMessageBox::errorOk(this, errorMessage);
+        return;
     }
+    
+//    switch (space) {
+//        case AnnotationCoordinateSpaceEnum::MODEL:
+//            if (m_coordInfo.m_modelXYZValid) {
+//                firstCoordinate->setXYZ(m_coordInfo.m_modelXYZ);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::PIXELS:
+//            CaretAssert(0);
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//            if (m_coordInfo.m_surfaceNodeValid) {
+//                firstCoordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
+//                                                 m_coordInfo.m_surfaceNumberOfNodes,
+//                                                 m_coordInfo.m_surfaceNodeIndex,
+//                                                 m_coordInfo.m_surfaceNodeOffset);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//            if (m_coordInfo.m_tabIndex >= 0) {
+//                firstCoordinate->setXYZ(m_coordInfo.m_tabXYZ);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+//                annotation->setTabIndex(m_coordInfo.m_tabIndex);
+//                
+//                if (secondCoordinate != NULL) {
+//                    double xyz[3] = {
+//                        m_coordInfo.m_tabXYZ[0],
+//                        m_coordInfo.m_tabXYZ[1],
+//                        m_coordInfo.m_tabXYZ[2]
+//                    };
+//                    if (xyz[1] > 0.5) {
+//                        xyz[1] -= 0.25;
+//                    }
+//                    else {
+//                        xyz[1] += 0.25;
+//                    }
+//                    secondCoordinate->setXYZ(xyz);
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            if (m_coordInfo.m_windowIndex >= 0) {
+//                firstCoordinate->setXYZ(m_coordInfo.m_windowXYZ);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+//                annotation->setWindowIndex(m_coordInfo.m_windowIndex);
+//                
+//                if (secondCoordinate != NULL) {
+//                    double xyz[3] = {
+//                        m_coordInfo.m_tabXYZ[0],
+//                        m_coordInfo.m_tabXYZ[1],
+//                        m_coordInfo.m_tabXYZ[2]
+//                    };
+//                    if (xyz[1] > 0.5) {
+//                        xyz[1] -= 0.25;
+//                    }
+//                    else {
+//                        xyz[1] += 0.25;
+//                    }
+//                    secondCoordinate->setXYZ(xyz);
+//                }
+//            }
+//            break;
+//    }
     
     /*
      * Need to release annotation from its CaretPointer since the
