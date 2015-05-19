@@ -322,9 +322,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const float rota
 {
     if (rotationAngle != 0) {
         Matrix4x4 matrix;
-//        matrix.translate(-bottomLeftOut[0], -bottomLeftOut[1], -bottomLeftOut[2]);
-//        matrix.rotateZ(-rotationAngle);
-//        matrix.translate(bottomLeftOut[0], bottomLeftOut[1], bottomLeftOut[2]);
         matrix.translate(-rotationPoint[0], -rotationPoint[1], -rotationPoint[2]);
         matrix.rotateZ(-rotationAngle);
         matrix.translate(rotationPoint[0], rotationPoint[1], rotationPoint[2]);
@@ -334,28 +331,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const float rota
         matrix.multiplyPoint3(topLeftOut);
     }
 }
-
-//void
-//BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToPoints(const float rotationAngle,
-//                                                                 const float windowXYZ[3],
-//                                                                 const std::vector<double*>& points3D) const
-//{
-//    if (rotationAngle == 0.0) {
-//        return;
-//    }
-//    
-//    Matrix4x4 matrix;
-//    matrix.translate(-windowXYZ[0], -windowXYZ[1], -windowXYZ[2]);
-//    matrix.rotateZ(-rotationAngle);
-//    matrix.translate(windowXYZ[0], windowXYZ[1], windowXYZ[2]);
-//    
-//    for (std::vector<double*>::const_iterator iter = points3D.begin();
-//         iter != points3D.end();
-//         iter++) {
-//        double* p3D = *iter;
-//        matrix.multiplyPoint3(p3D);
-//    }
-//}
 
 /**
  * Draw the annotations in the given coordinate space.
@@ -490,14 +465,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     std::vector<double> annotationSelectionWindowXYZ;
     std::vector<Annotation*> annotationsDrawnForSelection;
     
-//    std::vector<AnnotationFile*> allAnnotationFiles;
-//    m_brainOpenGLFixedPipeline->m_brain->getAllAnnotationFiles(allAnnotationFiles);
-//    for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
-//         fileIter != allAnnotationFiles.end();
-//         fileIter++) {
-//        AnnotationFile* annotationFile = *fileIter;
-//        const std::vector<Annotation*> allAnnotations = annotationFile->getAllAnnotations();
-    
     EventAnnotation annotationEvent;
     annotationEvent.setModeGetAllAnnotations();
     EventManager::get()->sendEvent(annotationEvent.getPointer());
@@ -628,7 +595,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                 annotationSelectionWindowXYZ.push_back(selectionCenterXYZ[2]);
             }
         }
-//    }
     
     if (isSelect) {
         CaretAssert(annotationID);
@@ -831,158 +797,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
     
     setDepthTestingStatus(savedDepthTestStatus);
 }
-
-///**
-// * Draw an annotation arrow.
-// *
-// * @param arrow
-// *    Annotation arrow to draw.
-// * @param surfaceDisplayed
-// *    Surface that is displayed (may be NULL).
-// * @param selectionColorRGBA
-// *    Color used for selection identification.
-// * @param selectionFlag
-// *    True when selecting, else false.
-// * @param selectionCenterXYZOut
-// *    On exit contains center of annotation used by selection logic.
-// */
-//void
-//BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arrow,
-//                                                     const Surface* surfaceDisplayed,
-//                                                     const uint8_t selectionColorRGBA[4],
-//                                                     const bool selectionFlag,
-//                                                     float selectionCenterXYZOut[3])
-//{
-//    CaretAssert(arrow);
-//    CaretAssert(arrow->getType() == AnnotationTypeEnum::ARROW);
-//    
-//    float arrowStartXYZ[3];
-//    float arrowEndXYZ[3];
-//    
-//    if ( ! getAnnotationWindowCoordinate(arrow->getStartCoordinate(),
-//                                         arrow->getCoordinateSpace(),
-//                                         surfaceDisplayed,
-//                                         arrowStartXYZ)) {
-//        return;
-//    }
-//    if ( ! getAnnotationWindowCoordinate(arrow->getEndCoordinate(),
-//                                         arrow->getCoordinateSpace(),
-//                                         surfaceDisplayed,
-//                                         arrowEndXYZ)) {
-//        return;
-//    }
-//    const float lineWidth = arrow->getForegroundLineWidth();
-//    const float backgroundLineWidth = lineWidth + 4;
-//    
-//    selectionCenterXYZOut[0] = (arrowStartXYZ[0] + arrowEndXYZ[0]) / 2.0;
-//    selectionCenterXYZOut[1] = (arrowStartXYZ[1] + arrowEndXYZ[1]) / 2.0;
-//    selectionCenterXYZOut[2] = (arrowStartXYZ[2] + arrowEndXYZ[2]) / 2.0;
-//    
-//    /*
-//     * Length of arrow's line
-//     */
-//    const float lineLength = MathFunctions::distance3D(arrowStartXYZ,
-//                                                        arrowEndXYZ);
-//    
-//    /*
-//     * Length of arrow's right and left pointer tips
-//     */
-//    const float pointerPercent = 0.2;
-//    const float tipLength = lineLength * pointerPercent;
-//    
-//    /*
-//     * Pointer on arrow's line that is between the arrow's left and right arrow tips
-//     */
-//    float endToStartVector[3];
-//    MathFunctions::createUnitVector(arrowEndXYZ, arrowStartXYZ, endToStartVector);
-//    const float arrowTipsOnLine[3] = {
-//        arrowEndXYZ[0] + endToStartVector[0] * tipLength,
-//        arrowEndXYZ[1] + endToStartVector[1] * tipLength,
-//        arrowEndXYZ[2] + endToStartVector[2] * tipLength
-//    };
-//    
-//    /*
-//     * Vector for arrow tip's on left and right
-//     *
-//     * Create a perpendicular vector by swapping first two elements
-//     * and negating the second element.
-//     */
-//    float leftRightTipOffset[3] = {
-//        endToStartVector[0],
-//        endToStartVector[1],
-//        endToStartVector[2]
-//    };
-//    MathFunctions::normalizeVector(leftRightTipOffset);
-//    std::swap(leftRightTipOffset[0],
-//              leftRightTipOffset[1]);
-//    leftRightTipOffset[1] *= -1;
-//    leftRightTipOffset[0] *= tipLength;
-//    leftRightTipOffset[1] *= tipLength;
-//    leftRightTipOffset[2] *= tipLength;
-//    
-//    /*
-//     * Tip of arrow's pointer on the right
-//     */
-//    const float rightTipEnd[3] = {
-//        arrowTipsOnLine[0] - leftRightTipOffset[0],
-//        arrowTipsOnLine[1] - leftRightTipOffset[1],
-//        arrowTipsOnLine[2] - leftRightTipOffset[2]
-//    };
-//    
-//    /*
-//     * Tip of arrow's pointer on the left
-//     */
-//    const float leftTipEnd[3] = {
-//        arrowTipsOnLine[0] + leftRightTipOffset[0],
-//        arrowTipsOnLine[1] + leftRightTipOffset[1],
-//        arrowTipsOnLine[2] + leftRightTipOffset[2]
-//    };
-//    
-//    const bool depthTestFlag = isDrawnWithDepthTesting(arrow);
-//    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
-//    
-//    std::vector<float> coords;
-//    coords.insert(coords.end(), arrowStartXYZ, arrowStartXYZ + 3);
-//    coords.insert(coords.end(), arrowEndXYZ,   arrowEndXYZ + 3);
-//    coords.insert(coords.end(), arrowEndXYZ,   arrowEndXYZ + 3);
-//    coords.insert(coords.end(), rightTipEnd,   rightTipEnd + 3);
-//    coords.insert(coords.end(), arrowEndXYZ,   arrowEndXYZ + 3);
-//    coords.insert(coords.end(), leftTipEnd,    leftTipEnd + 3);
-//    
-//    if (selectionFlag) {
-//        BrainOpenGLPrimitiveDrawing::drawLines(coords,
-//                                               selectionColorRGBA,
-//                                               backgroundLineWidth);
-//    }
-//    else {
-//        float backgroundRGBA[4];
-//        arrow->getBackgroundColorRGBA(backgroundRGBA);
-//        if (backgroundRGBA[3] > 0.0) {
-//            BrainOpenGLPrimitiveDrawing::drawLines(coords,
-//                                                   backgroundRGBA,
-//                                                   backgroundLineWidth);
-//        }
-//    }
-//    
-//    if ( ! selectionFlag) {
-//        float foregroundRGBA[4];
-//        arrow->getForegroundColorRGBA(foregroundRGBA);
-//        
-//        if (foregroundRGBA[3] > 0.0) {
-//            BrainOpenGLPrimitiveDrawing::drawLines(coords,
-//                                                   foregroundRGBA,
-//                                                   lineWidth);
-//            
-//            if (arrow->isSelected()) {
-//                drawAnnotationOneDimSelector(arrowStartXYZ,
-//                                             arrowEndXYZ,
-//                                             lineWidth);
-//            }
-//        }
-//    }
-//    
-//    setDepthTestingStatus(savedDepthTestStatus);
-//}
 
 /**
  * Draw an annotation box.

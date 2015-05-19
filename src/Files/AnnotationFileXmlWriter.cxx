@@ -322,7 +322,6 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     m_stream->writeStartElement(ELEMENT_TEXT_DATA);
     m_stream->writeAttributes(textDataAttributes);
     m_stream->writeCharacters(XmlUtilities::encodeXmlSpecialCharacters(text->getText()));
-    //m_stream->writeCDATA(text->getText());
     m_stream->writeEndElement();
     
     m_stream->writeEndElement();

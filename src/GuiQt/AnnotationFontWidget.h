@@ -24,15 +24,12 @@
 
 #include <QWidget>
 
-#include "EventListenerInterface.h"
-
-
 namespace caret {
 
     class AnnotationText;
     class EnumComboBoxTemplate;
     
-    class AnnotationFontWidget : public QWidget, public EventListenerInterface {
+    class AnnotationFontWidget : public QWidget {
         
         Q_OBJECT
 
@@ -42,9 +39,6 @@ namespace caret {
         
         virtual ~AnnotationFontWidget();
         
-
-        virtual void receiveEvent(Event* event);
-
         void updateContent(AnnotationText* annotationText);
         
         // ADD_NEW_METHODS_HERE

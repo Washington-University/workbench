@@ -26,7 +26,6 @@
 
 #include "AnnotationTextAlignHorizontalEnum.h"
 #include "AnnotationTextAlignVerticalEnum.h"
-#include "EventListenerInterface.h"
 
 class QActionGroup;
 class QToolButton;
@@ -35,7 +34,7 @@ namespace caret {
 
     class AnnotationText;
     
-    class AnnotationTextAlignmentWidget : public QWidget, public EventListenerInterface {
+    class AnnotationTextAlignmentWidget : public QWidget {
         
         Q_OBJECT
 
@@ -49,8 +48,6 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
         void updateContent(AnnotationText* annotationText);
-        
-        virtual void receiveEvent(Event* event);
 
     private slots:
         void horizontalAlignmentActionSelected(QAction* action);

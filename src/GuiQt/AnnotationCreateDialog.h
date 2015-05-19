@@ -72,8 +72,6 @@ namespace caret {
         
         QWidget* createFileSelectionWidget();
         
-//        QWidget* createSpaceSelectionWidget();
-        
         QWidget* createTextWidget();
         
         QRadioButton* createRadioButtonForSpace(const AnnotationCoordinateSpaceEnum::Enum space);

@@ -137,9 +137,6 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->addLayout(verticalAlignLayout,
                               1, 2);
     }
-    
-    
-//    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
 /**
@@ -147,7 +144,6 @@ m_browserWindowIndex(browserWindowIndex)
  */
 AnnotationTextAlignmentWidget::~AnnotationTextAlignmentWidget()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -222,23 +218,6 @@ AnnotationTextAlignmentWidget::updateContent(AnnotationText* annotationText)
     else {
         setEnabled(false);
     }
-}
-
-/**
- * Receive an event.
- *
- * @param event
- *    An event for which this instance is listening.
- */
-void
-AnnotationTextAlignmentWidget::receiveEvent(Event* /*event*/)
-{
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
 }
 
 /**

@@ -83,10 +83,6 @@ namespace caret {
                                   float topRightOut[3],
                                   float topLeftOut[3]) const;
         
-//        void applyRotationToPoints(const double rotationAngle,
-//                                   const double windowXYZ[3],
-//                                   const std::vector<double*>& points3D) const;
-        
         void drawArrow(const AnnotationArrow* arrow,
                        const Surface* surfaceDisplayed,
                        const uint8_t selectionColorRGBA[4],

@@ -146,9 +146,6 @@ m_inputModeAnnotations(inputModeAnnotations)
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(bottomRowLayout);
     
-//    setSizePolicy(QSizePolicy::Fixed,
-//                  QSizePolicy::Fixed);
-    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -285,15 +282,6 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
                                          coordinateOne);
     m_coordinateTwoWidget->updateContent(coordinateSpace,
                                          coordinateTwo);
-    
-//    m_colorWidget->setEnabled(m_annotationBeingEdited != NULL);
-//    m_fontWidget->setEnabled(textAnnotation != NULL);
-//    m_textAlignmentWidget->setEnabled(textAnnotation != NULL);
-//    m_coordinateOneWidget->setEnabled(coordinateOne != NULL);
-//    m_coordinateTwoWidget->setEnabled(coordinateTwo != NULL);
-//    m_widthHeightWidget->setEnabled(twoDimAnnotation != NULL);
-//    m_rotationWidget->setEnabled(twoDimAnnotation != NULL);
-    
 }
 
 /**
@@ -326,15 +314,8 @@ UserInputModeAnnotationsWidget::updateWidget()
      */
     switch (m_inputModeAnnotations->getMode()) {
         case UserInputModeAnnotations::MODE_NEW:
-//            this->operationStackedWidget->setCurrentWidget(this->widgetDrawOperation);
-//            this->setActionGroupByActionData(this->drawOperationActionGroup,
-//                                             inputModeBorders->getDrawOperation());
-//            resetLastEditedBorder();
             break;
         case UserInputModeAnnotations::MODE_SELECT:
-//            this->operationStackedWidget->setCurrentWidget(this->widgetEditOperation);
-//            this->setActionGroupByActionData(this->editOperationActionGroup,
-//                                             inputModeBorders->getEditOperation());
             break;
         case UserInputModeAnnotations::MODE_SET_COORDINATE_ONE:
             break;

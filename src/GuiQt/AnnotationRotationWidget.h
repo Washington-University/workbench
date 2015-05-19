@@ -24,16 +24,14 @@
 
 #include <QWidget>
 
-#include "EventListenerInterface.h"
-
 class QDoubleSpinBox;
 
 
 namespace caret {
     class AnnotationTwoDimensionalShape;
 
-    class AnnotationRotationWidget : public QWidget, public EventListenerInterface {
-        
+    class AnnotationRotationWidget : public QWidget {
+
         Q_OBJECT
 
     public:
@@ -47,8 +45,6 @@ namespace caret {
 
         void updateContent(AnnotationTwoDimensionalShape* annotation2D);
         
-        virtual void receiveEvent(Event* event);
-
     private slots:
         void rotationValueChanged(double value);
 

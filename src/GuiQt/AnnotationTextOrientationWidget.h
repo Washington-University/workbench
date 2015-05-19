@@ -25,7 +25,6 @@
 #include <QWidget>
 
 #include "AnnotationTextOrientationEnum.h"
-#include "EventListenerInterface.h"
 
 class QActionGroup;
 class QToolButton;
@@ -34,7 +33,7 @@ namespace caret {
 
     class AnnotationText;
     
-    class AnnotationTextOrientationWidget : public QWidget, public EventListenerInterface {
+    class AnnotationTextOrientationWidget : public QWidget {
         
         Q_OBJECT
 
@@ -48,8 +47,6 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
         void updateContent(AnnotationText* annotationText);
-        
-        virtual void receiveEvent(Event* event);
     
     private slots:
         void orientationActionSelected(QAction* action);

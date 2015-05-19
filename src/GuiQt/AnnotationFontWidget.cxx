@@ -158,27 +158,9 @@ m_browserWindowIndex(browserWindowIndex)
     layout->addLayout(topRowLayout);
     layout->addLayout(bottomRowLayout);
     layout->addStretch();
-//    QHBoxLayout* bottomRowLayout = new QHBoxLayout();
-//    WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 0);
-//    bottomRowLayout->addWidget(boldFontToolButton);
-//    bottomRowLayout->addWidget(italicFontToolButton);
-//    bottomRowLayout->addWidget(underlineFontToolButton);
-//    bottomRowLayout->addStretch();
-//    
-//    QVBoxLayout* layout = new QVBoxLayout(this);
-//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-//    layout->addLayout(topRowLayout);
-//    layout->addLayout(bottomRowLayout);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
-
-    
-    //m_foregroundColorAction;
-    
-    //QAction* m_backgroundColorAction;
-
-    //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
 /**
@@ -186,24 +168,6 @@ m_browserWindowIndex(browserWindowIndex)
  */
 AnnotationFontWidget::~AnnotationFontWidget()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
-}
-
-/**
- * Receive an event.
- *
- * @param event
- *    An event for which this instance is listening.
- */
-void
-AnnotationFontWidget::receiveEvent(Event* /*event*/)
-{
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
 }
 
 /**

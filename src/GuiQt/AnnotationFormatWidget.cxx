@@ -29,7 +29,6 @@
 
 #include "AnnotationMenuArrange.h"
 #include "CaretAssert.h"
-#include "EventManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -67,7 +66,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
-//    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
 /**
@@ -75,24 +73,6 @@ m_browserWindowIndex(browserWindowIndex)
  */
 AnnotationFormatWidget::~AnnotationFormatWidget()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
-}
-
-/**
- * Receive an event.
- *
- * @param event
- *    An event for which this instance is listening.
- */
-void
-AnnotationFormatWidget::receiveEvent(Event* /*event*/)
-{
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
 }
 
 /**
@@ -103,11 +83,6 @@ AnnotationFormatWidget::receiveEvent(Event* /*event*/)
 void
 AnnotationFormatWidget::updateContent(Annotation* /*annotation*/)
 {
-    
-    //    if (m_annotation != NULL) {
-    //        m_coordinateSpaceComboBox->setSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(m_annotation->getCoordinateSpace());
-    //        m_typeComboBox->setSelectedItem<AnnotationTypeEnum, AnnotationTypeEnum::Enum>(m_annotation->getType());
-    //    }
 }
 
 /**

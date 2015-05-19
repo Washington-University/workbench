@@ -25,14 +25,13 @@
 #include <QWidget>
 
 #include "AnnotationTypeEnum.h"
-#include "EventListenerInterface.h"
 
 class QToolButton;
 
 namespace caret {
     class Annotation;
     
-    class AnnotationInsertNewWidget : public QWidget, public EventListenerInterface {
+    class AnnotationInsertNewWidget : public QWidget {
         
         Q_OBJECT
 
@@ -47,8 +46,6 @@ namespace caret {
 
         void updateContent(Annotation* annotation);
         
-        virtual void receiveEvent(Event* event);
-
     private slots:
         void deleteActionTriggered();
         

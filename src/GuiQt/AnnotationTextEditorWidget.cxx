@@ -69,9 +69,6 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(textLabel, 0, Qt::AlignHCenter);
     layout->addWidget(editToolButton, 0, Qt::AlignHCenter);
-//    layout->addStretch();
-    
-//    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
 /**
@@ -79,7 +76,6 @@ m_browserWindowIndex(browserWindowIndex)
  */
 AnnotationTextEditorWidget::~AnnotationTextEditorWidget()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -93,23 +89,6 @@ AnnotationTextEditorWidget::updateContent(AnnotationText* annotationText)
     m_annotationText = annotationText;
     
     setEnabled(m_annotationText != NULL);
-}
-
-/**
- * Receive an event.
- *
- * @param event
- *    An event for which this instance is listening.
- */
-void
-AnnotationTextEditorWidget::receiveEvent(Event* /*event*/)
-{
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
 }
 
 /**

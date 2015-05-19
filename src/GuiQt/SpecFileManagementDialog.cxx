@@ -582,7 +582,7 @@ SpecFileManagementDialog::filesTableWidgetCellChanged(int rowIndex, int columnIn
              */
         }
         else if (rowIndex == m_sceneAnnotationFileRowIndex) {
-            bool causeCompilationWarningFlag;
+            /* Nothing to do for annotation scene file */
         }
         else {
             SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);

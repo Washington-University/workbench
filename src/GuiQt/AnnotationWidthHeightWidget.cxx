@@ -80,7 +80,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
-//    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
 /**
@@ -88,24 +87,6 @@ m_browserWindowIndex(browserWindowIndex)
  */
 AnnotationWidthHeightWidget::~AnnotationWidthHeightWidget()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
-}
-
-/**
- * Receive an event.
- *
- * @param event
- *    An event for which this instance is listening.
- */
-void
-AnnotationWidthHeightWidget::receiveEvent(Event* /*event*/)
-{
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
 }
 
 /**

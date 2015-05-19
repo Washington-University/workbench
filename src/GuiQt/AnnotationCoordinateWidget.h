@@ -25,7 +25,6 @@
 #include <QWidget>
 
 #include "AnnotationCoordinateSpaceEnum.h"
-#include "EventListenerInterface.h"
 
 class QDoubleSpinBox;
 class QSpinBox;
@@ -35,7 +34,7 @@ namespace caret {
     class AnnotationCoordinate;
     class StructureEnumComboBox;
     
-    class AnnotationCoordinateWidget : public QWidget, public EventListenerInterface {
+    class AnnotationCoordinateWidget : public QWidget {
         
         Q_OBJECT
 
@@ -51,8 +50,6 @@ namespace caret {
         void updateContent(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                            AnnotationCoordinate* coordinate);
         
-        virtual void receiveEvent(Event* event);
-
     signals:
         void signalSelectCoordinateWithMouse();
         

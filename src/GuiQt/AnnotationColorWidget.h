@@ -25,7 +25,6 @@
 #include <QWidget>
 
 #include "CaretColorEnum.h"
-#include "EventListenerInterface.h"
 
 class QAction;
 class QDoubleSpinBox;
@@ -36,7 +35,7 @@ namespace caret {
     class Annotation;
     class CaretColorEnumMenu;
     
-    class AnnotationColorWidget : public QWidget, public EventListenerInterface {
+    class AnnotationColorWidget : public QWidget {
         
         Q_OBJECT
 
@@ -50,8 +49,6 @@ namespace caret {
         
 
         // ADD_NEW_METHODS_HERE
-
-        virtual void receiveEvent(Event* event);
 
     private slots:
         void backgroundColorSelected(const CaretColorEnum::Enum);

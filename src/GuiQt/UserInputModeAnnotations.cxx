@@ -130,12 +130,6 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 break;
         }
     }
-    //    if (event->getEventType() == EventTypeEnum::) {
-    //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-    //        CaretAssert(eventName);
-    //
-    //        event->setEventProcessed();
-    //    }
 }
 
 
@@ -198,10 +192,7 @@ UserInputModeAnnotations::setMode(const Mode mode)
 {
     if (m_mode != mode) {
         m_mode = mode;
-//        this->borderBeingDrawnByOpenGL->clear();
-//        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_windowIndex).getPointer());
     }
-//    m_annotationToolsWidget->updateWidget();
 }
 
 /**
@@ -486,101 +477,7 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
     if (changeCoordDialog.exec() == AnnotationChangeCoordinateDialog::Accepted) {
         
     }
-    
-//    if (coordinate != NULL) {
-//        AString errorMessage;
-//        
-//        switch (m_annotationBeingEdited->getCoordinateSpace()) {
-//            case AnnotationCoordinateSpaceEnum::MODEL:
-//                if (coordInfo.m_modelXYZValid) {
-//                    coordinate->setXYZ(coordInfo.m_modelXYZ);
-//                }
-//                else {
-//                    errorMessage = ("Annotation is attached to a model coordinate and "
-//                                    "the location selected is not a model coordinate.");
-//                }
-//                break;
-//            case AnnotationCoordinateSpaceEnum::PIXELS:
-//                break;
-//            case AnnotationCoordinateSpaceEnum::SURFACE:
-//            {
-//                StructureEnum::Enum structure = StructureEnum::INVALID;
-//                int32_t numberOfNodes = -1;
-//                int32_t nodeIndex = -1;
-//                float   nodeOffset = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
-//                coordinate->getSurfaceSpace(structure,
-//                                            numberOfNodes,
-//                                            nodeIndex,
-//                                            nodeOffset);
-//                
-//                if (coordInfo.m_surfaceNodeValid) {
-//                    if (coordInfo.m_surfaceStructure == structure) {
-//                        coordinate->setSurfaceSpace(coordInfo.m_surfaceStructure,
-//                                                    coordInfo.m_surfaceNumberOfNodes,
-//                                                    coordInfo.m_surfaceNodeIndex,
-//                                                    coordInfo.m_surfaceNodeOffset);
-//                    }
-//                    else {
-//                        errorMessage = ("Moving annotation from "
-//                                        + StructureEnum::toGuiName(structure)
-//                                        + " surface to "
-//                                        + StructureEnum::toGuiName(coordInfo.m_surfaceStructure)
-//                                        + " surface is not allowed.  Annotation must remain on same surface.");
-//                    }
-//                }
-//                else {
-//                    errorMessage = ("Annotation is attached to a surface and "
-//                                    "the location selected is not on a surface.");
-//                }
-//            }
-//                break;
-//            case AnnotationCoordinateSpaceEnum::TAB:
-//                if (coordInfo.m_tabIndex >= 0) {
-//                    if (coordInfo.m_tabIndex == m_annotationBeingEdited->getTabIndex()) {
-//                        coordinate->setXYZ(coordInfo.m_tabXYZ);
-//                    }
-//                    else {
-//                        errorMessage = ("Moving annotation from tab "
-//                                        + AString::number(m_annotationBeingEdited->getTabIndex() + 1)
-//                                        + " to "
-//                                        + AString::number(coordInfo.m_tabIndex + 1)
-//                                        + " is not allowed.  Annotation must remain on same tab.");
-//                    }
-//                }
-//                else {
-//                    errorMessage = ("Annotation is attached to a tab and the location selected is not "
-//                                    "in a tab.");
-//                }
-//                break;
-//            case AnnotationCoordinateSpaceEnum::WINDOW:
-//                if (coordInfo.m_windowIndex >= 0) {
-//                    if (coordInfo.m_windowIndex == m_annotationBeingEdited->getWindowIndex()) {
-//                        coordinate->setXYZ(coordInfo.m_windowXYZ);
-//                    }
-//                    else {
-//                        errorMessage = ("Moving annotation from window "
-//                                        + AString::number(m_annotationBeingEdited->getWindowIndex() + 1)
-//                                        + " to "
-//                                        + AString::number(coordInfo.m_windowIndex + 1)
-//                                        + " is not allowed.  Annotation must remain on same window.");
-//                    }
-//                }
-//                else {
-//                    errorMessage = ("Annotation is attached to a window and the location selected is not "
-//                                    "in a window.");
-//                }
-//                break;
-//        }
-//        
-//        if ( ! errorMessage.isEmpty()) {
-//            setMode(MODE_SELECT);
-//            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-//            
-//            WuQMessageBox::errorOk(m_annotationToolsWidget,
-//                                   errorMessage);
-//        }
-//    }
-    
+
     setMode(MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -602,43 +499,6 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
     if (createAnnotationDialog.exec() == AnnotationCreateDialog::Accepted) {
         
     }
-    
-    /*
-     * Popup dialog for user to select space and annotation file.
-     */
-//    SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
-//    if (idBorder->isValid()) {
-//        BorderFile* borderFile = idBorder->getBorderFile();
-//        if (borderFile->isSingleStructure()) {
-//            switch (this->editOperation) {
-//                case EDIT_OPERATION_DELETE:
-//                {
-//                    Border* border = idBorder->getBorder();
-//                    borderFile->removeBorder(border);
-//                    this->updateAfterBordersChanged();
-//                }
-//                    break;
-//                case EDIT_OPERATION_PROPERTIES:
-//                {
-//                    Border* border = idBorder->getBorder();
-//                    std::auto_ptr<BorderPropertiesEditorDialog> editBorderDialog(
-//                                                                                 BorderPropertiesEditorDialog::newInstanceEditBorder(borderFile,
-//                                                                                                                                     
-//                                                                                                                                     border,
-//                                                                                                                                     
-//                                                                                                                                     openGLWidget));
-//                    if (editBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
-//                        this->updateAfterBordersChanged();
-//                    }
-//                }
-//                    break;
-//            }
-//        }
-//        else {
-//            WuQMessageBox::errorOk(this->borderToolsWidget,
-//                                   borderFile->getObsoleteMultiStructureFormatMessage());
-//        }
-//    }
 
     setMode(MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
@@ -661,8 +521,6 @@ UserInputModeAnnotations::processModeSelectMouseLeftClick(const MouseEvent& mous
     const int mouseX = mouseEvent.getX();
     const int mouseY = mouseEvent.getY();
     
-    //std::cout << "Mouse click: " << mouseX << ", " << mouseY << std::endl;
-    
     Annotation* annotationToEdit = NULL;
     
     /*
@@ -677,8 +535,6 @@ UserInputModeAnnotations::processModeSelectMouseLeftClick(const MouseEvent& mous
     SelectionManager* idManager = openGLWidget->performIdentification(mouseX, mouseY, true);
     SelectionItemAnnotation* annotationID = idManager->getAnnotationIdentification();
     if (annotationID->isValid()) {
-        //std::cout << "Selected Annotation: " << qPrintable(annotationID->toString()) << std::endl;
-        
         Annotation* selectedAnnotation = annotationID->getAnnotation();
         CaretAssert(selectedAnnotation);
         
@@ -749,15 +605,6 @@ UserInputModeAnnotations::processModeSelectMouseLeftClick(const MouseEvent& mous
 void
 UserInputModeAnnotations::deselectAllAnnotations()
 {
-//    std::vector<AnnotationFile*> allAnnotationFiles;
-//    GuiManager::get()->getBrain()->getAllAnnotationFiles(allAnnotationFiles);
-//    for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
-//         fileIter != allAnnotationFiles.end();
-//         fileIter++) {
-//        AnnotationFile* annotationFile = *fileIter;
-//        annotationFile->setAllAnnotationsSelected(false);
-//    }
-    
     EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
 }
 

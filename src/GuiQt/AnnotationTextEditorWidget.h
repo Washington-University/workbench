@@ -24,15 +24,13 @@
 
 #include <QWidget>
 
-#include "EventListenerInterface.h"
-
 class QTextEdit;
 
 namespace caret {
 
     class AnnotationText;
     
-    class AnnotationTextEditorWidget : public QWidget, public EventListenerInterface {
+    class AnnotationTextEditorWidget : public QWidget {
         
         Q_OBJECT
 
@@ -46,8 +44,6 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
         void updateContent(AnnotationText* annotationText);
-        
-        virtual void receiveEvent(Event* event);
 
     private slots:
         void annotationTextChanged();

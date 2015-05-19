@@ -24,14 +24,11 @@
 
 #include <QWidget>
 
-#include "EventListenerInterface.h"
-
-
 namespace caret {
 
     class Annotation;
     
-    class AnnotationFormatWidget : public QWidget, public EventListenerInterface {
+    class AnnotationFormatWidget : public QWidget {
         
         Q_OBJECT
 
@@ -46,8 +43,6 @@ namespace caret {
 
         void updateContent(Annotation* annotation);
         
-        virtual void receiveEvent(Event* event);
-
     private:
         AnnotationFormatWidget(const AnnotationFormatWidget&);
 
