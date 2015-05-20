@@ -40,6 +40,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "WuQFactory.h"
+#include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -65,8 +66,8 @@ m_browserWindowIndex(browserWindowIndex)
 {
     m_annotation = NULL;
     
-    QLabel* fillLabel      = new QLabel("Fill");
-    QLabel* fillColorLabel = new QLabel("Color");
+    QLabel* backLabel      = new QLabel("Fill");
+    QLabel* backColorLabel = new QLabel("Color");
     QLabel* lineLabel      = new QLabel("Line");
     QLabel* lineColorLabel = new QLabel("Color");
     QLabel* lineWidthLabel = new QLabel("Width");
@@ -91,6 +92,14 @@ m_browserWindowIndex(browserWindowIndex)
     m_backgroundToolButton = new QToolButton();
     m_backgroundToolButton->setDefaultAction(m_backgroundColorAction);
     m_backgroundToolButton->setIconSize(toolButtonSize);
+    
+    /*
+     * Widget/object group for background widgets
+     */
+    m_backgroundWidgetGroup = new WuQWidgetObjectGroup(this);
+    m_backgroundWidgetGroup->add(backLabel);
+    m_backgroundWidgetGroup->add(backColorLabel);
+    m_backgroundWidgetGroup->add(m_backgroundToolButton);
     
     /*
      * Foreground color menu
@@ -151,10 +160,10 @@ m_browserWindowIndex(browserWindowIndex)
     gridLayout->addWidget(m_foregroundToolButton,
                           2, 1,
                           Qt::AlignHCenter);
-    gridLayout->addWidget(fillLabel,
+    gridLayout->addWidget(backLabel,
                           0, 2,
                           Qt::AlignHCenter);
-    gridLayout->addWidget(fillColorLabel,
+    gridLayout->addWidget(backColorLabel,
                           1, 2,
                           Qt::AlignHCenter);
     gridLayout->addWidget(m_backgroundToolButton,
@@ -235,7 +244,7 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
 void
 AnnotationColorWidget::updateBackgroundColorButton()
 {
-    CaretColorEnum::Enum colorEnum = CaretColorEnum::BLACK;
+    CaretColorEnum::Enum colorEnum = CaretColorEnum::NONE;
     float rgba[4];
     CaretColorEnum::toRGBFloat(colorEnum, rgba);
     rgba[3] = 1.0;
@@ -247,9 +256,40 @@ AnnotationColorWidget::updateBackgroundColorButton()
         float customRGBA[4];
         m_annotation->getCustomBackgroundColor(customRGBA);
         m_backgroundColorMenu->setCustomIconColor(customRGBA);
+        
+        bool enableBackgroundFlag = false;
+        switch (m_annotation->getType()) {
+            case AnnotationTypeEnum::ARROW:
+                enableBackgroundFlag = false;
+                break;
+            case AnnotationTypeEnum::BOX:
+                enableBackgroundFlag = true;
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                enableBackgroundFlag = false;
+                break;
+            case AnnotationTypeEnum::LINE:
+                enableBackgroundFlag = false;
+                break;
+            case AnnotationTypeEnum::OVAL:
+                enableBackgroundFlag = true;
+                break;
+            case AnnotationTypeEnum::TEXT:
+                enableBackgroundFlag = true;
+                break;
+        }
+        
+        m_backgroundWidgetGroup->setEnabled(enableBackgroundFlag);
+        if ( ! enableBackgroundFlag) {
+            colorEnum = CaretColorEnum::NONE;
+        }
     }
     
-    QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_backgroundToolButton, 24, 24, colorEnum, rgba, false);
+    QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_backgroundToolButton,
+                                                           24, 24,
+                                                           colorEnum,
+                                                           rgba,
+                                                           false);
     QIcon icon(pm);
     
     m_backgroundColorAction->setIcon(icon);

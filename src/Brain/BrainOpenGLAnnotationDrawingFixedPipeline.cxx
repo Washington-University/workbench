@@ -807,13 +807,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
                                                backgroundLineWidth);
     }
     else {
-        float backgroundRGBA[4];
-        arrow->getBackgroundColorRGBA(backgroundRGBA);
-        if (backgroundRGBA[3] > 0.0) {
-            BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                   backgroundRGBA,
-                                                   backgroundLineWidth);
-        }
+//        float backgroundRGBA[4];
+//        arrow->getBackgroundColorRGBA(backgroundRGBA);
+//        if (backgroundRGBA[3] > 0.0) {
+//            BrainOpenGLPrimitiveDrawing::drawLines(coords,
+//                                                   backgroundRGBA,
+//                                                   backgroundLineWidth);
+//        }
     }
     
     if ( ! selectionFlag) {
@@ -1221,13 +1221,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
                                                backgroundLineWidth);
     }
     else {
-        float backgroundRGBA[4];
-        line->getBackgroundColorRGBA(backgroundRGBA);
-        if (backgroundRGBA[3] > 0.0) {
-            BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                   backgroundRGBA,
-                                                   backgroundLineWidth);
-        }
+//        float backgroundRGBA[4];
+//        line->getBackgroundColorRGBA(backgroundRGBA);
+//        if (backgroundRGBA[3] > 0.0) {
+//            BrainOpenGLPrimitiveDrawing::drawLines(coords,
+//                                                   backgroundRGBA,
+//                                                   backgroundLineWidth);
+//        }
     }
     
     if ( ! selectionFlag) {

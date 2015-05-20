@@ -34,6 +34,7 @@ namespace caret {
 
     class Annotation;
     class CaretColorEnumMenu;
+    class WuQWidgetObjectGroup;
     
     class AnnotationColorWidget : public QWidget {
         
@@ -84,6 +85,8 @@ namespace caret {
         CaretColorEnumMenu* m_backgroundColorMenu;
         
         QDoubleSpinBox* m_foregroundThicknessSpinBox;
+        
+        WuQWidgetObjectGroup* m_backgroundWidgetGroup;
         
         Annotation* m_annotation;
         
