@@ -56,7 +56,9 @@ OperationParameters* AlgorithmVolumeWarpfieldResample::getParameters()
     fnirtOpt->addStringParameter(1, "source-volume", "the source volume used when generating the warpfield");
     
     ret->setHelpText(
-        AString("Resample a volume file with a warpfield.  The parameter <method> must be one of:\n\n") +
+        AString("Resample a volume file with a warpfield.  ") +
+        "The recommended methods are CUBIC (cubic spline) for most data, and ENCLOSING_VOXEL for label data.  "
+        "The parameter <method> must be one of:\n\n" +
         "CUBIC\nENCLOSING_VOXEL\nTRILINEAR"
     );
     return ret;
