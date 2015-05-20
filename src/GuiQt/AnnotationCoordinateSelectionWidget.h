@@ -66,6 +66,8 @@ namespace caret {
 
         AnnotationCoordinateSelectionWidget& operator=(const AnnotationCoordinateSelectionWidget&);
         
+        void updateAnnotationDisplayProperties(const Annotation* annotation);
+        
         QRadioButton* createRadioButtonForSpace(const AnnotationCoordinateSpaceEnum::Enum space);
 
         QButtonGroup* m_spaceButtonGroup;

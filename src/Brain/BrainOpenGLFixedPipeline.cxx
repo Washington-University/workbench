@@ -5607,7 +5607,7 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
 }
 
 /**
- * Draw the given QImage in the given viewport.
+ * Draw the given image in the given viewport.
  *
  * @param viewport
  *    The viewport dimensions.

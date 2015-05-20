@@ -34,8 +34,11 @@
 #include "AnnotationCoordinate.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationTwoDimensionalShape.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DisplayPropertiesAnnotation.h"
+#include "GuiManager.h"
 #include "MathFunctions.h"
 
 using namespace caret;
@@ -468,6 +471,8 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             otherCoordinate->setXYZ(xyz);
         }
     
+    updateAnnotationDisplayProperties(annotation);
+    
     return true;
 }
 
@@ -579,7 +584,49 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
             break;
     }
     
+    updateAnnotationDisplayProperties(annotation);
+    
     return true;
+}
+
+/**
+ * Update the annotation display properties after creating/updating an annotation.
+ * It is possible that the user will create an annotation in a space (tab 4) and tab 4
+ * anotations are not enabled for display.  So, ensure the display property is enabled
+ * for the annotation.  Otherwise, the user could create an annotation and not see
+ * the annotation if the display property is disabled.
+ *
+ * @param annotation
+ *     Annotation that has been created or updated.
+ */
+void
+AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Annotation* annotation)
+{
+    DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+    
+    CaretAssert(annotation);
+    
+    switch (annotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::MODEL:
+            dpa->setDisplayModelAnnotations(m_coordInfo.m_tabIndex,
+                                            true);
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            CaretAssert(0);
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            dpa->setDisplaySurfaceAnnotations(m_coordInfo.m_tabIndex,
+                                              true);
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            dpa->setDisplayTabAnnotations(annotation->getTabIndex(),
+                                          true);
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            dpa->setDisplayWindowAnnotations(annotation->getWindowIndex(),
+                                             true);
+            break;
+    }
 }
 
 
