@@ -133,7 +133,7 @@ Annotation::initializeAnnotationMembers()
     m_tabIndex    = -1;
     m_windowIndex = -1;
     
-    m_foregroundLineWidth = 1.0;
+    m_foregroundLineWidth = 3.0;
     
     m_colorBackground = CaretColorEnum::NONE;
     m_colorForeground = CaretColorEnum::WHITE;

@@ -27,6 +27,7 @@
 #include <QTabWidget>
 #include <QTimer>
 
+#include "AnnotationFile.h"
 #include "AnnotationSelectionViewController.h"
 #include "BorderSelectionViewController.h"
 #include "Brain.h"
@@ -521,7 +522,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         /*
          * Determine types of data this is loaded
          */
-        bool haveAnnotation = false;
+        bool haveAnnotation = ( ! brain->getSceneAnnotationFile()->isEmpty());
         bool haveBorders    = false;
         bool haveConnFiles  = false;
         bool haveFibers     = false;

@@ -30,7 +30,7 @@
 
 #include "AnnotationTwoDimensionalShape.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "WuQFactory.h"
 #include "WuQtUtilities.h"
@@ -117,6 +117,6 @@ AnnotationRotationWidget::rotationValueChanged(double value)
 {
     if (m_annotation2D != NULL) {
         m_annotation2D->setRotationAngle(value);
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }

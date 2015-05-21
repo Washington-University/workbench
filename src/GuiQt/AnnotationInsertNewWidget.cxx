@@ -34,7 +34,8 @@
 #include "Annotation.h"
 #include "CaretAssert.h"
 #include "EventAnnotation.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -284,7 +285,8 @@ AnnotationInsertNewWidget::deleteActionTriggered()
              */
             EventManager::get()->sendEvent(EventAnnotation().setModeDeleteAnnotation(m_annotation).getPointer());
             EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
     }
 }

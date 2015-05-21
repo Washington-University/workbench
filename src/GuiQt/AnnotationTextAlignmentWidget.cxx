@@ -38,7 +38,7 @@
 
 #include "AnnotationText.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "WuQtUtilities.h"
 
@@ -240,7 +240,7 @@ AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action
         }
     }
 
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -263,7 +263,7 @@ AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
         }
     }
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

@@ -29,7 +29,7 @@
 
 #include "AnnotationTwoDimensionalShape.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "WuQFactory.h"
 #include "WuQtUtilities.h"
@@ -126,7 +126,7 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
 {
     if (m_annotation2D != NULL) {
         m_annotation2D->setHeight(value);
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
 
@@ -141,7 +141,7 @@ AnnotationWidthHeightWidget::widthValueChanged(double value)
 {
     if (m_annotation2D != NULL) {
         m_annotation2D->setWidth(value);
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
 

@@ -37,7 +37,7 @@
 #include "BrainOpenGL.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumMenu.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "WuQFactory.h"
 #include "WuQWidgetObjectGroup.h"
@@ -235,7 +235,7 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
     }
 
     updateBackgroundColorButton();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -353,7 +353,7 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
         }
     }
     updateForegroundColorButton();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -367,7 +367,7 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
 {
     if (m_annotation != NULL) {
         m_annotation->setForegroundLineWidth(value);
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
 

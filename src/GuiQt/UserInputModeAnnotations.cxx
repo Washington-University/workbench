@@ -36,7 +36,7 @@
 #include "CaretAssert.h"
 #include "CursorEnum.h"
 #include "EventAnnotation.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -107,7 +107,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 m_modeNewAnnotationType = annotationEvent->getModeCreateNewAnnotationType();
                 setMode(MODE_NEW);
                 EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
-                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             }
                 break;
             case EventAnnotation::MODE_DELETE_ANNOTATION:
@@ -239,11 +239,11 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                 break;
             case MODE_SET_COORDINATE_ONE:
                 setMode(MODE_SELECT);
-                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                 break;
             case MODE_SET_COORDINATE_TWO:
                 setMode(MODE_SELECT);
-                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                 break;
         }
     }
@@ -479,7 +479,7 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
     }
 
     setMode(MODE_SELECT);
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
@@ -501,7 +501,7 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
     }
 
     setMode(MODE_SELECT);
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
@@ -590,7 +590,7 @@ UserInputModeAnnotations::processModeSelectMouseLeftClick(const MouseEvent& mous
         }
     }
 
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
     if (annotationToEdit != NULL) {
         EventAnnotation event;

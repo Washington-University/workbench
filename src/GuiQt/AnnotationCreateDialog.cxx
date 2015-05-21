@@ -51,7 +51,7 @@
 #include "CaretPointer.h"
 #include "EventAnnotation.h"
 #include "EventDataFileAdd.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "MouseEvent.h"
@@ -86,7 +86,7 @@ using namespace caret;
 AnnotationCreateDialog::AnnotationCreateDialog(const MouseEvent& mouseEvent,
                                                const AnnotationTypeEnum::Enum annotationType,
                                                QWidget* parent)
-: WuQDialogModal("Create Annotation",
+: WuQDialogModal("Insert Annotation",
                  parent),
 m_annotationType(annotationType)
 {
@@ -366,7 +366,7 @@ AnnotationCreateDialog::okButtonClicked()
     annotationPointer->setSelected(true);
     EventManager::get()->sendEvent(EventAnnotation().setModeEditAnnotation(m_coordInfo.m_windowIndex,
                                                                            annotationPointer).getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_coordInfo.m_windowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
     WuQDialog::okButtonClicked();
 }

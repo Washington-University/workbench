@@ -30,7 +30,7 @@
 
 #include "AnnotationText.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
@@ -130,7 +130,7 @@ AnnotationTextEditorWidget::annotationTextChanged()
     if (m_textEditorInDialog != NULL) {
         if (m_annotationText != NULL) {
             m_annotationText->setText(m_textEditorInDialog->toPlainText().trimmed());
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         }
     }
 }

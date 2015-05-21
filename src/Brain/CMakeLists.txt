@@ -162,6 +162,7 @@ SurfaceMontageLayoutOrientationEnum.h
 SurfaceMontageViewport.h
 SurfaceNodeColoring.h
 SurfaceSelectionModel.h
+TabAndWindowMargins.h
 ViewingTransformations.h
 ViewingTransformationsCerebellum.h
 ViewingTransformationsVolume.h
@@ -284,6 +285,7 @@ SurfaceMontageLayoutOrientationEnum.cxx
 SurfaceMontageViewport.cxx
 SurfaceNodeColoring.cxx
 SurfaceSelectionModel.cxx
+TabAndWindowMargins.cxx
 ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
 ViewingTransformationsVolume.cxx

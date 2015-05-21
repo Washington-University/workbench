@@ -31,7 +31,7 @@
 
 #include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "StructureEnumComboBox.h"
 #include "WuQFactory.h"
@@ -43,7 +43,7 @@ using namespace caret;
     
 /**
  * \class caret::AnnotationCoordinateWidget 
- * \brief Widget for editing annotation coordinate, size, and rotation.
+ * \brief Widget for editing annotation coordinate
  * \ingroup GuiQt
  */
 
@@ -290,7 +290,7 @@ AnnotationCoordinateWidget::surfaceValueChanged()
         }
     }
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -325,7 +325,7 @@ AnnotationCoordinateWidget::xyzValueChanged()
         }
     }
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

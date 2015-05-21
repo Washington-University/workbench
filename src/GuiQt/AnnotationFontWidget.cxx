@@ -34,7 +34,7 @@
 #include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "WuQtUtilities.h"
 using namespace caret;
@@ -211,7 +211,7 @@ AnnotationFontWidget::slotItemValueChanged()
         m_annotationText->setItalicEnabled(m_italicFontAction->isChecked());
         m_annotationText->setUnderlineEnabled(m_underlineFontAction->isChecked());
         
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
 
