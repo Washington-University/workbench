@@ -56,8 +56,8 @@ IdentificationManager::IdentificationManager()
     m_contralateralIdentificationEnabled = false;
     m_identificationSymbolColor = CaretColorEnum::WHITE;
     m_identificationContralateralSymbolColor = CaretColorEnum::LIME;
-    m_identifcationSymbolSize = 6.0;
-    m_identifcationMostRecentSymbolSize = 10.0;
+    m_identifcationSymbolSize = 3.0;
+    m_identifcationMostRecentSymbolSize = 5.0;
     
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
                           &m_contralateralIdentificationEnabled);
