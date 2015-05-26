@@ -68,7 +68,7 @@
 #include "SessionManager.h"
 #include "Surface.h"
 #include "TileTabsConfiguration.h"
-#include "userInputModeAnnotations.h"
+#include "UserInputModeAnnotations.h"
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
 #include "UserInputModeView.h"

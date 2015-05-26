@@ -40,6 +40,7 @@
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "MathFunctions.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -409,7 +410,7 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* wi
     const qreal margin          = width * 0.05;
     const qreal longLineLength  = width - (margin * 2.0);
     const qreal shortLineLength = width / 2.0;
-    const qreal yStep = std::round(height / (numLines + 1));  //6.0);
+    const qreal yStep = MathFunctions::round(height / (numLines + 1));  //6.0);
     
     for (int32_t i = 1; i <= numLines; i++) {
         const qreal lineLength = (((i % 2) == 0)
@@ -521,7 +522,7 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widg
                 y2 = y1 + yStep;
                 break;
             case AnnotationTextAlignVerticalEnum::MIDDLE:
-                y1 = std::round((height / 2.0) - (yStep / 2.0));
+                y1 = MathFunctions::round((height / 2.0) - (yStep / 2.0));
                 y2 = y1 + yStep;
                 break;
             case AnnotationTextAlignVerticalEnum::TOP:
@@ -541,7 +542,7 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widg
     else {
         const qreal longLineLength  = width - (margin * 2.0);
         const qreal shortLineLength = width / 2.0;
-        const qreal yStep = std::round(height / 6.0);
+        const qreal yStep = MathFunctions::round(height / 6.0);
         for (int32_t i = 1; i <= numLines; i++) {
             const qreal lineLength = (((i % 2) == 0)
                                       ? shortLineLength

@@ -201,7 +201,7 @@ AnnotationFile::AnnotationFile()
             AnnotationText* at = new AnnotationText();
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-            coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 7883, 20.0);
+            coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 7883, 20);
             at->setForegroundColor(CaretColorEnum::PURPLE);
             at->setText("Vertex 7883");
             addAnnotation(at);
@@ -291,7 +291,8 @@ AnnotationFile::setAllAnnotationsSelected(const bool selectedStatus)
  *    Object that is copied.
  */
 AnnotationFile::AnnotationFile(const AnnotationFile& obj)
-: CaretDataFile(obj)
+: CaretDataFile(obj),
+EventListenerInterface()
 {
     this->copyHelperAnnotationFile(obj);
 }
@@ -522,7 +523,7 @@ AnnotationFile::isModified() const
         return true;
     }
     
-    for (std::vector<const Annotation*>::const_iterator iter = m_annotations.begin();
+    for (std::vector<Annotation*>::const_iterator iter = m_annotations.begin();
          iter != m_annotations.end();
          iter++) {
         const Annotation* annotationPointer = *iter;

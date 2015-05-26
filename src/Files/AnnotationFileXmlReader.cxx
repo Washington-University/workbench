@@ -303,10 +303,10 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
     /*
      * Surface coordinate
      */
-    const int32_t numberOfNodes = m_streamHelper->getRequiredAttributeFloatValue(attributes,
+    const int32_t numberOfNodes = m_streamHelper->getRequiredAttributeIntValue(attributes,
                                                                  coordinateElementName,
                                                                  ATTRIBUTE_COORD_SURFACE_NUMBER_OF_NODES);
-    const int32_t nodeIndex = m_streamHelper->getRequiredAttributeFloatValue(attributes,
+    const int32_t nodeIndex = m_streamHelper->getRequiredAttributeIntValue(attributes,
                                                                  coordinateElementName,
                                                                  ATTRIBUTE_COORD_SURFACE_NODE_INDEX);
     const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,

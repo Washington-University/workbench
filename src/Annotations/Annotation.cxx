@@ -68,6 +68,7 @@ Annotation::~Annotation()
  */
 Annotation::Annotation(const Annotation& obj)
 : CaretObjectTracksModification(obj),
+SceneableInterface(obj),
 m_type(obj.m_type)
 {
     initializeAnnotationMembers();
@@ -379,10 +380,10 @@ Annotation::getForegroundColorRGBA(uint8_t rgbaOut[4]) const
     float rgbaFloat[4];
     getForegroundColorRGBA(rgbaFloat);
     
-    rgbaOut[0] = rgbaFloat[0] * 255.0;
-    rgbaOut[1] = rgbaFloat[1] * 255.0;
-    rgbaOut[2] = rgbaFloat[2] * 255.0;
-    rgbaOut[3] = rgbaFloat[2] * 255.0;
+    rgbaOut[0] = static_cast<int8_t>(rgbaFloat[0] * 255.0);
+    rgbaOut[1] = static_cast<int8_t>(rgbaFloat[1] * 255.0);
+    rgbaOut[2] = static_cast<int8_t>(rgbaFloat[2] * 255.0);
+    rgbaOut[3] = static_cast<int8_t>(rgbaFloat[2] * 255.0);
 }
 
 /**
@@ -465,10 +466,10 @@ Annotation::getBackgroundColorRGBA(uint8_t rgbaOut[4]) const
     float rgbaFloat[4];
     getBackgroundColorRGBA(rgbaFloat);
     
-    rgbaOut[0] = rgbaFloat[0] * 255.0;
-    rgbaOut[1] = rgbaFloat[1] * 255.0;
-    rgbaOut[2] = rgbaFloat[2] * 255.0;
-    rgbaOut[3] = rgbaFloat[2] * 255.0;
+    rgbaOut[0] = static_cast<int8_t>(rgbaFloat[0] * 255.0);
+    rgbaOut[1] = static_cast<int8_t>(rgbaFloat[1] * 255.0);
+    rgbaOut[2] = static_cast<int8_t>(rgbaFloat[2] * 255.0);
+    rgbaOut[3] = static_cast<int8_t>(rgbaFloat[2] * 255.0);
 }
 
 /**

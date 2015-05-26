@@ -169,7 +169,7 @@ SceneFloatArray::integerValue(const int32_t arrayIndex) const
         return std::numeric_limits<int32_t>::min();
     }
     
-    const float i = static_cast<int32_t>(f);
+    const int32_t i = static_cast<int32_t>(f);
     return i;
 }
 

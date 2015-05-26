@@ -22,7 +22,7 @@
 #include <QAction>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QTooLButton>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #define __ANNOTATION_FONT_WIDGET_DECLARE__

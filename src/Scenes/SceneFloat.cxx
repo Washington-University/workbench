@@ -104,7 +104,7 @@ SceneFloat::integerValue() const
         return std::numeric_limits<int32_t>::min();
     }
     
-    const float i = static_cast<int32_t>(m_value);
+    const int32_t i = static_cast<int32_t>(m_value);
     return i;
 }
 

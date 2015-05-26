@@ -331,7 +331,7 @@ nicenum(double x, int round)
     double f;                           /* fractional part of x */
     double nf;                          /* nice, rounded fraction */
     
-    expv = std::floor(std::log10(x));
+    expv = static_cast<int>(std::floor(std::log10(x)));
     f = x/expt(10., expv);              /* between 1 and 10 */
     if (round)
         if (f<1.5) nf = 1.;
@@ -415,7 +415,7 @@ ChartScaleAutoRanging::graphicsGemsHeckbertAutoScale(const double minimumValue,
     d = nicenum(range/(NUMBER_OF_TICKS-1), 1);
     graphmin = std::floor(minimumValue/d)*d;
     graphmax = std::ceil(maximumValue/d)*d;
-    nfrac = std::max(-std::floor(log10(d)), (double)0);      /* # of fractional digits to show */
+    nfrac = static_cast<int>(std::max(-std::floor(log10(d)), (double)0));      /* # of fractional digits to show */
 //    sprintf(str, "%%.%df", nfrac);      /* simplest axis labels */
 //    
 //    printf("graphmin=%g graphmax=%g increment=%g\n", graphmin, graphmax, d);

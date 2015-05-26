@@ -305,7 +305,7 @@ ChartAxis::getLabelFontSize() const
 void
 ChartAxis::setLabelFontSize(const float fontSize)
 {
-    m_labelFontSize = fontSize;
+    m_labelFontSize = static_cast<int32_t>(fontSize);
 }
 
 /**

@@ -160,7 +160,7 @@ int32_t
 SceneBooleanArray::integerValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
-    const float i = (m_values[arrayIndex] ? 1 : 0);
+    const int32_t i = (m_values[arrayIndex] ? 1 : 0);
     return i;
 }
 

@@ -61,7 +61,8 @@ AnnotationCoordinate::~AnnotationCoordinate()
  *    Object that is copied.
  */
 AnnotationCoordinate::AnnotationCoordinate(const AnnotationCoordinate& obj)
-: CaretObjectTracksModification(obj)
+: CaretObjectTracksModification(obj),
+SceneableInterface(obj)
 {
     initializeAnnotationCoordinateMembers();
     this->copyHelperAnnotationCoordinate(obj);
@@ -245,12 +246,14 @@ AnnotationCoordinate::getSurfaceSpace(StructureEnum::Enum& structureOut,
  *     Number of nodes in surface.
  * @param surfaceNodeIndex
  *     Index of surface node.
+ * @param surfaceOffsetLength
+ *     Offset of annotation from surface
  */
 void
 AnnotationCoordinate::setSurfaceSpace(const StructureEnum::Enum structure,
                                       const int32_t surfaceNumberOfNodes,
                                       const int32_t surfaceNodeIndex,
-                                      const int32_t surfaceOffsetLength)
+                                      const float surfaceOffsetLength)
 {
     if (structure != m_surfaceSpaceStructure) {
         m_surfaceSpaceStructure = structure;

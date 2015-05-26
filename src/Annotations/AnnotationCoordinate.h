@@ -61,7 +61,7 @@ namespace caret {
         void setSurfaceSpace(const StructureEnum::Enum structure,
                              const int32_t surfaceNumberOfNodes,
                              const int32_t surfaceNodeIndex,
-                             const int32_t surfaceOffsetLength);
+                             const float surfaceOffsetLength);
         
 
         // ADD_NEW_METHODS_HERE

@@ -95,7 +95,7 @@ SceneBoolean::floatValue() const
 int32_t 
 SceneBoolean::integerValue() const
 {
-    const float i = (m_value ? 1 : 0);
+    const int32_t i = (m_value ? 1 : 0);
     return i;
 }
 
