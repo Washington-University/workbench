@@ -145,8 +145,7 @@ CaretTemporaryFile::readFile(const AString& filename)
         /*
          * Read file on network.
          * Sort of a kludge, read from the network as a string of bytes
-         * and then write the bytes to a temporary file.  Lastly,
-         * read the temporary file as a VolumeFile.
+         * and then write the bytes to a temporary file.
          */
         CaretHttpRequest request;
         request.m_method = CaretHttpManager::GET;
@@ -163,6 +162,9 @@ CaretTemporaryFile::readFile(const AString& filename)
         
         const int64_t numBytes = response.m_body.size();
         if (numBytes > 0) {
+            AString tempPath = QDir::tempPath();
+            if (!tempPath.endsWith('/')) tempPath += '/';//qt decided to make this behavior OS-dependent, for no apparent reason
+            m_temporaryFile->setFileTemplate(tempPath + "qt_temp.XXXXXX." + filename.section('/', -1).section('.', 1));//strip all but the filename, then take all the parts of the extension
             if (m_temporaryFile->open()) {
                 const int64_t numBytesWritten = m_temporaryFile->write(&response.m_body[0],
                                                                numBytes);
