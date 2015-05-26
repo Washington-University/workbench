@@ -170,6 +170,9 @@ AnnotationCreateDialog::createFileSelectionWidget()
     fileButtonGroup->addButton(m_sceneAnnotationFileRadioButton);
     
     if (s_previousSelections.m_valid) {
+        /*
+         * Default using previous selections
+         */
         if (s_previousSelections.m_annotationFile == brain->getSceneAnnotationFile()) {
             m_sceneAnnotationFileRadioButton->setChecked(true);
         }
@@ -180,6 +183,12 @@ AnnotationCreateDialog::createFileSelectionWidget()
                 m_brainAnnotationFileRadioButton->setChecked(true);
             }
         }
+    }
+    else {
+        /*
+         * First time displayed, default to scene annotation file
+         */
+        m_sceneAnnotationFileRadioButton->setChecked(true);
     }
     
     QWidget* widget = new QGroupBox("Annotation File");

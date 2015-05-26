@@ -233,7 +233,10 @@ QToolButton*
 AnnotationInsertNewWidget::createDeleteToolButton()
 {
     m_deleteToolButtonAction = WuQtUtilities::createAction("",
-                                                         "Delete the selected annotation",
+                                                         ("Delete the selected annotation\n"
+                                                          "\n"
+                                                          "Pressing the Delete key while an annotation\n"
+                                                          "is selected will also delete an annotation"),
                                                          this,
                                                          this,
                                                          SLOT(deleteActionTriggered()));

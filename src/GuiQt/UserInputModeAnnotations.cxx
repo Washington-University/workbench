@@ -231,21 +231,129 @@ UserInputModeAnnotations::getCursor() const
 void
 UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
 {
-    if (keyEvent.getKeyCode() == Qt::Key_Escape) {
-        switch (m_mode) {
-            case MODE_NEW:
-                break;
-            case MODE_SELECT:
-                break;
-            case MODE_SET_COORDINATE_ONE:
-                setMode(MODE_SELECT);
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                break;
-            case MODE_SET_COORDINATE_TWO:
-                setMode(MODE_SELECT);
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                break;
+    const int32_t keyCode = keyEvent.getKeyCode();
+    switch (keyCode) {
+        case Qt::Key_Delete:
+        {
+            switch (m_mode) {
+                case MODE_NEW:
+                    break;
+                case MODE_SELECT:
+                    if (m_annotationBeingEdited != NULL) {
+                        if (WuQMessageBox::warningOkCancel(m_annotationToolsWidget,
+                                                           "Delete selected annotation?")) {
+                            /*
+                             * Delete the annotation, deselect the annotation, and update graphics.
+                             */
+                            EventManager::get()->sendEvent(EventAnnotation().setModeDeleteAnnotation(m_annotationBeingEdited).getPointer());
+                            EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
+                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                        }
+                    }
+                    break;
+                case MODE_SET_COORDINATE_ONE:
+                    break;
+                case MODE_SET_COORDINATE_TWO:
+                    break;
+            }
         }
+            break;
+        case Qt::Key_Escape:
+        {
+            bool selectModeFlag = false;
+            switch (m_mode) {
+                case MODE_NEW:
+                    break;
+                case MODE_SELECT:
+                    break;
+                case MODE_SET_COORDINATE_ONE:
+                    selectModeFlag = true;
+                    break;
+                case MODE_SET_COORDINATE_TWO:
+                    selectModeFlag = true;
+                    break;
+            }
+            if (selectModeFlag) {
+                setMode(MODE_SELECT);
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            }
+        }
+            break;
+        case Qt::Key_Down:
+        case Qt::Key_Left:
+        case Qt::Key_Right:
+        case Qt::Key_Up:
+        {
+            if (m_annotationBeingEdited != NULL) {
+                bool changeCoordFlag = false;
+                switch (m_annotationBeingEdited->getCoordinateSpace()) {
+                    case AnnotationCoordinateSpaceEnum::MODEL:
+                        changeCoordFlag = true;
+                        break;
+                    case AnnotationCoordinateSpaceEnum::PIXELS:
+                        break;
+                    case AnnotationCoordinateSpaceEnum::SURFACE:
+                        break;
+                    case AnnotationCoordinateSpaceEnum::TAB:
+                        changeCoordFlag = true;
+                        break;
+                    case AnnotationCoordinateSpaceEnum::WINDOW:
+                        changeCoordFlag = true;
+                        break;
+                }
+                
+                if (changeCoordFlag) {
+                    const float distance = 0.01;
+                    float dx = 0.0;
+                    float dy = 0.0;
+                    switch (keyCode) {
+                        case Qt::Key_Down:
+                            dy = -distance;
+                            break;
+                        case Qt::Key_Left:
+                            dx = -distance;
+                            break;
+                        case Qt::Key_Right:
+                            dx = distance;
+                            break;
+                        case Qt::Key_Up:
+                            dy = distance;
+                            break;
+                        default:
+                            CaretAssert(0);
+                            break;
+                    }
+                    
+                    AnnotationOneDimensionalShape* oneDim = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
+                    AnnotationTwoDimensionalShape* twoDim = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
+                    
+                    if (oneDim != NULL) {
+                        float xyz[3];
+                        oneDim->getStartCoordinate()->getXYZ(xyz);
+                        xyz[0] += dx;
+                        xyz[1] += dy;
+                        oneDim->getStartCoordinate()->setXYZ(xyz);
+                        
+                        oneDim->getEndCoordinate()->getXYZ(xyz);
+                        xyz[0] += dx;
+                        xyz[1] += dy;
+                        oneDim->getEndCoordinate()->setXYZ(xyz);
+                    }
+                    
+                    if (twoDim != NULL) {
+                        float xyz[3];
+                        twoDim->getCoordinate()->getXYZ(xyz);
+                        xyz[0] += dx;
+                        xyz[1] += dy;
+                        twoDim->getCoordinate()->setXYZ(xyz);
+                    }
+
+                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                }
+            }
+        }
+            break;
     }
 }
 
@@ -384,6 +492,7 @@ UserInputModeAnnotations::getCoordinatesFromMouseLocation(const MouseEvent& mous
         coordInfoOut.m_surfaceNumberOfNodes = surface->getNumberOfNodes();
         coordInfoOut.m_surfaceStructure     = surface->getStructure();
         coordInfoOut.m_surfaceNodeIndex     = surfaceNodeIdentification->getNodeNumber();
+        coordInfoOut.m_surfaceNodeOffset    = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
         coordInfoOut.m_surfaceNodeValid     = true;
     }
     else if (voxelID->isValid()) {
@@ -467,6 +576,18 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
                 otherCoordinate = oneDimAnn->getStartCoordinate();
             }
             break;
+    }
+    
+    if (coordinate != NULL) {
+        StructureEnum::Enum structure = StructureEnum::INVALID;
+        int32_t numNodes = -1;
+        int32_t nodeIndex = -1;
+        float surfaceOffset = 0.0;
+        coordinate->getSurfaceSpace(structure, numNodes, nodeIndex, surfaceOffset);
+//        coordInfo.m_surfaceStructure = structure;
+//        coordInfo.m_surfaceNodeIndex  = nodeIndex;
+//        coordInfo.m_surfaceNumberOfNodes = numNodes;
+        coordInfo.m_surfaceNodeOffset = surfaceOffset;
     }
     
     AnnotationChangeCoordinateDialog changeCoordDialog(coordInfo,
