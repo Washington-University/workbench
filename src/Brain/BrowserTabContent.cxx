@@ -2180,6 +2180,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         vf->getVoxelSpaceBoundingBox(mybox);
         float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
         float slowdown = 0.005f * cubesize / volumeSliceScaling;//when zoomed in, make the movements slower to match - still changes based on viewport currently
+        slowdown = 1.0;
         
         float dx = 0.0;
         float dy = 0.0;
