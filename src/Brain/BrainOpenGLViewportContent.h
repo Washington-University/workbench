@@ -39,11 +39,11 @@ namespace caret {
         
         ~BrainOpenGLViewportContent();
         
-        void getModelViewport(int viewport[4]) const;
+        void getModelViewport(int modelViewportOut[4]) const;
         
-        const int* getModelViewport() const;
+        void getTabViewport(int tabViewportOut[4]) const;
         
-        const int* getWindowViewport() const;
+        void getWindowViewport(int windowViewportOut[4]) const;
         
         int getWindowIndex() const;
         
@@ -60,6 +60,8 @@ namespace caret {
                                                                                          const int32_t highlightTabIndex);
         
     private:
+        int m_tabViewport[4];
+        
         int m_modelViewport[4];
         
         int m_windowViewport[4];

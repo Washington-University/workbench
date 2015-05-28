@@ -1,5 +1,5 @@
-#ifndef __TAB_AND_WINDOW_MARGINS_H__
-#define __TAB_AND_WINDOW_MARGINS_H__
+#ifndef __MARGIN_H__
+#define __MARGIN_H__
 
 /*LICENSE_START*/
 /*
@@ -30,36 +30,28 @@
 namespace caret {
     class SceneClassAssistant;
 
-    class TabAndWindowMargins : public CaretObject, public SceneableInterface {
+    class Margin : public CaretObject, public SceneableInterface {
         
     public:
-        TabAndWindowMargins();
+        Margin();
         
-        virtual ~TabAndWindowMargins();
+        virtual ~Margin();
         
-        TabAndWindowMargins(const TabAndWindowMargins& obj);
+        Margin(const Margin& obj);
 
-        TabAndWindowMargins& operator=(const TabAndWindowMargins& obj);
-        
-        void getTabMargins(int32_t& leftOut,
+        Margin& operator=(const Margin& obj);
+
+        void getMargins(int32_t& leftOut,
                            int32_t& rightOut,
                            int32_t& bottomOut,
                            int32_t& topOut) const;
-
-        void setTabMargins(const int32_t left,
+        
+        void setMargins(const int32_t left,
                            const int32_t right,
                            const int32_t bottom,
                            const int32_t top);
         
-        void getWindowMargins(int32_t& leftOut,
-                              int32_t& rightOut,
-                              int32_t& bottomOut,
-                              int32_t& topOut) const;
-        
-        void setWindowMargins(const int32_t left,
-                              const int32_t right,
-                              const int32_t bottom,
-                              const int32_t top);
+        void reset();
         
         // ADD_NEW_METHODS_HERE
 
@@ -87,21 +79,19 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        void copyHelperTabAndWindowMargins(const TabAndWindowMargins& obj);
+        void copyHelperMargin(const Margin& obj);
 
         SceneClassAssistant* m_sceneAssistant;
 
-        int32_t m_tabMargins[4];
-        
-        int32_t m_windowMargins[4];
+        int32_t m_margin[4];
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __TAB_AND_WINDOW_MARGINS_DECLARE__
+#ifdef __MARGIN_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __TAB_AND_WINDOW_MARGINS_DECLARE__
+#endif // __MARGIN_DECLARE__
 
 } // namespace
-#endif  //__TAB_AND_WINDOW_MARGINS_H__
+#endif  //__MARGIN_H__

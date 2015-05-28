@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __TAB_AND_WINDOW_MARGINS_DECLARE__
-#include "TabAndWindowMargins.h"
-#undef __TAB_AND_WINDOW_MARGINS_DECLARE__
+#define __MARGIN_DECLARE__
+#include "Margin.h"
+#undef __MARGIN_DECLARE__
 
 #include "CaretAssert.h"
 #include "SceneClass.h"
@@ -32,36 +32,29 @@ using namespace caret;
 
     
 /**
- * \class caret::TabAndWindowMargins 
- * \brief Margins for Windows and Tabs
+ * \class caret::Margin 
+ * \brief Margins (left, right, bottom, top).  Typicallay around a tab or window region.
  * \ingroup Brain
+ *
+ * <REPLACE-WITH-THOROUGH DESCRIPTION>
  */
 
 /**
  * Constructor.
  */
-TabAndWindowMargins::TabAndWindowMargins()
+Margin::Margin()
 : CaretObject()
 {
-    m_tabMargins[0] = 0;
-    m_tabMargins[1] = 0;
-    m_tabMargins[2] = 0;
-    m_tabMargins[3] = 0;
-    
-    m_windowMargins[0] = 0;
-    m_windowMargins[1] = 0;
-    m_windowMargins[2] = 0;
-    m_windowMargins[3] = 0;
+    reset();
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->addArray("m_tabMargins", m_tabMargins, 4, 0);
-    m_sceneAssistant->addArray("m_windowMargins", m_windowMargins, 4, 0);
+    m_sceneAssistant->addArray("m_margin", m_margin, 4, 0);
 }
 
 /**
  * Destructor.
  */
-TabAndWindowMargins::~TabAndWindowMargins()
+Margin::~Margin()
 {
     delete m_sceneAssistant;
 }
@@ -71,10 +64,10 @@ TabAndWindowMargins::~TabAndWindowMargins()
  * @param obj
  *    Object that is copied.
  */
-TabAndWindowMargins::TabAndWindowMargins(const TabAndWindowMargins& obj)
+Margin::Margin(const Margin& obj)
 : CaretObject(obj)
 {
-    this->copyHelperTabAndWindowMargins(obj);
+    this->copyHelperMargin(obj);
 }
 
 /**
@@ -84,12 +77,12 @@ TabAndWindowMargins::TabAndWindowMargins(const TabAndWindowMargins& obj)
  * @return 
  *    Reference to this object.
  */
-TabAndWindowMargins&
-TabAndWindowMargins::operator=(const TabAndWindowMargins& obj)
+Margin&
+Margin::operator=(const Margin& obj)
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
-        this->copyHelperTabAndWindowMargins(obj);
+        this->copyHelperMargin(obj);
     }
     return *this;    
 }
@@ -100,9 +93,12 @@ TabAndWindowMargins::operator=(const TabAndWindowMargins& obj)
  *    Object that is copied.
  */
 void 
-TabAndWindowMargins::copyHelperTabAndWindowMargins(const TabAndWindowMargins& obj)
+Margin::copyHelperMargin(const Margin& obj)
 {
-    
+    m_margin[0] = obj.m_margin[0];
+    m_margin[1] = obj.m_margin[1];
+    m_margin[2] = obj.m_margin[2];
+    m_margin[3] = obj.m_margin[3];
 }
 
 /**
@@ -118,15 +114,15 @@ TabAndWindowMargins::copyHelperTabAndWindowMargins(const TabAndWindowMargins& ob
  *    top margin
  */
 void
-TabAndWindowMargins::getWindowMargins(int32_t& leftOut,
+Margin::getMargins(int32_t& leftOut,
                                       int32_t& rightOut,
                                       int32_t& bottomOut,
                                       int32_t& topOut) const
 {
-    leftOut   = m_windowMargins[0];
-    rightOut  = m_windowMargins[1];
-    bottomOut = m_windowMargins[2];
-    topOut    = m_windowMargins[3];
+    leftOut   = m_margin[0];
+    rightOut  = m_margin[1];
+    bottomOut = m_margin[2];
+    topOut    = m_margin[3];
 }
 
 /**
@@ -142,73 +138,38 @@ TabAndWindowMargins::getWindowMargins(int32_t& leftOut,
  *    top margin
  */
 void
-TabAndWindowMargins::setWindowMargins(const int32_t left,
+Margin::setMargins(const int32_t left,
                                       const int32_t right,
                                       const int32_t bottom,
                                       const int32_t top)
 {
-    m_windowMargins[0] = left;
-    m_windowMargins[1] = right;
-    m_windowMargins[2] = bottom;
-    m_windowMargins[3] = top;
+    m_margin[0] = left;
+    m_margin[1] = right;
+    m_margin[2] = bottom;
+    m_margin[3] = top;
 }
 
 /**
- * Get the tab margins.
- *
- * @param leftOut
- *    left margin
- * @param rightOut
- *    right margin
- * @param bottomOut
- *    bottom margin
- * @param topOut
- *    top margin
+ * Reset the margins to zero.
  */
 void
-TabAndWindowMargins::getTabMargins(int32_t& leftOut,
-                                      int32_t& rightOut,
-                                      int32_t& bottomOut,
-                                      int32_t& topOut) const
+Margin::reset()
 {
-    leftOut   = m_tabMargins[0];
-    rightOut  = m_tabMargins[1];
-    bottomOut = m_tabMargins[2];
-    topOut    = m_tabMargins[3];
+    m_margin[0] = 0;
+    m_margin[1] = 0;
+    m_margin[2] = 0;
+    m_margin[3] = 0;
 }
 
-/**
- * Set the tab margins.
- *
- * @param left
- *    left margin
- * @param right
- *    right margin
- * @param bottom
- *    bottom margin
- * @param top
- *    top margin
- */
-void
-TabAndWindowMargins::setTabMargins(const int32_t left,
-                                      const int32_t right,
-                                      const int32_t bottom,
-                                      const int32_t top)
-{
-    m_tabMargins[0] = left;
-    m_tabMargins[1] = right;
-    m_tabMargins[2] = bottom;
-    m_tabMargins[3] = top;
-}
 
 /**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
 AString 
-TabAndWindowMargins::toString() const
+Margin::toString() const
 {
-    return "TabAndWindowMargins";
+    return "Margin";
 }
 
 /**
@@ -223,11 +184,11 @@ TabAndWindowMargins::toString() const
  *    Name of instance in the scene.
  */
 SceneClass*
-TabAndWindowMargins::saveToScene(const SceneAttributes* sceneAttributes,
+Margin::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "TabAndWindowMargins",
+                                            "Margin",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -251,7 +212,7 @@ TabAndWindowMargins::saveToScene(const SceneAttributes* sceneAttributes,
  *     sceneClass from which model specific information is obtained.
  */
 void
-TabAndWindowMargins::restoreFromScene(const SceneAttributes* sceneAttributes,
+Margin::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

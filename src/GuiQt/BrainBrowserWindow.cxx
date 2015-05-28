@@ -594,6 +594,13 @@ BrainBrowserWindow::createActions()
                                                                 "Create, Delete, and Edit Tile Tabs Configurations",
                                                                 Qt::CTRL + Qt::SHIFT + Qt::Key_M,
                                                                 this);
+
+    m_tabMarginsAction =
+    WuQtUtilities::createAction("Tab Margins...",
+                                "Adjust the tab margins",
+                                this,
+                                this,
+                                SLOT(processTabMargins()));
     
     m_nextTabAction =
     WuQtUtilities::createAction("Next Tab",
@@ -1184,6 +1191,7 @@ BrainBrowserWindow::createMenuView()
     menu->addAction(m_viewFullScreenAction);
     menu->addAction(m_viewTileTabsAction);
     menu->addSeparator();
+    menu->addAction(m_tabMarginsAction);
     menu->addMenu(m_tileTabsMenu);
     
     return menu;
@@ -1790,6 +1798,15 @@ void
 BrainBrowserWindow::processCaptureImage()
 {
     GuiManager::get()->processShowImageCaptureDialog(this);
+}
+
+/**
+ * Called when capture image is selected.
+ */
+void
+BrainBrowserWindow::processTabMargins()
+{
+    GuiManager::get()->processShowTabMarginsDialog(this);
 }
 
 /**

@@ -131,6 +131,7 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
+TabMarginsDialog.h
 TileTabsConfigurationDialog.h
 UserInputModeAnnotationsWidget.h
 UserInputModeBordersWidget.h
@@ -305,6 +306,7 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
+TabMarginsDialog.h
 TileTabsConfigurationDialog.h
 UserInputModeAbstract.h
 UserInputModeAnnotations.h
@@ -478,6 +480,7 @@ StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
+TabMarginsDialog.cxx
 TileTabsConfigurationDialog.cxx
 UserInputModeAbstract.cxx
 UserInputModeAnnotations.cxx

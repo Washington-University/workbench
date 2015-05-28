@@ -47,6 +47,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretFileDialog.h"
+#include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
@@ -1133,8 +1134,7 @@ SpecFileManagementDialog::updateAnnotationSceneFileRowInTable()
              * Scene annotation file is considered modified if 
              * it is NOT empty.
              */
-            const bool modifiedStatusFlag = ( ! sceneAnnotationFile->isEmpty());
-
+            const bool modifiedStatusFlag = sceneAnnotationFile->isModified();
             CaretAssert(statusItem);
             if (modifiedStatusFlag) {
                 statusItem->setText("YES");
@@ -1560,9 +1560,19 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                                                               m_COLUMN_FILE_NAME_LABEL);
         CaretAssert(nameItem);
         
-        FileInformation fileInfo(specFileDataFile->getFileName());
-        const AString path = fileInfo.getAbsolutePath();
-        const AString name = fileInfo.getFileName();
+        AString path;
+        AString name;
+        const QString fileName(specFileDataFile->getFileName());
+        if (fileName.isEmpty()) {
+            CaretLogSevere("While loading spec file dialog, file of type "
+                           + DataFileTypeEnum::toGuiName(dataFileType)
+                           + " has empty file name.");
+        }
+        else {
+            FileInformation fileInfo(specFileDataFile->getFileName());
+            path = fileInfo.getAbsolutePath();
+            name = fileInfo.getFileName();
+        }
         
         nameItem->setText(name);
         nameItem->setToolTip(path);

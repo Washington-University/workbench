@@ -263,7 +263,8 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
     this->drawModelInternal(MODE_IDENTIFICATION,
                             viewportContent);
 
-    const int* windowViewport = viewportContent->getWindowViewport();
+    int windowViewport[4];
+    viewportContent->getWindowViewport(windowViewport);
     drawWindowAnnotations(windowViewport);
     
     m_brain->getSelectionManager()->filterSelections(applySelectionBackgroundFiltering);
@@ -442,9 +443,12 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
          * Viewport of window.
          */
         BrainOpenGLViewportContent* vpContent = viewportContents[i];
-//JWH10APR        const int* windowVP = vpContent->getWindowViewport();  JWH10APR
-        const int* windowVP = vpContent->getModelViewport();
-        glViewport(windowVP[0], windowVP[1], windowVP[2], windowVP[3]);
+//        int windowViewport[4];
+//        vpContent->getWindowViewport(windowViewport);
+//        glViewport(windowViewport[0], windowViewport[1], windowViewport[2], windowViewport[3]);
+        int tabViewport[4];
+        vpContent->getTabViewport(tabViewport);
+        glViewport(tabViewport[0], tabViewport[1], tabViewport[2], tabViewport[3]);
         
         /*
          * Update foreground and background colors for model
@@ -489,9 +493,11 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
             glMatrixMode(GL_PROJECTION);
             glPushMatrix();
             glLoadIdentity();
-            const float width = windowVP[2];
-            const float height = windowVP[3];
-            glOrtho(0.0, windowVP[2], 0.0, windowVP[3], -100.0, 100.0);
+//            const float width = windowViewport[2];
+//            const float height = windowViewport[3];
+            const float width = tabViewport[2];
+            const float height = tabViewport[3];
+            glOrtho(0.0, width, 0.0, height, -100.0, 100.0);
             
             glMatrixMode(GL_MODELVIEW);
             glPushMatrix();
@@ -550,7 +556,8 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     }
     
     if ( ! viewportContents.empty()) {
-        const int* windowViewport = viewportContents[0]->getWindowViewport();
+        int windowViewport[4];
+        viewportContents[0]->getWindowViewport(windowViewport);
         this->windowIndex = viewportContents[0]->getWindowIndex();
         drawWindowAnnotations(windowViewport);
     }

@@ -150,6 +150,7 @@ namespace caret {
         void processViewTileTabsConfigurationDialog();
         void processShowHelpInformation();
         void processShowIdentifyBrainordinateDialog();
+        void processTabMargins();
         
         void processMoveOverlayToolBoxToLeft();
         void processMoveOverlayToolBoxToBottom();
@@ -311,6 +312,8 @@ namespace caret {
         
         QMenu* m_tileTabsMenu;
         QAction* m_createAndEditTileTabsAction;
+        
+        QAction* m_tabMarginsAction;
         
         QAction* m_nextTabAction;
         

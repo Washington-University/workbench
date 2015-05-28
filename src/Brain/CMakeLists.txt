@@ -120,6 +120,7 @@ IdentificationWithColor.h
 IdentifiedItem.h
 IdentifiedItemNode.h
 IdentifiedItemVoxel.h
+Margin.h
 Model.h
 ModelChart.h
 ModelSurface.h
@@ -162,7 +163,6 @@ SurfaceMontageLayoutOrientationEnum.h
 SurfaceMontageViewport.h
 SurfaceNodeColoring.h
 SurfaceSelectionModel.h
-TabAndWindowMargins.h
 ViewingTransformations.h
 ViewingTransformationsCerebellum.h
 ViewingTransformationsVolume.h
@@ -243,6 +243,7 @@ IdentificationWithColor.cxx
 IdentifiedItem.cxx
 IdentifiedItemNode.cxx
 IdentifiedItemVoxel.cxx
+Margin.cxx
 Model.cxx
 ModelChart.cxx
 ModelSurface.cxx
@@ -285,7 +286,6 @@ SurfaceMontageLayoutOrientationEnum.cxx
 SurfaceMontageViewport.cxx
 SurfaceNodeColoring.cxx
 SurfaceSelectionModel.cxx
-TabAndWindowMargins.cxx
 ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
 ViewingTransformationsVolume.cxx

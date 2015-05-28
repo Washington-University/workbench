@@ -505,23 +505,33 @@ UserInputModeAnnotations::getCoordinatesFromMouseLocation(const MouseEvent& mous
     /*
      * In tile tabs, some regions may not contain a tab such
      * as three tabs in a two-by-two configuration
+     * or if the user has clicked in a margin
      */
     BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
     if (tabContent != NULL) {
-        const int* tabViewport = vpContent->getModelViewport();
-        coordInfoOut.m_tabXYZ[0] = mouseEvent.getX() - tabViewport[0];
-        coordInfoOut.m_tabXYZ[1] = mouseEvent.getY() - tabViewport[1];
-        coordInfoOut.m_tabXYZ[2] = 0.0;
-        coordInfoOut.m_tabIndex  = tabContent->getTabNumber();
+        int tabViewport[4];
+        vpContent->getModelViewport(tabViewport);
+        const float tabX = (mouseEvent.getX() - tabViewport[0]) / static_cast<float>(tabViewport[2]);
+        const float tabY = (mouseEvent.getY() - tabViewport[1]) / static_cast<float>(tabViewport[3]);
+        if ((tabX >= 0.0)
+            && (tabX < 1.0)
+            && (tabY >= 0.0)
+            && (tabY <= 1.0)) {
+            coordInfoOut.m_tabXYZ[0] = tabX;
+            coordInfoOut.m_tabXYZ[1] = tabY;
+            coordInfoOut.m_tabXYZ[2] = 0.0;
+            coordInfoOut.m_tabIndex  = tabContent->getTabNumber();
+        }
 
-        /*
-         * Normalize tab coordinates (width and height range [0, 1]
-         */
-        coordInfoOut.m_tabXYZ[0] /= tabViewport[2];
-        coordInfoOut.m_tabXYZ[1] /= tabViewport[3];
+//        /*
+//         * Normalize tab coordinates (width and height range [0, 1]
+//         */
+//        coordInfoOut.m_tabXYZ[0] /= tabViewport[2];
+//        coordInfoOut.m_tabXYZ[1] /= tabViewport[3];
     }
     
-    const int* windowViewport = vpContent->getWindowViewport();
+    int windowViewport[4];
+    vpContent->getWindowViewport(windowViewport);
     coordInfoOut.m_windowXYZ[0] = windowViewport[0] + mouseEvent.getX(); // tabViewport[0] + tabViewport[2] + mouseEvent.getX();
     coordInfoOut.m_windowXYZ[1] = windowViewport[1] + mouseEvent.getY(); // tabViewport[1] + tabViewport[3] + mouseEvent.getY();
     coordInfoOut.m_windowXYZ[2] = 0.0;

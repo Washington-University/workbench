@@ -104,6 +104,7 @@
 #include "SpecFileManagementDialog.h"
 #include "SurfacePropertiesEditorDialog.h"
 #include "Surface.h"
+#include "TabMarginsDialog.h"
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
 #include "WuQMessageBox.h"
@@ -137,6 +138,7 @@ GuiManager::GuiManager(QObject* parent)
     m_bugReportDialog = NULL;
     m_clippingPlanesDialog = NULL;
     m_customViewDialog = NULL;
+    m_tabMarginsDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->movieDialog = NULL;
     m_informationDisplayDialog = NULL;
@@ -1859,6 +1861,25 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
     this->imageCaptureDialog->setVisible(true);
     this->imageCaptureDialog->show();
     this->imageCaptureDialog->activateWindow();
+}
+
+/**
+ * Show the image capture window.
+ * @param browserWindow
+ *    Window on which dialog was requested.
+ */
+void
+GuiManager::processShowTabMarginsDialog(BrainBrowserWindow* browserWindow)
+{
+    if (m_tabMarginsDialog == NULL) {
+        m_tabMarginsDialog = new TabMarginsDialog(browserWindow);
+        this->addNonModalDialog(m_tabMarginsDialog);
+    }
+    m_tabMarginsDialog->updateDialog();
+    //m_tabMarginsDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
+    m_tabMarginsDialog->setVisible(true);
+    m_tabMarginsDialog->show();
+    m_tabMarginsDialog->activateWindow();
 }
 
 /**

@@ -6996,6 +6996,8 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_brainordinateHighlightRegionOfInterest->restoreFromScene(sceneAttributes,
                                                                sceneClass->getClass("m_brainordinateHighlightRegionOfInterest"));
+    
+    m_sceneAnnotationFile->clearModified();
 }
 
 /**

@@ -25,6 +25,8 @@
 
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "Margin.h"
 
 using namespace caret;
 
@@ -63,10 +65,58 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
     m_windowViewport[2] = windowViewport[2];
     m_windowViewport[3] = windowViewport[3];
     
+    m_tabViewport[0] = modelViewport[0];
+    m_tabViewport[1] = modelViewport[1];
+    m_tabViewport[2] = modelViewport[2];
+    m_tabViewport[3] = modelViewport[3];
+    
     m_modelViewport[0] = modelViewport[0];
     m_modelViewport[1] = modelViewport[1];
     m_modelViewport[2] = modelViewport[2];
     m_modelViewport[3] = modelViewport[3];
+    
+    if (browserTabContent != NULL) {
+        int32_t left = 0, right = 0, bottom = 0, top = 0;
+        browserTabContent->getMargin()->getMargins(left, right, bottom, top);
+        const int32_t marginHorizSize = (left + right);
+        const int32_t marginVertSize  = (bottom + top);
+        if ((marginHorizSize < modelViewport[2])
+            && (marginVertSize < modelViewport[3])) {
+            m_modelViewport[0] = modelViewport[0] + left;
+            m_modelViewport[1] = modelViewport[1] + bottom;
+            m_modelViewport[2] = modelViewport[2] - marginHorizSize;
+            m_modelViewport[3] = modelViewport[3] - marginVertSize;
+        }
+        else {
+            CaretLogSevere("Margins are too big for tab "
+                           + AString::number(browserTabContent->getTabNumber() + 1)
+                           + " viewport.  Viewport (x,y,w,h)="
+                           + AString::fromNumbers(modelViewport, 4, ",")
+                           + " margin (l,r,b,t)="
+                           + AString::number(left) + ","
+                           + AString::number(right) + ","
+                           + AString::number(bottom) + ","
+                           + AString::number(top));
+        }
+    }
+    
+    /*
+     * If margins are too big, they could make the viewport invalid
+     * so test for it and if the viewport is invalid,
+     */
+    bool validViewportFlag = true;
+    for (int32_t i = 0; i < 4; i++) {
+        if (m_modelViewport[i] < 0) {
+            validViewportFlag = false;
+        }
+    }
+    if ( ! validViewportFlag) {
+        m_modelViewport[0] = modelViewport[0];
+        m_modelViewport[1] = modelViewport[1];
+        m_modelViewport[2] = modelViewport[2];
+        m_modelViewport[3] = modelViewport[3];
+    }
+
     
     m_windowIndex       = windowIndex;
     m_browserTabContent = browserTabContent;
@@ -94,9 +144,12 @@ BrainOpenGLViewportContent::isTabHighlighted() const
 }
 
 /**
- * Get the viewport for drawing the model.
+ * Get the viewport for drawing the model (has been reduced
+ * from tab viewport by applying the margin).
+ *
  * @param modelViewport
  *    Output into which model viewport dimensions are loaded.
+ *    (x, y, width, height)
  */
 void
 BrainOpenGLViewportContent::getModelViewport(int modelViewport[4]) const
@@ -108,21 +161,35 @@ BrainOpenGLViewportContent::getModelViewport(int modelViewport[4]) const
 }
 
 /**
- * @return Pointer to the viewport for drawing the model.
+ * Get the viewport for drawing the tab (includes margin).
+ *
+ * @param tabViewport
+ *    Output into which tab viewport dimensions are loaded.
+ *    (x, y, width, height)
  */
-const int*
-BrainOpenGLViewportContent::getModelViewport() const
+void
+BrainOpenGLViewportContent::getTabViewport(int tabViewportOut[4]) const
 {
-    return m_modelViewport;
+    tabViewportOut[0] = m_tabViewport[0];
+    tabViewportOut[1] = m_tabViewport[1];
+    tabViewportOut[2] = m_tabViewport[2];
+    tabViewportOut[3] = m_tabViewport[3];
 }
 
 /**
  * @return Pointer to the viewport for the window.
+ *
+ * @param windowViewportOut
+ *    Output into which window viewport dimensions are loaded.
+ *    (x, y, width, height)
  */
-const int*
-BrainOpenGLViewportContent::getWindowViewport() const
+void
+BrainOpenGLViewportContent::getWindowViewport(int windowViewportOut[4]) const
 {
-    return m_windowViewport;
+    windowViewportOut[0] = m_windowViewport[0];
+    windowViewportOut[1] = m_windowViewport[1];
+    windowViewportOut[2] = m_windowViewport[2];
+    windowViewportOut[3] = m_windowViewport[3];
 }
 
 //Brain*

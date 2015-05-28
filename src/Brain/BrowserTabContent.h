@@ -41,6 +41,7 @@ namespace caret {
     class CaretDataFile;
     class CaretMappableDataFile;
     class ClippingPlaneGroup;
+    class Margin;
     class Matrix4x4;
     class ModelChart;
     class ModelSurface;
@@ -202,6 +203,10 @@ namespace caret {
         void setObliqueVolumeRotationMatrix(const Matrix4x4& obliqueRotationMatrix);
 
         ProjectionViewTypeEnum::Enum getProjectionViewType() const;
+        
+        Margin* getMargin();
+        
+        const Margin* getMargin() const;
         
         void resetView();
         
@@ -369,6 +374,9 @@ namespace caret {
         
         /** Number of this tab */
         int32_t m_tabNumber;
+        
+        /** Margin around sides of tab */
+        Margin* m_margin;
         
         /** Selected surface model */
         ModelSurfaceSelector* m_surfaceModelSelector;
