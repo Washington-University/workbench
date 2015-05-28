@@ -70,7 +70,7 @@ OperationParameters* AlgorithmCiftiRestrictDenseMap::getParameters()
     ret->setHelpText(
         AString("Writes a modified version of <cifti-in>, where all brainordinates outside the specified roi(s) are removed from the file.  ") +
         "If -cifti-roi is specified, no other -*-roi option may be specified.  " +
-        "If not using -cifti-roi, any -*-roi options not present will discard the relevant structure, if present."
+        "If not using -cifti-roi, any -*-roi options not present will discard the relevant structure, if present in the input file."
     );
     return ret;
 }
