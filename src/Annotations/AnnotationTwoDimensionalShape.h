@@ -61,6 +61,7 @@ namespace caret {
 
         virtual void clearModified();
         
+        bool isUseHeightAsAspectRatio() const { return true; }
         
         // ADD_NEW_METHODS_HERE
 

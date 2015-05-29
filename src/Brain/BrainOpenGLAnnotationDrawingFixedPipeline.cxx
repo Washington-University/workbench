@@ -287,7 +287,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
          * NOTE: Annotation's height and width are 'relative' ([0.0, 1.0] percentage) of window size.
          */
         const float halfWidth  = (annotation2D->getWidth()  / 2.0) * viewportWidth;
-        const float halfHeight = (annotation2D->getHeight() / 2.0) * viewportHeight;
+        float halfHeight = (annotation2D->getHeight() / 2.0) * viewportHeight;
+        if (annotation2D->isUseHeightAsAspectRatio()) {
+            halfHeight = halfWidth * annotation2D->getHeight();
+        }
         
         bottomLeftOut[0]  = windowXYZ[0] - halfWidth;
         bottomLeftOut[1]  = windowXYZ[1] - halfHeight;
@@ -993,7 +996,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(const AnnotationOval* oval,
     }
     
     const float majorAxis     = (oval->getWidth()  * m_modelSpaceViewport[2]) / 2.0;
-    const float minorAxis     = (oval->getHeight() * m_modelSpaceViewport[3]) / 2.0;
+    float minorAxis     = (oval->getHeight() * m_modelSpaceViewport[3]) / 2.0;
+    if (oval->isUseHeightAsAspectRatio()) {
+        minorAxis = majorAxis * oval->getHeight();
+    }
     const float rotationAngle = oval->getRotationAngle();
     const float outlineWidth  = oval->getForegroundLineWidth();
     

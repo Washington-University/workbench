@@ -108,6 +108,11 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
     m_coordinate.grabNew(new AnnotationCoordinate());
     m_width  = 0.25;
     m_height = 0.25;
+    
+    if (isUseHeightAsAspectRatio()) {
+        m_height = 1.0;
+    }
+    
     m_rotationAngle = 0.0;
     
     
@@ -159,11 +164,13 @@ AnnotationTwoDimensionalShape::getHeight() const
 void
 AnnotationTwoDimensionalShape::setHeight(const float height)
 {
-    if ((height < 0.0)
-        || (height > 1.0)) {
-        CaretLogWarning("Annotation height for non-text annotation should range [0.0, 1.0], "
-                        " a relative value, but is "
-                        + AString::number(height));
+    if ( ! isUseHeightAsAspectRatio()) {
+        if ((height < 0.0)
+            || (height > 1.0)) {
+            CaretLogWarning("Annotation height for non-text annotation should range [0.0, 1.0], "
+                            " a relative value, but is "
+                            + AString::number(height));
+        }
     }
     
     if (height != m_height) {
@@ -190,11 +197,13 @@ AnnotationTwoDimensionalShape::getWidth() const
 void
 AnnotationTwoDimensionalShape::setWidth(const float width)
 {
-    if ((width < 0.0)
-        || (width > 1.0)) {
-        CaretLogWarning("Annotation width for non-text annotation should range [0.0, 1.0], "
-                        " a relative value, but is "
-                        + AString::number(width));
+    if (! isUseHeightAsAspectRatio()) {
+        if ((width < 0.0)
+            || (width > 1.0)) {
+            CaretLogWarning("Annotation width for non-text annotation should range [0.0, 1.0], "
+                            " a relative value, but is "
+                            + AString::number(width));
+        }
     }
 
     if (width != m_width) {

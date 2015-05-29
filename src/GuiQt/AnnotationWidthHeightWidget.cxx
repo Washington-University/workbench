@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
+#include "AnnotationBox.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -71,6 +72,14 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setWordWrappedToolTip(m_heightSpinBox,
                                          "Height of 2D Shapes (Box, Image, Oval)");
 
+    {
+        AnnotationBox box;
+        if (box.isUseHeightAsAspectRatio()) {
+            m_heightSpinBox->setMaximum(1000.0);
+            m_heightSpinBox->setToolTip("Aspect ratio of shape");
+        }
+    }
+    
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(widthLabel);
