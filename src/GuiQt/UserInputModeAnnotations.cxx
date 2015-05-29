@@ -66,7 +66,8 @@ using namespace caret;
 UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
 : UserInputModeView(UserInputModeAbstract::ANNOTATIONS),
 m_browserWindowIndex(windowIndex),
-m_annotationBeingEdited(NULL)
+m_annotationBeingEdited(NULL),
+m_annotationUnderMouse(NULL)
 {
     m_mode = MODE_SELECT;
     m_modeNewAnnotationType = AnnotationTypeEnum::ARROW;
@@ -114,6 +115,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 break;
             case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
                 m_annotationBeingEdited = NULL;
+                m_annotationUnderMouse  = NULL;
                 break;
             case EventAnnotation::MODE_EDIT_ANNOTATION:
             {
@@ -142,6 +144,8 @@ UserInputModeAnnotations::initialize()
 {
     //this->borderToolsWidget->updateWidget();
     m_mode = MODE_SELECT;
+    m_annotationBeingEdited = NULL;
+    m_annotationUnderMouse  = NULL;
 }
 
 /**
@@ -152,6 +156,8 @@ void
 UserInputModeAnnotations::finish()
 {
     m_mode = MODE_SELECT;
+    m_annotationBeingEdited = NULL;
+    m_annotationUnderMouse  = NULL;
 }
 
 /**
@@ -210,6 +216,10 @@ UserInputModeAnnotations::getCursor() const
             break;
         case MODE_SELECT:
             cursor = CursorEnum::CURSOR_POINTING_HAND;
+            if (m_annotationUnderMouse != NULL) {
+                cursor = CursorEnum::CURSOR_FOUR_ARROWS;
+                //std::cout << "Requested Four Arrow Cursor" << std::endl;
+            }
             break;
         case MODE_SET_COORDINATE_ONE:
             cursor = CursorEnum::CURSOR_CROSS;
@@ -364,8 +374,24 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
  *     Mouse event information.
  */
 void
-UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& /*mouseEvent*/)
+UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 {
+    if (m_annotationBeingEdited != NULL) {
+        if (m_annotationBeingEdited == m_annotationUnderMouse) {
+            if (m_annotationBeingEdited->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::WINDOW) {
+                AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
+                if (twoDimShape != NULL) {
+                    const QSize windowSize = mouseEvent.getOpenGLWidget()->size();
+                    float xyz[3];
+                    twoDimShape->getCoordinate()->getXYZ(xyz);
+                    xyz[0] = static_cast<float>(mouseEvent.getX()) / static_cast<float>(windowSize.width());
+                    xyz[1] = static_cast<float>(mouseEvent.getY()) / static_cast<float>(windowSize.height());
+                    twoDimShape->getCoordinate()->setXYZ(xyz);
+                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -375,7 +401,9 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& /*mouseEvent*/)
  *     Mouse event information.
  */
 void
-UserInputModeAnnotations::mouseLeftDragWithAlt(const MouseEvent& /*mouseEvent*/) { }
+UserInputModeAnnotations::mouseLeftDragWithAlt(const MouseEvent& /*mouseEvent*/)
+{
+}
 
 /**
  * Process a mouse left drag with ctrl key down event.
@@ -418,8 +446,6 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             processModeNewMouseLeftClick(mouseEvent);
             break;
         case MODE_SELECT:
-            processModeSelectMouseLeftClick(mouseEvent,
-                                            false);
             break;
         case MODE_SET_COORDINATE_ONE:
             processModeSetCoordinate(mouseEvent);
@@ -448,13 +474,66 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
         case MODE_NEW:
             break;
         case MODE_SELECT:
-            processModeSelectMouseLeftClick(mouseEvent,
+            processMouseSelectAnnotation(mouseEvent,
                                             true);
             break;
         case MODE_SET_COORDINATE_ONE:
             break;
         case MODE_SET_COORDINATE_TWO:
             break;
+    }
+}
+
+/**
+ * Process a mouse left press event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
+{
+    switch (m_mode) {
+        case MODE_NEW:
+            break;
+        case MODE_SELECT:
+            processMouseSelectAnnotation(mouseEvent,
+                                         false);
+            break;
+        case MODE_SET_COORDINATE_ONE:
+            break;
+        case MODE_SET_COORDINATE_TWO:
+            break;
+    }
+}
+
+/**
+ * Process a mouse move with no buttons down
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseMove(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    const int mouseX = mouseEvent.getX();
+    const int mouseY = mouseEvent.getY();
+    
+    Annotation* annotation = openGLWidget->performIdentificationAnnotations(mouseX,
+                                                                            mouseY);
+    
+    const bool updateCursorFlag = (m_annotationUnderMouse != annotation);
+    
+    m_annotationUnderMouse = annotation;
+    
+//    if (annotation != NULL) {
+//        static int64_t ctr = 0;
+//        std::cout << "Over an annotation type " << AnnotationTypeEnum::toGuiName(annotation->getType()) << " " << ctr++ << std::endl;
+//    }
+    
+    if (updateCursorFlag) {
+        openGLWidget->updateCursor();
     }
 }
 
@@ -646,7 +725,7 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
  *     Status of shift key.
  */
 void
-UserInputModeAnnotations::processModeSelectMouseLeftClick(const MouseEvent& mouseEvent,
+UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEvent,
                                                 const bool shiftKeyDownFlag)
 {
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
@@ -664,27 +743,35 @@ UserInputModeAnnotations::processModeSelectMouseLeftClick(const MouseEvent& mous
      *        'multi-annotation-selection-mode' and any number of annotation will
      *        be selected when this method completes.
      */
-    SelectionManager* idManager = openGLWidget->performIdentification(mouseX, mouseY, true);
-    SelectionItemAnnotation* annotationID = idManager->getAnnotationIdentification();
-    if (annotationID->isValid()) {
-        Annotation* selectedAnnotation = annotationID->getAnnotation();
+    Annotation* selectedAnnotation = openGLWidget->performIdentificationAnnotations(mouseX,
+                                                                                    mouseY);
+    if (selectedAnnotation != NULL) {
         CaretAssert(selectedAnnotation);
         
-        /*
-         * If the annotation selected by the user was already selected
-         * then the user is deselecting it.
-         */
-        if (selectedAnnotation->isSelected()) {
-            selectedAnnotation->setSelected(false);
-            selectedAnnotation = NULL;
-        }
+//        /*
+//         * If the annotation selected by the user was already selected
+//         * then the user is deselecting it.
+//         */
+//        if (selectedAnnotation->isSelected()) {
+//            selectedAnnotation->setSelected(false);
+//            selectedAnnotation = NULL;
+//        }
         
         /*
          * If the SHIFT key is down, the user is selecting multiple
          * annotations
          */
         if (shiftKeyDownFlag) {
-            /* 
+            /*
+             * If the annotation selected by the user was already selected
+             * then the user is deselecting it.
+             */
+
+            if (selectedAnnotation->isSelected()) {
+                selectedAnnotation->setSelected(false);
+                selectedAnnotation = NULL;
+            }
+            /*
              * Do not alter the selection status of any other
              * annotations.
              */
@@ -695,6 +782,10 @@ UserInputModeAnnotations::processModeSelectMouseLeftClick(const MouseEvent& mous
              * all annotations.
              */
             deselectAllAnnotations();
+            if (selectedAnnotation != NULL) {
+                selectedAnnotation->setSelected(true);
+                m_annotationUnderMouse = selectedAnnotation;
+            }
         }
         
         /*

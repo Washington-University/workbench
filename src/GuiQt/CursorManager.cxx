@@ -49,6 +49,7 @@ CursorManager::CursorManager()
     this->defaultCursor = QCursor();
     this->arrowCursor = QCursor(Qt::ArrowCursor);
     this->crossCursor = QCursor(Qt::CrossCursor);
+    this->fourArrowCursor = QCursor(Qt::SizeAllCursor);
     this->penCursor     = this->loadCursor(":Cursor/pen_eraser.png", 
                                            6, 
                                            32 - 7, 
@@ -89,6 +90,10 @@ CursorManager::setCursorForWidget(QWidget* widget,
             break;
         case CursorEnum::CURSOR_DRAWING_PEN:
             widget->setCursor(this->penCursor);
+            break;
+        case CursorEnum::CURSOR_FOUR_ARROWS:
+            //std::cout << "   Four arrow cursor" << std::endl;
+            widget->setCursor(this->fourArrowCursor);
             break;
         case CursorEnum::CURSOR_POINTING_HAND:
             widget->setCursor(this->pointingHandCursor);

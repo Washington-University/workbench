@@ -80,8 +80,11 @@ namespace caret {
         
         virtual void mouseLeftDragWithShift(const MouseEvent& mouseEvent);
         
-        virtual CursorEnum::Enum getCursor() const;
+        virtual void mouseLeftPress(const MouseEvent& mouseEvent);
         
+        virtual void mouseMove(const MouseEvent& mouseEvent);
+
+        virtual CursorEnum::Enum getCursor() const;
 
         virtual AString toString() const;
         
@@ -127,8 +130,8 @@ namespace caret {
         
         void processModeNewMouseLeftClick(const MouseEvent& mouseEvent);
         
-        void processModeSelectMouseLeftClick(const MouseEvent& mouseEvent,
-                                             const bool shiftKeyDownFlag);
+        void processMouseSelectAnnotation(const MouseEvent& mouseEvent,
+                                          const bool shiftKeyDownFlag);
         
         void processModeSetCoordinate(const MouseEvent& mouseEvent);
         
@@ -143,6 +146,8 @@ namespace caret {
         AnnotationTypeEnum::Enum m_modeNewAnnotationType;
 
         Annotation* m_annotationBeingEdited;
+        
+        Annotation* m_annotationUnderMouse;
         
         // ADD_NEW_MEMBERS_HERE
 

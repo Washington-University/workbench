@@ -35,6 +35,7 @@ class QMouseEvent;
 
 namespace caret {
 
+    class Annotation;
     class Border;
     class BrainOpenGL;
     class BrainOpenGLTextRenderInterface;
@@ -70,6 +71,9 @@ namespace caret {
                                                      const int y,
                                                      const bool applySelectionBackgroundFiltering);
         
+        Annotation* performIdentificationAnnotations(const int x,
+                                                           const int y);
+        
         SelectionManager* performIdentificationVoxelEditing(VolumeFile* editingVolumeFile,
                                                             const int x,
                                                             const int y);
@@ -85,6 +89,8 @@ namespace caret {
         QString getOpenGLInformation();
 
         void getViewPortSize(int &w, int &h);
+        
+        void updateCursor();
         
     protected:
         virtual void initializeGL();

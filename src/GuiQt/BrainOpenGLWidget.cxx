@@ -63,6 +63,7 @@
 #include "MouseEvent.h"
 #include "QtOpenGLTextRenderer.h"
 #include "SelectionManager.h"
+#include "SelectionItemAnnotation.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxelEditing.h"
 #include "SessionManager.h"
@@ -133,6 +134,14 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->mousePressX = -10000;
     this->mousePressY = -10000;
     this->mouseNewDraggingStartedFlag = false;
+    
+    /*
+     * Mouse tracking must be on to receive mouse move events
+     * when the mouse is NOT down.  When this property is false
+     * mouse move events are only received when the at least
+     * one mouse button is down.
+     */
+    setMouseTracking(true);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
@@ -521,10 +530,9 @@ BrainOpenGLWidget::clearDrawingViewportContents()
 //}
 
 /**
- * Paints the graphics.
+ * Update the cursor from the active user input processor.
  */
-void
-BrainOpenGLWidget::paintGL()
+BrainOpenGLWidget::updateCursor()
 {
     /*
      * Set the cursor to that requested by the user input processor
@@ -533,6 +541,15 @@ BrainOpenGLWidget::paintGL()
     
     GuiManager::get()->getCursorManager()->setCursorForWidget(this,
                                                               cursor);
+}
+
+/**
+ * Paints the graphics.
+ */
+void 
+BrainOpenGLWidget::paintGL()
+{
+    updateCursor();
     
     this->clearDrawingViewportContents();
     
@@ -1037,6 +1054,27 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
             || (mouseY > (this->windowHeight[this->windowIndex] - 5))) {
             this->isMousePressedNearToolBox = true;
         }
+
+        BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+                                                                                   mouseY);
+        
+        MouseEvent mouseEvent(viewportContent,
+                              this,
+                              this->windowIndex,
+                              mouseX,
+                              mouseY,
+                              0,
+                              0,
+                              this->mousePressX,
+                              this->mousePressY,
+                              this->mouseNewDraggingStartedFlag);
+        
+        if (keyModifiers == Qt::NoModifier) {
+            this->selectedUserInputProcessor->mouseLeftPress(mouseEvent);
+        }
+        else if (keyModifiers == Qt::ShiftModifier) {
+           // not implemented  this->selectedUserInputProcessor->mouseLeftPressWithShift(mouseEvent);
+        }
     }
     else {
         this->mousePressX = -10000;
@@ -1189,7 +1227,53 @@ BrainOpenGLWidget::performIdentification(const int x,
 }
 
 /**
- * Perform identification on all items EXCEPT voxel editing.
+ * Perform identification of only annotations.  Identification of other
+ * data types is off.
+ *
+ * @param x
+ *    X-coordinate for identification.
+ * @param y
+ *    Y-coordinate for identification.
+ * @return
+ *    A pointer to the annotation at found at the given 
+ *    coordinate or NULL if no annotation at the coordinate.
+ */
+Annotation*
+BrainOpenGLWidget::performIdentificationAnnotations(const int x,
+                                                    const int y)
+{
+    BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+    
+    this->makeCurrent();
+    CaretLogFine("Performing selection");
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+    idManager->reset();
+    idManager->setAllSelectionsEnabled(false);
+    SelectionItemAnnotation* annotationID = idManager->getAnnotationIdentification();
+    annotationID->setEnabledForSelection(true);
+    
+    if (idViewport != NULL) {
+        /*
+         * ID coordinate needs to be relative to the viewport
+         *
+         int vp[4];
+         idViewport->getViewport(vp);
+         const int idX = x - vp[0];
+         const int idY = y - vp[1];
+         */
+        this->openGL->selectModel(GuiManager::get()->getBrain(),
+                                  idViewport,
+                                  x,
+                                  y,
+                                  true);
+    }
+    
+    return annotationID->getAnnotation();
+}
+
+/**
+ * Perform identification of only voxel editing.  Identification of other
+ * data types is off.
  *
  * @param editingVolumeFile
  *    Volume file that is being edited.
@@ -1234,6 +1318,16 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
     return idManager;
 }
 
+/**
+ * Project the given item to a model.
+ *
+ * @param x
+ *    X-coordinate for projection.
+ * @param y
+ *    Y-coordinate for projection.
+ * @param projectionOut
+ *    Projection updated for the given x and y coordinates.
+ */
 void
 BrainOpenGLWidget::performProjection(const int x,
                                      const int y,
@@ -1279,9 +1373,10 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                               true);
     
     if (button == Qt::NoButton) {
+        const int mouseX = me->x();
+        const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+        
         if (mouseButtons == Qt::LeftButton) {
-            const int mouseX = me->x();
-            const int mouseY = this->windowHeight[this->windowIndex] - me->y();
             
             this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
             this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
@@ -1337,6 +1432,24 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             
             this->lastMouseX = mouseX;
             this->lastMouseY = mouseY;
+        }
+        else if (mouseButtons == Qt::NoButton) {
+            if (keyModifiers == Qt::NoModifier) {
+                BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+                                                                                           mouseY);
+                
+                MouseEvent mouseEvent(viewportContent,
+                                      this,
+                                      this->windowIndex,
+                                      mouseX,
+                                      mouseY,
+                                      0,
+                                      0,
+                                      this->mousePressX,
+                                      this->mousePressY,
+                                      this->mouseNewDraggingStartedFlag);
+                this->selectedUserInputProcessor->mouseMove(mouseEvent);
+            }
         }
     }
     

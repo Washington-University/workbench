@@ -92,7 +92,11 @@ CursorEnum::initialize()
                                     "CURSOR_DRAWING_PEN", 
                                     "Drawing Pen Cursor"));
     
-    enumData.push_back(CursorEnum(CURSOR_POINTING_HAND, 
+    enumData.push_back(CursorEnum(CURSOR_FOUR_ARROWS,
+                                  "CURSOR_FOUR_ARROWS",
+                                  "Four Arrows Cursor"));
+    
+    enumData.push_back(CursorEnum(CURSOR_POINTING_HAND,
                                     "CURSOR_POINTING_HAND", 
                                     "Pointing Hand Cursor"));
     

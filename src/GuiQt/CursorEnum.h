@@ -43,6 +43,8 @@ public:
         CURSOR_CROSS,
         /** Drawing Pen */
         CURSOR_DRAWING_PEN,
+        /** Size All "four arrows", Qt::SizeAllCursor */
+        CURSOR_FOUR_ARROWS,
         /** Pointing hand, Qt::PointingHandCursor*/
         CURSOR_POINTING_HAND,
         /** Wait, Qt::WaitCursor*/

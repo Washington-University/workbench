@@ -53,6 +53,7 @@ namespace caret {
         QCursor arrowCursor;
         QCursor crossCursor;
         QCursor defaultCursor;
+        QCursor fourArrowCursor;
         QCursor penCursor;
         QCursor pointingHandCursor;
         QCursor waitCursor;
