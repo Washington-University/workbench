@@ -33,7 +33,7 @@ AString AlgorithmCiftiVectorOperation::getCommandSwitch()
 
 AString AlgorithmCiftiVectorOperation::getShortDescription()
 {
-    return "DO A VECTOR OPERATION ON VOLUME FILES";
+    return "DO A VECTOR OPERATION ON CIFTI FILES";
 }
 
 OperationParameters* AlgorithmCiftiVectorOperation::getParameters()
