@@ -46,9 +46,7 @@ EventAnnotation::EventAnnotation()
 : Event(EventTypeEnum::EVENT_ANNOTATION)
 {
     m_mode = MODE_INVALID;
-    m_annotation = NULL;
     m_annotationType = AnnotationTypeEnum::ARROW;
-    m_browserWindowIndex = -1;
 }
 
 /**
@@ -65,64 +63,6 @@ EventAnnotation::Mode
 EventAnnotation::getMode() const
 {
     return m_mode;
-}
-
-/**
- * Set the mode data for annotation editing in the annotation dialog.
- *
- * @param browserWindowIndex
- *     Index of the browser window.
- * @param annotation
- *     Annotation being edited.
- * @return
- *     Reference to "self".
- */
-EventAnnotation&
-EventAnnotation::setModeEditAnnotation(const int32_t browserWindowIndex,
-                                                 Annotation* annotation)
-{
-    m_mode               = MODE_EDIT_ANNOTATION;
-    m_browserWindowIndex = browserWindowIndex;
-    m_annotation         = annotation;
-    
-    return *this;
-}
-
-/**
- * Get the data for annotation editing in the annotation dialog.
- *
- * @param browserWindowIndexOut
- *     Index of the browser window.
- * @param annotationOut
- *     Annotation being edited.
- */
-void
-EventAnnotation::getModeEditAnnotation(int32_t& browserWindowIndexOut,
-                                         Annotation* & annotationOut) const
-{
-    CaretAssert(m_mode == MODE_EDIT_ANNOTATION);
-    if (m_mode != MODE_EDIT_ANNOTATION) {
-        browserWindowIndexOut = -1;
-        annotationOut         = NULL;
-        return;
-    }
-    
-    browserWindowIndexOut = m_browserWindowIndex;
-    annotationOut         = m_annotation;
-}
-
-/**
- * Set the mode for deselecting all annotations.
- *
- * @return
- *     Reference to "self".
- */
-EventAnnotation&
-EventAnnotation::setModeDeselectAllAnnotations()
-{
-    m_mode = MODE_DESELECT_ALL_ANNOTATIONS;
-    
-    return *this;
 }
 
 /**
@@ -155,74 +95,3 @@ EventAnnotation::setModeCreateNewAnnotationType(const AnnotationTypeEnum::Enum a
     
     return *this;
 }
-
-/**
- * @return Annotation for deletion in delete annotation mode.
- */
-const Annotation*
-EventAnnotation::getModeDeleteAnnotation() const
-{
-    return m_annotation;
-}
-
-/**
- * Set the mode for deleting the given annotation.
- *
- * @param annotation
- *     Annotation that is to be deleted.
- * @return
- *     Reference to "self".
- */
-EventAnnotation&
-EventAnnotation::setModeDeleteAnnotation(Annotation* annotation)
-{
-    CaretAssert(annotation);
-    
-    m_mode       = MODE_DELETE_ANNOTATION;
-    m_annotation = annotation;
-    
-    return *this;
-}
-
-/**
- * Set the mode for getting all annotations.
- *
- * @return
- *     Reference to "self".
- */
-EventAnnotation&
-EventAnnotation::setModeGetAllAnnotations()
-{
-    m_mode = MODE_GET_ALL_ANNOTATIONS;
-    m_allAnnotations.clear();
-    
-    return *this;
-}
-
-/**
- * @return All annotations retrieved from the get all annotations mode.
- */
-const std::vector<Annotation*>
-EventAnnotation::getModeGetAllAnnotations() const
-{
-    return m_allAnnotations;
-}
-
-/**
- * Add annotations when in get all annotations mode.
- *
- * @param annotations
- *     The annotation that are added.
- */
-void
-EventAnnotation::addAnnotationsForModeGetAllAnnotations(std::vector<Annotation*> annotations)
-{
-    m_allAnnotations.insert(m_allAnnotations.end(),
-                            annotations.begin(),
-                            annotations.end());
-}
-
-
-
-
-

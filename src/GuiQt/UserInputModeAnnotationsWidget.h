@@ -100,8 +100,6 @@ namespace caret {
         
         AnnotationInsertNewWidget* m_insertDeleteWidget;
         
-        Annotation* m_annotationBeingEdited;
-        
         // ADD_NEW_MEMBERS_HERE
 
     };

@@ -38,6 +38,7 @@
 
 namespace caret {
     class AnnotationFile;
+    class AnnotationManager;
     class Border;
     class BorderFile;
     class BorderPointFromSearch;
@@ -124,13 +125,9 @@ namespace caret {
         
         const BorderFile* getBorderFile(const int32_t indx) const;
 
-        int getNumberOfAnnotationFiles() const;
+        void getAllAnnotationFilesIncludingSceneAnnotationFile(std::vector<AnnotationFile*>& annotationFilesOut) const;
         
-        AnnotationFile* getAnnotationFile(const int32_t indx);
-        
-        const AnnotationFile* getAnnotationFile(const int32_t indx) const;
-        
-        void getAllAnnotationFiles(std::vector<AnnotationFile*>& allAnnotationFilesOut) const;
+        void getAllAnnotationFilesExcludingSceneAnnotationFile(std::vector<AnnotationFile*>& annotationFilesOut) const;
         
         AnnotationFile* getSceneAnnotationFile();
         
@@ -187,6 +184,10 @@ namespace caret {
         void resetBrainKeepSceneFiles();
         
         void receiveEvent(Event* event);
+        
+        AnnotationManager* getAnnotationManager();
+        
+        const AnnotationManager* getAnnotationManager() const;
         
         ModelChart* getChartModel();
         
@@ -747,6 +748,8 @@ namespace caret {
         ModelSurfaceMontage* m_surfaceMontageModel;
         
         ChartingDataManager* m_chartingDataManager;
+        
+        AnnotationManager* m_annotationManager;
         
         /** contains all display properties */
         std::vector<DisplayProperties*> m_displayProperties;

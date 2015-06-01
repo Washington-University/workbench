@@ -47,6 +47,7 @@ ENDIF (OPENGL_FOUND)
 # Create the brain library
 #
 ADD_LIBRARY(Brain
+AnnotationManager.h
 BorderDrawingTypeEnum.h
 Brain.h
 BrainOpenGL.h
@@ -174,6 +175,7 @@ VolumeSurfaceOutlineSetModel.h
 WholeBrainSurfaceSettings.h
 WholeBrainVoxelDrawingMode.h
 
+AnnotationManager.cxx
 BorderDrawingTypeEnum.cxx
 Brain.cxx
 BrainOpenGL.cxx

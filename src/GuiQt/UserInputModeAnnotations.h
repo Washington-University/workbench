@@ -135,8 +135,6 @@ namespace caret {
         
         void processModeSetCoordinate(const MouseEvent& mouseEvent);
         
-        void deselectAllAnnotations();
-        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;

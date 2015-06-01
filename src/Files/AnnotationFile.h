@@ -99,6 +99,9 @@ namespace caret {
 
         void clearPrivate();
         
+        void setAllAnnotationSelectedExcept(const bool selectedStatus,
+                                            const Annotation* annotation);
+        
         SceneClassAssistant* m_sceneAssistant;
 
         CaretPointer<GiftiMetaData> m_metadata;

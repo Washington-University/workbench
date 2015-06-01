@@ -34,7 +34,6 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "DataFileException.h"
-#include "EventAnnotation.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
@@ -224,8 +223,6 @@ AnnotationFile::AnnotationFile()
             addAnnotation(at);
         }
     }
-    
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION);
 }
 
 /**
@@ -277,13 +274,38 @@ AnnotationFile::clearPrivate()
 void
 AnnotationFile::setAllAnnotationsSelected(const bool selectedStatus)
 {
+    setAllAnnotationSelectedExcept(selectedStatus,
+                                   NULL);
+//    for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
+//         iter != m_annotations.end();
+//         iter++) {
+//        Annotation* a = *iter;
+//        a->setSelected(selectedStatus);
+//    }
+}
+
+/**
+ * Set the selection status of all annotations except the given annotation.
+ *
+ * @param selectedStatus
+ *     New selection status for all annotations.
+ * @param annotation
+ *     Do not deselect this annotation (may be NULL).
+ */
+void
+AnnotationFile::setAllAnnotationSelectedExcept(const bool selectedStatus,
+                                               const Annotation* annotation)
+{
     for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
          iter != m_annotations.end();
          iter++) {
         Annotation* a = *iter;
-        a->setSelected(selectedStatus);
+        if (a != annotation) {
+            a->setSelected(selectedStatus);
+        }
     }
 }
+
 
 /**
  * Copy constructor.
@@ -334,33 +356,8 @@ AnnotationFile::copyHelperAnnotationFile(const AnnotationFile& /* obj */)
  *    An event for which this instance is listening.
  */
 void
-AnnotationFile::receiveEvent(Event* event)
+AnnotationFile::receiveEvent(Event* /*event*/)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION) {
-        EventAnnotation* annotationEvent = dynamic_cast<EventAnnotation*>(event);
-        CaretAssert(annotationEvent);
-        
-        switch (annotationEvent->getMode()) {
-            case EventAnnotation::MODE_INVALID:
-                break;
-            case EventAnnotation::MODE_DELETE_ANNOTATION:
-                removeAnnotation(annotationEvent->getModeDeleteAnnotation());
-                annotationEvent->setEventProcessed();
-                break;
-            case EventAnnotation::MODE_EDIT_ANNOTATION:
-                break;
-            case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
-                break;
-            case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
-                setAllAnnotationsSelected(false);
-                annotationEvent->setEventProcessed();
-                break;
-            case EventAnnotation::MODE_GET_ALL_ANNOTATIONS:
-                annotationEvent->setEventProcessed();
-                annotationEvent->addAnnotationsForModeGetAllAnnotations(m_annotations);
-                break;
-        }
-    }
 }
 
 /**

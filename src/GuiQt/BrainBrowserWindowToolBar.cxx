@@ -45,6 +45,7 @@
 #include <QTimer>
 #include <QToolButton>
 
+#include "AnnotationManager.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
@@ -65,7 +66,6 @@
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "DisplayPropertiesBorders.h"
-#include "EventAnnotation.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
@@ -2443,7 +2443,11 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
     }
     
     if (userInputProcessor->getUserInputMode() != UserInputModeAbstract::ANNOTATIONS) {
-        EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
+        /*
+         * Delete all selected annotations and update graphics and UI.
+         */
+        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+        annotationManager->deselectAllAnnotations();
     }
 }
 

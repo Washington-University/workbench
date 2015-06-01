@@ -41,42 +41,16 @@ namespace caret {
             /** Invalid */
             MODE_INVALID,
             /** Begin creation of a new annotation with a specific type MOUSE MODE MUST BE Annotations */
-            MODE_CREATE_NEW_ANNOTATION_TYPE,
-            /** Delete an annotation */
-            MODE_DELETE_ANNOTATION,
-            /** Deselect all annotations */
-            MODE_DESELECT_ALL_ANNOTATIONS,
-            /** Edit an annotation */
-            MODE_EDIT_ANNOTATION,
-            /** Get all annotations */
-            MODE_GET_ALL_ANNOTATIONS
+            MODE_CREATE_NEW_ANNOTATION_TYPE
         };
    
         EventAnnotation();
         
         virtual ~EventAnnotation();
         
-        EventAnnotation& setModeEditAnnotation(const int32_t browserWindowIndex,
-                                   Annotation* annotation);
-        
-        void getModeEditAnnotation(int32_t& browserWindowIndexOut,
-                                   Annotation* & annotationOut) const;
-        
-        EventAnnotation& setModeDeselectAllAnnotations();
-        
         AnnotationTypeEnum::Enum getModeCreateNewAnnotationType() const;
         
         EventAnnotation& setModeCreateNewAnnotationType(const AnnotationTypeEnum::Enum annotationType);
-        
-        const Annotation* getModeDeleteAnnotation() const;
-        
-        EventAnnotation& setModeDeleteAnnotation(Annotation* annotation);
-        
-        void addAnnotationsForModeGetAllAnnotations(std::vector<Annotation*> annotations);
-        
-        EventAnnotation& setModeGetAllAnnotations();
-        
-        const std::vector<Annotation*> getModeGetAllAnnotations() const;
         
         Mode getMode() const;
 
@@ -89,13 +63,9 @@ namespace caret {
         
         Mode m_mode;
         
-        int32_t m_browserWindowIndex;
-        
-        Annotation* m_annotation;
+        //Annotation* m_annotation;
         
         AnnotationTypeEnum::Enum m_annotationType;
-        
-        std::vector<Annotation*> m_allAnnotations;
         
         // ADD_NEW_MEMBERS_HERE
 

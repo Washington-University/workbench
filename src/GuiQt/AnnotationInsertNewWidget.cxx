@@ -32,11 +32,14 @@
 #include <QVBoxLayout>
 
 #include "Annotation.h"
+#include "AnnotationManager.h"
 #include "CaretAssert.h"
+#include "Brain.h"
 #include "EventAnnotation.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -281,17 +284,31 @@ AnnotationInsertNewWidget::createDeleteToolButton()
 void
 AnnotationInsertNewWidget::deleteActionTriggered()
 {
-    if (m_annotation != NULL) {
-        if (WuQMessageBox::warningOkCancel(m_deleteToolButton, "Delete selected annotation?")) {
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
+    if ( ! selectedAnnotations.empty()) {
+        if (WuQMessageBox::warningOkCancel(this,
+                                           "Delete selected annotation(s)?")) {
             /*
-             * Delete the annotation, deselect the annotation, and update graphics.
+             * Delete all selected annotations and update graphics and UI.
              */
-            EventManager::get()->sendEvent(EventAnnotation().setModeDeleteAnnotation(m_annotation).getPointer());
-            EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
+            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+            annotationManager->deleteSelectedAnnotations();
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
     }
+//    if (m_annotation != NULL) {
+//        if (WuQMessageBox::warningOkCancel(m_deleteToolButton, "Delete selected annotation(s)?")) {
+//            /*
+//             * Delete all selected annotations and update graphics and UI.
+//             */
+//            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+//            annotationManager->deleteSelectedAnnotations();
+//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+//        }
+//    }
 }
 
 

@@ -27,6 +27,7 @@
 #include "AnnotationCreateDialog.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
+#include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
@@ -100,35 +101,19 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         EventAnnotation* annotationEvent = dynamic_cast<EventAnnotation*>(event);
         CaretAssert(annotationEvent);
         
+        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+        
         switch (annotationEvent->getMode()) {
             case EventAnnotation::MODE_INVALID:
                 break;
             case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
             {
+                annotationManager->deselectAllAnnotations();
+                
                 m_modeNewAnnotationType = annotationEvent->getModeCreateNewAnnotationType();
                 setMode(MODE_NEW);
-                EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
                 EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             }
-                break;
-            case EventAnnotation::MODE_DELETE_ANNOTATION:
-                break;
-            case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
-                m_annotationBeingEdited = NULL;
-                m_annotationUnderMouse  = NULL;
-                break;
-            case EventAnnotation::MODE_EDIT_ANNOTATION:
-            {
-                int32_t windowIndex = -1;
-                Annotation* annotation = NULL;
-                annotationEvent->getModeEditAnnotation(windowIndex,
-                                                       annotation);
-                if (windowIndex == m_browserWindowIndex) {
-                    m_annotationBeingEdited = annotation;
-                }
-            }
-                break;
-            case EventAnnotation::MODE_GET_ALL_ANNOTATIONS:
                 break;
         }
     }
@@ -142,7 +127,6 @@ UserInputModeAnnotations::receiveEvent(Event* event)
 void
 UserInputModeAnnotations::initialize()
 {
-    //this->borderToolsWidget->updateWidget();
     m_mode = MODE_SELECT;
     m_annotationBeingEdited = NULL;
     m_annotationUnderMouse  = NULL;
@@ -249,18 +233,22 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                 case MODE_NEW:
                     break;
                 case MODE_SELECT:
-                    if (m_annotationBeingEdited != NULL) {
+                {
+                    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+                    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
+                    if ( ! selectedAnnotations.empty()) {
                         if (WuQMessageBox::warningOkCancel(m_annotationToolsWidget,
-                                                           "Delete selected annotation?")) {
+                                                           "Delete selected annotation(s)?")) {
                             /*
-                             * Delete the annotation, deselect the annotation, and update graphics.
+                             * Delete all selected annotations and update graphics and UI.
                              */
-                            EventManager::get()->sendEvent(EventAnnotation().setModeDeleteAnnotation(m_annotationBeingEdited).getPointer());
-                            EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
+                            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+                            annotationManager->deleteSelectedAnnotations();
                             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
                         }
                     }
+                }
                     break;
                 case MODE_SET_COORDINATE_ONE:
                     break;
@@ -378,17 +366,63 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 {
     if (m_annotationBeingEdited != NULL) {
         if (m_annotationBeingEdited == m_annotationUnderMouse) {
-            if (m_annotationBeingEdited->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::WINDOW) {
+            const QSize windowSize = mouseEvent.getOpenGLWidget()->size();
+            const float dx = (mouseEvent.getDx() / static_cast<float>(windowSize.width()));
+            const float dy = (mouseEvent.getDy() / static_cast<float>(windowSize.height()));
+            bool updateGraphicsFlag = false;
+            
+            if ((m_annotationBeingEdited->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB)
+                || (m_annotationBeingEdited->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::WINDOW)) {
+                AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
                 AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
                 if (twoDimShape != NULL) {
-                    const QSize windowSize = mouseEvent.getOpenGLWidget()->size();
                     float xyz[3];
                     twoDimShape->getCoordinate()->getXYZ(xyz);
-                    xyz[0] = static_cast<float>(mouseEvent.getX()) / static_cast<float>(windowSize.width());
-                    xyz[1] = static_cast<float>(mouseEvent.getY()) / static_cast<float>(windowSize.height());
-                    twoDimShape->getCoordinate()->setXYZ(xyz);
-                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                    
+                    const float newX = xyz[0] + dx;
+                    const float newY = xyz[1] + dy;
+                    if ((newX >= 0.0)
+                        && (newX <= 1.0)
+                        && (newY >= 0.0)
+                        && (newY <= 1.0)) {
+                        xyz[0] = newX;
+                        xyz[1] = newY;
+                        twoDimShape->getCoordinate()->setXYZ(xyz);
+                        updateGraphicsFlag = true;
+                    }
                 }
+                else if (oneDimShape != NULL) {
+                    float xyz1[3];
+                    float xyz2[3];
+                    oneDimShape->getStartCoordinate()->getXYZ(xyz1);
+                    oneDimShape->getEndCoordinate()->getXYZ(xyz2);
+                    
+                    const float newX1 = xyz1[0] + dx;
+                    const float newY1 = xyz1[1] + dy;
+                    const float newX2 = xyz2[0] + dx;
+                    const float newY2 = xyz2[1] + dy;
+                    if ((newX1 >= 0.0)
+                        && (newX1 <= 1.0)
+                        && (newY1 >= 0.0)
+                        && (newY1 <= 1.0)
+                        && (newX2 >= 0.0)
+                        && (newX2 <= 1.0)
+                        && (newY2 >= 0.0)
+                        && (newY2 <= 1.0)) {
+                        xyz1[0] = newX1;
+                        xyz1[1] = newY1;
+                        oneDimShape->getStartCoordinate()->setXYZ(xyz1);
+                        xyz2[0] = newX2;
+                        xyz2[1] = newY2;
+                        oneDimShape->getEndCoordinate()->setXYZ(xyz2);
+                        updateGraphicsFlag = true;
+                    }
+                }
+            }
+            
+            if (updateGraphicsFlag) {
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                m_annotationToolsWidget->updateWidget();
             }
         }
     }
@@ -527,11 +561,6 @@ UserInputModeAnnotations::mouseMove(const MouseEvent& mouseEvent)
     
     m_annotationUnderMouse = annotation;
     
-//    if (annotation != NULL) {
-//        static int64_t ctr = 0;
-//        std::cout << "Over an annotation type " << AnnotationTypeEnum::toGuiName(annotation->getType()) << " " << ctr++ << std::endl;
-//    }
-    
     if (updateCursorFlag) {
         openGLWidget->updateCursor();
     }
@@ -601,12 +630,6 @@ UserInputModeAnnotations::getCoordinatesFromMouseLocation(const MouseEvent& mous
             coordInfoOut.m_tabXYZ[2] = 0.0;
             coordInfoOut.m_tabIndex  = tabContent->getTabNumber();
         }
-
-//        /*
-//         * Normalize tab coordinates (width and height range [0, 1]
-//         */
-//        coordInfoOut.m_tabXYZ[0] /= tabViewport[2];
-//        coordInfoOut.m_tabXYZ[1] /= tabViewport[3];
     }
     
     int windowViewport[4];
@@ -673,9 +696,6 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
         int32_t nodeIndex = -1;
         float surfaceOffset = 0.0;
         coordinate->getSurfaceSpace(structure, numNodes, nodeIndex, surfaceOffset);
-//        coordInfo.m_surfaceStructure = structure;
-//        coordInfo.m_surfaceNodeIndex  = nodeIndex;
-//        coordInfo.m_surfaceNumberOfNodes = numNodes;
         coordInfo.m_surfaceNodeOffset = surfaceOffset;
     }
     
@@ -732,7 +752,7 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     const int mouseX = mouseEvent.getX();
     const int mouseY = mouseEvent.getY();
     
-    Annotation* annotationToEdit = NULL;
+    m_annotationBeingEdited = NULL;
     
     /*
      * NOTE: When selecting annotations:
@@ -745,90 +765,22 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
      */
     Annotation* selectedAnnotation = openGLWidget->performIdentificationAnnotations(mouseX,
                                                                                     mouseY);
-    if (selectedAnnotation != NULL) {
-        CaretAssert(selectedAnnotation);
-        
-//        /*
-//         * If the annotation selected by the user was already selected
-//         * then the user is deselecting it.
-//         */
-//        if (selectedAnnotation->isSelected()) {
-//            selectedAnnotation->setSelected(false);
-//            selectedAnnotation = NULL;
-//        }
-        
-        /*
-         * If the SHIFT key is down, the user is selecting multiple
-         * annotations
-         */
-        if (shiftKeyDownFlag) {
-            /*
-             * If the annotation selected by the user was already selected
-             * then the user is deselecting it.
-             */
-
-            if (selectedAnnotation->isSelected()) {
-                selectedAnnotation->setSelected(false);
-                selectedAnnotation = NULL;
-            }
-            /*
-             * Do not alter the selection status of any other
-             * annotations.
-             */
-        }
-        else {
-            /*
-             * User is in single selection mode so deselect
-             * all annotations.
-             */
-            deselectAllAnnotations();
-            if (selectedAnnotation != NULL) {
-                selectedAnnotation->setSelected(true);
-                m_annotationUnderMouse = selectedAnnotation;
-            }
-        }
-        
-        /*
-         * If the annotation selected by the user was 
-         * not previously selected, now select it.
-         */
-        if (selectedAnnotation != NULL) {
-            selectedAnnotation->setSelected(true);
-            
-            if ( ! shiftKeyDownFlag) {
-                annotationToEdit = selectedAnnotation;
-            }
-        }
-    }
-    else {
-        /*
-         * User did not click over an annotation.
-         *
-         * If SHIFT key IS NOT DOWN, the user is in single
-         * selection mode so deselect all annotations.
-         */
-        if ( !shiftKeyDownFlag) {
-            deselectAllAnnotations();
-        }
-    }
-
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    if (annotationToEdit != NULL) {
-        EventAnnotation event;
-        event.setModeEditAnnotation(m_browserWindowIndex,
-                                    annotationToEdit);
-        EventManager::get()->sendEvent(event.getPointer());
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager::SelectionMode selectionMode = AnnotationManager::SELECTION_MODE_SINGLE;
+    if (shiftKeyDownFlag) {
+        selectionMode = AnnotationManager::SELECTION_MODE_EXTENDED;
     }
+    annotationManager->selectAnnotation(selectionMode,
+                                        selectedAnnotation);
+    m_annotationUnderMouse = selectedAnnotation;
+    
+    const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations();
+    if (allSelectedAnnotations.size() == 1) {
+        m_annotationBeingEdited = allSelectedAnnotations[0];
+    }
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    m_annotationToolsWidget->updateWidget();
 }
-
-/**
- * Deselect all annotations.
- */
-void
-UserInputModeAnnotations::deselectAllAnnotations()
-{
-    EventManager::get()->sendEvent(EventAnnotation().setModeDeselectAllAnnotations().getPointer());
-}
-
 

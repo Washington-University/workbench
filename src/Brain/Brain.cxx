@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 
 #include "AnnotationFile.h"
+#include "AnnotationManager.h"
 #include "Border.h"
 #include "BorderFile.h"
 #include "BorderPointFromSearch.h"
@@ -118,6 +119,8 @@ using namespace caret;
  */
 Brain::Brain()
 {
+    m_annotationManager = new AnnotationManager(this);
+    
     m_chartingDataManager = new ChartingDataManager(this);
     m_fiberOrientationSamplesLoader = new FiberOrientationSamplesLoader();
     
@@ -248,6 +251,7 @@ Brain::~Brain()
 
     delete m_sceneAnnotationFile;
     delete m_specFile;
+    delete m_annotationManager;
     delete m_chartingDataManager;
     delete m_fiberOrientationSamplesLoader;
     delete m_paletteFile;
@@ -4255,48 +4259,28 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
 }
 
 /**
- * @return Number of annotation files.
- */
-int
-Brain::getNumberOfAnnotationFiles() const
-{
-    return m_annotationFiles.size();
-}
-
-/**
- * @return The annotation file.
- * @param indx Index of the annotation file.
- */
-AnnotationFile*
-Brain::getAnnotationFile(const int32_t indx)
-{
-    CaretAssertVectorIndex(m_annotationFiles,
-                           indx);
-    return m_annotationFiles[indx];
-}
-
-/**
- * @return The annotation file.
- * @param indx Index of the annotation file.
- */
-const AnnotationFile*
-Brain::getAnnotationFile(const int32_t indx) const
-{
-    CaretAssertVectorIndex(m_annotationFiles,
-                           indx);
-    return m_annotationFiles[indx];
-}
-
-/**
- * Get all annotation files.
+ * Get all annotation files INCLUDING the scene's annotation file.
  *
  * @param allAnnotationFilesOut
- *    Will contain all annotation files on exit.
+ *    Will contain files on exit.
  */
 void
-Brain::getAllAnnotationFiles(std::vector<AnnotationFile*>& allAnnotationFilesOut) const
+Brain::getAllAnnotationFilesIncludingSceneAnnotationFile(std::vector<AnnotationFile*>& annotationFilesOut) const
 {
-    allAnnotationFilesOut = m_annotationFiles;
+    annotationFilesOut = m_annotationFiles;
+    annotationFilesOut.push_back(m_sceneAnnotationFile);
+}
+
+/**
+ * Get all annotation files EXCLUDING the scene's annotation file
+ *
+ * @param allAnnotationFilesOut
+ *    Will contain files on exit.
+ */
+void
+Brain::getAllAnnotationFilesExcludingSceneAnnotationFile(std::vector<AnnotationFile*>& annotationFilesOut) const
+{
+    annotationFilesOut = m_annotationFiles;
 }
 
 /**
@@ -5824,6 +5808,23 @@ Brain::getChartModel() const
     return m_modelChart;
 }
 
+/**
+ * @return The annotation manager.
+ */
+AnnotationManager*
+Brain::getAnnotationManager()
+{
+    return m_annotationManager;
+}
+
+/**
+ * @return The annotation manager.
+ */
+const AnnotationManager*
+Brain::getAnnotationManager() const
+{
+    return m_annotationManager;
+}
 
 /**
  * @return The charting data manager.

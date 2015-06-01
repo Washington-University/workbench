@@ -31,8 +31,10 @@
 #include "AnnotationFile.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
+#include "AnnotationManager.h"
 #include "AnnotationOval.h"
 #include "AnnotationText.h"
+#include "Brain.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
@@ -41,8 +43,6 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
-#include "EventAnnotation.h"
-#include "EventManager.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -506,136 +506,134 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     std::vector<double> annotationSelectionWindowXYZ;
     std::vector<Annotation*> annotationsDrawnForSelection;
     
-    EventAnnotation annotationEvent;
-    annotationEvent.setModeGetAllAnnotations();
-    EventManager::get()->sendEvent(annotationEvent.getPointer());
-    const std::vector<Annotation*> allAnnotations = annotationEvent.getModeGetAllAnnotations();
+    AnnotationManager* annotationManager = m_brainOpenGLFixedPipeline->m_brain->getAnnotationManager();
+    const std::vector<Annotation*> allAnnotations = annotationManager->getAllAnnotations();
     
-        const int32_t annotationCount = static_cast<int32_t>(allAnnotations.size());
-        for (int32_t iAnn = 0; iAnn < annotationCount; iAnn++) {
-            CaretAssertVectorIndex(allAnnotations, iAnn);
-            Annotation* annotation = allAnnotations[iAnn];
-            CaretAssert(annotation);
-            
-            AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
-            AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
-            
-            /*
-             * Limit drawing of annotations to those in the
-             * selected coordinate space.
-             */
-            const AnnotationCoordinateSpaceEnum::Enum annotationCoordinateSpace = annotation->getCoordinateSpace();
-            if (annotationCoordinateSpace != drawingCoordinateSpace) {
+    const int32_t annotationCount = static_cast<int32_t>(allAnnotations.size());
+    for (int32_t iAnn = 0; iAnn < annotationCount; iAnn++) {
+        CaretAssertVectorIndex(allAnnotations, iAnn);
+        Annotation* annotation = allAnnotations[iAnn];
+        CaretAssert(annotation);
+        
+        AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
+        AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+        
+        /*
+         * Limit drawing of annotations to those in the
+         * selected coordinate space.
+         */
+        const AnnotationCoordinateSpaceEnum::Enum annotationCoordinateSpace = annotation->getCoordinateSpace();
+        if (annotationCoordinateSpace != drawingCoordinateSpace) {
+            continue;
+        }
+        
+        if (oneDimAnn != NULL) {
+        }
+        else if (twoDimAnn != NULL) {
+        }
+        else {
+            CaretAssertMessage(0, ("Annotation is not derived from One or Two Dim Annotation classes: "
+                                   + annotation->toString()));
+            continue;
+        }
+        
+        /*
+         * Skip annotation in a different window
+         */
+        if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+            const int32_t annotationWindowIndex = annotation->getWindowIndex();
+            if ((annotationWindowIndex < 0)
+                || (annotationWindowIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
+                CaretLogSevere("Annotation has invalid window index="
+                               + AString::number(annotationWindowIndex)
+                               + " "
+                               + annotation->toString());
+            }
+            if (m_brainOpenGLFixedPipeline->windowIndex != annotationWindowIndex) {
                 continue;
-            }
-            
-            if (oneDimAnn != NULL) {
-            }
-            else if (twoDimAnn != NULL) {
-            }
-            else {
-                CaretAssertMessage(0, ("Annotation is not derived from One or Two Dim Annotation classes: "
-                                       + annotation->toString()));
-                continue;
-            }
-            
-            /*
-             * Skip annotation in a different window
-             */
-            if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
-                const int32_t annotationWindowIndex = annotation->getWindowIndex();
-                if ((annotationWindowIndex < 0)
-                    || (annotationWindowIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
-                    CaretLogSevere("Annotation has invalid window index="
-                                   + AString::number(annotationWindowIndex)
-                                   + " "
-                                   + annotation->toString());
-                }
-                if (m_brainOpenGLFixedPipeline->windowIndex != annotationWindowIndex) {
-                    continue;
-                }
-            }
-            
-            /*
-             * Skip annotations in a different tab
-             */
-            if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
-                const int32_t annotationTabIndex = annotation->getTabIndex();
-                if ((annotationTabIndex < 0)
-                    || (annotationTabIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
-                    CaretLogSevere("Annotation has invalid tab index="
-                                   + AString::number(annotationTabIndex)
-                                   + " "
-                                   + annotation->toString());
-                }
-                if (m_brainOpenGLFixedPipeline->windowTabIndex != annotationTabIndex) {
-                    continue;
-                }
-            }
-            
-            uint8_t idColorRGBA[4] = { 0, 0, 0, 0 };
-            
-            if (isSelect) {
-                /*
-                 * Each annotations is drawn as a solid color and the color of the
-                 * selected pixel identifies the annotation.
-                 */
-                const int32_t annotationDrawnIndex = static_cast<int32_t>(annotationsDrawnForSelection.size());
-                m_brainOpenGLFixedPipeline->colorIdentification->addItem(idColorRGBA,
-                                                                         SelectionItemDataTypeEnum::ANNOTATION,
-                                                                         annotationDrawnIndex);
-                annotationsDrawnForSelection.push_back(annotation);
-            }
-            
-            float selectionCenterXYZ[3];
-            
-            switch (annotation->getType()) {
-                case AnnotationTypeEnum::ARROW:
-                    drawArrow(dynamic_cast<AnnotationArrow*>(annotation),
-                              surfaceDisplayed,
-                              idColorRGBA,
-                              isSelect,
-                              selectionCenterXYZ);
-                    break;
-                case AnnotationTypeEnum::BOX:
-                    drawBox(dynamic_cast<AnnotationBox*>(annotation),
-                              surfaceDisplayed,
-                              idColorRGBA,
-                              isSelect,
-                              selectionCenterXYZ);
-                    break;
-                case AnnotationTypeEnum::IMAGE:
-                    CaretAssertToDoFatal();
-                    break;
-                case AnnotationTypeEnum::LINE:
-                    drawLine(dynamic_cast<AnnotationLine*>(annotation),
-                             surfaceDisplayed,
-                             idColorRGBA,
-                             isSelect,
-                             selectionCenterXYZ);
-                    break;
-                case AnnotationTypeEnum::OVAL:
-                    drawOval(dynamic_cast<AnnotationOval*>(annotation),
-                             surfaceDisplayed,
-                             idColorRGBA,
-                             isSelect,
-                             selectionCenterXYZ);
-                    break;
-                case AnnotationTypeEnum::TEXT:
-                    drawText(dynamic_cast<AnnotationText*>(annotation),
-                             surfaceDisplayed,
-                             idColorRGBA,
-                             isSelect,
-                             selectionCenterXYZ);
-                    break;
-            }
-            
-            if (isSelect) {
-                annotationSelectionWindowXYZ.push_back(selectionCenterXYZ[0]);
-                annotationSelectionWindowXYZ.push_back(selectionCenterXYZ[1]);
-                annotationSelectionWindowXYZ.push_back(selectionCenterXYZ[2]);
             }
         }
+        
+        /*
+         * Skip annotations in a different tab
+         */
+        if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
+            const int32_t annotationTabIndex = annotation->getTabIndex();
+            if ((annotationTabIndex < 0)
+                || (annotationTabIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+                CaretLogSevere("Annotation has invalid tab index="
+                               + AString::number(annotationTabIndex)
+                               + " "
+                               + annotation->toString());
+            }
+            if (m_brainOpenGLFixedPipeline->windowTabIndex != annotationTabIndex) {
+                continue;
+            }
+        }
+        
+        uint8_t idColorRGBA[4] = { 0, 0, 0, 0 };
+        
+        if (isSelect) {
+            /*
+             * Each annotations is drawn as a solid color and the color of the
+             * selected pixel identifies the annotation.
+             */
+            const int32_t annotationDrawnIndex = static_cast<int32_t>(annotationsDrawnForSelection.size());
+            m_brainOpenGLFixedPipeline->colorIdentification->addItem(idColorRGBA,
+                                                                     SelectionItemDataTypeEnum::ANNOTATION,
+                                                                     annotationDrawnIndex);
+            annotationsDrawnForSelection.push_back(annotation);
+        }
+        
+        float selectionCenterXYZ[3];
+        
+        switch (annotation->getType()) {
+            case AnnotationTypeEnum::ARROW:
+                drawArrow(dynamic_cast<AnnotationArrow*>(annotation),
+                          surfaceDisplayed,
+                          idColorRGBA,
+                          isSelect,
+                          selectionCenterXYZ);
+                break;
+            case AnnotationTypeEnum::BOX:
+                drawBox(dynamic_cast<AnnotationBox*>(annotation),
+                        surfaceDisplayed,
+                        idColorRGBA,
+                        isSelect,
+                        selectionCenterXYZ);
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                CaretAssertToDoFatal();
+                break;
+            case AnnotationTypeEnum::LINE:
+                drawLine(dynamic_cast<AnnotationLine*>(annotation),
+                         surfaceDisplayed,
+                         idColorRGBA,
+                         isSelect,
+                         selectionCenterXYZ);
+                break;
+            case AnnotationTypeEnum::OVAL:
+                drawOval(dynamic_cast<AnnotationOval*>(annotation),
+                         surfaceDisplayed,
+                         idColorRGBA,
+                         isSelect,
+                         selectionCenterXYZ);
+                break;
+            case AnnotationTypeEnum::TEXT:
+                drawText(dynamic_cast<AnnotationText*>(annotation),
+                         surfaceDisplayed,
+                         idColorRGBA,
+                         isSelect,
+                         selectionCenterXYZ);
+                break;
+        }
+        
+        if (isSelect) {
+            annotationSelectionWindowXYZ.push_back(selectionCenterXYZ[0]);
+            annotationSelectionWindowXYZ.push_back(selectionCenterXYZ[1]);
+            annotationSelectionWindowXYZ.push_back(selectionCenterXYZ[2]);
+        }
+    }
     
     if (isSelect) {
         CaretAssert(annotationID);

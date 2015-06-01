@@ -37,6 +37,7 @@
 #include "AnnotationCoordinate.h"
 #include "AnnotationCoordinateSelectionWidget.h"
 #include "AnnotationLine.h"
+#include "AnnotationManager.h"
 #include "AnnotationOval.h"
 #include "AnnotationText.h"
 #include "AnnotationFile.h"
@@ -49,10 +50,10 @@
 #include "CaretDataFileSelectionModel.h"
 #include "CaretFileDialog.h"
 #include "CaretPointer.h"
-#include "EventAnnotation.h"
 #include "EventDataFileAdd.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MouseEvent.h"
 #include "SelectionItemSurfaceNode.h"
@@ -372,10 +373,11 @@ AnnotationCreateDialog::okButtonClicked()
     
     annotationFile->addAnnotation(annotationPointer);
 
-    annotationPointer->setSelected(true);
-    EventManager::get()->sendEvent(EventAnnotation().setModeEditAnnotation(m_coordInfo.m_windowIndex,
-                                                                           annotationPointer).getPointer());
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    annotationManager->selectAnnotation(AnnotationManager::SELECTION_MODE_SINGLE,
+                                        annotationPointer);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     
     WuQDialog::okButtonClicked();
 }

@@ -35,6 +35,7 @@
 #include "AnnotationFontWidget.h"
 #include "AnnotationFormatWidget.h"
 #include "AnnotationInsertNewWidget.h"
+#include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRotationWidget.h"
 #include "AnnotationText.h"
@@ -42,11 +43,13 @@
 #include "AnnotationTextEditorWidget.h"
 #include "AnnotationTextOrientationWidget.h"
 #include "AnnotationWidthHeightWidget.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EventAnnotation.h"
 #include "EventBrainReset.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
+#include "GuiManager.h"
 #include "UserInputModeAnnotations.h"
 #include "WuQtUtilities.h"
 
@@ -73,8 +76,6 @@ m_browserWindowIndex(browserWindowIndex),
 m_inputModeAnnotations(inputModeAnnotations)
 {
     CaretAssert(inputModeAnnotations);
-    
-    m_annotationBeingEdited = NULL;
     
     m_textEditorWidget           = new AnnotationTextEditorWidget(m_browserWindowIndex);
     
@@ -174,7 +175,6 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
         EventBrainReset* brainEvent = dynamic_cast<EventBrainReset*>(event);
         CaretAssert(brainEvent);
         
-        m_annotationBeingEdited = NULL;
         updateAnnotationWidgetsFlag = true;
         
         brainEvent->setEventProcessed();
@@ -182,36 +182,7 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION) {
         EventAnnotation* annotationEvent = dynamic_cast<EventAnnotation*>(event);
         CaretAssert(annotationEvent);
-        
-        switch (annotationEvent->getMode()) {
-            case EventAnnotation::MODE_INVALID:
-                break;
-            case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
-                break;
-            case EventAnnotation::MODE_DELETE_ANNOTATION:
-                updateAnnotationWidgetsFlag = true;
-                break;
-            case EventAnnotation::MODE_EDIT_ANNOTATION:
-            {
-                int32_t windowIndex = -1;
-                Annotation* annotation = NULL;
-                annotationEvent->getModeEditAnnotation(windowIndex,
-                                                       annotation);
-                if (windowIndex == m_browserWindowIndex) {
-                    m_annotationBeingEdited = annotation;
-                }
-                updateAnnotationWidgetsFlag = true;
-            }
-                break;
-            case EventAnnotation::MODE_DESELECT_ALL_ANNOTATIONS:
-                m_annotationBeingEdited = NULL;
-                updateAnnotationWidgetsFlag = true;
-                break;
-            case EventAnnotation::MODE_GET_ALL_ANNOTATIONS:
-                break;
-        }
-        
-        annotationEvent->setEventProcessed();
+        updateAnnotationWidgetsFlag = true;
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* updateEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
@@ -228,60 +199,8 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
         return;
     }
     
-    /*
-     * Is the annotation being edited still valid?
-     */
-    if (m_annotationBeingEdited != NULL) {
-        EventAnnotation annEvent;
-        annEvent.setModeGetAllAnnotations();
-        EventManager::get()->sendEvent(annEvent.getPointer());
-        const std::vector<Annotation*> allAnnotations = annEvent.getModeGetAllAnnotations();
-        if (std::find(allAnnotations.begin(),
-                      allAnnotations.end(),
-                      m_annotationBeingEdited) == allAnnotations.end()) {
-            m_annotationBeingEdited = NULL;
-        }
-    }
+    updateWidget();
     
-    AnnotationText* textAnnotation = NULL;
-    AnnotationTwoDimensionalShape* twoDimAnnotation = NULL;
-    AnnotationOneDimensionalShape* oneDimAnnotation = NULL;
-    
-    AnnotationCoordinate* coordinateOne = NULL;
-    AnnotationCoordinate* coordinateTwo = NULL;
-    if (m_annotationBeingEdited != NULL) {
-        textAnnotation   = dynamic_cast<AnnotationText*>(m_annotationBeingEdited);
-        
-        oneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
-        if (oneDimAnnotation != NULL) {
-            coordinateOne = oneDimAnnotation->getStartCoordinate();
-            coordinateTwo = oneDimAnnotation->getEndCoordinate();
-        }
-        
-        twoDimAnnotation = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
-        if (twoDimAnnotation != NULL) {
-            coordinateOne = twoDimAnnotation->getCoordinate();
-        }
-    }
-    
-    m_fontWidget->updateContent(textAnnotation);
-    m_textEditorWidget->updateContent(textAnnotation);
-    m_colorWidget->updateContent(m_annotationBeingEdited);
-    m_textAlignmentWidget->updateContent(textAnnotation);
-    m_textOrientationWidget->updateContent(textAnnotation);
-    m_widthHeightWidget->updateContent(twoDimAnnotation);
-    m_rotationWidget->updateContent(twoDimAnnotation);
-    m_insertDeleteWidget->updateContent(m_annotationBeingEdited);
-    
-    AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
-    if (m_annotationBeingEdited != NULL) {
-        coordinateSpace = m_annotationBeingEdited->getCoordinateSpace();
-    }
-    
-    m_coordinateOneWidget->updateContent(coordinateSpace,
-                                         coordinateOne);
-    m_coordinateTwoWidget->updateContent(coordinateSpace,
-                                         coordinateTwo);
 }
 
 /**
@@ -322,6 +241,56 @@ UserInputModeAnnotationsWidget::updateWidget()
         case UserInputModeAnnotations::MODE_SET_COORDINATE_TWO:
             break;
     }
+    
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    
+    
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
+    
+    Annotation* annotationBeingEdited = NULL;
+    if (selectedAnnotations.size() == 1) {
+        annotationBeingEdited = selectedAnnotations[0];
+    }
+    
+    AnnotationText* textAnnotation = NULL;
+    AnnotationTwoDimensionalShape* twoDimAnnotation = NULL;
+    AnnotationOneDimensionalShape* oneDimAnnotation = NULL;
+    
+    AnnotationCoordinate* coordinateOne = NULL;
+    AnnotationCoordinate* coordinateTwo = NULL;
+    if (annotationBeingEdited != NULL) {
+        textAnnotation   = dynamic_cast<AnnotationText*>(annotationBeingEdited);
+        
+        oneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(annotationBeingEdited);
+        if (oneDimAnnotation != NULL) {
+            coordinateOne = oneDimAnnotation->getStartCoordinate();
+            coordinateTwo = oneDimAnnotation->getEndCoordinate();
+        }
+        
+        twoDimAnnotation = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationBeingEdited);
+        if (twoDimAnnotation != NULL) {
+            coordinateOne = twoDimAnnotation->getCoordinate();
+        }
+    }
+    
+    m_fontWidget->updateContent(textAnnotation);
+    m_textEditorWidget->updateContent(textAnnotation);
+    m_colorWidget->updateContent(annotationBeingEdited);
+    m_textAlignmentWidget->updateContent(textAnnotation);
+    m_textOrientationWidget->updateContent(textAnnotation);
+    m_widthHeightWidget->updateContent(twoDimAnnotation);
+    m_rotationWidget->updateContent(twoDimAnnotation);
+    m_insertDeleteWidget->updateContent(annotationBeingEdited);
+    
+    AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
+    if (annotationBeingEdited != NULL) {
+        coordinateSpace = annotationBeingEdited->getCoordinateSpace();
+    }
+    
+    m_coordinateOneWidget->updateContent(coordinateSpace,
+                                         coordinateOne);
+    m_coordinateTwoWidget->updateContent(coordinateSpace,
+                                         coordinateTwo);
 }
 
 
