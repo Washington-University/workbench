@@ -75,15 +75,20 @@ namespace caret
                     temp.m_start == m_start &&
                     temp.m_step == m_step);
         }
-        bool approximateMatch(const CiftiMappingType& rhs) const
+        bool approximateMatch(const CiftiMappingType& rhs, QString* explanation = NULL) const
         {
             switch (rhs.getType())
             {
                 case SCALARS://maybe?
                 case SERIES:
                 case LABELS://maybe?
-                    return getLength() == rhs.getLength();
+                    if (getLength() != rhs.getLength())
+                    {
+                        if (explanation != NULL) *explanation = "mappings have different length";
+                        return false;
+                    } else return true;
                 default:
+                    if (explanation != NULL) *explanation = CiftiMappingType::mappingTypeToName(rhs.getType()) + " mapping never matches " + CiftiMappingType::mappingTypeToName(getType());
                     return false;
             }
         }

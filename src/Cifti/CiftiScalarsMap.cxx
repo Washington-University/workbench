@@ -100,15 +100,20 @@ void CiftiScalarsMap::setMapName(const int64_t& index, const QString& mapName) c
     m_maps[index].m_name = mapName;
 }
 
-bool CiftiScalarsMap::approximateMatch(const CiftiMappingType& rhs) const
+bool CiftiScalarsMap::approximateMatch(const CiftiMappingType& rhs, QString* explanation) const
 {
     switch (rhs.getType())
     {
         case SCALARS:
         case SERIES://maybe?
         case LABELS:
-            return getLength() == rhs.getLength();
+            if (getLength() != rhs.getLength())
+            {
+                if (explanation != NULL) *explanation = "mappings have different length";
+                return false;
+            } else return true;
         default:
+            if (explanation != NULL) *explanation = CiftiMappingType::mappingTypeToName(rhs.getType()) + " mapping never matches " + CiftiMappingType::mappingTypeToName(getType());
             return false;
     }
 }

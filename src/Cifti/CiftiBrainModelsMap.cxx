@@ -447,9 +447,31 @@ bool CiftiBrainModelsMap::operator==(const CiftiMappingType& rhs) const
     return (m_modelsInfo == myrhs.m_modelsInfo);//NOTE: these are sorted by index range, so this works
 }
 
-bool CiftiBrainModelsMap::approximateMatch(const CiftiMappingType& rhs) const
+bool CiftiBrainModelsMap::approximateMatch(const CiftiMappingType& rhs, QString* explanation) const
 {
-    return (*this) == rhs;//there is no user-specified metadata, and it cannot match other types, so use ==
+    if (rhs.getType() != getType())
+    {
+        if (explanation != NULL) *explanation = CiftiMappingType::mappingTypeToName(rhs.getType()) + " mapping never matches " + CiftiMappingType::mappingTypeToName(getType());
+        return false;
+    }
+    const CiftiBrainModelsMap& myrhs = dynamic_cast<const CiftiBrainModelsMap&>(rhs);//there is no user-specified metadata, but we want informative messages, so copy and modify the code from ==
+    CaretAssert(!m_ignoreVolSpace && !myrhs.m_ignoreVolSpace);//these should only be true while in the process of parsing cifti-1, never otherwise
+    if (m_haveVolumeSpace != myrhs.m_haveVolumeSpace)
+    {
+        if (explanation != NULL) *explanation = "one of the mappings has no volume data";
+        return false;
+    }
+    if (m_haveVolumeSpace && (m_volSpace != myrhs.m_volSpace))
+    {
+        if (explanation != NULL) *explanation = "mappings have a different volume space";
+        return false;
+    }
+    if (m_modelsInfo != myrhs.m_modelsInfo)
+    {
+        if (explanation != NULL) *explanation = "mappings include different brainordinates";
+        return false;
+    }
+    return true;
 }
 
 bool CiftiBrainModelsMap::BrainModelPriv::operator==(const BrainModelPriv& rhs) const

@@ -251,24 +251,52 @@ bool CiftiParcelsMap::hasVolumeData() const
     return false;
 }
 
-bool CiftiParcelsMap::approximateMatch(const CiftiMappingType& rhs) const
+bool CiftiParcelsMap::approximateMatch(const CiftiMappingType& rhs, QString* explanation) const
 {
-    if (rhs.getType() != getType()) return false;
+    if (rhs.getType() != getType())
+    {
+        if (explanation != NULL) *explanation = CiftiMappingType::mappingTypeToName(rhs.getType()) + " mapping never matches " + CiftiMappingType::mappingTypeToName(getType());
+        return false;
+    }
     const CiftiParcelsMap& myrhs = dynamic_cast<const CiftiParcelsMap&>(rhs);
     CaretAssert(!m_ignoreVolSpace && !myrhs.m_ignoreVolSpace);
-    if (m_haveVolumeSpace != myrhs.m_haveVolumeSpace) return false;
-    if (m_haveVolumeSpace && m_volSpace != myrhs.m_volSpace) return false;
-    if (m_surfInfo.size() != myrhs.m_surfInfo.size()) return false;//as below, return false if they won't write the mapping part to xml the same - 1 to 1 compare only requires 1 simple loop
+    if (m_haveVolumeSpace != myrhs.m_haveVolumeSpace)
+    {
+        if (explanation != NULL) *explanation = "one of the mappings has no volume data";
+        return false;
+    }
+    if (m_haveVolumeSpace && (m_volSpace != myrhs.m_volSpace))
+    {
+        if (explanation != NULL) *explanation = "mappings have a different volume space";
+        return false;
+    }
+    if (m_surfInfo.size() != myrhs.m_surfInfo.size())
+    {
+        if (explanation != NULL) *explanation = "mappings have a different number of surfaces used";
+        return false;//as below, return false if they won't write the mapping part to xml the same - 1 to 1 compare only requires 1 simple loop
+    }
     for (map<StructureEnum::Enum, SurfaceInfo>::const_iterator iter = m_surfInfo.begin(); iter != m_surfInfo.end(); ++iter)
     {
         map<StructureEnum::Enum, SurfaceInfo>::const_iterator rhsiter = myrhs.m_surfInfo.find(iter->first);
-        if (rhsiter == myrhs.m_surfInfo.end()) return false;//technically, they might still have the same meaning, if the surface isn't used, but they will still write differently, so false
-        if (iter->second.m_numNodes != rhsiter->second.m_numNodes) return false;
+        if (rhsiter == myrhs.m_surfInfo.end())
+        {//technically, they might still have the same meaning, if the surface isn't used, but they will still write differently, so false
+            if (explanation != NULL) *explanation = StructureEnum::toName(iter->first) + " surface expected but not found";
+            return false;
+        }
+        if (iter->second.m_numNodes != rhsiter->second.m_numNodes)
+        {
+            if (explanation != NULL) *explanation = "different number of vertices for surface " + StructureEnum::toName(iter->first);
+            return false;
+        }
     }
-    if (m_parcels.size() != myrhs.m_parcels.size()) return false;
+    if (m_parcels.size() != myrhs.m_parcels.size())
+    {
+        if (explanation != NULL) *explanation = "different number of parcels";
+        return false;
+    }
     for (int64_t i = 0; i < (int64_t)m_parcels.size(); ++i)
     {
-        if (!m_parcels[i].approximateMatch(myrhs.m_parcels[i])) return false;
+        if (!m_parcels[i].approximateMatch(myrhs.m_parcels[i], explanation)) return false;
     }
     return true;
 }
@@ -298,10 +326,36 @@ bool CiftiParcelsMap::Parcel::operator==(const CiftiParcelsMap::Parcel& rhs) con
 }
 
 //same, but don't test name
-bool CiftiParcelsMap::Parcel::approximateMatch(const CiftiParcelsMap::Parcel& rhs) const
+bool CiftiParcelsMap::Parcel::approximateMatch(const CiftiParcelsMap::Parcel& rhs, QString* explanation) const
 {
-    if (m_voxelIndices != rhs.m_voxelIndices) return false;
-    return (m_surfaceNodes == rhs.m_surfaceNodes);
+    bool nameMatches = (m_name == rhs.m_name);//for more informative explanations
+    if (m_voxelIndices != rhs.m_voxelIndices)
+    {
+        if (explanation != NULL)
+        {
+            if (nameMatches)
+            {
+                *explanation = "parcel '" + m_name + "' uses different voxels than parcel in other map";
+            } else {
+                *explanation = "parcel '" + m_name + "' uses different voxels than same-index parcel '" + rhs.m_name + "' in other map";
+            }
+        }
+        return false;
+    }
+    if (m_surfaceNodes != rhs.m_surfaceNodes)
+    {
+        if (explanation != NULL)
+        {
+            if (nameMatches)
+            {
+                *explanation = "parcel '" + m_name + "' uses different surface vertices than parcel in other map";
+            } else {
+                *explanation = "parcel '" + m_name + "' uses different surface vertices than same-index parcel '" + rhs.m_name + "' in other map";
+            }
+        }
+        return false;
+    }
+    return true;
 }
 
 void CiftiParcelsMap::readXML1(QXmlStreamReader& xml)

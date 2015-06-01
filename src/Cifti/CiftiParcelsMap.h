@@ -44,7 +44,7 @@ namespace caret
             QString m_name;
             bool operator==(const Parcel& rhs) const;
             bool operator!=(const Parcel& rhs) const { return !((*this) == rhs); }
-            bool approximateMatch(const Parcel& rhs) const;
+            bool approximateMatch(const Parcel& rhs, QString* explanation = NULL) const;
         };
         bool hasVolumeData() const;
         bool hasSurfaceData(const StructureEnum::Enum& structure) const;
@@ -68,7 +68,7 @@ namespace caret
         MappingType getType() const { return PARCELS; }
         int64_t getLength() const { return m_parcels.size(); }
         bool operator==(const CiftiMappingType& rhs) const;
-        bool approximateMatch(const CiftiMappingType& rhs) const;
+        bool approximateMatch(const CiftiMappingType& rhs, QString* explanation = NULL) const;
         void readXML1(QXmlStreamReader& xml);
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;

@@ -49,7 +49,7 @@ namespace caret
         MappingType getType() const { return SCALARS; }
         int64_t getLength() const { return m_maps.size(); }
         bool operator==(const CiftiMappingType& rhs) const;
-        bool approximateMatch(const CiftiMappingType& rhs) const;
+        bool approximateMatch(const CiftiMappingType& rhs, QString* explanation = NULL) const;
         void readXML1(QXmlStreamReader& xml);
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;

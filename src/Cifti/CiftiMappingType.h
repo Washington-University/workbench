@@ -47,12 +47,14 @@ namespace caret
         virtual QString getIndexName(const int64_t& index) const;
         virtual bool operator==(const CiftiMappingType& rhs) const = 0;//used to check for merging mappings when writing the XML - must compare EVERYTHING that goes into the XML
         bool operator!=(const CiftiMappingType& rhs) const { return !((*this) == rhs); }
-        virtual bool approximateMatch(const CiftiMappingType& rhs) const = 0;//check if things like doing index-wise math would make sense
+        virtual bool approximateMatch(const CiftiMappingType& rhs, QString* explanation = NULL) const = 0;//check if things like doing index-wise math would make sense
         virtual void readXML1(QXmlStreamReader& xml) = 0;//mainly to shorten the type-specific code in CiftiXML
         virtual void readXML2(QXmlStreamReader& xml) = 0;
         virtual void writeXML1(QXmlStreamWriter& xml) const = 0;
         virtual void writeXML2(QXmlStreamWriter& xml) const = 0;
         virtual ~CiftiMappingType();
+        
+        static QString mappingTypeToName(const MappingType& type);
     };
 }
 
