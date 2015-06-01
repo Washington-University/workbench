@@ -274,38 +274,13 @@ AnnotationFile::clearPrivate()
 void
 AnnotationFile::setAllAnnotationsSelected(const bool selectedStatus)
 {
-    setAllAnnotationSelectedExcept(selectedStatus,
-                                   NULL);
-//    for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
-//         iter != m_annotations.end();
-//         iter++) {
-//        Annotation* a = *iter;
-//        a->setSelected(selectedStatus);
-//    }
-}
-
-/**
- * Set the selection status of all annotations except the given annotation.
- *
- * @param selectedStatus
- *     New selection status for all annotations.
- * @param annotation
- *     Do not deselect this annotation (may be NULL).
- */
-void
-AnnotationFile::setAllAnnotationSelectedExcept(const bool selectedStatus,
-                                               const Annotation* annotation)
-{
     for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
          iter != m_annotations.end();
          iter++) {
         Annotation* a = *iter;
-        if (a != annotation) {
-            a->setSelected(selectedStatus);
-        }
+        a->setSelected(selectedStatus);
     }
 }
-
 
 /**
  * Copy constructor.

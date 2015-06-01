@@ -620,6 +620,9 @@ Annotation::isSelected() const
 /**
  * Set the annotation's selected status.
  *
+ * This method is private - AnnotationManager handles selection and allowing
+ * public access to this method could cause improper selection status.
+ *
  * Note: (1) The selection status is never saved to a scene
  * or file.  (2) Changing the selection status DOES NOT
  * alter the annotation's modified status.

@@ -96,8 +96,6 @@ namespace caret {
         
         bool isSelected() const;
         
-        void setSelected(const bool selectedStatus) const;
-        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -125,6 +123,10 @@ namespace caret {
 
         void initializeAnnotationMembers();
         
+        // private - AnnotationManager handles selection and allowing
+        // public access to this method could cause improper selection status
+        void setSelected(const bool selectedStatus) const;
+        
         SceneClassAssistant* m_sceneAssistant;
         
         const AnnotationTypeEnum::Enum m_type;
@@ -149,6 +151,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class AnnotationFile;
+        friend class AnnotationManager;
     };
     
 #ifdef __ANNOTATION_DECLARE__
