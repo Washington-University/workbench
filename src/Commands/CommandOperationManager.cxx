@@ -46,6 +46,7 @@
 #include "AlgorithmCiftiMergeDense.h"
 #include "AlgorithmCiftiPairwiseCorrelation.h"
 #include "AlgorithmCiftiParcellate.h"
+#include "AlgorithmCiftiParcelMapToLabel.h"
 #include "AlgorithmCiftiReduce.h"
 #include "AlgorithmCiftiReorder.h"
 #include "AlgorithmCiftiReplaceStructure.h"
@@ -280,6 +281,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeDense()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiPairwiseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiParcellate()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiParcelMapToLabel()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReduce()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReplaceStructure()));

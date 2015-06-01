@@ -40,6 +40,7 @@ AlgorithmCiftiLabelToROI.h
 AlgorithmCiftiMergeDense.h
 AlgorithmCiftiPairwiseCorrelation.h
 AlgorithmCiftiParcellate.h
+AlgorithmCiftiParcelMapToLabel.h
 AlgorithmCiftiReduce.h
 AlgorithmCiftiReorder.h
 AlgorithmCiftiReplaceStructure.h
@@ -142,6 +143,7 @@ AlgorithmCiftiLabelToROI.cxx
 AlgorithmCiftiMergeDense.cxx
 AlgorithmCiftiPairwiseCorrelation.cxx
 AlgorithmCiftiParcellate.cxx
+AlgorithmCiftiParcelMapToLabel.cxx
 AlgorithmCiftiReduce.cxx
 AlgorithmCiftiReorder.cxx
 AlgorithmCiftiReplaceStructure.cxx
