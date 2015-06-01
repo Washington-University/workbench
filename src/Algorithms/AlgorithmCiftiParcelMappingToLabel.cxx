@@ -18,7 +18,7 @@
  */
 /*LICENSE_END*/
 
-#include "AlgorithmCiftiParcelMapToLabel.h"
+#include "AlgorithmCiftiParcelMappingToLabel.h"
 #include "AlgorithmException.h"
 
 #include "CiftiFile.h"
@@ -28,17 +28,17 @@
 using namespace caret;
 using namespace std;
 
-AString AlgorithmCiftiParcelMapToLabel::getCommandSwitch()
+AString AlgorithmCiftiParcelMappingToLabel::getCommandSwitch()
 {
-    return "-cifti-parcel-map-to-label";
+    return "-cifti-parcel-mapping-to-label";
 }
 
-AString AlgorithmCiftiParcelMapToLabel::getShortDescription()
+AString AlgorithmCiftiParcelMappingToLabel::getShortDescription()
 {
     return "CREATE DLABEL FROM PARCELLATED FILE";
 }
 
-OperationParameters* AlgorithmCiftiParcelMapToLabel::getParameters()
+OperationParameters* AlgorithmCiftiParcelMappingToLabel::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
@@ -57,7 +57,7 @@ OperationParameters* AlgorithmCiftiParcelMapToLabel::getParameters()
     return ret;
 }
 
-void AlgorithmCiftiParcelMapToLabel::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmCiftiParcelMappingToLabel::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     CiftiFile* ciftiIn = myParams->getCifti(1);
     AString dirString = myParams->getString(2);
@@ -90,10 +90,10 @@ void AlgorithmCiftiParcelMapToLabel::useParameters(OperationParameters* myParams
     {
         throw AlgorithmException("template cifti file does not have a dense mapping along column, try using a dscalar, dtseries, dlabel, or dconn");
     }
-    AlgorithmCiftiParcelMapToLabel(myProgObj, parcelXML.getParcelsMap(direction), denseXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN), ciftiOut);
+    AlgorithmCiftiParcelMappingToLabel(myProgObj, parcelXML.getParcelsMap(direction), denseXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN), ciftiOut);
 }
 
-AlgorithmCiftiParcelMapToLabel::AlgorithmCiftiParcelMapToLabel(ProgressObject* myProgObj, const CiftiParcelsMap& parcelMap, const CiftiBrainModelsMap& denseMap, CiftiFile* ciftiOut) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiParcelMappingToLabel::AlgorithmCiftiParcelMappingToLabel(ProgressObject* myProgObj, const CiftiParcelsMap& parcelMap, const CiftiBrainModelsMap& denseMap, CiftiFile* ciftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CiftiXML outXML;
@@ -136,12 +136,12 @@ AlgorithmCiftiParcelMapToLabel::AlgorithmCiftiParcelMapToLabel(ProgressObject* m
     ciftiOut->setColumn(scratchCol.data(), 0);
 }
 
-float AlgorithmCiftiParcelMapToLabel::getAlgorithmInternalWeight()
+float AlgorithmCiftiParcelMappingToLabel::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
 }
 
-float AlgorithmCiftiParcelMapToLabel::getSubAlgorithmWeight()
+float AlgorithmCiftiParcelMappingToLabel::getSubAlgorithmWeight()
 {
     //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;

@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_CIFTI_PARCEL_MAP_TO_LABEL_H__
-#define __ALGORITHM_CIFTI_PARCEL_MAP_TO_LABEL_H__
+#ifndef __ALGORITHM_CIFTI_PARCEL_MAPPING_TO_LABEL_H__
+#define __ALGORITHM_CIFTI_PARCEL_MAPPING_TO_LABEL_H__
 
 /*LICENSE_START*/
 /*
@@ -28,22 +28,22 @@ namespace caret {
     class CiftiParcelsMap;
     class CiftiBrainModelsMap;
     
-    class AlgorithmCiftiParcelMapToLabel : public AbstractAlgorithm
+    class AlgorithmCiftiParcelMappingToLabel : public AbstractAlgorithm
     {
-        AlgorithmCiftiParcelMapToLabel();
+        AlgorithmCiftiParcelMappingToLabel();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiParcelMapToLabel(ProgressObject* myProgObj, const CiftiParcelsMap& parcelMap, const CiftiBrainModelsMap& denseMap, CiftiFile* ciftiOut);
+        AlgorithmCiftiParcelMappingToLabel(ProgressObject* myProgObj, const CiftiParcelsMap& parcelMap, const CiftiBrainModelsMap& denseMap, CiftiFile* ciftiOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmCiftiParcelMapToLabel> AutoAlgorithmCiftiParcelMapToLabel;
+    typedef TemplateAutoOperation<AlgorithmCiftiParcelMappingToLabel> AutoAlgorithmCiftiParcelMappingToLabel;
 
 }
 
-#endif //__ALGORITHM_CIFTI_PARCEL_MAP_TO_LABEL_H__
+#endif //__ALGORITHM_CIFTI_PARCEL_MAPPING_TO_LABEL_H__
