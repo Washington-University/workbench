@@ -366,13 +366,56 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 {
     if (m_annotationBeingEdited != NULL) {
         if (m_annotationBeingEdited == m_annotationUnderMouse) {
-            const QSize windowSize = mouseEvent.getOpenGLWidget()->size();
-            const float dx = (mouseEvent.getDx() / static_cast<float>(windowSize.width()));
-            const float dy = (mouseEvent.getDy() / static_cast<float>(windowSize.height()));
-            bool updateGraphicsFlag = false;
+//            const QSize windowSize = mouseEvent.getOpenGLWidget()->size();
+//            const float dx = (mouseEvent.getDx() / static_cast<float>(windowSize.width()));
+//            const float dy = (mouseEvent.getDy() / static_cast<float>(windowSize.height()));
             
-            if ((m_annotationBeingEdited->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB)
-                || (m_annotationBeingEdited->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::WINDOW)) {
+
+            BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
+            if (vpContent == NULL) {
+                return;
+            }
+            
+            float spaceWidth  = 0.0;
+            float spaceHeight = 0.0;
+            
+            bool draggableCoordSpaceFlag = false;
+            switch (m_annotationBeingEdited->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::MODEL:
+                    break;
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                {
+                    int viewport[4];
+                    vpContent->getTabViewport(viewport);
+                    spaceWidth  = viewport[2];
+                    spaceHeight = viewport[3];
+                    draggableCoordSpaceFlag = true;
+                }
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                {
+                    int viewport[4];
+                    vpContent->getWindowViewport(viewport);
+                    spaceWidth  = viewport[2];
+                    spaceHeight = viewport[3];
+                    draggableCoordSpaceFlag = true;
+                }
+                    break;
+            }
+            
+            if ((spaceWidth <= 0.0)
+                || (spaceHeight <= 0.0)) {
+                draggableCoordSpaceFlag = false;
+            }
+            
+            bool updateGraphicsFlag = false;
+            if (draggableCoordSpaceFlag) {
+                const float dx = mouseEvent.getDx() / spaceWidth;
+                const float dy = mouseEvent.getDy() / spaceHeight;
                 AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
                 AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
                 if (twoDimShape != NULL) {
@@ -418,11 +461,14 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                         updateGraphicsFlag = true;
                     }
                 }
+                
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                m_annotationToolsWidget->updateWidget();
             }
             
             if (updateGraphicsFlag) {
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                m_annotationToolsWidget->updateWidget();
+//                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//                m_annotationToolsWidget->updateWidget();
             }
         }
     }
