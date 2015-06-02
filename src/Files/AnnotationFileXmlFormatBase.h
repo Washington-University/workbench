@@ -76,6 +76,10 @@ namespace caret {
         
         static const QString ATTRIBUTE_HEIGHT;
         
+        static const QString ATTRIBUTE_LINE_END_ARROW;
+        
+        static const QString ATTRIBUTE_LINE_START_ARROW;
+        
         static const QString ATTRIBUTE_ROTATION_ANGLE;
         
         static const QString ATTRIBUTE_TAB_INDEX;
@@ -157,6 +161,10 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_LINE_WIDTH = "foregroundLineWidth";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_HEIGHT = "height";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_LINE_END_ARROW = "endArrow";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_LINE_START_ARROW = "startArrow";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
     

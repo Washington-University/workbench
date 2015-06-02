@@ -445,6 +445,14 @@ AnnotationFileXmlWriter::writeOneDimensionalAnnotation(const AnnotationOneDimens
     getAnnotationPropertiesAsAttributes(shape,
                                         attributes);
     
+    const AnnotationLine* line = dynamic_cast<const AnnotationLine*>(shape);
+    if (line != NULL) {
+        attributes.append(ATTRIBUTE_LINE_END_ARROW,
+                          AString::fromBool(line->isDisplayEndArrow()));
+        attributes.append(ATTRIBUTE_LINE_START_ARROW,
+                          AString::fromBool(line->isDisplayStartArrow()));
+    }
+    
     m_stream->writeStartElement(annotationXmlElement);
     
     m_stream->writeAttributes(attributes);

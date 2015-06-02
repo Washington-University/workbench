@@ -70,16 +70,51 @@ XmlStreamReaderHelper::~XmlStreamReaderHelper()
 {
 }
 
+/**
+ * Get the string value for the given attribute name from the
+ * given attributes.  If the attribute is missing or if the
+ * attributes value is empty text, the defaultValue is 
+ * returned.  This method WILL NOT throw an exception.
+ *
+ * @param attributes
+ *     The XML attributes.
+ * @param elementName
+ *     Name of element containing the attributes.
+ * @param attributeName
+ *     Name of the attribute.
+ * @param defaultValue
+ *     Value that is returned if the attribute is missing or if the value
+ *     is empty text.
+ * @return
+ *     String value for the attribute.
+ */
+QString
+XmlStreamReaderHelper::getOptionalAttributeStringValue(const QXmlStreamAttributes& attributes,
+                                        const QString& elementName,
+                                        const QString& attributeName,
+                                        const QString& defaultValue)
+{
+    QString valueString;
+    
+    if (attributes.hasAttribute(attributeName)) {
+        valueString = attributes.value(attributeName).toString();
+        if (valueString.isEmpty()) {
+            valueString = defaultValue;
+        }
+    }
+    else {
+        valueString = defaultValue;
+    }
+    
+    return valueString;
+}
+
 
 /**
  * Get the string value for the given attribute name from the
  * given attributes.  If the attribute name is not found or
  * its value is an empty string, a DataFileException is thrown.
  *
- * @param stream
- *     The XML Stream Reader
- * @param filename
- *     Name of the file.
  * @param attributes
  *     The XML attributes.
  * @param elementName
@@ -120,13 +155,46 @@ XmlStreamReaderHelper::getRequiredAttributeStringValue(const QXmlStreamAttribute
 
 /**
  * Get the bool value for the given attribute name from the
+ * given attributes.  If the attribute is missing or if the
+ * attributes value is empty text, the defaultValue is
+ * returned.  This method WILL NOT throw an exception.
+ *
+ * @param attributes
+ *     The XML attributes.
+ * @param elementName
+ *     Name of element containing the attributes.
+ * @param attributeName
+ *     Name of the attribute.
+ * @param defaultValue
+ *     Value that is returned if the attribute is missing.
+ * @return
+ *     Boolean value for the attribute.
+ * @throw
+ *     DataFileException if attribute is missing or value is
+ *     an empty string.
+ */
+bool
+XmlStreamReaderHelper::getOptionalAttributeBoolValue(const QXmlStreamAttributes& attributes,
+                                   const QString& elementName,
+                                   const QString& attributeName,
+                                   const bool defaultValue)
+{
+    const AString stringValue = getOptionalAttributeStringValue(attributes,
+                                                                elementName,
+                                                                attributeName,
+                                                                AString::fromBool(defaultValue));
+    
+    const bool value = stringValue.toBool();
+    
+    return value;
+}
+
+
+/**
+ * Get the bool value for the given attribute name from the
  * given attributes.  If the attribute name is not found or
  * its value is an empty string, a DataFileException is thrown.
  *
- * @param stream
- *     The XML Stream Reader
- * @param filename
- *     Name of the file.
  * @param attributes
  *     The XML attributes.
  * @param elementName
@@ -158,10 +226,6 @@ XmlStreamReaderHelper::getRequiredAttributeBoolValue(const QXmlStreamAttributes&
  * given attributes.  If the attribute name is not found or
  * its value is an empty string, a DataFileException is thrown.
  *
- * @param stream
- *     The XML Stream Reader
- * @param filename
- *     Name of the file.
  * @param attributes
  *     The XML attributes.
  * @param elementName
@@ -201,10 +265,6 @@ XmlStreamReaderHelper::getRequiredAttributeIntValue(const QXmlStreamAttributes& 
  * given attributes.  If the attribute name is not found or
  * its value is an empty string, a DataFileException is thrown.
  *
- * @param stream
- *     The XML Stream Reader
- * @param filename
- *     Name of the file.
  * @param attributes
  *     The XML attributes.
  * @param elementName
@@ -338,10 +398,6 @@ XmlStreamReaderHelper::readMetaDataElement(GiftiMetaData* metadata)
  * Throw a data file exception with the given message and add
  * the line and column numbers to the message.
  *
- * @param stream
- *     The XML Stream Reader
- * @param filename
- *     Name of the file.
  * @param message
  *     Message included in the exception.
  * @throw

@@ -35,6 +35,7 @@ AnnotationCreateDialog.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
+AnnotationLineArrowTipsWidget.h
 AnnotationMenuArrange.h
 AnnotationRotationWidget.h
 AnnotationSelectionViewController.h
@@ -183,6 +184,7 @@ AnnotationCreateDialog.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
+AnnotationLineArrowTipsWidget.h
 AnnotationMenuArrange.h
 AnnotationRotationWidget.h
 AnnotationSelectionViewController.h
@@ -358,6 +360,7 @@ AnnotationCreateDialog.cxx
 AnnotationFontWidget.cxx
 AnnotationFormatWidget.cxx
 AnnotationInsertNewWidget.cxx
+AnnotationLineArrowTipsWidget.cxx
 AnnotationMenuArrange.cxx
 AnnotationRotationWidget.cxx
 AnnotationSelectionViewController.cxx

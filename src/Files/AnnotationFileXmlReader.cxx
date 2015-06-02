@@ -500,6 +500,18 @@ AnnotationFileXmlReader::readOneDimensionalAnnotation(const QString& annotationE
                              annotationElementName,
                              attributes);
     
+    AnnotationLine* line = dynamic_cast<AnnotationLine*>(annotation);
+    if (line != NULL) {
+        line->setDisplayEndArrow(m_streamHelper->getOptionalAttributeBoolValue(attributes,
+                                                                               annotationElementName,
+                                                                               ATTRIBUTE_LINE_END_ARROW,
+                                                                               false));
+        line->setDisplayStartArrow(m_streamHelper->getOptionalAttributeBoolValue(attributes,
+                                                                                 annotationElementName,
+                                                                                 ATTRIBUTE_LINE_START_ARROW,
+                                                                                 false));
+    }
+    
     readCoordinate(ELEMENT_COORDINATE_ONE,
                    annotation->getStartCoordinate());
     readCoordinate(ELEMENT_COORDINATE_TWO,

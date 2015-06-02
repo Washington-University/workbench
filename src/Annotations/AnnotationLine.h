@@ -35,7 +35,14 @@ namespace caret {
         
         virtual ~AnnotationLine();
         
-
+        bool isDisplayStartArrow() const;
+        
+        void setDisplayStartArrow(const bool displayArrow);
+        
+        bool isDisplayEndArrow() const;
+        
+        void setDisplayEndArrow(const bool displayArrow);
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -57,6 +64,10 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
 
+        bool m_displayStartArrow;
+        
+        bool m_displayEndArrow;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

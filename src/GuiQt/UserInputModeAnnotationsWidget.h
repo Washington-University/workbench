@@ -36,6 +36,7 @@ namespace caret {
     class AnnotationFontWidget;
     class AnnotationFormatWidget;
     class AnnotationInsertNewWidget;
+    class AnnotationLineArrowTipsWidget;
     class AnnotationRotationWidget;
     class AnnotationTextAlignmentWidget;
     class AnnotationTextEditorWidget;
@@ -85,6 +86,8 @@ namespace caret {
         AnnotationWidthHeightWidget* m_widthHeightWidget;
         
         AnnotationRotationWidget* m_rotationWidget;
+        
+        AnnotationLineArrowTipsWidget* m_lineArrowTipsWidget;
         
         AnnotationFontWidget* m_fontWidget;
         

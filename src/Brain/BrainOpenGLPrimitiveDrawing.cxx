@@ -700,6 +700,61 @@ BrainOpenGLPrimitiveDrawing::drawLines(const std::vector<float>& coordinates,
 }
 
 /**
+ * Draw a line strip with the given coordinates in the given color
+ * with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param rgba
+ *     One RGBA colors (4 elements) ranging [0.0, 1.0] that is used for drawing all of the lines.
+ * @param lineWidth
+ *     Line width used by line drawing modes.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawLineStrip(const std::vector<float>& coordinates,
+                                       const float rgba[4],
+                                       const float lineWidth)
+{
+    const uint8_t rgbaByte[4] = {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        static_cast<uint8_t>(rgba[3] * 255.0)
+    };
+    
+    std::vector<float> emptyNormals;
+    drawPrimitiveWithVertexArrays(GL_LINE_STRIP,
+                                  coordinates,
+                                  emptyNormals,
+                                  rgbaByte,
+                                  lineWidth);
+}
+
+/**
+ * Draw a line strip with the given coordinates in the given color
+ * with optional normal vectors.
+ *
+ * @param coordinates
+ *     Three-Dimensional coordinates (XYZ).
+ * @param rgba
+ *     One RGBA colors (4 elements) ranging [0, 255] that is used for drawing all of the lines.
+ * @param lineWidth
+ *     Line width used by line drawing modes.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawLineStrip(const std::vector<float>& coordinates,
+                                       const uint8_t rgba[4],
+                                       const float lineWidth)
+{
+    std::vector<float> emptyNormals;
+    drawPrimitiveWithVertexArrays(GL_LINE_STRIP,
+                                  coordinates,
+                                  emptyNormals,
+                                  rgba,
+                                  lineWidth);
+}
+
+/**
  * Draw a polygon with optional normal vectors.
  *
  * @param coordinates

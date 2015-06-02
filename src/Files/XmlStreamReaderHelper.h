@@ -38,6 +38,11 @@ namespace caret {
         
         virtual ~XmlStreamReaderHelper();
         
+        QString getOptionalAttributeStringValue(const QXmlStreamAttributes& attributes,
+                                                const QString& elementName,
+                                                const QString& attributeName,
+                                                const QString& defaultValue);
+        
         QString getRequiredAttributeStringValue(const QXmlStreamAttributes& attributes,
                                                        const QString& elementName,
                                                        const QString& attributeName);
@@ -50,9 +55,14 @@ namespace caret {
                                                     const QString& elementName,
                                                     const QString& attributeName);
         
+        bool getOptionalAttributeBoolValue(const QXmlStreamAttributes& attributes,
+                                           const QString& elementName,
+                                           const QString& attributeName,
+                                           const bool defaultValue);
+        
         bool getRequiredAttributeBoolValue(const QXmlStreamAttributes& attributes,
-                                                  const QString& elementName,
-                                                  const QString& attributeName);
+                                           const QString& elementName,
+                                           const QString& attributeName);
         
         void readMetaData(GiftiMetaData* metadata);
         

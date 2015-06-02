@@ -43,7 +43,14 @@ using namespace caret;
 AnnotationLine::AnnotationLine()
 : AnnotationOneDimensionalShape(AnnotationTypeEnum::LINE)
 {
+    m_displayStartArrow = false;
+    m_displayEndArrow = false;
+    
     m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_displayStartArrow",
+                          &m_displayStartArrow);
+    m_sceneAssistant->add("m_displayEndArrow",
+                          &m_displayEndArrow);
 }
 
 /**
@@ -52,6 +59,48 @@ AnnotationLine::AnnotationLine()
 AnnotationLine::~AnnotationLine()
 {
     delete m_sceneAssistant;
+}
+
+/**
+ * @return Is the arrow at the line's start coordinate displayed?
+ */
+bool
+AnnotationLine::isDisplayStartArrow() const
+{
+    return m_displayStartArrow;
+}
+
+/**
+ * Set the display status of the arrow at the line's start coordinate.
+ *
+ * @param displayArrow
+ *     New status.
+ */
+void
+AnnotationLine::setDisplayStartArrow(const bool displayArrow)
+{
+    m_displayStartArrow = displayArrow;
+}
+
+/**
+ * @return Is the arrow at the line's start coordinate displayed?
+ */
+bool
+AnnotationLine::isDisplayEndArrow() const
+{
+    return m_displayEndArrow;
+}
+
+/**
+ * Set the display status of the arrow at the line's start coordinate.
+ *
+ * @param displayArrow
+ *     New status.
+ */
+void
+AnnotationLine::setDisplayEndArrow(const bool displayArrow)
+{
+    m_displayEndArrow = displayArrow;
 }
 
 /**

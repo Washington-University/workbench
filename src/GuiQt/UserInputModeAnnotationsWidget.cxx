@@ -35,6 +35,8 @@
 #include "AnnotationFontWidget.h"
 #include "AnnotationFormatWidget.h"
 #include "AnnotationInsertNewWidget.h"
+#include "AnnotationLine.h"
+#include "AnnotationLineArrowTipsWidget.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRotationWidget.h"
@@ -79,6 +81,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_textEditorWidget           = new AnnotationTextEditorWidget(m_browserWindowIndex);
     
+    m_lineArrowTipsWidget        = new AnnotationLineArrowTipsWidget(m_browserWindowIndex);
+    
     m_fontWidget                 = new AnnotationFontWidget(m_browserWindowIndex);
     
     m_colorWidget                = new AnnotationColorWidget(m_browserWindowIndex);
@@ -113,6 +117,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     QHBoxLayout* topRowLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 2);
     topRowLayout->addWidget(m_colorWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_lineArrowTipsWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_textEditorWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
@@ -252,6 +258,7 @@ UserInputModeAnnotationsWidget::updateWidget()
         annotationBeingEdited = selectedAnnotations[0];
     }
     
+    AnnotationLine* lineAnnotation = NULL;
     AnnotationText* textAnnotation = NULL;
     AnnotationTwoDimensionalShape* twoDimAnnotation = NULL;
     AnnotationOneDimensionalShape* oneDimAnnotation = NULL;
@@ -271,11 +278,14 @@ UserInputModeAnnotationsWidget::updateWidget()
         if (twoDimAnnotation != NULL) {
             coordinateOne = twoDimAnnotation->getCoordinate();
         }
+        
+        lineAnnotation = dynamic_cast<AnnotationLine*>(annotationBeingEdited);
     }
     
     m_fontWidget->updateContent(textAnnotation);
     m_textEditorWidget->updateContent(textAnnotation);
     m_colorWidget->updateContent(annotationBeingEdited);
+    m_lineArrowTipsWidget->updateContent(lineAnnotation);
     m_textAlignmentWidget->updateContent(textAnnotation);
     m_textOrientationWidget->updateContent(textAnnotation);
     m_widthHeightWidget->updateContent(twoDimAnnotation);

@@ -709,33 +709,33 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
     CaretAssert(arrow);
     CaretAssert(arrow->getType() == AnnotationTypeEnum::ARROW);
     
-    float arrowStartXYZ[3];
-    float arrowEndXYZ[3];
+    float arrowHeadXYZ[3];
+    float arrowTailXYZ[3];
     
     if ( ! getAnnotationWindowCoordinate(arrow->getStartCoordinate(),
                                          arrow->getCoordinateSpace(),
                                          surfaceDisplayed,
-                                         arrowStartXYZ)) {
+                                         arrowHeadXYZ)) {
         return;
     }
     if ( ! getAnnotationWindowCoordinate(arrow->getEndCoordinate(),
                                          arrow->getCoordinateSpace(),
                                          surfaceDisplayed,
-                                         arrowEndXYZ)) {
+                                         arrowTailXYZ)) {
         return;
     }
     const float lineWidth = arrow->getForegroundLineWidth();
     const float backgroundLineWidth = lineWidth + 4;
     
-    selectionCenterXYZOut[0] = (arrowStartXYZ[0] + arrowEndXYZ[0]) / 2.0;
-    selectionCenterXYZOut[1] = (arrowStartXYZ[1] + arrowEndXYZ[1]) / 2.0;
-    selectionCenterXYZOut[2] = (arrowStartXYZ[2] + arrowEndXYZ[2]) / 2.0;
+    selectionCenterXYZOut[0] = (arrowHeadXYZ[0] + arrowTailXYZ[0]) / 2.0;
+    selectionCenterXYZOut[1] = (arrowHeadXYZ[1] + arrowTailXYZ[1]) / 2.0;
+    selectionCenterXYZOut[2] = (arrowHeadXYZ[2] + arrowTailXYZ[2]) / 2.0;
     
     /*
      * Length of arrow's line
      */
-    const float lineLength = MathFunctions::distance3D(arrowStartXYZ,
-                                                       arrowEndXYZ);
+    const float lineLength = MathFunctions::distance3D(arrowHeadXYZ,
+                                                       arrowTailXYZ);
     
     /*
      * Length of arrow's right and left pointer tips
@@ -744,14 +744,19 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
     const float tipLength = lineLength * pointerPercent;
     
     /*
-     * Pointer on arrow's line that is between the arrow's left and right arrow tips
+     * Point on arrow's line that is between the arrow's left and right arrow tips
      */
-    float startToEndVector[3];
-    MathFunctions::createUnitVector(arrowStartXYZ, arrowEndXYZ, startToEndVector);
-    const float arrowTipsOnLine[3] = {
-        arrowStartXYZ[0] + (startToEndVector[0] * tipLength),
-        arrowStartXYZ[1] + (startToEndVector[1] * tipLength),
-        arrowStartXYZ[2] + (startToEndVector[2] * tipLength)
+    float headToTailVector[3];
+    MathFunctions::createUnitVector(arrowHeadXYZ, arrowTailXYZ, headToTailVector);
+    const float startArrowTipsOnLine[3] = {
+        arrowHeadXYZ[0] + (headToTailVector[0] * tipLength),
+        arrowHeadXYZ[1] + (headToTailVector[1] * tipLength),
+        arrowHeadXYZ[2] + (headToTailVector[2] * tipLength)
+    };
+    const float tailArrowTipsOnLine[3] = {
+        arrowTailXYZ[0] - (headToTailVector[0] * tipLength),
+        arrowTailXYZ[1] - (headToTailVector[1] * tipLength),
+        arrowTailXYZ[2] - (headToTailVector[2] * tipLength)
     };
     
     /*
@@ -760,47 +765,69 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
      * Create a perpendicular vector by swapping first two elements
      * and negating the second element.
      */
-    float leftRightTipOffset[3] = {
-        startToEndVector[0],
-        startToEndVector[1],
-        startToEndVector[2]
+    float headLeftRightTipOffset[3] = {
+        headToTailVector[0],
+        headToTailVector[1],
+        headToTailVector[2]
     };
-    MathFunctions::normalizeVector(leftRightTipOffset);
-    std::swap(leftRightTipOffset[0],
-              leftRightTipOffset[1]);
-    leftRightTipOffset[1] *= -1;
-    leftRightTipOffset[0] *= tipLength;
-    leftRightTipOffset[1] *= tipLength;
-    leftRightTipOffset[2] *= tipLength;
+    MathFunctions::normalizeVector(headLeftRightTipOffset);
+    std::swap(headLeftRightTipOffset[0],
+              headLeftRightTipOffset[1]);
+    headLeftRightTipOffset[1] *= -1;
+    headLeftRightTipOffset[0] *= tipLength;
+    headLeftRightTipOffset[1] *= tipLength;
+    headLeftRightTipOffset[2] *= tipLength;
     
     /*
-     * Tip of arrow's pointer on the right
+     * Tip of arrow's head pointer on the right
      */
-    const float rightTipEnd[3] = {
-        arrowTipsOnLine[0] - leftRightTipOffset[0],
-        arrowTipsOnLine[1] - leftRightTipOffset[1],
-        arrowTipsOnLine[2] - leftRightTipOffset[2]
+    const float headRightTipEnd[3] = {
+        startArrowTipsOnLine[0] - headLeftRightTipOffset[0],
+        startArrowTipsOnLine[1] - headLeftRightTipOffset[1],
+        startArrowTipsOnLine[2] - headLeftRightTipOffset[2]
     };
     
     /*
-     * Tip of arrow's pointer on the left
+     * Tip of arrow's head pointer on the left
      */
-    const float leftTipEnd[3] = {
-        arrowTipsOnLine[0] + leftRightTipOffset[0],
-        arrowTipsOnLine[1] + leftRightTipOffset[1],
-        arrowTipsOnLine[2] + leftRightTipOffset[2]
+    const float headLeftTipEnd[3] = {
+        startArrowTipsOnLine[0] + headLeftRightTipOffset[0],
+        startArrowTipsOnLine[1] + headLeftRightTipOffset[1],
+        startArrowTipsOnLine[2] + headLeftRightTipOffset[2]
+    };
+    
+    /*
+     * Tip of arrow tail pointer on the right
+     */
+    const float tailRightTipEnd[3] = {
+        tailArrowTipsOnLine[0] + headLeftRightTipOffset[0],
+        tailArrowTipsOnLine[1] + headLeftRightTipOffset[1],
+        tailArrowTipsOnLine[2] + headLeftRightTipOffset[2]
+    };
+
+    /*
+     * Tip of arrow tail pointer on the right
+     */
+    const float tailLeftTipEnd[3] = {
+        tailArrowTipsOnLine[0] - headLeftRightTipOffset[0],
+        tailArrowTipsOnLine[1] - headLeftRightTipOffset[1],
+        tailArrowTipsOnLine[2] - headLeftRightTipOffset[2]
     };
     
     const bool depthTestFlag = isDrawnWithDepthTesting(arrow);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     std::vector<float> coords;
-    coords.insert(coords.end(), arrowStartXYZ, arrowStartXYZ + 3);
-    coords.insert(coords.end(), arrowEndXYZ,   arrowEndXYZ + 3);
-    coords.insert(coords.end(), arrowStartXYZ, arrowStartXYZ + 3);
-    coords.insert(coords.end(), rightTipEnd,   rightTipEnd + 3);
-    coords.insert(coords.end(), arrowStartXYZ, arrowStartXYZ + 3);
-    coords.insert(coords.end(), leftTipEnd,    leftTipEnd + 3);
+    coords.insert(coords.end(), arrowHeadXYZ, arrowHeadXYZ + 3);
+    coords.insert(coords.end(), arrowTailXYZ,   arrowTailXYZ + 3);
+    coords.insert(coords.end(), arrowHeadXYZ, arrowHeadXYZ + 3);
+    coords.insert(coords.end(), headRightTipEnd,   headRightTipEnd + 3);
+    coords.insert(coords.end(), arrowHeadXYZ, arrowHeadXYZ + 3);
+    coords.insert(coords.end(), headLeftTipEnd,    headLeftTipEnd + 3);
+    coords.insert(coords.end(), arrowTailXYZ,   arrowTailXYZ + 3);
+    coords.insert(coords.end(), tailRightTipEnd, tailRightTipEnd + 3);
+    coords.insert(coords.end(), arrowTailXYZ,   arrowTailXYZ + 3);
+    coords.insert(coords.end(), tailLeftTipEnd, tailLeftTipEnd + 3);
     
     if (selectionFlag) {
         BrainOpenGLPrimitiveDrawing::drawLines(coords,
@@ -808,16 +835,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
                                                backgroundLineWidth);
     }
     else {
-//        float backgroundRGBA[4];
-//        arrow->getBackgroundColorRGBA(backgroundRGBA);
-//        if (backgroundRGBA[3] > 0.0) {
-//            BrainOpenGLPrimitiveDrawing::drawLines(coords,
-//                                                   backgroundRGBA,
-//                                                   backgroundLineWidth);
-//        }
-    }
-    
-    if ( ! selectionFlag) {
         float foregroundRGBA[4];
         arrow->getForegroundColorRGBA(foregroundRGBA);
         
@@ -827,8 +844,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arro
                                                    lineWidth);
             
             if (arrow->isSelected()) {
-                drawAnnotationOneDimSelector(arrowStartXYZ,
-                                             arrowEndXYZ,
+                drawAnnotationOneDimSelector(arrowHeadXYZ,
+                                             arrowTailXYZ,
                                              lineWidth);
             }
         }
@@ -1190,51 +1207,136 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
     CaretAssert(line);
     CaretAssert(line->getType() == AnnotationTypeEnum::LINE);
     
-    float lineStartXYZ[3];
-    float lineEndXYZ[3];
+    float lineHeadXYZ[3];
+    float lineTailXYZ[3];
     
     if ( ! getAnnotationWindowCoordinate(line->getStartCoordinate(),
                                          line->getCoordinateSpace(),
                                          surfaceDisplayed,
-                                         lineStartXYZ)) {
+                                         lineHeadXYZ)) {
         return;
     }
     if ( ! getAnnotationWindowCoordinate(line->getEndCoordinate(),
                                          line->getCoordinateSpace(),
                                          surfaceDisplayed,
-                                         lineEndXYZ)) {
+                                         lineTailXYZ)) {
         return;
     }
     const float lineWidth = line->getForegroundLineWidth();
-    const float backgroundLineWidth = lineWidth * 4;
+    const float backgroundLineWidth = lineWidth + 4;
+    
+    selectionCenterXYZOut[0] = (lineHeadXYZ[0] + lineTailXYZ[0]) / 2.0;
+    selectionCenterXYZOut[1] = (lineHeadXYZ[1] + lineTailXYZ[1]) / 2.0;
+    selectionCenterXYZOut[2] = (lineHeadXYZ[2] + lineTailXYZ[2]) / 2.0;
+    
+    /*
+     * Length of arrow's line
+     */
+    const float lineLength = MathFunctions::distance3D(lineHeadXYZ,
+                                                       lineTailXYZ);
+    
+    /*
+     * Length of arrow's right and left pointer tips
+     */
+    const float pointerPercent = 0.2;
+    const float tipLength = lineLength * pointerPercent;
+    
+    /*
+     * Point on arrow's line that is between the arrow's left and right arrow tips
+     */
+    float headToTailVector[3];
+    MathFunctions::createUnitVector(lineHeadXYZ, lineTailXYZ, headToTailVector);
+    const float startArrowTipsOnLine[3] = {
+        lineHeadXYZ[0] + (headToTailVector[0] * tipLength),
+        lineHeadXYZ[1] + (headToTailVector[1] * tipLength),
+        lineHeadXYZ[2] + (headToTailVector[2] * tipLength)
+    };
+    const float tailArrowTipsOnLine[3] = {
+        lineTailXYZ[0] - (headToTailVector[0] * tipLength),
+        lineTailXYZ[1] - (headToTailVector[1] * tipLength),
+        lineTailXYZ[2] - (headToTailVector[2] * tipLength)
+    };
+    
+    /*
+     * Vector for arrow tip's on left and right
+     *
+     * Create a perpendicular vector by swapping first two elements
+     * and negating the second element.
+     */
+    float headLeftRightTipOffset[3] = {
+        headToTailVector[0],
+        headToTailVector[1],
+        headToTailVector[2]
+    };
+    MathFunctions::normalizeVector(headLeftRightTipOffset);
+    std::swap(headLeftRightTipOffset[0],
+              headLeftRightTipOffset[1]);
+    headLeftRightTipOffset[1] *= -1;
+    headLeftRightTipOffset[0] *= tipLength;
+    headLeftRightTipOffset[1] *= tipLength;
+    headLeftRightTipOffset[2] *= tipLength;
+    
+    /*
+     * Tip of arrow's head pointer on the right
+     */
+    const float headRightTipEnd[3] = {
+        startArrowTipsOnLine[0] - headLeftRightTipOffset[0],
+        startArrowTipsOnLine[1] - headLeftRightTipOffset[1],
+        startArrowTipsOnLine[2] - headLeftRightTipOffset[2]
+    };
+    
+    /*
+     * Tip of arrow's head pointer on the left
+     */
+    const float headLeftTipEnd[3] = {
+        startArrowTipsOnLine[0] + headLeftRightTipOffset[0],
+        startArrowTipsOnLine[1] + headLeftRightTipOffset[1],
+        startArrowTipsOnLine[2] + headLeftRightTipOffset[2]
+    };
+    
+    /*
+     * Tip of arrow tail pointer on the right
+     */
+    const float tailRightTipEnd[3] = {
+        tailArrowTipsOnLine[0] + headLeftRightTipOffset[0],
+        tailArrowTipsOnLine[1] + headLeftRightTipOffset[1],
+        tailArrowTipsOnLine[2] + headLeftRightTipOffset[2]
+    };
+    
+    /*
+     * Tip of arrow tail pointer on the right
+     */
+    const float tailLeftTipEnd[3] = {
+        tailArrowTipsOnLine[0] - headLeftRightTipOffset[0],
+        tailArrowTipsOnLine[1] - headLeftRightTipOffset[1],
+        tailArrowTipsOnLine[2] - headLeftRightTipOffset[2]
+    };
     
     const bool depthTestFlag = isDrawnWithDepthTesting(line);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     std::vector<float> coords;
-    coords.insert(coords.end(), lineStartXYZ, lineStartXYZ + 3);
-    coords.insert(coords.end(), lineEndXYZ,   lineEndXYZ + 3);
+    coords.insert(coords.end(), lineHeadXYZ, lineHeadXYZ + 3);
+    coords.insert(coords.end(), lineTailXYZ, lineTailXYZ + 3);
+    if (line->isDisplayStartArrow()) {
+        coords.insert(coords.end(), lineHeadXYZ,     lineHeadXYZ + 3);
+        coords.insert(coords.end(), headRightTipEnd, headRightTipEnd + 3);
+        coords.insert(coords.end(), lineHeadXYZ,     lineHeadXYZ + 3);
+        coords.insert(coords.end(), headLeftTipEnd,  headLeftTipEnd + 3);
+    }
+    if (line->isDisplayEndArrow()) {
+        coords.insert(coords.end(), lineTailXYZ,     lineTailXYZ + 3);
+        coords.insert(coords.end(), tailRightTipEnd, tailRightTipEnd + 3);
+        coords.insert(coords.end(), lineTailXYZ,     lineTailXYZ + 3);
+        coords.insert(coords.end(), tailLeftTipEnd,  tailLeftTipEnd + 3);
+    }
     
     if (selectionFlag) {
-        selectionCenterXYZOut[0] = (lineStartXYZ[0] + lineEndXYZ[0]) / 2.0;
-        selectionCenterXYZOut[1] = (lineStartXYZ[1] + lineEndXYZ[1]) / 2.0;
-        selectionCenterXYZOut[2] = (lineStartXYZ[2] + lineEndXYZ[2]) / 2.0;
-        
         BrainOpenGLPrimitiveDrawing::drawLines(coords,
                                                selectionColorRGBA,
                                                backgroundLineWidth);
     }
     else {
-//        float backgroundRGBA[4];
-//        line->getBackgroundColorRGBA(backgroundRGBA);
-//        if (backgroundRGBA[3] > 0.0) {
-//            BrainOpenGLPrimitiveDrawing::drawLines(coords,
-//                                                   backgroundRGBA,
-//                                                   backgroundLineWidth);
-//        }
-    }
-    
-    if ( ! selectionFlag) {
         float foregroundRGBA[4];
         line->getForegroundColorRGBA(foregroundRGBA);
         
@@ -1244,14 +1346,70 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(const AnnotationLine* line,
                                                    lineWidth);
             
             if (line->isSelected()) {
-                drawAnnotationOneDimSelector(lineStartXYZ,
-                                             lineEndXYZ,
+                drawAnnotationOneDimSelector(lineHeadXYZ,
+                                             lineTailXYZ,
                                              lineWidth);
             }
         }
     }
     
     setDepthTestingStatus(savedDepthTestStatus);
+    
+//    float lineStartXYZ[3];
+//    float lineEndXYZ[3];
+//    
+//    if ( ! getAnnotationWindowCoordinate(line->getStartCoordinate(),
+//                                         line->getCoordinateSpace(),
+//                                         surfaceDisplayed,
+//                                         lineStartXYZ)) {
+//        return;
+//    }
+//    if ( ! getAnnotationWindowCoordinate(line->getEndCoordinate(),
+//                                         line->getCoordinateSpace(),
+//                                         surfaceDisplayed,
+//                                         lineEndXYZ)) {
+//        return;
+//    }
+//    const float lineWidth = line->getForegroundLineWidth();
+//    const float backgroundLineWidth = lineWidth * 4;
+//    
+//    const bool depthTestFlag = isDrawnWithDepthTesting(line);
+//    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+//    
+//    std::vector<float> coords;
+//    coords.insert(coords.end(), lineStartXYZ, lineStartXYZ + 3);
+//    coords.insert(coords.end(), lineEndXYZ,   lineEndXYZ + 3);
+//    
+//    if (selectionFlag) {
+//        selectionCenterXYZOut[0] = (lineStartXYZ[0] + lineEndXYZ[0]) / 2.0;
+//        selectionCenterXYZOut[1] = (lineStartXYZ[1] + lineEndXYZ[1]) / 2.0;
+//        selectionCenterXYZOut[2] = (lineStartXYZ[2] + lineEndXYZ[2]) / 2.0;
+//        
+//        BrainOpenGLPrimitiveDrawing::drawLines(coords,
+//                                               selectionColorRGBA,
+//                                               backgroundLineWidth);
+//    }
+//    else {
+//    }
+//    
+//    if ( ! selectionFlag) {
+//        float foregroundRGBA[4];
+//        line->getForegroundColorRGBA(foregroundRGBA);
+//        
+//        if (foregroundRGBA[3] > 0.0) {
+//            BrainOpenGLPrimitiveDrawing::drawLines(coords,
+//                                                   foregroundRGBA,
+//                                                   lineWidth);
+//            
+//            if (line->isSelected()) {
+//                drawAnnotationOneDimSelector(lineStartXYZ,
+//                                             lineEndXYZ,
+//                                             lineWidth);
+//            }
+//        }
+//    }
+//    
+//    setDepthTestingStatus(savedDepthTestStatus);
 }
 
 /**
