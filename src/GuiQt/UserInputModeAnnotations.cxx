@@ -71,7 +71,7 @@ m_annotationBeingEdited(NULL),
 m_annotationUnderMouse(NULL)
 {
     m_mode = MODE_SELECT;
-    m_modeNewAnnotationType = AnnotationTypeEnum::ARROW;
+    m_modeNewAnnotationType = AnnotationTypeEnum::LINE;
     
     m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
                                                                  m_browserWindowIndex);

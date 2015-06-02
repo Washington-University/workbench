@@ -33,7 +33,6 @@ namespace caret {
 
     class Annotation;
     class AnnotationTwoDimensionalShape;
-    class AnnotationArrow;
     class AnnotationBox;
     class AnnotationCoordinate;
     class AnnotationLine;
@@ -84,12 +83,6 @@ namespace caret {
                                   float bottomRightOut[3],
                                   float topRightOut[3],
                                   float topLeftOut[3]) const;
-        
-        void drawArrow(const AnnotationArrow* arrow,
-                       const Surface* surfaceDisplayed,
-                       const uint8_t selectionColorRGBA[4],
-                       const bool selectionFlag,
-                       float selectionCenterXYZOut[3]);
         
         void drawBox(const AnnotationBox* box,
                        const Surface* surfaceDisplayed,

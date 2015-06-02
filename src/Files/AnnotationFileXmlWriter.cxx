@@ -27,7 +27,6 @@
 #include "AnnotationFileXmlWriter.h"
 #undef __ANNOTATION_FILE_XML_WRITER_DECLARE__
 
-#include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
@@ -178,9 +177,6 @@ AnnotationFileXmlWriter::writeFileContentToXmlStreamWriter(const AnnotationFile*
         CaretAssert(annotation);
         
         switch (annotation->getType()) {
-            case AnnotationTypeEnum::ARROW:
-                writeArrow(dynamic_cast<const AnnotationArrow*>(annotation));
-                break;
             case AnnotationTypeEnum::BOX:
                 writeBox(dynamic_cast<const AnnotationBox*>(annotation));
                 break;
@@ -204,21 +200,6 @@ AnnotationFileXmlWriter::writeFileContentToXmlStreamWriter(const AnnotationFile*
     m_stream->writeEndDocument();
 }
 
-
-/**
- * Write the given annotation arrow in XML.
- *
- * @param arrow
- *     The annotation arrow.
- */
-void
-AnnotationFileXmlWriter::writeArrow(const AnnotationArrow* arrow)
-{
-    CaretAssert(arrow);
-    
-    writeOneDimensionalAnnotation(arrow,
-                                  ELEMENT_ARROW);
-}
 
 /**
  * Write the given annotation box in XML.

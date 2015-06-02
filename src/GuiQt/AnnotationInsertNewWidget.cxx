@@ -165,9 +165,6 @@ AnnotationInsertNewWidget::createShapeToolButton()
         
         bool useTypeFlag = false;
         switch (annType) {
-            case AnnotationTypeEnum::ARROW:
-                useTypeFlag = true;
-                break;
             case AnnotationTypeEnum::BOX:
                 useTypeFlag = true;
                 break;
@@ -431,11 +428,6 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
      * NOTE: ORIGIN is in TOP LEFT corner of pixmap.
      */
     switch (annotationType) {
-        case AnnotationTypeEnum::ARROW:
-            painter.drawLine(1, height - 1, width - 1, 1);
-            painter.drawLine(width - 1, 1, width - (width / 3), 1);
-            painter.drawLine(width - 1, 1, width - 1, 1 + (height / 3));
-            break;
         case AnnotationTypeEnum::BOX:
             painter.drawRect(1, 1, width - 2, height - 2);
             break;

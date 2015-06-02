@@ -23,7 +23,6 @@
 #include "AnnotationFile.h"
 #undef __ANNOTATION_FILE_DECLARE__
 
-#include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFileXmlReader.h"
@@ -164,21 +163,6 @@ AnnotationFile::AnnotationFile()
             endCoord->setXYZ(0.2, 0.3, 0);
             at->setForegroundColor(CaretColorEnum::RED);
             at->setBackgroundColor(CaretColorEnum::WHITE);
-            addAnnotation(at);
-        }
-        
-        {
-            AnnotationArrow* at = new AnnotationArrow();
-            AnnotationCoordinate* startCoord = at->getStartCoordinate();
-            at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-            at->setWindowIndex(0);
-            startCoord->setXYZ(0.7, 0.1, 0);
-            AnnotationCoordinate* endCoord = at->getEndCoordinate();
-            endCoord->setXYZ(0.4, 0.3, 0);
-            //endCoord->setXYZ(0.7, 0.4, 0);
-            at->setForegroundColor(CaretColorEnum::GREEN);
-            at->setBackgroundColor(CaretColorEnum::WHITE);
-            at->setForegroundLineWidth(4.0);
             addAnnotation(at);
         }
         

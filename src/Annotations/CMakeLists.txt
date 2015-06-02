@@ -19,7 +19,6 @@ SET(QT_DONT_USE_QTGUI TRUE)
 ADD_LIBRARY(Annotations
 Annotation.h
 AnnotationAlignmentEnum.h
-AnnotationArrow.h
 AnnotationBox.h
 AnnotationCoordinate.h
 AnnotationCoordinateSpaceEnum.h
@@ -38,7 +37,6 @@ AnnotationTypeEnum.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
-AnnotationArrow.cxx
 AnnotationBox.cxx
 AnnotationCoordinate.cxx
 AnnotationCoordinateSpaceEnum.cxx

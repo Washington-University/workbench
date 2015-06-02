@@ -35,8 +35,6 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Arrow */
-        ARROW,
         /** Box */
         BOX,
         /** Image */

@@ -74,8 +74,6 @@ m_coordInfo(coordInfo)
     bool enableWindowSpaceFlag  = true;
     
     switch (m_annotationType) {
-        case AnnotationTypeEnum::ARROW:
-            break;
         case AnnotationTypeEnum::BOX:
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;

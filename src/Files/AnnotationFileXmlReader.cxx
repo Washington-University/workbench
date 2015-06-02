@@ -27,7 +27,6 @@
 #include "AnnotationFileXmlReader.h"
 #undef __ANNOTATION_FILE_XML_READER_DECLARE__
 
-#include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
@@ -215,12 +214,6 @@ AnnotationFileXmlReader::readVersionOne(AnnotationFile* annotationFile)
         if (elementName == GiftiXmlElements::TAG_METADATA) {
             m_streamHelper->readMetaData(annotationFile->getFileMetaData());
             skipCurrentElementFlag = false;
-        }
-        else if (elementName == ELEMENT_ARROW) {
-            CaretPointer<AnnotationArrow> annotation(new AnnotationArrow());
-            readOneDimensionalAnnotation(ELEMENT_ARROW,
-                                         annotation);
-            annotationFile->addAnnotation(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox());

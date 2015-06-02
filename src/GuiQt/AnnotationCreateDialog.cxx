@@ -32,7 +32,6 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationCoordinateSelectionWidget.h"
@@ -336,9 +335,6 @@ AnnotationCreateDialog::okButtonClicked()
     annotation.grabNew(NULL);
     
     switch (m_annotationType) {
-        case AnnotationTypeEnum::ARROW:
-            annotation.grabNew(new AnnotationArrow());
-            break;
         case AnnotationTypeEnum::BOX:
             annotation.grabNew(new AnnotationBox());
             break;

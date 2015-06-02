@@ -25,7 +25,6 @@
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #undef __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
 
-#include "AnnotationArrow.h"
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
@@ -588,13 +587,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
         float selectionCenterXYZ[3];
         
         switch (annotation->getType()) {
-            case AnnotationTypeEnum::ARROW:
-                drawArrow(dynamic_cast<AnnotationArrow*>(annotation),
-                          surfaceDisplayed,
-                          idColorRGBA,
-                          isSelect,
-                          selectionCenterXYZ);
-                break;
             case AnnotationTypeEnum::BOX:
                 drawBox(dynamic_cast<AnnotationBox*>(annotation),
                         surfaceDisplayed,
@@ -683,175 +675,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
 
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At end of annotation drawing in space "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
-}
-
-/**
- * Draw an annotation arrow.
- *
- * @param arrow
- *    Annotation arrow to draw.
- * @param surfaceDisplayed
- *    Surface that is displayed (may be NULL).
- * @param selectionColorRGBA
- *    Color used for selection identification.
- * @param selectionFlag
- *    True when selecting, else false.
- * @param selectionCenterXYZOut
- *    On exit contains center of annotation used by selection logic.
- */
-void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawArrow(const AnnotationArrow* arrow,
-                                                     const Surface* surfaceDisplayed,
-                                                     const uint8_t selectionColorRGBA[4],
-                                                     const bool selectionFlag,
-                                                     float selectionCenterXYZOut[3])
-{
-    CaretAssert(arrow);
-    CaretAssert(arrow->getType() == AnnotationTypeEnum::ARROW);
-    
-    float arrowHeadXYZ[3];
-    float arrowTailXYZ[3];
-    
-    if ( ! getAnnotationWindowCoordinate(arrow->getStartCoordinate(),
-                                         arrow->getCoordinateSpace(),
-                                         surfaceDisplayed,
-                                         arrowHeadXYZ)) {
-        return;
-    }
-    if ( ! getAnnotationWindowCoordinate(arrow->getEndCoordinate(),
-                                         arrow->getCoordinateSpace(),
-                                         surfaceDisplayed,
-                                         arrowTailXYZ)) {
-        return;
-    }
-    const float lineWidth = arrow->getForegroundLineWidth();
-    const float backgroundLineWidth = lineWidth + 4;
-    
-    selectionCenterXYZOut[0] = (arrowHeadXYZ[0] + arrowTailXYZ[0]) / 2.0;
-    selectionCenterXYZOut[1] = (arrowHeadXYZ[1] + arrowTailXYZ[1]) / 2.0;
-    selectionCenterXYZOut[2] = (arrowHeadXYZ[2] + arrowTailXYZ[2]) / 2.0;
-    
-    /*
-     * Length of arrow's line
-     */
-    const float lineLength = MathFunctions::distance3D(arrowHeadXYZ,
-                                                       arrowTailXYZ);
-    
-    /*
-     * Length of arrow's right and left pointer tips
-     */
-    const float pointerPercent = 0.2;
-    const float tipLength = lineLength * pointerPercent;
-    
-    /*
-     * Point on arrow's line that is between the arrow's left and right arrow tips
-     */
-    float headToTailVector[3];
-    MathFunctions::createUnitVector(arrowHeadXYZ, arrowTailXYZ, headToTailVector);
-    const float startArrowTipsOnLine[3] = {
-        arrowHeadXYZ[0] + (headToTailVector[0] * tipLength),
-        arrowHeadXYZ[1] + (headToTailVector[1] * tipLength),
-        arrowHeadXYZ[2] + (headToTailVector[2] * tipLength)
-    };
-    const float tailArrowTipsOnLine[3] = {
-        arrowTailXYZ[0] - (headToTailVector[0] * tipLength),
-        arrowTailXYZ[1] - (headToTailVector[1] * tipLength),
-        arrowTailXYZ[2] - (headToTailVector[2] * tipLength)
-    };
-    
-    /*
-     * Vector for arrow tip's on left and right
-     *
-     * Create a perpendicular vector by swapping first two elements
-     * and negating the second element.
-     */
-    float headLeftRightTipOffset[3] = {
-        headToTailVector[0],
-        headToTailVector[1],
-        headToTailVector[2]
-    };
-    MathFunctions::normalizeVector(headLeftRightTipOffset);
-    std::swap(headLeftRightTipOffset[0],
-              headLeftRightTipOffset[1]);
-    headLeftRightTipOffset[1] *= -1;
-    headLeftRightTipOffset[0] *= tipLength;
-    headLeftRightTipOffset[1] *= tipLength;
-    headLeftRightTipOffset[2] *= tipLength;
-    
-    /*
-     * Tip of arrow's head pointer on the right
-     */
-    const float headRightTipEnd[3] = {
-        startArrowTipsOnLine[0] - headLeftRightTipOffset[0],
-        startArrowTipsOnLine[1] - headLeftRightTipOffset[1],
-        startArrowTipsOnLine[2] - headLeftRightTipOffset[2]
-    };
-    
-    /*
-     * Tip of arrow's head pointer on the left
-     */
-    const float headLeftTipEnd[3] = {
-        startArrowTipsOnLine[0] + headLeftRightTipOffset[0],
-        startArrowTipsOnLine[1] + headLeftRightTipOffset[1],
-        startArrowTipsOnLine[2] + headLeftRightTipOffset[2]
-    };
-    
-    /*
-     * Tip of arrow tail pointer on the right
-     */
-    const float tailRightTipEnd[3] = {
-        tailArrowTipsOnLine[0] + headLeftRightTipOffset[0],
-        tailArrowTipsOnLine[1] + headLeftRightTipOffset[1],
-        tailArrowTipsOnLine[2] + headLeftRightTipOffset[2]
-    };
-
-    /*
-     * Tip of arrow tail pointer on the right
-     */
-    const float tailLeftTipEnd[3] = {
-        tailArrowTipsOnLine[0] - headLeftRightTipOffset[0],
-        tailArrowTipsOnLine[1] - headLeftRightTipOffset[1],
-        tailArrowTipsOnLine[2] - headLeftRightTipOffset[2]
-    };
-    
-    const bool depthTestFlag = isDrawnWithDepthTesting(arrow);
-    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
-    
-    std::vector<float> coords;
-    coords.insert(coords.end(), arrowHeadXYZ, arrowHeadXYZ + 3);
-    coords.insert(coords.end(), arrowTailXYZ,   arrowTailXYZ + 3);
-    coords.insert(coords.end(), arrowHeadXYZ, arrowHeadXYZ + 3);
-    coords.insert(coords.end(), headRightTipEnd,   headRightTipEnd + 3);
-    coords.insert(coords.end(), arrowHeadXYZ, arrowHeadXYZ + 3);
-    coords.insert(coords.end(), headLeftTipEnd,    headLeftTipEnd + 3);
-    coords.insert(coords.end(), arrowTailXYZ,   arrowTailXYZ + 3);
-    coords.insert(coords.end(), tailRightTipEnd, tailRightTipEnd + 3);
-    coords.insert(coords.end(), arrowTailXYZ,   arrowTailXYZ + 3);
-    coords.insert(coords.end(), tailLeftTipEnd, tailLeftTipEnd + 3);
-    
-    if (selectionFlag) {
-        BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                               selectionColorRGBA,
-                                               backgroundLineWidth);
-    }
-    else {
-        float foregroundRGBA[4];
-        arrow->getForegroundColorRGBA(foregroundRGBA);
-        
-        if (foregroundRGBA[3] > 0.0) {
-            BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                   foregroundRGBA,
-                                                   lineWidth);
-            
-            if (arrow->isSelected()) {
-                drawAnnotationOneDimSelector(arrowHeadXYZ,
-                                             arrowTailXYZ,
-                                             lineWidth);
-            }
-        }
-    }
-    
-    setDepthTestingStatus(savedDepthTestStatus);
 }
 
 /**

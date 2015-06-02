@@ -31,7 +31,6 @@ class QXmlStreamWriter;
 namespace caret {
 
     class Annotation;
-    class AnnotationArrow;
     class AnnotationBox;
     class AnnotationCoordinate;
     class AnnotationFile;
@@ -75,8 +74,6 @@ namespace caret {
         
         void writeFileContentToXmlStreamWriter(const AnnotationFile* annotationFile,
                                                const QString& filename);
-        
-        void writeArrow(const AnnotationArrow* arrow);
         
         void writeBox(const AnnotationBox* box);
         

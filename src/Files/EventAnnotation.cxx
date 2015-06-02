@@ -46,7 +46,7 @@ EventAnnotation::EventAnnotation()
 : Event(EventTypeEnum::EVENT_ANNOTATION)
 {
     m_mode = MODE_INVALID;
-    m_annotationType = AnnotationTypeEnum::ARROW;
+    m_annotationType = AnnotationTypeEnum::LINE;
 }
 
 /**
@@ -73,7 +73,7 @@ EventAnnotation::getModeCreateNewAnnotationType() const
 {
     CaretAssert(m_mode == MODE_CREATE_NEW_ANNOTATION_TYPE);
     if (m_mode != MODE_CREATE_NEW_ANNOTATION_TYPE) {
-        return AnnotationTypeEnum::ARROW;
+        return AnnotationTypeEnum::LINE;
     }
     
     return m_annotationType;

@@ -259,9 +259,6 @@ AnnotationColorWidget::updateBackgroundColorButton()
         
         bool enableBackgroundFlag = false;
         switch (m_annotation->getType()) {
-            case AnnotationTypeEnum::ARROW:
-                enableBackgroundFlag = false;
-                break;
             case AnnotationTypeEnum::BOX:
                 enableBackgroundFlag = true;
                 break;

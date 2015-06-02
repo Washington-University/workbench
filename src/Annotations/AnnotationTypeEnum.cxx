@@ -108,10 +108,6 @@ AnnotationTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationTypeEnum(ARROW,
-                                          "ARROW",
-                                          "Arrow"));
-    
     enumData.push_back(AnnotationTypeEnum(BOX,
                                           "BOX",
                                           "Box"));
