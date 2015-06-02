@@ -1,5 +1,5 @@
-#ifndef __BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU__H_
-#define __BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU__H_
+#ifndef __USER_INPUT_MODE_VIEW_CONTEXT_MENU_H__
+#define __USER_INPUT_MODE_VIEW_CONTEXT_MENU_H__
 
 /*LICENSE_START*/
 /*
@@ -44,16 +44,16 @@ namespace caret {
     class LabelFile;
     class Surface;
     
-    class BrainOpenGLWidgetContextMenu : public QMenu {
+    class UserInputModeViewContextMenu : public QMenu {
         
         Q_OBJECT
 
     public:
-        BrainOpenGLWidgetContextMenu(SelectionManager* selectionManager,
+        UserInputModeViewContextMenu(SelectionManager* selectionManager,
                                      BrowserTabContent* browserTabContent,
                                      BrainOpenGLWidget* parentOpenGLWidget);
         
-        virtual ~BrainOpenGLWidgetContextMenu();
+        virtual ~UserInputModeViewContextMenu();
         
     private slots:
         void createSurfaceFocusSelected();
@@ -88,8 +88,6 @@ namespace caret {
         
         void borderCiftiConnectivitySelected();
 
-//        void borderConnectivitySelected();
-        
         void borderDataSeriesSelected();
         
     private:
@@ -134,9 +132,9 @@ namespace caret {
             CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager;
         };
         
-        BrainOpenGLWidgetContextMenu(const BrainOpenGLWidgetContextMenu&);
+        UserInputModeViewContextMenu(const UserInputModeViewContextMenu&);
 
-        BrainOpenGLWidgetContextMenu& operator=(const BrainOpenGLWidgetContextMenu&);
+        UserInputModeViewContextMenu& operator=(const UserInputModeViewContextMenu&);
         
         bool warnIfNetworkBrainordinateCountIsLarge(const int64_t numberOfBrainordinatesInROI);
         
@@ -162,9 +160,9 @@ namespace caret {
         BrowserTabContent* browserTabContent;
     };
     
-#ifdef __BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU_DECLARE__
+#ifdef __USER_INPUT_MODE_VIEW_CONTEXT_MENU_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU_DECLARE__
+#endif // __USER_INPUT_MODE_VIEW_CONTEXT_MENU_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU__H_
+#endif  //__USER_INPUT_MODE_VIEW_CONTEXT_MENU_H__

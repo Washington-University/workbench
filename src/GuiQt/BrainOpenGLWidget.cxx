@@ -35,7 +35,6 @@
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLShape.h"
-#include "BrainOpenGLWidgetContextMenu.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -599,100 +598,6 @@ BrainOpenGLWidget::paintGL()
         TileTabsConfiguration* tileTabsConfiguration = getModelEvent.getTileTabsConfiguration();
         CaretAssert(tileTabsConfiguration);
         
-//        /*
-//         * NOTE: When computing widths and heights, do not round.
-//         * Rounding may cause the bottom most row or column to extend
-//         * outside the graphics region.  Shrinking the last row or
-//         * column is not desired since it might cause the last model
-//         * to be drawn slightly smaller than the others.
-//         */
-//        if (tileTabsConfiguration->isDefaultConfiguration()) {
-//            /*
-//             * Update number of rows/columns in the default configuration
-//             * so that if a scene is saved, the correct number of rows
-//             * and columns are saved to the scene.
-//             */
-//            tileTabsConfiguration->updateDefaultConfigurationRowsAndColumns(numToDraw);
-//            numRows = tileTabsConfiguration->getNumberOfRows();
-//            numCols = tileTabsConfiguration->getNumberOfColumns();
-//            
-//            for (int32_t i = 0; i < numRows; i++) {
-//                rowHeights.push_back(windowHeight / numRows);
-//            }
-//            for (int32_t i = 0; i < numCols; i++) {
-//                columnsWidths.push_back(windowWidth / numCols);
-//            }
-//        }
-//        else {
-//            /*
-//             * Rows/columns from user configuration
-//             */
-//            numRows = tileTabsConfiguration->getNumberOfRows();
-//            numCols = tileTabsConfiguration->getNumberOfColumns();
-//            
-//            /*
-//             * Determine height of each row
-//             */
-//            float rowStretchTotal = 0.0;
-//            for (int32_t i = 0; i < numRows; i++) {
-//                rowStretchTotal += tileTabsConfiguration->getRowStretchFactor(i);
-//            }
-//            CaretAssert(rowStretchTotal > 0.0);
-//            for (int32_t i = 0; i < numRows; i++) {
-//                const int32_t h = static_cast<int32_t>((tileTabsConfiguration->getRowStretchFactor(i) / rowStretchTotal)
-//                                                       * windowHeight);
-//                
-//                rowHeights.push_back(h);
-//            }
-//            
-//            /*
-//             * Determine width of each column
-//             */
-//            float columnStretchTotal = 0.0;
-//            for (int32_t i = 0; i < numCols; i++) {
-//                columnStretchTotal += tileTabsConfiguration->getColumnStretchFactor(i);
-//            }
-//            CaretAssert(columnStretchTotal > 0.0);
-//            for (int32_t i = 0; i < numCols; i++) {
-//                const int32_t w = static_cast<int32_t>((tileTabsConfiguration->getColumnStretchFactor(i) / columnStretchTotal)
-//                                                       * windowWidth);
-//                columnsWidths.push_back(w);
-//            }
-//        }
-//        
-//        CaretAssert(numCols == static_cast<int32_t>(columnsWidths.size()));
-//        CaretAssert(numRows == static_cast<int32_t>(rowHeights.size()));
-//        
-//        /*
-//         * Verify all rows fit within the window
-//         */
-//        int32_t rowHeightsSum = 0;
-//        for (int32_t i = 0; i < numRows; i++) {
-//            rowHeightsSum += rowHeights[i];
-//        }
-//        if (rowHeightsSum > windowHeight) {
-//            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
-//            rowHeights[numRows - 1] -= (rowHeightsSum - windowHeight);
-//        }
-//        
-//        /*
-//         * Adjust width of last column so that it does not extend beyond viewport
-//         */
-//        int32_t columnWidthsSum = 0;
-//        for (int32_t i = 0; i < numCols; i++) {
-//            columnWidthsSum += columnsWidths[i];
-//        }
-//        if (columnWidthsSum > windowWidth) {
-//            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
-//            columnsWidths[numCols - 1] = columnWidthsSum - windowWidth;
-//        }
-//        
-//        CaretLogFiner("Tile Tabs Row Heights: "
-//                      + AString::fromNumbers(rowHeights, ", "));
-//        CaretLogFiner("Tile Tabs Column Widths: "
-//                      + AString::fromNumbers(columnsWidths, ", "));
-        
-
         /*
          * Get the sizes of the tab tiles from the tile tabs configuration
          */
@@ -705,53 +610,6 @@ BrainOpenGLWidget::paintGL()
             return;
         }
         
-//        numRows = static_cast<int32_t>(rowHeights.size());
-//        numCols = static_cast<int32_t>(columnsWidths.size());
-//        
-//        /*
-//         * Arrange models left-to-right and top-to-bottom.
-//         */
-//        int32_t vpX = 0;
-//        int32_t vpY = this->windowHeight[this->windowIndex];
-//        
-//        int32_t iModel = 0;
-//        for (int32_t i = 0; i < numRows; i++) {
-//            const int32_t vpHeight = rowHeights[i];
-//            vpX = 0;
-//            vpY -= vpHeight;
-//            for (int32_t j = 0; j < numCols; j++) {
-//                const int32_t vpWidth = columnsWidths[j];
-//                if (iModel < numToDraw) {
-//                    const int modelViewport[4] = {
-//                        vpX,
-//                        vpY,
-//                        vpWidth,
-//                        vpHeight
-//                    };
-//                    
-//                    BrowserTabContent* tabContent = getModelEvent.getTabContentToDraw(iModel);
-//                    const bool highlightTab = (getModelEvent.getTabIndexForTileTabsHighlighting() == tabContent->getTabNumber());
-//                    BrainOpenGLViewportContent* vc =
-//                    new BrainOpenGLViewportContent(modelViewport,
-//                                                   modelViewport,
-//                                                   highlightTab,
-//                                                   GuiManager::get()->getBrain(),
-//                                                   tabContent);
-//                    this->drawingViewportContents.push_back(vc);
-//                }
-//                iModel++;
-//                vpX += vpWidth;
-//                
-//                if (iModel >= numToDraw) {
-//                    /*
-//                     * More cells than models for drawing so set loop
-//                     * indices so that loops terminate
-//                     */
-//                    j = numCols;
-//                    i = numRows;
-//                }
-//            }
-//        }
         /*
          * Create the viewport drawing contents for all tabs
          */
@@ -879,27 +737,26 @@ BrainOpenGLWidget::event(QEvent* event)
 void 
 BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
 {
-    const int x = contextMenuEvent->x();
-    const int y1 = contextMenuEvent->y();
-    const int y = this->height() - y1;
+    const int mouseX = contextMenuEvent->x();
+    const int mouseY = this->height() - contextMenuEvent->y();
     
-    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(x, y);
-    if (viewportContent == NULL) {
-        return;
-    }
-    BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
-    if (tabContent == NULL) {
-        return;
-    }
+    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+                                                                               mouseY);
     
-    SelectionManager* idManager = this->performIdentification(x,
-                                                                   y,
-                                                                   false);
+    MouseEvent mouseEvent(viewportContent,
+                          this,
+                          this->windowIndex,
+                          mouseX,
+                          mouseY,
+                          0,
+                          0,
+                          mouseX,
+                          mouseY,
+                          false);
     
-    BrainOpenGLWidgetContextMenu contextMenu(idManager,
-                                             tabContent,
-                                             this);
-    contextMenu.exec(contextMenuEvent->globalPos());
+    this->selectedUserInputProcessor->showContextMenu(mouseEvent,
+                                                      contextMenuEvent->globalPos(),
+                                                      this);
 }
 
 /**

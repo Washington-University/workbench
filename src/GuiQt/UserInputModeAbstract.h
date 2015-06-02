@@ -25,6 +25,7 @@
 #include "CaretObject.h"
 #include "CursorEnum.h"
 
+class QPoint;
 class QWidget;
 
 namespace caret {
@@ -174,6 +175,20 @@ namespace caret {
          *     Mouse event information.
          */
         virtual void mouseMove(const MouseEvent& /*mouseEvent*/) { }
+        
+        /**
+         * Show a context menu (pop-up menu at mouse location)
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         * @param menuPosition
+         *     Point at which menu is displayed (passed to QMenu::exec())
+         * @param openGLWidget
+         *     OpenGL widget in which context menu is requested
+         */
+        virtual void showContextMenu(const MouseEvent& /*mouseEvent*/,
+                                     const QPoint& /* menuPosition */,
+                                     BrainOpenGLWidget* /* openGLWidget */) { }
         
     protected:
         void setWidgetForToolBar(QWidget* widgetForToolBar);

@@ -84,6 +84,10 @@ namespace caret {
         
         virtual void mouseMove(const MouseEvent& mouseEvent);
 
+        virtual void showContextMenu(const MouseEvent& mouseEvent,
+                                     const QPoint& menuPosition,
+                                     BrainOpenGLWidget* openGLWidget);
+        
         virtual CursorEnum::Enum getCursor() const;
 
         virtual AString toString() const;

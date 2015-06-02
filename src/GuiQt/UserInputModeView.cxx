@@ -34,6 +34,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "MouseEvent.h"
+#include "UserInputModeViewContextMenu.h"
 
 using namespace caret;
 
@@ -287,6 +288,42 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
                                              mouseEvent.getDy());
     updateGraphics(mouseEvent);
 }
+
+/**
+ * Show a context menu (pop-up menu at mouse location)
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ * @param menuPosition
+ *     Point at which menu is displayed (passed to QMenu::exec())
+ * @param openGLWidget
+ *     OpenGL widget in which context menu is requested
+ */
+void
+UserInputModeView::showContextMenu(const MouseEvent& mouseEvent,
+                                   const QPoint& menuPosition,
+                                   BrainOpenGLWidget* openGLWidget)
+{
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
+    if (tabContent == NULL) {
+        return;
+    }
+    
+    const int32_t mouseX = mouseEvent.getX();
+    const int32_t mouseY = mouseEvent.getY();
+    
+    SelectionManager* idManager = openGLWidget->performIdentification(mouseX,
+                                                                      mouseY,
+                                                                      false);
+    
+    UserInputModeViewContextMenu contextMenu(idManager,
+                                             tabContent,
+                                             openGLWidget);
+    contextMenu.exec(menuPosition);
+}
+
+
 
 /**
  * If this windows is yoked, issue an event to update other

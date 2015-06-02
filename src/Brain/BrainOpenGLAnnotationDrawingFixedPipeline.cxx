@@ -130,7 +130,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                     modelXYZ[1],
                     modelXYZ[2]
                 };
-                const float thickness = 1.5;
                 const float distToPlaneAbs = std::fabs(m_volumeSpacePlane.signedDistanceToPlane(xyzFloat));
                 if (distToPlaneAbs < 1.5) {
                     modelXYZValid = true;

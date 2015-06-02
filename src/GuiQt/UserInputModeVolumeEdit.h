@@ -87,6 +87,10 @@ namespace caret {
         
         virtual void mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent);
 
+        virtual void showContextMenu(const MouseEvent& mouseEvent,
+                                     const QPoint& menuPosition,
+                                     BrainOpenGLWidget* openGLWidget);
+        
         bool getVolumeEditInfo(VolumeEditInfo& volumeEditInfo);
         
         void updateGraphicsAfterEditing(VolumeFile* volumeFile,

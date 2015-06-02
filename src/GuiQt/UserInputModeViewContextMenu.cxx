@@ -21,9 +21,9 @@
 
 #include <QActionGroup>
 
-#define __BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU_DECLARE__
-#include "BrainOpenGLWidgetContextMenu.h"
-#undef __BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU_DECLARE__
+#define __USER_INPUT_MODE_VIEW_CONTEXT_MENU_DECLARE__
+#include "UserInputModeViewContextMenu.h"
+#undef __USER_INPUT_MODE_VIEW_CONTEXT_MENU_DECLARE__
 
 #include "AlgorithmException.h"
 #include "AlgorithmNodesInsideBorder.h"
@@ -75,7 +75,7 @@ using namespace caret;
 
     
 /**
- * \class caret::BrainOpenGLWidgetContextMenu 
+ * \class caret::UserInputModeViewContextMenu 
  * \brief Context (pop-up) menu for BrainOpenGLWidget
  *
  * Displays a menu in the BrainOpenGLWidget.  Content of menu
@@ -88,7 +88,7 @@ using namespace caret;
  * @param parentOpenGLWidget
  *    Parent OpenGL Widget on which the menu is displayed.
  */
-BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* selectionManager,
+UserInputModeViewContextMenu::UserInputModeViewContextMenu(SelectionManager* selectionManager,
                                                            BrowserTabContent* browserTabContent,
                                                            BrainOpenGLWidget* parentOpenGLWidget)
 : QMenu(parentOpenGLWidget)
@@ -115,407 +115,9 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* sel
     /*
      * Show Label ROI operations only for surfaces
      */
-//    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
-//    if (surfaceID->isValid()) {
         addLabelRegionOfInterestActions();
-//    }
     
-//    /*
-//     * Identify Node
-//     */
-//    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
-//    
-//    std::vector<QAction*> ciftiConnectivityActions;
-//    QActionGroup* ciftiConnectivityActionGroup = new QActionGroup(this);
-//    QObject::connect(ciftiConnectivityActionGroup, SIGNAL(triggered(QAction*)),
-//                     this, SLOT(parcelCiftiConnectivityActionSelected(QAction*)));
-//    
-//    std::vector<QAction*> ciftiFiberTrajectoryActions;
-//    QActionGroup* ciftiFiberTrajectoryActionGroup = new QActionGroup(this);
-//    QObject::connect(ciftiFiberTrajectoryActionGroup, SIGNAL(triggered(QAction*)),
-//                     this, SLOT(parcelCiftiFiberTrajectoryActionSelected(QAction*)));
-//    
-//    std::vector<QAction*> dataSeriesActions;
-//    QActionGroup* dataSeriesActionGroup = new QActionGroup(this);
-//    QObject::connect(dataSeriesActionGroup, SIGNAL(triggered(QAction*)),
-//                     this, SLOT(parcelChartableDataActionSelected(QAction*)));
-//    if (surfaceID->isValid()) {
-//        /*
-//         * Connectivity actions for labels
-//         */
-//        Brain* brain = surfaceID->getBrain();
-//        Surface* surface = surfaceID->getSurface();
-//        const int32_t nodeNumber = surfaceID->getNodeNumber();
-//        
-//        CiftiConnectivityMatrixDataFileManager* connMatrixMan = brain->getCiftiConnectivityMatrixDataFileManager();
-//        std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-//        brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
-//        bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
-//        
-//        CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = brain->getCiftiFiberTrajectoryManager();
-//        std::vector<CiftiFiberTrajectoryFile*> ciftiFiberTrajectoryFiles;
-//        const int32_t numFiberFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
-//        for (int32_t i = 0; i < numFiberFiles; i++) {
-//            ciftiFiberTrajectoryFiles.push_back(brain->getConnectivityFiberTrajectoryFile(i));
-//        }
-//        const bool haveCiftiFiberTrajectoryFiles = (ciftiFiberTrajectoryFiles.empty() == false);
-//        
-//        std::vector<ChartableLineSeriesBrainordinateInterface*> chartableFiles;
-//        brain->getAllChartableDataFiles(chartableFiles);
-//        const bool haveChartableFiles = (chartableFiles.empty() == false);
-//        ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
-//    
-//        Model* model = this->browserTabContent->getModelForDisplay();
-//        if (model != NULL) {
-//            std::vector<CaretMappableDataFile*> allMappableLabelFiles;
-//            
-//            std::vector<CiftiBrainordinateLabelFile*> ciftiLabelFiles;
-//            brain->getConnectivityDenseLabelFiles(ciftiLabelFiles);
-//            allMappableLabelFiles.insert(allMappableLabelFiles.end(),
-//                                 ciftiLabelFiles.begin(),
-//                                 ciftiLabelFiles.end());
-//            
-//                std::vector<LabelFile*> brainStructureLabelFiles;
-//                surface->getBrainStructure()->getLabelFiles(brainStructureLabelFiles);
-//            allMappableLabelFiles.insert(allMappableLabelFiles.end(),
-//                                 brainStructureLabelFiles.begin(),
-//                                 brainStructureLabelFiles.end());
-//            
-//            const int32_t numberOfLabelFiles = static_cast<int32_t>(allMappableLabelFiles.size());
-//            for (int32_t ilf = 0; ilf < numberOfLabelFiles; ilf++) {
-//                CaretMappableDataFile* mappableLabelFile = allMappableLabelFiles[ilf];
-//                const int32_t numMaps = mappableLabelFile->getNumberOfMaps();
-//                for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
-//                    
-//                    int32_t labelKey = -1;
-//                    AString labelName;
-//                    CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
-//                    LabelFile* labelFile = dynamic_cast<LabelFile*>(mappableLabelFile);
-//                    
-//                    if (ciftiLabelFile != NULL) {
-//                        float nodeValue;
-//                        bool nodeValueValid = false;
-//                        AString stringValue;
-//                        if (ciftiLabelFile->getMapSurfaceNodeValue(mapIndex,
-//                                                                   surface->getStructure(),
-//                                                                   nodeNumber,
-//                                                                   surface->getNumberOfNodes(),
-//                                                                   nodeValue,
-//                                                                   nodeValueValid,
-//                                                                   stringValue)) {
-//                            if (nodeValueValid) {
-//                                labelKey = static_cast<int32_t>(nodeValue);
-//                                const GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
-//                                labelName =  labelTable->getLabelName(labelKey);
-//                            }
-//                        }
-//                    }
-//                    else if (labelFile != NULL) {
-//                        labelKey = labelFile->getLabelKey(nodeNumber,
-//                                                          mapIndex);
-//                        labelName = labelFile->getLabelName(nodeNumber,
-//                                                            mapIndex);
-//                    }
-//                    else {
-//                        CaretAssertMessage(0,
-//                                           "Should never get here, new or invalid label file type");
-//                    }
-//                    
-//                    const AString mapName = mappableLabelFile->getMapName(mapIndex);
-//                    if (labelName.isEmpty() == false) {
-//                        ParcelConnectivity* pc = new ParcelConnectivity(mappableLabelFile,
-//                                                                        mapIndex,
-//                                                                        labelKey,
-//                                                                        labelName,
-//                                                                        surface,
-//                                                                        nodeNumber,
-//                                                                        chartingDataManager,
-//                                                                        connMatrixMan,
-//                                                                        ciftiFiberTrajectoryManager);
-//                        this->parcelConnectivities.push_back(pc);
-//                        
-//                        if (hasCiftiConnectivity) {
-//                            const AString actionName("Show Cifti Connectivity For Parcel "
-//                                                     + labelName
-//                                                     + " in map "
-//                                                     + mapName);
-//                            QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
-//                            action->setData(qVariantFromValue((void*)pc));
-//                            ciftiConnectivityActions.push_back(action);
-//                        }
-//                        
-//                        if (haveCiftiFiberTrajectoryFiles) {
-//                            const AString fiberTrajActionName("Show Average Fiber Trajectory for Parcel "
-//                                                              + labelName
-//                                                              + " in map "
-//                                                              + mapName);
-//                            QAction* fiberTrajAction = ciftiFiberTrajectoryActionGroup->addAction(fiberTrajActionName);
-//                            fiberTrajAction->setData(qVariantFromValue((void*)pc));
-//                            ciftiFiberTrajectoryActions.push_back(fiberTrajAction);
-//                        }
-//                        
-//                        if (haveChartableFiles) {
-//                            const AString tsActionName("Show Data Series Graph For Parcel "
-//                                                       + labelName
-//                                                       + " in map "
-//                                                       + mapName);
-//                            QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
-//                            tsAction->setData(qVariantFromValue((void*)pc));
-//                            dataSeriesActions.push_back(tsAction);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-    
-//    if (idVoxel->isValid()) {
-//        Brain* brain = idVoxel->getBrain();
-//        std::vector<CaretMappableDataFile*> mappableFiles;
-//        brain->getAllMappableDataFiles(mappableFiles);
-//        
-//        double voxelXYZDouble[3];
-//        idVoxel->getModelXYZ(voxelXYZDouble);
-//        const float voxelXYZ[3] = {
-//            voxelXYZDouble[0],
-//            voxelXYZDouble[1],
-//            voxelXYZDouble[2]
-//        };
-//        const int32_t numberOfFiles = static_cast<int32_t>(mappableFiles.size());
-//        for (int32_t ilf = 0; ilf < numberOfFiles; ilf++) {
-//            CaretMappableDataFile* mappableLabelFile = mappableFiles[ilf];
-//            if (mappableLabelFile->isMappedWithLabelTable()
-//                && mappableLabelFile->isVolumeMappable()) {
-//                const int32_t numMaps = mappableLabelFile->getNumberOfMaps();
-//                for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
-//                    
-//                    int32_t labelKey = -1;
-//                    AString labelName;
-//                    CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
-//                    VolumeFile* volumeLabelFile = dynamic_cast<VolumeFile*>(mappableLabelFile);
-//                    VolumeMappableInterface* volumeInterface = dynamic_cast<VolumeMappableInterface*>(mappableLabelFile);
-//                    if (volumeInterface != NULL) {
-//                        float nodeValue;
-//                        bool nodeValueValid = false;
-//                        AString stringValue;
-//                        
-//                        int64_t voxelIJK[3];
-//                        float voxelValue;
-//                        bool voxelValueValid;
-//                        AString textValue;
-//                        if (ciftiLabelFile->getMapVolumeVoxelValue(mapIndex,
-//                                                                   voxelXYZ,
-//                                                                   voxelIJK,
-//                                                                   voxelValue,
-//                                                                   voxelValueValid,
-//                                                                   textValue)) {
-//                            if (voxelValueValid) {
-//                                labelKey = static_cast<int32_t>(voxelValue);
-//                                const GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
-//                                labelName =  labelTable->getLabelName(labelKey);
-//                            }
-//                        }
-//                    }
-//                    else {
-//                        CaretAssertMessage(0,
-//                                           "Should never get here, new or invalid label file type");
-//                    }
-//                    
-//                    const AString mapName = mappableLabelFile->getMapName(mapIndex);
-//                    
-//                    
-////                if (labelName.isEmpty() == false) {
-////                    ParcelConnectivity* pc = new ParcelConnectivity(mappableLabelFile,
-////                                                                    mapIndex,
-////                                                                    labelKey,
-////                                                                    labelName,
-////                                                                    surface,
-////                                                                    nodeNumber,
-////                                                                    chartingDataManager,
-////                                                                    connMatrixMan,
-////                                                                    ciftiFiberTrajectoryManager);
-////                    this->parcelConnectivities.push_back(pc);
-////                    
-////                    if (hasCiftiConnectivity) {
-////                        const AString actionName("Show Cifti Connectivity For Parcel "
-////                                                 + labelName
-////                                                 + " in map "
-////                                                 + mapName);
-////                        QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
-////                        action->setData(qVariantFromValue((void*)pc));
-////                        ciftiConnectivityActions.push_back(action);
-////                    }
-////                    
-////                    if (haveCiftiFiberTrajectoryFiles) {
-////                        const AString fiberTrajActionName("Show Average Fiber Trajectory for Parcel "
-////                                                          + labelName
-////                                                          + " in map "
-////                                                          + mapName);
-////                        QAction* fiberTrajAction = ciftiFiberTrajectoryActionGroup->addAction(fiberTrajActionName);
-////                        fiberTrajAction->setData(qVariantFromValue((void*)pc));
-////                        ciftiFiberTrajectoryActions.push_back(fiberTrajAction);
-////                    }
-////                    
-////                    if (haveChartableFiles) {
-////                        const AString tsActionName("Show Data Series Graph For Parcel "
-////                                                   + labelName
-////                                                   + " in map "
-////                                                   + mapName);
-////                        QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
-////                        tsAction->setData(qVariantFromValue((void*)pc));
-////                        dataSeriesActions.push_back(tsAction);
-////                    }
-////                }
-//                    
-//                    
-//                }
-//            }
-//        }
-//    }
-    
-//    if (ciftiConnectivityActions.empty() == false) {
-//        this->addSeparator();
-//        for (std::vector<QAction*>::iterator ciftiConnIter = ciftiConnectivityActions.begin();
-//             ciftiConnIter != ciftiConnectivityActions.end();
-//             ciftiConnIter++) {
-//            this->addAction(*ciftiConnIter);
-//        }
-//    }
-//    
-//    if (ciftiFiberTrajectoryActions.empty() == false) {
-//        this->addSeparator();
-//        for (std::vector<QAction*>::iterator ciftiFiberIter = ciftiFiberTrajectoryActions.begin();
-//             ciftiFiberIter != ciftiFiberTrajectoryActions.end();
-//             ciftiFiberIter++) {
-//            this->addAction(*ciftiFiberIter);
-//        }
-//    }
-//    if(dataSeriesActions.empty() == false) {
-//        this->addSeparator();            
-//        for (std::vector<QAction*>::iterator tsIter = dataSeriesActions.begin();
-//             tsIter != dataSeriesActions.end();
-//             tsIter++) {
-//            this->addAction(*tsIter);
-//        }
-//    }
-    
-//    std::vector<QAction*> createActions;
-//    
     const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
-//
-//    /*
-//     * Create focus at surface node or at ID symbol
-//     */
-//    if (surfaceID->isValid()
-//        && (focusID->isValid() == false)) {
-//        const int32_t nodeIndex = surfaceID->getNodeNumber();
-//        const Surface* surface = surfaceID->getSurface();
-//        const QString text = ("Create Focus at Vertex "
-//                              + QString::number(nodeIndex)
-//                              + " ("
-//                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
-//                              + ")...");
-//        
-//        createActions.push_back(WuQtUtilities::createAction(text,
-//                                                            "",
-//                                                            this,
-//                                                            this,
-//                                                            SLOT(createSurfaceFocusSelected())));
-//    }
-//    else if (idSymbol->isValid()
-//             && (focusID->isValid() == false)) {
-//        const int32_t nodeIndex = idSymbol->getNodeNumber();
-//        const Surface* surface = idSymbol->getSurface();
-//        const QString text = ("Create Focus at Selected Vertex "
-//                              + QString::number(nodeIndex)
-//                              + " ("
-//                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
-//                              + ")...");
-//        
-//        createActions.push_back(WuQtUtilities::createAction(text,
-//                                                            "",
-//                                                            this,
-//                                                            this,
-//                                                            SLOT(createSurfaceIDSymbolFocusSelected())));
-//    }
-//
-//    /*
-//     * Create focus at voxel as long as there is no volume focus ID
-//     */
-//    if (idVoxel->isValid()
-//        && (focusVolID->isValid() == false)) {
-//        int64_t ijk[3];
-//        idVoxel->getVoxelIJK(ijk);
-//        float xyz[3];
-//        const VolumeMappableInterface* vf = idVoxel->getVolumeFile();
-//        vf->indexToSpace(ijk, xyz);
-//        
-//        const AString text = ("Create Focus at Voxel IJK ("
-//                              + AString::fromNumbers(ijk, 3, ",")
-//                              + ") XYZ ("
-//                              + AString::fromNumbers(xyz, 3, ",")
-//                              + ")...");
-//        createActions.push_back(WuQtUtilities::createAction(text,
-//                                                            "",
-//                                                            this,
-//                                                            this,
-//                                                            SLOT(createVolumeFocusSelected())));
-//    }
-//    
-//    if (createActions.empty() == false) {
-//        if (this->actions().count() > 0) {
-//            this->addSeparator();
-//        }
-//        for (std::vector<QAction*>::iterator iter = createActions.begin();
-//             iter != createActions.end();
-//             iter++) {
-//            this->addAction(*iter);
-//        }
-//    }
-//    
-//    /*
-//     * Actions for editing
-//     */
-//    std::vector<QAction*> editActions;
-//    
-//    /*
-//     * Edit Surface Focus
-//     */
-//    if (focusID->isValid()) {
-//        const QString text = ("Edit Surface Focus ("
-//                              + focusID->getFocus()->getName()
-//                              + ")");
-//        editActions.push_back(WuQtUtilities::createAction(text,
-//                                                          "",
-//                                                          this,
-//                                                          this,
-//                                                          SLOT(editSurfaceFocusSelected())));
-//    }
-//    
-//    /*
-//     * Edit volume focus
-//     */
-//    if (focusVolID->isValid()) {
-//        const QString text = ("Edit Volume Focus ("
-//                              + focusVolID->getFocus()->getName()
-//                              + ")");
-//        editActions.push_back(WuQtUtilities::createAction(text,
-//                                                          "",
-//                                                          this,
-//                                                          this,
-//                                                          SLOT(editVolumeFocusSelected())));
-//    }
-//    
-//    if (editActions.empty() == false) {
-//        if (this->actions().count() > 0) {
-//            this->addSeparator();
-//        }
-//        for (std::vector<QAction*>::iterator iter = editActions.begin();
-//             iter != editActions.end();
-//             iter++) {
-//            this->addAction(*iter);
-//        }
-//    }
     
     if (this->actions().count() > 0) {
         this->addSeparator();
@@ -539,7 +141,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* sel
 /**
  * Destructor.
  */
-BrainOpenGLWidgetContextMenu::~BrainOpenGLWidgetContextMenu()
+UserInputModeViewContextMenu::~UserInputModeViewContextMenu()
 {
     for (std::vector<ParcelConnectivity*>::iterator parcelIter = this->parcelConnectivities.begin();
          parcelIter != this->parcelConnectivities.end();
@@ -558,7 +160,7 @@ BrainOpenGLWidgetContextMenu::~BrainOpenGLWidgetContextMenu()
  *     (horizontal bar) is added prior to adding the given actions.
  */
 void
-BrainOpenGLWidgetContextMenu::addActionsToMenu(QList<QAction*>& actionsToAdd,
+UserInputModeViewContextMenu::addActionsToMenu(QList<QAction*>& actionsToAdd,
                                                const bool addSeparatorBeforeActions)
 {
     if (actionsToAdd.empty() == false) {
@@ -577,7 +179,7 @@ BrainOpenGLWidgetContextMenu::addActionsToMenu(QList<QAction*>& actionsToAdd,
  * Add the identification actions to the menu.
  */
 void
-BrainOpenGLWidgetContextMenu::addIdentificationActions()
+UserInputModeViewContextMenu::addIdentificationActions()
 {
     /*
      * Accumlate identification actions
@@ -674,7 +276,7 @@ BrainOpenGLWidgetContextMenu::addIdentificationActions()
  * Add the border region of interest actions to the menu.
  */
 void
-BrainOpenGLWidgetContextMenu::addBorderRegionOfInterestActions()
+UserInputModeViewContextMenu::addBorderRegionOfInterestActions()
 {
     SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     
@@ -723,7 +325,7 @@ BrainOpenGLWidgetContextMenu::addBorderRegionOfInterestActions()
  * Add all label region of interest options to the menu
  */
 void
-BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
+UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
 {
     Brain* brain = NULL;
     
@@ -1044,7 +646,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
  * Add the foci options to the menu.
  */
 void
-BrainOpenGLWidgetContextMenu::addFociActions()
+UserInputModeViewContextMenu::addFociActions()
 {
     QList<QAction*> fociCreateActions;
     
@@ -1160,7 +762,7 @@ BrainOpenGLWidgetContextMenu::addFociActions()
  *    Action that was selected.
  */
 void
-BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* action)
+UserInputModeViewContextMenu::parcelCiftiConnectivityActionSelected(QAction* action)
 {
     void* pointer = action->data().value<void*>();
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
@@ -1241,7 +843,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
  *    Action that was selected.
  */
 void
-BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* action)
+UserInputModeViewContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* action)
 {
     void* pointer = action->data().value<void*>();
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
@@ -1258,12 +860,6 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
                                        "No vertices match label " + pc->labelName);
                 return;
             }
-            
-//            if (pc->ciftiFiberTrajectoryManager->hasNetworkFiles()) {
-//                if (warnIfBrainordinateCountIsLarge(nodeIndices.size())) {
-//                    return;
-//                }
-//            }
             break;
         case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
             break;
@@ -1310,7 +906,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
  * Called when border cifti connectivity is selected.
  */
 void
-BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
+UserInputModeViewContextMenu::borderCiftiConnectivitySelected()
 {
     SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     Border* border = borderID->getBorder();
@@ -1383,7 +979,7 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
  *    Action that was selected.
  */
 void 
-BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
+UserInputModeViewContextMenu::parcelChartableDataActionSelected(QAction* action)
 {
     void* pointer = action->data().value<void*>();
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
@@ -1460,7 +1056,7 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
  * Called when border timeseries is selected.
  */
 void 
-BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
+UserInputModeViewContextMenu::borderDataSeriesSelected()
 {
     SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     Border* border = borderID->getBorder();
@@ -1531,7 +1127,7 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
  * true.  Else, return false.
  */
 bool
-BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
+UserInputModeViewContextMenu::enableDataSeriesGraphsIfNoneEnabled()
 {
     Brain* brain = GuiManager::get()->getBrain();
     std::vector<ChartableLineSeriesBrainordinateInterface*> chartFiles;
@@ -1572,7 +1168,7 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
  * Called to display identication information on the surface border.
  */
 void 
-BrainOpenGLWidgetContextMenu::identifySurfaceBorderSelected()
+UserInputModeViewContextMenu::identifySurfaceBorderSelected()
 {
     SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     Brain* brain = borderID->getBrain();
@@ -1588,7 +1184,7 @@ BrainOpenGLWidgetContextMenu::identifySurfaceBorderSelected()
  * Called to create a focus at a node location
  */
 void
-BrainOpenGLWidgetContextMenu::createSurfaceFocusSelected()
+UserInputModeViewContextMenu::createSurfaceFocusSelected()
 {
     SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
     const Surface* surface = surfaceID->getSurface();
@@ -1615,7 +1211,7 @@ BrainOpenGLWidgetContextMenu::createSurfaceFocusSelected()
  * Called to create a focus at a node location
  */
 void
-BrainOpenGLWidgetContextMenu::createSurfaceIDSymbolFocusSelected()
+UserInputModeViewContextMenu::createSurfaceIDSymbolFocusSelected()
 {
     SelectionItemSurfaceNodeIdentificationSymbol* nodeSymbolID =
         this->selectionManager->getSurfaceNodeIdentificationSymbol();
@@ -1642,7 +1238,7 @@ BrainOpenGLWidgetContextMenu::createSurfaceIDSymbolFocusSelected()
  * Called to create a focus at a voxel location
  */
 void
-BrainOpenGLWidgetContextMenu::createVolumeFocusSelected()
+UserInputModeViewContextMenu::createVolumeFocusSelected()
 {
     SelectionItemVoxel* voxelID = this->selectionManager->getVoxelIdentification();
     const VolumeMappableInterface* vf = voxelID->getVolumeFile();
@@ -1674,7 +1270,7 @@ BrainOpenGLWidgetContextMenu::createVolumeFocusSelected()
  * Called to display identication information on the surface focus.
  */
 void
-BrainOpenGLWidgetContextMenu::identifySurfaceFocusSelected()
+UserInputModeViewContextMenu::identifySurfaceFocusSelected()
 {
     SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
     Brain* brain = focusID->getBrain();
@@ -1690,7 +1286,7 @@ BrainOpenGLWidgetContextMenu::identifySurfaceFocusSelected()
  * Called to display identication information on the volume focus.
  */
 void
-BrainOpenGLWidgetContextMenu::identifyVolumeFocusSelected()
+UserInputModeViewContextMenu::identifyVolumeFocusSelected()
 {
     SelectionItemFocusVolume* focusID = this->selectionManager->getVolumeFocusIdentification();
     Brain* brain = focusID->getBrain();
@@ -1706,7 +1302,7 @@ BrainOpenGLWidgetContextMenu::identifyVolumeFocusSelected()
  * Called to edit the surface focus.
  */
 void
-BrainOpenGLWidgetContextMenu::editSurfaceFocusSelected()
+UserInputModeViewContextMenu::editSurfaceFocusSelected()
 {
     SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
     Focus* focus = focusID->getFocus();
@@ -1721,7 +1317,7 @@ BrainOpenGLWidgetContextMenu::editSurfaceFocusSelected()
  * Called to edit the volume focus.
  */
 void
-BrainOpenGLWidgetContextMenu::editVolumeFocusSelected()
+UserInputModeViewContextMenu::editVolumeFocusSelected()
 {
     SelectionItemFocusVolume* focusID = this->selectionManager->getVolumeFocusIdentification();
     Focus* focus = focusID->getFocus();
@@ -1736,41 +1332,18 @@ BrainOpenGLWidgetContextMenu::editVolumeFocusSelected()
  * Called to display identication information on the surface border.
  */
 void 
-BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
+UserInputModeViewContextMenu::identifySurfaceNodeSelected()
 {    
-//    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
     GuiManager::get()->processIdentification(this->browserTabContent->getTabNumber(),
                                              this->selectionManager,
                                              this->parentOpenGLWidget);    
-
-/*
- *
- *
- *
-    Brain* brain = surfaceID->getBrain();
-    this->selectionManager->clearOtherSelectedItems(surfaceID);
-    const AString idMessage = this->selectionManager->getIdentificationText(brain);
-    
-    Surface* surface = surfaceID->getSurface();
-    const StructureEnum::Enum structure = surface->getStructure();
-    
-    IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItemNode(idMessage,
-                                                        structure,
-                                                        surface->getNumberOfNodes(),
-                                                        surfaceID->getNodeNumber()));
-    
-    EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
-*
-*
-*/
 }
 
 /**
  * Called to display identication information on the surface border.
  */
 void 
-BrainOpenGLWidgetContextMenu::identifyVoxelSelected()
+UserInputModeViewContextMenu::identifyVoxelSelected()
 {
     SelectionItemVoxel* voxelID = this->selectionManager->getVoxelIdentification();
     Brain* brain = voxelID->getBrain();
@@ -1786,7 +1359,7 @@ BrainOpenGLWidgetContextMenu::identifyVoxelSelected()
  * Called to remove all node identification symbols.
  */
 void 
-BrainOpenGLWidgetContextMenu::removeAllNodeIdentificationSymbolsSelected()
+UserInputModeViewContextMenu::removeAllNodeIdentificationSymbolsSelected()
 {
     IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
     idManager->removeAllIdentifiedItems();
@@ -1797,7 +1370,7 @@ BrainOpenGLWidgetContextMenu::removeAllNodeIdentificationSymbolsSelected()
  * Called to remove node identification symbol from node.
  */
 void
-BrainOpenGLWidgetContextMenu::removeNodeIdentificationSymbolSelected()
+UserInputModeViewContextMenu::removeNodeIdentificationSymbolSelected()
 {
    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
     if (idSymbol->isValid()) {
@@ -1820,7 +1393,7 @@ BrainOpenGLWidgetContextMenu::removeNodeIdentificationSymbolSelected()
  *    Number of brainordinates in the ROI.
  */
 bool
-BrainOpenGLWidgetContextMenu::warnIfNetworkBrainordinateCountIsLarge(const int64_t numberOfBrainordinatesInROI)
+UserInputModeViewContextMenu::warnIfNetworkBrainordinateCountIsLarge(const int64_t numberOfBrainordinatesInROI)
 {
     if (numberOfBrainordinatesInROI < 200) {
         return true;
@@ -1841,7 +1414,7 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkBrainordinateCountIsLarge(const int64
 /**
  * Constructor.
  */
-BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(Brain* brain,
+UserInputModeViewContextMenu::ParcelConnectivity::ParcelConnectivity(Brain* brain,
                                                                      const ParcelType parcelType,
                                                                      CaretMappableDataFile* mappableLabelFile,
                                                                      const int32_t labelFileMapIndex,
@@ -1872,7 +1445,7 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(Brain* brai
 /**
  * Destructor.
  */
-BrainOpenGLWidgetContextMenu::ParcelConnectivity::~ParcelConnectivity()
+UserInputModeViewContextMenu::ParcelConnectivity::~ParcelConnectivity()
 {
     
 }
@@ -1884,7 +1457,7 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::~ParcelConnectivity()
  *    Contains node indices upon exit.
  */
 void
-BrainOpenGLWidgetContextMenu::ParcelConnectivity::getNodeIndices(std::vector<int32_t>& nodeIndicesOut) const
+UserInputModeViewContextMenu::ParcelConnectivity::getNodeIndices(std::vector<int32_t>& nodeIndicesOut) const
 {
     nodeIndicesOut.clear();
     
@@ -1919,7 +1492,7 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::getNodeIndices(std::vector<int
  *    Contains voxel indices upon exit.
  */
 void
-BrainOpenGLWidgetContextMenu::ParcelConnectivity::getVoxelIndices(std::vector<VoxelIJK>& voxelIndicesOut) const
+UserInputModeViewContextMenu::ParcelConnectivity::getVoxelIndices(std::vector<VoxelIJK>& voxelIndicesOut) const
 {
     voxelIndicesOut.clear();
 

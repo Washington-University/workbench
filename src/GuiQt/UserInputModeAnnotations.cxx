@@ -830,3 +830,22 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     m_annotationToolsWidget->updateWidget();
 }
 
+/**
+ * Show a context menu (pop-up menu at mouse location)
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ * @param menuPosition
+ *     Point at which menu is displayed (passed to QMenu::exec())
+ * @param openGLWidget
+ *     OpenGL widget in which context menu is requested
+ */
+void
+UserInputModeAnnotations::showContextMenu(const MouseEvent& /*mouseEvent*/,
+                                          const QPoint& /*menuPosition*/,
+                                          BrainOpenGLWidget* /*openGLWidget*/)
+{
+    /* no context menu */
+}
+
+

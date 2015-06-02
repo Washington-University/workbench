@@ -63,7 +63,6 @@ BrainBrowserWindowToolBarSurfaceMontage.h
 BrainBrowserWindowToolBarTab.h
 BrainBrowserWindowToolBarVolumeMontage.h
 BrainOpenGLWidget.h
-BrainOpenGLWidgetContextMenu.h
 BugReportDialog.h
 CaretColorEnumComboBox.h
 CaretColorEnumMenu.h
@@ -137,6 +136,7 @@ TileTabsConfigurationDialog.h
 UserInputModeAnnotationsWidget.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
+UserInputModeViewContextMenu.h
 UserInputModeVolumeEditWidget.h
 UsernamePasswordWidget.h
 VolumeFileCreateDialog.h
@@ -213,7 +213,6 @@ BrainBrowserWindowToolBarSurfaceMontage.h
 BrainBrowserWindowToolBarTab.h
 BrainBrowserWindowToolBarVolumeMontage.h
 BrainOpenGLWidget.h
-BrainOpenGLWidgetContextMenu.h
 BugReportDialog.h
 CaretColorEnumComboBox.h
 CaretColorEnumMenu.h
@@ -318,6 +317,7 @@ UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
 UserInputModeFoci.h
 UserInputModeView.h
+UserInputModeViewContextMenu.h
 UserInputModeVolumeEdit.h
 UserInputModeVolumeEditWidget.h
 UsernamePasswordWidget.h
@@ -389,7 +389,6 @@ BrainBrowserWindowToolBarSurfaceMontage.cxx
 BrainBrowserWindowToolBarTab.cxx
 BrainBrowserWindowToolBarVolumeMontage.cxx
 BrainOpenGLWidget.cxx
-BrainOpenGLWidgetContextMenu.cxx
 BugReportDialog.cxx
 CaretColorEnumComboBox.cxx
 CaretColorEnumMenu.cxx
@@ -493,6 +492,7 @@ UserInputModeBordersWidget.cxx
 UserInputModeFoci.cxx
 UserInputModeFociWidget.cxx
 UserInputModeView.cxx
+UserInputModeViewContextMenu.cxx
 UserInputModeVolumeEdit.cxx
 UserInputModeVolumeEditWidget.cxx
 UsernamePasswordWidget.cxx

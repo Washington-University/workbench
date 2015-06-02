@@ -61,6 +61,10 @@ namespace caret {
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
+        virtual void showContextMenu(const MouseEvent& mouseEvent,
+                                     const QPoint& menuPosition,
+                                     BrainOpenGLWidget* openGLWidget);
+        
     private:
         /*
          * Note some private methods are accessed by the 

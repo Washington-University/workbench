@@ -54,6 +54,10 @@ namespace caret {
         
         virtual void mouseLeftDragWithShift(const MouseEvent& mouseEvent);
 
+        virtual void showContextMenu(const MouseEvent& mouseEvent,
+                                     const QPoint& menuPosition,
+                                     BrainOpenGLWidget* openGLWidget);
+        
     protected:
         UserInputModeView(const UserInputMode inputMode);
         

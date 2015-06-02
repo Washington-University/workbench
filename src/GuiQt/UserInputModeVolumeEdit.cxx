@@ -237,6 +237,24 @@ UserInputModeVolumeEdit::mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent
 }
 
 /**
+ * Show a context menu (pop-up menu at mouse location)
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ * @param menuPosition
+ *     Point at which menu is displayed (passed to QMenu::exec())
+ * @param openGLWidget
+ *     OpenGL widget in which context menu is requested
+ */
+void
+UserInputModeVolumeEdit::showContextMenu(const MouseEvent& /*mouseEvent*/,
+                                   const QPoint& /*menuPosition*/,
+                                   BrainOpenGLWidget* /*openGLWidget*/)
+{
+    /* no context menu */
+}
+    
+/**
  * Update the graphics after editing.
  *
  * @param volumeFile
