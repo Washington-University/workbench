@@ -133,6 +133,7 @@ SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 TabMarginsDialog.h
 TileTabsConfigurationDialog.h
+UserInputModeAnnotationsContextMenu.h
 UserInputModeAnnotationsWidget.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
@@ -311,6 +312,7 @@ TabMarginsDialog.h
 TileTabsConfigurationDialog.h
 UserInputModeAbstract.h
 UserInputModeAnnotations.h
+UserInputModeAnnotationsContextMenu.h
 UserInputModeAnnotationsWidget.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
@@ -486,6 +488,7 @@ TabMarginsDialog.cxx
 TileTabsConfigurationDialog.cxx
 UserInputModeAbstract.cxx
 UserInputModeAnnotations.cxx
+UserInputModeAnnotationsContextMenu.cxx
 UserInputModeAnnotationsWidget.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx

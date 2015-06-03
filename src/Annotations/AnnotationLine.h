@@ -23,8 +23,7 @@
 
 
 #include "AnnotationOneDimensionalShape.h"
-
-
+#include "CaretPointer.h"
 
 namespace caret {
 
@@ -35,6 +34,10 @@ namespace caret {
         
         virtual ~AnnotationLine();
         
+        AnnotationLine(const AnnotationLine& obj);
+        
+        AnnotationLine& operator=(const AnnotationLine& obj);
+
         bool isDisplayStartArrow() const;
         
         void setDisplayStartArrow(const bool displayArrow);
@@ -58,11 +61,11 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
-        AnnotationLine(const AnnotationLine&);
-
-        AnnotationLine& operator=(const AnnotationLine&);
+        void copyHelperAnnotationLine(const AnnotationLine& obj);
         
-        SceneClassAssistant* m_sceneAssistant;
+        void initializeMembersAnnotationLine();
+        
+        CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
         bool m_displayStartArrow;
         

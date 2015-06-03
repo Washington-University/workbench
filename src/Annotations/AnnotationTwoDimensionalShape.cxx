@@ -63,6 +63,7 @@ AnnotationTwoDimensionalShape::~AnnotationTwoDimensionalShape()
 AnnotationTwoDimensionalShape::AnnotationTwoDimensionalShape(const AnnotationTwoDimensionalShape& obj)
 : Annotation(obj)
 {
+    initializeMembersAnnotationTwoDimensionalShape();
     this->copyHelperAnnotationTwoDimensionalShape(obj);
 }
 
@@ -91,8 +92,6 @@ AnnotationTwoDimensionalShape::operator=(const AnnotationTwoDimensionalShape& ob
 void 
 AnnotationTwoDimensionalShape::copyHelperAnnotationTwoDimensionalShape(const AnnotationTwoDimensionalShape& obj)
 {
-    initializeMembersAnnotationTwoDimensionalShape();
-    
     *m_coordinate   = *obj.m_coordinate;
     m_width         = obj.m_width;
     m_height        = obj.m_height;

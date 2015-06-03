@@ -43,14 +43,7 @@ using namespace caret;
 AnnotationLine::AnnotationLine()
 : AnnotationOneDimensionalShape(AnnotationTypeEnum::LINE)
 {
-    m_displayStartArrow = false;
-    m_displayEndArrow = false;
-    
-    m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_displayStartArrow",
-                          &m_displayStartArrow);
-    m_sceneAssistant->add("m_displayEndArrow",
-                          &m_displayEndArrow);
+    initializeMembersAnnotationLine();
 }
 
 /**
@@ -58,7 +51,63 @@ AnnotationLine::AnnotationLine()
  */
 AnnotationLine::~AnnotationLine()
 {
-    delete m_sceneAssistant;
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+AnnotationLine::AnnotationLine(const AnnotationLine& obj)
+: AnnotationOneDimensionalShape(obj)
+{
+    this->initializeMembersAnnotationLine();
+    this->copyHelperAnnotationLine(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+AnnotationLine&
+AnnotationLine::operator=(const AnnotationLine& obj)
+{
+    if (this != &obj) {
+        AnnotationOneDimensionalShape::operator=(obj);
+        this->copyHelperAnnotationLine(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+AnnotationLine::copyHelperAnnotationLine(const AnnotationLine& obj)
+{
+    m_displayEndArrow   = obj.m_displayEndArrow;
+    m_displayStartArrow = obj.m_displayStartArrow;
+}
+
+/**
+ * Initialize a new instance of this class.
+ */
+void
+AnnotationLine::initializeMembersAnnotationLine()
+{
+    m_displayStartArrow = false;
+    m_displayEndArrow = false;
+    
+    m_sceneAssistant.grabNew(new SceneClassAssistant());
+    m_sceneAssistant->add("m_displayStartArrow",
+                          &m_displayStartArrow);
+    m_sceneAssistant->add("m_displayEndArrow",
+                          &m_displayEndArrow);
 }
 
 /**

@@ -742,6 +742,7 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
     
     BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                mouseY);
+    CaretAssert(viewportContent);
     
     MouseEvent mouseEvent(viewportContent,
                           this,

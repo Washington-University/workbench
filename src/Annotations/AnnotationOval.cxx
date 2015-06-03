@@ -43,9 +43,7 @@ using namespace caret;
 AnnotationOval::AnnotationOval()
 : AnnotationTwoDimensionalShape(AnnotationTypeEnum::OVAL)
 {
-    
-    m_sceneAssistant = new SceneClassAssistant();
-    
+    initializeMembersAnnotationOval();
 }
 
 /**
@@ -53,7 +51,55 @@ AnnotationOval::AnnotationOval()
  */
 AnnotationOval::~AnnotationOval()
 {
-    delete m_sceneAssistant;
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+AnnotationOval::AnnotationOval(const AnnotationOval& obj)
+: AnnotationTwoDimensionalShape(obj)
+{
+    this->initializeMembersAnnotationOval();
+    this->copyHelperAnnotationOval(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+AnnotationOval&
+AnnotationOval::operator=(const AnnotationOval& obj)
+{
+    if (this != &obj) {
+        AnnotationTwoDimensionalShape::operator=(obj);
+        this->copyHelperAnnotationOval(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+AnnotationOval::copyHelperAnnotationOval(const AnnotationOval& /*obj*/)
+{
+    /* nothing to copy */
+}
+
+/**
+ * Initialize a new instance of this class.
+ */
+void
+AnnotationOval::initializeMembersAnnotationOval()
+{
+    m_sceneAssistant.grabNew(new SceneClassAssistant());
 }
 
 /**

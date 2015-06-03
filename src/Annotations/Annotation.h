@@ -42,6 +42,8 @@ namespace caret {
 
         Annotation& operator=(const Annotation& obj);
         
+        Annotation* clone() const;
+        
         AnnotationTypeEnum::Enum getType() const ;
         
         AnnotationCoordinateSpaceEnum::Enum getCoordinateSpace() const;

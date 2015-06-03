@@ -21,6 +21,8 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 
+#include "BrainOpenGLViewportContent.h"
+#include "CaretAssert.h"
 #include "MouseEvent.h"
 
 using namespace caret;
@@ -54,7 +56,7 @@ using namespace caret;
  * @param firstDraggingFlag
  *    Should be true the first time in in a mouse dragging operation.
  */
-MouseEvent::MouseEvent(BrainOpenGLViewportContent* viewportContent,
+MouseEvent::MouseEvent(const BrainOpenGLViewportContent* viewportContent,
                        BrainOpenGLWidget* openGLWidget,
                        const int32_t browserWindowIndex,
                        const int32_t x,
@@ -68,7 +70,14 @@ MouseEvent::MouseEvent(BrainOpenGLViewportContent* viewportContent,
 {
     initializeMembersMouseEvent();
 
-    m_viewportContent = viewportContent;
+    /*
+     * MUST copy viewport content as it may be deleted by caller
+     * prior to this instance being deleted
+     */
+    m_viewportContent = NULL;
+    if (viewportContent != NULL) {
+        m_viewportContent = new BrainOpenGLViewportContent(*viewportContent);
+    }
     m_openGLWidget    = openGLWidget;
     m_browserWindowIndex = browserWindowIndex;
     m_x = x;
@@ -85,6 +94,70 @@ MouseEvent::MouseEvent(BrainOpenGLViewportContent* viewportContent,
  */
 MouseEvent::~MouseEvent()
 {
+    if (m_viewportContent != NULL) {
+        delete m_viewportContent;
+    }
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+MouseEvent::MouseEvent(const MouseEvent& obj)
+: CaretObject(obj)
+{
+    this->initializeMembersMouseEvent();
+    this->copyHelperMouseEvent(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+MouseEvent&
+MouseEvent::operator=(const MouseEvent& obj)
+{
+    if (this != &obj) {
+        CaretObject::operator=(obj);
+        this->copyHelperMouseEvent(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+MouseEvent::copyHelperMouseEvent(const MouseEvent& obj)
+{
+    /*
+     * MUST copy viewport content as it may be deleted
+     */
+    if (m_viewportContent != NULL) {
+        delete m_viewportContent;
+        m_viewportContent = NULL;
+    }
+    CaretAssert(obj.m_viewportContent);
+    if (obj.m_viewportContent != NULL) {
+        m_viewportContent = new BrainOpenGLViewportContent(*obj.m_viewportContent);
+    }
+    
+    m_openGLWidget = obj.m_openGLWidget;
+    m_browserWindowIndex = obj.m_browserWindowIndex;
+    m_x = obj.m_x;
+    m_y = obj.m_y;
+    m_dx = obj.m_dx;
+    m_dy = obj.m_dy;
+    m_pressX = obj.m_pressX;
+    m_pressY = obj.m_pressY;
+    m_wheelRotation = obj.m_wheelRotation;
+    m_firstDraggingFlag = obj.m_firstDraggingFlag;
 }
 
 /**
@@ -103,6 +176,7 @@ MouseEvent::initializeMembersMouseEvent()
     m_pressX = 0;
     m_pressY = 0;
     m_wheelRotation = 0;
+    m_firstDraggingFlag = false;
 }
 
 /**

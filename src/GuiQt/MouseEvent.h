@@ -38,7 +38,7 @@ namespace caret {
     class MouseEvent : public CaretObject {
         
     public:
-        MouseEvent(BrainOpenGLViewportContent* viewportContent,
+        MouseEvent(const BrainOpenGLViewportContent* viewportContent,
                    BrainOpenGLWidget* openGLWidget,
                    const int32_t browserWindowIndex,
                    const int32_t x,
@@ -51,12 +51,14 @@ namespace caret {
         
         virtual ~MouseEvent();
         
-    private:
-        void initializeMembersMouseEvent();
-        
         MouseEvent(const MouseEvent& o);
         
         MouseEvent& operator=(const MouseEvent& o);
+        
+    private:
+        void initializeMembersMouseEvent();
+        
+        void copyHelperMouseEvent(const MouseEvent& me);
         
     public:
         AString toString() const;

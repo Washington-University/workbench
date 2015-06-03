@@ -51,6 +51,9 @@ m_brain(brain)
 {
     CaretAssert(m_brain);
     
+    m_clipboardAnnotationFile = NULL;
+    m_clipboardAnnotation.grabNew(NULL);
+    
     m_sceneAssistant = new SceneClassAssistant();
 }
 
@@ -60,6 +63,7 @@ m_brain(brain)
 AnnotationManager::~AnnotationManager()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    
     delete m_sceneAssistant;
 }
 
@@ -79,6 +83,30 @@ AnnotationManager::deselectAllAnnotations()
         CaretAssert(file);
         
         file->setAllAnnotationsSelected(false);
+    }
+}
+
+/**
+ * Delete the given annotation.
+ *
+ * @param annotation
+ *    Annotation that will be deleted.
+ */
+void
+AnnotationManager::deleteAnnotation(Annotation* annotation)
+{
+    CaretAssert(annotation);
+    
+    std::vector<AnnotationFile*> annotationFiles;
+    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+    
+    for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
+         fileIter != annotationFiles.end();
+         fileIter++) {
+        AnnotationFile* file = *fileIter;
+        CaretAssert(file);
+        
+        file->removeAnnotation(annotation);
     }
 }
 
@@ -172,11 +200,14 @@ AnnotationManager::getAllAnnotations() const
          fileIter++) {
         AnnotationFile* file = *fileIter;
         CaretAssert(file);
+        std::cout << "Adding annotations from file " << qPrintable(file->getFileName()) << std::endl;
         
         std::vector<Annotation*> annotations = file->getAllAnnotations();
-        allAnnotations.insert(allAnnotations.end(),
-                              annotations.begin(),
-                              annotations.end());
+        if ( ! annotations.empty()) {
+            allAnnotations.insert(allAnnotations.end(),
+                                  annotations.begin(),
+                                  annotations.end());
+        }
     }
     
     return allAnnotations;
@@ -226,6 +257,74 @@ AnnotationManager::toString() const
     return "AnnotationManager";
 }
 
+/**
+ * @return True if there is an annotation on the clipboard.
+ */
+bool
+AnnotationManager::isAnnotationOnClipboardValid() const
+{
+    return (m_clipboardAnnotation != NULL);
+}
+
+/**
+ * @return Pointer to annotation file on clipboard.
+ *     If there is not annotation file on the clipboard,
+ *     NULL is returned.
+ */
+AnnotationFile*
+AnnotationManager::getAnnotationFileOnClipboard() const
+{
+    if (m_clipboardAnnotationFile != NULL) {
+        /*
+         * It is possible that the file has been destroyed.
+         * If so, invalidate the file (set it to NULL).
+         */
+        std::vector<AnnotationFile*> allAnnotationFiles;
+        m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+        
+        if (std::find(allAnnotationFiles.begin(),
+                      allAnnotationFiles.end(),
+                      m_clipboardAnnotationFile) == allAnnotationFiles.end()) {
+            m_clipboardAnnotationFile = NULL;
+        }
+    }
+    
+    return m_clipboardAnnotationFile;
+}
+
+/**
+ * @return Pointer to annotation on clipboard.
+ *     If there is not annotation on the clipboard,
+ *     NULL is returned.
+ */
+const Annotation*
+AnnotationManager::getAnnotationOnClipboard() const
+{
+    return m_clipboardAnnotation;
+}
+
+/**
+ * @return A copy of the annotation on the clipboard.
+ *     If there is not annotation on the clipboard,
+ *     NULL is returned.
+ */
+Annotation*
+AnnotationManager::getCopyOfAnnotationOnClipboard() const
+{
+    if (m_clipboardAnnotation != NULL) {
+        return m_clipboardAnnotation->clone();
+    }
+    
+    return NULL;
+}
+
+void
+AnnotationManager::copyAnnotationToClipboard(const AnnotationFile* annotationFile,
+                                             const Annotation* annotation)
+{
+    m_clipboardAnnotationFile = const_cast<AnnotationFile*>(annotationFile);
+    m_clipboardAnnotation.grabNew(annotation->clone());
+}
 
 /**
  * Save information specific to this type of model to the scene.

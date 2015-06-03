@@ -23,7 +23,7 @@
 
 
 #include "AnnotationTwoDimensionalShape.h"
-
+#include "CaretPointer.h"
 
 
 namespace caret {
@@ -34,6 +34,10 @@ namespace caret {
         AnnotationOval();
         
         virtual ~AnnotationOval();
+        
+        AnnotationOval(const AnnotationOval&);
+        
+        AnnotationOval& operator=(const AnnotationOval&);
         
 
         // ADD_NEW_METHODS_HERE
@@ -51,11 +55,11 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
-        AnnotationOval(const AnnotationOval&);
-
-        AnnotationOval& operator=(const AnnotationOval&);
+        void copyHelperAnnotationOval(const AnnotationOval& obj);
         
-        SceneClassAssistant* m_sceneAssistant;
+        void initializeMembersAnnotationOval();
+        
+        CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
         // ADD_NEW_MEMBERS_HERE
 

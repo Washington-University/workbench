@@ -28,6 +28,7 @@
 #include "AnnotationTextAlignVerticalEnum.h"
 #include "AnnotationTextOrientationEnum.h"
 #include "AnnotationTwoDimensionalShape.h"
+#include "CaretPointer.h"
 
 namespace caret {
 
@@ -101,7 +102,7 @@ namespace caret {
 
         void initializeAnnotationTextMembers();
         
-        SceneClassAssistant* m_sceneAssistant;
+        CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
         AString m_text;
         

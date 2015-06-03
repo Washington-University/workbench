@@ -49,6 +49,7 @@
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "Surface.h"
+#include "UserInputModeAnnotationsContextMenu.h"
 #include "UserInputModeAnnotationsWidget.h"
 #include "WuQMessageBox.h"
 
@@ -841,11 +842,30 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
  *     OpenGL widget in which context menu is requested
  */
 void
-UserInputModeAnnotations::showContextMenu(const MouseEvent& /*mouseEvent*/,
-                                          const QPoint& /*menuPosition*/,
-                                          BrainOpenGLWidget* /*openGLWidget*/)
+UserInputModeAnnotations::showContextMenu(const MouseEvent& mouseEvent,
+                                          const QPoint& menuPosition,
+                                          BrainOpenGLWidget* openGLWidget)
 {
-    /* no context menu */
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
+    if (tabContent == NULL) {
+        return;
+    }
+    
+    const int32_t mouseX = mouseEvent.getX();
+    const int32_t mouseY = mouseEvent.getY();
+    
+    SelectionManager* idManager = openGLWidget->performIdentification(mouseX,
+                                                                      mouseY,
+                                                                      false);
+    
+    UserInputModeAnnotationsContextMenu contextMenu(mouseEvent,
+                                                    idManager,
+                                                    tabContent,
+                                                    openGLWidget);
+    if (contextMenu.actions().size() > 0) {
+        contextMenu.exec(menuPosition);
+    }
 }
 
 

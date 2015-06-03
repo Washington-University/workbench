@@ -28,6 +28,7 @@
 
 namespace caret {
     class Annotation;
+    class AnnotationFile;
     
     class SelectionItemAnnotation : public SelectionItem {
         
@@ -44,7 +45,10 @@ namespace caret {
         
         Annotation* getAnnotation() const;
         
-        void setAnnotation(Annotation* annotation);
+        AnnotationFile* getAnnotationFile() const;
+        
+        void setAnnotation(AnnotationFile* annotationFile,
+                           Annotation* annotation);
 
         // ADD_NEW_METHODS_HERE
 
@@ -52,6 +56,8 @@ namespace caret {
         SelectionItemAnnotation(const SelectionItemAnnotation&);
 
         SelectionItemAnnotation& operator=(const SelectionItemAnnotation&);
+        
+        AnnotationFile* m_annotationFile;
         
         Annotation* m_annotation;
         

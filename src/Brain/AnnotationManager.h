@@ -23,13 +23,14 @@
 
 
 #include "CaretObject.h"
-
+#include "CaretPointer.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
     class Annotation;
+    class AnnotationFile;
     class Brain;
     class SceneClassAssistant;
 
@@ -60,6 +61,8 @@ namespace caret {
         
         void deselectAllAnnotations();
         
+        void deleteAnnotation(Annotation* annotation);
+        
         void deleteSelectedAnnotations();
         
         void selectAnnotation(const SelectionMode selectionMode,
@@ -68,6 +71,17 @@ namespace caret {
         std::vector<Annotation*> getAllAnnotations() const;
         
         std::vector<Annotation*> getSelectedAnnotations() const;
+        
+        bool isAnnotationOnClipboardValid() const;
+        
+        AnnotationFile* getAnnotationFileOnClipboard() const;
+        
+        const Annotation* getAnnotationOnClipboard() const;
+        
+        Annotation* getCopyOfAnnotationOnClipboard() const;
+        
+        void copyAnnotationToClipboard(const AnnotationFile* annotationFile,
+                                       const Annotation* annotation);
         
         // ADD_NEW_METHODS_HERE
 
@@ -105,6 +119,15 @@ namespace caret {
 
         /** Brain owning this manager */
         Brain* m_brain;
+        
+        /** 
+         * Do not use a Caret Pointer for this as it points to a file in the brain.
+         * If a pointer was used it may get deleted which will cause deletion of the
+         * file that is owned by the Brain.
+         */
+        mutable AnnotationFile* m_clipboardAnnotationFile;
+        
+        CaretPointer<Annotation> m_clipboardAnnotation;
         
         // ADD_NEW_MEMBERS_HERE
 

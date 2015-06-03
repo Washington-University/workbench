@@ -23,6 +23,10 @@
 #include "Annotation.h"
 #undef __ANNOTATION_DECLARE__
 
+#include "AnnotationBox.h"
+#include "AnnotationLine.h"
+#include "AnnotationOval.h"
+#include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "SceneClass.h"
@@ -114,12 +118,62 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_customColorForeground[1]  = obj.m_customColorForeground[1];
     m_customColorForeground[2]  = obj.m_customColorForeground[2];
     m_customColorForeground[3]  = obj.m_customColorForeground[3];
- 
+
     /*
      * Selected status is NOT copied.
      */
     m_selectedFlag = false;
 }
+
+/**
+ * @return An identical copy (clone) of "this" annotation.
+ *    The type of the annotation is used to ensure the 
+ *    correct type of annotation is created and returned.
+ */
+Annotation*
+Annotation::clone() const
+{
+    Annotation* myClone = NULL;
+    
+    switch (getType()) {
+        case AnnotationTypeEnum::BOX:
+        {
+            const AnnotationBox* box = dynamic_cast<const AnnotationBox*>(this);
+            CaretAssert(box);
+            myClone = new AnnotationBox(*box);
+        }
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            CaretAssert(0);
+            break;
+        case AnnotationTypeEnum::LINE:
+        {
+            const AnnotationLine* line = dynamic_cast<const AnnotationLine*>(this);
+            CaretAssert(line);
+            myClone = new AnnotationLine(*line);
+        }
+            break;
+        case AnnotationTypeEnum::OVAL:
+        {
+            const AnnotationOval* oval = dynamic_cast<const AnnotationOval*>(this);
+            CaretAssert(oval);
+            myClone = new AnnotationOval(*oval);
+        }
+            break;
+        case AnnotationTypeEnum::TEXT:
+        {
+            const AnnotationText* text = dynamic_cast<const AnnotationText*>(this);
+            CaretAssert(text);
+            myClone = new AnnotationText(*text);
+        }
+            break;
+    }
+    
+    CaretAssert(myClone);
+    
+    return myClone;
+}
+
 
 /**
  * Initialize members of this class.

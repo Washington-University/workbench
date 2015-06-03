@@ -103,6 +103,15 @@ namespace caret {
                 m_surfaceNodeValid = false;
                 m_tabIndex         = -1;
                 m_windowIndex      = -1;
+                m_modelXYZ[0]  = 0.0;
+                m_modelXYZ[1]  = 0.0;
+                m_modelXYZ[2]  = 0.0;
+                m_tabXYZ[0]    = 0.0;
+                m_tabXYZ[1]    = 0.0;
+                m_tabXYZ[2]    = 0.0;
+                m_windowXYZ[0] = 0.0;
+                m_windowXYZ[1] = 0.0;
+                m_windowXYZ[2] = 0.0;
             }
             
             double m_modelXYZ[3];

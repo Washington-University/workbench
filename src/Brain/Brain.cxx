@@ -133,7 +133,7 @@ Brain::Brain()
     m_specFile->clearModified();
     
     m_sceneAnnotationFile = new AnnotationFile();
-    m_sceneAnnotationFile->setFileName("");
+    m_sceneAnnotationFile->setFileName("Scene Annotations");
     m_sceneAnnotationFile->clearModified();
     
     m_modelChart = NULL;
@@ -465,7 +465,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_annotationFiles.clear();
     
     m_sceneAnnotationFile->clear();
-    m_sceneAnnotationFile->setFileName("");
+    m_sceneAnnotationFile->setFileName("Scene Annotations");
     m_sceneAnnotationFile->clearModified();
     
     for (std::vector<BorderFile*>::iterator bfi = m_borderFiles.begin();

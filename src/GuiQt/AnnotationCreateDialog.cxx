@@ -88,7 +88,50 @@ AnnotationCreateDialog::AnnotationCreateDialog(const MouseEvent& mouseEvent,
                                                QWidget* parent)
 : WuQDialogModal("Insert Annotation",
                  parent),
+m_mode(MODE_NEW_ANNOTATION),
+m_annotationToCopysFile(NULL),
+m_annotationToCopy(NULL),
 m_annotationType(annotationType)
+{
+    createDialog(mouseEvent);
+}
+
+/**
+ * Insert a copy (pasting) of an annotation.
+ *
+ * @param mouseEvent
+ *     The mouse event indicating where user clicked in the window
+ * @param annotationFile
+ *     File containing the annotation that is copied.
+ * @param annotation
+ *     Annotation that is copied.
+ * @param parent
+ *      Optional parent for this dialog.
+ */
+AnnotationCreateDialog::AnnotationCreateDialog(const MouseEvent& mouseEvent,
+                                               const AnnotationFile* annotationFile,
+                                               const Annotation* annotation,
+                                               QWidget* parent)
+: WuQDialogModal("Paste Annotation",
+                 parent),
+m_mode(MODE_COPY_ANNOTATION),
+m_annotationToCopysFile(annotationFile),
+m_annotationToCopy(annotation),
+m_annotationType(annotation->getType())
+{
+    CaretAssert(annotationFile);
+    CaretAssert(annotation);
+    createDialog(mouseEvent);
+}
+
+/**
+ * Create the dialog.
+ *
+ * @param mouseEvent
+ *     The mouse event indicating where user clicked in the window
+ */
+void
+AnnotationCreateDialog::createDialog(const MouseEvent& mouseEvent)
 {
     m_textLineEdit = NULL;
     
@@ -99,21 +142,28 @@ m_annotationType(annotationType)
                                                               m_coordInfo);
     
     m_fileSelectionWidget = createFileSelectionWidget();
-    m_coordinateSelectionWidget = new AnnotationCoordinateSelectionWidget(annotationType,
+    m_coordinateSelectionWidget = new AnnotationCoordinateSelectionWidget(m_annotationType,
                                                                           m_coordInfo);
     QGroupBox* coordGroupBox = new QGroupBox("Coordinate Space");
     QVBoxLayout* coordGroupLayout = new QVBoxLayout(coordGroupBox);
     coordGroupLayout->setMargin(0);
     coordGroupLayout->addWidget(m_coordinateSelectionWidget);
     
-    if (s_previousSelections.m_valid) {
-        m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
+    switch (m_mode) {
+        case MODE_NEW_ANNOTATION:
+            if (s_previousSelections.m_valid) {
+                m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
+            }
+            break;
+        case MODE_COPY_ANNOTATION:
+            m_coordinateSelectionWidget->selectCoordinateSpace(m_annotationToCopy->getCoordinateSpace());
+            break;
     }
     
     QWidget* textWidget = ((m_annotationType == AnnotationTypeEnum::TEXT)
                            ? createTextWidget()
                            : NULL);
-
+    
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
     if (m_fileSelectionWidget != NULL) {
@@ -127,9 +177,23 @@ m_annotationType(annotationType)
     setCentralWidget(dialogWidget,
                      SCROLL_AREA_NEVER);
     
-    if (annotationType == AnnotationTypeEnum::TEXT) {
+    if (m_annotationType == AnnotationTypeEnum::TEXT) {
         CaretAssert(m_textLineEdit);
         m_textLineEdit->setFocus();
+        
+        switch (m_mode) {
+            case MODE_COPY_ANNOTATION:
+            {
+                const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(m_annotationToCopy);
+                if (textAnn != NULL) {
+                    m_textLineEdit->setText(textAnn->getText());
+                    m_textLineEdit->selectAll();
+                }
+            }
+                break;
+            case MODE_NEW_ANNOTATION:
+                break;
+        }
     }
 }
 
@@ -155,7 +219,7 @@ AnnotationCreateDialog::createFileSelectionWidget()
     m_annotationFileSelectionComboBox->updateComboBox(m_annotationFileSelectionModel);
     
     QAction* newFileAction = WuQtUtilities::createAction("New",
-                                                         "Create a new border file",
+                                                         "Create a new annotation file",
                                                          this,
                                                          this,
                                                          SLOT(newAnnotationFileButtonClicked()));
@@ -169,17 +233,28 @@ AnnotationCreateDialog::createFileSelectionWidget()
     fileButtonGroup->addButton(m_brainAnnotationFileRadioButton);
     fileButtonGroup->addButton(m_sceneAnnotationFileRadioButton);
     
-    if (s_previousSelections.m_valid) {
+    AnnotationFile* annotationFile = NULL;
+    switch (m_mode) {
+        case MODE_COPY_ANNOTATION:
+            annotationFile = const_cast<AnnotationFile*>(m_annotationToCopysFile);
+            break;
+        case MODE_NEW_ANNOTATION:
+            if (s_previousSelections.m_valid) {
+                annotationFile = s_previousSelections.m_annotationFile;
+            }
+            break;
+    }
+    if (annotationFile != NULL) {
         /*
          * Default using previous selections
          */
-        if (s_previousSelections.m_annotationFile == brain->getSceneAnnotationFile()) {
+        if (annotationFile == brain->getSceneAnnotationFile()) {
             m_sceneAnnotationFileRadioButton->setChecked(true);
         }
         else {
-            m_annotationFileSelectionModel->setSelectedFile(s_previousSelections.m_annotationFile);
+            m_annotationFileSelectionModel->setSelectedFile(annotationFile);
             m_annotationFileSelectionComboBox->updateComboBox(m_annotationFileSelectionModel);
-            if (m_annotationFileSelectionModel->getSelectedFile() == s_previousSelections.m_annotationFile) {
+            if (m_annotationFileSelectionModel->getSelectedFile() == annotationFile) {
                 m_brainAnnotationFileRadioButton->setChecked(true);
             }
         }
@@ -211,21 +286,6 @@ AnnotationCreateDialog::createFileSelectionWidget()
 }
 
 /**
- * Create a radio button that displays the text for and contains the 
- * enumerated value in a property.
- */
-QRadioButton*
-AnnotationCreateDialog::createRadioButtonForSpace(const AnnotationCoordinateSpaceEnum::Enum space)
-{
-    const AString spaceGuiName = AnnotationCoordinateSpaceEnum::toGuiName(space);
-    const QString spaceEnumName = AnnotationCoordinateSpaceEnum::toName(space);
-    QRadioButton* rb = new QRadioButton(spaceGuiName);
-    rb->setProperty(s_SPACE_PROPERTY_NAME.toAscii().constData(),
-                    spaceEnumName);
-    
-    return rb;
-}
-/**
  * Gets called when "New" file button is clicked.
  */
 void
@@ -255,6 +315,7 @@ AnnotationCreateDialog::newAnnotationFileButtonClicked()
     EventManager::get()->sendEvent(EventDataFileAdd(newFile).getPointer());
     m_annotationFileSelectionModel->setSelectedFile(newFile);
     m_annotationFileSelectionComboBox->updateComboBox(m_annotationFileSelectionModel);
+    m_brainAnnotationFileRadioButton->setChecked(true);
 }
 
 /**
@@ -334,24 +395,38 @@ AnnotationCreateDialog::okButtonClicked()
     CaretPointer<Annotation> annotation;
     annotation.grabNew(NULL);
     
-    switch (m_annotationType) {
-        case AnnotationTypeEnum::BOX:
-            annotation.grabNew(new AnnotationBox());
-            break;
-        case AnnotationTypeEnum::IMAGE:
-            break;
-        case AnnotationTypeEnum::LINE:
-            annotation.grabNew(new AnnotationLine());
-            break;
-        case AnnotationTypeEnum::OVAL:
-            annotation.grabNew(new AnnotationOval());
-            break;
-        case AnnotationTypeEnum::TEXT:
+    switch (m_mode) {
+        case MODE_COPY_ANNOTATION:
         {
-            AnnotationText* text = new AnnotationText();
-            text->setText(userText);
-            annotation.grabNew(text);
+            Annotation* annCopy = m_annotationToCopy->clone();
+            AnnotationText* annText = dynamic_cast<AnnotationText*>(annCopy);
+            if (annText != NULL) {
+                annText->setText(userText);
+            }
+            annotation.grabNew(annCopy);
         }
+            break;
+        case MODE_NEW_ANNOTATION:
+            switch (m_annotationType) {
+                case AnnotationTypeEnum::BOX:
+                    annotation.grabNew(new AnnotationBox());
+                    break;
+                case AnnotationTypeEnum::IMAGE:
+                    break;
+                case AnnotationTypeEnum::LINE:
+                    annotation.grabNew(new AnnotationLine());
+                    break;
+                case AnnotationTypeEnum::OVAL:
+                    annotation.grabNew(new AnnotationOval());
+                    break;
+                case AnnotationTypeEnum::TEXT:
+                {
+                    AnnotationText* text = new AnnotationText();
+                    text->setText(userText);
+                    annotation.grabNew(text);
+                }
+                    break;
+            }
             break;
     }
     

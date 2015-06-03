@@ -60,6 +60,8 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
                                                        BrowserTabContent* browserTabContent)
 : CaretObject()
 {
+    initializeMembersBrainOpenGLViewportContent();
+    
     m_windowViewport[0] = windowViewport[0];
     m_windowViewport[1] = windowViewport[1];
     m_windowViewport[2] = windowViewport[2];
@@ -130,6 +132,85 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
 BrainOpenGLViewportContent::~BrainOpenGLViewportContent()
 {
     
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+BrainOpenGLViewportContent::BrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj)
+: CaretObject(obj)
+{
+    this->initializeMembersBrainOpenGLViewportContent();
+    this->copyHelperBrainOpenGLViewportContent(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+BrainOpenGLViewportContent&
+BrainOpenGLViewportContent::operator=(const BrainOpenGLViewportContent& obj)
+{
+    if (this != &obj) {
+        CaretObject::operator=(obj);
+        this->copyHelperBrainOpenGLViewportContent(obj);
+    }
+    return *this;
+}
+
+/**
+ * Initialize members of a new instance.
+ */
+void
+BrainOpenGLViewportContent::initializeMembersBrainOpenGLViewportContent()
+{
+    m_modelViewport[0]  = 0;
+    m_modelViewport[1]  = 0;
+    m_modelViewport[2]  = 0;
+    m_modelViewport[3]  = 0;
+    m_tabViewport[0]    = 0;
+    m_tabViewport[1]    = 0;
+    m_tabViewport[2]    = 0;
+    m_tabViewport[3]    = 0;
+    m_windowViewport[0] = 0;
+    m_windowViewport[1] = 0;
+    m_windowViewport[2] = 0;
+    m_windowViewport[3] = 0;
+    
+    m_browserTabContent = NULL;
+    m_windowIndex       = -1;
+    m_highlightTab      = false;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+BrainOpenGLViewportContent::copyHelperBrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj)
+{
+    m_modelViewport[0]   = obj.m_modelViewport[0];
+    m_modelViewport[1]   = obj.m_modelViewport[1];
+    m_modelViewport[2]   = obj.m_modelViewport[2];
+    m_modelViewport[3]   = obj.m_modelViewport[3];
+    m_tabViewport[0]     = obj.m_tabViewport[0];
+    m_tabViewport[1]     = obj.m_tabViewport[1];
+    m_tabViewport[2]     = obj.m_tabViewport[2];
+    m_tabViewport[3]     = obj.m_tabViewport[3];
+    m_windowViewport[0]  = obj.m_windowViewport[0];
+    m_windowViewport[1]  = obj.m_windowViewport[1];
+    m_windowViewport[2]  = obj.m_windowViewport[2];
+    m_windowViewport[3]  = obj.m_windowViewport[3];
+    
+    m_browserTabContent = obj.m_browserTabContent;
+    m_windowIndex       = obj.m_windowIndex;
+    m_highlightTab      = obj.m_highlightTab;
 }
 
 /**

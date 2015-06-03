@@ -43,9 +43,7 @@ using namespace caret;
 AnnotationBox::AnnotationBox()
 : AnnotationTwoDimensionalShape(AnnotationTypeEnum::BOX)
 {
-    
-    m_sceneAssistant = new SceneClassAssistant();
-    
+    initializeMembersAnnotationBox();
 }
 
 /**
@@ -53,7 +51,55 @@ AnnotationBox::AnnotationBox()
  */
 AnnotationBox::~AnnotationBox()
 {
-    delete m_sceneAssistant;
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+AnnotationBox::AnnotationBox(const AnnotationBox& obj)
+: AnnotationTwoDimensionalShape(obj)
+{
+    this->initializeMembersAnnotationBox();
+    this->copyHelperAnnotationBox(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+AnnotationBox&
+AnnotationBox::operator=(const AnnotationBox& obj)
+{
+    if (this != &obj) {
+        AnnotationTwoDimensionalShape::operator=(obj);
+        this->copyHelperAnnotationBox(obj);
+    }
+    return *this;
+}
+
+/**
+ * Initialize a new instance of this class.
+ */
+void
+AnnotationBox::initializeMembersAnnotationBox()
+{
+    m_sceneAssistant.grabNew(new SceneClassAssistant());
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+AnnotationBox::copyHelperAnnotationBox(const AnnotationBox& /*obj*/)
+{
+    /* nothing to copy here */
 }
 
 /**

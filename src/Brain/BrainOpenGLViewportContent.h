@@ -39,6 +39,10 @@ namespace caret {
         
         ~BrainOpenGLViewportContent();
         
+        BrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj);
+        
+        BrainOpenGLViewportContent& operator=(const BrainOpenGLViewportContent& obj);
+        
         void getModelViewport(int modelViewportOut[4]) const;
         
         void getTabViewport(int tabViewportOut[4]) const;
@@ -60,6 +64,10 @@ namespace caret {
                                                                                          const int32_t highlightTabIndex);
         
     private:
+        void initializeMembersBrainOpenGLViewportContent();
+        
+        void copyHelperBrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj);
+
         int m_tabViewport[4];
         
         int m_modelViewport[4];
@@ -71,10 +79,6 @@ namespace caret {
         int m_windowIndex;
         
         bool m_highlightTab;
-        
-        BrainOpenGLViewportContent(const BrainOpenGLViewportContent&);
-
-        BrainOpenGLViewportContent& operator=(const BrainOpenGLViewportContent&);
         
     public:
         virtual AString toString() const;

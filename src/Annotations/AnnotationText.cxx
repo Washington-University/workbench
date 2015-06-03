@@ -51,7 +51,6 @@ AnnotationText::AnnotationText()
  */
 AnnotationText::~AnnotationText()
 {
-    delete m_sceneAssistant;
 }
 
 /**
@@ -99,7 +98,7 @@ AnnotationText::initializeAnnotationTextMembers()
     m_italicEnabled = false;
     m_underlineEnabled = false;
     
-    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_text",
                           &m_text);
     m_sceneAssistant->add<AnnotationTextAlignHorizontalEnum>("m_alignmentHorizontal",

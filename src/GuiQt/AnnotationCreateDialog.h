@@ -47,6 +47,11 @@ namespace caret {
                                const AnnotationTypeEnum::Enum annotationType,
                                QWidget* parent = 0);
         
+        AnnotationCreateDialog(const MouseEvent& mouseEvent,
+                               const AnnotationFile* annotationFile,
+                               const Annotation* annotation,
+                               QWidget* parent = 0);
+        
         virtual ~AnnotationCreateDialog();
 
         virtual void okButtonClicked();
@@ -57,6 +62,11 @@ namespace caret {
         void newAnnotationFileButtonClicked();
         
     private:
+        enum Mode {
+            MODE_COPY_ANNOTATION,
+            MODE_NEW_ANNOTATION
+        };
+        
         class PreviousSelections {
         public:
             PreviousSelections() {
@@ -70,11 +80,17 @@ namespace caret {
 
         AnnotationCreateDialog& operator=(const AnnotationCreateDialog&);
         
+        void createDialog(const MouseEvent& mouseEvent);
+        
         QWidget* createFileSelectionWidget();
         
         QWidget* createTextWidget();
         
-        QRadioButton* createRadioButtonForSpace(const AnnotationCoordinateSpaceEnum::Enum space);
+        const Mode m_mode;
+        
+        const AnnotationFile* m_annotationToCopysFile;
+        
+        const Annotation* m_annotationToCopy;
         
         const AnnotationTypeEnum::Enum m_annotationType;
         

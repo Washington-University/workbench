@@ -61,7 +61,8 @@ SelectionItemAnnotation::reset()
      * Just have pointers to the annotations.
      * We do not 'own' them.
      */
-    m_annotation = NULL;
+    m_annotationFile = NULL;
+    m_annotation     = NULL;
 }
 
 /**
@@ -83,16 +84,31 @@ SelectionItemAnnotation::getAnnotation() const
 }
 
 /**
+ * @return The file containing the selected annotation.
+ */
+AnnotationFile*
+SelectionItemAnnotation::getAnnotationFile() const
+{
+    return m_annotationFile;
+}
+
+
+/**
  * Add a annotation to the selected annotations.
  *
+ * @param annotationFile
+ *     File containing the annotation.
  * @param annotation.
  *     Annotation that is added.
  */
 void
-SelectionItemAnnotation::setAnnotation(Annotation* annotation)
+SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
+                                       Annotation* annotation)
 {
+    CaretAssert(annotationFile);
     CaretAssert(annotation);
-    m_annotation = annotation;
+    m_annotationFile = annotationFile;
+    m_annotation     = annotation;
 }
 /**
  * Get a description of m_ object's content.

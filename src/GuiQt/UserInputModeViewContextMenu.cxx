@@ -76,7 +76,7 @@ using namespace caret;
     
 /**
  * \class caret::UserInputModeViewContextMenu 
- * \brief Context (pop-up) menu for BrainOpenGLWidget
+ * \brief Context (pop-up) menu for User Input View Mode
  *
  * Displays a menu in the BrainOpenGLWidget.  Content of menu
  * is dependent upon data under the cursor.
@@ -85,6 +85,8 @@ using namespace caret;
  * Constructor.
  * @param selectionManager
  *    The selection manager, provides data under the cursor.
+ * @param browserTabContent
+ *    Content of browser tab.
  * @param parentOpenGLWidget
  *    Parent OpenGL Widget on which the menu is displayed.
  */
