@@ -30,6 +30,7 @@
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationText.h"
+#include "AnnotationTextEditorDialog.h"
 #include "Brain.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
@@ -55,6 +56,9 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param mouseEvent
+ *    The mouse event that caused display of this menu.
  * @param selectionManager
  *    The selection manager, provides data under the cursor.
  * @param browserTabContent
@@ -94,7 +98,7 @@ m_parentOpenGLWidget(parentOpenGLWidget)
     }
     
     if (m_textAnnotation != NULL) {
-        addAction("Set Text...",
+        addAction("Edit Text...",
                   this, SLOT(setAnnotationText()));
     }
     
@@ -165,16 +169,15 @@ UserInputModeAnnotationsContextMenu::pasteAnnotationFromAnnotationClipboard()
 void
 UserInputModeAnnotationsContextMenu::setAnnotationText()
 {
-    WuQDataEntryDialog textDialog("Set Text",
-                                  this);
-    QLineEdit* lineEdit = textDialog.addLineEditWidget("");
-    lineEdit->setText(m_textAnnotation->getText());
-    lineEdit->selectAll();
-    
-    textDialog.move(this->pos());
-    if (textDialog.exec() == WuQDataEntryDialog::Accepted) {
-        m_textAnnotation->setText(lineEdit->text().trimmed());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+    AnnotationTextEditorDialog ted(m_textAnnotation,
+                                   this);
+    /*
+     * Note: Y==0 is at top for widget.
+     *       Y==0 is at bottom for OpenGL mouse x,y
+     */
+    QPoint diaglogPos(this->pos().x(),
+                      this->pos().y() + 20);
+    ted.move(diaglogPos);
+    ted.exec();
 }
 

@@ -97,6 +97,14 @@ namespace caret {
         virtual void keyPressEvent(const KeyEvent& /*keyEvent*/) { }
         
         /**
+         * Process a mouse left double-click event.
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseLeftDoubleClick(const MouseEvent& /*mouseEvent*/) { }
+        
+        /**
          * Process a mouse left press event.
          *
          * @param mouseEvent

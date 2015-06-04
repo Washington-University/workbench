@@ -29,6 +29,8 @@
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
+#include "AnnotationText.h"
+#include "AnnotationTextEditorDialog.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
@@ -589,6 +591,37 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
 }
 
 /**
+ * Process a mouse left double-click event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseLeftDoubleClick(const MouseEvent& mouseEvent)
+{
+    const int32_t mouseX = mouseEvent.getX();
+    const int32_t mouseY = mouseEvent.getY();
+    
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    Annotation* annotation = openGLWidget->performIdentificationAnnotations(mouseX,
+                                                                            mouseY);
+    if (annotation != NULL) {
+        AnnotationText* textAnnotation = dynamic_cast<AnnotationText*>(annotation);
+        
+        AnnotationTextEditorDialog ted(textAnnotation,
+                                       openGLWidget);
+        /*
+         * Note: Y==0 is at top for widget.
+         *       Y==0 is at bottom for OpenGL mouse x,y
+         */
+        ted.move(openGLWidget->mapToGlobal(QPoint(mouseX,
+                                                  (openGLWidget->height() - mouseY + 20))));
+        ted.exec();
+    }
+}
+
+
+/**
  * Process a mouse move with no buttons down
  *
  * @param mouseEvent
@@ -681,8 +714,8 @@ UserInputModeAnnotations::getCoordinatesFromMouseLocation(const MouseEvent& mous
     
     int windowViewport[4];
     vpContent->getWindowViewport(windowViewport);
-    coordInfoOut.m_windowXYZ[0] = windowViewport[0] + mouseEvent.getX(); // tabViewport[0] + tabViewport[2] + mouseEvent.getX();
-    coordInfoOut.m_windowXYZ[1] = windowViewport[1] + mouseEvent.getY(); // tabViewport[1] + tabViewport[3] + mouseEvent.getY();
+    coordInfoOut.m_windowXYZ[0] = windowViewport[0] + mouseEvent.getX();
+    coordInfoOut.m_windowXYZ[1] = windowViewport[1] + mouseEvent.getY();
     coordInfoOut.m_windowXYZ[2] = 0.0;
     coordInfoOut.m_windowIndex = vpContent->getWindowIndex();
     

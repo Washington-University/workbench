@@ -66,6 +66,8 @@ namespace caret {
         
         virtual void keyPressEvent(const KeyEvent& /*keyEvent*/);
         
+        virtual void mouseLeftDoubleClick(const MouseEvent& mouseEvent);
+        
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
         virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent);

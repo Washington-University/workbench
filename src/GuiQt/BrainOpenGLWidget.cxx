@@ -1016,6 +1016,57 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 }
 
 /**
+ * Receive mouse button double click events from Qt.
+ * @param me
+ *    The mouse event.
+ */
+void
+BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
+{
+    Qt::MouseButton button = me->button();
+    Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButtons mouseButtons = me->buttons();
+    
+    checkForMiddleMouseButton(mouseButtons,
+                              button,
+                              keyModifiers,
+                              false);
+    
+    if (button == Qt::LeftButton) {
+        if (keyModifiers == Qt::NoModifier) {
+            const int mouseX = me->x();
+            const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+            
+            /*
+             * Use location of mouse press so that the model
+             * being manipulated does not change if mouse moves
+             * out of its viewport without releasing the mouse
+             * button.
+             */
+            BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+                                                                                       mouseY);
+            
+            MouseEvent mouseEvent(viewportContent,
+                                  this,
+                                  this->windowIndex,
+                                  mouseX,
+                                  mouseY,
+                                  0,
+                                  0,
+                                  this->mousePressX,
+                                  this->mousePressY,
+                                  this->mouseNewDraggingStartedFlag);
+            
+            this->selectedUserInputProcessor->mouseLeftDoubleClick(mouseEvent);
+        }
+    }
+    
+    this->isMousePressedNearToolBox = false;
+    
+    me->accept();
+}
+
+/**
  * Get the viewport content at the given location.
  * @param x
  *    X-coordinate.

@@ -105,6 +105,8 @@ namespace caret {
         
         virtual void keyPressEvent(QKeyEvent* e);
         
+        virtual void mouseDoubleClickEvent(QMouseEvent* e);
+        
         virtual void mouseMoveEvent(QMouseEvent* e);
         
         virtual void mousePressEvent(QMouseEvent* e);
