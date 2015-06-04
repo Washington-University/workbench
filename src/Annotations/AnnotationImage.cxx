@@ -43,8 +43,7 @@ using namespace caret;
 AnnotationImage::AnnotationImage()
 : AnnotationTwoDimensionalShape(AnnotationTypeEnum::IMAGE)
 {
-    
-    m_sceneAssistant = new SceneClassAssistant();
+    initializeMembersAnnotationImage();
     
 }
 
@@ -54,6 +53,55 @@ AnnotationImage::AnnotationImage()
 AnnotationImage::~AnnotationImage()
 {
     delete m_sceneAssistant;
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+AnnotationImage::AnnotationImage(const AnnotationImage& obj)
+: AnnotationTwoDimensionalShape(obj)
+{
+    initializeMembersAnnotationImage();
+    this->copyHelperAnnotationImage(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+AnnotationImage&
+AnnotationImage::operator=(const AnnotationImage& obj)
+{
+    if (this != &obj) {
+        AnnotationTwoDimensionalShape::operator=(obj);
+        this->copyHelperAnnotationImage(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+AnnotationImage::copyHelperAnnotationImage(const AnnotationImage& /*obj*/)
+{
+    
+}
+
+/**
+ * Initialize members of a new instance.
+ */
+void
+AnnotationImage::initializeMembersAnnotationImage()
+{
+    m_sceneAssistant = new SceneClassAssistant();
 }
 
 /**

@@ -226,6 +226,7 @@ void
 AnnotationFileXmlWriter::writeImage(const AnnotationImage* image)
 {
     CaretAssert(image);
+    CaretAssertMessage(0, "AnnotationFileXmlWriter::writeImage() needs to be implemented");
 }
 
 /**

@@ -200,7 +200,6 @@ AnnotationManager::getAllAnnotations() const
          fileIter++) {
         AnnotationFile* file = *fileIter;
         CaretAssert(file);
-        std::cout << "Adding annotations from file " << qPrintable(file->getFileName()) << std::endl;
         
         std::vector<Annotation*> annotations = file->getAllAnnotations();
         if ( ! annotations.empty()) {

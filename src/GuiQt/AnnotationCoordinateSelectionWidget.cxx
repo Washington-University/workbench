@@ -79,6 +79,8 @@ m_coordInfo(coordInfo)
             enableSurfaceSpaceFlag = true;
             break;
         case AnnotationTypeEnum::IMAGE:
+            enableModelSpaceFlag   = true;
+            enableSurfaceSpaceFlag = true;
             break;
         case AnnotationTypeEnum::LINE:
             break;

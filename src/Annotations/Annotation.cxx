@@ -24,6 +24,7 @@
 #undef __ANNOTATION_DECLARE__
 
 #include "AnnotationBox.h"
+#include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
 #include "AnnotationText.h"
@@ -144,7 +145,11 @@ Annotation::clone() const
         }
             break;
         case AnnotationTypeEnum::IMAGE:
-            CaretAssert(0);
+        {
+            const AnnotationImage* image = dynamic_cast<const AnnotationImage*>(this);
+            CaretAssert(image);
+            myClone = new AnnotationImage(*image);
+        }
             break;
         case AnnotationTypeEnum::LINE:
         {

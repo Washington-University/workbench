@@ -605,7 +605,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                             selectionCenterXYZ);
                     break;
                 case AnnotationTypeEnum::IMAGE:
-                    CaretAssertToDoFatal();
+                    drawImage(dynamic_cast<AnnotationImage*>(annotation),
+                              surfaceDisplayed,
+                              idColorRGBA,
+                              isSelect,
+                              selectionCenterXYZ);
                     break;
                 case AnnotationTypeEnum::LINE:
                     drawLine(dynamic_cast<AnnotationLine*>(annotation),
@@ -1018,6 +1022,30 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(const AnnotationText* text,
     }
     
     setDepthTestingStatus(savedDepthTestStatus);
+}
+
+/**
+ * Draw an annotation image.
+ *
+ * @param image
+ *    Annotation image to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ * @param selectionColorRGBA
+ *    Color used for selection identification.
+ * @param selectionFlag
+ *    True when selecting, else false.
+ * @param selectionCenterXYZOut
+ *    On exit contains center of annotation used by selection logic.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(const AnnotationImage* /*image*/,
+                                                    const Surface* /*surfaceDisplayed*/,
+                                                    const uint8_t* /*selectionColorRGBA[4]*/,
+                                                    const bool /*selectionFlag*/,
+                                                    float* /*selectionCenterXYZOut[3]*/)
+{
+    CaretAssertMessage(0, "BrainOpenGLAnnotationDrawingFixedPipeline::drawImage() needs to be implemented.");
 }
 
 /**

@@ -35,6 +35,7 @@
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationCoordinateSelectionWidget.h"
+#include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationManager.h"
 #include "AnnotationOval.h"
@@ -412,6 +413,7 @@ AnnotationCreateDialog::okButtonClicked()
                     annotation.grabNew(new AnnotationBox());
                     break;
                 case AnnotationTypeEnum::IMAGE:
+                    annotation.grabNew(new AnnotationImage());
                     break;
                 case AnnotationTypeEnum::LINE:
                     annotation.grabNew(new AnnotationLine());

@@ -169,6 +169,7 @@ AnnotationInsertNewWidget::createShapeToolButton()
                 useTypeFlag = true;
                 break;
             case AnnotationTypeEnum::IMAGE:
+                useTypeFlag = true;
                 break;
             case AnnotationTypeEnum::LINE:
                 useTypeFlag = true;
@@ -192,6 +193,10 @@ AnnotationInsertNewWidget::createShapeToolButton()
             }
             else if (annType == AnnotationTypeEnum::TEXT) {
                 textAction = typeAction;
+            }
+            
+            if (annType == AnnotationTypeEnum::IMAGE) {
+                typeAction->setDisabled(true);
             }
         }
     }
@@ -432,7 +437,39 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
             painter.drawRect(1, 1, width - 2, height - 2);
             break;
         case AnnotationTypeEnum::IMAGE:
-            CaretAssertMessage(0, "IMAGE is not a shape.");
+        {
+            /*
+             * Background (sky)
+             */
+            painter.fillRect(pixmap.rect(), QColor(25,25,255));
+            
+            /*
+             * Terrain
+             */
+            painter.setBrush(QColor(0, 255, 0));
+            painter.setPen(QColor(0, 255, 0));
+            const int w14 = width * 0.25;
+            const int h23 = height * 0.667;
+            const int h34 = height * 0.75;
+            QPolygon terrain;
+            terrain.push_back(QPoint(1, height - 1));
+            terrain.push_back(QPoint(width - 1, height - 1));
+            terrain.push_back(QPoint(width - 1, h23));
+            terrain.push_back(QPoint(w14 * 3, h34));
+            terrain.push_back(QPoint(w14 * 2, h23));
+            terrain.push_back(QPoint(w14, h34));
+            terrain.push_back(QPoint(1, h23));
+            terrain.push_back(QPoint(1, height - 1));
+            painter.drawPolygon(terrain);
+            
+            /*
+             * Sun
+             */
+            painter.setBrush(QColor(255, 255, 0));
+            painter.setPen(QColor(255, 255, 0));
+            const int radius = width * 0.25;
+            painter.drawEllipse(width * 0.33, height * 0.33, radius, radius);
+        }
             break;
         case AnnotationTypeEnum::LINE:
             painter.drawLine(1, height - 1, width - 1, 1);

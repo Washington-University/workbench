@@ -35,6 +35,10 @@ namespace caret {
         
         virtual ~AnnotationImage();
         
+        AnnotationImage(const AnnotationImage& obj);
+        
+        AnnotationImage& operator=(const AnnotationImage& obj);
+        
         virtual bool isForegroundLineWidthSupported() const;
         
 
@@ -53,9 +57,9 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
-        AnnotationImage(const AnnotationImage&);
-
-        AnnotationImage& operator=(const AnnotationImage&);
+        void copyHelperAnnotationImage(const AnnotationImage& obj);
+        
+        void initializeMembersAnnotationImage();
         
         SceneClassAssistant* m_sceneAssistant;
 
