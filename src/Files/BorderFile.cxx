@@ -1753,7 +1753,6 @@ void BorderFile::parseBorderFile1(QXmlStreamReader& xml)
                     singleTable.readFromQXmlStreamReader(xml);
                     if (xml.hasError()) throw DataFileException(getFileName(),
                                                                 "XML parsing error in LabelTable: " + xml.errorString());
-                    createNameAndClassColorTables(&singleTable);
                     haveSingleTable = true;
                 } else if (name == "Border") {
                     CaretPointer<Border> toParse(new Border());//so throw can clean up, but we can also release the Border pointer
@@ -1773,6 +1772,10 @@ void BorderFile::parseBorderFile1(QXmlStreamReader& xml)
             default:
                 break;
         }
+    }
+    if (haveSingleTable)
+    {
+        createNameAndClassColorTables(&singleTable);
     }
     if (xml.hasError()) throw DataFileException(getFileName(),
                                                 "XML parsing error in BorderFile: " + xml.errorString());
