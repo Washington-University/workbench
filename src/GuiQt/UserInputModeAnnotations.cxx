@@ -75,6 +75,7 @@ m_annotationUnderMouse(NULL)
 {
     m_mode = MODE_SELECT;
     m_modeNewAnnotationType = AnnotationTypeEnum::LINE;
+    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     
     m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
                                                                  m_browserWindowIndex);
@@ -133,6 +134,7 @@ UserInputModeAnnotations::initialize()
     m_mode = MODE_SELECT;
     m_annotationBeingEdited = NULL;
     m_annotationUnderMouse  = NULL;
+    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
 }
 
 /**
@@ -145,6 +147,7 @@ UserInputModeAnnotations::finish()
     m_mode = MODE_SELECT;
     m_annotationBeingEdited = NULL;
     m_annotationUnderMouse  = NULL;
+    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
 }
 
 /**
@@ -206,6 +209,45 @@ UserInputModeAnnotations::getCursor() const
             if (m_annotationUnderMouse != NULL) {
                 cursor = CursorEnum::CURSOR_FOUR_ARROWS;
                 //std::cout << "Requested Four Arrow Cursor" << std::endl;
+                
+                switch (m_annotationUnderMouseSizeHandleType) {
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                        cursor = CursorEnum::CURSOR_RESIZE_VERTICAL;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_RIGHT_TOP_LEFT;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                        cursor = CursorEnum::CURSOR_RESIZE_HORIZONTAL;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                        cursor = CursorEnum::CURSOR_RESIZE_HORIZONTAL;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                        cursor = CursorEnum::CURSOR_RESIZE_VERTICAL;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_RIGHT_TOP_LEFT;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                        cursor = CursorEnum::CURSOR_FOUR_ARROWS;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                        cursor = CursorEnum::CURSOR_ARROW;
+                        break;
+                }
             }
             break;
         case MODE_SET_COORDINATE_ONE:
@@ -603,20 +645,24 @@ UserInputModeAnnotations::mouseLeftDoubleClick(const MouseEvent& mouseEvent)
     const int32_t mouseY = mouseEvent.getY();
     
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    Annotation* annotation = openGLWidget->performIdentificationAnnotations(mouseX,
+    SelectionItemAnnotation* annotationID = openGLWidget->performIdentificationAnnotations(mouseX,
                                                                             mouseY);
-    if (annotation != NULL) {
-        AnnotationText* textAnnotation = dynamic_cast<AnnotationText*>(annotation);
-        
-        AnnotationTextEditorDialog ted(textAnnotation,
-                                       openGLWidget);
-        /*
-         * Note: Y==0 is at top for widget.
-         *       Y==0 is at bottom for OpenGL mouse x,y
-         */
-        ted.move(openGLWidget->mapToGlobal(QPoint(mouseX,
-                                                  (openGLWidget->height() - mouseY + 20))));
-        ted.exec();
+    if (annotationID->isValid()) {
+        Annotation* annotation = annotationID->getAnnotation();
+        if (annotation != NULL) {
+            AnnotationText* textAnnotation = dynamic_cast<AnnotationText*>(annotation);
+            if (textAnnotation != NULL) {
+                AnnotationTextEditorDialog ted(textAnnotation,
+                                               openGLWidget);
+                /*
+                 * Note: Y==0 is at top for widget.
+                 *       Y==0 is at bottom for OpenGL mouse x,y
+                 */
+                ted.move(openGLWidget->mapToGlobal(QPoint(mouseX,
+                                                          (openGLWidget->height() - mouseY + 20))));
+                ted.exec();
+            }
+        }
     }
 }
 
@@ -634,16 +680,17 @@ UserInputModeAnnotations::mouseMove(const MouseEvent& mouseEvent)
     const int mouseX = mouseEvent.getX();
     const int mouseY = mouseEvent.getY();
     
-    Annotation* annotation = openGLWidget->performIdentificationAnnotations(mouseX,
-                                                                            mouseY);
+    m_annotationUnderMouse = NULL;
+    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     
-    const bool updateCursorFlag = (m_annotationUnderMouse != annotation);
-    
-    m_annotationUnderMouse = annotation;
-    
-    if (updateCursorFlag) {
-        openGLWidget->updateCursor();
+    SelectionItemAnnotation* annotationID = openGLWidget->performIdentificationAnnotations(mouseX,
+                                                                                           mouseY);
+    if (annotationID->isValid()) {
+        m_annotationUnderMouse = annotationID->getAnnotation();
+        m_annotationUnderMouseSizeHandleType = annotationID->getSizingHandle();
     }
+    
+    openGLWidget->updateCursor();
 }
 
 /**
@@ -843,8 +890,9 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
      *        'multi-annotation-selection-mode' and any number of annotation will
      *        be selected when this method completes.
      */
-    Annotation* selectedAnnotation = openGLWidget->performIdentificationAnnotations(mouseX,
-                                                                                    mouseY);
+    SelectionItemAnnotation* annotationID = openGLWidget->performIdentificationAnnotations(mouseX,
+                                                                                           mouseY);
+    Annotation* selectedAnnotation = annotationID->getAnnotation();
     
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationManager::SelectionMode selectionMode = AnnotationManager::SELECTION_MODE_SINGLE;
@@ -854,6 +902,7 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     annotationManager->selectAnnotation(selectionMode,
                                         selectedAnnotation);
     m_annotationUnderMouse = selectedAnnotation;
+    m_annotationUnderMouseSizeHandleType = annotationID->getSizingHandle();
     
     const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations();
     if (allSelectedAnnotations.size() == 1) {

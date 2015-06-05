@@ -35,13 +35,13 @@ class QMouseEvent;
 
 namespace caret {
 
-    class Annotation;
     class Border;
     class BrainOpenGL;
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class EventImageCapture;
+    class SelectionItemAnnotation;
     class SelectionManager;
     class Model;
     class MouseEvent;
@@ -71,7 +71,7 @@ namespace caret {
                                                      const int y,
                                                      const bool applySelectionBackgroundFiltering);
         
-        Annotation* performIdentificationAnnotations(const int x,
+        SelectionItemAnnotation* performIdentificationAnnotations(const int x,
                                                            const int y);
         
         SelectionManager* performIdentificationVoxelEditing(VolumeFile* editingVolumeFile,

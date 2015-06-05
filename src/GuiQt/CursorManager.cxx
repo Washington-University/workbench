@@ -46,17 +46,10 @@ using namespace caret;
 CursorManager::CursorManager()
 : CaretObject()
 {
-    this->defaultCursor = QCursor();
-    this->arrowCursor = QCursor(Qt::ArrowCursor);
-    this->crossCursor = QCursor(Qt::CrossCursor);
-    this->fourArrowCursor = QCursor(Qt::SizeAllCursor);
-    this->penCursor     = this->loadCursor(":Cursor/pen_eraser.png", 
+    this->penCursor     = this->loadCursor(":Cursor/pen_eraser.png",
                                            6, 
                                            32 - 7, 
                                            Qt::UpArrowCursor);
-    this->pointingHandCursor = QCursor(Qt::PointingHandCursor);
-    this->waitCursor = QCursor(Qt::WaitCursor);
-    this->whatsThisCursor = QCursor(Qt::WhatsThisCursor);
 }
 
 /**
@@ -82,34 +75,19 @@ CursorManager::setCursorForWidget(QWidget* widget,
         case CursorEnum::CURSOR_DEFAULT:
             widget->unsetCursor();
             break;
-        case CursorEnum::CURSOR_ARROW:
-            widget->setCursor(this->arrowCursor);
-            break;
-        case CursorEnum::CURSOR_CROSS:
-            widget->setCursor(this->crossCursor);
-            break;
         case CursorEnum::CURSOR_DRAWING_PEN:
             widget->setCursor(this->penCursor);
             break;
-        case CursorEnum::CURSOR_FOUR_ARROWS:
-            //std::cout << "   Four arrow cursor" << std::endl;
-            widget->setCursor(this->fourArrowCursor);
-            break;
-        case CursorEnum::CURSOR_POINTING_HAND:
-            widget->setCursor(this->pointingHandCursor);
-            break;
-        case CursorEnum::CURSOR_WAIT:
-            widget->setCursor(this->waitCursor);
-            break;
-        case CursorEnum::CURSOR_WHATS_THIS:
-            widget->setCursor(this->whatsThisCursor);
+        default:
+            widget->setCursor(CursorEnum::toQtCursorShape(cursor));
             break;
     }
 }
 
+
 /**
  * Load an image and create a cursor using the image.
- * 
+ *
  * @param filename
  *    Name of file containing the image.
  * @param hotSpotX

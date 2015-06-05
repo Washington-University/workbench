@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "AnnotationSizingHandleTypeEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "StructureEnum.h"
@@ -161,6 +162,8 @@ namespace caret {
         Annotation* m_annotationBeingEdited;
         
         Annotation* m_annotationUnderMouse;
+        
+        AnnotationSizingHandleTypeEnum::Enum m_annotationUnderMouseSizeHandleType;
         
         // ADD_NEW_MEMBERS_HERE
 

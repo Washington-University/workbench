@@ -131,12 +131,14 @@ namespace caret {
                        const Surface* surfaceDisplayed);
         
         void drawSizingHandle(const AnnotationSizingHandleTypeEnum::Enum handleType,
-                              const uint8_t rgba[4],
+                              AnnotationFile* annotationFile,
+                              Annotation* annotation,
                               const float xyz[3],
                               const float halfWidthHeight,
                               const float rotationAngle);
         
-        void drawAnnotationTwoDimSizingHandles(const uint8_t rgba[4],
+        void drawAnnotationTwoDimSizingHandles(AnnotationFile* annotationFile,
+                                               Annotation* annotation,
                                                const float bottomLeft[3],
                                                const float bottomRight[3],
                                                const float topRight[3],
@@ -144,7 +146,8 @@ namespace caret {
                                                const float lineThickness,
                                                const float rotationAngle);
 
-        void drawAnnotationOneDimSizingHandles(const uint8_t rgba[4],
+        void drawAnnotationOneDimSizingHandles(AnnotationFile* annotationFile,
+                                               Annotation* annotation,
                                                const float firstPoint[3],
                                                const float secondPoint[3],
                                                const float lineThickness);

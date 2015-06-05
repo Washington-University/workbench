@@ -1144,10 +1144,11 @@ BrainOpenGLWidget::performIdentification(const int x,
  * @param y
  *    Y-coordinate for identification.
  * @return
- *    A pointer to the annotation at found at the given 
- *    coordinate or NULL if no annotation at the coordinate.
+ *    A pointer to the annotation selection item.  Its
+ *    "isValid()" method may be queried to determine
+ *    if the selected annotation is valid.
  */
-Annotation*
+SelectionItemAnnotation*
 BrainOpenGLWidget::performIdentificationAnnotations(const int x,
                                                     const int y)
 {
@@ -1177,7 +1178,7 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
                                   true);
     }
     
-    return annotationID->getAnnotation();
+    return annotationID;
 }
 
 /**

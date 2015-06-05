@@ -50,12 +50,14 @@ using namespace caret;
  */
 CursorEnum::CursorEnum(const Enum enumValue,
                            const AString& name,
-                           const AString& guiName)
+                       const AString& guiName,
+                       const Qt::CursorShape qtCursorShape)
 {
-    this->enumValue = enumValue;
-    this->integerCode = integerCodeCounter++;
-    this->name = name;
-    this->guiName = guiName;
+    this->enumValue     = enumValue;
+    this->integerCode   = integerCodeCounter++;
+    this->name          = name;
+    this->guiName       = guiName;
+    this->qtCursorShape = qtCursorShape;
 }
 
 /**
@@ -78,36 +80,63 @@ CursorEnum::initialize()
 
     enumData.push_back(CursorEnum(CURSOR_DEFAULT, 
                                     "CURSOR_DEFAULT", 
-                                    "Default Cursor"));
+                                    "Default Cursor",
+                                  Qt::ArrowCursor));
     
     enumData.push_back(CursorEnum(CURSOR_ARROW, 
                                     "CURSOR_ARROW", 
-                                    "Arrow Cursor"));
+                                    "Arrow Cursor",
+                                  Qt::ArrowCursor));
     
     enumData.push_back(CursorEnum(CURSOR_CROSS,
                                   "CURSOR_CROSS",
-                                  "Cross Cursor"));
+                                  "Cross Cursor",
+                                  Qt::CrossCursor));
     
     enumData.push_back(CursorEnum(CURSOR_DRAWING_PEN,
                                     "CURSOR_DRAWING_PEN", 
-                                    "Drawing Pen Cursor"));
+                                    "Drawing Pen Cursor",
+                                  Qt::ArrowCursor));
     
     enumData.push_back(CursorEnum(CURSOR_FOUR_ARROWS,
                                   "CURSOR_FOUR_ARROWS",
-                                  "Four Arrows Cursor"));
+                                  "Four Arrows Cursor",
+                                  Qt::SizeAllCursor));
     
     enumData.push_back(CursorEnum(CURSOR_POINTING_HAND,
                                     "CURSOR_POINTING_HAND", 
-                                    "Pointing Hand Cursor"));
+                                    "Pointing Hand Cursor",
+                                  Qt::PointingHandCursor));
     
-    enumData.push_back(CursorEnum(CURSOR_WAIT, 
+    enumData.push_back(CursorEnum(CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT,
+                                  "CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT",
+                                  "Resize arrows pointing bottom left and top right Cursor",
+                                  Qt::SizeBDiagCursor));
+    
+    enumData.push_back(CursorEnum(CURSOR_RESIZE_BOTTOM_RIGHT_TOP_LEFT,
+                                  "CURSOR_RESIZE_BOTTOM_RIGHT_TOP_LEFT",
+                                  "Resize arrows pointing top left and bottom right Cursor",
+                                  Qt::SizeFDiagCursor));
+    
+    enumData.push_back(CursorEnum(CURSOR_RESIZE_HORIZONTAL,
+                                  "CURSOR_RESIZE_HORIZONTAL",
+                                  "Resize Horizontal Cursor",
+                                  Qt::SizeHorCursor));
+    
+    enumData.push_back(CursorEnum(CURSOR_RESIZE_VERTICAL,
+                                  "CURSOR_RESIZE_VERTICAL",
+                                  "Resize Vertical Cursor",
+                                  Qt::SizeVerCursor));
+    
+    enumData.push_back(CursorEnum(CURSOR_WAIT,
                                     "CURSOR_WAIT", 
-                                    "Wait Cursor"));
+                                    "Wait Cursor",
+                                  Qt::WaitCursor));
     
     enumData.push_back(CursorEnum(CURSOR_WHATS_THIS,
                                   "CURSOR_WHATS_THIS",
-                                  "What's this Cursor"));
-    
+                                  "What's this Cursor",
+                                  Qt::WhatsThisCursor));
 }
 
 /**
@@ -131,6 +160,22 @@ CursorEnum::findData(const Enum enumValue)
     }
 
     return NULL;
+}
+
+/**
+ * Get the Qt Cursor corresponding to the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+Qt::CursorShape
+CursorEnum::toQtCursorShape(Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    
+    const CursorEnum* enumInstance = findData(enumValue);
+    return enumInstance->qtCursorShape;
 }
 
 /**

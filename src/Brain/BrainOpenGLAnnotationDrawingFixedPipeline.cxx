@@ -651,7 +651,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                     annotationID->setBrain(m_brainOpenGLFixedPipeline->m_brain);
                     annotationID->setScreenXYZ(selectionInfo.m_windowXYZ);
                     annotationID->setScreenDepth(depth);
-                    CaretLogFine("Selected Annotation: " + selectionInfo.m_annotation->toString());
+                    CaretLogFine("Selected Annotation: " + annotationID->toString());
                 }
             }
         }
@@ -746,48 +746,52 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     
     std::vector<float> dummyNormals;
     
-    if (m_selectionModeFlag) {
-        uint8_t selectionColorRGBA[4];
-        getIdentificationColor(selectionColorRGBA);
-        BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                 dummyNormals,
-                                                 selectionColorRGBA);
-        m_selectionInfo.push_back(SelectionInfo(annotationFile,
-                                                box,
-                                                AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-                                                selectionCenterXYZ));
-    }
-    else {
-        float backgroundRGBA[4];
-        box->getBackgroundColorRGBA(backgroundRGBA);
-        if (backgroundRGBA[3] > 0.0) {
+    float backgroundRGBA[4];
+    box->getBackgroundColorRGBA(backgroundRGBA);
+    float foregroundRGBA[4];
+    box->getForegroundColorRGBA(foregroundRGBA);
+
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
+    const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    
+    if (drawAnnotationFlag) {
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
             BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
                                                      dummyNormals,
-                                                     backgroundRGBA);
+                                                     selectionColorRGBA);
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    box,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
         }
-    }
-    
-    
-    if ( ! m_selectionModeFlag) {
-        float foregroundRGBA[4];
-        box->getForegroundColorRGBA(foregroundRGBA);
-        if (foregroundRGBA[3] > 0.0) {
-            BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                      foregroundRGBA,
-                                                      outlineWidth);
+        else {
+            if (drawBackgroundFlag) {
+                BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                         dummyNormals,
+                                                         backgroundRGBA);
+            }
             
-            if (box->isSelected()) {
-                drawAnnotationTwoDimSizingHandles(m_brainOpenGLFixedPipeline->m_foregroundColorByte,
-                                                  bottomLeft,
-                                             bottomRight,
-                                             topRight,
-                                             topLeft,
-                                             outlineWidth,
-                                             box->getRotationAngle());
+            if (drawForegroundFlag) {
+                BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+                                                          foregroundRGBA,
+                                                          outlineWidth);
             }
         }
+        if (box->isSelected()) {
+            drawAnnotationTwoDimSizingHandles(annotationFile,
+                                              box,
+                                              bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              outlineWidth,
+                                              box->getRotationAngle());
+        }
     }
-    
+
     setDepthTestingStatus(savedDepthTestStatus);
 }
 
@@ -853,12 +857,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     const float rotationAngle = oval->getRotationAngle();
     const float outlineWidth  = oval->getForegroundLineWidth();
     
-    glPushMatrix();
-    glTranslatef(windowXYZ[0], windowXYZ[1], windowXYZ[2]);
-    if (rotationAngle != 0.0) {
-        glRotatef(-rotationAngle, 0.0, 0.0, 1.0);
-    }
-    
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
         (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
@@ -868,51 +866,63 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     const bool depthTestFlag = isDrawnWithDepthTesting(oval);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
-    if (m_selectionModeFlag) {
-        uint8_t selectionColorRGBA[4];
-        getIdentificationColor(selectionColorRGBA);
-        m_brainOpenGLFixedPipeline->drawEllipseFilled(selectionColorRGBA,
-                                                      majorAxis,
-                                                      minorAxis);
-        m_selectionInfo.push_back(SelectionInfo(annotationFile,
-                                                oval,
-                                                AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-                                                selectionCenterXYZ));
-    }
-    else {
-        uint8_t backgroundRGBA[4];
-        oval->getBackgroundColorRGBA(backgroundRGBA);
-        if (backgroundRGBA[3] > 0) {
-            m_brainOpenGLFixedPipeline->drawEllipseFilled(backgroundRGBA,
+    uint8_t backgroundRGBA[4];
+    oval->getBackgroundColorRGBA(backgroundRGBA);
+    uint8_t foregroundRGBA[4];
+    oval->getForegroundColorRGBA(foregroundRGBA);
+    
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
+    const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    
+    if (drawAnnotationFlag) {
+        glPushMatrix();
+        glTranslatef(windowXYZ[0], windowXYZ[1], windowXYZ[2]);
+        if (rotationAngle != 0.0) {
+            glRotatef(-rotationAngle, 0.0, 0.0, 1.0);
+        }
+        
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            m_brainOpenGLFixedPipeline->drawEllipseFilled(selectionColorRGBA,
                                                           majorAxis,
                                                           minorAxis);
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    oval,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
         }
-    }
-    
-    if ( ! m_selectionModeFlag) {
-        uint8_t foregroundRGBA[4];
-        oval->getForegroundColorRGBA(foregroundRGBA);
-        if (foregroundRGBA[3] > 0) {
-            m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
-                                                           majorAxis,
-                                                           minorAxis,
-                                                           outlineWidth);
+        else {
+            if (drawBackgroundFlag) {
+                m_brainOpenGLFixedPipeline->drawEllipseFilled(backgroundRGBA,
+                                                              majorAxis,
+                                                              minorAxis);
+            }
+            
+            if (drawForegroundFlag) {
+                m_brainOpenGLFixedPipeline->drawEllipseOutline(foregroundRGBA,
+                                                               majorAxis,
+                                                               minorAxis,
+                                                               outlineWidth);
+            }
         }
-    }
-    
-    glPopMatrix();
-    
-    if ( ! m_selectionModeFlag) {
+        glPopMatrix();
+        
         if (oval->isSelected()) {
-            drawAnnotationTwoDimSizingHandles(m_brainOpenGLFixedPipeline->m_foregroundColorByte,
+            drawAnnotationTwoDimSizingHandles(annotationFile,
+                                              oval,
                                               bottomLeft,
-                                         bottomRight,
-                                         topRight,
-                                         topLeft,
-                                         outlineWidth,
-                                         oval->getRotationAngle());
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              outlineWidth,
+                                              oval->getRotationAngle());
         }
     }
+    
+    
+    
     
     setDepthTestingStatus(savedDepthTestStatus);
 }
@@ -972,72 +982,79 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     
-    if (m_selectionModeFlag) {
-        uint8_t selectionColorRGBA[4];
-        getIdentificationColor(selectionColorRGBA);
-        BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                 dummyNormals,
-                                                 selectionColorRGBA);
-        m_selectionInfo.push_back(SelectionInfo(annotationFile,
-                                                text,
-                                                AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-                                                selectionCenterXYZ));
-    }
-    else {
-        float backgroundRGBA[4];
-        text->getBackgroundColorRGBA(backgroundRGBA);
-        if (backgroundRGBA[3] > 0.0) {
+    float backgroundRGBA[4];
+    text->getBackgroundColorRGBA(backgroundRGBA);
+    uint8_t foregroundRGBA[4];
+    text->getForegroundColorRGBA(foregroundRGBA);
+    
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
+    const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    
+    if (drawAnnotationFlag) {
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
             BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
                                                      dummyNormals,
-                                                     backgroundRGBA);
-        }
-    }
-    
-    if ( ! m_selectionModeFlag) {
-        if (depthTestFlag) {
-            m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
-                                                                               windowXYZ[1],
-                                                                               windowXYZ[2],
-                                                                               *text);
+                                                     selectionColorRGBA);
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    text,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
         }
         else {
-            m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
-                                                                               windowXYZ[1],
-                                                                               *text);
-        }
-
-        setDepthTestingStatus(depthTestFlag);
-        
-        if (text->isUnderlineEnabled()) {
-            if (text->getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
-                float foregroundColor[4];
-                text->getForegroundColorRGBA(foregroundColor);
-                if (foregroundColor[3] > 0.0) {
-                    std::vector<float> underlineCoords;
-                    underlineCoords.insert(underlineCoords.end(), bottomLeft,  bottomLeft + 3);
-                    underlineCoords.insert(underlineCoords.end(), bottomRight, bottomRight + 3);
-                    
-                    BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
-                                                           foregroundColor,
-                                                           2.0);
+            if (drawBackgroundFlag) {
+                BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                         dummyNormals,
+                                                         backgroundRGBA);
+            }
+            
+            if (drawForegroundFlag) {
+                if (depthTestFlag) {
+                    m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
+                                                                                       windowXYZ[1],
+                                                                                       windowXYZ[2],
+                                                                                       *text);
+                }
+                else {
+                    m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
+                                                                                       windowXYZ[1],
+                                                                                       *text);
+                }
+                
+                setDepthTestingStatus(depthTestFlag);
+                
+                if (text->isUnderlineEnabled()) {
+                    if (text->getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
+                        std::vector<float> underlineCoords;
+                        underlineCoords.insert(underlineCoords.end(), bottomLeft,  bottomLeft + 3);
+                        underlineCoords.insert(underlineCoords.end(), bottomRight, bottomRight + 3);
+                        
+                        BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
+                                                               foregroundRGBA,
+                                                               2.0);
+                    }
                 }
             }
         }
         
-        if ( ! m_selectionModeFlag) {
-            if (text->isSelected()) {
-                const float outlineWidth = 2.0;
-                drawAnnotationTwoDimSizingHandles(m_brainOpenGLFixedPipeline->m_foregroundColorByte,
-                                                  bottomLeft,
-                                             bottomRight,
-                                             topRight,
-                                             topLeft,
-                                             outlineWidth,
-                                             text->getRotationAngle());
-            }
+        if (text->isSelected()) {
+            const float outlineWidth = 2.0;
+            drawAnnotationTwoDimSizingHandles(annotationFile,
+                                              text,
+                                              bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              outlineWidth,
+                                              text->getRotationAngle());
         }
     }
-    
+
+
+
+
     setDepthTestingStatus(savedDepthTestStatus);
 }
 
@@ -1203,32 +1220,38 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
         coords.insert(coords.end(), tailLeftTipEnd,  tailLeftTipEnd + 3);
     }
     
-    if (m_selectionModeFlag) {
-        uint8_t selectionColorRGBA[4];
-        getIdentificationColor(selectionColorRGBA);
-        BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                               selectionColorRGBA,
-                                               backgroundLineWidth);
-        m_selectionInfo.push_back(SelectionInfo(annotationFile,
-                                                line,
-                                                AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-                                                selectionCenterXYZ));
-    }
-    else {
-        float foregroundRGBA[4];
-        line->getForegroundColorRGBA(foregroundRGBA);
-        
-        if (foregroundRGBA[3] > 0) {
+    uint8_t foregroundRGBA[4];
+    line->getForegroundColorRGBA(foregroundRGBA);
+    
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
+    
+    if (drawForegroundFlag) {
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
             BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                   foregroundRGBA,
-                                                   lineWidth);
-            
-            if (line->isSelected()) {
-                drawAnnotationOneDimSizingHandles(m_brainOpenGLFixedPipeline->m_foregroundColorByte,
-                                                  lineHeadXYZ,
-                                                  lineTailXYZ,
-                                                  lineWidth);
+                                                   selectionColorRGBA,
+                                                   backgroundLineWidth);
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    line,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
+        }
+        else {
+            if (drawForegroundFlag) {
+                BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                                       foregroundRGBA,
+                                                       lineWidth);
+                
             }
+        }
+        
+        if (line->isSelected()) {
+            drawAnnotationOneDimSizingHandles(annotationFile,
+                                              line,
+                                              lineHeadXYZ,
+                                              lineTailXYZ,
+                                              lineWidth);
         }
     }
     
@@ -1240,8 +1263,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
  *
  * @param handleType
  *     Type of sizing handle.
- * @param rgba
- *     Color for sizing handle.
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param annotation
+ *    Annotation to draw.
  * @param xyz
  *     Center of square.
  * @param halfWidthHeight
@@ -1251,7 +1276,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizingHandleTypeEnum::Enum handleType,
-                                                            const uint8_t rgba[4],
+                                                            AnnotationFile* annotationFile,
+                                                            Annotation* annotation,
                                                             const float xyz[3],
                                                             const float halfWidthHeight,
                                                             const float rotationAngle)
@@ -1278,9 +1304,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
     coords.push_back(0.0);
     
     std::vector<float> dummyNormals;
-    BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                             dummyNormals,
-                                             rgba);
+    
+    if (m_selectionModeFlag) {
+        uint8_t identificationRGBA[4];
+        getIdentificationColor(identificationRGBA);
+        BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                 dummyNormals,
+                                                 identificationRGBA);
+        m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                annotation,
+                                                handleType,
+                                                xyz));
+    }
+    else {
+        BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                 dummyNormals,
+                                                 m_brainOpenGLFixedPipeline->m_foregroundColorByte);
+    }
 
     glPopMatrix();
 }
@@ -1288,8 +1328,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
 /**
  * Draw sizing handles around a one-dimensional annotation.
  *
- * @param rgba
- *     Color for sizing handles.
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param annotation
+ *    Annotation to draw.
  * @param firstPoint
  *     Top right corner of annotation.
  * @param secondPoint
@@ -1298,7 +1340,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
  *     Thickness of line (when enabled).
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(const uint8_t rgba[4],
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(AnnotationFile* annotationFile,
+                                                                             Annotation* annotation,
                                                                              const float firstPoint[3],
                                                                         const float secondPoint[3],
                                                                         const float lineThickness)
@@ -1339,12 +1382,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(con
      * Symbol for first coordinate is a little bigger
      */
     drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START,
-                     rgba,
+                     annotationFile,
+                     annotation,
                      firstPointSymbolXYZ,
                      cornerSquareSize + 2.0,
                      rotationAngle);
     drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END,
-                     rgba,
+                     annotationFile,
+                     annotation,
                      secondPointSymbolXYZ,
                      cornerSquareSize,
                      rotationAngle);
@@ -1354,8 +1399,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(con
 /**
  * Draw sizing handles around a two-dimensional annotation.
  *
- * @param rgba
- *     Color for sizing handles.
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param annotation
+ *    Annotation to draw.
  * @param bottomLeft
  *     Bottom left corner of annotation.
  * @param bottomRight
@@ -1370,7 +1417,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(con
  *     Rotation of the annotation.
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(const uint8_t rgba[4],
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(AnnotationFile* annotationFile,
+                                                                             Annotation* annotation,
                                                                              const float bottomLeft[3],
                                                                         const float bottomRight[3],
                                                                         const float topRight[3],
@@ -1417,34 +1465,40 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(con
         bottomRight[2]
     };
     
-    std::vector<float> coords;
-    coords.insert(coords.end(), selectorBottomLeft,  selectorBottomLeft + 3);
-    coords.insert(coords.end(), selectorBottomRight, selectorBottomRight + 3);
-    coords.insert(coords.end(), selectorTopRight,    selectorTopRight + 3);
-    coords.insert(coords.end(), selectorTopLeft,     selectorTopLeft + 3);
-    
-    BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                              m_brainOpenGLFixedPipeline->m_foregroundColorByte,
-                                              2.0);
+    if (! m_selectionModeFlag) {
+        std::vector<float> coords;
+        coords.insert(coords.end(), selectorBottomLeft,  selectorBottomLeft + 3);
+        coords.insert(coords.end(), selectorBottomRight, selectorBottomRight + 3);
+        coords.insert(coords.end(), selectorTopRight,    selectorTopRight + 3);
+        coords.insert(coords.end(), selectorTopLeft,     selectorTopLeft + 3);
+        
+        BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+                                                  m_brainOpenGLFixedPipeline->m_foregroundColorByte,
+                                                  2.0);
+    }
     
     const float cornerSquareSize = 3.0;
     drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT,
-                     rgba,
+                     annotationFile,
+                     annotation,
                      selectorBottomLeft,
                      cornerSquareSize,
                      rotationAngle);
     drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT,
-                     rgba,
+                     annotationFile,
+                     annotation,
                      selectorBottomRight,
                      cornerSquareSize,
                      rotationAngle);
     drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT,
-                     rgba,
+                     annotationFile,
+                     annotation,
                      selectorTopRight,
                      cornerSquareSize,
                      rotationAngle);
     drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT,
-                     rgba,
+                     annotationFile,
+                     annotation,
                      selectorTopLeft,
                      cornerSquareSize,
                      rotationAngle);

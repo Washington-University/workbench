@@ -23,6 +23,7 @@
 #include "SelectionItemAnnotation.h"
 #undef __SELECTION_ITEM_ANNOTATION_DECLARE__
 
+#include "Annotation.h"
 #include "CaretAssert.h"
 using namespace caret;
 
@@ -131,7 +132,8 @@ AString
 SelectionItemAnnotation::toString() const
 {
     AString text = SelectionItem::toString();
-    text += ("Annotation: \n");
+    text += ("Annotation type=" + AnnotationTypeEnum::toGuiName(m_annotation->getType())
+             + "   sizeHandleType=" + AnnotationSizingHandleTypeEnum::toGuiName(m_sizingHandle));
 //    text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
 //    text += ("Border File: " + ((borderFile != NULL) ? borderFile->getFileNameNoPath() : "INVALID") + "\n");
 //    text += ("Border: " + ((border != NULL) ? border->getName() : "INVALID") + "\n");
