@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationSizingHandleTypeEnum.h"
 #include "SelectionItem.h"
 
 
@@ -47,8 +47,11 @@ namespace caret {
         
         AnnotationFile* getAnnotationFile() const;
         
+        AnnotationSizingHandleTypeEnum::Enum getSizingHandle() const;
+        
         void setAnnotation(AnnotationFile* annotationFile,
-                           Annotation* annotation);
+                           Annotation* annotation,
+                           const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle);
 
         // ADD_NEW_METHODS_HERE
 
@@ -60,6 +63,8 @@ namespace caret {
         AnnotationFile* m_annotationFile;
         
         Annotation* m_annotation;
+        
+        AnnotationSizingHandleTypeEnum::Enum m_sizingHandle;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -24,6 +24,7 @@
 #include <stdint.h>
 
 #include "AnnotationCoordinateSpaceEnum.h"
+#include "AnnotationSizingHandleTypeEnum.h"
 #include "CaretObject.h"
 #include "CaretOpenGLInclude.h"
 #include "Plane.h"
@@ -35,6 +36,7 @@ namespace caret {
     class AnnotationTwoDimensionalShape;
     class AnnotationBox;
     class AnnotationCoordinate;
+    class AnnotationFile;
     class AnnotationImage;
     class AnnotationLine;
     class AnnotationOval;
@@ -59,6 +61,29 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class SelectionInfo {
+        public:
+            SelectionInfo(AnnotationFile* annotationFile,
+                          Annotation* annotation,
+                          AnnotationSizingHandleTypeEnum::Enum sizingHandle,
+                          const float windowXYZ[3]) {
+                m_annotationFile = annotationFile;
+                m_annotation     = annotation;
+                m_sizingHandle   = sizingHandle;
+                m_windowXYZ[0]   = windowXYZ[0];
+                m_windowXYZ[1]   = windowXYZ[1];
+                m_windowXYZ[2]   = windowXYZ[2];
+            }
+            
+            AnnotationFile* m_annotationFile;
+            
+            Annotation* m_annotation;
+            
+            AnnotationSizingHandleTypeEnum::Enum m_sizingHandle;
+            
+            double m_windowXYZ[3];
+        };
+        
         BrainOpenGLAnnotationDrawingFixedPipeline(const BrainOpenGLAnnotationDrawingFixedPipeline&);
 
         BrainOpenGLAnnotationDrawingFixedPipeline& operator=(const BrainOpenGLAnnotationDrawingFixedPipeline&);
@@ -85,54 +110,56 @@ namespace caret {
                                   float topRightOut[3],
                                   float topLeftOut[3]) const;
         
-        void drawBox(const AnnotationBox* box,
-                       const Surface* surfaceDisplayed,
-                       const uint8_t selectionColorRGBA[4],
-                     const bool selectionFlag,
-                     float selectionCenterXYZOut[3]);
+        void drawBox(AnnotationFile* annotationFile,
+                     AnnotationBox* box,
+                       const Surface* surfaceDisplayed);
         
-        void drawImage(const AnnotationImage* image,
-                      const Surface* surfaceDisplayed,
-                      const uint8_t selectionColorRGBA[4],
-                      const bool selectionFlag,
-                      float selectionCenterXYZOut[3]);
+        void drawImage(AnnotationFile* annotationFile,
+                       AnnotationImage* image,
+                      const Surface* surfaceDisplayed);
         
-        void drawLine(const AnnotationLine* line,
-                      const Surface* surfaceDisplayed,
-                      const uint8_t selectionColorRGBA[4],
-                      const bool selectionFlag,
-                      float selectionCenterXYZOut[3]);
+        void drawLine(AnnotationFile* annotationFile,
+                      AnnotationLine* line,
+                      const Surface* surfaceDisplayed);
         
-        void drawOval(const AnnotationOval* oval,
-                      const Surface* surfaceDisplayed,
-                      const uint8_t selectionColorRGBA[4],
-                      const bool selectionFlag,
-                      float selectionCenterXYZOut[3]);
+        void drawOval(AnnotationFile* annotationFile,
+                      AnnotationOval* oval,
+                      const Surface* surfaceDisplayed);
         
-        void drawText(const AnnotationText* text,
-                       const Surface* surfaceDisplayed,
-                       const uint8_t selectionColorRGBA[4],
-                      const bool selectionFlag,
-                      float selectionCenterXYZOut[3]);
+        void drawText(AnnotationFile* annotationFile,
+                      AnnotationText* text,
+                       const Surface* surfaceDisplayed);
         
-        void drawSelectorSquare(const float xyz[3],
-                                const float halfWidthHeight,
-                                const float rotationAngle);
+        void drawSizingHandle(const AnnotationSizingHandleTypeEnum::Enum handleType,
+                              const uint8_t rgba[4],
+                              const float xyz[3],
+                              const float halfWidthHeight,
+                              const float rotationAngle);
         
-        void drawAnnotationTwoDimSelector(const float bottomLeft[3],
-                                          const float bottomRight[3],
-                                          const float topRight[3],
-                                          const float topLeft[3],
-                                          const float lineThickness,
-                                          const float rotationAngle);
+        void drawAnnotationTwoDimSizingHandles(const uint8_t rgba[4],
+                                               const float bottomLeft[3],
+                                               const float bottomRight[3],
+                                               const float topRight[3],
+                                               const float topLeft[3],
+                                               const float lineThickness,
+                                               const float rotationAngle);
 
-        void drawAnnotationOneDimSelector(const float firstPoint[3],
-                                          const float secondPoint[3],
-                                          const float lineThickness);
+        void drawAnnotationOneDimSizingHandles(const uint8_t rgba[4],
+                                               const float firstPoint[3],
+                                               const float secondPoint[3],
+                                               const float lineThickness);
         
         bool isDrawnWithDepthTesting(const Annotation* annotation);
         
         bool setDepthTestingStatus(const bool newDepthTestingStatus);
+        
+        void getIdentificationColor(uint8_t identificationColorOut[4]);
+        
+        /** Tracks items drawn for selection */
+        std::vector<SelectionInfo> m_selectionInfo;
+        
+        /** In selection mode */
+        bool m_selectionModeFlag;
         
         /** OpenGL Model Matrix */
         GLdouble m_modelSpaceModelMatrix[16];

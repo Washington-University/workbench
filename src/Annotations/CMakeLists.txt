@@ -28,6 +28,7 @@ AnnotationImage.h
 AnnotationLine.h
 AnnotationOneDimensionalShape.h
 AnnotationOval.h
+AnnotationSizingHandleTypeEnum.h
 AnnotationText.h
 AnnotationTextAlignHorizontalEnum.h
 AnnotationTextAlignVerticalEnum.h
@@ -46,6 +47,7 @@ AnnotationImage.cxx
 AnnotationLine.cxx
 AnnotationOneDimensionalShape.cxx
 AnnotationOval.cxx
+AnnotationSizingHandleTypeEnum.cxx
 AnnotationText.cxx
 AnnotationTextAlignHorizontalEnum.cxx
 AnnotationTextAlignVerticalEnum.cxx

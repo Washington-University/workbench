@@ -63,6 +63,7 @@ SelectionItemAnnotation::reset()
      */
     m_annotationFile = NULL;
     m_annotation     = NULL;
+    m_sizingHandle   = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
 }
 
 /**
@@ -92,6 +93,14 @@ SelectionItemAnnotation::getAnnotationFile() const
     return m_annotationFile;
 }
 
+/**
+ * @return Sizing handle selected in the selected annotation.
+ */
+AnnotationSizingHandleTypeEnum::Enum
+SelectionItemAnnotation::getSizingHandle() const
+{
+    return m_sizingHandle;
+}
 
 /**
  * Add a annotation to the selected annotations.
@@ -100,15 +109,19 @@ SelectionItemAnnotation::getAnnotationFile() const
  *     File containing the annotation.
  * @param annotation.
  *     Annotation that is added.
+ * @param annotationSizingHandle
+ *     Sizing handle that is selected.
  */
 void
 SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
-                                       Annotation* annotation)
+                                       Annotation* annotation,
+                                       const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle)
 {
     CaretAssert(annotationFile);
     CaretAssert(annotation);
     m_annotationFile = annotationFile;
     m_annotation     = annotation;
+    m_sizingHandle   = annotationSizingHandle;
 }
 /**
  * Get a description of m_ object's content.
