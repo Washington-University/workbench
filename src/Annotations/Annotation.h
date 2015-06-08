@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "AnnotationCoordinateSpaceEnum.h"
+#include "AnnotationSizingHandleTypeEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
@@ -97,6 +98,10 @@ namespace caret {
         virtual bool isForegroundLineWidthSupported() const;
         
         bool isSelected() const;
+        
+        virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                              const float spaceDX,
+                                              const float spaceDY) = 0;
         
         // ADD_NEW_METHODS_HERE
 

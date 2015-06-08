@@ -113,6 +113,14 @@ namespace caret {
         virtual void mouseLeftPress(const MouseEvent& /*mouseEvent*/) { }
         
         /**
+         * Process a mouse left release event.
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseLeftRelease(const MouseEvent& /*mouseEvent*/) { }
+        
+        /**
          * Process a mouse left click event.
          *
          * @param mouseEvent

@@ -83,6 +83,9 @@ namespace caret {
         
         virtual bool isForegroundLineWidthSupported() const;
         
+        virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                              const float spaceDX,
+                                              const float spaceDY);
         // ADD_NEW_METHODS_HERE
 
           

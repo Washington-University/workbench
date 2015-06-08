@@ -973,6 +973,26 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
         const int absDX = (dx >= 0) ? dx : -dx;
         const int absDY = (dy >= 0) ? dy : -dy;
 
+        {
+            /*
+             * Mouse button RELEASE event
+             */
+            BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+                                                                                       mouseY);
+            
+            MouseEvent mouseEvent(viewportContent,
+                                  this,
+                                  this->windowIndex,
+                                  mouseX,
+                                  mouseY,
+                                  0,
+                                  0,
+                                  this->mousePressX,
+                                  this->mousePressY,
+                                  this->mouseNewDraggingStartedFlag);
+            this->selectedUserInputProcessor->mouseLeftRelease(mouseEvent);
+        }
+        
         /*
          * Use location of mouse press so that the model
          * being manipulated does not change if mouse moves

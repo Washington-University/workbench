@@ -265,6 +265,141 @@ AnnotationTwoDimensionalShape::clearModified()
 }
 
 /**
+ * Apply a move or resize operation received from the GUI.
+ *
+ * @param handleSelected
+ *     Annotatoion handle that is being dragged by the user.
+ * @param spaceDX
+ *     Change in space X-coordinate.
+ * @param spaceDY
+ *     Change in space Y-coordinate.
+ */
+void
+AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                                        const float spaceDX,
+                                                        const float spaceDY)
+{
+    bool resizableSpaceFlag = false;
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::MODEL:
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            resizableSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            resizableSpaceFlag = true;
+            break;
+    }
+    
+    if ( ! resizableSpaceFlag) {
+        return;
+    }
+    
+    float xyz[3];
+    m_coordinate->getXYZ(xyz);
+    
+    float newX = xyz[0];
+    float newY = xyz[1];
+    float newWidth = m_width;
+    float newAspectRatio  = m_height;
+    float normalizedHeight = m_width * m_height;
+    
+    std::cout << "Y=" << newY << "aspect=" << m_height << std::endl;
+    
+    const float halfWidth = m_width / 2.0;
+    const float halfNormalizedHeight = normalizedHeight / 2.0;
+    float right  = xyz[0] + halfWidth;
+    float left   = xyz[0] - halfWidth;
+    float top    = xyz[1] + halfNormalizedHeight;
+    std::cout << "   Top=" << top << std::endl;
+    float bottom = xyz[1] - halfNormalizedHeight;
+    switch (handleSelected) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+        {
+            bottom    += spaceDY;
+            newY      = (bottom + top) / 2.0;
+            const float newNormlizedHeight = top - bottom;
+            if (newNormlizedHeight > 0.0) {
+                newAspectRatio = (newNormlizedHeight / newWidth) * 2;
+            }
+        }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+        {
+            left     += spaceDX;
+            newX     = (left + right) / 2.0;
+            newWidth = right - left;
+            if (newWidth > 0.0) {
+                newAspectRatio = normalizedHeight / newWidth;
+            }
+        }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+//            newWidth += (spaceDX / 2.0);
+//            if (newWidth > 0.0) {
+//                newAspectRatio = heightPixels / newWidth;
+//            }
+//            newX += (spaceDX / 2.0);
+        {
+            right    += spaceDX;
+            newX     = (left + right) / 2.0;
+            newWidth = right - left;
+            if (newWidth > 0.0) {
+                newAspectRatio = normalizedHeight / newWidth;
+            }
+        }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            newX += spaceDX;
+            newY += spaceDY;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+    }
+    
+    /*
+     * Note:
+     *    Coordinates are relative (range 0 to 1)
+     *    Width is relative (range 0 to 1)
+     *    Aspect ratio must only be greater than zero (when < 1, horizontal rectangle, when > 1 vertical rectangle)
+     */
+    if ((newX >= 0.0)
+        && (newX <= 1.0)
+        && (newY >= 0.0)
+        && (newY <= 1.0)
+        && (newWidth > 0.01)
+        && (newWidth <= 1.0)
+        && (newAspectRatio > 0.01)) {
+        xyz[0] = newX;
+        xyz[1] = newY;
+        m_coordinate->setXYZ(xyz);
+        m_width  = newWidth;
+        m_height = newAspectRatio;
+        
+        std::cout << "   newY=" << newY << " newAspect=" << newAspectRatio << std::endl;
+    }
+}
+
+
+/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes

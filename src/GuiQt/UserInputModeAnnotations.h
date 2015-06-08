@@ -32,6 +32,7 @@ namespace caret {
     class Annotation;
     class KeyEvent;
     class MouseEvent;
+    class SelectionItemAnnotation;
     class UserInputModeAnnotationsWidget;
     
     class UserInputModeAnnotations : public UserInputModeView, EventListenerInterface {
@@ -85,6 +86,8 @@ namespace caret {
         
         virtual void mouseLeftPress(const MouseEvent& mouseEvent);
         
+        virtual void mouseLeftRelease(const MouseEvent& mouseEvent);
+
         virtual void mouseMove(const MouseEvent& mouseEvent);
 
         virtual void showContextMenu(const MouseEvent& mouseEvent,
@@ -151,6 +154,9 @@ namespace caret {
         
         void processModeSetCoordinate(const MouseEvent& mouseEvent);
         
+        void setAnnotationUnderMouse(const MouseEvent& mouseEvent,
+                                     SelectionItemAnnotation* annotationIDIn);
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;
@@ -164,6 +170,10 @@ namespace caret {
         Annotation* m_annotationUnderMouse;
         
         AnnotationSizingHandleTypeEnum::Enum m_annotationUnderMouseSizeHandleType;
+        
+        Annotation* m_annotationBeingDragged;
+        
+        AnnotationSizingHandleTypeEnum::Enum m_annotationBeingDraggedHandleType;
         
         // ADD_NEW_MEMBERS_HERE
 

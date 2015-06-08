@@ -71,7 +71,8 @@ UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
 : UserInputModeView(UserInputModeAbstract::ANNOTATIONS),
 m_browserWindowIndex(windowIndex),
 m_annotationBeingEdited(NULL),
-m_annotationUnderMouse(NULL)
+m_annotationUnderMouse(NULL),
+m_annotationBeingDragged(NULL)
 {
     m_mode = MODE_SELECT;
     m_modeNewAnnotationType = AnnotationTypeEnum::LINE;
@@ -135,6 +136,8 @@ UserInputModeAnnotations::initialize()
     m_annotationBeingEdited = NULL;
     m_annotationUnderMouse  = NULL;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+    m_annotationBeingDragged = NULL;
+    m_annotationBeingDraggedHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
 }
 
 /**
@@ -148,6 +151,8 @@ UserInputModeAnnotations::finish()
     m_annotationBeingEdited = NULL;
     m_annotationUnderMouse  = NULL;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+    m_annotationBeingDragged = NULL;
+    m_annotationBeingDraggedHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
 }
 
 /**
@@ -409,13 +414,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
 void
 UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 {
-    if (m_annotationBeingEdited != NULL) {
-        if (m_annotationBeingEdited == m_annotationUnderMouse) {
-//            const QSize windowSize = mouseEvent.getOpenGLWidget()->size();
-//            const float dx = (mouseEvent.getDx() / static_cast<float>(windowSize.width()));
-//            const float dy = (mouseEvent.getDy() / static_cast<float>(windowSize.height()));
-            
-
+    if (m_annotationBeingDragged != NULL) {
             BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
             if (vpContent == NULL) {
                 return;
@@ -425,7 +424,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             float spaceHeight = 0.0;
             
             bool draggableCoordSpaceFlag = false;
-            switch (m_annotationBeingEdited->getCoordinateSpace()) {
+            switch (m_annotationBeingDragged->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::MODEL:
                     break;
                 case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -457,66 +456,90 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 draggableCoordSpaceFlag = false;
             }
             
-            bool updateGraphicsFlag = false;
             if (draggableCoordSpaceFlag) {
                 const float dx = mouseEvent.getDx() / spaceWidth;
                 const float dy = mouseEvent.getDy() / spaceHeight;
-                AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
-                AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
-                if (twoDimShape != NULL) {
-                    float xyz[3];
-                    twoDimShape->getCoordinate()->getXYZ(xyz);
-                    
-                    const float newX = xyz[0] + dx;
-                    const float newY = xyz[1] + dy;
-                    if ((newX >= 0.0)
-                        && (newX <= 1.0)
-                        && (newY >= 0.0)
-                        && (newY <= 1.0)) {
-                        xyz[0] = newX;
-                        xyz[1] = newY;
-                        twoDimShape->getCoordinate()->setXYZ(xyz);
-                        updateGraphicsFlag = true;
-                    }
-                }
-                else if (oneDimShape != NULL) {
-                    float xyz1[3];
-                    float xyz2[3];
-                    oneDimShape->getStartCoordinate()->getXYZ(xyz1);
-                    oneDimShape->getEndCoordinate()->getXYZ(xyz2);
-                    
-                    const float newX1 = xyz1[0] + dx;
-                    const float newY1 = xyz1[1] + dy;
-                    const float newX2 = xyz2[0] + dx;
-                    const float newY2 = xyz2[1] + dy;
-                    if ((newX1 >= 0.0)
-                        && (newX1 <= 1.0)
-                        && (newY1 >= 0.0)
-                        && (newY1 <= 1.0)
-                        && (newX2 >= 0.0)
-                        && (newX2 <= 1.0)
-                        && (newY2 >= 0.0)
-                        && (newY2 <= 1.0)) {
-                        xyz1[0] = newX1;
-                        xyz1[1] = newY1;
-                        oneDimShape->getStartCoordinate()->setXYZ(xyz1);
-                        xyz2[0] = newX2;
-                        xyz2[1] = newY2;
-                        oneDimShape->getEndCoordinate()->setXYZ(xyz2);
-                        updateGraphicsFlag = true;
-                    }
-                }
+                m_annotationBeingDragged->applyMoveOrResizeFromGUI(m_annotationBeingDraggedHandleType,
+                                                                   dx,
+                                                                   dy);
+                
+//                switch (m_annotationUnderMouseSizeHandleType) {
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+//                        break;
+//                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+//                        break;
+//                }
+//                
+//                const float dx = mouseEvent.getDx() / spaceWidth;
+//                const float dy = mouseEvent.getDy() / spaceHeight;
+//                AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingDragged);
+//                AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingDragged);
+//                if (twoDimShape != NULL) {
+//                    float xyz[3];
+//                    twoDimShape->getCoordinate()->getXYZ(xyz);
+//                    
+//                    const float newX = xyz[0] + dx;
+//                    const float newY = xyz[1] + dy;
+//                    if ((newX >= 0.0)
+//                        && (newX <= 1.0)
+//                        && (newY >= 0.0)
+//                        && (newY <= 1.0)) {
+//                        xyz[0] = newX;
+//                        xyz[1] = newY;
+//                        twoDimShape->getCoordinate()->setXYZ(xyz);
+//                    }
+//                }
+//                else if (oneDimShape != NULL) {
+//                    float xyz1[3];
+//                    float xyz2[3];
+//                    oneDimShape->getStartCoordinate()->getXYZ(xyz1);
+//                    oneDimShape->getEndCoordinate()->getXYZ(xyz2);
+//                    
+//                    const float newX1 = xyz1[0] + dx;
+//                    const float newY1 = xyz1[1] + dy;
+//                    const float newX2 = xyz2[0] + dx;
+//                    const float newY2 = xyz2[1] + dy;
+//                    if ((newX1 >= 0.0)
+//                        && (newX1 <= 1.0)
+//                        && (newY1 >= 0.0)
+//                        && (newY1 <= 1.0)
+//                        && (newX2 >= 0.0)
+//                        && (newX2 <= 1.0)
+//                        && (newY2 >= 0.0)
+//                        && (newY2 <= 1.0)) {
+//                        xyz1[0] = newX1;
+//                        xyz1[1] = newY1;
+//                        oneDimShape->getStartCoordinate()->setXYZ(xyz1);
+//                        xyz2[0] = newX2;
+//                        xyz2[1] = newY2;
+//                        oneDimShape->getEndCoordinate()->setXYZ(xyz2);
+//                    }
+//                }
                 
                 EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                 m_annotationToolsWidget->updateWidget();
             }
-            
-            if (updateGraphicsFlag) {
-//                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//                m_annotationToolsWidget->updateWidget();
-            }
         }
-    }
 }
 
 /**
@@ -599,8 +622,8 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
         case MODE_NEW:
             break;
         case MODE_SELECT:
-            processMouseSelectAnnotation(mouseEvent,
-                                            true);
+//            processMouseSelectAnnotation(mouseEvent,
+//                                            true);
             break;
         case MODE_SET_COORDINATE_ONE:
             break;
@@ -630,6 +653,52 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
         case MODE_SET_COORDINATE_TWO:
             break;
     }
+}
+
+/**
+ * Set the annotation under the mouse that results in update of the cursor.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ * @param annotationIDIn
+ *     Optional (if not NULL) annotation ID that may be provided by caller
+ *     and can be used to avoid an identification operation.
+ */
+void
+UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
+                                                  SelectionItemAnnotation* annotationIDIn)
+{
+    m_annotationUnderMouse = NULL;
+    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+    
+    
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    SelectionItemAnnotation* annotationID = annotationIDIn;
+    if (annotationID == NULL) {
+        annotationID = openGLWidget->performIdentificationAnnotations(mouseEvent.getX(),
+                                                                      mouseEvent.getY());
+    }
+    if (annotationID->isValid()) {
+        m_annotationUnderMouse = annotationID->getAnnotation();
+        m_annotationUnderMouseSizeHandleType = annotationID->getSizingHandle();
+    }
+    
+    openGLWidget->updateCursor();
+}
+
+/**
+ * Process a mouse left release event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
+{
+    m_annotationBeingDragged = NULL;
+    
+    setAnnotationUnderMouse(mouseEvent,
+                            NULL);
 }
 
 /**
@@ -676,21 +745,24 @@ UserInputModeAnnotations::mouseLeftDoubleClick(const MouseEvent& mouseEvent)
 void
 UserInputModeAnnotations::mouseMove(const MouseEvent& mouseEvent)
 {
-    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    const int mouseX = mouseEvent.getX();
-    const int mouseY = mouseEvent.getY();
+//    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+//    const int mouseX = mouseEvent.getX();
+//    const int mouseY = mouseEvent.getY();
     
-    m_annotationUnderMouse = NULL;
-    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
-    
-    SelectionItemAnnotation* annotationID = openGLWidget->performIdentificationAnnotations(mouseX,
-                                                                                           mouseY);
-    if (annotationID->isValid()) {
-        m_annotationUnderMouse = annotationID->getAnnotation();
-        m_annotationUnderMouseSizeHandleType = annotationID->getSizingHandle();
-    }
-    
-    openGLWidget->updateCursor();
+    setAnnotationUnderMouse(mouseEvent,
+                            NULL);
+
+//    m_annotationUnderMouse = NULL;
+//    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+//    
+//    SelectionItemAnnotation* annotationID = openGLWidget->performIdentificationAnnotations(mouseX,
+//                                                                                           mouseY);
+//    if (annotationID->isValid()) {
+//        m_annotationUnderMouse = annotationID->getAnnotation();
+//        m_annotationUnderMouseSizeHandleType = annotationID->getSizingHandle();
+//    }
+//    
+//    openGLWidget->updateCursor();
 }
 
 /**
@@ -879,7 +951,8 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     const int mouseX = mouseEvent.getX();
     const int mouseY = mouseEvent.getY();
     
-    m_annotationBeingEdited = NULL;
+    m_annotationBeingEdited  = NULL;
+    m_annotationBeingDragged = NULL;
     
     /*
      * NOTE: When selecting annotations:
@@ -901,12 +974,21 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     }
     annotationManager->selectAnnotation(selectionMode,
                                         selectedAnnotation);
-    m_annotationUnderMouse = selectedAnnotation;
-    m_annotationUnderMouseSizeHandleType = annotationID->getSizingHandle();
+    
+    setAnnotationUnderMouse(mouseEvent,
+                            annotationID);
+
+//    m_annotationUnderMouse = selectedAnnotation;
+//    m_annotationUnderMouseSizeHandleType = annotationID->getSizingHandle();
     
     const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations();
     if (allSelectedAnnotations.size() == 1) {
         m_annotationBeingEdited = allSelectedAnnotations[0];
+    }
+    
+    if (selectedAnnotation != NULL) {
+        m_annotationBeingDragged = selectedAnnotation;
+        m_annotationBeingDraggedHandleType = annotationID->getSizingHandle();
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

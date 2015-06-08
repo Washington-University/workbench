@@ -184,6 +184,101 @@ AnnotationOneDimensionalShape::clearModified()
     m_endCoordinate->clearModified();
 }
 
+/**
+ * Apply a move or resize operation received from the GUI.
+ *
+ * @param handleSelected
+ *     Annotatoion handle that is being dragged by the user.
+ * @param spaceDX
+ *     Change in space X-coordinate.
+ * @param spaceDY
+ *     Change in space Y-coordinate.
+ */
+void
+AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                                        const float spaceDX,
+                                                        const float spaceDY)
+{
+    bool resizableSpaceFlag = false;
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::MODEL:
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            resizableSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            resizableSpaceFlag = true;
+            break;
+    }
+    
+    if ( ! resizableSpaceFlag) {
+        return;
+    }
+    
+    float xyz1[3];
+    float xyz2[3];
+    m_startCoordinate->getXYZ(xyz1);
+    m_endCoordinate->getXYZ(xyz2);
+    
+    float newX1 = xyz1[0];
+    float newY1 = xyz1[1];
+    float newX2 = xyz2[0];
+    float newY2 = xyz2[1];
+    switch (handleSelected) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            newX2 += spaceDX;
+            newY2 += spaceDY;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            newX1 += spaceDX;
+            newY1 += spaceDY;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            newX1 += spaceDX;
+            newY1 += spaceDY;
+            newX2 += spaceDX;
+            newY2 += spaceDY;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+    }
+    
+    if ((newX1 >= 0.0)
+        && (newX1 <= 1.0)
+        && (newY1 >= 0.0)
+        && (newY1 <= 1.0)
+        && (newX2 >= 0.0)
+        && (newX2 <= 1.0)
+        && (newY2 >= 0.0)
+        && (newY2 <= 1.0)) {
+        xyz1[0] = newX1;
+        xyz1[1] = newY1;
+        m_startCoordinate->setXYZ(xyz1);
+        xyz2[0] = newX2;
+        xyz2[1] = newY2;
+        m_endCoordinate->setXYZ(xyz2);
+    }
+}
 
 /**
  * Save subclass data to the scene.

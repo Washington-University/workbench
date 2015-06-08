@@ -402,6 +402,62 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
 }
 
 /**
+ * Apply a move or resize operation received from the GUI.
+ *
+ * @param handleSelected
+ *     Annotatoion handle that is being dragged by the user.
+ * @param spaceDX
+ *     Change in space X-coordinate.
+ * @param spaceDY
+ *     Change in space Y-coordinate.
+ */
+void
+AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                                        const float spaceDX,
+                                                        const float spaceDY)
+{
+    /*
+     * Text limits support of resize options
+     */
+    bool operationSupportedFlag = false;
+    
+    switch (handleSelected) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            operationSupportedFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            operationSupportedFlag = true;
+            break;
+    }
+    
+    if (operationSupportedFlag) {
+        AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(handleSelected,
+                                                                spaceDX,
+                                                                spaceDY);
+    }
+}
+
+/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes
