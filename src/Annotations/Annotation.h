@@ -108,16 +108,16 @@ namespace caret {
          *     Width of viewport
          * @param viewportHeight
          *     Height of viewport
-         * @param spaceDX
-         *     Change in space X-coordinate.
-         * @param spaceDY
-         *     Change in space Y-coordinate.
+         * @param viewportDX
+         *     Change in viewport X-coordinate.
+         * @param viewportDY
+         *     Change in viewport Y-coordinate.
          */
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                               const float viewportWidth,
                                               const float viewportHeight,
-                                              const float spaceDX,
-                                              const float spaceDY) = 0;
+                                              const float viewportDX,
+                                              const float viewportDY) = 0;
         
         // ADD_NEW_METHODS_HERE
 

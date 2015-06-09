@@ -270,22 +270,22 @@ AnnotationTwoDimensionalShape::clearModified()
  * Apply a move or resize operation received from the GUI.
  *
  * @param handleSelected
- *     Annotatoion handle that is being dragged by the user.
+ *     Annotation handle that is being dragged by the user.
  * @param viewportWidth
  *     Width of viewport
  * @param viewportHeight
  *     Height of viewport
- * @param spaceDX
- *     Change in space X-coordinate.
- * @param spaceDY
- *     Change in space Y-coordinate.
+ * @param viewportDX
+ *     Change in viewport X-coordinate.
+ * @param viewportDY
+ *     Change in viewport Y-coordinate.
  */
 void
 AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                                         const float viewportWidth,
                                                         const float viewportHeight,
-                                                        const float spaceDX,
-                                                        const float spaceDY)
+                                                        const float viewportDX,
+                                                        const float viewportDY)
 {
     bool resizableSpaceFlag = false;
     switch (getCoordinateSpace()) {
@@ -360,8 +360,8 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     switch (handleSelected) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
         {
-            height    -= spaceDY;
-            viewportY += (spaceDY / 2.0);
+            height    -= viewportDY;
+            viewportY += (viewportDY / 2.0);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
@@ -370,20 +370,20 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
         {
-            width     -= spaceDX;
-            viewportX += (spaceDX / 2.0);
+            width     -= viewportDX;
+            viewportX += (viewportDX / 2.0);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
         {
-            width     += spaceDX;
-            viewportX += (spaceDX / 2.0);
+            width     += viewportDX;
+            viewportX += (viewportDX / 2.0);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
         {
-            height    += spaceDY;
-            viewportY += (spaceDY / 2.0);
+            height    += viewportDY;
+            viewportY += (viewportDY / 2.0);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
@@ -395,8 +395,8 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-            viewportX += spaceDX;
-            viewportY += spaceDY;
+            viewportX += viewportDX;
+            viewportY += viewportDY;
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;

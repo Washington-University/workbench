@@ -419,8 +419,8 @@ void
 AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                          const float viewportWidth,
                                          const float viewportHeight,
-                                                        const float spaceDX,
-                                                        const float spaceDY)
+                                         const float viewportDX,
+                                         const float viewportDY)
 {
     /*
      * Text limits support of resize options
@@ -460,8 +460,8 @@ AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::E
         AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(handleSelected,
                                                                 viewportWidth,
                                                                 viewportHeight,
-                                                                spaceDX,
-                                                                spaceDY);
+                                                                viewportDX,
+                                                                viewportDY);
     }
 }
 

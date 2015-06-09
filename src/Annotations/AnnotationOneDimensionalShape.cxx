@@ -193,18 +193,19 @@ AnnotationOneDimensionalShape::clearModified()
  *     Width of viewport
  * @param viewportHeight
  *     Height of viewport
- * @param spaceDX
- *     Change in space X-coordinate.
- * @param spaceDY
- *     Change in space Y-coordinate.
+ * @param viewportDX
+ *     Change in viewport X-coordinate.
+ * @param viewportDY
+ *     Change in viewport Y-coordinate.
  */
 void
 AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                                         const float viewportWidth,
                                                         const float viewportHeight,
-                                                        const float spaceDX,
-                                                        const float spaceDY)
+                                                        const float viewportDX,
+                                                        const float viewportDY)
 {
+    
     bool resizableSpaceFlag = false;
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::MODEL:
@@ -234,6 +235,14 @@ AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     float newY1 = xyz1[1];
     float newX2 = xyz2[0];
     float newY2 = xyz2[1];
+
+    const float spaceDX = ((viewportWidth != 0.0)
+                           ? (viewportDX / viewportWidth)
+                           : 0.0);
+    const float spaceDY = ((viewportHeight != 0.0)
+                           ? (viewportDY / viewportHeight)
+                           : 0.0);
+    
     switch (handleSelected) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
             break;

@@ -460,9 +460,6 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 const float dx = mouseEvent.getDx(); // / spaceWidth;
                 const float dy = mouseEvent.getDy(); // / spaceHeight;
                 
-                const float aspectRatio = ((spaceWidth != 0.0)
-                                           ? (spaceHeight / spaceWidth)
-                                           : 1.0);
                 m_annotationBeingDragged->applyMoveOrResizeFromGUI(m_annotationBeingDraggedHandleType,
                                                                    spaceWidth,
                                                                    spaceHeight,
