@@ -23,7 +23,6 @@
 
 
 #include "CaretObject.h"
-#include "XmlException.h"
 #include <stdint.h>
 
 #include <AString.h>
