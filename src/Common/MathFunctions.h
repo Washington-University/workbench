@@ -283,6 +283,12 @@ public:
                     float outputAverage[],
                     const int32_t outputOffset);
 
+    static void averageOfFourCoordinates(const float c1[3],
+                                         const float c2[3],
+                                         const float c3[3],
+                                         const float c4[3],
+                                         float outputAverage[3]);
+    
     static float angle(
                     const float p1[3],
                     const float p2[3],

@@ -1347,6 +1347,29 @@ MathFunctions::averageOfThreeCoordinates(
 }
 
 /**
+ * Get the average of four coordinates.
+ * @param c1 - coordinate 1
+ * @param c2 - coordinate 2
+ * @param c3 - coordinate 1
+ * @param c4 - coordinate 2
+ * @param outputAverage A three-dimensional array into
+ * which the average of the four coordinates is
+ * placed.
+ *
+ */
+void
+MathFunctions::averageOfFourCoordinates(const float c1[3],
+                                        const float c2[3],
+                                        const float c3[3],
+                                        const float c4[3],
+                                        float outputAverage[3])
+{
+    outputAverage[0] = (c1[0] + c2[0] + c3[0] + c4[0]) / 4.0f;
+    outputAverage[1] = (c1[1] + c2[1] + c3[1] + c4[1]) / 4.0f;
+    outputAverage[2] = (c1[2] + c2[2] + c3[2] + c4[2]) / 4.0f;
+}
+
+/**
  * Angle formed by p1, p2, p3 (angle at p2).  Returned angle is in radians.
  * This method uses Java Math.acos() and produces highly accurate results.
  * @param p1 - point.
