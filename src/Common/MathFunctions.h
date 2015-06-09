@@ -264,12 +264,17 @@ public:
                     const float b[],
                     const int32_t numElements);
 
-    static void averageOfThreeCoordinates(
+    static void averageOfTwoCoordinates(
                     const float c1[3],
                     const float c2[3],
-                    const float c3[3],
                     float outputAverage[3]);
 
+    static void averageOfThreeCoordinates(
+                                          const float c1[3],
+                                          const float c2[3],
+                                          const float c3[3],
+                                          float outputAverage[3]);
+    
     static void averageOfThreeCoordinates(
                     const float xyzAll[],
                     const int32_t offsetCoord1,

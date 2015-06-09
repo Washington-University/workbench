@@ -1277,6 +1277,26 @@ MathFunctions::arraysEqual(
 }
 
 /**
+ * Get the average of two coordinates.
+ * @param c1 - coordinate 1
+ * @param c2 - coordinate 2
+ * @param outputAverage A three-dimensional array into
+ * which the average of the two coordinates is
+ * placed.
+ *
+ */
+void
+MathFunctions::averageOfTwoCoordinates(const float c1[3],
+                                       const float c2[3],
+                                       float outputAverage[3])
+{
+    outputAverage[0] = (c1[0] + c2[0]) / 2.0f;
+    outputAverage[1] = (c1[1] + c2[1]) / 2.0f;
+    outputAverage[2] = (c1[2] + c2[2]) / 2.0f;
+}
+
+
+/**
  * Get the average of three coordinates.
  * @param c1 - coordinate 1
  * @param c2 - coordinate 2
