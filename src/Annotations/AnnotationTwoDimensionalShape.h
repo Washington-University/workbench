@@ -96,6 +96,10 @@ namespace caret {
 
         void initializeMembersAnnotationTwoDimensionalShape();
         
+        void addToXYZWithXY(float xyz[3],
+                            const float addX,
+                            const float addY);
+        
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
         CaretPointer<AnnotationCoordinate> m_coordinate;

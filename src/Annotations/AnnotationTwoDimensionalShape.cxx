@@ -332,36 +332,26 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         return;
     }
     
-    float leftXYZ[3];
-    MathFunctions::averageOfTwoCoordinates(bottomLeftXYZ, topLeftXYZ, leftXYZ);
-    float rightXYZ[3];
-    MathFunctions::averageOfTwoCoordinates(bottomRightXYZ, topRightXYZ, rightXYZ);
-    float bottomXYZ[3];
-    MathFunctions::averageOfTwoCoordinates(bottomLeftXYZ, bottomRightXYZ, bottomXYZ);
-    float topXYZ[3];
-    MathFunctions::averageOfTwoCoordinates(topLeftXYZ, topLeftXYZ, topXYZ);
-    
     float leftToRightUnitVector[3];
     MathFunctions::createUnitVector(bottomLeftXYZ, bottomRightXYZ, leftToRightUnitVector);
     float bottomToTopUnitVector[3];
     MathFunctions::createUnitVector(bottomLeftXYZ, topLeftXYZ, bottomToTopUnitVector);
+    //    const AString infoTxt("ORIG: Bottom=" + AString::number(bottomXYZ[1], 'f', 4)
+    //                          + " Top=" + AString::number(topXYZ[1], 'f', 4)
+    //                          + " Y=" + AString::number(xyz[1], 'f', 6)
+    //                          + " aspect=" + AString::number(m_height, 'f', 6));
+    //    std::cout << qPrintable(infoTxt) << std::endl;
     
-    float viewportX = viewportXYZ[0];
-    float viewportY = viewportXYZ[1];
-    float width     = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
-    float height    = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
-    
-//    const AString infoTxt("ORIG: Bottom=" + AString::number(bottomXYZ[1], 'f', 4)
-//                          + " Top=" + AString::number(topXYZ[1], 'f', 4)
-//                          + " Y=" + AString::number(xyz[1], 'f', 6)
-//                          + " aspect=" + AString::number(m_height, 'f', 6));
-//    std::cout << qPrintable(infoTxt) << std::endl;
-
+    /*
+     * When a resize handle is moved, update the corners of the shape
+     */
     switch (handleSelected) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
         {
-            height    -= viewportDY;
-            viewportY += (viewportDY / 2.0);
+            const float moveX = (bottomToTopUnitVector[0] * viewportDY);
+            const float moveY = (bottomToTopUnitVector[1] * viewportDY);
+            addToXYZWithXY(bottomLeftXYZ, moveX, moveY);
+            addToXYZWithXY(bottomRightXYZ, moveX, moveY);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
@@ -370,20 +360,26 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
         {
-            width     -= viewportDX;
-            viewportX += (viewportDX / 2.0);
+            const float moveX = (leftToRightUnitVector[0] * viewportDX);
+            const float moveY = (leftToRightUnitVector[1] * viewportDX);
+            addToXYZWithXY(topLeftXYZ,    moveX, moveY);
+            addToXYZWithXY(bottomLeftXYZ, moveX, moveY);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
         {
-            width     += viewportDX;
-            viewportX += (viewportDX / 2.0);
+            const float moveX = (leftToRightUnitVector[0] * viewportDX);
+            const float moveY = (leftToRightUnitVector[1] * viewportDX);
+            addToXYZWithXY(topRightXYZ,    moveX, moveY);
+            addToXYZWithXY(bottomRightXYZ, moveX, moveY);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
         {
-            height    += viewportDY;
-            viewportY += (viewportDY / 2.0);
+            const float moveX = (bottomToTopUnitVector[0] * viewportDY);
+            const float moveY = (bottomToTopUnitVector[1] * viewportDY);
+            addToXYZWithXY(topLeftXYZ, moveX, moveY);
+            addToXYZWithXY(topRightXYZ, moveX, moveY);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
@@ -395,18 +391,27 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-            viewportX += viewportDX;
-            viewportY += viewportDY;
+            addToXYZWithXY(bottomLeftXYZ,  viewportDX, viewportDY);
+            addToXYZWithXY(bottomRightXYZ, viewportDX, viewportDY);
+            addToXYZWithXY(topRightXYZ,    viewportDX, viewportDY);
+            addToXYZWithXY(topLeftXYZ,     viewportDX, viewportDY);
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;
     }
-    
-    const float newX = viewportX / viewportWidth;
-    const float newY = viewportY / viewportHeight;
-    const float newWidth = width / viewportWidth;
-    const float newAspectRatio = ((width != 0.0)
-                                  ? (height / width)
+
+    /*
+     * Using the updated corners of the annotation, convert back to normalized x, y, width, and aspect ratio
+     */
+    float newViewportXYZ[3];
+    MathFunctions::averageOfFourCoordinates(bottomLeftXYZ, bottomRightXYZ, topRightXYZ, topLeftXYZ, newViewportXYZ);
+    const float newX = newViewportXYZ[0] / viewportWidth;
+    const float newY = newViewportXYZ[1] / viewportHeight;
+    const float newShapeViewportWidth = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
+    const float newWidth = newShapeViewportWidth / viewportWidth;
+    const float newShapeViewportHeight = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
+    const float newAspectRatio = ((newShapeViewportWidth != 0.0)
+                                  ? (newShapeViewportHeight / newShapeViewportWidth)
                                   : 0.0);
     
     /*
@@ -428,19 +433,230 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         m_width  = newWidth;
         m_height = newAspectRatio;
         
-//        {
-//            const float h = m_width * m_height;
-//            const float b = xyz[1] - (h / 2.0);
-//            const float t = xyz[1] + (h / 2.0);
-//            const AString infoTxt("NEW:  Bottom=" + AString::number(b, 'f', 4)
-//                                  + " Top=" + AString::number(t, 'f', 4)
-//                                  + " Y=" + AString::number(xyz[1], 'f', 6)
-//                                  + " aspect=" + AString::number(m_height, 'f', 6));
-//            std::cout << qPrintable(infoTxt) << std::endl;
-//            std::cout << std::endl;
-//        }
+        //        {
+        //            const float h = m_width * m_height;
+        //            const float b = xyz[1] - (h / 2.0);
+        //            const float t = xyz[1] + (h / 2.0);
+        //            const AString infoTxt("NEW:  Bottom=" + AString::number(b, 'f', 4)
+        //                                  + " Top=" + AString::number(t, 'f', 4)
+        //                                  + " Y=" + AString::number(xyz[1], 'f', 6)
+        //                                  + " aspect=" + AString::number(m_height, 'f', 6));
+        //            std::cout << qPrintable(infoTxt) << std::endl;
+        //            std::cout << std::endl;
+        //        }
     }
 }
+
+/**
+ * Add the given X and Y values to the three-dimensional coordinate.
+ *
+ * @param xyz
+ *     Coordinate that has values added to it.
+ * @param addX
+ *     Value that is added coordinate's X.
+ * @param addY
+ *     Value that is added coordinate's Y.
+ */
+void
+AnnotationTwoDimensionalShape::addToXYZWithXY(float xyz[3],
+                                              const float addX,
+                                              const float addY)
+{
+    xyz[0] += addX;
+    xyz[1] += addY;
+}
+
+///**
+// * Apply a move or resize operation received from the GUI.
+// *
+// * @param handleSelected
+// *     Annotation handle that is being dragged by the user.
+// * @param viewportWidth
+// *     Width of viewport
+// * @param viewportHeight
+// *     Height of viewport
+// * @param viewportDX
+// *     Change in viewport X-coordinate.
+// * @param viewportDY
+// *     Change in viewport Y-coordinate.
+// */
+//void
+//AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+//                                                        const float viewportWidth,
+//                                                        const float viewportHeight,
+//                                                        const float viewportDX,
+//                                                        const float viewportDY)
+//{
+//    bool resizableSpaceFlag = false;
+//    switch (getCoordinateSpace()) {
+//        case AnnotationCoordinateSpaceEnum::MODEL:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::PIXELS:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//            resizableSpaceFlag = true;
+//            break;
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            resizableSpaceFlag = true;
+//            break;
+//    }
+//    
+//    if ( ! resizableSpaceFlag) {
+//        return;
+//    }
+//    
+//    float xyz[3];
+//    m_coordinate->getXYZ(xyz);
+//    
+//    float viewportXYZ[3] = {
+//        xyz[0] * viewportWidth,
+//        xyz[1] * viewportHeight,
+//        xyz[2]
+//    };
+//    
+//    float bottomLeftXYZ[3];
+//    float bottomRightXYZ[3];
+//    float topLeftXYZ[3];
+//    float topRightXYZ[3];
+//    const bool validBounds = getShapeBounds(viewportWidth,
+//                                            viewportHeight,
+//                                            viewportXYZ,
+//                                            bottomLeftXYZ,
+//                                            bottomRightXYZ,
+//                                            topRightXYZ,
+//                                            topLeftXYZ);
+//    if ( ! validBounds) {
+//        CaretAssert(0);
+//        return;
+//    }
+//    
+//    float leftXYZ[3];
+//    MathFunctions::averageOfTwoCoordinates(bottomLeftXYZ, topLeftXYZ, leftXYZ);
+//    float rightXYZ[3];
+//    MathFunctions::averageOfTwoCoordinates(bottomRightXYZ, topRightXYZ, rightXYZ);
+//    float bottomXYZ[3];
+//    MathFunctions::averageOfTwoCoordinates(bottomLeftXYZ, bottomRightXYZ, bottomXYZ);
+//    float topXYZ[3];
+//    MathFunctions::averageOfTwoCoordinates(topLeftXYZ, topLeftXYZ, topXYZ);
+//    
+//    float leftToRightUnitVector[3];
+//    MathFunctions::createUnitVector(bottomLeftXYZ, bottomRightXYZ, leftToRightUnitVector);
+//    float bottomToTopUnitVector[3];
+//    MathFunctions::createUnitVector(bottomLeftXYZ, topLeftXYZ, bottomToTopUnitVector);
+//    
+//    float viewportX = viewportXYZ[0];
+//    float viewportY = viewportXYZ[1];
+//    float width     = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
+//    float height    = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
+//    
+////    const AString infoTxt("ORIG: Bottom=" + AString::number(bottomXYZ[1], 'f', 4)
+////                          + " Top=" + AString::number(topXYZ[1], 'f', 4)
+////                          + " Y=" + AString::number(xyz[1], 'f', 6)
+////                          + " aspect=" + AString::number(m_height, 'f', 6));
+////    std::cout << qPrintable(infoTxt) << std::endl;
+//
+//    switch (handleSelected) {
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+//        {
+//            height    -= viewportDY;
+//            viewportY += (viewportDY / 2.0);
+//        }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+//        {
+//            width     -= viewportDX;
+//            viewportX += (viewportDX / 2.0);
+//        }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+//        {
+//            const float newWidth = width + viewportDX;
+//            const float differenceVectorXYZ[3] = {
+//                leftToRightUnitVector[0] * newWidth,
+//                leftToRightUnitVector[1] * newWidth,
+//                0.0
+//            };
+//            const float newTopRight[3] = {
+//                topLeftXYZ[0] + differenceVectorXYZ[0],
+//                topLeftXYZ[1] + differenceVectorXYZ[1],
+//                topRightXYZ[2]
+//            };
+//            width = MathFunctions::distance3D(topLeftXYZ, newTopRight);
+//            viewportX += differenceVectorXYZ[0] / 2.0;
+//            viewportY += differenceVectorXYZ[1] / 2.0;
+//            
+//            
+////            width     += viewportDX;
+////            viewportX += (viewportDX / 2.0);
+//        }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+//        {
+//            height    += viewportDY;
+//            viewportY += (viewportDY / 2.0);
+//        }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+//            viewportX += viewportDX;
+//            viewportY += viewportDY;
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+//            break;
+//    }
+//    
+//    const float newX = viewportX / viewportWidth;
+//    const float newY = viewportY / viewportHeight;
+//    const float newWidth = width / viewportWidth;
+//    const float newAspectRatio = ((width != 0.0)
+//                                  ? (height / width)
+//                                  : 0.0);
+//    
+//    /*
+//     * Note:
+//     *    Coordinates are relative (range 0 to 1)
+//     *    Width is relative (range 0 to 1)
+//     *    Aspect ratio must only be greater than zero (when < 1, horizontal rectangle, when > 1 vertical rectangle)
+//     */
+//    if ((newX >= 0.0)
+//        && (newX <= 1.0)
+//        && (newY >= 0.0)
+//        && (newY <= 1.0)
+//        && (newWidth > 0.01)
+//        && (newWidth <= 1.0)
+//        && (newAspectRatio > 0.01)) {
+//        xyz[0] = newX;
+//        xyz[1] = newY;
+//        m_coordinate->setXYZ(xyz);
+//        m_width  = newWidth;
+//        m_height = newAspectRatio;
+//        
+////        {
+////            const float h = m_width * m_height;
+////            const float b = xyz[1] - (h / 2.0);
+////            const float t = xyz[1] + (h / 2.0);
+////            const AString infoTxt("NEW:  Bottom=" + AString::number(b, 'f', 4)
+////                                  + " Top=" + AString::number(t, 'f', 4)
+////                                  + " Y=" + AString::number(xyz[1], 'f', 6)
+////                                  + " aspect=" + AString::number(m_height, 'f', 6));
+////            std::cout << qPrintable(infoTxt) << std::endl;
+////            std::cout << std::endl;
+////        }
+//    }
+//}
 
 /**
  * Get the bounds for a two-dimensional shape annotation.
