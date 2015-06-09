@@ -62,5 +62,6 @@ AnnotationTypeEnum.cxx
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Common
 ${CMAKE_SOURCE_DIR}/Scenes
+${CMAKE_SOURCE_DIR}/Nifti
 )
 

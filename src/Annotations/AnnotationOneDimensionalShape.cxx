@@ -189,6 +189,10 @@ AnnotationOneDimensionalShape::clearModified()
  *
  * @param handleSelected
  *     Annotatoion handle that is being dragged by the user.
+ * @param viewportWidth
+ *     Width of viewport
+ * @param viewportHeight
+ *     Height of viewport
  * @param spaceDX
  *     Change in space X-coordinate.
  * @param spaceDY
@@ -196,6 +200,8 @@ AnnotationOneDimensionalShape::clearModified()
  */
 void
 AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                                        const float viewportWidth,
+                                                        const float viewportHeight,
                                                         const float spaceDX,
                                                         const float spaceDY)
 {

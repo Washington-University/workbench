@@ -99,7 +99,23 @@ namespace caret {
         
         bool isSelected() const;
         
+        /**
+         * Apply a move or resize operation received from the GUI.
+         *
+         * @param handleSelected
+         *     Annotatoion handle that is being dragged by the user.
+         * @param viewportWidth
+         *     Width of viewport
+         * @param viewportHeight
+         *     Height of viewport
+         * @param spaceDX
+         *     Change in space X-coordinate.
+         * @param spaceDY
+         *     Change in space Y-coordinate.
+         */
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                              const float viewportWidth,
+                                              const float viewportHeight,
                                               const float spaceDX,
                                               const float spaceDY) = 0;
         

@@ -61,7 +61,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_annotation2D = NULL;
     
     QLabel* widthLabel = new QLabel(" W:");
-    m_widthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, 2,
+    m_widthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, 3,
                                                                                     this, SLOT(widthValueChanged(double)));
     WuQtUtilities::setWordWrappedToolTip(m_widthSpinBox,
                                          "Width of 2D Shapes (Box, Image, Oval)");
@@ -76,6 +76,7 @@ m_browserWindowIndex(browserWindowIndex)
         AnnotationBox box;
         if (box.isUseHeightAsAspectRatio()) {
             m_heightSpinBox->setMaximum(1000.0);
+            m_heightSpinBox->setDecimals(6);
             m_heightSpinBox->setToolTip("Aspect ratio of shape");
         }
     }
@@ -111,8 +112,12 @@ AnnotationWidthHeightWidget::updateContent(AnnotationTwoDimensionalShape* annota
     
     if (m_annotation2D != NULL) {
         if (m_annotation2D->getType() != AnnotationTypeEnum::TEXT) {
+            m_widthSpinBox->blockSignals(true);
             m_widthSpinBox->setValue(m_annotation2D->getWidth());
+            m_widthSpinBox->blockSignals(false);
+            m_heightSpinBox->blockSignals(true);
             m_heightSpinBox->setValue(m_annotation2D->getHeight());
+            m_heightSpinBox->blockSignals(false);
             setEnabled(true);
         }
         else {

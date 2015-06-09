@@ -26,6 +26,8 @@
 #include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MathFunctions.h"
+#include "Matrix4x4.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -269,6 +271,10 @@ AnnotationTwoDimensionalShape::clearModified()
  *
  * @param handleSelected
  *     Annotatoion handle that is being dragged by the user.
+ * @param viewportWidth
+ *     Width of viewport
+ * @param viewportHeight
+ *     Height of viewport
  * @param spaceDX
  *     Change in space X-coordinate.
  * @param spaceDY
@@ -276,6 +282,8 @@ AnnotationTwoDimensionalShape::clearModified()
  */
 void
 AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                                        const float viewportWidth,
+                                                        const float viewportHeight,
                                                         const float spaceDX,
                                                         const float spaceDY)
 {
@@ -302,30 +310,58 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     float xyz[3];
     m_coordinate->getXYZ(xyz);
     
-    float newX = xyz[0];
-    float newY = xyz[1];
-    float newWidth = m_width;
-    float newAspectRatio  = m_height;
-    float normalizedHeight = m_width * m_height;
+    float viewportXYZ[3] = {
+        xyz[0] * viewportWidth,
+        xyz[1] * viewportHeight,
+        xyz[2]
+    };
     
-    std::cout << "Y=" << newY << "aspect=" << m_height << std::endl;
+    float bottomLeftXYZ[3];
+    float bottomRightXYZ[3];
+    float topLeftXYZ[3];
+    float topRightXYZ[3];
+    const bool validBounds = getShapeBounds(viewportWidth,
+                                            viewportHeight,
+                                            viewportXYZ,
+                                            bottomLeftXYZ,
+                                            bottomRightXYZ,
+                                            topRightXYZ,
+                                            topLeftXYZ);
+    if ( ! validBounds) {
+        CaretAssert(0);
+        return;
+    }
     
-    const float halfWidth = m_width / 2.0;
-    const float halfNormalizedHeight = normalizedHeight / 2.0;
-    float right  = xyz[0] + halfWidth;
-    float left   = xyz[0] - halfWidth;
-    float top    = xyz[1] + halfNormalizedHeight;
-    std::cout << "   Top=" << top << std::endl;
-    float bottom = xyz[1] - halfNormalizedHeight;
+    float leftXYZ[3];
+    MathFunctions::averageOfTwoCoordinates(bottomLeftXYZ, topLeftXYZ, leftXYZ);
+    float rightXYZ[3];
+    MathFunctions::averageOfTwoCoordinates(bottomRightXYZ, topRightXYZ, rightXYZ);
+    float bottomXYZ[3];
+    MathFunctions::averageOfTwoCoordinates(bottomLeftXYZ, bottomRightXYZ, bottomXYZ);
+    float topXYZ[3];
+    MathFunctions::averageOfTwoCoordinates(topLeftXYZ, topLeftXYZ, topXYZ);
+    
+    float leftToRightUnitVector[3];
+    MathFunctions::createUnitVector(bottomLeftXYZ, bottomRightXYZ, leftToRightUnitVector);
+    float bottomToTopUnitVector[3];
+    MathFunctions::createUnitVector(bottomLeftXYZ, topLeftXYZ, bottomToTopUnitVector);
+    
+    float viewportX = viewportXYZ[0];
+    float viewportY = viewportXYZ[1];
+    float width     = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
+    float height    = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
+    
+//    const AString infoTxt("ORIG: Bottom=" + AString::number(bottomXYZ[1], 'f', 4)
+//                          + " Top=" + AString::number(topXYZ[1], 'f', 4)
+//                          + " Y=" + AString::number(xyz[1], 'f', 6)
+//                          + " aspect=" + AString::number(m_height, 'f', 6));
+//    std::cout << qPrintable(infoTxt) << std::endl;
+
     switch (handleSelected) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
         {
-            bottom    += spaceDY;
-            newY      = (bottom + top) / 2.0;
-            const float newNormlizedHeight = top - bottom;
-            if (newNormlizedHeight > 0.0) {
-                newAspectRatio = (newNormlizedHeight / newWidth) * 2;
-            }
+            height    -= spaceDY;
+            viewportY += (spaceDY / 2.0);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
@@ -334,30 +370,21 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
         {
-            left     += spaceDX;
-            newX     = (left + right) / 2.0;
-            newWidth = right - left;
-            if (newWidth > 0.0) {
-                newAspectRatio = normalizedHeight / newWidth;
-            }
+            width     -= spaceDX;
+            viewportX += (spaceDX / 2.0);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-//            newWidth += (spaceDX / 2.0);
-//            if (newWidth > 0.0) {
-//                newAspectRatio = heightPixels / newWidth;
-//            }
-//            newX += (spaceDX / 2.0);
         {
-            right    += spaceDX;
-            newX     = (left + right) / 2.0;
-            newWidth = right - left;
-            if (newWidth > 0.0) {
-                newAspectRatio = normalizedHeight / newWidth;
-            }
+            width     += spaceDX;
+            viewportX += (spaceDX / 2.0);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+        {
+            height    += spaceDY;
+            viewportY += (spaceDY / 2.0);
+        }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
             break;
@@ -368,12 +395,19 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-            newX += spaceDX;
-            newY += spaceDY;
+            viewportX += spaceDX;
+            viewportY += spaceDY;
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;
     }
+    
+    const float newX = viewportX / viewportWidth;
+    const float newY = viewportY / viewportHeight;
+    const float newWidth = width / viewportWidth;
+    const float newAspectRatio = ((width != 0.0)
+                                  ? (height / width)
+                                  : 0.0);
     
     /*
      * Note:
@@ -394,10 +428,81 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         m_width  = newWidth;
         m_height = newAspectRatio;
         
-        std::cout << "   newY=" << newY << " newAspect=" << newAspectRatio << std::endl;
+//        {
+//            const float h = m_width * m_height;
+//            const float b = xyz[1] - (h / 2.0);
+//            const float t = xyz[1] + (h / 2.0);
+//            const AString infoTxt("NEW:  Bottom=" + AString::number(b, 'f', 4)
+//                                  + " Top=" + AString::number(t, 'f', 4)
+//                                  + " Y=" + AString::number(xyz[1], 'f', 6)
+//                                  + " aspect=" + AString::number(m_height, 'f', 6));
+//            std::cout << qPrintable(infoTxt) << std::endl;
+//            std::cout << std::endl;
+//        }
     }
 }
 
+/**
+ * Get the bounds for a two-dimensional shape annotation.
+ *
+ * @param viewportWidth
+ *     Width of the viewport.
+ * @param viewportHeight
+ *     Height of the viewport.
+ * @param viewportXYZ
+ *     Viewport coordinates of the annotation.
+ * @param bottomLeftOut
+ *     The bottom left corner of the annotation absolute bounds.
+ * @param bottomRightOut
+ *     The bottom right corner of the annotation absolute bounds.
+ * @param topRightOut
+ *     The top right corner of the annotation absolute bounds.
+ * @param topLeftOut
+ *     The top left corner of the annotation absolute bounds.
+ */
+bool
+AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
+                                              const float viewportHeight,
+                                              const float viewportXYZ[3],
+                                              float bottomLeftOut[3],
+                                              float bottomRightOut[3],
+                                              float topRightOut[3],
+                                              float topLeftOut[3]) const
+{
+    /*
+     * NOTE: Annotation's height and width are 'relative' ([0.0, 1.0] percentage) of window size.
+     */
+    const float halfWidth  = (getWidth()  / 2.0) * viewportWidth;
+    float halfHeight = (getHeight() / 2.0) * viewportHeight;
+    if (isUseHeightAsAspectRatio()) {
+        halfHeight = halfWidth * getHeight();
+    }
+    
+    bottomLeftOut[0]  = viewportXYZ[0] - halfWidth;
+    bottomLeftOut[1]  = viewportXYZ[1] - halfHeight;
+    bottomLeftOut[2]  = viewportXYZ[2];
+    bottomRightOut[0] = viewportXYZ[0] + halfWidth;
+    bottomRightOut[1] = viewportXYZ[1] - halfHeight;
+    bottomRightOut[2] = viewportXYZ[2];
+    topRightOut[0]    = viewportXYZ[0] + halfWidth;
+    topRightOut[1]    = viewportXYZ[1] + halfHeight;
+    topRightOut[2]    = viewportXYZ[2];
+    topLeftOut[0]     = viewportXYZ[0] - halfWidth;
+    topLeftOut[1]     = viewportXYZ[1] + halfHeight;
+    topLeftOut[2]     = viewportXYZ[2];
+    
+    if (m_rotationAngle != 0) {
+        Matrix4x4 matrix;
+        matrix.translate(-viewportXYZ[0], -viewportXYZ[1], -viewportXYZ[2]);
+        matrix.rotateZ(-m_rotationAngle);
+        matrix.translate(viewportXYZ[0], viewportXYZ[1], viewportXYZ[2]);
+        matrix.multiplyPoint3(bottomLeftOut);
+        matrix.multiplyPoint3(bottomRightOut);
+        matrix.multiplyPoint3(topRightOut);
+        matrix.multiplyPoint3(topLeftOut);
+    }
+    return true;
+}
 
 /**
  * Save subclass data to the scene.

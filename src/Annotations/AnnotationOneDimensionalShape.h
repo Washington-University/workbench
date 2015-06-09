@@ -55,6 +55,8 @@ namespace caret {
         virtual void clearModified();
         
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                              const float viewportWidth,
+                                              const float viewportHeight,
                                               const float spaceDX,
                                               const float spaceDY);
 

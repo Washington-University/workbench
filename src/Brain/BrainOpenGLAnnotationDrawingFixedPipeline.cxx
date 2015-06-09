@@ -281,36 +281,44 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
         boundsValid       = true;
     }
     else {
-        /*
-         * NOTE: Annotation's height and width are 'relative' ([0.0, 1.0] percentage) of window size.
-         */
-        const float halfWidth  = (annotation2D->getWidth()  / 2.0) * viewportWidth;
-        float halfHeight = (annotation2D->getHeight() / 2.0) * viewportHeight;
-        if (annotation2D->isUseHeightAsAspectRatio()) {
-            halfHeight = halfWidth * annotation2D->getHeight();
-        }
+        boundsValid = annotation2D->getShapeBounds(viewportWidth,
+                                                   viewportHeight,
+                                                   windowXYZ,
+                                                   bottomLeftOut,
+                                                   bottomRightOut,
+                                                   topRightOut,
+                                                   topLeftOut);
         
-        bottomLeftOut[0]  = windowXYZ[0] - halfWidth;
-        bottomLeftOut[1]  = windowXYZ[1] - halfHeight;
-        bottomLeftOut[2]  = windowXYZ[2];
-        bottomRightOut[0] = windowXYZ[0] + halfWidth;
-        bottomRightOut[1] = windowXYZ[1] - halfHeight;
-        bottomRightOut[2] = windowXYZ[2];
-        topRightOut[0]    = windowXYZ[0] + halfWidth;
-        topRightOut[1]    = windowXYZ[1] + halfHeight;
-        topRightOut[2]    = windowXYZ[2];
-        topLeftOut[0]     = windowXYZ[0] - halfWidth;
-        topLeftOut[1]     = windowXYZ[1] + halfHeight;
-        topLeftOut[2]     = windowXYZ[2];
-        
-        applyRotationToShape(annotation2D->getRotationAngle(),
-                             windowXYZ,
-                             bottomLeftOut,
-                             bottomRightOut,
-                             topRightOut,
-                             topLeftOut);
-        
-        boundsValid       = true;
+//        /*
+//         * NOTE: Annotation's height and width are 'relative' ([0.0, 1.0] percentage) of window size.
+//         */
+//        const float halfWidth  = (annotation2D->getWidth()  / 2.0) * viewportWidth;
+//        float halfHeight = (annotation2D->getHeight() / 2.0) * viewportHeight;
+//        if (annotation2D->isUseHeightAsAspectRatio()) {
+//            halfHeight = halfWidth * annotation2D->getHeight();
+//        }
+//        
+//        bottomLeftOut[0]  = windowXYZ[0] - halfWidth;
+//        bottomLeftOut[1]  = windowXYZ[1] - halfHeight;
+//        bottomLeftOut[2]  = windowXYZ[2];
+//        bottomRightOut[0] = windowXYZ[0] + halfWidth;
+//        bottomRightOut[1] = windowXYZ[1] - halfHeight;
+//        bottomRightOut[2] = windowXYZ[2];
+//        topRightOut[0]    = windowXYZ[0] + halfWidth;
+//        topRightOut[1]    = windowXYZ[1] + halfHeight;
+//        topRightOut[2]    = windowXYZ[2];
+//        topLeftOut[0]     = windowXYZ[0] - halfWidth;
+//        topLeftOut[1]     = windowXYZ[1] + halfHeight;
+//        topLeftOut[2]     = windowXYZ[2];
+//        
+//        applyRotationToShape(annotation2D->getRotationAngle(),
+//                             windowXYZ,
+//                             bottomLeftOut,
+//                             bottomRightOut,
+//                             topRightOut,
+//                             topLeftOut);
+//        
+//        boundsValid       = true;
     }
     
     return boundsValid;

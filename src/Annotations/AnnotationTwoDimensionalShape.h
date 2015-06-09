@@ -64,17 +64,27 @@ namespace caret {
         bool isUseHeightAsAspectRatio() const { return true; }
         
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                              const float viewportWidth,
+                                              const float viewportHeight,
                                               const float spaceDX,
                                               const float spaceDY);
         
+        virtual bool getShapeBounds(const float viewportWidth,
+                                    const float viewportHeight,
+                                    const float viewportXYZ[3],
+                                    float bottomLeftOut[3],
+                                    float bottomRightOut[3],
+                                    float topRightOut[3],
+                                    float topLeftOut[3]) const;
+        
         // ADD_NEW_METHODS_HERE
 
-          
-          
-          
-          
-          
-    protected: 
+        
+        
+        
+        
+        
+    protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
 

@@ -406,6 +406,10 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
  *
  * @param handleSelected
  *     Annotatoion handle that is being dragged by the user.
+ * @param viewportWidth
+ *     Width of viewport
+ * @param viewportHeight
+ *     Height of viewport
  * @param spaceDX
  *     Change in space X-coordinate.
  * @param spaceDY
@@ -413,6 +417,8 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
  */
 void
 AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
+                                         const float viewportWidth,
+                                         const float viewportHeight,
                                                         const float spaceDX,
                                                         const float spaceDY)
 {
@@ -452,6 +458,8 @@ AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::E
     
     if (operationSupportedFlag) {
         AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(handleSelected,
+                                                                viewportWidth,
+                                                                viewportHeight,
                                                                 spaceDX,
                                                                 spaceDY);
     }
