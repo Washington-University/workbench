@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #define __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
 #include "AnnotationTwoDimensionalShape.h"
 #undef __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
@@ -270,22 +272,28 @@ AnnotationTwoDimensionalShape::clearModified()
  * Apply a move or resize operation received from the GUI.
  *
  * @param handleSelected
- *     Annotation handle that is being dragged by the user.
+ *     Annotatoion handle that is being dragged by the user.
  * @param viewportWidth
  *     Width of viewport
  * @param viewportHeight
  *     Height of viewport
- * @param viewportDX
- *     Change in viewport X-coordinate.
- * @param viewportDY
- *     Change in viewport Y-coordinate.
+ * @param mouseX
+ *     Mouse X-coordinate.
+ * @param mouseY
+ *     Mouse Y-coordinate.
+ * @param mouseDX
+ *     Change in mouse X-coordinate.
+ * @param mouseDY
+ *     Change in mouse Y-coordinate.
  */
 void
 AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                                         const float viewportWidth,
                                                         const float viewportHeight,
-                                                        const float viewportDX,
-                                                        const float viewportDY)
+                                                        const float mouseX,
+                                                        const float mouseY,
+                                                        const float mouseDX,
+                                                        const float mouseDY)
 {
     bool resizableSpaceFlag = false;
     switch (getCoordinateSpace()) {
@@ -348,53 +356,190 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     switch (handleSelected) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
         {
-            const float moveX = (bottomToTopUnitVector[0] * viewportDY);
-            const float moveY = (bottomToTopUnitVector[1] * viewportDY);
+            const float moveX = (bottomToTopUnitVector[0] * mouseDY);
+            const float moveY = (bottomToTopUnitVector[1] * mouseDY);
             addToXYZWithXY(bottomLeftXYZ, moveX, moveY);
             addToXYZWithXY(bottomRightXYZ, moveX, moveY);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+        {
+            /*
+             * Bottom left is now at the mouse XY
+             */
+            bottomLeftXYZ[0] = mouseX;
+            bottomLeftXYZ[1] = mouseY;
+            
+            /*
+             * Unit vector from bottom left to updated top right
+             */
+            float bottomLeftToTopRightUnitVector[3];
+            MathFunctions::createUnitVector(bottomLeftXYZ, topRightXYZ, bottomLeftToTopRightUnitVector);
+            
+            /*
+             * We have a right triangle where:
+             *    The hypotnuse is from bottom left corner to new top right corner
+             *    A right angle is at top left corner
+             *    Want angle at bottom left but vector angle is at top right (all
+             *    angles add up to PI=180).
+             */
+            const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+                                                            topRightXYZ,
+                                                            bottomLeftXYZ);
+            const float angle = (M_PI / 2.0) - oppositeAngle;
+            const float hypotnuseLength = MathFunctions::distance3D(bottomLeftXYZ,
+                                                                    topRightXYZ);
+            
+            const float newWidth  = std::sin(angle) * hypotnuseLength;
+            const float newHeight = std::cos(angle) * hypotnuseLength;
+            
+            topLeftXYZ[0] = bottomLeftXYZ[0] + bottomToTopUnitVector[0] * newHeight;
+            topLeftXYZ[1] = bottomLeftXYZ[1] + bottomToTopUnitVector[1] * newHeight;
+            
+            bottomRightXYZ[0] = bottomLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
+            bottomRightXYZ[1] = bottomLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
+        }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+        {
+            /*
+             * Bottom right is now at the mouse XY
+             */
+            bottomRightXYZ[0] = mouseX;
+            bottomRightXYZ[1] = mouseY;
+            
+            /*
+             * Unit vector from top left to updated bottom right
+             */
+            float topLeftToBottomRightUnitVector[3];
+            MathFunctions::createUnitVector(topLeftXYZ, bottomRightXYZ, topLeftToBottomRightUnitVector);
+            
+            /*
+             * We have a right triangle where:
+             *    The hypotnuse is from top left corner to new bottom right corner
+             *    A right angle is at top right corner
+             */
+            const float angle = MathFunctions::angle(topRightXYZ,
+                                                     topLeftXYZ,
+                                                     bottomRightXYZ);
+            const float hypotnuseLength = MathFunctions::distance3D(topLeftXYZ,
+                                                                    bottomRightXYZ);
+            
+            const float newWidth  = std::cos(angle) * hypotnuseLength;
+            const float newHeight = std::sin(angle) * hypotnuseLength;
+            
+            topRightXYZ[0] = topLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
+            topRightXYZ[1] = topLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
+            
+            bottomLeftXYZ[0] = topLeftXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+            bottomLeftXYZ[1] = topLeftXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+        }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
         {
-            const float moveX = (leftToRightUnitVector[0] * viewportDX);
-            const float moveY = (leftToRightUnitVector[1] * viewportDX);
+            const float moveX = (leftToRightUnitVector[0] * mouseDX);
+            const float moveY = (leftToRightUnitVector[1] * mouseDX);
             addToXYZWithXY(topLeftXYZ,    moveX, moveY);
             addToXYZWithXY(bottomLeftXYZ, moveX, moveY);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
         {
-            const float moveX = (leftToRightUnitVector[0] * viewportDX);
-            const float moveY = (leftToRightUnitVector[1] * viewportDX);
+            const float moveX = (leftToRightUnitVector[0] * mouseDX);
+            const float moveY = (leftToRightUnitVector[1] * mouseDX);
             addToXYZWithXY(topRightXYZ,    moveX, moveY);
             addToXYZWithXY(bottomRightXYZ, moveX, moveY);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
         {
-            const float moveX = (bottomToTopUnitVector[0] * viewportDY);
-            const float moveY = (bottomToTopUnitVector[1] * viewportDY);
+            const float moveX = (bottomToTopUnitVector[0] * mouseDY);
+            const float moveY = (bottomToTopUnitVector[1] * mouseDY);
             addToXYZWithXY(topLeftXYZ, moveX, moveY);
             addToXYZWithXY(topRightXYZ, moveX, moveY);
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+        {
+            /*
+             * Top left is now at the mouse XY
+             */
+            topLeftXYZ[0] = mouseX;
+            topLeftXYZ[1] = mouseY;
+            
+            /*
+             * Unit vector from top left to updated bottom right
+             */
+            float topLeftToBottomRightUnitVector[3];
+            MathFunctions::createUnitVector(topLeftXYZ, bottomRightXYZ, topLeftToBottomRightUnitVector);
+            
+            /*
+             * We have a right triangle where:
+             *    The hypotnuse is from top left corner to new bottom right corner
+             *    A right angle is at top right corner
+             */
+            const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+                                                             bottomRightXYZ,
+                                                             bottomLeftXYZ);
+            const float angle = (M_PI / 2.0) - oppositeAngle;
+            const float hypotnuseLength = MathFunctions::distance3D(topLeftXYZ,
+                                                                    bottomRightXYZ);
+            
+            const float newWidth  = std::sin(angle) * hypotnuseLength;
+            const float newHeight = std::cos(angle) * hypotnuseLength;
+            
+            topRightXYZ[0] = topLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
+            topRightXYZ[1] = topLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
+            
+            bottomLeftXYZ[0] = topLeftXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+            bottomLeftXYZ[1] = topLeftXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+        }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+        {
+            /*
+             * Top right is now at the mouse XY
+             */
+            topRightXYZ[0] = mouseX;
+            topRightXYZ[1] = mouseY;
+            
+            /*
+             * Unit vector from updated top right to bottom left
+             */
+            float topRightToBottomLeftUnitVector[3];
+            MathFunctions::createUnitVector(topRightXYZ, bottomLeftXYZ, topRightToBottomLeftUnitVector);
+            
+            /*
+             * We have a right triangle where:
+             *    The hypotnuse is from bottom left corner to new top right corner
+             *    A right angle is at top left corner
+             */
+            const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+                                                             bottomLeftXYZ,
+                                                             topRightXYZ);
+            const float angle = (M_PI / 2.0) - oppositeAngle;
+            const float hypotnuseLength = MathFunctions::distance3D(topRightXYZ,
+                                                                    bottomLeftXYZ);
+            
+            const float newWidth  = std::cos(angle) * hypotnuseLength;
+            const float newHeight = std::sin(angle) * hypotnuseLength;
+            
+            topLeftXYZ[0] = topRightXYZ[0] - leftToRightUnitVector[0] * newWidth;
+            topLeftXYZ[1] = topRightXYZ[1] - leftToRightUnitVector[1] * newWidth;
+            
+            bottomRightXYZ[0] = topRightXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+            bottomRightXYZ[1] = topRightXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+        }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-            addToXYZWithXY(bottomLeftXYZ,  viewportDX, viewportDY);
-            addToXYZWithXY(bottomRightXYZ, viewportDX, viewportDY);
-            addToXYZWithXY(topRightXYZ,    viewportDX, viewportDY);
-            addToXYZWithXY(topLeftXYZ,     viewportDX, viewportDY);
+            addToXYZWithXY(bottomLeftXYZ,  mouseDX, mouseDY);
+            addToXYZWithXY(bottomRightXYZ, mouseDX, mouseDY);
+            addToXYZWithXY(topRightXYZ,    mouseDX, mouseDY);
+            addToXYZWithXY(topLeftXYZ,     mouseDX, mouseDY);
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;

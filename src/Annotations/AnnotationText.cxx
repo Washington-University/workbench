@@ -410,17 +410,23 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
  *     Width of viewport
  * @param viewportHeight
  *     Height of viewport
- * @param spaceDX
- *     Change in space X-coordinate.
- * @param spaceDY
- *     Change in space Y-coordinate.
+ * @param mouseX
+ *     Mouse X-coordinate.
+ * @param mouseY
+ *     Mouse Y-coordinate.
+ * @param mouseDX
+ *     Change in mouse X-coordinate.
+ * @param mouseDY
+ *     Change in mouse Y-coordinate.
  */
 void
 AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                          const float viewportWidth,
                                          const float viewportHeight,
-                                         const float viewportDX,
-                                         const float viewportDY)
+                                         const float mouseX,
+                                         const float mouseY,
+                                         const float mouseDX,
+                                         const float mouseDY)
 {
     /*
      * Text limits support of resize options
@@ -460,8 +466,10 @@ AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::E
         AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(handleSelected,
                                                                 viewportWidth,
                                                                 viewportHeight,
-                                                                viewportDX,
-                                                                viewportDY);
+                                                                mouseX,
+                                                                mouseY,
+                                                                mouseDX,
+                                                                mouseDY);
     }
 }
 

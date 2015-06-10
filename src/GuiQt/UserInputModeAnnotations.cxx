@@ -419,7 +419,9 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             if (vpContent == NULL) {
                 return;
             }
-            
+        
+        float spaceOriginX = 0.0;
+        float spaceOriginY = 0.0;
             float spaceWidth  = 0.0;
             float spaceHeight = 0.0;
             
@@ -435,6 +437,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 {
                     int viewport[4];
                     vpContent->getTabViewport(viewport);
+                    spaceOriginX = viewport[0];
+                    spaceOriginY = viewport[1];
                     spaceWidth  = viewport[2];
                     spaceHeight = viewport[3];
                     draggableCoordSpaceFlag = true;
@@ -444,6 +448,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 {
                     int viewport[4];
                     vpContent->getWindowViewport(viewport);
+                    spaceOriginX = viewport[0];
+                    spaceOriginY = viewport[1];
                     spaceWidth  = viewport[2];
                     spaceHeight = viewport[3];
                     draggableCoordSpaceFlag = true;
@@ -457,12 +463,16 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             }
             
             if (draggableCoordSpaceFlag) {
-                const float dx = mouseEvent.getDx(); // / spaceWidth;
-                const float dy = mouseEvent.getDy(); // / spaceHeight;
+                const float dx = mouseEvent.getDx();
+                const float dy = mouseEvent.getDy();
                 
+                const float mouseViewportX = mouseEvent.getX() - spaceOriginX;
+                const float mouseViewportY = mouseEvent.getY() - spaceOriginY;
                 m_annotationBeingDragged->applyMoveOrResizeFromGUI(m_annotationBeingDraggedHandleType,
                                                                    spaceWidth,
                                                                    spaceHeight,
+                                                                   mouseViewportX,
+                                                                   mouseViewportY,
                                                                    dx,
                                                                    dy);
                 

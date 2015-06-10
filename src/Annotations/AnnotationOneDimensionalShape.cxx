@@ -193,17 +193,23 @@ AnnotationOneDimensionalShape::clearModified()
  *     Width of viewport
  * @param viewportHeight
  *     Height of viewport
- * @param viewportDX
- *     Change in viewport X-coordinate.
- * @param viewportDY
- *     Change in viewport Y-coordinate.
+ * @param mouseX
+ *     Mouse X-coordinate.
+ * @param mouseY
+ *     Mouse Y-coordinate.
+ * @param mouseDX
+ *     Change in mouse X-coordinate.
+ * @param mouseDY
+ *     Change in mouse Y-coordinate.
  */
 void
 AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                                         const float viewportWidth,
                                                         const float viewportHeight,
-                                                        const float viewportDX,
-                                                        const float viewportDY)
+                                                        const float mouseX,
+                                                        const float mouseY,
+                                                        const float mouseDX,
+                                                        const float mouseDY)
 {
     
     bool resizableSpaceFlag = false;
@@ -237,10 +243,10 @@ AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     float newY2 = xyz2[1];
 
     const float spaceDX = ((viewportWidth != 0.0)
-                           ? (viewportDX / viewportWidth)
+                           ? (mouseDX / viewportWidth)
                            : 0.0);
     const float spaceDY = ((viewportHeight != 0.0)
-                           ? (viewportDY / viewportHeight)
+                           ? (mouseDY / viewportHeight)
                            : 0.0);
     
     switch (handleSelected) {

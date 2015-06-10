@@ -66,8 +66,10 @@ namespace caret {
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                               const float viewportWidth,
                                               const float viewportHeight,
-                                              const float viewportDX,
-                                              const float viewportDY);
+                                              const float mouseX,
+                                              const float mouseY,
+                                              const float mouseDX,
+                                              const float mouseDY);
         
         virtual bool getShapeBounds(const float viewportWidth,
                                     const float viewportHeight,
