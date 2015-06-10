@@ -79,6 +79,14 @@ namespace caret {
                                     float topRightOut[3],
                                     float topLeftOut[3]) const;
         
+        void getSideHandleMouseDelta(const AnnotationSizingHandleTypeEnum::Enum sizeHandle,
+                                     const float leftToRightShapeVector[3],
+                                     const float bottomToTopShapeVector[3],
+                                     const float mouseDX,
+                                     const float mouseDY,
+                                     float& shapeDxOut,
+                                     float& shapeDyOut);
+        
         // ADD_NEW_METHODS_HERE
 
         
