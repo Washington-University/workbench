@@ -250,7 +250,7 @@ UserInputModeAnnotations::getCursor() const
                         cursor = CursorEnum::CURSOR_FOUR_ARROWS;
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
-                        cursor = CursorEnum::CURSOR_ARROW;
+                        cursor = CursorEnum::CURSOR_CLOSED_HAND;
                         break;
                 }
             }

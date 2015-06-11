@@ -39,6 +39,8 @@ public:
         CURSOR_DEFAULT,
         /** Arrow (typically same as CURSOR_DEFAULT but overrides cursor provided by parent widget, Qt::ArrowCursor) */
         CURSOR_ARROW,
+        /** Closed Hand */
+        CURSOR_CLOSED_HAND,
         /** Cross (plus symbol) */
         CURSOR_CROSS,
         /** Drawing Pen */

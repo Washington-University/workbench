@@ -88,6 +88,11 @@ CursorEnum::initialize()
                                     "Arrow Cursor",
                                   Qt::ArrowCursor));
     
+    enumData.push_back(CursorEnum(CURSOR_CLOSED_HAND,
+                                  "CURSOR_CLOSED_HAND",
+                                  "Closed Hand Cursor",
+                                  Qt::ClosedHandCursor));
+    
     enumData.push_back(CursorEnum(CURSOR_CROSS,
                                   "CURSOR_CROSS",
                                   "Cross Cursor",

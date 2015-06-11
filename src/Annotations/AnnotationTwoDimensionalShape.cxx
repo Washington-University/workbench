@@ -546,6 +546,46 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             addToXYZWithXY(topLeftXYZ,     mouseDX, mouseDY);
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+        {
+            const float previousMouseXY[3] = {
+                mouseX - mouseDX,
+                mouseY - mouseDY,
+                0.0
+            };
+            const float currentMouseXY[3] = {
+                mouseX,
+                mouseY,
+                0.0
+            };
+            const float shapeXY[3] = {
+                viewportXYZ[0],
+                viewportXYZ[1],
+                0.0
+            };
+            
+            float normalVector[3];
+            MathFunctions::normalVector(shapeXY,
+                                        currentMouseXY,
+                                        previousMouseXY,
+                                        normalVector);
+
+            
+            float delta = std::sqrt(mouseDX*mouseDX + mouseDY*mouseDY);
+            if (normalVector[2] < 0.0) {
+                delta = -delta;
+            }
+            m_rotationAngle += delta;
+            if (m_rotationAngle > 360.0) {
+                m_rotationAngle -= 360.0;
+            }
+            if (m_rotationAngle < 0.0) {
+                m_rotationAngle += 360.0;
+            }
+            
+            setModified();
+            
+            return;
+        }
             break;
     }
 
@@ -581,6 +621,7 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         m_coordinate->setXYZ(xyz);
         m_width  = newWidth;
         m_height = newAspectRatio;
+        setModified();
         
         //        {
         //            const float h = m_width * m_height;
