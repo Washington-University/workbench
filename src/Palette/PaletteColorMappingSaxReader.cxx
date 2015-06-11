@@ -20,6 +20,7 @@
 
 #include <sstream>
 
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
@@ -34,6 +35,7 @@ using namespace caret;
  */
 PaletteColorMappingSaxReader::PaletteColorMappingSaxReader(PaletteColorMapping* paletteColorMapping)
 {
+    CaretAssert(paletteColorMapping);
     this->state = STATE_NONE;
     this->stateStack.push(state);
     this->elementText = "";
@@ -160,6 +162,13 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                }
                else {
                    throw XmlSaxParserException("PaletteColorMappingXmlElements::auto scale percenter does not contain four values.");
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_AUTO_SCALE_ABSOLUTE_PERCENTAGE_VALUES) {
+               std::vector<float> values = toFloatVector(this->elementText);
+               if (values.size() >= 2) {
+                   this->paletteColorMapping->setAutoScaleAbsolutePercentageMinimum(values[0]);
+                   this->paletteColorMapping->setAutoScaleAbsolutePercentageMaximum(values[1]);
                }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_DISPLAY_NEGATIVE) {

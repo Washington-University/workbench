@@ -126,6 +126,7 @@ namespace caret {
         QPushButton* applyToMultipleFilesPushButton;
         
         QRadioButton* scaleAutoRadioButton;
+        QRadioButton* scaleAutoAbsolutePercentageRadioButton;
         QRadioButton* scaleAutoPercentageRadioButton;
         QRadioButton* scaleFixedRadioButton;
         
@@ -133,6 +134,9 @@ namespace caret {
         QDoubleSpinBox* scaleAutoPercentageNegativeMinimumSpinBox;
         QDoubleSpinBox* scaleAutoPercentagePositiveMinimumSpinBox;
         QDoubleSpinBox* scaleAutoPercentagePositiveMaximumSpinBox;
+        
+        QDoubleSpinBox* scaleAutoAbsolutePercentageMinimumSpinBox;
+        QDoubleSpinBox* scaleAutoAbsolutePercentageMaximumSpinBox;
         
         QDoubleSpinBox* scaleFixedNegativeMaximumSpinBox;
         QDoubleSpinBox* scaleFixedNegativeMinimumSpinBox;

@@ -972,18 +972,22 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
      * Color Mapping
      */
     this->scaleAutoRadioButton = new QRadioButton("Full"); //Auto Scale");
+    this->scaleAutoAbsolutePercentageRadioButton = new QRadioButton("Abs Pct");
     this->scaleAutoPercentageRadioButton = new QRadioButton("Percent"); //"Auto Scale Percentage");
     this->scaleFixedRadioButton = new QRadioButton("Fixed"); //"Fixed Scale");
     
     WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoRadioButton, 
-                                          "Map (most negative, zero, most positive) data values to (-1, 0, 1) in palette");
-    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageRadioButton, 
+                                          "Map (most negative, zero, most positive) data values to (-1, 0, 0, 1) in palette");
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoAbsolutePercentageRadioButton,
+                                          "Map (most absolute percentiles (NOT percentages) data values to (-1, 0, 0, 1) in palette");
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageRadioButton,
                                           "Map percentiles (NOT percentages) of (most neg, least neg, least pos, most pos) data values to (-1, 0, 0, 1) in palette");
     WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedRadioButton, 
                                           "Map specified values (most neg, least neg, least pos, most pos) to (-1, 0, 0, 1) in palette");
     QButtonGroup* scaleButtonGroup = new QButtonGroup(this);
     this->paletteWidgetGroup->add(scaleButtonGroup);
     scaleButtonGroup->addButton(this->scaleAutoRadioButton);
+    scaleButtonGroup->addButton(this->scaleAutoAbsolutePercentageRadioButton);
     scaleButtonGroup->addButton(this->scaleAutoPercentageRadioButton);
     scaleButtonGroup->addButton(this->scaleFixedRadioButton);
     QObject::connect(scaleButtonGroup, SIGNAL(buttonClicked(int)),
@@ -1050,6 +1054,35 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     this->scaleAutoPercentagePositiveMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
     
     /*
+     * Absolute percentage mapping
+     */
+    this->scaleAutoAbsolutePercentageMinimumSpinBox =
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                   100.0,
+                                                                   1.0,
+                                                                   2,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+    
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoAbsolutePercentageMinimumSpinBox,
+                                          "Map percentile (NOT percentage) least absolute value to 0.0 in palette");
+    this->paletteWidgetGroup->add(this->scaleAutoAbsolutePercentageMinimumSpinBox);
+    this->scaleAutoAbsolutePercentageMinimumSpinBox->setFixedWidth(percentSpinBoxWidth);
+    
+    this->scaleAutoAbsolutePercentageMaximumSpinBox =
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                   100.0,
+                                                                   1.0,
+                                                                   2,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+    
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoAbsolutePercentageMaximumSpinBox,
+                                          "Map percentile (NOT percentage) most absolute value to 1.0 in palette");
+    this->paletteWidgetGroup->add(this->scaleAutoAbsolutePercentageMaximumSpinBox);
+    this->scaleAutoAbsolutePercentageMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
+
+    /*
      * Fixed mapping
      */
     this->scaleFixedNegativeMaximumSpinBox =
@@ -1111,20 +1144,23 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     colorMappingLayout->setColumnStretch(2, 100);
     this->setLayoutSpacingAndMargins(colorMappingLayout);
     colorMappingLayout->addWidget(this->scaleAutoRadioButton, 0, 0, Qt::AlignHCenter);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 1, Qt::AlignHCenter);
-    colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 2, Qt::AlignHCenter);
+    colorMappingLayout->addWidget(this->scaleAutoAbsolutePercentageRadioButton, 0, 1, Qt::AlignHCenter);
+    colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 2, Qt::AlignHCenter);
+    colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 3, Qt::AlignHCenter);
     colorMappingLayout->addWidget(new QLabel("Pos Max"), 1, 0, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Pos Min"), 2, 0, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Neg Min"), 3, 0, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Neg Max"), 4, 0, Qt::AlignRight);
-    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMaximumSpinBox, 1, 1);
-    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMinimumSpinBox, 2, 1);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMinimumSpinBox, 3, 1);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMaximumSpinBox, 4, 1);
-    colorMappingLayout->addWidget(this->scaleFixedPositiveMaximumSpinBox, 1, 2);
-    colorMappingLayout->addWidget(this->scaleFixedPositiveMinimumSpinBox, 2, 2);
-    colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 2);
-    colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 2);
+    colorMappingLayout->addWidget(this->scaleAutoAbsolutePercentageMaximumSpinBox, 1, 1);
+    colorMappingLayout->addWidget(this->scaleAutoAbsolutePercentageMinimumSpinBox, 2, 1);
+    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMaximumSpinBox, 1, 2);
+    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMinimumSpinBox, 2, 2);
+    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMinimumSpinBox, 3, 2);
+    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMaximumSpinBox, 4, 2);
+    colorMappingLayout->addWidget(this->scaleFixedPositiveMaximumSpinBox, 1, 3);
+    colorMappingLayout->addWidget(this->scaleFixedPositiveMinimumSpinBox, 2, 3);
+    colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 3);
+    colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 3);
 
     /*
      * Display Mode
@@ -1320,10 +1356,15 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
         }
         
         bool isPercentageSpinBoxesEnabled = false;
+        bool isAbsolutePercentageSpinBoxesEnabled = false;
         bool isFixedSpinBoxesEnabled = false;
         switch (this->paletteColorMapping->getScaleMode()) {
             case PaletteScaleModeEnum::MODE_AUTO_SCALE:
                 this->scaleAutoRadioButton->setChecked(true);
+                break;
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+                this->scaleAutoAbsolutePercentageRadioButton->setChecked(true);
+                isAbsolutePercentageSpinBoxesEnabled = true;
                 break;
             case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
                 this->scaleAutoPercentageRadioButton->setChecked(true);
@@ -1343,7 +1384,12 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
         this->scaleAutoPercentageNegativeMinimumSpinBox->setEnabled(isPercentageSpinBoxesEnabled);
         this->scaleAutoPercentagePositiveMinimumSpinBox->setEnabled(isPercentageSpinBoxesEnabled);
         this->scaleAutoPercentagePositiveMaximumSpinBox->setEnabled(isPercentageSpinBoxesEnabled);
-
+        
+        this->scaleAutoAbsolutePercentageMaximumSpinBox->setValue(this->paletteColorMapping->getAutoScaleAbsolutePercentageMaximum());
+        this->scaleAutoAbsolutePercentageMinimumSpinBox->setValue(this->paletteColorMapping->getAutoScaleAbsolutePercentageMinimum());
+        this->scaleAutoAbsolutePercentageMaximumSpinBox->setEnabled(isAbsolutePercentageSpinBoxesEnabled);
+        this->scaleAutoAbsolutePercentageMinimumSpinBox->setEnabled(isAbsolutePercentageSpinBoxesEnabled);
+        
         this->scaleFixedNegativeMaximumSpinBox->setValue(this->paletteColorMapping->getUserScaleNegativeMaximum());
         this->scaleFixedNegativeMinimumSpinBox->setValue(this->paletteColorMapping->getUserScaleNegativeMinimum());
         this->scaleFixedPositiveMinimumSpinBox->setValue(this->paletteColorMapping->getUserScalePositiveMinimum());
@@ -1427,6 +1473,12 @@ MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statist
                 leastPos = 0.0;
                 leastNeg = 0.0;
                 mostNeg  = statisticsForAll->getMin();
+                break;
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+                mostPos  = statisticsForAll->getApproxPositivePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
+                leastPos = statisticsForAll->getApproxPositivePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
+                leastNeg = statisticsForAll->getApproxNegativePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
+                mostNeg  = statisticsForAll->getApproxNegativePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
                 break;
             case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
                 mostPos  = statisticsForAll->getApproxPositivePercentile(this->scaleAutoPercentagePositiveMaximumSpinBox->value());
@@ -1825,13 +1877,16 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     if (this->scaleAutoRadioButton->isChecked()) {
         this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE);
     }
+    else if (this->scaleAutoAbsolutePercentageRadioButton->isChecked()) {
+        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE);
+    }
     else if (this->scaleAutoPercentageRadioButton->isChecked()) {
         this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
     }
     else if (this->scaleFixedRadioButton->isChecked()) {
         this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_USER_SCALE);
     }
-        
+    
     this->paletteColorMapping->setUserScaleNegativeMaximum(this->scaleFixedNegativeMaximumSpinBox->value());
     this->paletteColorMapping->setUserScaleNegativeMinimum(this->scaleFixedNegativeMinimumSpinBox->value());
     this->paletteColorMapping->setUserScalePositiveMinimum(this->scaleFixedPositiveMinimumSpinBox->value());
@@ -1841,6 +1896,9 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     this->paletteColorMapping->setAutoScalePercentageNegativeMinimum(this->scaleAutoPercentageNegativeMinimumSpinBox->value());
     this->paletteColorMapping->setAutoScalePercentagePositiveMinimum(this->scaleAutoPercentagePositiveMinimumSpinBox->value());
     this->paletteColorMapping->setAutoScalePercentagePositiveMaximum(this->scaleAutoPercentagePositiveMaximumSpinBox->value());
+    
+    this->paletteColorMapping->setAutoScaleAbsolutePercentageMaximum(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
+    this->paletteColorMapping->setAutoScaleAbsolutePercentageMinimum(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
     
     this->paletteColorMapping->setDisplayPositiveDataFlag(this->displayModePositiveCheckBox->isChecked());
     this->paletteColorMapping->setDisplayNegativeDataFlag(this->displayModeNegativeCheckBox->isChecked());

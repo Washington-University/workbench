@@ -29,6 +29,7 @@ namespace PaletteColorMappingXmlElements {
     static const AString XML_TAG_PALETTE_COLOR_MAPPING = "PaletteColorMapping";
     static const AString XML_TAG_SCALE_MODE = "ScaleMode";
     static const AString XML_TAG_AUTO_SCALE_PERCENTAGE_VALUES = "AutoScalePercentageValues";
+    static const AString XML_TAG_AUTO_SCALE_ABSOLUTE_PERCENTAGE_VALUES = "AutoScaleAbsolutePercentageValues";
     static const AString XML_TAG_USER_SCALE_VALUES = "UserScaleValues";
     static const AString XML_TAG_PALETTE_NAME = "PaletteName";
     static const AString XML_TAG_INTERPOLATE = "InterpolatePalette";

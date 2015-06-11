@@ -104,6 +104,8 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->autoScalePercentageNegativeMinimum = pcm.autoScalePercentageNegativeMinimum;
     this->autoScalePercentagePositiveMaximum = pcm.autoScalePercentagePositiveMaximum;
     this->autoScalePercentagePositiveMinimum = pcm.autoScalePercentagePositiveMinimum;
+    this->autoScaleAbsolutePercentageMaximum = pcm.autoScaleAbsolutePercentageMaximum;
+    this->autoScaleAbsolutePercentageMinimum = pcm.autoScaleAbsolutePercentageMinimum;
     this->displayNegativeDataFlag = pcm.displayNegativeDataFlag;
     this->displayPositiveDataFlag = pcm.displayPositiveDataFlag;
     this->displayZeroDataFlag     = pcm.displayZeroDataFlag;
@@ -144,6 +146,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->autoScalePercentageNegativeMinimum == pcm.autoScalePercentageNegativeMinimum)
         && (this->autoScalePercentagePositiveMaximum == pcm.autoScalePercentagePositiveMaximum)
         && (this->autoScalePercentagePositiveMinimum == pcm.autoScalePercentagePositiveMinimum)
+        && (this->autoScaleAbsolutePercentageMaximum == pcm.autoScaleAbsolutePercentageMaximum)
+        && (this->autoScaleAbsolutePercentageMinimum == pcm.autoScaleAbsolutePercentageMinimum)
         && (this->displayNegativeDataFlag == pcm.displayNegativeDataFlag)
         && (this->displayPositiveDataFlag == pcm.displayPositiveDataFlag)
         && (this->displayZeroDataFlag     == pcm.displayZeroDataFlag)
@@ -181,6 +185,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->autoScalePercentageNegativeMinimum = 2.0f;
     this->autoScalePercentagePositiveMinimum = 2.0f;
     this->autoScalePercentagePositiveMaximum = 98.0f;
+    this->autoScaleAbsolutePercentageMaximum = 98.0f;
+    this->autoScaleAbsolutePercentageMinimum = 2.0f;
     this->userScaleNegativeMaximum = -100.0f;
     this->userScaleNegativeMinimum = 0.0f;
     this->userScalePositiveMinimum = 0.0f;
@@ -234,6 +240,15 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      PaletteColorMappingXmlElements::XML_TAG_AUTO_SCALE_PERCENTAGE_VALUES,
                                      autoScaleValues,
                                      4);
+    
+    float autoScaleAbsolutePercentageValues[2] = {
+        this->autoScaleAbsolutePercentageMinimum,
+        this->autoScaleAbsolutePercentageMaximum
+    };
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_AUTO_SCALE_ABSOLUTE_PERCENTAGE_VALUES,
+                                     autoScaleAbsolutePercentageValues,
+                                     2);
+    
     float userScaleValues[4] = {
         this->userScaleNegativeMaximum,
         this->userScaleNegativeMinimum,
@@ -457,6 +472,55 @@ PaletteColorMapping::setAutoScalePercentagePositiveMinimum(const float autoScale
 {
     if (this->autoScalePercentagePositiveMinimum != autoScalePercentagePositiveMinimum) {
         this->autoScalePercentagePositiveMinimum = autoScalePercentagePositiveMinimum;
+        this->setModified();
+    }
+}
+
+/**
+ * @return The auto scale absolute percentage minimum.
+ */
+float
+PaletteColorMapping::getAutoScaleAbsolutePercentageMinimum() const
+{
+    return this->autoScaleAbsolutePercentageMinimum;
+}
+
+/**
+ * Set the auto scale absolute percentage minimum.
+ *
+ * @param autoScaleAbsolutePercentageMinimum
+ *     New value for auto scale absolute percentage minimum.
+ */
+void
+PaletteColorMapping::setAutoScaleAbsolutePercentageMinimum(const float autoScaleAbsolutePercentageMinimum)
+{
+    
+    if (this->autoScaleAbsolutePercentageMinimum != autoScaleAbsolutePercentageMinimum) {
+        this->autoScaleAbsolutePercentageMinimum = autoScaleAbsolutePercentageMinimum;
+        this->setModified();
+    }
+}
+
+/**
+ * @return The auto scale absolute percentage maximum.
+ */
+float
+PaletteColorMapping::getAutoScaleAbsolutePercentageMaximum() const
+{
+    return this->autoScaleAbsolutePercentageMaximum;
+}
+
+/**
+ * Set the auto scale absolute percentage maximum.
+ *
+ * @param autoScaleAbsolutePercentageMaximum
+ *     New value for auto scale absolute percentage maximum.
+ */
+void
+PaletteColorMapping::setAutoScaleAbsolutePercentageMaximum(const float autoScaleAbsolutePercentageMaximum)
+{
+    if (this->autoScaleAbsolutePercentageMaximum != autoScaleAbsolutePercentageMaximum) {
+        this->autoScaleAbsolutePercentageMaximum = autoScaleAbsolutePercentageMaximum;
         this->setModified();
     }
 }
@@ -1230,6 +1294,16 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
         case PaletteScaleModeEnum::MODE_AUTO_SCALE:
             statistics->getNonzeroRanges(mappingMostNegative, mappingLeastNegative, mappingLeastPositive, mappingMostPositive);
             break;
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+        {
+            const float mostPercentage  = this->getAutoScaleAbsolutePercentageMaximum();
+            const float leastPercentage = this->getAutoScaleAbsolutePercentageMinimum();
+            mappingMostNegative  = statistics->getApproxNegativePercentile(mostPercentage);
+            mappingLeastNegative = statistics->getApproxNegativePercentile(leastPercentage);
+            mappingLeastPositive = statistics->getApproxPositivePercentile(leastPercentage);
+            mappingMostPositive  = statistics->getApproxPositivePercentile(mostPercentage);
+        }
+            break;
         case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
         {
             const float mostNegativePercentage  = this->getAutoScalePercentageNegativeMaximum();
@@ -1323,6 +1397,17 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
         {
             float dummy;
             statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
+        }
+            break;
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+        {
+            const float maxPct = getAutoScaleAbsolutePercentageMaximum();
+            const float minPct = getAutoScaleAbsolutePercentageMinimum();
+            
+            minMax[0] = statistics->getApproxNegativePercentile(maxPct);
+            minMax[1] = statistics->getApproxNegativePercentile(minPct);
+            minMax[2] = statistics->getApproxPositivePercentile(minPct);
+            minMax[3] = statistics->getApproxPositivePercentile(maxPct);
         }
             break;
         case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:

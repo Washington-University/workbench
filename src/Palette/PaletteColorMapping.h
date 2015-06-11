@@ -86,6 +86,14 @@ namespace caret {
         
         void setAutoScalePercentagePositiveMinimum(const float autoScalePercentagePositiveMinimum);
         
+        float getAutoScaleAbsolutePercentageMinimum() const;
+        
+        void setAutoScaleAbsolutePercentageMinimum(const float autoScaleAbsolutePercentageMinimum);
+        
+        float getAutoScaleAbsolutePercentageMaximum() const;
+        
+        void setAutoScaleAbsolutePercentageMaximum(const float autoScaleAbsolutePercentageMaximum);
+        
         bool isDisplayNegativeDataFlag() const;
         
         void setDisplayNegativeDataFlag(const bool displayNegativeDataFlag);
@@ -224,6 +232,10 @@ namespace caret {
         float autoScalePercentagePositiveMinimum;
         
         float autoScalePercentagePositiveMaximum;
+        
+        float autoScaleAbsolutePercentageMinimum;
+        
+        float autoScaleAbsolutePercentageMaximum;
         
         float userScaleNegativeMaximum;
         

@@ -38,6 +38,8 @@ public:
     enum Enum {
         /** Auto Scale   */
         MODE_AUTO_SCALE,
+        /** Auto Scale Absolute Percentage */
+        MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE,
         /** Auto Scale Percentage   */
         MODE_AUTO_SCALE_PERCENTAGE,
         /** User Scale */

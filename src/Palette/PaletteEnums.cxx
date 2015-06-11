@@ -63,8 +63,9 @@ PaletteScaleModeEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(PaletteScaleModeEnum(MODE_AUTO_SCALE, 0, "MODE_AUTO_SCALE", "Auto Scale"));
-    enumData.push_back(PaletteScaleModeEnum(MODE_AUTO_SCALE_PERCENTAGE, 1, "MODE_AUTO_SCALE_PERCENTAGE", "Auto Scale - Percentage"));
-    enumData.push_back(PaletteScaleModeEnum(MODE_USER_SCALE, 2, "MODE_USER_SCALE", "User Scale"));
+    enumData.push_back(PaletteScaleModeEnum(MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE, 1, "MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE", "Auto Scale - Absolute Percentage"));
+    enumData.push_back(PaletteScaleModeEnum(MODE_AUTO_SCALE_PERCENTAGE, 2, "MODE_AUTO_SCALE_PERCENTAGE", "Auto Scale - Percentage"));
+    enumData.push_back(PaletteScaleModeEnum(MODE_USER_SCALE, 3, "MODE_USER_SCALE", "User Scale"));
 }
 
 /**

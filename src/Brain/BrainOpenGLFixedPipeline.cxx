@@ -6036,6 +6036,17 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                 statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
             }
                 break;
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+            {
+                const float maxPct = paletteColorMapping->getAutoScaleAbsolutePercentageMaximum();
+                const float minPct = paletteColorMapping->getAutoScaleAbsolutePercentageMinimum();
+                
+                minMax[0] = statistics->getApproxNegativePercentile(maxPct);
+                minMax[1] = statistics->getApproxNegativePercentile(minPct);
+                minMax[2] = statistics->getApproxPositivePercentile(minPct);
+                minMax[3] = statistics->getApproxPositivePercentile(maxPct);
+            }
+                break;
             case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
             {
                 const float negMaxPct = paletteColorMapping->getAutoScalePercentageNegativeMaximum();
