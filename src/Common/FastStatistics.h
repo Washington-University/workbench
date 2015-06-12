@@ -29,11 +29,11 @@ namespace caret
     ///this class does statistics that are linear in complexity only, NO SORTING, this means its percentiles are approximate, using interpolation from a histogram
     class FastStatistics
     {
-        Histogram m_posPercentHist, m_negPercentHist;
+        Histogram m_posPercentHist, m_negPercentHist, m_absPercentHist;
         float m_min, m_max, m_mean, m_stdDevPop, m_stdDevSample;
-        float m_mostPos, m_leastPos, m_leastNeg, m_mostNeg;
+        float m_mostPos, m_leastPos, m_leastNeg, m_mostNeg, m_leastAbs, m_mostAbs;
         ///counts of each class of number
-        int64_t m_posCount, m_zeroCount, m_negCount, m_infCount, m_negInfCount, m_nanCount;
+        int64_t m_posCount, m_zeroCount, m_negCount, m_infCount, m_negInfCount, m_nanCount, m_absCount;
         
         void reset();
         
@@ -50,6 +50,8 @@ namespace caret
         float getApproxPositivePercentile(const float& percent) const;
         
         float getApproxNegativePercentile(const float& percent) const;
+        
+        float getApproxAbsolutePercentile(const float& percent) const;
         
         void getCounts(int64_t& posCount, int64_t& zeroCount, int64_t& negCount, int64_t& infCount, int64_t& negInfCount, int64_t& nanCount) const
         {

@@ -1475,10 +1475,10 @@ MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statist
                 mostNeg  = statisticsForAll->getMin();
                 break;
             case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
-                mostPos  = statisticsForAll->getApproxPositivePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
-                leastPos = statisticsForAll->getApproxPositivePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
-                leastNeg = statisticsForAll->getApproxNegativePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
-                mostNeg  = statisticsForAll->getApproxNegativePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
+                mostPos  = -statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
+                leastPos = -statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
+                leastNeg =  statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMinimumSpinBox->value());
+                mostNeg  =  statisticsForAll->getApproxAbsolutePercentile(this->scaleAutoAbsolutePercentageMaximumSpinBox->value());
                 break;
             case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
                 mostPos  = statisticsForAll->getApproxPositivePercentile(this->scaleAutoPercentagePositiveMaximumSpinBox->value());

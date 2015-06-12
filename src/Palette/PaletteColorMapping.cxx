@@ -1298,10 +1298,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
         {
             const float mostPercentage  = this->getAutoScaleAbsolutePercentageMaximum();
             const float leastPercentage = this->getAutoScaleAbsolutePercentageMinimum();
-            mappingMostNegative  = statistics->getApproxNegativePercentile(mostPercentage);
-            mappingLeastNegative = statistics->getApproxNegativePercentile(leastPercentage);
-            mappingLeastPositive = statistics->getApproxPositivePercentile(leastPercentage);
-            mappingMostPositive  = statistics->getApproxPositivePercentile(mostPercentage);
+            mappingMostNegative  = -statistics->getApproxAbsolutePercentile(mostPercentage);
+            mappingLeastNegative = -statistics->getApproxAbsolutePercentile(leastPercentage);
+            mappingLeastPositive =  statistics->getApproxAbsolutePercentile(leastPercentage);
+            mappingMostPositive  =  statistics->getApproxAbsolutePercentile(mostPercentage);
         }
             break;
         case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
@@ -1404,10 +1404,10 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
             const float maxPct = getAutoScaleAbsolutePercentageMaximum();
             const float minPct = getAutoScaleAbsolutePercentageMinimum();
             
-            minMax[0] = statistics->getApproxNegativePercentile(maxPct);
-            minMax[1] = statistics->getApproxNegativePercentile(minPct);
-            minMax[2] = statistics->getApproxPositivePercentile(minPct);
-            minMax[3] = statistics->getApproxPositivePercentile(maxPct);
+            minMax[0] = -statistics->getApproxAbsolutePercentile(maxPct);
+            minMax[1] = -statistics->getApproxAbsolutePercentile(minPct);
+            minMax[2] =  statistics->getApproxAbsolutePercentile(minPct);
+            minMax[3] =  statistics->getApproxAbsolutePercentile(maxPct);
         }
             break;
         case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
