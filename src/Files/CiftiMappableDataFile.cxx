@@ -5292,6 +5292,17 @@ CiftiMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
         m_classNameHierarchy->restoreFromScene(sceneAttributes,
                                                sceneClass->getClass("m_classNameHierarchy"));
     }
+    
+    /*
+     * When a scene is created and there is a modified palette, the user may choose
+     * to save the modified palette to the scene so that the file does not need to
+     * be saved with a changed palette.  When scenes are loaded and a file in the
+     * scene is already in memory, the file is NOT reloaded to save time.  However,
+     * since the palette may be saved to the scene, the coloring will needd to be
+     * updated.  If this is not done, the coloring of the file's data prior to 
+     * loading the scene remains and may be incorrect.
+     */
+    invalidateColoringInAllMaps();
 }
 
 /**
