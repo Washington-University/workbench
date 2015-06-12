@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 using namespace caret;
 using namespace std;
@@ -53,10 +54,10 @@ void FastStatistics::reset()
     m_stdDevPop = 0.0f;
     m_stdDevSample = 0.0f;
     m_mostNeg = 0.0f;
-    m_leastNeg = 0.0f;
-    m_leastPos = 0.0f;
+    m_leastNeg = numeric_limits<float>::max();
+    m_leastPos = numeric_limits<float>::max();
     m_mostPos = 0.0f;
-    m_leastAbs = 0.0f;
+    m_leastAbs = numeric_limits<float>::max();
     m_mostAbs = 0.0;
     m_min = 0.0f;
     m_max = 0.0f;
@@ -143,6 +144,22 @@ void FastStatistics::update(const float* data, const int64_t& dataCount)
     m_negPercentHist.update(usebuckets, negatives, m_negCount);
     m_posPercentHist.update(usebuckets, positives, m_posCount);
     m_absPercentHist.update(usebuckets, absolutes, m_absCount);
+    
+    if (m_negCount <= 0)
+    {
+        m_leastNeg = 0.0;
+        m_mostNeg  = 0.0;
+    }
+    if (m_posCount <= 0)
+    {
+        m_leastPos = 0.0;
+        m_mostPos  = 0.0;
+    }
+    if (m_absCount <= 0)
+    {
+        m_leastAbs = 0.0;
+        m_mostAbs  = 0.0;
+    }
 }
 
 void FastStatistics::update(const float* data, const int64_t& dataCount, const float& minThreshInclusive, const float& maxThreshInclusive)
@@ -224,6 +241,22 @@ void FastStatistics::update(const float* data, const int64_t& dataCount, const f
     m_negPercentHist.update(usebuckets, negatives, m_negCount);//10,000 will probably allow us to approximate the percentiles pretty closely, and eats only 80K of memory each
     m_posPercentHist.update(usebuckets, positives, m_posCount);
     m_absPercentHist.update(usebuckets, absolutes, m_absCount);
+    
+    if (m_negCount <= 0)
+    {
+        m_leastNeg = 0.0;
+        m_mostNeg  = 0.0;
+    }
+    if (m_posCount <= 0)
+    {
+        m_leastPos = 0.0;
+        m_mostPos  = 0.0;
+    }
+    if (m_absCount <= 0)
+    {
+        m_leastAbs = 0.0;
+        m_mostAbs  = 0.0;
+    }
 }
 
 float FastStatistics::getApproxNegativePercentile(const float& percent) const
