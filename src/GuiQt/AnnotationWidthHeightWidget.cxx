@@ -75,9 +75,12 @@ m_browserWindowIndex(browserWindowIndex)
     {
         AnnotationBox box;
         if (box.isUseHeightAsAspectRatio()) {
+            heightLabel->setText(" A:");
             m_heightSpinBox->setMaximum(1000.0);
             m_heightSpinBox->setDecimals(6);
-            m_heightSpinBox->setToolTip("Aspect ratio of shape");
+            const QString toolTipText("Aspect ratio of shape\n"
+                                      "height = width * aspect ratio");
+            m_heightSpinBox->setToolTip(toolTipText);
         }
     }
     
