@@ -84,6 +84,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_TAB_INDEX;
         
+        static const QString ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE;
+        
         static const QString ATTRIBUTE_TEXT_FONT_BOLD;
         
         static const QString ATTRIBUTE_TEXT_FONT_ITALIC;
@@ -170,6 +172,8 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TAB_INDEX = "tabIndex";
     
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE = "connectBrainordinate";
+
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_BOLD = "fontBold";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_ITALIC = "fontItalic";

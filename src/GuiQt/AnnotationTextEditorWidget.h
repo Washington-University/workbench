@@ -29,6 +29,7 @@ class QTextEdit;
 namespace caret {
 
     class AnnotationText;
+    class EnumComboBoxTemplate;
     
     class AnnotationTextEditorWidget : public QWidget {
         
@@ -50,6 +51,8 @@ namespace caret {
         
         void editTextActionClicked();
         
+        void annotationTextConnectTypeEnumComboBoxItemActivated();
+        
     private:
         AnnotationTextEditorWidget(const AnnotationTextEditorWidget&);
 
@@ -60,6 +63,8 @@ namespace caret {
         AnnotationText* m_annotationText;
         
         QTextEdit* m_textEditorInDialog;
+        
+        EnumComboBoxTemplate* m_annotationTextConnectTypeEnumComboBox;
         
         // ADD_NEW_MEMBERS_HERE
 

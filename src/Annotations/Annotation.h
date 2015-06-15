@@ -125,6 +125,8 @@ namespace caret {
                                               const float mouseDX,
                                               const float mouseDY) = 0;
         
+        bool isMovableOrResizableFromGUI() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

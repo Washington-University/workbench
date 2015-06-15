@@ -30,6 +30,7 @@
 
 #include "AnnotationText.h"
 #include "CaretAssert.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "WuQDataEntryDialog.h"
@@ -65,10 +66,21 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* editToolButton = new QToolButton();
     editToolButton->setDefaultAction(textEditAction);
     
+    const QString textConnectToolTip("Connect text to brainordinate with arrow or line");
+    m_annotationTextConnectTypeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_annotationTextConnectTypeEnumComboBox->getWidget()->setToolTip(textConnectToolTip);
+    m_annotationTextConnectTypeEnumComboBox->setup<AnnotationTextConnectTypeEnum,AnnotationTextConnectTypeEnum::Enum>();
+    QObject::connect(m_annotationTextConnectTypeEnumComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(annotationTextConnectTypeEnumComboBoxItemActivated()));
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(textLabel, 0, Qt::AlignHCenter);
     layout->addWidget(editToolButton, 0, Qt::AlignHCenter);
+    layout->addWidget(m_annotationTextConnectTypeEnumComboBox->getWidget(), 0, Qt::AlignHCenter);
+    
+    setSizePolicy(QSizePolicy::Fixed,
+                  QSizePolicy::Fixed);
 }
 
 /**
@@ -87,8 +99,24 @@ void
 AnnotationTextEditorWidget::updateContent(AnnotationText* annotationText)
 {
     m_annotationText = annotationText;
+
     
-    setEnabled(m_annotationText != NULL);
+    AnnotationTextConnectTypeEnum::Enum connectValue = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
+    if (m_annotationText != NULL) {
+        connectValue = m_annotationText->getConnectToBrainordinate();
+    }
+    m_annotationTextConnectTypeEnumComboBox->setSelectedItem<AnnotationTextConnectTypeEnum,AnnotationTextConnectTypeEnum::Enum>(connectValue);
+    
+    if (m_annotationText != NULL) {
+        setEnabled(true);
+        
+        if (m_annotationText->isConnectToBrainordinateValid()) {
+            m_annotationTextConnectTypeEnumComboBox->getComboBox()->setEnabled(true);
+        }
+    }
+    else {
+        setEnabled(false);
+    }
 }
 
 /**
@@ -133,5 +161,19 @@ AnnotationTextEditorWidget::annotationTextChanged()
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         }
     }
+}
+
+/**
+ * Gets called when the annotation connect to brainordinate is changed.
+ */
+void
+AnnotationTextEditorWidget::annotationTextConnectTypeEnumComboBoxItemActivated()
+{
+    if (m_annotationText != NULL) {
+        const AnnotationTextConnectTypeEnum::Enum connectType = m_annotationTextConnectTypeEnumComboBox->getSelectedItem<AnnotationTextConnectTypeEnum,AnnotationTextConnectTypeEnum::Enum>();
+        m_annotationText->setConnectToBrainordinate(connectType);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+    
 }
 

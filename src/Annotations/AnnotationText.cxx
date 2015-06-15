@@ -97,6 +97,7 @@ AnnotationText::initializeAnnotationTextMembers()
     m_boldEnabled = false;
     m_italicEnabled = false;
     m_underlineEnabled = false;
+    m_connectToBrainordinate = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_text",
@@ -111,6 +112,8 @@ AnnotationText::initializeAnnotationTextMembers()
                                                   &m_fontSize);
     m_sceneAssistant->add<AnnotationTextOrientationEnum>("m_orientation",
                                                          &m_orientation);
+    m_sceneAssistant->add<AnnotationTextConnectTypeEnum>("m_connectToBrainordinate",
+                                                         &m_connectToBrainordinate);
     m_sceneAssistant->add("m_boldEnabled",
                           &m_boldEnabled);
     m_sceneAssistant->add("m_italicEnabled",
@@ -221,6 +224,41 @@ AnnotationText::setVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum
     }
 }
 
+/**
+ * @param connect to brainordinate status (none, line, arrow).
+ */
+AnnotationTextConnectTypeEnum::Enum
+AnnotationText::getConnectToBrainordinate() const
+{
+    return m_connectToBrainordinate;
+}
+
+/**
+ * Set the connect to brainordinate status.
+ *
+ * @param connectToBrainordinate
+ *    New value for connection to brainordinate (none, line, arrow)
+ */
+void
+AnnotationText::setConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate)
+{
+    if (m_connectToBrainordinate != connectToBrainordinate) {
+        m_connectToBrainordinate = connectToBrainordinate;
+        setModified();
+    }
+}
+
+/**
+ * @return Is connect to brainordinate valid for this text annotation.
+ */
+bool
+AnnotationText::isConnectToBrainordinateValid() const
+{
+    if (getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+        return true;
+    }
+    return false;
+}
 
 /**
  * @return The font.
@@ -399,6 +437,7 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
     m_boldEnabled      = obj.m_boldEnabled;
     m_italicEnabled    = obj.m_italicEnabled;
     m_underlineEnabled = obj.m_underlineEnabled;
+    m_connectToBrainordinate = obj.m_connectToBrainordinate;
 }
 
 /**

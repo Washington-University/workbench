@@ -210,7 +210,7 @@ UserInputModeAnnotations::getCursor() const
             cursor = CursorEnum::CURSOR_CROSS;
             break;
         case MODE_SELECT:
-            cursor = CursorEnum::CURSOR_POINTING_HAND;
+            //cursor = CursorEnum::CURSOR_POINTING_HAND;
             if (m_annotationUnderMouse != NULL) {
                 cursor = CursorEnum::CURSOR_FOUR_ARROWS;
                 //std::cout << "Requested Four Arrow Cursor" << std::endl;

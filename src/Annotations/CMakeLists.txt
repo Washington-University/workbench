@@ -32,6 +32,7 @@ AnnotationSizingHandleTypeEnum.h
 AnnotationText.h
 AnnotationTextAlignHorizontalEnum.h
 AnnotationTextAlignVerticalEnum.h
+AnnotationTextConnectTypeEnum.h
 AnnotationTextOrientationEnum.h
 AnnotationTwoDimensionalShape.h
 AnnotationTypeEnum.h
@@ -51,6 +52,7 @@ AnnotationSizingHandleTypeEnum.cxx
 AnnotationText.cxx
 AnnotationTextAlignHorizontalEnum.cxx
 AnnotationTextAlignVerticalEnum.cxx
+AnnotationTextConnectTypeEnum.cxx
 AnnotationTextOrientationEnum.cxx
 AnnotationTwoDimensionalShape.cxx
 AnnotationTypeEnum.cxx

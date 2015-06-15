@@ -692,6 +692,32 @@ Annotation::setSelected(const bool selectedStatus) const
     m_selectedFlag = selectedStatus;
 }
 
+/**
+ * @return True if the annotation can be resized or moved by
+ * the GUI.  This status is dependent upon the annotation's
+ * coordinate space.
+ */
+bool
+Annotation::isMovableOrResizableFromGUI() const
+{
+    bool resizableSpaceFlag = false;
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::MODEL:
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            resizableSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            resizableSpaceFlag = true;
+            break;
+    }
+
+    return resizableSpaceFlag;
+}
 
 /**
  * Save information specific to this type of model to the scene.

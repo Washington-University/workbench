@@ -607,9 +607,29 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
                                                                    ATTRIBUTE_TEXT_FONT_UNDERLINE));
     
     {
+        const QString defaultValue = AnnotationTextConnectTypeEnum::toName(AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE);
+        const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                    ELEMENT_TEXT_DATA,
+                                                                                    ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE,
+                                                                                    defaultValue);
+        bool valid = false;
+        AnnotationTextConnectTypeEnum::Enum connectValue = AnnotationTextConnectTypeEnum::fromName(valueString,
+                                                                                               &valid);
+        if (valid) {
+            textAnnotation->setConnectToBrainordinate(connectValue);
+        }
+        else {
+            m_streamHelper->throwDataFileException("Invalid value "
+                                   + valueString
+                                   + " for attribute "
+                                   + ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE);
+        }
+    }
+    
+    {
         const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
-                                                                    ELEMENT_TEXT_DATA,
-                                                                    ATTRIBUTE_TEXT_FONT_NAME);
+                                                                                    ELEMENT_TEXT_DATA,
+                                                                                    ATTRIBUTE_TEXT_FONT_NAME);
         bool valid = false;
         AnnotationFontNameEnum::Enum fontName = AnnotationFontNameEnum::fromName(valueString,
                                                                                  &valid);
@@ -618,9 +638,9 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
         }
         else {
             m_streamHelper->throwDataFileException("Invalid value "
-                                   + valueString
-                                   + " for attribute "
-                                   + ATTRIBUTE_TEXT_FONT_NAME);
+                                                   + valueString
+                                                   + " for attribute "
+                                                   + ATTRIBUTE_TEXT_FONT_NAME);
         }
     }
     

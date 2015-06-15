@@ -26,6 +26,7 @@
 #include "AnnotationFontSizeEnum.h"
 #include "AnnotationTextAlignHorizontalEnum.h"
 #include "AnnotationTextAlignVerticalEnum.h"
+#include "AnnotationTextConnectTypeEnum.h"
 #include "AnnotationTextOrientationEnum.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "CaretPointer.h"
@@ -81,6 +82,12 @@ namespace caret {
         
         void setUnderlineEnabled(const bool enabled);
         
+        AnnotationTextConnectTypeEnum::Enum getConnectToBrainordinate() const;
+        
+        void setConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate);
+        
+        bool isConnectToBrainordinateValid() const;
+        
         virtual bool isForegroundLineWidthSupported() const;
         
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
@@ -122,6 +129,8 @@ namespace caret {
         AnnotationTextOrientationEnum::Enum m_orientation;
         
         AnnotationFontSizeEnum::Enum m_fontSize;
+        
+        AnnotationTextConnectTypeEnum::Enum m_connectToBrainordinate;
         
         bool m_boldEnabled;
         

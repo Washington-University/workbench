@@ -158,6 +158,19 @@ namespace caret {
         
         void getIdentificationColor(uint8_t identificationColorOut[4]);
         
+        bool convertModelToWindowCoordinate(const float modelXYZ[3],
+                                            float windowXYZOut[3]) const;
+        
+        void createLineCoordinates(const float lineHeadXYZ[3],
+                                   const float lineTailXYZ[3],
+                                   const bool validStartArrow,
+                                   const bool validEndArrow,
+                                   std::vector<float>& coordinatesOut) const;
+        
+        void getTextLineToBrainordinateLineCoordinates(const AnnotationText* text,
+                                                       const Surface* surfaceDisplayed,
+                                                       std::vector<float>& lineCoordinatesOut) const;
+        
         /** Tracks items drawn for selection */
         std::vector<SelectionInfo> m_selectionInfo;
         
