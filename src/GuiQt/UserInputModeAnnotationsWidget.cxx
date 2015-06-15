@@ -299,8 +299,14 @@ UserInputModeAnnotationsWidget::updateWidget()
     
     m_coordinateOneWidget->updateContent(coordinateSpace,
                                          coordinateOne);
-    m_coordinateTwoWidget->updateContent(coordinateSpace,
-                                         coordinateTwo);
+    if (coordinateTwo != NULL) {
+        m_coordinateTwoWidget->updateContent(coordinateSpace,
+                                             coordinateTwo);
+        m_coordinateTwoWidget->setVisible(true);
+    }
+    else {
+        m_coordinateTwoWidget->setVisible(false);
+    }
 }
 
 
