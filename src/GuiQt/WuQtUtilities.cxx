@@ -1120,7 +1120,7 @@ WuQtUtilities::boolToCheckState(const bool value)
 /**
  * Create a pixmap with the given color.
  *
- * @param widgetForPixmap
+ * @param widget
  *    Widget that will contain pixmap.  It used for getting the widget's
  *    foreground and background colors.
  * @param pixmapWidth
@@ -1140,31 +1140,13 @@ WuQtUtilities::boolToCheckState(const bool value)
  *    The pixmap.
  */
 QPixmap
-WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widgetForPixmap,
+WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widget,
                                           const int32_t  pixmapWidth,
                                           const int32_t  pixmapHeight,
                                           const CaretColorEnum::Enum caretColor,
                                           const float    customColorRGBA[4],
                                           const bool     outlineFlag)
 {
-    
-    /*
-     * Get the toolbutton's background color
-     */
-    const QPalette tbPalette = widgetForPixmap->palette();
-    
-    /*
-     * Create a small pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    QPixmap pm(pixmapWidth,
-               pixmapHeight);
-    
-    /*
-     * Create a painter for drawing into the pixmap
-     */
-    QPainter painter(&pm);
-    
     bool noneColorFlag      = false;
     bool validColorFlag     = false;
     float colorRGBA[4];
@@ -1206,41 +1188,36 @@ WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widgetForPixmap,
     }
 
     /*
-     * Fill the background of the pixmap with the widget's background color.
+     * Create a small pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
      */
-    const QPalette::ColorRole backgroundRole = widgetForPixmap->backgroundRole();
-    const QBrush backgroundBrush = tbPalette.brush(backgroundRole);
-    const QColor toolButtonBackgroundColor = backgroundBrush.color();
-    painter.setBackgroundMode(Qt::OpaqueMode);
-    painter.fillRect(pm.rect(), toolButtonBackgroundColor);
+    QPixmap pixmap(pixmapWidth,
+                   pixmapHeight);
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
+                                                                                pixmap);
     
     if (noneColorFlag) {
-        const QPalette::ColorRole foregroundRole = widgetForPixmap->foregroundRole();
-        const QBrush foregroundBrush = tbPalette.brush(foregroundRole);
-        const QColor toolButtonForegroundColor = foregroundBrush.color();
-        
         /*
          * Draw lines (rectangle) around the perimeter of the pixmap
          * and an 'X' in the widget's foreground color.
          */
-        painter.setPen(toolButtonForegroundColor);
         for (int32_t i = 0; i < 1; i++) {
-            painter.drawRect(i, i,
+            painter->drawRect(i, i,
                              pixmapWidth - 1 - i * 2, pixmapHeight - 1 - i * 2);
         }
-        painter.drawLine(0, 0, pixmapWidth - 1, pixmapHeight - 1);
-        painter.drawLine(0, pixmapHeight - 1, pixmapWidth - 1, 0);
+        painter->drawLine(0, 0, pixmapWidth - 1, pixmapHeight - 1);
+        painter->drawLine(0, pixmapHeight - 1, pixmapWidth - 1, 0);
     }
     else if (validColorFlag) {
         if (outlineFlag) {
             /*
              * Draw lines (rectangle) around the perimeter of the pixmap
              */
-            painter.setPen(QColor::fromRgbF(colorRGBA[0],
+            painter->setPen(QColor::fromRgbF(colorRGBA[0],
                                             colorRGBA[1],
                                             colorRGBA[2]));
             for (int32_t i = 0; i < 3; i++) {
-                painter.drawRect(i, i,
+                painter->drawRect(i, i,
                                  pixmapWidth - 1 - i * 2, pixmapHeight - 1 - i * 2);
             }
         }
@@ -1248,13 +1225,13 @@ WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widgetForPixmap,
             /*
              * Fill the pixmap with the RGBA color.
              */
-            pm.fill(QColor::fromRgbF(colorRGBA[0],
+            pixmap.fill(QColor::fromRgbF(colorRGBA[0],
                                      colorRGBA[1],
                                      colorRGBA[2]));
         }
     }
     
-    return pm;
+    return pixmap;
 }
 
 /**

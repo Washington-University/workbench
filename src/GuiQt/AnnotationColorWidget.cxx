@@ -28,7 +28,6 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
-#include <QPainter>
 #include <QToolButton>
 #include <QVBoxLayout>
 

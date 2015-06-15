@@ -392,18 +392,7 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
                                              const AnnotationTypeEnum::Enum annotationType)
 {
     CaretAssert(widget);
-    
-    /*
-     * Get the widget's background and foreground color
-     */
-    const QPalette palette = widget->palette();
-    const QPalette::ColorRole backgroundRole = widget->backgroundRole();
-    const QBrush backgroundBrush = palette.brush(backgroundRole);
-    const QColor backgroundColor = backgroundBrush.color();
-    const QPalette::ColorRole foregroundRole = widget->foregroundRole();
-    const QBrush foregroundBrush = palette.brush(foregroundRole);
-    const QColor foregroundColor = foregroundBrush.color();
-    
+
     /*
      * Create a small, square pixmap that will contain
      * the foreground color around the pixmap's perimeter.
@@ -412,42 +401,28 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
     const float height = 24.0;
     QPixmap pixmap(static_cast<int>(width),
                    static_cast<int>(height));
-    
-    /*
-     * Create a painter and fill the pixmap with
-     * the background color
-     */
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing,
-                          true);
-    painter.setBackgroundMode(Qt::OpaqueMode);
-    painter.fillRect(pixmap.rect(), backgroundColor);
-    
-    /*
-     * Draw lines (rectangle) around the perimeter of
-     * the pixmap
-     */
-    painter.setPen(foregroundColor);
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
+                                                                                pixmap);
     
     /**
      * NOTE: ORIGIN is in TOP LEFT corner of pixmap.
      */
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
-            painter.drawRect(1, 1, width - 2, height - 2);
+            painter->drawRect(1, 1, width - 2, height - 2);
             break;
         case AnnotationTypeEnum::IMAGE:
         {
             /*
              * Background (sky)
              */
-            painter.fillRect(pixmap.rect(), QColor(25,25,255));
+            painter->fillRect(pixmap.rect(), QColor(25,25,255));
             
             /*
              * Terrain
              */
-            painter.setBrush(QColor(0, 255, 0));
-            painter.setPen(QColor(0, 255, 0));
+            painter->setBrush(QColor(0, 255, 0));
+            painter->setPen(QColor(0, 255, 0));
             const int w14 = width * 0.25;
             const int h23 = height * 0.667;
             const int h34 = height * 0.75;
@@ -460,29 +435,29 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
             terrain.push_back(QPoint(w14, h34));
             terrain.push_back(QPoint(1, h23));
             terrain.push_back(QPoint(1, height - 1));
-            painter.drawPolygon(terrain);
+            painter->drawPolygon(terrain);
             
             /*
              * Sun
              */
-            painter.setBrush(QColor(255, 255, 0));
-            painter.setPen(QColor(255, 255, 0));
+            painter->setBrush(QColor(255, 255, 0));
+            painter->setPen(QColor(255, 255, 0));
             const int radius = width * 0.25;
-            painter.drawEllipse(width * 0.33, height * 0.33, radius, radius);
+            painter->drawEllipse(width * 0.33, height * 0.33, radius, radius);
         }
             break;
         case AnnotationTypeEnum::LINE:
-            painter.drawLine(1, height - 1, width - 1, 1);
+            painter->drawLine(1, height - 1, width - 1, 1);
             break;
         case AnnotationTypeEnum::OVAL:
-            painter.drawEllipse(1, 1, width - 1, height - 1);
+            painter->drawEllipse(1, 1, width - 1, height - 1);
             break;
         case AnnotationTypeEnum::TEXT:
         {
-            QFont font = painter.font();
+            QFont font = painter->font();
             font.setPixelSize(20);
-            painter.setFont(font);
-            painter.drawText(pixmap.rect(),
+            painter->setFont(font);
+            painter->drawText(pixmap.rect(),
                              (Qt::AlignCenter),
                              "A");
         }

@@ -209,17 +209,6 @@ AnnotationTextOrientationWidget::createHorizontalAlignmentPixmap(const QWidget* 
     CaretAssert(widget);
     
     /*
-     * Get the widget's background and foreground color
-     */
-    const QPalette palette = widget->palette();
-    const QPalette::ColorRole backgroundRole = widget->backgroundRole();
-    const QBrush backgroundBrush = palette.brush(backgroundRole);
-    const QColor backgroundColor = backgroundBrush.color();
-    const QPalette::ColorRole foregroundRole = widget->foregroundRole();
-    const QBrush foregroundBrush = palette.brush(foregroundRole);
-    const QColor foregroundColor = foregroundBrush.color();
-    
-    /*
      * Create a small, square pixmap that will contain
      * the foreground color around the pixmap's perimeter.
      */
@@ -227,32 +216,18 @@ AnnotationTextOrientationWidget::createHorizontalAlignmentPixmap(const QWidget* 
     float height = 24.0;
     QPixmap pixmap(static_cast<int>(width),
                    static_cast<int>(height));
-    
-    /*
-     * Create a painter and fill the pixmap with
-     * the background color
-     */
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing,
-                          true);
-    painter.setBackgroundMode(Qt::OpaqueMode);
-    painter.fillRect(pixmap.rect(), backgroundColor);
-    
-    /*
-     * Draw lines (rectangle) around the perimeter of
-     * the pixmap
-     */
-    painter.setPen(foregroundColor);
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
+                                                                                pixmap);
     
     switch (orientation) {
         case AnnotationTextOrientationEnum::HORIZONTAL:
-            painter.drawText(pixmap.rect(),
+            painter->drawText(pixmap.rect(),
                              (Qt::AlignCenter),
                              "ab");
                              
             break;
         case AnnotationTextOrientationEnum::STACKED:
-            painter.drawText(pixmap.rect(),
+            painter->drawText(pixmap.rect(),
                              (Qt::AlignHCenter | Qt::AlignTop),
                              "a\nb");
             break;

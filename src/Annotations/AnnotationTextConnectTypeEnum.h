@@ -35,11 +35,11 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** No connection of annotation to brainordinate */
         ANNOTATION_TEXT_CONNECT_NONE,
-        /** */
+        /** Connect annotation to brainordinate with arrow */
         ANNOTATION_TEXT_CONNECT_ARROW,
-        /** */
+        /** Connect annotation to brainordinate with line */
         ANNOTATION_TEXT_CONNECT_LINE
     };
 

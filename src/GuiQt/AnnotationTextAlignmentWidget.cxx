@@ -364,17 +364,6 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* wi
     CaretAssert(widget);
     
     /*
-     * Get the widget's background and foreground color
-     */
-    const QPalette palette = widget->palette();
-    const QPalette::ColorRole backgroundRole = widget->backgroundRole();
-    const QBrush backgroundBrush = palette.brush(backgroundRole);
-    const QColor backgroundColor = backgroundBrush.color();
-    const QPalette::ColorRole foregroundRole = widget->foregroundRole();
-    const QBrush foregroundBrush = palette.brush(foregroundRole);
-    const QColor foregroundColor = foregroundBrush.color();
-    
-    /*
      * Create a small, square pixmap that will contain
      * the foreground color around the pixmap's perimeter.
      */
@@ -387,25 +376,10 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* wi
         height   = 12.0;
         numLines = 3;
     }
-    
     QPixmap pixmap(static_cast<int>(width),
-              static_cast<int>(height));
-    
-    /*
-     * Create a painter and fill the pixmap with
-     * the background color
-     */
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing,
-                          true);
-    painter.setBackgroundMode(Qt::OpaqueMode);
-    painter.fillRect(pixmap.rect(), backgroundColor);
-    
-    /*
-     * Draw lines (rectangle) around the perimeter of
-     * the pixmap
-     */
-    painter.setPen(foregroundColor);
+                   static_cast<int>(height));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
+                                                                                pixmap);
     
     const qreal margin          = width * 0.05;
     const qreal longLineLength  = width - (margin * 2.0);
@@ -436,7 +410,7 @@ AnnotationTextAlignmentWidget::createHorizontalAlignmentPixmap(const QWidget* wi
                 break;
         }
 
-        painter.drawLine(QLineF(xStart,
+        painter->drawLine(QLineF(xStart,
                                 y,
                                 xEnd,
                                 y));
@@ -463,53 +437,22 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widg
     CaretAssert(widget);
     
     /*
-     * Get the widget's background and foreground color
-     */
-    const QPalette palette = widget->palette();
-    const QPalette::ColorRole backgroundRole = widget->backgroundRole();
-    const QBrush backgroundBrush = palette.brush(backgroundRole);
-    const QColor backgroundColor = backgroundBrush.color();
-    const QPalette::ColorRole foregroundRole = widget->foregroundRole();
-    const QBrush foregroundBrush = palette.brush(foregroundRole);
-    const QColor foregroundColor = foregroundBrush.color();
-    
-    /*
      * Create a small, square pixmap that will contain
      * the foreground color around the pixmap's perimeter.
      */
-    /*
-     * Create a small, square pixmap that will contain
-     * the foreground color around the pixmap's perimeter.
-     */
-    float width      = 24.0;
-    float height     = 24.0;
-    int32_t numLines = 3;
+    float width  = 24.0;
+    float height = 24.0;
+    int32_t numLines = 5;
     
     if (m_smallLayoutFlag) {
         width    = 12.0;
         height   = 12.0;
-        numLines = 2;
+        numLines = 3;
     }
-    
     QPixmap pixmap(static_cast<int>(width),
                    static_cast<int>(height));
-    
-    /*
-     * Create a painter and fill the pixmap with
-     * the background color
-     */
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing,
-                          true);
-    painter.setBackgroundMode(Qt::OpaqueMode);
-    painter.fillRect(pixmap.rect(), backgroundColor);
-    
-    /*
-     * Draw lines (rectangle) around the perimeter of
-     * the pixmap
-     */
-    painter.setPen(foregroundColor);
-    
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
+                                                                                pixmap);
     const qreal margin          = width * 0.05;
     
     if (m_smallLayoutFlag) {
@@ -534,9 +477,9 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widg
         const float xStart = margin;
         const float xEnd   = width - (margin * 2.0);
         
-        painter.drawLine(QLineF(xStart, y1,
+        painter->drawLine(QLineF(xStart, y1,
                                 xEnd,   y1));
-        painter.drawLine(QLineF(xStart, y2,
+        painter->drawLine(QLineF(xStart, y2,
                                 xEnd,   y2));
     }
     else {
@@ -565,7 +508,7 @@ AnnotationTextAlignmentWidget::createVerticalAlignmentPixmap(const QWidget* widg
             const qreal xEnd   = xStart + lineLength;
             
             
-            painter.drawLine(QLineF(xStart,
+            painter->drawLine(QLineF(xStart,
                                     y,
                                     xEnd,
                                     y));
