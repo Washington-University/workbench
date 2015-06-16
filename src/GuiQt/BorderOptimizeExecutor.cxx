@@ -27,6 +27,7 @@
 #include "CaretAssert.h"
 #include "Surface.h"
 
+#include "AlgorithmBorderResample.h"
 #include "AlgorithmBorderToVertices.h"
 #include "AlgorithmCiftiCorrelationGradient.h"
 #include "AlgorithmCiftiRestrictDenseMap.h"
@@ -34,6 +35,8 @@
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricFindClusters.h"
 #include "AlgorithmNodesInsideBorder.h"
+#include "AlgorithmSurfaceCreateSphere.h"
+#include "AlgorithmSurfaceResample.h"
 #include "BorderFile.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
@@ -47,6 +50,7 @@
 #include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
+#include "SurfaceResamplingHelper.h"
 #include "TopologyHelper.h"
 
 #include <cmath>
@@ -449,7 +453,6 @@ namespace
     struct BorderRedrawInfo
     {
         int startpoint, endpoint;
-        int startnode, endnode;//redundant? could find node with largest weight again
     };
 }
 
@@ -602,8 +605,6 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             }
             myRedrawInfo[i].startpoint = start;
             myRedrawInfo[i].endpoint = end;
-            myRedrawInfo[i].startnode = getBorderPointNode(thisBorder, start);
-            myRedrawInfo[i].endnode = getBorderPointNode(thisBorder, end);
         }
         stageString = "data processing";
         int numInputs = (int)inputData.m_dataFileInfo.size();
@@ -647,6 +648,55 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             inputData.m_combinedGradientDataOut->setStructure(computeSurf->getStructure());
             inputData.m_combinedGradientDataOut->setValuesForColumn(0, combinedGradData.data());
         }
+        SurfaceFile* drawSurf = computeSurf, *origSphere = inputData.m_upsamplingSphericalSurface, highresSphere, highresMidthick;
+        vector<float> drawGrad = combinedGradData, drawRoi = roiData;
+        vector<float> origAreasStore, highresAreasStore;
+        const float* origAreas = NULL;
+        if (correctedAreasMetric != NULL)
+        {
+            origAreas = correctedAreasMetric->getValuePointerForColumn(0);
+        }
+        const float* drawAreas = origAreas;
+        if (origSphere != NULL)
+        {
+            if (inputData.m_upsamplingSphericalSurface->getNumberOfNodes() >= inputData.m_upsamplingResolution)
+            {
+                errorMessageOut = "upsampling number of vertices must be greater than current vertex count";
+                return false;
+            }
+            AlgorithmSurfaceCreateSphere(NULL, inputData.m_upsamplingResolution, &highresSphere);
+            int highresNumNodes = highresSphere.getNumberOfNodes();
+            highresSphere.setStructure(origSphere->getStructure());
+            AlgorithmSurfaceResample(NULL, computeSurf, origSphere, &highresSphere, SurfaceResamplingMethodEnum::BARYCENTRIC, &highresMidthick);
+            if (origAreas == NULL)
+            {
+                computeSurf->computeNodeAreas(origAreasStore);
+                origAreas = origAreasStore.data();
+                highresMidthick.computeNodeAreas(highresAreasStore);
+            } else {
+                vector<float> origRatioStore(origAreas, origAreas + numNodes), highresRatioStore(highresNumNodes), wrongAreas, highresWrongAreas;
+                computeSurf->computeNodeAreas(wrongAreas);//to get high res corrected areas, convert to expansion ratio,
+                highresMidthick.computeNodeAreas(highresWrongAreas);//then resample and multiply by the high res surface areas
+                for (int i = 0; i < numNodes; ++i)
+                {
+                    origRatioStore[i] /= wrongAreas[i];
+                }//we don't have anything high res but the wrong areas yet, so use like area measures - expansion ratio should be fairly smooth anyway, so not as important
+                SurfaceResamplingHelper initialUpsampler(SurfaceResamplingMethodEnum::ADAP_BARY_AREA, origSphere, &highresSphere, wrongAreas.data(), highresWrongAreas.data());
+                initialUpsampler.resampleNormal(origRatioStore.data(), highresRatioStore.data());
+                highresAreasStore.resize(highresNumNodes);
+                for (int i = 0; i < highresNumNodes; ++i)
+                {
+                    highresAreasStore[i] = highresRatioStore[i] * highresWrongAreas[i];
+                }
+            }
+            drawSurf = &highresMidthick;
+            drawAreas = highresAreasStore.data();
+            drawGrad.resize(highresNumNodes);
+            drawRoi.resize(highresNumNodes);
+            SurfaceResamplingHelper finalUpsampler(SurfaceResamplingMethodEnum::ADAP_BARY_AREA, origSphere, &highresSphere, origAreas, highresAreasStore.data(), roiData.data());
+            finalUpsampler.resampleNormal(combinedGradData.data(), drawGrad.data());
+            finalUpsampler.getResampleValidROI(drawRoi.data());
+        }
         {
             EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS,
                                         "generating geodesic helper");
@@ -661,18 +711,33 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         CaretPointer<GeodesicHelperBase> myGeoBase;
         if (correctedAreasMetric != NULL)
         {
-            myGeoBase.grabNew(new GeodesicHelperBase(computeSurf, correctedAreasMetric->getValuePointerForColumn(0)));
+            myGeoBase.grabNew(new GeodesicHelperBase(drawSurf, drawAreas));
             myGeoHelp.grabNew(new GeodesicHelper(myGeoBase));
         } else {
-            myGeoHelp = computeSurf->getGeodesicHelper();
+            myGeoHelp = drawSurf->getGeodesicHelper();
         }
-        CaretPointer<TopologyHelper> myTopoHelp = computeSurf->getTopologyHelper();
-        vector<Border> modifiedBorders(numBorders);//modify all without replacing so we can error before changing any, if desired
+        CaretPointer<TopologyHelper> myTopoHelp = drawSurf->getTopologyHelper();
+        vector<Border*> drawOrigBorders = inputData.m_borders;
+        BorderFile highresOrigBorders;
+        if (origSphere != NULL)
+        {//first, copy all borders and resample to get endpoint positions on high res mesh, then draw new segments as borders and downsample just the segments
+            BorderFile origBorders;
+            for (int i = 0; i < numBorders; ++i)
+            {
+                origBorders.addBorder(new Border(*(inputData.m_borders[i])));
+            }
+            AlgorithmBorderResample(NULL, &origBorders, origSphere, &highresSphere, &highresOrigBorders);//NOTE: this must keep each border and point intact and in the same order, just on the new sphere
+            for (int i = 0; i < numBorders; ++i)
+            {
+                drawOrigBorders[i] = highresOrigBorders.getBorder(i);
+            }
+        }
         vector<float> roiMinusTracesData = roiData;
+        BorderFile redrawnSegments;
         for (int i = 0; i < numBorders; ++i)
         {
             EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + (DRAW_PROGRESS * i) / numBorders,
-                                        "redrawing segment of border '" + inputData.m_borders[i]->getName() + "'");
+                                        "redrawing segment of border '" + inputData.m_borders[i]->getName() + "'");//use non-resampled borders for name, just in case
             EventManager::get()->sendEvent(&tempEvent);
             if (tempEvent.isCancelled())
             {
@@ -681,13 +746,46 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             }
             vector<int32_t> nodes;
             vector<float> dists;
-            myGeoHelp->getPathFollowingData(myRedrawInfo[i].startnode, myRedrawInfo[i].endnode, combinedGradData.data(), nodes, dists,
-                                            inputData.m_gradientFollowingStrength, roiData.data(), true, true);
-            if (nodes.empty())
+            myGeoHelp->getPathFollowingData(getBorderPointNode(drawOrigBorders[i], myRedrawInfo[i].startpoint), getBorderPointNode(drawOrigBorders[i], myRedrawInfo[i].endpoint),
+                                            drawGrad.data(), nodes, dists, inputData.m_gradientFollowingStrength, drawRoi.data(), true, true);
+            if (nodes.size() < 3)//require at least 1 surviving point after removing endpoints
             {
                 errorMessageOut = "Unable to redraw border segment for border '" + inputData.m_borders[i]->getName() + "'";
                 return false;
             }
+            CaretPointer<Border> redrawnSegment(new Border());
+            for (int j = 1; j < (int)nodes.size() - 1; ++j)//drop the closest node to the start and end points from the redrawn segment
+            {
+                const vector<int32_t>& nodeTiles = myTopoHelp->getNodeTiles(nodes[j]);
+                CaretAssert(!nodeTiles.empty());
+                const int32_t* tileNodes = drawSurf->getTriangle(nodeTiles[0]);
+                int whichNode;
+                for (whichNode = 0; whichNode < 3; ++whichNode)
+                {
+                    if (tileNodes[whichNode] == nodes[j]) break;
+                }
+                CaretAssert(whichNode < 3);//it should always find it
+                float weights[3] = { 0.0f, 0.0f, 0.0f };
+                weights[whichNode] = 1.0f;
+                SurfaceProjectedItem* myItem = new SurfaceProjectedItem();
+                myItem->getBarycentricProjection()->setTriangleNodes(tileNodes);//none of these should throw
+                myItem->getBarycentricProjection()->setTriangleAreas(weights);
+                myItem->getBarycentricProjection()->setValid(true);
+                myItem->setStructure(computeSurf->getStructure());
+                redrawnSegment->addPoint(myItem);
+            }
+            redrawnSegments.addBorder(redrawnSegment.releasePointer());
+        }
+        BorderFile* segmentsToUse = &redrawnSegments;
+        BorderFile downsampledSegments;
+        if (origSphere != NULL)
+        {
+            AlgorithmBorderResample(NULL, &redrawnSegments, &highresSphere, origSphere, &downsampledSegments);
+            segmentsToUse = &downsampledSegments;
+        }
+        vector<Border> modifiedBorders(numBorders);//modify all without replacing so we can error before changing any
+        for (int i = 0; i < numBorders; ++i)
+        {
             Border& modifiedBorder = modifiedBorders[i];
             modifiedBorder = *(inputData.m_borders[i]);
             int numOrigPoints = inputData.m_borders[i]->getNumberOfPoints();
@@ -699,32 +797,13 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                     modifiedBorder.addPoint(new SurfaceProjectedItem(*(inputData.m_borders[i]->getPoint(j))));
                 }
             }
-            for (int j = 1; j < (int)nodes.size() - 1; ++j)//drop the closest node to the start and end points from the redrawn border
-            {
-                const vector<int32_t>& nodeTiles = myTopoHelp->getNodeTiles(nodes[j]);
-                CaretAssert(!nodeTiles.empty());
-                const int32_t* tileNodes = computeSurf->getTriangle(nodeTiles[0]);
-                int whichNode;
-                for (whichNode = 0; whichNode < 3; ++whichNode)
-                {
-                    if (tileNodes[whichNode] == nodes[j]) break;
-                }
-                CaretAssert(whichNode < 3);//it should always find it
-                float weights[3] = { 0.0f, 0.0f, 0.0f };
-                weights[whichNode] = 1.0f;
-                SurfaceProjectedItem* myItem = new SurfaceProjectedItem();
-                myItem->getBarycentricProjection()->setTriangleNodes(tileNodes);
-                myItem->getBarycentricProjection()->setTriangleAreas(weights);
-                myItem->getBarycentricProjection()->setValid(true);
-                myItem->setStructure(computeSurf->getStructure());
-                modifiedBorder.addPoint(myItem);
-            }
+            modifiedBorder.addPoints(segmentsToUse->getBorder(i));
             if (inputData.m_borders[i]->isClosed())
             {//mod arithmetic for closed borders
-                int numKeep = (numOrigPoints + myRedrawInfo[i].endpoint - myRedrawInfo[i].startpoint + 1) % numOrigPoints;//inclusive
+                int numKeep = (numOrigPoints + myRedrawInfo[i].startpoint - myRedrawInfo[i].endpoint + 1) % numOrigPoints;//inclusive
                 for (int j = 0; j < numKeep; ++j)
                 {
-                    modifiedBorder.addPoint(new SurfaceProjectedItem(*(inputData.m_borders[i]->getPoint((j + myRedrawInfo[i].startpoint) % numOrigPoints))));
+                    modifiedBorder.addPoint(new SurfaceProjectedItem(*(inputData.m_borders[i]->getPoint((j + myRedrawInfo[i].endpoint) % numOrigPoints))));
                 }
             } else {
                 for (int j = myRedrawInfo[i].endpoint; j < numOrigPoints; ++j)//include original endpoint
