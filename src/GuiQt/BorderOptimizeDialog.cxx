@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <limits>
+
 #define __BORDER_OPTIMIZE_DIALOG_DECLARE__
 #include "BorderOptimizeDialog.h"
 #undef __BORDER_OPTIMIZE_DIALOG_DECLARE__
