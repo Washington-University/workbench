@@ -80,6 +80,8 @@ namespace caret {
                       const std::vector<DataFileInfo>& dataFileInfo,
                       const MetricFile* vertexAreasMetricFile,
                       const float& gradientFollowingStrength,
+                      Surface* upsamplingSphericalSurface,
+                      const int32_t upsamplingResolution,
                       MetricFile* combinedGradientDataOut)
             : m_borders(borders),
             m_borderPair(borderPair),
@@ -89,6 +91,8 @@ namespace caret {
             m_dataFileInfo(dataFileInfo),
             m_vertexAreasMetricFile(vertexAreasMetricFile),
             m_gradientFollowingStrength(gradientFollowingStrength),
+            m_upsamplingSphericalSurface(upsamplingSphericalSurface),
+            m_upsamplingResolution(upsamplingResolution),
             m_combinedGradientDataOut(combinedGradientDataOut)
                 { }
             
@@ -100,6 +104,8 @@ namespace caret {
             const std::vector<DataFileInfo>& m_dataFileInfo;
             const MetricFile* m_vertexAreasMetricFile;
             const float m_gradientFollowingStrength;
+            Surface* m_upsamplingSphericalSurface;
+            const int32_t m_upsamplingResolution;
             MetricFile* m_combinedGradientDataOut;
         };
         

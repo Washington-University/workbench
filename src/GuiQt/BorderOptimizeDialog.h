@@ -29,6 +29,8 @@
 class QCheckBox;
 class QDoubleSpinBox;
 class QGridLayout;
+class QGroupBox;
+class QSpinBox;
 class QVBoxLayout;
 
 namespace caret {
@@ -95,6 +97,8 @@ namespace caret {
         
         QWidget* createSurfaceSelectionWidget();
         
+        QWidget* createSphericalUpsamplingWidget();
+        
         void addDataFileRow(CaretMappableDataFile* mapFile);
         
         void setAllBorderEnabledSelections(const bool status);
@@ -147,6 +151,16 @@ namespace caret {
         QCheckBox* m_keepRegionBorderCheckBox;
         
         QSize m_defaultDataFilesWidgetSize;
+        
+        QGroupBox* m_upsamplingGroupBox;
+        
+        SurfaceSelectionModel* m_upsamplingSurfaceSelectionModel;
+        
+        StructureEnum::Enum m_upsamplingSurfaceStructure;
+        
+        SurfaceSelectionViewController* m_upsamplingSurfaceSelectionControl;
+        
+        QSpinBox* m_upsamplingResolutionSpinBox;
     };
     
     class BorderOptimizeDataFileSelector : public QObject {

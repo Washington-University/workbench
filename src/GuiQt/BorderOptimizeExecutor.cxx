@@ -925,5 +925,9 @@ BorderOptimizeExecutor::printInputs(const InputData& inputData)
     std::cout << "Vertex Areas Metric File: " << ((inputData.m_vertexAreasMetricFile != NULL)
                                                   ? qPrintable(inputData.m_vertexAreasMetricFile->getFileNameNoPath())
                                                   : "NULL") << std::endl;
+    if (inputData.m_upsamplingSphericalSurface != NULL) {
+        std::cout << "Upsampling Sphere: " << qPrintable(inputData.m_upsamplingSphericalSurface->getFileNameNoPath()) << std::endl;
+        std::cout << "Upsampling Resolution: " << qPrintable(QString::number(inputData.m_upsamplingResolution)) << std::endl;
+    }
     std::cout << "Gradient Following Strength: " << inputData.m_gradientFollowingStrength << std::endl;
 }

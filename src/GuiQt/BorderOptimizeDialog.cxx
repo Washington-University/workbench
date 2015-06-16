@@ -91,7 +91,9 @@ m_borderPairFileSelectionModel(NULL),
 m_surfaceSelectionStructure(StructureEnum::INVALID),
 m_surfaceSelectionModel(NULL),
 m_vertexAreasMetricFileSelectionModel(NULL),
-m_browserTabIndex(-1)
+m_browserTabIndex(-1),
+m_upsamplingSurfaceSelectionModel(NULL),
+m_upsamplingSurfaceStructure(StructureEnum::INVALID)
 {
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE);
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
@@ -114,6 +116,8 @@ m_browserTabIndex(-1)
     dialogLayout->addWidget(createSurfaceSelectionWidget(),
                             STRETCH_NONE);
     dialogLayout->addWidget(createVertexAreasMetricWidget(),
+                            STRETCH_NONE);
+    dialogLayout->addWidget(createSphericalUpsamplingWidget(),
                             STRETCH_NONE);
     QWidget* optionsWidget = createOptionsWidget();
     if (optionsWidget != NULL) {
@@ -154,6 +158,9 @@ BorderOptimizeDialog::~BorderOptimizeDialog()
     }
     if (m_borderPairFileSelectionModel != NULL) {
         delete m_borderPairFileSelectionModel;
+    }
+    if (m_upsamplingSurfaceSelectionModel != NULL) {
+        delete m_upsamplingSurfaceSelectionModel;
     }
 }
 
@@ -227,6 +234,36 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
     else {
         m_surfaceSelectionControl->getWidget()->setEnabled(false);
     }
+    
+    Surface* defaultSphericalSurface = NULL;
+    if (m_upsamplingSurfaceSelectionModel != NULL) {
+        defaultSphericalSurface = m_upsamplingSurfaceSelectionModel->getSurface();
+        if (structure != m_upsamplingSurfaceStructure) {
+            delete m_upsamplingSurfaceSelectionModel;
+            m_upsamplingSurfaceSelectionModel = NULL;
+            m_upsamplingSurfaceStructure = StructureEnum::INVALID;
+        }
+    }
+    if (m_upsamplingSurfaceSelectionModel == NULL) {
+        m_upsamplingSurfaceStructure = structure;
+        std::vector<SurfaceTypeEnum::Enum> sphericalSurfaceTypes;
+        sphericalSurfaceTypes.push_back(SurfaceTypeEnum::SPHERICAL);
+        m_upsamplingSurfaceSelectionModel = new SurfaceSelectionModel(m_upsamplingSurfaceStructure,
+                                                                      sphericalSurfaceTypes);
+        m_upsamplingResolutionSpinBox->setValue(0);
+    }
+    if (defaultSphericalSurface != NULL) {
+        m_upsamplingSurfaceSelectionModel->setSurface(defaultSphericalSurface);
+    }
+    m_upsamplingSurfaceSelectionModel->updateModel();
+    m_upsamplingSurfaceSelectionControl->updateControl(m_upsamplingSurfaceSelectionModel);
+    if (m_upsamplingResolutionSpinBox->value() <= 0) {
+        Surface* surface = m_upsamplingSurfaceSelectionModel->getSurface();
+        if (surface != NULL) {
+            m_upsamplingResolutionSpinBox->setValue(surface->getNumberOfNodes() * 4);
+        }
+    }
+    
     /*
      * Update metric selection model
      * Will need to recreate if the structure has changed.
@@ -399,6 +436,19 @@ BorderOptimizeDialog::okButtonClicked()
         }
     }
     
+    Surface* upsamplingSphericalSurface = NULL;
+    int32_t upsamplingResolution = 0;
+    if (m_upsamplingGroupBox->isChecked()) {
+        upsamplingSphericalSurface = m_upsamplingSurfaceSelectionModel->getSurface();
+        if (upsamplingSphericalSurface == NULL) {
+            errorMessage.appendWithNewLine("Upsampling is selected but no spherical surface is available.");
+        }
+        upsamplingResolution = m_upsamplingResolutionSpinBox->value();
+        if (upsamplingResolution <= 0) {
+            errorMessage.appendWithNewLine("Upsampling resolution is invalid.");
+        }
+    }
+    
     if ( ! errorMessage.isEmpty()) {
         WuQMessageBox::errorOk(this, errorMessage);
         return;
@@ -436,6 +486,8 @@ BorderOptimizeDialog::okButtonClicked()
                                                dataFileSelections,
                                                vertexAreasMetricFile,
                                                gradientFollowingStrength,
+                                               upsamplingSphericalSurface,
+                                               upsamplingResolution,
                                                resultsMetricFile);
     
     /*
@@ -884,6 +936,43 @@ BorderOptimizeDialog::createSurfaceSelectionWidget()
     return widget;
 }
 
+/**
+ * @return The spherical upsampling widget.
+ */
+QWidget*
+BorderOptimizeDialog::createSphericalUpsamplingWidget()
+{
+    QLabel* surfaceLabel = new QLabel("Current Sphere");
+    m_upsamplingSurfaceSelectionControl = new SurfaceSelectionViewController(this);
+    
+    QLabel* resolutionLabel = new QLabel("Upsampling Resolution");
+    m_upsamplingResolutionSpinBox = new QSpinBox();
+    m_upsamplingResolutionSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_upsamplingResolutionSpinBox->setSingleStep(1);
+    m_upsamplingResolutionSpinBox->setToolTip("Number of vertices to use when making the upsampling sphere");
+    
+    m_upsamplingGroupBox = new QGroupBox(" Upsampling");
+    m_upsamplingGroupBox->setCheckable(true);
+    m_upsamplingGroupBox->setChecked(false);
+    QGridLayout* layout = new QGridLayout(m_upsamplingGroupBox);
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 100);
+    int row = 0;
+    layout->addWidget(surfaceLabel, row, 0);
+    layout->addWidget(m_upsamplingSurfaceSelectionControl->getWidget(), row, 1);
+    row++;
+    layout->addWidget(resolutionLabel, row, 0);
+    layout->addWidget(m_upsamplingResolutionSpinBox, row, 1, Qt::AlignLeft);
+    
+    return m_upsamplingGroupBox;
+}
+
+/**
+ * Called when gradient computational surface is selected
+ *
+ * @param surface
+ *     Surface that was selected.
+ */
 void
 BorderOptimizeDialog::gradientComputatonSurfaceSelected(Surface* surface)
 {
