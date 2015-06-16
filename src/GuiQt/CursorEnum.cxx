@@ -133,6 +133,11 @@ CursorEnum::initialize()
                                   "Resize Vertical Cursor",
                                   Qt::SizeVerCursor));
     
+    enumData.push_back(CursorEnum(CURSOR_ROTATION,
+                                  "CURSOR_ROTATION",
+                                  "Rotation Cursor",
+                                  Qt::ArrowCursor));
+    
     enumData.push_back(CursorEnum(CURSOR_WAIT,
                                     "CURSOR_WAIT", 
                                     "Wait Cursor",

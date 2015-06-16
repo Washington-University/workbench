@@ -57,6 +57,8 @@ public:
         CURSOR_RESIZE_HORIZONTAL,
         /** Resize Vertical */
         CURSOR_RESIZE_VERTICAL,
+        /** Rotation Cursor */
+        CURSOR_ROTATION,
         /** Wait, Qt::WaitCursor*/
         CURSOR_WAIT,
         /** What's this? Arrow with question mark */

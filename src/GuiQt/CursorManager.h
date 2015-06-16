@@ -50,7 +50,15 @@ namespace caret {
                            const int hotSpotY,
                            const Qt::CursorShape& cursorShapeIfImageLoadingFails) const;
         
-        QCursor penCursor;
+        QCursor createFourArrowsCursor();
+        
+        QCursor createRotationCursor();
+        
+        QCursor m_penCursor;
+        
+        QCursor m_fourArrowsCursor;
+        
+        QCursor m_rotationCursor;
     };
     
 #ifdef __CURSOR_MANAGER_DECLARE__
