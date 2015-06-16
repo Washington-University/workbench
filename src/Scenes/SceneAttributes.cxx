@@ -272,4 +272,14 @@ SceneAttributes::getErrorMessage() const
     return m_errorMessage;
 }
 
+/**
+ * Clear the error message.
+ */
+void
+SceneAttributes::clearErrorMessage()
+{
+    m_errorMessage.clear();
+}
+
+
 

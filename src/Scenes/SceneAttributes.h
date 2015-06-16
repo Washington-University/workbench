@@ -76,6 +76,8 @@ namespace caret {
         
         AString getErrorMessage() const;
         
+        void clearErrorMessage();
+        
     private:
         SceneAttributes(const SceneAttributes&);
 

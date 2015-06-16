@@ -1109,6 +1109,7 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
      * Setup scene attributes
      */
     SceneAttributes* sceneAttributes = scene->getAttributes();
+    sceneAttributes->clearErrorMessage();
     sceneAttributes->setSceneFileName(sceneFileName);
     sceneAttributes->setSceneName(scene->getName());
     sceneAttributes->setWindowRestoreBehaviorInSceneDisplay(SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES);
