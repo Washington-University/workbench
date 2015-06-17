@@ -835,91 +835,91 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         AlgorithmMetricFindClusters(NULL, computeSurf, &roiMinusBorderTraces, 0.5f, 10.0f, &clustersMetric, false, &roiMetric, correctedAreasMetric, 0, 1, &endVal);
         if (endVal != 3)
         {
-            errorMessageOut = AString::number(endVal - 1) + " cluster(s) found after splitting the roi with the redrawn borders";
-            return false;
-        }
-        stageString = "statistics";
-        vector<int32_t> nodeLists[2];
-        const float* clusterData = clustersMetric.getValuePointerForColumn(0);
-        for (int i = 0; i < numNodes; ++i)
-        {
-            int label = (int)floor(clusterData[i] + 0.5f);
-            CaretAssert(label < 3);
-            if (label > 0) nodeLists[label - 1].push_back(i);
-        }
-        vector<int32_t> orderedNodeLists[2];
-        if (nodeLists[0].size() >= nodeLists[1].size())
-        {
-            orderedNodeLists[0] = nodeLists[0];
-            orderedNodeLists[1] = nodeLists[1];
+            statisticsInformationOut = AString::number(endVal - 1) + " cluster(s) found after splitting the roi with the redrawn borders, skipping statistics";
         } else {
-            orderedNodeLists[0] = nodeLists[1];
-            orderedNodeLists[1] = nodeLists[0];
-        }
-        if (inputData.m_borderPair.size() == 2)
-        {
-            vector<int32_t> insideBorderNodes;
-            AlgorithmNodesInsideBorder(NULL, computeSurf, inputData.m_borderPair[0], false, insideBorderNodes);
-            vector<char> insideLookup(numNodes, 0);
-            for (int i = 0; i < (int)insideBorderNodes.size(); ++i)
+            stageString = "statistics";
+            vector<int32_t> nodeLists[2];
+            const float* clusterData = clustersMetric.getValuePointerForColumn(0);
+            for (int i = 0; i < numNodes; ++i)
             {
-                insideLookup[insideBorderNodes[i]] = 1;
+                int label = (int)floor(clusterData[i] + 0.5f);
+                CaretAssert(label < 3);
+                if (label > 0) nodeLists[label - 1].push_back(i);
             }
-            int counts[2] = {0, 0};
-            for (int whichList = 0; whichList < 2; ++whichList)
+            vector<int32_t> orderedNodeLists[2];
+            if (nodeLists[0].size() >= nodeLists[1].size())
             {
-                for (int i = 0; i < (int)orderedNodeLists[whichList].size(); ++i)
+                orderedNodeLists[0] = nodeLists[0];
+                orderedNodeLists[1] = nodeLists[1];
+            } else {
+                orderedNodeLists[0] = nodeLists[1];
+                orderedNodeLists[1] = nodeLists[0];
+            }
+            if (inputData.m_borderPair.size() == 2)
+            {
+                vector<int32_t> insideBorderNodes;
+                AlgorithmNodesInsideBorder(NULL, computeSurf, inputData.m_borderPair[0], false, insideBorderNodes);
+                vector<char> insideLookup(numNodes, 0);
+                for (int i = 0; i < (int)insideBorderNodes.size(); ++i)
                 {
-                    if (insideLookup[orderedNodeLists[whichList][i]] != 0)
+                    insideLookup[insideBorderNodes[i]] = 1;
+                }
+                int counts[2] = {0, 0};
+                for (int whichList = 0; whichList < 2; ++whichList)
+                {
+                    for (int i = 0; i < (int)orderedNodeLists[whichList].size(); ++i)
                     {
-                        ++counts[whichList];
+                        if (insideLookup[orderedNodeLists[whichList][i]] != 0)
+                        {
+                            ++counts[whichList];
+                        }
                     }
                 }
-            }
-            if (counts[0] >= counts[1])
-            {
-                statisticsInformationOut += inputData.m_borderPair[0]->getName() + " n=" + AString::number(orderedNodeLists[0].size()) + ", " +
-                                            inputData.m_borderPair[1]->getName() + " n=" + AString::number(orderedNodeLists[1].size()) + "\n\n";
-            } else {
-                statisticsInformationOut += inputData.m_borderPair[1]->getName() + " n=" + AString::number(orderedNodeLists[0].size()) + ", " +
-                                            inputData.m_borderPair[0]->getName() + " n=" + AString::number(orderedNodeLists[1].size()) + "\n\n";
-            }
-            if (orderedNodeLists[0].size() < 2 || orderedNodeLists[1].size() < 2)
-            {
-                statisticsInformationOut += "roi pieces are too small for statistics";
-            } else {
-                for (int i = 0; i < numInputs; ++i)
+                if (counts[0] >= counts[1])
                 {
-                    EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + DRAW_PROGRESS + (STATISTICS_PROGRESS * i) / numInputs,
-                                                "computing statistics on file '" + inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + "'");
-                    EventManager::get()->sendEvent(&tempEvent);
-                    if (tempEvent.isCancelled())
+                    statisticsInformationOut += inputData.m_borderPair[0]->getName() + " n=" + AString::number(orderedNodeLists[0].size()) + ", " +
+                                                inputData.m_borderPair[1]->getName() + " n=" + AString::number(orderedNodeLists[1].size()) + "\n\n";
+                } else {
+                    statisticsInformationOut += inputData.m_borderPair[1]->getName() + " n=" + AString::number(orderedNodeLists[0].size()) + ", " +
+                                                inputData.m_borderPair[0]->getName() + " n=" + AString::number(orderedNodeLists[1].size()) + "\n\n";
+                }
+                if (orderedNodeLists[0].size() < 2 || orderedNodeLists[1].size() < 2)
+                {
+                    statisticsInformationOut += "roi pieces are too small for statistics";
+                } else {
+                    for (int i = 0; i < numInputs; ++i)
                     {
-                        errorMessageOut = "cancelled by user";
-                        return false;
-                    }
-                    if (inputData.m_dataFileInfo[i].m_allMapsFlag)
-                    {
-                        for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
+                        EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + COMPUTE_PROGRESS + HELPER_PROGRESS + DRAW_PROGRESS + (STATISTICS_PROGRESS * i) / numInputs,
+                                                    "computing statistics on file '" + inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + "'");
+                        EventManager::get()->sendEvent(&tempEvent);
+                        if (tempEvent.isCancelled())
                         {
+                            errorMessageOut = "cancelled by user";
+                            return false;
+                        }
+                        if (inputData.m_dataFileInfo[i].m_allMapsFlag)
+                        {
+                            for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
+                            {
+                                AString statsOut;
+                                if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, j, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
+                                {
+                                    statisticsInformationOut += statsOut + ": " +
+                                                                inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
+                                                                inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
+                                                                FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n";
+                                }
+                            }
+                            statisticsInformationOut += "\n";
+                        } else {
                             AString statsOut;
-                            if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, j, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
+                            if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
                             {
                                 statisticsInformationOut += statsOut + ": " +
                                                             inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
                                                             inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
-                                                            FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n";
+                                                            FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n\n";
                             }
-                        }
-                        statisticsInformationOut += "\n";
-                    } else {
-                        AString statsOut;
-                        if(getStatisticsString(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, orderedNodeLists, *computeSurf, correctedAreasMetric, inputData.m_dataFileInfo[i].m_corrGradExcludeDist, statsOut))
-                        {
-                            statisticsInformationOut += statsOut + ": " +
-                                                        inputData.m_dataFileInfo[i].m_mapFile->getMapName(inputData.m_dataFileInfo[i].m_mapIndex) + ", " +
-                                                        inputData.m_dataFileInfo[i].m_mapFile->getFileNameNoPath() + ", " +
-                                                        FileInformation(inputData.m_dataFileInfo[i].m_mapFile->getFileName()).getLastDirectory() + "\n\n";
                         }
                     }
                 }
