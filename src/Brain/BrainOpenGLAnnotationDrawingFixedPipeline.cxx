@@ -1202,7 +1202,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             if ( ! connectLineCoordinates.empty()) {
                 BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
                                                        foregroundRGBA,
-                                                       1.0);
+                                                       2.0);
             }
             
             if (drawBackgroundFlag) {
