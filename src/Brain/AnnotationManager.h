@@ -23,6 +23,7 @@
 
 
 #include "CaretObject.h"
+#include "CaretUndoCommand.h"
 #include "CaretPointer.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
@@ -32,6 +33,7 @@ namespace caret {
     class Annotation;
     class AnnotationFile;
     class Brain;
+    class CaretUndoStack;
     class SceneClassAssistant;
 
     class AnnotationManager : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -59,6 +61,8 @@ namespace caret {
         
         virtual ~AnnotationManager();
         
+        void reset();
+        
         void deselectAllAnnotations();
         
         void deleteAnnotation(Annotation* annotation);
@@ -82,6 +86,10 @@ namespace caret {
         
         void copyAnnotationToClipboard(const AnnotationFile* annotationFile,
                                        const Annotation* annotation);
+        
+        CaretUndoStack* getUndoStack();
+        
+        const CaretUndoStack* getUndoStack() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -129,8 +137,33 @@ namespace caret {
         
         CaretPointer<Annotation> m_clipboardAnnotation;
         
+        CaretPointer<CaretUndoStack> m_undoStack;
+        
         // ADD_NEW_MEMBERS_HERE
 
+    };
+    
+    class AnnotationManagerDeleteUndoCommand : public CaretUndoCommand {
+        
+    public:
+        AnnotationManagerDeleteUndoCommand(AnnotationFile* annotationFile,
+                                           const Annotation* annotation);
+        
+        ~AnnotationManagerDeleteUndoCommand();
+        
+        virtual void redo();
+        
+        virtual void undo();
+        
+        AnnotationFile* getAnnotationFile() const;
+        
+        const Annotation* getAnnotation() const;
+        
+    private:
+        AnnotationFile* m_annotationFile;
+        
+        Annotation* m_annotation;
+        
     };
     
 #ifdef __ANNOTATION_MANAGER_DECLARE__

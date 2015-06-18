@@ -195,7 +195,32 @@ CaretUndoStack::index() const
 }
 
 /**
- * Clears the command stack by deleting all commands on it, and returns 
+ * Delete the command at the given index.  The index of the current
+ * command may change (if it is greater than the index).  After 
+ * calling this method, the command that was at the index has
+ * been deleted, so NEVER use it after calling this method.
+ *
+ * @param index
+ *     Index of command that is removed.
+ */
+void
+CaretUndoStack::deleteCommandAtIndex(const int32_t index)
+{
+    if ((index >= 0)
+        || (index < static_cast<int32_t>(m_undoStack.size()))) {
+        CaretUndoCommand* undoCommand = m_undoStack.at(index);
+        m_undoStack.erase(m_undoStack.begin() + index);
+        delete undoCommand;
+    }
+    else {
+        CaretLogWarning("CaretUndoStack::command() called with invalid index="
+                        + AString::number(index));
+    }
+}
+
+
+/**
+ * Clears the command stack by deleting all commands on it, and returns
  * the stack to the clean state.
  * 
  * Commands are not undone or redone; the state of the edited object 

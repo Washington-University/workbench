@@ -240,6 +240,20 @@ Annotation::getType() const
     return m_type;
 }
 
+QString
+Annotation::getShortDescriptiveString() const
+{
+    QString s = AnnotationTypeEnum::toGuiName(m_type);
+    
+    if (m_type == AnnotationTypeEnum::TEXT) {
+        const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(this);
+        s += (" \"" + textAnn->getText() + "\"");
+    }
+    
+    return s;
+}
+
+
 /**
  * @return The coordinate space.
  */

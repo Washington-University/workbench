@@ -26,6 +26,7 @@
 
 #include "AnnotationTypeEnum.h"
 
+class QMenu;
 class QToolButton;
 
 namespace caret {
@@ -55,6 +56,10 @@ namespace caret {
         
         void shapeMenuActionTriggered(QAction* action);
         
+        void undeleteMenuAboutToShow();
+        
+        void itemSelectedFromUndeleteMenu(QAction* action);
+        
     private:
         AnnotationInsertNewWidget(const AnnotationInsertNewWidget&);
 
@@ -80,6 +85,8 @@ namespace caret {
         QToolButton* m_deleteToolButton;
         
         QAction* m_deleteToolButtonAction;
+        
+        QMenu* m_undeleteMenu;
         
         // ADD_NEW_MEMBERS_HERE
 

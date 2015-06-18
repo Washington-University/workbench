@@ -45,6 +45,8 @@ namespace caret {
         
         Annotation* clone() const;
         
+        QString getShortDescriptiveString() const;
+        
         AnnotationTypeEnum::Enum getType() const ;
         
         AnnotationCoordinateSpaceEnum::Enum getCoordinateSpace() const;

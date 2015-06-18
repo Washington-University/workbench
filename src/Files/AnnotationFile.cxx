@@ -393,14 +393,19 @@ AnnotationFile::addAnnotation(Annotation* annotation)
 }
 
 /**
- * Remove the given annotation from this file.
+ * Remove and destroy the given annotation from this file.
  * If the annotation is not found in this file,
- * no action is taken.
+ * no action is taken (returns false).  Since the annotation will
+ * be destroyed NEVER use the pointer passed to this
+ * method after this method completes (if true returned).
  *
  * @param annotation
  *     Annotation for deletion.
+ * @return
+ *     True if the annotation was in this file and was 
+ *     was deleted, else false.
  */
-void
+bool
 AnnotationFile::removeAnnotation(const Annotation* annotation)
 {
     for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
@@ -410,11 +415,17 @@ AnnotationFile::removeAnnotation(const Annotation* annotation)
         if (annotationPointer == annotation) {
             m_annotations.erase(iter);
             delete annotationPointer;
+            
             setModified();
             
-            break;
+            return true;
         }
     }
+    
+    /*
+     * Annotation was not in this file.
+     */
+    return false;
 }
 
 /**

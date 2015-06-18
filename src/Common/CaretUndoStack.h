@@ -92,6 +92,8 @@ namespace caret {
 
         int32_t count() const;
         
+        void deleteCommandAtIndex(const int32_t index);
+        
         int32_t index() const;
         
         const CaretUndoCommand* command(const int32_t index) const;

@@ -27,6 +27,7 @@
 #include "AnnotationFile.h"
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretUndoStack.h"
 #include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -54,6 +55,9 @@ m_brain(brain)
     m_clipboardAnnotationFile = NULL;
     m_clipboardAnnotation.grabNew(NULL);
     
+    m_undoStack.grabNew(new CaretUndoStack());
+    m_undoStack->setUndoLimit(20);
+    
     m_sceneAssistant = new SceneClassAssistant();
 }
 
@@ -64,7 +68,18 @@ AnnotationManager::~AnnotationManager()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
+    m_undoStack->clear();
+    
     delete m_sceneAssistant;
+}
+
+/**
+ * Reset the annotation manager.
+ */
+void
+AnnotationManager::reset()
+{
+    m_undoStack->clear();
 }
 
 /**
@@ -99,6 +114,11 @@ AnnotationManager::deleteAnnotation(Annotation* annotation)
     
     std::vector<AnnotationFile*> annotationFiles;
     m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+
+    /*
+     * Need a copy of annotation
+     */
+    CaretPointer<Annotation> annotationCopy(annotation->clone());
     
     for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
          fileIter != annotationFiles.end();
@@ -106,7 +126,14 @@ AnnotationManager::deleteAnnotation(Annotation* annotation)
         AnnotationFile* file = *fileIter;
         CaretAssert(file);
         
-        file->removeAnnotation(annotation);
+        if (file->removeAnnotation(annotation)) {
+            AnnotationManagerDeleteUndoCommand* undoCommand = new AnnotationManagerDeleteUndoCommand(file,
+                                                                                                     annotationCopy);
+            
+            undoCommand->setDescription(annotationCopy->getShortDescriptiveString());
+            m_undoStack->push(undoCommand);
+            break;
+        }
     }
 }
 
@@ -116,26 +143,34 @@ AnnotationManager::deleteAnnotation(Annotation* annotation)
 void
 AnnotationManager::deleteSelectedAnnotations()
 {
-    std::vector<Annotation*> allAnnotations = getSelectedAnnotations();
+    std::vector<Annotation*> allSelectedAnnotations = getSelectedAnnotations();
     
-    std::vector<AnnotationFile*> annotationFiles;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
-    
-    for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
-         fileIter != annotationFiles.end();
-         fileIter++) {
-        AnnotationFile* file = *fileIter;
-        CaretAssert(file);
-        
-        for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
-             annIter != allAnnotations.end();
-             annIter++) {
-            Annotation* annotation = *annIter;
-            CaretAssert(annotation);
-            
-            file->removeAnnotation(annotation);
-        }
+    for (std::vector<Annotation*>::iterator annIter = allSelectedAnnotations.begin();
+         annIter != allSelectedAnnotations.end();
+         annIter++) {
+        deleteAnnotation(*annIter);
     }
+    
+//    std::vector<AnnotationFile*> annotationFiles;
+//    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+//    
+//    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
+//         annIter != allAnnotations.end();
+//         annIter++) {
+//        for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
+//             fileIter != annotationFiles.end();
+//             fileIter++) {
+//            AnnotationFile* file = *fileIter;
+//            CaretAssert(file);
+//            
+//            Annotation* annotation = *annIter;
+//            CaretAssert(annotation);
+//            
+//            if (file->removeAnnotation(annotation)) {
+//                break;
+//            }
+//        }
+//    }
 }
 
 /**
@@ -326,6 +361,24 @@ AnnotationManager::copyAnnotationToClipboard(const AnnotationFile* annotationFil
 }
 
 /**
+ * @return Pointer to the undo stack.
+ */
+CaretUndoStack*
+AnnotationManager::getUndoStack()
+{
+    return m_undoStack;
+}
+
+/**
+ * @return Pointer to the undo stack.
+ */
+const CaretUndoStack*
+AnnotationManager::getUndoStack() const
+{
+    return m_undoStack;
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -380,4 +433,84 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     //                             sceneClass);
     
 }
+
+
+
+/* ============================================================================================================ */
+
+/**
+ * \class caret::AnnotationManagerDeleteUndoCommand
+ * \brief Undo command for annotations deleted by AnnotationManager.
+ * \ingroup Brain
+ */
+
+/**
+ * Constructor.
+ * 
+ * @param annotationFile
+ *     File that contained deleted annotation.
+ * @param annotation
+ *     Annotation that was removed from the file.
+ */
+AnnotationManagerDeleteUndoCommand::AnnotationManagerDeleteUndoCommand(AnnotationFile* annotationFile,
+                                                                       const Annotation* annotation)
+{
+    CaretAssert(annotationFile);
+    CaretAssert(annotation);
+ 
+    m_annotationFile = annotationFile;
+    m_annotation     = annotation->clone();
+}
+
+/**
+ * Destructor.
+ */
+AnnotationManagerDeleteUndoCommand::~AnnotationManagerDeleteUndoCommand()
+{
+    /*
+     * We DO NOT own file
+     * We DO own annotation
+     */
+    m_annotationFile = NULL;
+    delete m_annotation;
+}
+
+/**
+ * Operation that "redoes" the command.
+ */
+void
+AnnotationManagerDeleteUndoCommand::redo()
+{
+    
+}
+
+/**
+ * Operation that "undoes" the command.
+ */
+void
+AnnotationManagerDeleteUndoCommand::undo()
+{
+    
+}
+
+/**
+ * @return The annotation file that contained the annotation.
+ */
+AnnotationFile*
+AnnotationManagerDeleteUndoCommand::getAnnotationFile() const
+{
+    return m_annotationFile;
+}
+
+/**
+ * @return The annotation for undeleting it.
+ * Method is const since this class "owns" and will delete the annotation.
+ * Caller will need to clone the returned annotation.
+ */
+const Annotation*
+AnnotationManagerDeleteUndoCommand::getAnnotation() const
+{
+    return m_annotation;
+}
+
 

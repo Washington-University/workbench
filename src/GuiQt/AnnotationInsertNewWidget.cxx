@@ -32,8 +32,10 @@
 #include <QVBoxLayout>
 
 #include "Annotation.h"
+#include "AnnotationFile.h"
 #include "AnnotationManager.h"
 #include "CaretAssert.h"
+#include "CaretUndoStack.h"
 #include "Brain.h"
 #include "EventAnnotation.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -119,7 +121,7 @@ AnnotationInsertNewWidget::updateContent(Annotation* annotation)
 {
     m_annotation = annotation;
     
-    m_deleteToolButtonAction->setEnabled(m_annotation != NULL);
+    // always enabled      m_deleteToolButtonAction->setEnabled(m_annotation != NULL);
 }
 
 /**
@@ -237,14 +239,26 @@ AnnotationInsertNewWidget::createShapeToolButton()
 QToolButton*
 AnnotationInsertNewWidget::createDeleteToolButton()
 {
+    m_undeleteMenu = new QMenu();
+    m_undeleteMenu->addAction("Undelete some annotation");
+    QObject::connect(m_undeleteMenu, SIGNAL(aboutToShow()),
+                     this, SLOT(undeleteMenuAboutToShow()));
+    QObject::connect(m_undeleteMenu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(itemSelectedFromUndeleteMenu(QAction*)));
+    
     m_deleteToolButtonAction = WuQtUtilities::createAction("",
                                                          ("Delete the selected annotation\n"
                                                           "\n"
                                                           "Pressing the Delete key while an annotation\n"
-                                                          "is selected will also delete an annotation"),
+                                                          "is selected will also delete an annotation\n"
+                                                          "\n"
+                                                          "Pressing the arrow will show a menu for\n"
+                                                          "undeleting annotations"),
                                                          this,
                                                          this,
                                                          SLOT(deleteActionTriggered()));
+    m_deleteToolButtonAction->setMenu(m_undeleteMenu);
+    
     QToolButton* toolButton = new QToolButton();
 
     const float width  = 24.0;
@@ -271,7 +285,7 @@ AnnotationInsertNewWidget::createDeleteToolButton()
     painter->drawLine(8, 2, 16, 2);
     painter->drawLine(16, 2, 16, 6);
     
-    
+
     m_deleteToolButtonAction->setIcon(QIcon(pixmap));
 
     toolButton->setIconSize(pixmap.size());
@@ -300,17 +314,6 @@ AnnotationInsertNewWidget::deleteActionTriggered()
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
     }
-//    if (m_annotation != NULL) {
-//        if (WuQMessageBox::warningOkCancel(m_deleteToolButton, "Delete selected annotation(s)?")) {
-//            /*
-//             * Delete all selected annotations and update graphics and UI.
-//             */
-//            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-//            annotationManager->deleteSelectedAnnotations();
-//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//        }
-//    }
 }
 
 
@@ -375,6 +378,76 @@ AnnotationInsertNewWidget::shapeMenuActionTriggered(QAction* action)
     
     createAnnotationWithType(annType);
 }
+
+/**
+ * Called when the undelete menu is about to show
+ */
+void
+AnnotationInsertNewWidget::undeleteMenuAboutToShow()
+{
+    m_undeleteMenu->clear();
+    
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+
+    CaretUndoStack* undoStack = annotationManager->getUndoStack();
+    const int64_t numItems = undoStack->count();
+    if (numItems > 0) {
+        const int32_t lastIndex = numItems - 1;
+        for (int32_t undoIndex = lastIndex; undoIndex >= 0; undoIndex--) {
+            QAction* action = m_undeleteMenu->addAction("Undo delete: "
+                                                        + undoStack->command(undoIndex)->getDescription());
+            action->setData((int)undoIndex);
+        }
+    }
+}
+
+/**
+ * Called when an item is selected on the undelete menu
+ *
+ * @param action
+ *     Item that was selected.
+ */
+void
+AnnotationInsertNewWidget::itemSelectedFromUndeleteMenu(QAction* action)
+{
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    
+    CaretUndoStack* undoStack = annotationManager->getUndoStack();
+    
+    const int undoIndex = action->data().toInt();
+    if ((undoIndex >= 0)
+        && (undoIndex < undoStack->count())) {
+        const CaretUndoCommand* undoCommand = undoStack->command(undoIndex);
+        CaretAssert(undoCommand);
+        
+        const AnnotationManagerDeleteUndoCommand* annotUndoCommand = dynamic_cast<const AnnotationManagerDeleteUndoCommand*>(undoCommand);
+        CaretAssert(annotUndoCommand);
+        
+        AnnotationFile* annotationFile = annotUndoCommand->getAnnotationFile();
+        CaretAssert(annotationFile);
+        const Annotation* annotation = annotUndoCommand->getAnnotation();
+        CaretAssert(annotation);
+        
+        std::vector<AnnotationFile*> files;
+        GuiManager::get()->getBrain()->getAllAnnotationFilesIncludingSceneAnnotationFile(files);
+        
+        std::vector<AnnotationFile*>::iterator fileIter = std::find(files.begin(),
+                                                                    files.end(),
+                                                                    annotationFile);
+        if (fileIter != files.end()) {
+            annotationFile->addAnnotation(annotation->clone());
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        }
+        else {
+            WuQMessageBox::errorOk(this, "File that contained annotation not found.  Cannot undelete the annotation.");
+        }
+        
+        undoStack->deleteCommandAtIndex(undoIndex);
+        std::cout << "Undo delete of item " << undoIndex << std::endl;
+    }
+}
+
 
 /**
  * Create a pixmap for the given annotation shape type.

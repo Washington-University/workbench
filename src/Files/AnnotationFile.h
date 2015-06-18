@@ -65,7 +65,7 @@ namespace caret {
         
         const Annotation* getAnnotation(const int32_t index) const;
         
-        void removeAnnotation(const Annotation* annotation);
+        bool removeAnnotation(const Annotation* annotation);
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         

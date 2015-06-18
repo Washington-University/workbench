@@ -641,6 +641,8 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_selectionManager->reset();
     m_selectionManager->setLastSelectedItem(NULL);
     
+    m_annotationManager->reset();
+    
     m_brainordinateHighlightRegionOfInterest->clear();
     
     if (m_modelChart != NULL) {
