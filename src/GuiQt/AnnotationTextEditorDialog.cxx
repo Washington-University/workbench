@@ -23,6 +23,7 @@
 #include "AnnotationTextEditorDialog.h"
 #undef __ANNOTATION_TEXT_EDITOR_DIALOG_DECLARE__
 
+#include <QDialogButtonBox>
 #include <QLineEdit>
 #include <QVBoxLayout>
 
@@ -73,10 +74,17 @@ m_textAnnotation(textAnnotation)
     QObject::connect(m_textEdit, SIGNAL(returnPressed()),
                      this, SLOT(textReturnedPressed()));
     
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
+                                                       | QDialogButtonBox::Cancel);
+    QObject::connect(buttonBox, SIGNAL(accepted()),
+                     this, SLOT(accept()));
+    QObject::connect(buttonBox, SIGNAL(rejected()),
+                     this, SLOT(reject()));
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
     layout->addWidget(m_textEdit);
+    layout->addWidget(buttonBox);
 }
 
 /**
