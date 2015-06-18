@@ -303,8 +303,8 @@ AnnotationInsertNewWidget::deleteActionTriggered()
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
     if ( ! selectedAnnotations.empty()) {
-        if (WuQMessageBox::warningOkCancel(this,
-                                           "Delete selected annotation(s)?")) {
+//        if (WuQMessageBox::warningOkCancel(this,
+//                                           "Delete selected annotation(s)?")) {
             /*
              * Delete all selected annotations and update graphics and UI.
              */
@@ -312,7 +312,7 @@ AnnotationInsertNewWidget::deleteActionTriggered()
             annotationManager->deleteSelectedAnnotations();
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        }
+//        }
     }
 }
 

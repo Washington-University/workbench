@@ -287,8 +287,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
                     std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
                     if ( ! selectedAnnotations.empty()) {
-                        if (WuQMessageBox::warningOkCancel(m_annotationToolsWidget,
-                                                           "Delete selected annotation(s)?")) {
+//                        if (WuQMessageBox::warningOkCancel(m_annotationToolsWidget,
+//                                                           "Delete selected annotation(s)?")) {
                             /*
                              * Delete all selected annotations and update graphics and UI.
                              */
@@ -297,7 +297,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
                         }
-                    }
+//                    }
                 }
                     break;
                 case MODE_SET_COORDINATE_ONE:
