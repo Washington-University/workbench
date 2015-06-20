@@ -58,6 +58,7 @@
 #include "AlgorithmCiftiVectorOperation.h"
 #include "AlgorithmCreateSignedDistanceVolume.h"
 #include "AlgorithmFiberDotProducts.h"
+#include "AlgorithmFociResample.h"
 #include "AlgorithmGiftiAllLabelsToROIs.h"
 #include "AlgorithmGiftiLabelAddPrefix.h"
 #include "AlgorithmGiftiLabelToROI.h"
@@ -294,6 +295,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiVectorOperation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCreateSignedDistanceVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmFiberDotProducts()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmFociResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiAllLabelsToROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiLabelAddPrefix()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiLabelToROI()));

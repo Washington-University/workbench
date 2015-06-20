@@ -54,6 +54,7 @@ AlgorithmCiftiVectorOperation.h
 AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmFiberDotProducts.h
+AlgorithmFociResample.h
 AlgorithmGiftiAllLabelsToROIs.h
 AlgorithmGiftiLabelAddPrefix.h
 AlgorithmGiftiLabelToROI.h
@@ -157,6 +158,7 @@ AlgorithmCiftiVectorOperation.cxx
 AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmFiberDotProducts.cxx
+AlgorithmFociResample.cxx
 AlgorithmGiftiAllLabelsToROIs.cxx
 AlgorithmGiftiLabelAddPrefix.cxx
 AlgorithmGiftiLabelToROI.cxx

@@ -28,7 +28,7 @@ using namespace caret;
 
 void AbstractOperation::checkStructureMatch(const CaretDataFile* toCheck, const StructureEnum::Enum& correctStruct, const AString& fileDescrip, const AString& basisDescrip)
 {
-    if (toCheck->getStructure() != correctStruct)
+    if (toCheck != NULL && toCheck->getStructure() != correctStruct)
     {
         CaretLogWarning(fileDescrip + " has structure '" + StructureEnum::toName(toCheck->getStructure()) +
                         "', while " + basisDescrip + " structure '" + StructureEnum::toName(correctStruct) + "'");
