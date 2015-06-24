@@ -298,7 +298,7 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
      */
     m_borderPairFileSelectionComboBox->updateComboBox(m_borderPairFileSelectionModel);
     
-    QString initialBaseName = "border";
+    QString initialBaseName = "";
     /*
      * Update borders inside ROI selections
      */
@@ -319,7 +319,11 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
         }
         m_borderCheckBoxes[i]->setText(m_bordersInsideROI[i]->getName());
         m_borderCheckBoxes[i]->setVisible(true);
-        initialBaseName += "_" + m_bordersInsideROI[i]->getName();
+        if (i < 2)
+        {
+            if (initialBaseName != "") initialBaseName += "_";
+            initialBaseName += m_bordersInsideROI[i]->getName();
+        }
     }
     m_savingBaseNameLineEdit->setText(initialBaseName);
     
