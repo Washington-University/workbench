@@ -524,7 +524,7 @@ BorderOptimizeDialog::okButtonClicked()
     
     if (algSuccessFlag) {
         AString infoMsg;
-        if ( ! resultsMetricFile->isEmpty()) {
+        if (false && ! resultsMetricFile->isEmpty()) {//HACK: disable keeping the metric for now, to prevent buildup of files - add checkbox or reuse of file sometime later
             resultsMetricFile->setStructure(gradientComputationSurface->getStructure());
             resultsMetricFile->setMapName(0, metricFileMapName);
             PaletteColorMapping* pcm = resultsMetricFile->getMapPaletteColorMapping(0);
