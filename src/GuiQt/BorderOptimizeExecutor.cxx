@@ -51,6 +51,7 @@
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
 #include "SurfaceResamplingHelper.h"
+#include "TextFile.h"
 #include "TopologyHelper.h"
 
 #include <cmath>
@@ -931,6 +932,10 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             inputData.m_borders[i]->replacePointsWithUndoSaving(&modifiedBorders[i]);
         }
 
+        if (inputData.m_saveResults)
+        {
+            saveResults(inputData, statisticsInformationOut);
+        }
         
         /*
         * Modifying a border:
@@ -956,6 +961,55 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         return false;
     }
     return true;
+}
+
+void BorderOptimizeExecutor::saveResults(const BorderOptimizeExecutor::InputData& inputData, const AString& statisticsInformation)
+{
+    AString completeBase = FileInformation(inputData.m_savingPath, inputData.m_savingBaseName).getAbsoluteFilePath();
+    BorderFile tempOutBorder;
+    tempOutBorder.setNumberOfNodes(inputData.m_surface->getNumberOfNodes());
+    tempOutBorder.addBorder(new Border(*(inputData.m_borderEnclosingROI)));
+    tempOutBorder.writeFile(completeBase + ".border");
+    if (inputData.m_combinedGradientDataOut != NULL)
+    {
+        inputData.m_combinedGradientDataOut->writeFile(completeBase + ".func.gii");
+    }
+    TextFile textOut;//because QT's paths use non-native separators on windows
+    textOut.replaceText(statisticsInformation);
+    textOut.addLine("\n\nBorders chosen to optimize:");
+    for (std::vector<Border*>::const_iterator bi = inputData.m_borders.begin(); bi != inputData.m_borders.end(); bi++)
+    {
+        textOut.addLine((*bi)->getName());
+    }
+    textOut.addLine("\nBorder pair for statistics:");
+    for (std::vector<Border*>::const_iterator bi = inputData.m_borderPair.begin(); bi != inputData.m_borderPair.end(); bi++)
+    {
+        textOut.addLine((*bi)->getName());
+    }
+    textOut.addLine("\nOptimizing Surface: " + inputData.m_surface->getFileName());
+    textOut.addLine("\nData Files used:");
+    for (std::vector<DataFileInfo>::const_iterator fi = inputData.m_dataFileInfo.begin(); fi != inputData.m_dataFileInfo.end(); fi++)
+    {
+        const DataFileInfo& dfi = *fi;
+        textOut.addLine("\n" + dfi.m_mapFile->getFileName());
+        if (dfi.m_allMapsFlag) {
+            textOut.addLine("    Map: All Maps");
+        }
+        else {
+            textOut.addLine("    Map: " + AString::number(dfi.m_mapIndex) + ", " + dfi.m_mapFile->getMapName(dfi.m_mapIndex));
+        }
+        
+        textOut.addLine("    Strength: " + AString::number(dfi.m_weight));
+        textOut.addLine("    Smoothing: " + AString::number(dfi.m_smoothing));
+        textOut.addLine("    Invert Gradient: " + AString::fromBool(dfi.m_invertGradientFlag));
+    }
+    if (inputData.m_vertexAreasMetricFile != NULL) textOut.addLine("\nVertex Areas Metric File:\n" + inputData.m_vertexAreasMetricFile->getFileName());
+    if (inputData.m_upsamplingSphericalSurface != NULL) {
+        textOut.addLine("\nUpsampling Sphere: " + inputData.m_upsamplingSphericalSurface->getFileName());
+        textOut.addLine("Upsampling Resolution: " + AString::number(inputData.m_upsamplingResolution));
+    }
+    textOut.addLine("\nGradient Following Strength: " + AString::number(inputData.m_gradientFollowingStrength));
+    textOut.writeFile(completeBase + ".txt");
 }
 
 /**

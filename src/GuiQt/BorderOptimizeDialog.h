@@ -30,6 +30,7 @@ class QCheckBox;
 class QDoubleSpinBox;
 class QGridLayout;
 class QGroupBox;
+class QLineEdit;
 class QSpinBox;
 class QVBoxLayout;
 
@@ -82,6 +83,8 @@ namespace caret {
         
         void dataFilesEnableAllSelected();
         
+        void saveBrowseButtonClicked();
+        
     private:
         BorderOptimizeDialog(const BorderOptimizeDialog&);
 
@@ -98,6 +101,8 @@ namespace caret {
         QWidget* createSurfaceSelectionWidget();
         
         QWidget* createSphericalUpsamplingWidget();
+        
+        QWidget* createSavingWidget();
         
         void addDataFileRow(CaretMappableDataFile* mapFile);
         
@@ -161,6 +166,12 @@ namespace caret {
         SurfaceSelectionViewController* m_upsamplingSurfaceSelectionControl;
         
         QSpinBox* m_upsamplingResolutionSpinBox;
+        
+        QGroupBox* m_savingGroupBox;
+        
+        QLineEdit* m_savingBaseNameLineEdit;
+        
+        QLineEdit* m_savingDirectoryLineEdit;
     };
     
     class BorderOptimizeDataFileSelector : public QObject {

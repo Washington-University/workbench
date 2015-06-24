@@ -31,6 +31,8 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -43,6 +45,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretDataFileSelectionModel.h"
+#include "CaretFileDialog.h"
 #include "CaretMappableDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
@@ -121,6 +124,7 @@ m_upsamplingSurfaceStructure(StructureEnum::INVALID)
                             STRETCH_NONE);
     dialogLayout->addWidget(createSphericalUpsamplingWidget(),
                             STRETCH_NONE);
+    dialogLayout->addWidget(createSavingWidget(), STRETCH_NONE);
     QWidget* optionsWidget = createOptionsWidget();
     if (optionsWidget != NULL) {
         dialogLayout->addWidget(optionsWidget,
@@ -294,6 +298,7 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
      */
     m_borderPairFileSelectionComboBox->updateComboBox(m_borderPairFileSelectionModel);
     
+    QString initialBaseName = "border";
     /*
      * Update borders inside ROI selections
      */
@@ -314,7 +319,9 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
         }
         m_borderCheckBoxes[i]->setText(m_bordersInsideROI[i]->getName());
         m_borderCheckBoxes[i]->setVisible(true);
+        initialBaseName += "_" + m_bordersInsideROI[i]->getName();
     }
+    m_savingBaseNameLineEdit->setText(initialBaseName);
     
     /*
      * Remove border selections not needed.
@@ -490,7 +497,10 @@ BorderOptimizeDialog::okButtonClicked()
                                                gradientFollowingStrength,
                                                upsamplingSphericalSurface,
                                                upsamplingResolution,
-                                               resultsMetricFile);
+                                               resultsMetricFile,
+                                               m_savingGroupBox->isChecked(),
+                                               m_savingDirectoryLineEdit->text(),
+                                               m_savingBaseNameLineEdit->text());
     
     /*
      * Run border optimization.
@@ -848,6 +858,12 @@ BorderOptimizeDialog::dataFilesEnableAllSelected()
     setAllDataFileEnabledSelections(true);
 }
 
+void BorderOptimizeDialog::saveBrowseButtonClicked()
+{
+    QString path = CaretFileDialog::getExistingDirectoryDialog();
+    if (path != "") m_savingDirectoryLineEdit->setText(path);
+}
+
 /**
  * Set the enable status of all borders to the given value.
  *
@@ -967,6 +983,30 @@ BorderOptimizeDialog::createSphericalUpsamplingWidget()
     layout->addWidget(m_upsamplingResolutionSpinBox, row, 1, Qt::AlignLeft);
     
     return m_upsamplingGroupBox;
+}
+
+QWidget* BorderOptimizeDialog::createSavingWidget()
+{
+    m_savingGroupBox = new QGroupBox(" Save results");
+    m_savingGroupBox->setCheckable(true);
+    m_savingGroupBox->setChecked(false);
+    
+    QGridLayout* layout = new QGridLayout(m_savingGroupBox);
+    layout->setColumnStretch(0, 0);//label
+    layout->setColumnStretch(1, 100);//line edit
+    layout->setColumnStretch(2, 0);//button or extended line edit
+    
+    layout->addWidget(new QLabel("Base Filename"), 0, 0);
+    m_savingBaseNameLineEdit = new QLineEdit();
+    layout->addWidget(m_savingBaseNameLineEdit, 0, 1, 1, -1);//extend to end of row
+    layout->addWidget(new QLabel("Path"), 1, 0);
+    m_savingDirectoryLineEdit = new QLineEdit();
+    layout->addWidget(m_savingDirectoryLineEdit, 1, 1);
+    QPushButton* browseButton = new QPushButton("Browse...");
+    QObject::connect(browseButton, SIGNAL(clicked()), this, SLOT(saveBrowseButtonClicked()));
+    layout->addWidget(browseButton, 1, 2);
+    
+    return m_savingGroupBox;
 }
 
 /**

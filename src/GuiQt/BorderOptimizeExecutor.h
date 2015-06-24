@@ -82,7 +82,10 @@ namespace caret {
                       const float& gradientFollowingStrength,
                       Surface* upsamplingSphericalSurface,
                       const int32_t upsamplingResolution,
-                      MetricFile* combinedGradientDataOut)
+                      MetricFile* combinedGradientDataOut,
+                      bool saveResults,
+                      const AString& savingPath,
+                      const AString& savingBaseName)
             : m_borders(borders),
             m_borderPair(borderPair),
             m_borderEnclosingROI(borderEnclosingROI),
@@ -93,7 +96,10 @@ namespace caret {
             m_gradientFollowingStrength(gradientFollowingStrength),
             m_upsamplingSphericalSurface(upsamplingSphericalSurface),
             m_upsamplingResolution(upsamplingResolution),
-            m_combinedGradientDataOut(combinedGradientDataOut)
+            m_combinedGradientDataOut(combinedGradientDataOut),
+            m_saveResults(saveResults),
+            m_savingPath(savingPath),
+            m_savingBaseName(savingBaseName)
                 { }
             
             std::vector<Border*> m_borders;
@@ -107,6 +113,8 @@ namespace caret {
             Surface* m_upsamplingSphericalSurface;
             const int32_t m_upsamplingResolution;
             MetricFile* m_combinedGradientDataOut;
+            bool m_saveResults;
+            AString m_savingPath, m_savingBaseName;
         };
         
         BorderOptimizeExecutor();
@@ -118,6 +126,8 @@ namespace caret {
         static bool run(const InputData& inputData,
                         AString& statisticsInformationOut,
                         AString& errorMessageOut);
+        
+        static void saveResults(const InputData& inputData, const AString& statisticsInformation);
         
     private:
         BorderOptimizeExecutor(const BorderOptimizeExecutor&);
