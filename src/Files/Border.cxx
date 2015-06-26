@@ -1745,7 +1745,11 @@ void Border::readXML3(QXmlStreamReader& xml)
                     bool ok = false;
                     float tempVal = vertexStrings[i].toFloat(&ok);
                     if (!ok) throw DataFileException("non-numeric item in Weights text: " + vertexStrings[i]);
-                    if (tempVal < 0.0f) throw DataFileException("negative value in Weights");
+                    if (tempVal < 0.0f)
+                    {
+                        CaretLogWarning("negative value in Weights, set to zero");
+                        tempVal = 0.0f;
+                    }
                     weights.push_back(tempVal);
                 }
                 haveWeights = true;

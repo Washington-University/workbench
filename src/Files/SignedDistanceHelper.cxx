@@ -232,6 +232,13 @@ void SignedDistanceHelper::barycentricWeights(const float coord[3], BarycentricI
                 }
             break;
     };
+    for (int i = 0; i < 3; ++i)
+    {
+        if (baryInfoOut.baryWeights[i] < 0.0f)
+        {
+            baryInfoOut.baryWeights[i] = 0.0f;
+        }
+    }
 }
 
 int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper::ClosestPointInfo myInfo, WindingLogic myWinding)
