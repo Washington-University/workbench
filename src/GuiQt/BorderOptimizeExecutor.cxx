@@ -805,7 +805,8 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             tempBorderFile.addBorder(new Border(fullRedrawn));//because it takes ownership of a pointer
             AlgorithmBorderToVertices(NULL, drawSurf, &tempBorderFile, &borderTrace);
             const float* traceData = borderTrace.getValuePointerForColumn(0);
-            for (int j = 0; j < numNodes; ++j)
+            int drawNumNodes = drawSurf->getNumberOfNodes();
+            for (int j = 0; j < drawNumNodes; ++j)
             {
                 if (traceData[j] > 0.0f)
                 {
