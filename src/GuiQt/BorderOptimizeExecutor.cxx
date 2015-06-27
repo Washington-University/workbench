@@ -733,7 +733,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                 drawOrigBorders[i] = highresOrigBorders.getBorder(i);
             }
         }
-        vector<float> roiMinusTracesData = roiData;
+        vector<float> roiMinusTracesData = drawRoi;
         BorderFile redrawnSegments;
         for (int i = 0; i < numBorders; ++i)
         {
@@ -776,6 +776,42 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                 redrawnSegment->addPoint(myItem);
             }
             redrawnSegments.addBorder(redrawnSegment.releasePointer());
+            int numOrigPoints = inputData.m_borders[i]->getNumberOfPoints();
+            Border fullRedrawn = *(drawOrigBorders[i]);//use the potentially upsampled version for the ROI splitting, but don't re-downsample it as the modified border on the current mesh
+            fullRedrawn.removeAllPoints();
+            if (!(inputData.m_borders[i]->isClosed()))//if it is a closed border, start with the newly drawn section, for simplicity
+            {
+                for (int j = 0; j <= myRedrawInfo[i].startpoint; ++j)//include the original startpoint
+                {
+                    fullRedrawn.addPoint(new SurfaceProjectedItem(*(drawOrigBorders[i]->getPoint(j))));
+                }
+            }
+            fullRedrawn.addPoints(redrawnSegment);
+            if (inputData.m_borders[i]->isClosed())
+            {//mod arithmetic for closed borders
+                int numKeep = (numOrigPoints + myRedrawInfo[i].startpoint - myRedrawInfo[i].endpoint + 1) % numOrigPoints;//inclusive
+                for (int j = 0; j < numKeep; ++j)
+                {
+                    fullRedrawn.addPoint(new SurfaceProjectedItem(*(drawOrigBorders[i]->getPoint((j + myRedrawInfo[i].endpoint) % numOrigPoints))));
+                }
+            } else {
+                for (int j = myRedrawInfo[i].endpoint; j < numOrigPoints; ++j)//include original endpoint
+                {
+                    fullRedrawn.addPoint(new SurfaceProjectedItem(*(drawOrigBorders[i]->getPoint(j))));
+                }
+            }
+            MetricFile borderTrace;
+            BorderFile tempBorderFile;
+            tempBorderFile.addBorder(new Border(fullRedrawn));//because it takes ownership of a pointer
+            AlgorithmBorderToVertices(NULL, drawSurf, &tempBorderFile, &borderTrace);
+            const float* traceData = borderTrace.getValuePointerForColumn(0);
+            for (int j = 0; j < numNodes; ++j)
+            {
+                if (traceData[j] > 0.0f)
+                {
+                    roiMinusTracesData[j] = 0.0f;
+                }
+            }
         }
         BorderFile* segmentsToUse = &redrawnSegments;
         BorderFile downsampledSegments;
@@ -812,35 +848,43 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                     modifiedBorder.addPoint(new SurfaceProjectedItem(*(inputData.m_borders[i]->getPoint(j))));
                 }
             }
-            MetricFile borderTrace;
-            BorderFile tempBorderFile;
-            tempBorderFile.addBorder(new Border(modifiedBorder));//because it takes ownership of a pointer
-            AlgorithmBorderToVertices(NULL, computeSurf, &tempBorderFile, &borderTrace);
-            const float* traceData = borderTrace.getValuePointerForColumn(0);
-            for (int j = 0; j < numNodes; ++j)
-            {
-                if (traceData[j] > 0.0f)
-                {
-                    roiMinusTracesData[j] = 0.0f;
-                }
-            }
         }
         stageString = "roi splitting";
-        MetricFile roiMinusBorderTraces, roiMetric;
-        roiMinusBorderTraces.setNumberOfNodesAndColumns(numNodes, 1);
+        MetricFile roiMinusBorderTraces, roiMetric, drawAreasMetric;
+        roiMinusBorderTraces.setNumberOfNodesAndColumns(roiMinusTracesData.size(), 1);
         roiMinusBorderTraces.setValuesForColumn(0, roiMinusTracesData.data());
-        roiMetric.setNumberOfNodesAndColumns(numNodes, 1);
-        roiMetric.setValuesForColumn(0, roiData.data());
+        roiMetric.setNumberOfNodesAndColumns(drawRoi.size(), 1);
+        roiMetric.setValuesForColumn(0, drawRoi.data());
+        drawAreasMetric.setNumberOfNodesAndColumns(drawSurf->getNumberOfNodes(), 1);
+        drawAreasMetric.setValuesForColumn(0, drawAreas);
         MetricFile clustersMetric;
         int endVal = 0;
-        AlgorithmMetricFindClusters(NULL, computeSurf, &roiMinusBorderTraces, 0.5f, 10.0f, &clustersMetric, false, &roiMetric, correctedAreasMetric, 0, 1, &endVal);
+        AlgorithmMetricFindClusters(NULL, drawSurf, &roiMinusBorderTraces, 0.5f, 10.0f, &clustersMetric, false, &roiMetric, &drawAreasMetric, 0, 1, &endVal);
         if (endVal != 3)
         {
             statisticsInformationOut = AString::number(endVal - 1) + " cluster(s) found after splitting the roi with the redrawn borders, skipping statistics";
         } else {
+            const float* clusterData = clustersMetric.getValuePointerForColumn(0);
+            vector<float> downsampledClusters;
+            if (origSphere != NULL)
+            {
+                SurfaceResamplingHelper downsampler(SurfaceResamplingMethodEnum::ADAP_BARY_AREA, &highresSphere, origSphere, highresAreasStore.data(), origAreas, drawRoi.data());
+                vector<int32_t> highresData(highresSphere.getNumberOfNodes()), downsamledData(numNodes);
+                const float* highresClusters = clustersMetric.getValuePointerForColumn(0);
+                for (int i = 0; i < (int)highresData.size(); ++i)
+                {
+                    highresData[i] = floor(highresClusters[i] + 0.5f);
+                }
+                downsampler.resamplePopular(highresData.data(), downsamledData.data());
+                downsampledClusters.resize(numNodes);
+                for (int i = 0; i < (int)downsamledData.size(); ++i)
+                {
+                    downsampledClusters[i] = downsamledData[i];
+                }
+                clusterData = downsampledClusters.data();
+            }
             stageString = "statistics";
             vector<int32_t> nodeLists[2];
-            const float* clusterData = clustersMetric.getValuePointerForColumn(0);
             for (int i = 0; i < numNodes; ++i)
             {
                 int label = (int)floor(clusterData[i] + 0.5f);
