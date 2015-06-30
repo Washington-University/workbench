@@ -617,7 +617,6 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         inputRoi.setNumberOfNodesAndColumns(numNodes, 1);
         inputRoi.setValuesForColumn(0, inputRoiData.data());
         AlgorithmMetricDilate(NULL, &inputRoi, computeSurf, 0.0001f, &dilatedRoi);//dilate roi by 1 neighbor
-        //TODO: dilate, replace argument of gradient function
         for (int i = 0; i < numInputs; ++i)
         {
             EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + (COMPUTE_PROGRESS * i) / numInputs,
@@ -798,7 +797,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             fullRedrawn.addPoints(redrawnSegment);
             if (inputData.m_borders[i]->isClosed())
             {//mod arithmetic for closed borders
-                int numKeep = (numOrigPoints + myRedrawInfo[i].startpoint - myRedrawInfo[i].endpoint + 1) % numOrigPoints;//inclusive
+                int numKeep = ((numOrigPoints + myRedrawInfo[i].startpoint - myRedrawInfo[i].endpoint) % numOrigPoints) + 1;//inclusive
                 for (int j = 0; j < numKeep; ++j)
                 {
                     fullRedrawn.addPoint(new SurfaceProjectedItem(*(drawOrigBorders[i]->getPoint((j + myRedrawInfo[i].endpoint) % numOrigPoints))));
@@ -847,7 +846,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             modifiedBorder.addPoints(segmentsToUse->getBorder(i));
             if (inputData.m_borders[i]->isClosed())
             {//mod arithmetic for closed borders
-                int numKeep = (numOrigPoints + myRedrawInfo[i].startpoint - myRedrawInfo[i].endpoint + 1) % numOrigPoints;//inclusive
+                int numKeep = ((numOrigPoints + myRedrawInfo[i].startpoint - myRedrawInfo[i].endpoint) % numOrigPoints) + 1;//inclusive
                 for (int j = 0; j < numKeep; ++j)
                 {
                     modifiedBorder.addPoint(new SurfaceProjectedItem(*(inputData.m_borders[i]->getPoint((j + myRedrawInfo[i].endpoint) % numOrigPoints))));
