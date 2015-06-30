@@ -32,6 +32,7 @@
 #include "AlgorithmCiftiCorrelationGradient.h"
 #include "AlgorithmCiftiRestrictDenseMap.h"
 #include "AlgorithmCiftiSeparate.h"
+#include "AlgorithmMetricDilate.h"
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricFindClusters.h"
 #include "AlgorithmNodesInsideBorder.h"
@@ -137,21 +138,16 @@ namespace
         }
     }
     
-    bool extractGradientData(const CaretMappableDataFile* dataFile, const int32_t& mapIndex, SurfaceFile* surface, const vector<int32_t>& roiNodes,
+    bool extractGradientData(const CaretMappableDataFile* dataFile, const int32_t& mapIndex, SurfaceFile* surface, const MetricFile* gradRoi,
                              const float& smoothing, const MetricFile* correctedAreasMetric, MetricFile& gradientOut, const bool& skipGradient, const float& excludeDist)
     {
         int numNodes = surface->getNumberOfNodes();
-        int numSelected = (int)roiNodes.size();
         MetricFile tempData, tempRoi;
-        const MetricFile* useData = &tempData;
+        const MetricFile* useData = &tempData, *useRoi = gradRoi;
         switch (dataFile->getDataFileType())
         {
             case DataFileTypeEnum::METRIC:
             {
-                vector<float> drawnROI(numNodes, 0.0f);
-                for (int i = 0; i < numSelected; ++i) drawnROI[roiNodes[i]] = 1.0f;
-                tempRoi.setNumberOfNodesAndColumns(numNodes, 1);
-                tempRoi.setValuesForColumn(0, drawnROI.data());
                 const MetricFile* metricFile = dynamic_cast<const MetricFile*>(dataFile);
                 CaretAssert(metricFile != NULL);
                 CaretAssert(metricFile->getNumberOfNodes() == numNodes);
@@ -176,20 +172,23 @@ namespace
                     return false;
                 }
                 tempData.setValuesForColumn(0, surfData.data());
-                vector<float> maskedROI(numNodes, 0.0f);
-                for (int i = 0; i < numSelected; ++i)
+                vector<float> maskedROI(numNodes);
+                const float* gradRoiData = gradRoi->getValuePointerForColumn(0);
+                for (int i = 0; i < numNodes; ++i)
                 {
-                    maskedROI[roiNodes[i]] = ciftiRoi[roiNodes[i]];
+                    if (gradRoiData[i] > 0.0f)
+                    {
+                        maskedROI[i] = ciftiRoi[i];
+                    } else {
+                        maskedROI[i] = 0.0f;
+                    }
                 }
                 tempRoi.setValuesForColumn(0, maskedROI.data());
+                useRoi = &tempRoi;
                 break;
             }
             case DataFileTypeEnum::CONNECTIVITY_DENSE:
             {
-                vector<float> drawnROI(numNodes, 0.0f);
-                for (int i = 0; i < numSelected; ++i) drawnROI[roiNodes[i]] = 1.0f;
-                tempRoi.setNumberOfNodesAndColumns(numNodes, 1);
-                tempRoi.setValuesForColumn(0, drawnROI.data());
                 const CiftiMappableDataFile* ciftiMappableFile = dynamic_cast<const CiftiMappableDataFile*>(dataFile);
                 CaretAssert(ciftiMappableFile != NULL);
                 CaretAssert(ciftiMappableFile->getMappingSurfaceNumberOfNodes(surface->getStructure()) == numNodes);
@@ -200,17 +199,17 @@ namespace
                 switch (surface->getStructure())
                 {
                     case StructureEnum::CORTEX_LEFT:
-                        leftRoi = &tempRoi;
+                        leftRoi = gradRoi;
                         leftCorrAreas = correctedAreasMetric;
                         leftSurf = surface;
                         break;
                     case StructureEnum::CORTEX_RIGHT:
-                        rightRoi = &tempRoi;
+                        rightRoi = gradRoi;
                         rightCorrAreas = correctedAreasMetric;
                         rightSurf = surface;
                         break;
                     case StructureEnum::CEREBELLUM:
-                        cerebRoi = &tempRoi;
+                        cerebRoi = gradRoi;
                         cerebCorrAreas = correctedAreasMetric;
                         cerebSurf = surface;
                         break;
@@ -235,7 +234,7 @@ namespace
             gradientOut.setStructure(surface->getStructure());
             gradientOut.setValuesForColumn(0, useData->getValuePointerForColumn(0));
         } else {
-            AlgorithmMetricGradient(NULL, surface, useData, &gradientOut, NULL, smoothing, &tempRoi, false, 0, correctedAreasMetric);
+            AlgorithmMetricGradient(NULL, surface, useData, &gradientOut, NULL, smoothing, useRoi, false, 0, correctedAreasMetric);
         }
         return true;
     }
@@ -609,6 +608,16 @@ BorderOptimizeExecutor::run(const InputData& inputData,
         }
         stageString = "data processing";
         int numInputs = (int)inputData.m_dataFileInfo.size();
+        vector<float> inputRoiData(numNodes, 0.0f);
+        for (int i = 0; i < (int)inputData.m_nodesInsideROI.size(); ++i)
+        {
+            inputRoiData[inputData.m_nodesInsideROI[i]] = 1.0f;
+        }
+        MetricFile inputRoi, dilatedRoi;
+        inputRoi.setNumberOfNodesAndColumns(numNodes, 1);
+        inputRoi.setValuesForColumn(0, inputRoiData.data());
+        AlgorithmMetricDilate(NULL, &inputRoi, computeSurf, 0.0001f, &dilatedRoi);//dilate roi by 1 neighbor
+        //TODO: dilate, replace argument of gradient function
         for (int i = 0; i < numInputs; ++i)
         {
             EventProgressUpdate tempEvent(0, PROGRESS_MAX, SEGMENT_PROGRESS + (COMPUTE_PROGRESS * i) / numInputs,
@@ -624,7 +633,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
             {
                 for (int j = 0; j < inputData.m_dataFileInfo[i].m_mapFile->getNumberOfMaps(); ++j)
                 {
-                    if (extractGradientData(inputData.m_dataFileInfo[i].m_mapFile, j, computeSurf, inputData.m_nodesInsideROI,
+                    if (extractGradientData(inputData.m_dataFileInfo[i].m_mapFile, j, computeSurf, &dilatedRoi,
                                             inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, tempGradient,
                                             inputData.m_dataFileInfo[i].m_skipGradient, inputData.m_dataFileInfo[i].m_corrGradExcludeDist))
                     {
@@ -634,7 +643,7 @@ BorderOptimizeExecutor::run(const InputData& inputData,
                 }
             } else {
                 if (extractGradientData(inputData.m_dataFileInfo[i].m_mapFile, inputData.m_dataFileInfo[i].m_mapIndex, computeSurf,
-                                        inputData.m_nodesInsideROI, inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, tempGradient,
+                                        &dilatedRoi, inputData.m_dataFileInfo[i].m_smoothing, correctedAreasMetric, tempGradient,
                                         inputData.m_dataFileInfo[i].m_skipGradient, inputData.m_dataFileInfo[i].m_corrGradExcludeDist))
                 {
                     doCombination(tempGradient, inputData.m_nodesInsideROI, inputData.m_dataFileInfo[i].m_invertGradientFlag,
