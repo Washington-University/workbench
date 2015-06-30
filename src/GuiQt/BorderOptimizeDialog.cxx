@@ -294,8 +294,10 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
     }
     
     /*
-     * Update border file selection
+     * Update border file selection but limit to border files that are the same structure
+     * as the surface
      */
+    m_borderPairFileSelectionModel->setStructure(structure);
     m_borderPairFileSelectionComboBox->updateComboBox(m_borderPairFileSelectionModel);
     
     QString initialBaseName = "";
@@ -462,6 +464,17 @@ BorderOptimizeDialog::okButtonClicked()
         }
     }
     
+    const QString savingBaseName = m_savingBaseNameLineEdit->text().trimmed();
+    const QString savingDirectoryName = m_savingDirectoryLineEdit->text().trimmed();
+    if (m_savingGroupBox->isChecked()) {
+        if (savingDirectoryName.isEmpty()) {
+            errorMessage.appendWithNewLine("Save Results is selected and Saving Directory is empty.");
+        }
+        if (savingBaseName.isEmpty()) {
+            errorMessage.appendWithNewLine("Save Results is selected and Saving Base Filename is empty.");
+        }
+    }
+    
     if ( ! errorMessage.isEmpty()) {
         WuQMessageBox::errorOk(this, errorMessage);
         return;
@@ -503,8 +516,8 @@ BorderOptimizeDialog::okButtonClicked()
                                                upsamplingResolution,
                                                resultsMetricFile,
                                                m_savingGroupBox->isChecked(),
-                                               m_savingDirectoryLineEdit->text(),
-                                               m_savingBaseNameLineEdit->text());
+                                               savingDirectoryName,
+                                               savingBaseName);
     
     /*
      * Run border optimization.
@@ -524,7 +537,8 @@ BorderOptimizeDialog::okButtonClicked()
     
     if (algSuccessFlag) {
         AString infoMsg;
-        if (false && ! resultsMetricFile->isEmpty()) {//HACK: disable keeping the metric for now, to prevent buildup of files - add checkbox or reuse of file sometime later
+        if (m_outputGradientMapCheckBox->isChecked()
+            && ! resultsMetricFile->isEmpty()) {
             resultsMetricFile->setStructure(gradientComputationSurface->getStructure());
             resultsMetricFile->setMapName(0, metricFileMapName);
             PaletteColorMapping* pcm = resultsMetricFile->getMapPaletteColorMapping(0);
@@ -742,9 +756,11 @@ BorderOptimizeDialog::createDataFilesWidget()
                                                                            optimizeMapFiles);
     const int32_t numberOfMapFiles = static_cast<int32_t>(optimizeMapFiles.size());
     
-    const int32_t minimumDataFilesToShow = 10;
-    const int32_t numberOfFilesToShow = std::max(minimumDataFilesToShow,
-                                                 numberOfMapFiles);
+//    const int32_t minimumDataFilesToShow = 10;
+//    const int32_t numberOfFilesToShow = std::max(minimumDataFilesToShow,
+//                                                 numberOfMapFiles);
+    const int32_t numberOfFilesToShow = 1;
+    
     for (int32_t i = 0; i < numberOfFilesToShow; i++) {
         CaretMappableDataFile* mapFile = NULL;
         if (i < numberOfMapFiles) {
@@ -831,8 +847,8 @@ BorderOptimizeDialog::addDataFileRow(CaretMappableDataFile* mapFile)
                                                                                   mapFile,
                                                                                   m_borderOptimizeDataFileGridLayout,
                                                                                   this);
+    selector->setSelected(true);
     m_optimizeDataFileSelectors.push_back(selector);
-    
 }
 
 /**
@@ -912,6 +928,9 @@ BorderOptimizeDialog::createOptionsWidget()
     m_keepRegionBorderCheckBox = new QCheckBox("Keep Boundary Border");
     m_keepRegionBorderCheckBox->setChecked(true);
     
+    m_outputGradientMapCheckBox = new QCheckBox("Output Gradient as Map");
+    m_outputGradientMapCheckBox->setChecked(true);
+    
     QLabel* gradientLabel = new QLabel("Graident Following Strength");
     m_gradientFollowingStrengthSpinBox = new QDoubleSpinBox();
     m_gradientFollowingStrengthSpinBox->setRange(0.0, 1.0e6);
@@ -927,6 +946,7 @@ BorderOptimizeDialog::createOptionsWidget()
     QGroupBox* widget = new QGroupBox("Options");
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(m_keepRegionBorderCheckBox);
+    layout->addWidget(m_outputGradientMapCheckBox);
     layout->addLayout(gradientLayout);
     
     return widget;
@@ -975,7 +995,7 @@ BorderOptimizeDialog::createSphericalUpsamplingWidget()
     
     m_upsamplingGroupBox = new QGroupBox(" Upsampling");
     m_upsamplingGroupBox->setCheckable(true);
-    m_upsamplingGroupBox->setChecked(false);
+    m_upsamplingGroupBox->setChecked(true);
     QGridLayout* layout = new QGridLayout(m_upsamplingGroupBox);
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 100);
@@ -993,7 +1013,7 @@ QWidget* BorderOptimizeDialog::createSavingWidget()
 {
     m_savingGroupBox = new QGroupBox(" Save results");
     m_savingGroupBox->setCheckable(true);
-    m_savingGroupBox->setChecked(false);
+    m_savingGroupBox->setChecked(true);
     
     QGridLayout* layout = new QGridLayout(m_savingGroupBox);
     layout->setColumnStretch(0, 0);//label
@@ -1260,6 +1280,19 @@ BorderOptimizeDataFileSelector::updateFileData()
         m_allMapsCheckBox->setEnabled( ! denseFileFlag);
     }
 }
+
+/**
+ * Set the selection status.
+ *
+ * @param selectedStatus
+ *     New selection status.
+ */
+void
+BorderOptimizeDataFileSelector::setSelected(const bool selectedStatus)
+{
+    m_selectionCheckBox->setChecked(selectedStatus);
+}
+
 
 /**
  * Gets called when the map file selection changes.

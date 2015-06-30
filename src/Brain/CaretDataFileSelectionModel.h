@@ -63,6 +63,8 @@ namespace caret {
         
         StructureEnum::Enum getStructure() const;
         
+        void setStructure(const StructureEnum::Enum structure);
+        
         std::vector<CaretDataFile*> getAvailableFiles() const;
         
         void overrideAvailableDataFiles(std::vector<CaretDataFile*>& availableFiles);

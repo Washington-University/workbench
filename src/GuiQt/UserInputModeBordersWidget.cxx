@@ -902,9 +902,9 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
     }
     m_borderOptimizeDialog->updateDialog(browserTabIndex,
                                          surface,
-                             bordersInsideRegionOfInterest,
-                             const_cast<Border*>(borderDrawnByUser),
-                             nodesInsideBorder);
+                                         bordersInsideRegionOfInterest,
+                                         const_cast<Border*>(borderDrawnByUser),
+                                         nodesInsideBorder);
     if (m_borderOptimizeDialog->exec() == BorderOptimizeDialog::Accepted) {
         std::vector<Border*> modifiedBorders;
         m_borderOptimizeDialog->getModifiedBorders(modifiedBorders);

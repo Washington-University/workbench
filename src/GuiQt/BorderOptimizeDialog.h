@@ -155,6 +155,8 @@ namespace caret {
         
         QCheckBox* m_keepRegionBorderCheckBox;
         
+        QCheckBox* m_outputGradientMapCheckBox;
+        
         QSize m_defaultDataFilesWidgetSize;
         
         QGroupBox* m_upsamplingGroupBox;
@@ -189,6 +191,8 @@ namespace caret {
         void updateFileData();
     
         CaretPointer<BorderOptimizeExecutor::DataFileInfo> getSelections() const;
+        
+        void setSelected(const bool selectedStatus);
         
     private slots:
         void selectionCheckBoxToggled(bool checked);

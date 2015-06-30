@@ -405,6 +405,19 @@ CaretDataFileSelectionModel::getStructure() const
     return m_structure;
 }
 
+/**
+ * Set the structure used for this model.
+ *
+ * @param structure
+ *     New structure for this model.
+ */
+void
+CaretDataFileSelectionModel::setStructure(const StructureEnum::Enum structure)
+{
+    m_structure = structure;
+    updateSelection();
+}
+
 
 /**
  * Update the selected file.
