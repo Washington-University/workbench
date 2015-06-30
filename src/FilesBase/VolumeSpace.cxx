@@ -192,13 +192,7 @@ void VolumeSpace::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spa
             {
                 spacingOut[j] = m_sform[i][j];
                 originOut[j] = m_sform[i][3];
-                bool negative;
-                if (m_sform[i][j] > 0.0f)
-                {
-                    negative = true;
-                } else {
-                    negative = false;
-                }
+                bool negative = (m_sform[i][j] < 0.0f);
                 switch (i)
                 {
                 case 0:
