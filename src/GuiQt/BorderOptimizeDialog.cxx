@@ -79,7 +79,7 @@ using namespace caret;
 static const int STRETCH_NONE = 0;
 static const int STRETCH_MAX  = 100;
 
-static const bool DATA_FILES_IN_SCROLL_BARS = true;
+static const bool DATA_FILES_IN_SCROLL_BARS = false;
 
 /**
  * Constructor.
@@ -142,13 +142,20 @@ m_upsamplingSurfaceStructure(StructureEnum::INVALID)
         
     }
     
-    if (m_defaultDataFilesWidgetSize.width() > 300) {
-        QSize defaultSize = sizeHint();
-        defaultSize.setWidth(m_defaultDataFilesWidgetSize.width() + 100);
-        setSizeOfDialogWhenDisplayed(defaultSize);
+    if (DATA_FILES_IN_SCROLL_BARS) {
+        if (m_defaultDataFilesWidgetSize.width() > 300) {
+            QSize defaultSize = sizeHint();
+            defaultSize.setWidth(m_defaultDataFilesWidgetSize.width() + 100);
+            setSizeOfDialogWhenDisplayed(defaultSize);
+        }
     }
     
     m_dialogWidget = dialogWidget;
+    
+//    if ( ! DATA_FILES_IN_SCROLL_BARS) {
+//        setSizePolicy(sizePolicy().horizontalPolicy(),
+//                      QSizePolicy::Fixed);
+//    }
 }
 
 /**
@@ -798,6 +805,10 @@ BorderOptimizeDialog::createDataFilesWidget()
         
         widget = scrollArea;
     }
+    else {
+        widget->setSizePolicy(widget->sizePolicy().horizontalPolicy(),
+                              QSizePolicy::Fixed);
+    }
     
     QAction* addRowAction = new QAction("Add New Data File Row",
                                         this);
@@ -828,21 +839,26 @@ BorderOptimizeDialog::createDataFilesWidget()
     
     QGroupBox* groupBox = new QGroupBox("Data Files");
     if ( ! DATA_FILES_IN_SCROLL_BARS) {
-        groupBox->setSizePolicy(groupBox->sizePolicy().horizontalPolicy(),
-                                QSizePolicy::Minimum);
+//        groupBox->setSizePolicy(groupBox->sizePolicy().horizontalPolicy(),
+//                                QSizePolicy::Minimum);
     }
     
-    groupBox->setMinimumHeight(300);
     QVBoxLayout* groupBoxLayout = new QVBoxLayout(groupBox);
     if (DATA_FILES_IN_SCROLL_BARS) {
+        groupBox->setMinimumHeight(300);
         groupBoxLayout->addWidget(widget, STRETCH_NONE);
     }
     else {
-        groupBoxLayout->addWidget(widget, STRETCH_MAX);
+        groupBoxLayout->addWidget(widget, STRETCH_NONE); // STRETCH_MAX);
     }
     groupBoxLayout->addLayout(buttonsLayout, STRETCH_NONE);
     
     m_defaultDataFilesWidgetSize = gridWidget->sizeHint();
+    
+//    if ( ! DATA_FILES_IN_SCROLL_BARS) {
+//        groupBox->setSizePolicy(groupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+//        groupBoxLayout->addStretch();
+//    }
     
     return groupBox;
 }
