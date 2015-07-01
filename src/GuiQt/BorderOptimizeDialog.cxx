@@ -330,11 +330,11 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
             m_borderCheckBoxes[i]->setChecked(true);
             m_borderCheckBoxes[i]->blockSignals(false);
         }
-        m_borderCheckBoxes[i]->setText(m_bordersInsideROI[i]->getName());
-//        m_borderCheckBoxes[i]->setText(m_bordersInsideROI[i]->getName()
-//                                       + " ("
-//                                       + QString::number(m_borderPointsInsideROICount[i])
-//                                       + ")");
+//        m_borderCheckBoxes[i]->setText(m_bordersInsideROI[i]->getName());
+        m_borderCheckBoxes[i]->setText(m_bordersInsideROI[i]->getName()
+                                       + " ("
+                                       + QString::number(m_borderPointsInsideROICount[i])
+                                       + ")");
         m_borderCheckBoxes[i]->setVisible(true);
         if (i < 2)
         {
