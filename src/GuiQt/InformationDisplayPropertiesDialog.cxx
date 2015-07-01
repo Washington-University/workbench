@@ -35,6 +35,7 @@
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "WuQFactory.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -93,6 +94,9 @@ InformationDisplayPropertiesDialog::InformationDisplayPropertiesDialog(QWidget* 
     QObject::connect(m_mostRecentSymbolSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(informationPropertyChanged()));
     
+    QLabel* prefInfoLabel = new QLabel("Display of ID symbols is enabled/disabled on the Preference Dialog");
+    prefInfoLabel->setWordWrap(true);
+    
     const int COLUMN_LABEL  = 0;
     const int COLUMN_WIDGET = 1;
     QWidget* widget = new QWidget();
@@ -109,6 +113,10 @@ InformationDisplayPropertiesDialog::InformationDisplayPropertiesDialog(QWidget* 
     row++;
     gridLayout->addWidget(mostRecentSymbolSizeLabel, row, COLUMN_LABEL);
     gridLayout->addWidget(m_mostRecentSymbolSizeSpinBox, row, COLUMN_WIDGET);
+    row++;
+    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, COLUMN_LABEL, 1, 2);
+    row++;
+    gridLayout->addWidget(prefInfoLabel, row, COLUMN_LABEL, 1, 2);
     row++;
     
     setCentralWidget(widget,
