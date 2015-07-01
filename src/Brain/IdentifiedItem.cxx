@@ -55,8 +55,7 @@ IdentifiedItem::IdentifiedItem(const AString& text)
 : CaretObject(),
 m_text(text)
 {
-    m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_text", &m_text);
+    initializeMembers();
 }
 
 /**
