@@ -120,7 +120,7 @@ namespace caret {
                                                const int32_t browserTabIndex,
                                                const SurfaceFile* surfaceFile,
                                                const std::vector<bool>& nodesInROI,
-                                               std::vector<Border*>& bordersOut) const;
+                                               std::map<int32_t, Border*>& insideCountAndBorderOut) const;
         
         void addBorder(Border* border);
         

@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <map>
+
 #include "BorderOptimizeExecutor.h"
 #include "DataFileTypeEnum.h"
 #include "StructureEnum.h"
@@ -61,7 +63,7 @@ namespace caret {
         
         void updateDialog(const int32_t browserTabIndex,
                           Surface* surface,
-                          std::vector<Border*>& bordersInsideROI,
+                          std::map<int32_t, Border*>& bordersInsideROI,
                           Border* borderEnclosingROI,
                           std::vector<int32_t>& nodesInsideROI);
         
@@ -117,6 +119,7 @@ namespace caret {
         Surface* m_surface;
         
         std::vector<Border*> m_bordersInsideROI;
+        std::vector<int32_t> m_borderPointsInsideROICount;
         
         std::vector<Border*> m_selectedBorders;
         

@@ -870,24 +870,24 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
      * Find borders inside region of interest
      */
     std::map<Border*, BorderFile*> borderToBorderFileMap;
-    std::vector<Border*> bordersInsideRegionOfInterest;
+    std::map<int32_t, Border*> bordersInsideRegionOfInterest;
     const int32_t numberOfBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t iFile = 0; iFile < numberOfBorderFiles; iFile++) {
         BorderFile* borderFile = brain->getBorderFile(iFile);
         
-        std::vector<Border*> bordersFromFileInROI;
+        std::map<int32_t, Border*> nodeCountAndBordersFromFileInROI;
         borderFile->findBordersInsideRegionOfInterest(displayGroup,
                                                       browserTabIndex,
                                                       surface,
                                                       nodeInROI,
-                                                      bordersFromFileInROI);
+                                                      nodeCountAndBordersFromFileInROI);
         
-        for (std::vector<Border*>::iterator bi = bordersFromFileInROI.begin();
-             bi != bordersFromFileInROI.end();
+        for (std::map<int32_t, Border*> ::iterator bi = nodeCountAndBordersFromFileInROI.begin();
+             bi != nodeCountAndBordersFromFileInROI.end();
              bi++) {
-            Border* border = *bi;
+            Border* border = bi->second;
             borderToBorderFileMap.insert(std::make_pair(border, borderFile));
-            bordersInsideRegionOfInterest.push_back(border);
+            bordersInsideRegionOfInterest.insert(*bi);
         }
     }
     

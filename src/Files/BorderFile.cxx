@@ -876,21 +876,22 @@ BorderFile::findAllBordersWithPointsNearBothSegmentEndPoints(const DisplayGroupE
  * @param nodesInROI
  *    Indices if a node is inside (true) or outside (false) the ROI.
  *    Number of elements MUST BE the number of nodes in the surface.
- * @param bordersOut
- *    Contains borders found to be in the ROI upon exit.
+ * @param insideCountAndBorderOut
+ *    Output vector pair with first being number of border points inside the ROI and
+ *    and second is the corresponding border.
  */
 void
 BorderFile::findBordersInsideRegionOfInterest(const DisplayGroupEnum::Enum displayGroup,
-                                       const int32_t browserTabIndex,
-                                       const SurfaceFile* surfaceFile,
-                                       const std::vector<bool>& nodesInROI,
-                                       std::vector<Border*>& bordersOut) const
+                                              const int32_t browserTabIndex,
+                                              const SurfaceFile* surfaceFile,
+                                              const std::vector<bool>& nodesInROI,
+                                              std::map<int32_t, Border*>& insideCountAndBorderOut) const
 {
     CaretAssert(surfaceFile);
     const int32_t surfaceNumberOfNodes = surfaceFile->getNumberOfNodes();
     CaretAssert(surfaceNumberOfNodes == static_cast<int32_t>(nodesInROI.size()));
     
-    bordersOut.clear();
+    insideCountAndBorderOut.clear();
     
     const StructureEnum::Enum surfaceStructure = surfaceFile->getStructure();
     
@@ -905,6 +906,35 @@ BorderFile::findBordersInsideRegionOfInterest(const DisplayGroupEnum::Enum displ
             continue;
         }
         if (border->getStructure() == surfaceStructure) {
+//            const int32_t numberOfPoints = border->getNumberOfPoints();
+//            for (int32_t iPoint = 0; iPoint < numberOfPoints; iPoint++) {
+//                const SurfaceProjectedItem* spi = border->getPoint(iPoint);
+//                CaretAssert(spi);
+//                const SurfaceProjectionBarycentric* bary = spi->getBarycentricProjection();
+//                if (bary != NULL) {
+//                    const int32_t* pointNodes = bary->getTriangleNodes();
+//                    const int32_t p1 = pointNodes[0];
+//                    const int32_t p2 = pointNodes[1];
+//                    const int32_t p3 = pointNodes[2];
+//                    if ((p1 < surfaceNumberOfNodes)
+//                        && (p2 < surfaceNumberOfNodes)
+//                        && (p3 < surfaceNumberOfNodes)) {
+//                        if (nodesInROI[p1]
+//                            || nodesInROI[p2]
+//                            || nodesInROI[p3]) {
+//                            bordersOut.push_back(border);
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+            
+            /*
+             * Get all node indices from the border
+             * Note that the node indices may be used by more than one border point barycentric projection
+             * so first get all UNIQUE node indices that are used by the border points
+             */
+            std::set<int32_t> borderNodeIndicesInsideROI;
             const int32_t numberOfPoints = border->getNumberOfPoints();
             for (int32_t iPoint = 0; iPoint < numberOfPoints; iPoint++) {
                 const SurfaceProjectedItem* spi = border->getPoint(iPoint);
@@ -912,20 +942,26 @@ BorderFile::findBordersInsideRegionOfInterest(const DisplayGroupEnum::Enum displ
                 const SurfaceProjectionBarycentric* bary = spi->getBarycentricProjection();
                 if (bary != NULL) {
                     const int32_t* pointNodes = bary->getTriangleNodes();
-                    const int32_t p1 = pointNodes[0];
-                    const int32_t p2 = pointNodes[1];
-                    const int32_t p3 = pointNodes[2];
-                    if ((p1 < surfaceNumberOfNodes)
-                        && (p2 < surfaceNumberOfNodes)
-                        && (p3 < surfaceNumberOfNodes)) {
-                        if (nodesInROI[p1]
-                            || nodesInROI[p2]
-                            || nodesInROI[p3]) {
-                            bordersOut.push_back(border);
-                            break;
-                        }
-                    }
+                    borderNodeIndicesInsideROI.insert(pointNodes[0]);
+                    borderNodeIndicesInsideROI.insert(pointNodes[1]);
+                    borderNodeIndicesInsideROI.insert(pointNodes[2]);
                 }
+            }
+            
+            int32_t borderNodesInsideROICount = 0;
+            for (std::set<int32_t>::iterator iter = borderNodeIndicesInsideROI.begin();
+                 iter != borderNodeIndicesInsideROI.end();
+                 iter++) {
+                const int32_t nodeIndex = *iter;
+                CaretAssertVectorIndex(nodesInROI, nodeIndex);
+                if (nodesInROI[nodeIndex]) {
+                    borderNodesInsideROICount++;
+                }
+            }
+            
+            if (borderNodesInsideROICount > 0) {
+                insideCountAndBorderOut.insert(std::make_pair(borderNodesInsideROICount,
+                                                              border));
             }
         }
     }

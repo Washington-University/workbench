@@ -178,7 +178,8 @@ BorderOptimizeDialog::~BorderOptimizeDialog()
  * @param surface
  *    Surface on which borders are drawn.
  * @param bordersInsideROI
- *    Borders inside the region of interest.
+ *    Map where value is border and key is number of border
+ *    points inside the ROI
  * @param borderEnclosingROI
  *    Border that encloses the region of interest
  * @param nodesInsideROI
@@ -187,7 +188,7 @@ BorderOptimizeDialog::~BorderOptimizeDialog()
 void
 BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
                                    Surface* surface,
-                                   std::vector<Border*>& bordersInsideROI,
+                                   std::map<int32_t, Border*>& bordersInsideROI,
                                    Border* borderEnclosingROI,
                                    std::vector<int32_t>& nodesInsideROI)
 {
@@ -196,9 +197,17 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
     
     m_browserTabIndex    = browserTabIndex;
     m_surface            = surface;
-    m_bordersInsideROI   = bordersInsideROI;
     m_borderEnclosingROI = borderEnclosingROI;
     m_nodesInsideROI     = nodesInsideROI;
+    
+    m_borderPointsInsideROICount.clear();
+    m_bordersInsideROI.clear();
+    for (std::map<int32_t, Border*>::reverse_iterator bi = bordersInsideROI.rbegin();
+         bi != bordersInsideROI.rend();
+         bi++) {
+        m_borderPointsInsideROICount.push_back(bi->first);
+        m_bordersInsideROI.push_back(bi->second);
+    }
     
     /*
      * Update surface selection.
@@ -304,6 +313,7 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
     /*
      * Update borders inside ROI selections
      */
+    CaretAssert(m_bordersInsideROI.size() == m_borderPointsInsideROICount.size());
     const int32_t numberOfBorders = static_cast<int32_t>(m_bordersInsideROI.size());
     for (int32_t i = 0; i < numberOfBorders; i++) {
         if (i >= static_cast<int32_t>(m_borderCheckBoxes.size())) {
@@ -313,6 +323,7 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
         }
         CaretAssertVectorIndex(m_borderCheckBoxes, i);
         CaretAssertVectorIndex(m_bordersInsideROI, i);
+        CaretAssertVectorIndex(m_borderPointsInsideROICount, i);
         
         if (m_borderCheckBoxes[i]->text() != m_bordersInsideROI[i]->getName()) {
             m_borderCheckBoxes[i]->blockSignals(true);
@@ -320,6 +331,10 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
             m_borderCheckBoxes[i]->blockSignals(false);
         }
         m_borderCheckBoxes[i]->setText(m_bordersInsideROI[i]->getName());
+//        m_borderCheckBoxes[i]->setText(m_bordersInsideROI[i]->getName()
+//                                       + " ("
+//                                       + QString::number(m_borderPointsInsideROICount[i])
+//                                       + ")");
         m_borderCheckBoxes[i]->setVisible(true);
         if (i < 2)
         {
