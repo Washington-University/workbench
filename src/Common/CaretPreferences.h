@@ -193,6 +193,14 @@ namespace caret {
         
         void setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEnum::Enum manageFilesViewFileType);
         
+        bool isShowSurfaceIdentificationSymbols() const;
+        
+        void setShowSurfaceIdentificationSymbols(const bool showSymbols);
+        
+        bool isShowVolumeIdentificationSymbols() const;
+        
+        void setShowVolumeIdentificationSymbols(const bool showSymbols);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -291,6 +299,10 @@ namespace caret {
         
         bool volumeIdentificationDefaultedOn;
         
+        bool showSurfaceIdentificationSymbols;
+        
+        bool showVolumeIdentificationSymbols;
+        
         bool yokingDefaultedOn;
         
         AString remoteFileUserName;
@@ -328,6 +340,8 @@ namespace caret {
         static const AString NAME_REMOTE_FILE_USER_NAME;
         static const AString NAME_REMOTE_FILE_PASSWORD;
         static const AString NAME_REMOTE_FILE_LOGIN_SAVED;
+        static const AString NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS;
+        static const AString NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS;
         static const AString NAME_TILE_TABS_CONFIGURATIONS;
         static const AString NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON;
         static const AString NAME_YOKING_DEFAULT_ON;
@@ -364,6 +378,8 @@ namespace caret {
     const AString CaretPreferences::NAME_REMOTE_FILE_USER_NAME = "remoteFileUserName";
     const AString CaretPreferences::NAME_REMOTE_FILE_PASSWORD = "remoteFilePassword";
     const AString CaretPreferences::NAME_REMOTE_FILE_LOGIN_SAVED = "removeFileLoginSaved";
+    const AString CaretPreferences::NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS = "showSurfaceIdentificationSymbols";
+    const AString CaretPreferences::NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS = "showVolumeIdentificationSymbols";
     const AString CaretPreferences::NAME_TILE_TABS_CONFIGURATIONS = "tileTabsConfigurations";
     const AString CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON = "volumeIdentificationDefaultedOn";
     const AString CaretPreferences::NAME_YOKING_DEFAULT_ON = "yokingDefaultedOn";

@@ -1026,6 +1026,53 @@ CaretPreferences::setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEn
 }
 
 /**
+ * @return Show surface identification symbols?
+ */
+bool
+CaretPreferences::isShowSurfaceIdentificationSymbols() const
+{
+    return this->showSurfaceIdentificationSymbols;
+}
+
+/**
+ * Set show surface identification symbols.
+ *  
+ * @param showSymbols
+ *     New status.
+ */
+void
+CaretPreferences::setShowSurfaceIdentificationSymbols(const bool showSymbols)
+{
+    this->showSurfaceIdentificationSymbols = showSymbols;
+    this->setBoolean(NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS,
+                     this->showSurfaceIdentificationSymbols);
+}
+
+/**
+ * @return Show volume identification symbols?
+ */
+bool
+CaretPreferences::isShowVolumeIdentificationSymbols() const
+{
+    return this->showVolumeIdentificationSymbols;
+}
+
+/**
+ * Set show volume identification symbols.
+ *
+ * @param showSymbols
+ *     New status.
+ */
+void
+CaretPreferences::setShowVolumeIdentificationSymbols(const bool showSymbols)
+{
+    this->showVolumeIdentificationSymbols = showSymbols;
+    this->setBoolean(NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS,
+                     this->showVolumeIdentificationSymbols);
+}
+
+
+/**
  * @return The image capture method.
  */
 ImageCaptureMethodEnum::Enum
@@ -1524,6 +1571,11 @@ CaretPreferences::readPreferences()
     this->remoteFilePassword = this->getString(NAME_REMOTE_FILE_PASSWORD);
     this->remoteFileLoginSaved = this->getBoolean(NAME_REMOTE_FILE_LOGIN_SAVED,
                                                   false);
+    
+    this->showSurfaceIdentificationSymbols = this->getBoolean(NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS,
+                                                              true);
+    this->showVolumeIdentificationSymbols = this->getBoolean(NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS,
+                                                             true);
 }
 
 /**

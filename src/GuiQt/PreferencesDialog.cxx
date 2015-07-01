@@ -94,6 +94,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     QTabWidget* tabWidget = new QTabWidget();
     tabWidget->addTab(createColorsWidget(),
                       "Colors");
+    tabWidget->addTab(createIdentificationSymbolWidget(),
+                      "ID");
     tabWidget->addTab(createMiscellaneousWidget(),
                       "Misc");
     tabWidget->addTab(createOpenGLWidget(),
@@ -423,6 +425,59 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
 }
 
 /**
+ * @return The identification symbol widget.
+ */
+QWidget*
+PreferencesDialog::createIdentificationSymbolWidget()
+{
+    QLabel* surfaceLabel = new QLabel("Show Surface ID Symbols");
+    m_surfaceIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_surfaceIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(identificationSymbolToggled()));
+    
+    QLabel* volumeLabel = new QLabel("Show Volume ID Symbols");
+    m_volumeIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_volumeIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(identificationSymbolToggled()));
+    
+    QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->addWidget(surfaceLabel, 0, 0);
+    gridLayout->addWidget(m_surfaceIdentificationSymbolComboBox->getWidget(), 0, 1);
+    gridLayout->addWidget(volumeLabel, 1, 0);
+    gridLayout->addWidget(m_volumeIdentificationSymbolComboBox->getWidget(), 1, 1);
+
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(gridLayout);
+    layout->addStretch();
+    return widget;
+}
+
+/**
+ * Update the identification widget.
+ * 
+ * @param prefs
+ *     The Caret preferences.
+ */
+void
+PreferencesDialog::updateIdentificationWidget(CaretPreferences* prefs)
+{
+    m_surfaceIdentificationSymbolComboBox->setStatus(prefs->isShowSurfaceIdentificationSymbols());
+    m_volumeIdentificationSymbolComboBox->setStatus(prefs->isShowVolumeIdentificationSymbols());
+}
+
+/**
+ * Gets called when an identification symbol check box is toggled.
+ */
+void
+PreferencesDialog::identificationSymbolToggled()
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setShowSurfaceIdentificationSymbols(m_surfaceIdentificationSymbolComboBox->isTrue());
+    prefs->setShowVolumeIdentificationSymbols(m_volumeIdentificationSymbolComboBox->isTrue());
+}
+
+/**
  * @return The OpenGL widget.
  */
 QWidget*
@@ -660,6 +715,7 @@ PreferencesDialog::updateDialog()
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     updateColorWidget(prefs);
     updateMiscellaneousWidget(prefs);
+    updateIdentificationWidget(prefs);
     updateOpenGLWidget(prefs);
     updateVolumeWidget(prefs);
     

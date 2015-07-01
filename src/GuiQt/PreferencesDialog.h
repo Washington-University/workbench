@@ -72,6 +72,7 @@ namespace caret {
         
         void yokingComboBoxToggled(bool value);
         
+        void identificationSymbolToggled();
         
     private:
         enum PREF_COLOR {
@@ -88,11 +89,13 @@ namespace caret {
         };
         
         QWidget* createColorsWidget();
+        QWidget* createIdentificationSymbolWidget();
         QWidget* createMiscellaneousWidget();
         QWidget* createOpenGLWidget();
         QWidget* createVolumeWidget();
         
         void updateColorWidget(CaretPreferences* prefs);
+        void updateIdentificationWidget(CaretPreferences* prefs);
         void updateMiscellaneousWidget(CaretPreferences* prefs);
         void updateOpenGLWidget(CaretPreferences* prefs);
         void updateVolumeWidget(CaretPreferences* prefs);
@@ -143,6 +146,9 @@ namespace caret {
         WuQTrueFalseComboBox* m_volumeIdentificationComboBox;
         
         WuQTrueFalseComboBox* m_yokingDefaultComboBox;
+        
+        WuQTrueFalseComboBox* m_surfaceIdentificationSymbolComboBox;
+        WuQTrueFalseComboBox* m_volumeIdentificationSymbolComboBox;
         
         WuQWidgetObjectGroup* m_allWidgets;
     };

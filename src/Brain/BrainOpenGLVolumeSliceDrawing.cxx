@@ -2230,6 +2230,15 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane)
     for (int32_t iVoxel = 0; iVoxel < numVoxelIdSymbols; iVoxel++) {
         CaretAssertVectorIndex(voxelIDs, iVoxel);
         const IdentifiedItemVoxel& voxel = voxelIDs[iVoxel];
+        
+        /*
+         * Show symbol for node ID?
+         */
+        if ( ! voxel.isShowIdentificationSymbol()) {
+            continue;
+        }
+        
+        
         float xyz[3];
         voxel.getXYZ(xyz);
         

@@ -23,8 +23,10 @@
 #include "IdentifiedItemNode.h"
 #undef __IDENTIFIED_ITEM_NODE_DECLARE__
 
+#include "CaretPreferences.h"
 #include "SceneAttributes.h"
 #include "SceneClassAssistant.h"
+#include "SessionManager.h"
 
 using namespace caret;
 
@@ -143,6 +145,14 @@ IdentifiedItemNode::copyHelperIdentifiedItemNode(const IdentifiedItemNode& obj)
     m_contralateralSymbolRGB[2] = obj.m_contralateralSymbolRGB[2];
     
     m_symbolSize = obj.m_symbolSize;
+    
+    /*
+     * Even though the show identification symbol is a member
+     * of the superclass, it needs to be copied here since
+     * initializeMembers() as it gets intialized for all 
+     * constructors but copying needs to take precedence.
+     */
+    setShowIdentificationSymbol(obj.isShowIdentificationSymbol());
 }
 
 /**
@@ -164,6 +174,9 @@ IdentifiedItemNode::initializeMembers()
     m_sceneAssistant->addArray("m_symbolRGB", m_symbolRGB, 3, 0);
     m_sceneAssistant->addArray("m_contralateralSymbolRGB", m_contralateralSymbolRGB, 3, 0);
     m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
+    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    setShowIdentificationSymbol(prefs->isShowSurfaceIdentificationSymbols());
 }
 
 /**

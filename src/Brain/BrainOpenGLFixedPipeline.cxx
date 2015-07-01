@@ -1959,7 +1959,6 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
          iter != identifiedNodes.end();
          iter++) {
         const IdentifiedItemNode& nodeID = *iter;
-        
         identifiedNodeIndices.push_back(nodeID.getNodeIndex());
     }
     
@@ -1995,6 +1994,13 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
          iter != identifiedNodes.end();
          iter++) {
         const IdentifiedItemNode& nodeID = *iter;
+        
+        /*
+         * Show symbol for node ID?
+         */
+        if ( ! nodeID.isShowIdentificationSymbol()) {
+            continue;
+        }
         
         const int32_t nodeIndex = nodeID.getNodeIndex();
         const int32_t i3 = nodeIndex * 3;
