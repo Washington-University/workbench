@@ -23,7 +23,10 @@
 #include "AboutWorkbenchDialog.h"
 #undef __ABOUT_WORKBENCH_DIALOG_DECLARE__
 
+#include <QDate>
+#include <QDesktopServices>
 #include <QLabel>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #include "ApplicationInformation.h"
@@ -55,24 +58,62 @@ AboutWorkbenchDialog::AboutWorkbenchDialog(BrainOpenGLWidget* openGLParentWidget
     
     this->setCancelButtonText("");
     
-    std::vector<AString> informationData;
-    
     ApplicationInformation appInfo;
-    appInfo.getAllInformation(informationData);
     
+    QLabel* imageLabel = NULL;
+    QPixmap pixmap;
+    if (WuQtUtilities::loadPixmap(":/About/hcp-logo.png", pixmap)) {
+        imageLabel = new QLabel();
+        imageLabel->setPixmap(pixmap);
+        imageLabel->setAlignment(Qt::AlignCenter);
+    }
+    
+    QLabel* workbenchLabel = new QLabel(appInfo.getName());
+    QFont workbenchFont = workbenchLabel->font();
+    workbenchFont.setBold(true);
+    workbenchFont.setPointSize(32);
+    workbenchLabel->setFont(workbenchFont);
+    
+    const QString labelStyle = ("QLabel { "
+                                " font: 20px bold "
+                                "}");
+    QLabel* hcpWebsiteLabel = new QLabel("<html>"
+                                         "<bold><a href=\"http://www.humanconnectome.org\">Visit the Human Connectome Project</a></bold>"
+                                         "</html>");
+    hcpWebsiteLabel->setStyleSheet(labelStyle);
+    hcpWebsiteLabel->setAlignment(Qt::AlignCenter);
+    QObject::connect(hcpWebsiteLabel, SIGNAL(linkActivated(const QString&)),
+                     this, SLOT(websiteLinkActivated(const QString&)));
+    
+    QLabel* versionLabel = new QLabel("Version "
+                                      + appInfo.getVersion());
+    
+    QLabel* copyrightLabel = new QLabel("Copyright "
+                                        + QString::number(QDate::currentDate().year())
+                                        + " Washington University");
+    
+    m_morePushButton   = addUserPushButton("More...",
+                                           QDialogButtonBox::NoRole);
     m_openGLPushButton = addUserPushButton("OpenGL...",
                                            QDialogButtonBox::NoRole);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 
-                                    4, 
-                                    2);
-    
-    const int32_t numInfo = static_cast<int32_t>(informationData.size());
-    for (int32_t i = 0; i < numInfo; i++) {
-        layout->addWidget(new QLabel(informationData[i]));
+    WuQtUtilities::setLayoutSpacingAndMargins(layout,
+                                              4,
+                                              2);
+    if (imageLabel != NULL) {
+        layout->addWidget(imageLabel, 0, Qt::AlignHCenter);
+        layout->addSpacing(15);
     }
+    layout->addWidget(workbenchLabel, 0, Qt::AlignHCenter);
+    layout->addSpacing(15);
+    layout->addWidget(hcpWebsiteLabel, 0, Qt::AlignHCenter);
+    layout->addSpacing(15);
+    layout->addWidget(versionLabel, 0, Qt::AlignHCenter);
+    layout->addSpacing(15);
+    layout->addWidget(copyrightLabel, 0, Qt::AlignHCenter);
+    layout->addSpacing(15);
     
     this->setCentralWidget(widget,
                            WuQDialog::SCROLL_AREA_NEVER);
@@ -91,6 +132,9 @@ AboutWorkbenchDialog::userButtonPressed(QPushButton* userPushButton)
 {
     if (userPushButton == m_openGLPushButton) {
         displayOpenGLInformation();
+    }
+    else if (userPushButton == m_morePushButton) {
+        displayMoreInformation();
     }
     else {
         CaretAssert(0);
@@ -111,6 +155,39 @@ AboutWorkbenchDialog::displayOpenGLInformation()
     ded.resize(600, 600);
     ded.setCancelButtonText("");
     ded.exec();
+}
+
+void
+AboutWorkbenchDialog::displayMoreInformation()
+{
+    ApplicationInformation appInfo;
+    std::vector<AString> informationData;
+    appInfo.getAllInformation(informationData);
+    
+    
+    
+    WuQDataEntryDialog ded("More " + appInfo.getName() + " Information",
+                           this,
+                           true);
+    const int32_t numInfo = static_cast<int32_t>(informationData.size());
+    for (int32_t i = 0; i < numInfo; i++) {
+        ded.addWidget("", new QLabel(informationData[i]));
+    }
+    ded.setCancelButtonText("");
+    ded.exec();
+}
+
+/**
+ * Called when a label's hyperlink is selected.
+ * @param link
+ *   The URL.
+ */
+void
+AboutWorkbenchDialog::websiteLinkActivated(const QString& link)
+{
+    if (link.isEmpty() == false) {
+        QDesktopServices::openUrl(QUrl(link));
+    }
 }
 
 

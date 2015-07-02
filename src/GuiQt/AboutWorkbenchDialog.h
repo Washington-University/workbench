@@ -41,12 +41,19 @@ namespace caret {
     protected:
         virtual DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
         
+    private slots:
+        void websiteLinkActivated(const QString& link);
+        
     private:
         AboutWorkbenchDialog(const AboutWorkbenchDialog&);
 
         AboutWorkbenchDialog& operator=(const AboutWorkbenchDialog&);
         
+        void displayMoreInformation();
+        
         void displayOpenGLInformation();
+        
+        QPushButton* m_morePushButton;
         
         QPushButton* m_openGLPushButton;
         

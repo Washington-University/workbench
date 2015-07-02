@@ -37,6 +37,8 @@ namespace caret {
         
         AString getVersion() const;
         
+        AString getCommit() const;
+        
         void getAllInformation(std::vector<AString>& informationValues) const;
         
         AString getAllInformationInString(const AString& separator) const;

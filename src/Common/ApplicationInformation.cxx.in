@@ -97,6 +97,15 @@ ApplicationInformation::getVersion() const
 }
 
 /**
+ * @return Commit info of application.
+ */
+AString 
+ApplicationInformation::getCommit() const
+{
+    return this->commit;
+}
+
+/**
  * @return Text indicating if Workbench was compiled with Debug on.
  */
 AString

@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+<file>./About/hcp-logo.png</file>
 <file>./Cursor/pen_eraser.png</file>
 <file>./FtglFonts/VeraBd.ttf</file>
 <file>./FtglFonts/VeraSe.ttf</file>
