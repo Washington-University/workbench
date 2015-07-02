@@ -123,7 +123,7 @@ namespace caret {
         
         std::vector<Border*> m_selectedBorders;
         
-        QVBoxLayout* m_bordersInsideROILayout;
+        QGridLayout* m_bordersInsideROIGridLayout;
         
         Border* m_borderEnclosingROI;
         

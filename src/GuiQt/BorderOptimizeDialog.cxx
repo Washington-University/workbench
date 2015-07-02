@@ -116,7 +116,7 @@ m_upsamplingSurfaceStructure(StructureEnum::INVALID)
     }
     else {
         dialogLayout->addWidget(createDataFilesWidget(),
-                                STRETCH_NONE);
+                                STRETCH_MAX);
     }
     dialogLayout->addWidget(createSurfaceSelectionWidget(),
                             STRETCH_NONE);
@@ -138,7 +138,7 @@ m_upsamplingSurfaceStructure(StructureEnum::INVALID)
     }
     else {
         setCentralWidget(dialogWidget,
-                         SCROLL_AREA_AS_NEEDED);
+                         SCROLL_AREA_ALWAYS_VERT_NO_HORIZ);
         
     }
     
@@ -321,12 +321,19 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
      * Update borders inside ROI selections
      */
     CaretAssert(m_bordersInsideROI.size() == m_borderPointsInsideROICount.size());
+    const int32_t NUM_ROWS = 2;
     const int32_t numberOfBorders = static_cast<int32_t>(m_bordersInsideROI.size());
     for (int32_t i = 0; i < numberOfBorders; i++) {
         if (i >= static_cast<int32_t>(m_borderCheckBoxes.size())) {
             QCheckBox* cb = new QCheckBox("");
             m_borderCheckBoxes.push_back(cb);
-            m_bordersInsideROILayout->addWidget(cb);
+            
+            /*
+             * Use two rows and then wrap additional columns on right
+             */
+            const int32_t row = (i % NUM_ROWS);
+            const int32_t col = (i / NUM_ROWS);
+            m_bordersInsideROIGridLayout->addWidget(cb, row, col);
         }
         CaretAssertVectorIndex(m_borderCheckBoxes, i);
         CaretAssertVectorIndex(m_bordersInsideROI, i);
@@ -692,7 +699,10 @@ BorderOptimizeDialog::createBorderSelectionWidget()
                      m_borderPairFileSelectionComboBox->getWidget(), SLOT(setEnabled(bool)));
     m_borderPairFileSelectionComboBox->getWidget()->setEnabled(m_borderPairCheckBox->isChecked());
     
-    m_bordersInsideROILayout = new QVBoxLayout();
+    m_bordersInsideROIGridLayout = new QGridLayout();
+    m_bordersInsideROIGridLayout->setMargin(2);
+    m_bordersInsideROIGridLayout->setHorizontalSpacing(25);
+    m_bordersInsideROIGridLayout->setColumnStretch(100, 1000); // force widgets to left
     
     QAction* diableAllAction = new QAction("Disable All",
                                            this);
@@ -709,14 +719,17 @@ BorderOptimizeDialog::createBorderSelectionWidget()
     enableAllToolButton->setDefaultAction(enableAllAction);
     
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    buttonsLayout->setMargin(2);
     buttonsLayout->addWidget(enableAllToolButton);
     buttonsLayout->addWidget(disableAllToolButton);
     buttonsLayout->addStretch();
     
     QGroupBox* widget = new QGroupBox("Borders");
+    widget->setSizePolicy(widget->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->setMargin(2);
     layout->addLayout(borderPairLayout);
-    layout->addLayout(m_bordersInsideROILayout, STRETCH_NONE);
+    layout->addLayout(m_bordersInsideROIGridLayout, STRETCH_NONE);
     layout->addLayout(buttonsLayout, STRETCH_NONE);
     return widget;
 }
@@ -772,6 +785,7 @@ BorderOptimizeDialog::createDataFilesWidget()
 //                                  QSizePolicy::Fixed);
     }
     m_borderOptimizeDataFileGridLayout = new QGridLayout(gridWidget);
+    m_borderOptimizeDataFileGridLayout->setMargin(2);
     
     std::vector<CaretMappableDataFile*> optimizeMapFiles;
     GuiManager::get()->getBrain()->getAllMappableDataFileWithDataFileTypes(m_optimizeDataFileTypes,
@@ -781,7 +795,7 @@ BorderOptimizeDialog::createDataFilesWidget()
 //    const int32_t minimumDataFilesToShow = 10;
 //    const int32_t numberOfFilesToShow = std::max(minimumDataFilesToShow,
 //                                                 numberOfMapFiles);
-    const int32_t numberOfFilesToShow = 1;
+    const int32_t numberOfFilesToShow = 3;
     
     for (int32_t i = 0; i < numberOfFilesToShow; i++) {
         CaretMappableDataFile* mapFile = NULL;
@@ -832,6 +846,7 @@ BorderOptimizeDialog::createDataFilesWidget()
     enableAllToolButton->setDefaultAction(enableAllAction);
     
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    buttonsLayout->setMargin(2);
     buttonsLayout->addWidget(addRowToolButton);
     buttonsLayout->addWidget(enableAllToolButton);
     buttonsLayout->addWidget(disableAllToolButton);
@@ -844,6 +859,7 @@ BorderOptimizeDialog::createDataFilesWidget()
     }
     
     QVBoxLayout* groupBoxLayout = new QVBoxLayout(groupBox);
+    groupBoxLayout->setMargin(2);
     if (DATA_FILES_IN_SCROLL_BARS) {
         groupBox->setMinimumHeight(300);
         groupBoxLayout->addWidget(widget, STRETCH_NONE);
@@ -855,10 +871,10 @@ BorderOptimizeDialog::createDataFilesWidget()
     
     m_defaultDataFilesWidgetSize = gridWidget->sizeHint();
     
-//    if ( ! DATA_FILES_IN_SCROLL_BARS) {
-//        groupBox->setSizePolicy(groupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
-//        groupBoxLayout->addStretch();
-//    }
+    if ( ! DATA_FILES_IN_SCROLL_BARS) {
+        groupBox->setSizePolicy(groupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+        //groupBoxLayout->addStretch();
+    }
     
     return groupBox;
 }
@@ -942,7 +958,9 @@ BorderOptimizeDialog::createVertexAreasMetricWidget()
     m_vertexAreasMetricFileComboBox = new CaretDataFileSelectionComboBox(this);
     
     QGroupBox* widget = new QGroupBox("Vertex Areas Metric File");
+    widget->setSizePolicy(widget->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->setMargin(2);
 
     layout->addWidget(m_vertexAreasMetricFileComboBox->getWidget());
     
@@ -975,7 +993,9 @@ BorderOptimizeDialog::createOptionsWidget()
     gradientLayout->addStretch();
     
     QGroupBox* widget = new QGroupBox("Options");
+    widget->setSizePolicy(widget->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->setMargin(2);
     layout->addWidget(m_keepRegionBorderCheckBox);
     layout->addWidget(m_outputGradientMapCheckBox);
     layout->addLayout(gradientLayout);
@@ -1003,7 +1023,9 @@ BorderOptimizeDialog::createSurfaceSelectionWidget()
                      this, SLOT(gradientComputatonSurfaceSelected(Surface*)));
     
     QGroupBox* widget = new QGroupBox("Gradient Computation Surface");
+    widget->setSizePolicy(widget->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->setMargin(2);
     layout->addWidget(m_surfaceSelectionControl->getWidget());
     
     return widget;
@@ -1025,9 +1047,11 @@ BorderOptimizeDialog::createSphericalUpsamplingWidget()
     m_upsamplingResolutionSpinBox->setToolTip("Number of vertices to use when making the upsampling sphere");
     
     m_upsamplingGroupBox = new QGroupBox(" Upsampling");
+    m_upsamplingGroupBox->setSizePolicy(m_upsamplingGroupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     m_upsamplingGroupBox->setCheckable(true);
     m_upsamplingGroupBox->setChecked(true);
     QGridLayout* layout = new QGridLayout(m_upsamplingGroupBox);
+    layout->setMargin(2);
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 100);
     int row = 0;
@@ -1043,10 +1067,12 @@ BorderOptimizeDialog::createSphericalUpsamplingWidget()
 QWidget* BorderOptimizeDialog::createSavingWidget()
 {
     m_savingGroupBox = new QGroupBox(" Save results");
+    m_savingGroupBox->setSizePolicy(m_savingGroupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     m_savingGroupBox->setCheckable(true);
     m_savingGroupBox->setChecked(true);
     
     QGridLayout* layout = new QGridLayout(m_savingGroupBox);
+    layout->setMargin(2);
     layout->setColumnStretch(0, 0);//label
     layout->setColumnStretch(1, 100);//line edit
     layout->setColumnStretch(2, 0);//button or extended line edit
