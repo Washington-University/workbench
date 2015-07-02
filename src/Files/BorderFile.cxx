@@ -885,7 +885,7 @@ BorderFile::findBordersInsideRegionOfInterest(const DisplayGroupEnum::Enum displ
                                               const int32_t browserTabIndex,
                                               const SurfaceFile* surfaceFile,
                                               const std::vector<bool>& nodesInROI,
-                                              std::map<int32_t, Border*>& insideCountAndBorderOut) const
+                                              std::vector<pair<int32_t, Border*> >& insideCountAndBorderOut) const
 {
     CaretAssert(surfaceFile);
     const int32_t surfaceNumberOfNodes = surfaceFile->getNumberOfNodes();
@@ -960,7 +960,7 @@ BorderFile::findBordersInsideRegionOfInterest(const DisplayGroupEnum::Enum displ
             }
             
             if (borderNodesInsideROICount > 0) {
-                insideCountAndBorderOut.insert(std::make_pair(borderNodesInsideROICount,
+                insideCountAndBorderOut.push_back(std::make_pair(borderNodesInsideROICount,
                                                               border));
             }
         }

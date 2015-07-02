@@ -19,6 +19,7 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
 #include <memory>
 
 #include <QAction>
@@ -870,24 +871,24 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
      * Find borders inside region of interest
      */
     std::map<Border*, BorderFile*> borderToBorderFileMap;
-    std::map<int32_t, Border*> bordersInsideRegionOfInterest;
+    std::vector<std::pair<int32_t, Border*> > bordersInsideRegionOfInterest;
     const int32_t numberOfBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t iFile = 0; iFile < numberOfBorderFiles; iFile++) {
         BorderFile* borderFile = brain->getBorderFile(iFile);
         
-        std::map<int32_t, Border*> nodeCountAndBordersFromFileInROI;
+        std::vector<std::pair<int32_t, Border*> > nodeCountAndBordersFromFileInROI;
         borderFile->findBordersInsideRegionOfInterest(displayGroup,
                                                       browserTabIndex,
                                                       surface,
                                                       nodeInROI,
                                                       nodeCountAndBordersFromFileInROI);
         
-        for (std::map<int32_t, Border*> ::iterator bi = nodeCountAndBordersFromFileInROI.begin();
+        for (std::vector<std::pair<int32_t, Border*> > ::iterator bi = nodeCountAndBordersFromFileInROI.begin();
              bi != nodeCountAndBordersFromFileInROI.end();
              bi++) {
             Border* border = bi->second;
             borderToBorderFileMap.insert(std::make_pair(border, borderFile));
-            bordersInsideRegionOfInterest.insert(*bi);
+            bordersInsideRegionOfInterest.push_back(*bi);
         }
     }
     
@@ -896,6 +897,8 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
                                "No borders were found inside the drawn border.");
         return;
     }
+    
+    std::sort(bordersInsideRegionOfInterest.begin(), bordersInsideRegionOfInterest.end());
 
     if (m_borderOptimizeDialog == NULL) {
         m_borderOptimizeDialog = new BorderOptimizeDialog(this);

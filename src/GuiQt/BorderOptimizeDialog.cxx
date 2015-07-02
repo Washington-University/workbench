@@ -194,7 +194,7 @@ BorderOptimizeDialog::~BorderOptimizeDialog()
 void
 BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
                                    Surface* surface,
-                                   std::map<int32_t, Border*>& bordersInsideROI,
+                                   std::vector<std::pair<int32_t, Border*> >& bordersInsideROI,
                                    Border* borderEnclosingROI,
                                    std::vector<int32_t>& nodesInsideROI)
 {
@@ -208,7 +208,7 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
     
     m_borderPointsInsideROICount.clear();
     m_bordersInsideROI.clear();
-    for (std::map<int32_t, Border*>::reverse_iterator bi = bordersInsideROI.rbegin();
+    for (std::vector<std::pair<int32_t, Border*> >::reverse_iterator bi = bordersInsideROI.rbegin();
          bi != bordersInsideROI.rend();
          bi++) {
         m_borderPointsInsideROICount.push_back(bi->first);

@@ -63,7 +63,7 @@ namespace caret {
         
         void updateDialog(const int32_t browserTabIndex,
                           Surface* surface,
-                          std::map<int32_t, Border*>& bordersInsideROI,
+                          std::vector<std::pair<int32_t, Border*> >& bordersInsideROI,
                           Border* borderEnclosingROI,
                           std::vector<int32_t>& nodesInsideROI);
         
