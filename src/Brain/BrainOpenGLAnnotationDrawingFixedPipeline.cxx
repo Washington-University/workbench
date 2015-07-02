@@ -216,28 +216,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
         else {
             CaretLogSevere("Failed to convert model coordinates to window coordinates for annotation drawing.");
         }
-//        GLdouble windowX, windowY, windowZ;
-//        if (gluProject(modelXYZ[0], modelXYZ[1], modelXYZ[2],
-//                       m_modelSpaceModelMatrix, m_modelSpaceProjectionMatrix, m_modelSpaceViewport,
-//                       &windowX, &windowY, &windowZ) == GL_TRUE) {
-//            windowXYZ[0] = windowX - m_modelSpaceViewport[0];
-//            windowXYZ[1] = windowY - m_modelSpaceViewport[1];
-//            
-//            /*
-//             * From OpenGL Programming Guide 3rd Ed, p 133:
-//             *
-//             * If the near value is 1.0 and the far value is 3.0, 
-//             * objects must have z-coordinates between -1.0 and -3.0 in order to be visible.
-//             * So, negative the Z-value to be negative.
-//             */
-//            windowXYZ[2] = -windowZ;
-//            
-//            modelXYZValid = false;
-//            windowXYZValid = true;
-//        }
-//        else {
-//            CaretLogSevere("Failed to convert model coordinates to window coordinates for annotation identification.");
-//        }
     }
     
     if (windowXYZValid) {
@@ -336,37 +314,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
                                                    bottomRightOut,
                                                    topRightOut,
                                                    topLeftOut);
-        
-//        /*
-//         * NOTE: Annotation's height and width are 'relative' ([0.0, 1.0] percentage) of window size.
-//         */
-//        const float halfWidth  = (annotation2D->getWidth()  / 2.0) * viewportWidth;
-//        float halfHeight = (annotation2D->getHeight() / 2.0) * viewportHeight;
-//        if (annotation2D->isUseHeightAsAspectRatio()) {
-//            halfHeight = halfWidth * annotation2D->getHeight();
-//        }
-//        
-//        bottomLeftOut[0]  = windowXYZ[0] - halfWidth;
-//        bottomLeftOut[1]  = windowXYZ[1] - halfHeight;
-//        bottomLeftOut[2]  = windowXYZ[2];
-//        bottomRightOut[0] = windowXYZ[0] + halfWidth;
-//        bottomRightOut[1] = windowXYZ[1] - halfHeight;
-//        bottomRightOut[2] = windowXYZ[2];
-//        topRightOut[0]    = windowXYZ[0] + halfWidth;
-//        topRightOut[1]    = windowXYZ[1] + halfHeight;
-//        topRightOut[2]    = windowXYZ[2];
-//        topLeftOut[0]     = windowXYZ[0] - halfWidth;
-//        topLeftOut[1]     = windowXYZ[1] + halfHeight;
-//        topLeftOut[2]     = windowXYZ[2];
-//        
-//        applyRotationToShape(annotation2D->getRotationAngle(),
-//                             windowXYZ,
-//                             bottomLeftOut,
-//                             bottomRightOut,
-//                             topRightOut,
-//                             topLeftOut);
-//        
-//        boundsValid       = true;
     }
     
     return boundsValid;
@@ -447,6 +394,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawing in space "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
     
+    AnnotationManager* annotationManager = m_brainOpenGLFixedPipeline->m_brain->getAnnotationManager();
+    
+    /*
+     * When user is drawing an annotation by dragging the mouse, it is always in window space.
+     */
+    const Annotation* annotationBeingDrawn = ((drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW)
+                                              ? annotationManager->getAnnotationBeingDrawnInWindow(m_brainOpenGLFixedPipeline->windowIndex)
+                                              : NULL);
+    
+    bool drawAnnotationsFromFilesFlag = true;
+    
     const DisplayPropertiesAnnotation* dpa = m_brainOpenGLFixedPipeline->m_brain->getDisplayPropertiesAnnotation();
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::MODEL:
@@ -470,8 +428,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if ( ! dpa->isDisplayWindowAnnotations(m_brainOpenGLFixedPipeline->windowIndex)) {
-                return;
+                if (annotationBeingDrawn != NULL) {
+                    /*
+                     * Window annotation are not being drawn.
+                     * BUT, the annotation being drawn by the user is always in window space
+                     * so we need to continue but skip drawing the window annotations.
+                     */
+                    drawAnnotationsFromFilesFlag = false;
+                }
+                else {
+                    return;
+                }
             }
+//            if (annotationBeingDrawn != NULL) {
+//                if ( ! dpa->isDisplayWindowAnnotations(m_brainOpenGLFixedPipeline->windowIndex)) {
+//                    return;
+//                }
+//            }
             break;
     }
     SelectionItemAnnotation* annotationID = m_brainOpenGLFixedPipeline->m_brain->getSelectionManager()->getAnnotationIdentification();
@@ -557,11 +530,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     }
     
     std::vector<AnnotationFile*> allAnnotationFiles;
-    m_brainOpenGLFixedPipeline->m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
-    
-    AnnotationManager* annotationManager = m_brainOpenGLFixedPipeline->m_brain->getAnnotationManager();
-    const std::vector<Annotation*> allAnnotations = annotationManager->getAllAnnotations();
-    
+    if (drawAnnotationsFromFilesFlag) {
+        m_brainOpenGLFixedPipeline->m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+    }
+
     for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
          fileIter != allAnnotationFiles.end();
          fileIter++) {
@@ -630,56 +602,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                 }
             }
             
-//            uint8_t idColorRGBA[4] = { 0, 0, 0, 0 };
-            
-//            if (m_selectionModeFlag) {
-//                /*
-//                 * Each annotations is drawn as a solid color and the color of the
-//                 * selected pixel identifies the annotation.
-//                 */
-//                getIdentificationColor(idColorRGBA);
-////                const int32_t annotationDrawnIndex = static_cast<int32_t>(m_selectionInfo.size());
-////                m_brainOpenGLFixedPipeline->colorIdentification->addItem(idColorRGBA,
-////                                                                         SelectionItemDataTypeEnum::ANNOTATION,
-////                                                                         annotationDrawnIndex);
-//            }
-            
-//            float selectionCenterXYZ[3];
-            
-            switch (annotation->getType()) {
-                case AnnotationTypeEnum::BOX:
-                    drawBox(annotationFile,
-                            dynamic_cast<AnnotationBox*>(annotation),
-                            surfaceDisplayed);
-                    break;
-                case AnnotationTypeEnum::IMAGE:
-                    drawImage(annotationFile,
-                              dynamic_cast<AnnotationImage*>(annotation),
-                              surfaceDisplayed);
-                    break;
-                case AnnotationTypeEnum::LINE:
-                    drawLine(annotationFile,
-                             dynamic_cast<AnnotationLine*>(annotation),
-                             surfaceDisplayed);
-                    break;
-                case AnnotationTypeEnum::OVAL:
-                    drawOval(annotationFile,
-                             dynamic_cast<AnnotationOval*>(annotation),
-                             surfaceDisplayed);
-                    break;
-                case AnnotationTypeEnum::TEXT:
-                    drawText(annotationFile,
-                             dynamic_cast<AnnotationText*>(annotation),
-                             surfaceDisplayed);
-                    break;
-            }
-            
-//            if (m_selectionModeFlag) {
-//                m_selectionInfo.push_back(SelectionInfo(annotationFile,
-//                                                        annotation,
-//                                                        AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-//                                                        selectionCenterXYZ));
-//            }
+            drawAnnotation(annotationFile,
+                           annotation,
+                           surfaceDisplayed);
         }
     }
     
@@ -711,7 +636,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                 }
             }
         }
-        
+    }
+    else {
+        /*
+         * Annotation being drawn by the user.
+         */
+        if (annotationBeingDrawn != NULL) {
+            AnnotationFile dummyFile;
+            drawAnnotation(&dummyFile,
+                           const_cast<Annotation*>(annotationBeingDrawn),
+                           surfaceDisplayed);
+        }
     }
     
     /*
@@ -747,6 +682,53 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getIdentificationColor(uint8_t identi
                                                              SelectionItemDataTypeEnum::ANNOTATION,
                                                              annotationDrawnIndex);
 }
+
+/**
+ * Draw an annotation.
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param annotation
+ *    Annotation to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annotationFile,
+                                                          Annotation* annotation,
+                                                          const Surface* surfaceDisplayed)
+{
+    CaretAssert(annotation);
+    
+    switch (annotation->getType()) {
+        case AnnotationTypeEnum::BOX:
+            drawBox(annotationFile,
+                    dynamic_cast<AnnotationBox*>(annotation),
+                    surfaceDisplayed);
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            drawImage(annotationFile,
+                      dynamic_cast<AnnotationImage*>(annotation),
+                      surfaceDisplayed);
+            break;
+        case AnnotationTypeEnum::LINE:
+            drawLine(annotationFile,
+                     dynamic_cast<AnnotationLine*>(annotation),
+                     surfaceDisplayed);
+            break;
+        case AnnotationTypeEnum::OVAL:
+            drawOval(annotationFile,
+                     dynamic_cast<AnnotationOval*>(annotation),
+                     surfaceDisplayed);
+            break;
+        case AnnotationTypeEnum::TEXT:
+            drawText(annotationFile,
+                     dynamic_cast<AnnotationText*>(annotation),
+                     surfaceDisplayed);
+            break;
+    }
+}
+
 
 /**
  * Draw an annotation box.
@@ -868,24 +850,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
 {
     CaretAssert(oval);
     CaretAssert(oval->getType() == AnnotationTypeEnum::OVAL);
-    
-//    bool drawBackgroundFlag = false;
-//    
-//    uint8_t backgroundRGBA[4];
-//    if (m_selectionModeFlag) {
-//        drawBackgroundFlag = true;
-//        backgroundRGBA[0] = selectionColorRGBA[0];
-//        backgroundRGBA[1] = selectionColorRGBA[1];
-//        backgroundRGBA[2] = selectionColorRGBA[2];
-//        backgroundRGBA[3] = 255;
-//    }
-//    else {
-//        oval->getBackgroundColorRGBA(backgroundRGBA);
-//        if (backgroundRGBA[3] > 0) {
-//            drawBackgroundFlag = true;
-//        }
-//    }
-    
     
     float windowXYZ[3];
     
@@ -1144,61 +1108,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                       surfaceDisplayed,
                                                       connectLineCoordinates);
             
-//            if (text->isConnectToBrainordinateValid()) {
-//                bool showLineFlag = false;
-//                bool showArrowFlag = false;
-//                
-//                if (text->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
-//                    if (surfaceDisplayed != NULL) {
-//                        switch (text->getConnectToBrainordinate()) {
-//                            case AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE:
-//                                break;
-//                            case AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_ARROW:
-//                                showArrowFlag = true;
-//                                break;
-//                            case AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_LINE:
-//                                showLineFlag = true;
-//                                break;
-//                        }
-//                    }
-//                }
-//                
-//                if (showLineFlag
-//                    || showArrowFlag) {
-//                    const AnnotationCoordinate* coord = text->getCoordinate();
-//                    StructureEnum::Enum structure = StructureEnum::INVALID;
-//                    int32_t numNodes  = 0;
-//                    int32_t nodeIndex = 0;
-//                    float offset      = 0.0;
-//                    coord->getSurfaceSpace(structure,
-//                                           numNodes,
-//                                           nodeIndex,
-//                                           offset);
-//                    
-//                    if (offset > 0.0) {
-//                        AnnotationCoordinate noOffsetCoord = *coord;
-//                        noOffsetCoord.setSurfaceSpace(structure,
-//                                                      numNodes,
-//                                                      nodeIndex,
-//                                                      0.0);
-//                        
-//                        float brainordinateXYZ[3];
-//                        if (getAnnotationWindowCoordinate(&noOffsetCoord,
-//                                                          text->getCoordinateSpace(),
-//                                                          surfaceDisplayed,
-//                                                          brainordinateXYZ)) {
-//                            std::vector<float> lineCoords;
-//                            createLineCoordinates(windowXYZ,
-//                                                  brainordinateXYZ,
-//                                                  false,
-//                                                  showArrowFlag,
-//                                                  lineCoords);
-//                        }
-//                        
-//                    }
-//                }
-//            }
-            
             if ( ! connectLineCoordinates.empty()) {
                 BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
                                                        foregroundRGBA,
@@ -1441,107 +1350,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
         (lineHeadXYZ[2] + lineTailXYZ[2]) / 2.0
     };
     
-//    /*
-//     * Length of arrow's line
-//     */
-//    const float lineLength = MathFunctions::distance3D(lineHeadXYZ,
-//                                                       lineTailXYZ);
-//    
-//    /*
-//     * Length of arrow's right and left pointer tips
-//     */
-//    const float pointerPercent = 0.2;
-//    const float tipLength = lineLength * pointerPercent;
-//    
-//    /*
-//     * Point on arrow's line that is between the arrow's left and right arrow tips
-//     */
-//    float headToTailVector[3];
-//    MathFunctions::createUnitVector(lineHeadXYZ, lineTailXYZ, headToTailVector);
-//    const float startArrowTipsOnLine[3] = {
-//        lineHeadXYZ[0] + (headToTailVector[0] * tipLength),
-//        lineHeadXYZ[1] + (headToTailVector[1] * tipLength),
-//        lineHeadXYZ[2] + (headToTailVector[2] * tipLength)
-//    };
-//    const float tailArrowTipsOnLine[3] = {
-//        lineTailXYZ[0] - (headToTailVector[0] * tipLength),
-//        lineTailXYZ[1] - (headToTailVector[1] * tipLength),
-//        lineTailXYZ[2] - (headToTailVector[2] * tipLength)
-//    };
-//    
-//    /*
-//     * Vector for arrow tip's on left and right
-//     *
-//     * Create a perpendicular vector by swapping first two elements
-//     * and negating the second element.
-//     */
-//    float headLeftRightTipOffset[3] = {
-//        headToTailVector[0],
-//        headToTailVector[1],
-//        headToTailVector[2]
-//    };
-//    MathFunctions::normalizeVector(headLeftRightTipOffset);
-//    std::swap(headLeftRightTipOffset[0],
-//              headLeftRightTipOffset[1]);
-//    headLeftRightTipOffset[1] *= -1;
-//    headLeftRightTipOffset[0] *= tipLength;
-//    headLeftRightTipOffset[1] *= tipLength;
-//    headLeftRightTipOffset[2] *= tipLength;
-//    
-//    /*
-//     * Tip of arrow's head pointer on the right
-//     */
-//    const float headRightTipEnd[3] = {
-//        startArrowTipsOnLine[0] - headLeftRightTipOffset[0],
-//        startArrowTipsOnLine[1] - headLeftRightTipOffset[1],
-//        startArrowTipsOnLine[2] - headLeftRightTipOffset[2]
-//    };
-//    
-//    /*
-//     * Tip of arrow's head pointer on the left
-//     */
-//    const float headLeftTipEnd[3] = {
-//        startArrowTipsOnLine[0] + headLeftRightTipOffset[0],
-//        startArrowTipsOnLine[1] + headLeftRightTipOffset[1],
-//        startArrowTipsOnLine[2] + headLeftRightTipOffset[2]
-//    };
-//    
-//    /*
-//     * Tip of arrow tail pointer on the right
-//     */
-//    const float tailRightTipEnd[3] = {
-//        tailArrowTipsOnLine[0] + headLeftRightTipOffset[0],
-//        tailArrowTipsOnLine[1] + headLeftRightTipOffset[1],
-//        tailArrowTipsOnLine[2] + headLeftRightTipOffset[2]
-//    };
-//    
-//    /*
-//     * Tip of arrow tail pointer on the right
-//     */
-//    const float tailLeftTipEnd[3] = {
-//        tailArrowTipsOnLine[0] - headLeftRightTipOffset[0],
-//        tailArrowTipsOnLine[1] - headLeftRightTipOffset[1],
-//        tailArrowTipsOnLine[2] - headLeftRightTipOffset[2]
-//    };
-//    
-//    const bool depthTestFlag = isDrawnWithDepthTesting(line);
-//    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
-//    
-//    std::vector<float> coords;
-//    coords.insert(coords.end(), lineHeadXYZ, lineHeadXYZ + 3);
-//    coords.insert(coords.end(), lineTailXYZ, lineTailXYZ + 3);
-//    if (line->isDisplayStartArrow()) {
-//        coords.insert(coords.end(), lineHeadXYZ,     lineHeadXYZ + 3);
-//        coords.insert(coords.end(), headRightTipEnd, headRightTipEnd + 3);
-//        coords.insert(coords.end(), lineHeadXYZ,     lineHeadXYZ + 3);
-//        coords.insert(coords.end(), headLeftTipEnd,  headLeftTipEnd + 3);
-//    }
-//    if (line->isDisplayEndArrow()) {
-//        coords.insert(coords.end(), lineTailXYZ,     lineTailXYZ + 3);
-//        coords.insert(coords.end(), tailRightTipEnd, tailRightTipEnd + 3);
-//        coords.insert(coords.end(), lineTailXYZ,     lineTailXYZ + 3);
-//        coords.insert(coords.end(), tailLeftTipEnd,  tailLeftTipEnd + 3);
-//    }
     const bool depthTestFlag = isDrawnWithDepthTesting(line);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     

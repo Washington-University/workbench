@@ -110,6 +110,10 @@ namespace caret {
                                   float topRightOut[3],
                                   float topLeftOut[3]) const;
         
+        void drawAnnotation(AnnotationFile* annotationFile,
+                            Annotation* annotation,
+                            const Surface* surfaceDisplayed);
+        
         void drawBox(AnnotationFile* annotationFile,
                      AnnotationBox* box,
                        const Surface* surfaceDisplayed);

@@ -37,7 +37,7 @@
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
 #include "Brain.h"
-#include "EventAnnotation.h"
+#include "EventAnnotationCreateNewType.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
@@ -326,7 +326,7 @@ AnnotationInsertNewWidget::deleteActionTriggered()
 void
 AnnotationInsertNewWidget::createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType)
 {
-    EventManager::get()->sendEvent(EventAnnotation().setModeCreateNewAnnotationType(annotationType).getPointer());
+    EventManager::get()->sendEvent(EventAnnotationCreateNewType(annotationType).getPointer());
 }
 
 /**

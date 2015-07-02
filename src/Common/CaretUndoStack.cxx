@@ -376,8 +376,10 @@ CaretUndoStack::setUndoLimit(const int32_t undoLimit)
         if (undoLimit >= 0) {
             m_undoLimit = undoLimit;
         }
-        CaretLogWarning("CaretUndoStack::setUndoLimit() called with invalid value="
-                        + AString::number(undoLimit));
+        else {
+            CaretLogWarning("CaretUndoStack::setUndoLimit() called with invalid value="
+                            + AString::number(undoLimit));
+        }
     }
     else {
         CaretLogWarning("CaretUndoStack::setUndoLimit() called while undo stack contains elements."

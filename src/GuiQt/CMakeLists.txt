@@ -241,6 +241,7 @@ CursorManager.h
 CustomViewDialog.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
+EventAnnotationCreateNewType.h
 EventBrowserTabGetAllViewed.h
 EventBrowserWindowContentGet.h
 EventBrowserWindowCreateTabs.h
@@ -418,6 +419,7 @@ CursorEnum.cxx
 CursorManager.cxx
 CustomViewDialog.cxx
 DisplayGroupEnumComboBox.cxx
+EventAnnotationCreateNewType.cxx
 EventBrowserTabGetAllViewed.cxx
 EventBrowserWindowContentGet.cxx
 EventBrowserWindowCreateTabs.cxx

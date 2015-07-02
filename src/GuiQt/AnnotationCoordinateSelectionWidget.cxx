@@ -54,19 +54,23 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param mouseEvent
- *     The mouse event indicating where user clicked in the window
  * @param annotationType
  *      Type of annotation that is being created.
+ * @param coordInfo
+ *      Coordinate information.
+ * @param optionalSecondCoordInfo
+ *      Optional second coordinate information (valid if not NULL)
  * @param parent
- *    The parent widget.
+ *      The parent widget.
  */
 AnnotationCoordinateSelectionWidget::AnnotationCoordinateSelectionWidget(const AnnotationTypeEnum::Enum annotationType,
                                                                          const UserInputModeAnnotations::CoordinateInformation& coordInfo,
+                                                                         const UserInputModeAnnotations::CoordinateInformation* optionalSecondCoordInfo,
                                                                          QWidget* parent)
 : QWidget(parent),
 m_annotationType(annotationType),
-m_coordInfo(coordInfo)
+m_coordInfo(coordInfo),
+m_optionalSecondCoordInfo(optionalSecondCoordInfo)
 {
     bool enableModelSpaceFlag   = false;
     bool enableSurfaceSpaceFlag = false;
@@ -124,8 +128,17 @@ m_coordInfo(coordInfo)
                           titleRow, COLUMN_COORD_Z,
                           Qt::AlignHCenter);
     
-    if (m_coordInfo.m_modelXYZValid
-        && enableModelSpaceFlag) {
+    if (enableModelSpaceFlag) {
+        if ( ! m_coordInfo.m_modelXYZValid) {
+            enableModelSpaceFlag = false;
+        }
+        if (m_optionalSecondCoordInfo != NULL) {
+            if ( ! m_optionalSecondCoordInfo->m_modelXYZValid) {
+                enableModelSpaceFlag = false;
+            }
+        }
+    }
+    if (enableModelSpaceFlag) {
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::MODEL);
         m_spaceButtonGroup->addButton(rb,
                                       AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::MODEL));
@@ -144,8 +157,17 @@ m_coordInfo(coordInfo)
                               Qt::AlignRight);
     }
     
-    if ((m_coordInfo.m_tabIndex >= 0)
-        && enableTabSpaceFlag) {
+    if (enableTabSpaceFlag) {
+        if (m_coordInfo.m_tabIndex < 0) {
+            enableTabSpaceFlag = false;
+        }
+        if (m_optionalSecondCoordInfo != NULL) {
+            if (m_optionalSecondCoordInfo->m_tabIndex < 0) {
+                enableTabSpaceFlag = false;
+            }
+        }
+    }
+    if (enableTabSpaceFlag) {
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::TAB);
         rb->setText(rb->text()
                     + " "
@@ -167,8 +189,17 @@ m_coordInfo(coordInfo)
                               Qt::AlignRight);
     }
     
-    if ((m_coordInfo.m_windowIndex >= 0)
-        && enableWindowSpaceFlag) {
+    if (enableWindowSpaceFlag) {
+        if (m_coordInfo.m_windowIndex < 0) {
+            enableWindowSpaceFlag = false;
+        }
+        if (m_optionalSecondCoordInfo != NULL) {
+            if (m_optionalSecondCoordInfo->m_windowIndex < 0) {
+                enableWindowSpaceFlag = false;
+            }
+        }
+    }
+    if (enableWindowSpaceFlag) {
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::WINDOW);
         rb->setText(rb->text()
                     + " "
@@ -192,9 +223,17 @@ m_coordInfo(coordInfo)
         
     }
     
-    if (m_coordInfo.m_surfaceNodeValid
-        && enableSurfaceSpaceFlag) {
-        
+    if (enableSurfaceSpaceFlag) {
+        if ( ! m_coordInfo.m_surfaceNodeValid) {
+            enableSurfaceSpaceFlag = false;
+        }
+        if (m_optionalSecondCoordInfo != NULL) {
+            if ( ! m_optionalSecondCoordInfo->m_surfaceNodeValid) {
+                enableSurfaceSpaceFlag = false;
+            }
+        }
+    }
+    if (enableSurfaceSpaceFlag) {
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::SURFACE);
         m_spaceButtonGroup->addButton(rb,
                                       AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::SURFACE));
@@ -503,10 +542,10 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
     AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
     
     AnnotationCoordinate* coordinate = NULL;
-    AnnotationCoordinate* otherCoordinate = NULL;
+    AnnotationCoordinate* secondCoordinate = NULL;
     if (oneDimAnn != NULL) {
         coordinate      = oneDimAnn->getStartCoordinate();
-        otherCoordinate = oneDimAnn->getEndCoordinate();
+        secondCoordinate = oneDimAnn->getEndCoordinate();
     }
     else if (twoDimAnn != NULL) {
         coordinate = twoDimAnn->getCoordinate();
@@ -524,6 +563,14 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
             if (m_coordInfo.m_modelXYZValid) {
                 coordinate->setXYZ(m_coordInfo.m_modelXYZ);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
+                
+                if (m_optionalSecondCoordInfo != NULL) {
+                    if (m_optionalSecondCoordInfo->m_modelXYZValid) {
+                        if (secondCoordinate != NULL) {
+                            secondCoordinate->setXYZ(m_optionalSecondCoordInfo->m_modelXYZ);
+                        }
+                    }
+                }
             }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -536,6 +583,17 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
                                             m_coordInfo.m_surfaceNodeIndex,
                                             m_coordInfo.m_surfaceNodeOffset);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+                
+                if (m_optionalSecondCoordInfo != NULL) {
+                    if (m_optionalSecondCoordInfo->m_surfaceNodeValid) {
+                        if (secondCoordinate != NULL) {
+                            secondCoordinate->setSurfaceSpace(m_optionalSecondCoordInfo->m_surfaceStructure,
+                                                              m_optionalSecondCoordInfo->m_surfaceNumberOfNodes,
+                                                              m_optionalSecondCoordInfo->m_surfaceNodeIndex,
+                                                              m_optionalSecondCoordInfo->m_surfaceNodeOffset);
+                        }
+                    }
+                }
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
@@ -544,7 +602,15 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
                 annotation->setTabIndex(m_coordInfo.m_tabIndex);
                 
-                if (otherCoordinate != NULL) {
+                
+                if (m_optionalSecondCoordInfo != NULL) {
+                    if (m_optionalSecondCoordInfo->m_tabIndex >= 0) {
+                        if (secondCoordinate != NULL) {
+                            secondCoordinate->setXYZ(m_optionalSecondCoordInfo->m_tabXYZ);
+                        }
+                    }
+                }
+                else if (secondCoordinate != NULL) {
                     double xyz[3] = {
                         m_coordInfo.m_tabXYZ[0],
                         m_coordInfo.m_tabXYZ[1],
@@ -556,7 +622,7 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
                     else {
                         xyz[1] += 0.25;
                     }
-                    otherCoordinate->setXYZ(xyz);
+                    secondCoordinate->setXYZ(xyz);
                 }
             }
             break;
@@ -566,7 +632,14 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
                 annotation->setWindowIndex(m_coordInfo.m_windowIndex);
                 
-                if (otherCoordinate != NULL) {
+                if (m_optionalSecondCoordInfo != NULL) {
+                    if (m_optionalSecondCoordInfo->m_windowIndex >= 0) {
+                        if (secondCoordinate != NULL) {
+                            secondCoordinate->setXYZ(m_optionalSecondCoordInfo->m_windowXYZ);
+                        }
+                    }
+                }
+                else if (secondCoordinate != NULL) {
                     double xyz[3] = {
                         m_coordInfo.m_windowXYZ[0],
                         m_coordInfo.m_windowXYZ[1],
@@ -578,7 +651,7 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
                     else {
                         xyz[1] += 0.25;
                     }
-                    otherCoordinate->setXYZ(xyz);
+                    secondCoordinate->setXYZ(xyz);
                 }
             }
             break;

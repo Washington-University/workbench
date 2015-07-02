@@ -42,6 +42,8 @@ namespace caret {
         Annotation(const Annotation& obj);
 
         Annotation& operator=(const Annotation& obj);
+       
+        static Annotation* newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType);
         
         Annotation* clone() const;
         

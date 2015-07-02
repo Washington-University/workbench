@@ -23,6 +23,7 @@
 
 #include "AnnotationSizingHandleTypeEnum.h"
 #include "AnnotationTypeEnum.h"
+#include "CaretPointer.h"
 #include "EventListenerInterface.h"
 #include "StructureEnum.h"
 #include "UserInputModeView.h"
@@ -30,6 +31,7 @@
 namespace caret {
 
     class Annotation;
+    class AnnotationCoordinate;
     class KeyEvent;
     class MouseEvent;
     class SelectionItemAnnotation;
@@ -42,8 +44,10 @@ namespace caret {
          * Annotation mode
          */
         enum Mode {
-            /** Mouse creates an annotation */
-            MODE_NEW,
+            /** Mouse creates an annotation by clicking */
+            MODE_NEW_WITH_CLICK,
+            /** Mouse creates an annotation by draggin from one point to another */
+            MODE_NEW_WITH_DRAG,
             /** Mouse selects annotation */
             MODE_SELECT,
             /** Set coordinate one in annotation*/
@@ -135,12 +139,43 @@ namespace caret {
             float m_surfaceNodeOffset;
             bool m_surfaceNodeValid;
         };
-        static void getCoordinatesFromMouseLocation(const MouseEvent& mouseEvent,
-                                                    CoordinateInformation& coordInfoOut);
+        static void getValidCoordinateSpacesFromXY(BrainOpenGLWidget* openGLWidget,
+                                                   BrainOpenGLViewportContent* viewportContent,
+                                                   const int32_t windowX,
+                                                   const int32_t windowY,
+                                                   CoordinateInformation& coordInfoOut);
         
         // ADD_NEW_METHODS_HERE
 
     private:
+        class NewMouseDragCreateAnnotation {
+        public:
+            NewMouseDragCreateAnnotation(const AnnotationTypeEnum::Enum annotationType,
+                                         const MouseEvent& mouseEvent);
+            
+            ~NewMouseDragCreateAnnotation();
+            
+            void update(const int32_t mouseWindowX,
+                        const int32_t mouseWindowY);
+            
+            void setCoordinate(AnnotationCoordinate* coordinate,
+                               const int32_t x,
+                               const int32_t y);
+            
+            const Annotation* getAnnotation() const;
+            
+        private:
+            Annotation* m_annotation;
+            
+            int32_t m_mousePressWindowX;
+            
+            int32_t m_mousePressWindowY;
+            
+            float m_windowWidth;
+            
+            float m_windowHeight;
+        };
+        
         UserInputModeAnnotations(const UserInputModeAnnotations&);
 
         UserInputModeAnnotations& operator=(const UserInputModeAnnotations&);
@@ -156,6 +191,10 @@ namespace caret {
         
         void setAnnotationUnderMouse(const MouseEvent& mouseEvent,
                                      SelectionItemAnnotation* annotationIDIn);
+        
+        void createNewAnnotationFromMouseDrag(const MouseEvent& mouseEvent);
+        
+        void userDrawingAnnotationFromMouseDrag(const MouseEvent& mouseEvent);
         
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
@@ -174,6 +213,8 @@ namespace caret {
         Annotation* m_annotationBeingDragged;
         
         AnnotationSizingHandleTypeEnum::Enum m_annotationBeingDraggedHandleType;
+        
+        CaretPointer<NewMouseDragCreateAnnotation> m_newAnnotationCreatingWithMouseDrag;
         
         // ADD_NEW_MEMBERS_HERE
 

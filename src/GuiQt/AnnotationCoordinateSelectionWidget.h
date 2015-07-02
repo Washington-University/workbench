@@ -43,6 +43,7 @@ namespace caret {
     public:
         AnnotationCoordinateSelectionWidget(const AnnotationTypeEnum::Enum annotationType,
                                             const UserInputModeAnnotations::CoordinateInformation& coordInfo,
+                                            const UserInputModeAnnotations::CoordinateInformation* optionalSecondCoordInfo,
                                             QWidget* parent = 0);
         
         virtual ~AnnotationCoordinateSelectionWidget();
@@ -75,6 +76,8 @@ namespace caret {
         const AnnotationTypeEnum::Enum m_annotationType;
         
         const UserInputModeAnnotations::CoordinateInformation& m_coordInfo;
+        
+        const UserInputModeAnnotations::CoordinateInformation* m_optionalSecondCoordInfo;
         
         static const QString s_SPACE_PROPERTY_NAME;
         

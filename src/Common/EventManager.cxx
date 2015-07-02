@@ -468,7 +468,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
             return;
             break;
         case EventTypeEnum::EVENT_ALERT_USER:
-        case EventTypeEnum::EVENT_ANNOTATION:
+        case EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE:
         case EventTypeEnum::EVENT_BRAIN_RESET:
         case EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_DELETE:

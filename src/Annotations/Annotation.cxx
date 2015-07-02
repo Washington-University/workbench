@@ -179,6 +179,39 @@ Annotation::clone() const
     return myClone;
 }
 
+/**
+ * Factory method for creating an annotation of the given type.
+ *
+ * @param annotationType
+ *     Type of annotation that will be created.
+ * @return
+ *     New annotation of the given type.
+ */
+Annotation*
+Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType)
+{
+    Annotation* annotation = NULL;
+    
+    switch (annotationType) {
+        case AnnotationTypeEnum::BOX:
+            annotation = new AnnotationBox();
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            annotation = new AnnotationImage();
+            break;
+        case AnnotationTypeEnum::LINE:
+            annotation = new AnnotationLine();
+            break;
+        case AnnotationTypeEnum::OVAL:
+            annotation = new AnnotationOval();
+            break;
+        case AnnotationTypeEnum::TEXT:
+            annotation = new AnnotationText();
+            break;
+    }
+    
+    return annotation;
+}
 
 /**
  * Initialize members of this class.

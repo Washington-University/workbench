@@ -152,11 +152,21 @@ UserInputModeAnnotationsContextMenu::pasteAnnotationFromAnnotationClipboard()
         AnnotationFile* annotationFile = annotationManager->getAnnotationFileOnClipboard();
         const Annotation* annotation = annotationManager->getAnnotationOnClipboard();
         
-        AnnotationCreateDialog pasteDialog(m_mouseEvent,
-                                           annotationFile,
-                                           annotation,
-                                           m_parentOpenGLWidget);
-        pasteDialog.exec();
+        
+        CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newPasteAnnotation(m_mouseEvent,
+                                                                                                         annotationFile,
+                                                                                                         annotation,
+                                                                                                         m_parentOpenGLWidget));
+        if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
+            
+        }
+
+        
+//        AnnotationCreateDialog pasteDialog(m_mouseEvent,
+//                                           annotationFile,
+//                                           annotation,
+//                                           m_parentOpenGLWidget);
+//        pasteDialog.exec();
 
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());

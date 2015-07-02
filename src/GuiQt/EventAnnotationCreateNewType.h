@@ -1,5 +1,5 @@
-#ifndef __EVENT_ANNOTATION_H__
-#define __EVENT_ANNOTATION_H__
+#ifndef __EVENT_ANNOTATION_CREATE_NEW_TYPE_H__
+#define __EVENT_ANNOTATION_CREATE_NEW_TYPE_H__
 
 /*LICENSE_START*/
 /*
@@ -29,51 +29,31 @@
 
 namespace caret {
 
-    class Annotation;
-    
-    class EventAnnotation : public Event {
+    class EventAnnotationCreateNewType : public Event {
         
     public:
-        /**
-         * Mode of annotation event
-         */
-        enum Mode {
-            /** Invalid */
-            MODE_INVALID,
-            /** Begin creation of a new annotation with a specific type MOUSE MODE MUST BE Annotations */
-            MODE_CREATE_NEW_ANNOTATION_TYPE
-        };
-   
-        EventAnnotation();
+        EventAnnotationCreateNewType(const AnnotationTypeEnum::Enum annotationType);
         
-        virtual ~EventAnnotation();
+        virtual ~EventAnnotationCreateNewType();
         
-        AnnotationTypeEnum::Enum getModeCreateNewAnnotationType() const;
+        AnnotationTypeEnum::Enum getAnnotationType() const;
         
-        EventAnnotation& setModeCreateNewAnnotationType(const AnnotationTypeEnum::Enum annotationType);
-        
-        Mode getMode() const;
-
         // ADD_NEW_METHODS_HERE
 
     private:
-        EventAnnotation(const EventAnnotation&);
+        EventAnnotationCreateNewType(const EventAnnotationCreateNewType&);
 
-        EventAnnotation& operator=(const EventAnnotation&);
+        EventAnnotationCreateNewType& operator=(const EventAnnotationCreateNewType&);
         
-        Mode m_mode;
-        
-        //Annotation* m_annotation;
-        
-        AnnotationTypeEnum::Enum m_annotationType;
-        
+        const AnnotationTypeEnum::Enum m_annotationType;
+
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __EVENT_ANNOTATION_DECLARE__
+#ifdef __EVENT_ANNOTATION_CREATE_NEW_TYPE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_ANNOTATION_DECLARE__
+#endif // __EVENT_ANNOTATION_CREATE_NEW_TYPE_DECLARE__
 
 } // namespace
-#endif  //__EVENT_ANNOTATION_H__
+#endif  //__EVENT_ANNOTATION_CREATE_NEW_TYPE_H__

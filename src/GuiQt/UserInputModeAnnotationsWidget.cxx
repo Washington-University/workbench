@@ -47,7 +47,7 @@
 #include "AnnotationWidthHeightWidget.h"
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "EventAnnotation.h"
+#include "EventAnnotationCreateNewType.h"
 #include "EventBrainReset.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -154,7 +154,7 @@ m_inputModeAnnotations(inputModeAnnotations)
     layout->addLayout(bottomRowLayout);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
@@ -185,8 +185,8 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
         
         brainEvent->setEventProcessed();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION) {
-        EventAnnotation* annotationEvent = dynamic_cast<EventAnnotation*>(event);
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE) {
+        EventAnnotationCreateNewType* annotationEvent = dynamic_cast<EventAnnotationCreateNewType*>(event);
         CaretAssert(annotationEvent);
         updateAnnotationWidgetsFlag = true;
     }
@@ -238,7 +238,9 @@ UserInputModeAnnotationsWidget::updateWidget()
      * Show the proper widget
      */
     switch (m_inputModeAnnotations->getMode()) {
-        case UserInputModeAnnotations::MODE_NEW:
+        case UserInputModeAnnotations::MODE_NEW_WITH_CLICK:
+            break;
+        case UserInputModeAnnotations::MODE_NEW_WITH_DRAG:
             break;
         case UserInputModeAnnotations::MODE_SELECT:
             break;

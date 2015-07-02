@@ -37,8 +37,10 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CursorEnum.h"
-#include "EventAnnotation.h"
+#include "CaretPreferences.h"
+#include "EventAnnotationCreateNewType.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -50,6 +52,7 @@
 #include "SelectionManager.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
+#include "SessionManager.h"
 #include "Surface.h"
 #include "UserInputModeAnnotationsContextMenu.h"
 #include "UserInputModeAnnotationsWidget.h"
@@ -78,11 +81,13 @@ m_annotationBeingDragged(NULL)
     m_modeNewAnnotationType = AnnotationTypeEnum::LINE;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     
+    m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+    
     m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
                                                                  m_browserWindowIndex);
     setWidgetForToolBar(m_annotationToolsWidget);
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
 }
 
 /**
@@ -102,25 +107,17 @@ UserInputModeAnnotations::~UserInputModeAnnotations()
 void
 UserInputModeAnnotations::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION) {
-        EventAnnotation* annotationEvent = dynamic_cast<EventAnnotation*>(event);
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE) {
+        EventAnnotationCreateNewType* annotationEvent = dynamic_cast<EventAnnotationCreateNewType*>(event);
         CaretAssert(annotationEvent);
         
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
         
-        switch (annotationEvent->getMode()) {
-            case EventAnnotation::MODE_INVALID:
-                break;
-            case EventAnnotation::MODE_CREATE_NEW_ANNOTATION_TYPE:
-            {
-                annotationManager->deselectAllAnnotations();
-                
-                m_modeNewAnnotationType = annotationEvent->getModeCreateNewAnnotationType();
-                setMode(MODE_NEW);
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-            }
-                break;
-        }
+        annotationManager->deselectAllAnnotations();
+        
+        m_modeNewAnnotationType = annotationEvent->getAnnotationType();
+        setMode(MODE_NEW_WITH_CLICK);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
 
@@ -206,7 +203,10 @@ UserInputModeAnnotations::getCursor() const
     CursorEnum::Enum cursor = CursorEnum::CURSOR_DEFAULT;
     
     switch (m_mode) {
-        case MODE_NEW:
+        case MODE_NEW_WITH_CLICK:
+            cursor = CursorEnum::CURSOR_CROSS;
+            break;
+        case MODE_NEW_WITH_DRAG:
             cursor = CursorEnum::CURSOR_CROSS;
             break;
         case MODE_SELECT:
@@ -280,7 +280,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
         case Qt::Key_Delete:
         {
             switch (m_mode) {
-                case MODE_NEW:
+                case MODE_NEW_WITH_CLICK:
+                    break;
+                case MODE_NEW_WITH_DRAG:
                     break;
                 case MODE_SELECT:
                 {
@@ -311,7 +313,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
         {
             bool selectModeFlag = false;
             switch (m_mode) {
-                case MODE_NEW:
+                case MODE_NEW_WITH_CLICK:
+                    break;
+                case MODE_NEW_WITH_DRAG:
                     break;
                 case MODE_SELECT:
                     break;
@@ -414,6 +418,29 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
 void
 UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 {
+    switch (m_mode) {
+        case MODE_NEW_WITH_CLICK:
+        {
+            if (m_newAnnotationCreatingWithMouseDrag != NULL) {
+                m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+            }
+            
+            m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationType,
+                                                                                          mouseEvent));
+            m_mode = MODE_NEW_WITH_DRAG;
+        }
+            break;
+        case MODE_NEW_WITH_DRAG:
+            userDrawingAnnotationFromMouseDrag(mouseEvent);
+            break;
+        case MODE_SELECT:
+            break;
+        case MODE_SET_COORDINATE_ONE:
+            break;
+        case MODE_SET_COORDINATE_TWO:
+            break;
+    }
+    
     if (m_annotationBeingDragged != NULL) {
             BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
             if (vpContent == NULL) {
@@ -498,7 +525,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 //                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
 //                        break;
 //                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-//                        break;
+//                        beak;
 //                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
 //                        break;
 //                }
@@ -603,8 +630,10 @@ void
 UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
 {
     switch (m_mode) {
-        case MODE_NEW:
+        case MODE_NEW_WITH_CLICK:
             processModeNewMouseLeftClick(mouseEvent);
+            break;
+        case MODE_NEW_WITH_DRAG:
             break;
         case MODE_SELECT:
             break;
@@ -632,7 +661,9 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
     }
     
     switch (m_mode) {
-        case MODE_NEW:
+        case MODE_NEW_WITH_CLICK:
+            break;
+        case MODE_NEW_WITH_DRAG:
             break;
         case MODE_SELECT:
 //            processMouseSelectAnnotation(mouseEvent,
@@ -655,7 +686,9 @@ void
 UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
 {
     switch (m_mode) {
-        case MODE_NEW:
+        case MODE_NEW_WITH_CLICK:
+            break;
+        case MODE_NEW_WITH_DRAG:
             break;
         case MODE_SELECT:
             processMouseSelectAnnotation(mouseEvent,
@@ -700,6 +733,56 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
 }
 
 /**
+ * User drawing a new annotation from dragging the mouse from corner/end to another
+ * corner/end.
+ *
+ * @param mouseEvent
+ *     Mouse event issued when mouse button was released.
+ */
+void
+UserInputModeAnnotations::userDrawingAnnotationFromMouseDrag(const MouseEvent& mouseEvent)
+{
+    if (m_newAnnotationCreatingWithMouseDrag != NULL) {
+        m_newAnnotationCreatingWithMouseDrag->update(mouseEvent.getX(),
+                                                     mouseEvent.getY());
+
+        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+        annotationManager->setAnnotationBeingDrawnInWindow(m_browserWindowIndex,
+                                                           m_newAnnotationCreatingWithMouseDrag->getAnnotation());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+/**
+ * Create a new annotation from dragging the mouse from corner/end to another
+ * corner/end.
+ *
+ * @param mouseEvent
+ *     Mouse event issued when mouse button was released.
+ */
+void
+UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mouseEvent)
+{
+    if (m_newAnnotationCreatingWithMouseDrag != NULL) {
+        
+        CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotation(mouseEvent,
+                                                                                                   m_newAnnotationCreatingWithMouseDrag->getAnnotation(),
+                                                                                                   mouseEvent.getOpenGLWidget()));
+        if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
+            
+        }
+        
+        m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+        
+        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+        annotationManager->setAnnotationBeingDrawnInWindow(m_browserWindowIndex,
+                                                           NULL);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+
+/**
  * Process a mouse left release event.
  *
  * @param mouseEvent
@@ -708,6 +791,21 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
 void
 UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
 {
+    switch (m_mode) {
+        case MODE_NEW_WITH_CLICK:
+            break;
+        case MODE_NEW_WITH_DRAG:
+            createNewAnnotationFromMouseDrag(mouseEvent);
+            m_mode = MODE_SELECT;
+            break;
+        case MODE_SELECT:
+            break;
+        case MODE_SET_COORDINATE_ONE:
+            break;
+        case MODE_SET_COORDINATE_TWO:
+            break;
+    }
+    
     m_annotationBeingDragged = NULL;
     
     setAnnotationUnderMouse(mouseEvent,
@@ -781,24 +879,29 @@ UserInputModeAnnotations::mouseMove(const MouseEvent& mouseEvent)
 /**
  * Get the different types of coordinates at the given mouse location.
  *
- * @param mouseEvent
- *     Information about mouse event including mouse location.
+ * @param openGLWidget
+ *     The OpenGL Widget.
+ * @param viewportContent
+ *     The content of the viewport.
+ * @param windowX
+ *     X-coordinate in the window.
+ * @param windowY
+ *     Y-coordinate in the window.
  * @param coordInfoOut
  *     Output containing coordinate information.
  */
 void
-UserInputModeAnnotations::getCoordinatesFromMouseLocation(const MouseEvent& mouseEvent,
-                                                          CoordinateInformation& coordInfoOut)
+UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* openGLWidget,
+                                                         BrainOpenGLViewportContent* viewportContent,
+                                                         const int32_t windowX,
+                                                         const int32_t windowY,
+                                                         CoordinateInformation& coordInfoOut)
 {
     coordInfoOut.reset();
     
-    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    const int mouseX = mouseEvent.getX();
-    const int mouseY = mouseEvent.getY();
-    
     SelectionManager* idManager =
-    openGLWidget->performIdentification(mouseX,
-                                        mouseY,
+    openGLWidget->performIdentification(windowX,
+                                        windowY,
                                         true);
     
     SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
@@ -820,19 +923,17 @@ UserInputModeAnnotations::getCoordinatesFromMouseLocation(const MouseEvent& mous
         coordInfoOut.m_modelXYZValid = true;
     }
     
-    BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
-    
     /*
      * In tile tabs, some regions may not contain a tab such
      * as three tabs in a two-by-two configuration
      * or if the user has clicked in a margin
      */
-    BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
+    BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
     if (tabContent != NULL) {
         int tabViewport[4];
-        vpContent->getModelViewport(tabViewport);
-        const float tabX = (mouseEvent.getX() - tabViewport[0]) / static_cast<float>(tabViewport[2]);
-        const float tabY = (mouseEvent.getY() - tabViewport[1]) / static_cast<float>(tabViewport[3]);
+        viewportContent->getModelViewport(tabViewport);
+        const float tabX = (windowX - tabViewport[0]) / static_cast<float>(tabViewport[2]);
+        const float tabY = (windowY - tabViewport[1]) / static_cast<float>(tabViewport[3]);
         if ((tabX >= 0.0)
             && (tabX < 1.0)
             && (tabY >= 0.0)
@@ -845,11 +946,11 @@ UserInputModeAnnotations::getCoordinatesFromMouseLocation(const MouseEvent& mous
     }
     
     int windowViewport[4];
-    vpContent->getWindowViewport(windowViewport);
-    coordInfoOut.m_windowXYZ[0] = windowViewport[0] + mouseEvent.getX();
-    coordInfoOut.m_windowXYZ[1] = windowViewport[1] + mouseEvent.getY();
+    viewportContent->getWindowViewport(windowViewport);
+    coordInfoOut.m_windowXYZ[0] = windowViewport[0] + windowX;
+    coordInfoOut.m_windowXYZ[1] = windowViewport[1] + windowY;
     coordInfoOut.m_windowXYZ[2] = 0.0;
-    coordInfoOut.m_windowIndex = vpContent->getWindowIndex();
+    coordInfoOut.m_windowIndex = viewportContent->getWindowIndex();
     
     /*
      * Normalize window coordinates (width and height range [0, 1]
@@ -872,8 +973,11 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
     }
 
     CoordinateInformation coordInfo;
-    UserInputModeAnnotations::getCoordinatesFromMouseLocation(mouseEvent,
-                                                              coordInfo);
+    UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+                                                             mouseEvent.getViewportContent(),
+                                                             mouseEvent.getX(),
+                                                             mouseEvent.getY(),
+                                                             coordInfo);
     
     AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
     AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
@@ -881,7 +985,9 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
     AnnotationCoordinate* coordinate = NULL;
     AnnotationCoordinate* otherCoordinate = NULL;
     switch (m_mode) {
-        case MODE_NEW:
+        case MODE_NEW_WITH_CLICK:
+            break;
+        case MODE_NEW_WITH_DRAG:
             break;
         case MODE_SELECT:
             break;
@@ -935,12 +1041,19 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
 void
 UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEvent)
 {
-    AnnotationCreateDialog createAnnotationDialog(mouseEvent,
-                                                  m_modeNewAnnotationType,
-                                                  mouseEvent.getOpenGLWidget());
-    if (createAnnotationDialog.exec() == AnnotationCreateDialog::Accepted) {
+    CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationType(mouseEvent,
+                                                                                                    m_modeNewAnnotationType,
+                                                                                                    mouseEvent.getOpenGLWidget()));
+    if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
         
     }
+    
+//    AnnotationCreateDialog createAnnotationDialog(mouseEvent,
+//                                                  m_modeNewAnnotationType,
+//                                                  mouseEvent.getOpenGLWidget());
+//    if (createAnnotationDialog.exec() == AnnotationCreateDialog::Accepted) {
+//        
+//    }
 
     setMode(MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -1043,6 +1156,183 @@ UserInputModeAnnotations::showContextMenu(const MouseEvent& mouseEvent,
     if (contextMenu.actions().size() > 0) {
         contextMenu.exec(menuPosition);
     }
+}
+
+
+
+/* =============================================================================== */
+
+/**
+ * Constructor.
+ *
+ * @param annotationType
+ *     Type of annotation being created.
+ * @param mouseWindowX
+ *     Mouse window X-coordinate
+ * @param mouseWindowY
+ *     Mouse window Y-coordinate
+ * @param windowWidth
+ *     Width of window (will not change while user is drawing the annotation)
+ * @param windowHeight
+ *     Height of window (will not change while user is drawing the annotation)
+ */
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnotation(const AnnotationTypeEnum::Enum annotationType,
+                                                                                     const MouseEvent& mouseEvent)
+{
+    BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
+    CaretAssert(vpContent);
+    if (vpContent == NULL) {
+        CaretLogSevere("Viewport content is invalid.");
+        return;
+    }
+    
+    m_mousePressWindowX = mouseEvent.getX();
+    m_mousePressWindowY = mouseEvent.getY();
+    
+    int viewport[4];
+    vpContent->getWindowViewport(viewport);
+    m_windowWidth  = viewport[2];
+    m_windowHeight = viewport[3];
+    
+    
+    
+    m_annotation = Annotation::newAnnotationOfType(annotationType);
+    m_annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+    CaretAssert(m_annotation);
+
+    AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
+    AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
+    
+    if (oneDimShape != NULL) {
+        setCoordinate(oneDimShape->getStartCoordinate(),
+                      m_mousePressWindowX,
+                      m_mousePressWindowY);
+        setCoordinate(oneDimShape->getEndCoordinate(),
+                      m_mousePressWindowX,
+                      m_mousePressWindowY);
+    }
+    else if (twoDimShape != NULL) {
+        setCoordinate(twoDimShape->getCoordinate(),
+                      m_mousePressWindowX,
+                      m_mousePressWindowY);
+        twoDimShape->setWidth(0.01);
+        twoDimShape->setHeight(0.01);
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+//    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+//    BrowserTabContent* tabContent = vpContent->getBrowserTabContent()
+//    m_annotation->setForegroundColor(CaretColorEnum::CUSTOM);
+//    prefs->get
+//    m_annotation->setCustomForegroundColor(foregroundColor);
+}
+
+/**
+ * Destructor.
+ */
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::~NewMouseDragCreateAnnotation()
+{
+    delete m_annotation;
+}
+
+/**
+ * Update with current mouse location.
+ *
+ * @param mouseWindowX
+ *     Mouse window X-coordinate
+ * @param mouseWindowY
+ *     Mouse window Y-coordinate
+ */
+void
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const int32_t mouseWindowX,
+                                                               const int32_t mouseWindowY)
+{
+    AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
+    AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
+    
+    if (oneDimShape != NULL) {
+        setCoordinate(oneDimShape->getEndCoordinate(),
+                      mouseWindowX,
+                      mouseWindowY);
+    }
+    else if (twoDimShape != NULL) {
+        const float minX = std::min(m_mousePressWindowX,
+                                    mouseWindowX);
+        const float maxX = std::max(m_mousePressWindowX,
+                                    mouseWindowX);
+
+        const float minY = std::min(m_mousePressWindowY,
+                                    mouseWindowY);
+        const float maxY = std::max(m_mousePressWindowY,
+                                    mouseWindowY);
+
+        const float x = (minX + maxX) / 2.0;
+        const float y = (minY + maxY) / 2.0;
+        
+        const float width  = maxX - minX;
+        const float height = maxY - minY;
+        const float aspectRatio = ((width > 0.0)
+                                   ? (height / width)
+                                   : 1.0);
+        
+        const float relativeWidth = ((m_windowWidth > 0.0)
+                                     ? (width / static_cast<float>(m_windowWidth))
+                                     : 0.01);
+        const float relativeHeight = ((m_windowHeight > 0.0)
+                                     ? (height / static_cast<float>(m_windowHeight))
+                                     : 0.01);
+        
+        AnnotationCoordinate* coord = twoDimShape->getCoordinate();
+        setCoordinate(coord, x, y);
+        twoDimShape->setWidth(relativeWidth);
+        if (twoDimShape->isUseHeightAsAspectRatio()) {
+            twoDimShape->setHeight(aspectRatio);
+        }
+        else {
+            twoDimShape->setHeight(relativeHeight);
+        }
+    }
+    else {
+        CaretAssert(0);
+    }
+}
+
+/**
+ * Set the given coordinate to the XY-location.
+ *
+ * @param coordinate
+ *     Coordinate that is set.
+ * @param x
+ *     Mouse window X-coordinate
+ * @param y
+ *     Mouse window Y-coordinate
+ */
+void
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::setCoordinate(AnnotationCoordinate* coordinate,
+                                                                      const int32_t x,
+                                                                      const int32_t y)
+{
+    const float relativeX = ((m_windowWidth > 0.0)
+                             ? (x / m_windowWidth)
+                             : 0.01);
+    const float relativeY = ((m_windowHeight > 0.0)
+                             ? (y / m_windowHeight)
+                             : 0.01);
+    
+    coordinate->setXYZ(relativeX,
+                       relativeY,
+                       0.0);
+}
+
+/**
+ * @return New annotation being drawn by the user.
+ */
+const Annotation*
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::getAnnotation() const
+{
+    return m_annotation;
 }
 
 

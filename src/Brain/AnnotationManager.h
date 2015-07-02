@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "BrainConstants.h"
 #include "CaretObject.h"
 #include "CaretUndoCommand.h"
 #include "CaretPointer.h"
@@ -87,6 +87,11 @@ namespace caret {
         void copyAnnotationToClipboard(const AnnotationFile* annotationFile,
                                        const Annotation* annotation);
         
+        const Annotation* getAnnotationBeingDrawnInWindow(const int32_t windowIndex) const;
+        
+        void setAnnotationBeingDrawnInWindow(const int32_t windowIndex,
+                                             const Annotation* annotation);
+        
         CaretUndoStack* getUndoStack();
         
         const CaretUndoStack* getUndoStack() const;
@@ -127,6 +132,8 @@ namespace caret {
 
         /** Brain owning this manager */
         Brain* m_brain;
+        
+        Annotation* m_annotationBeingDrawnInWindow[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         /** 
          * Do not use a Caret Pointer for this as it points to a file in the brain.
