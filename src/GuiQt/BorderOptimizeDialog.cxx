@@ -138,8 +138,7 @@ m_upsamplingSurfaceStructure(StructureEnum::INVALID)
     }
     else {
         setCentralWidget(dialogWidget,
-                         SCROLL_AREA_ALWAYS_VERT_NO_HORIZ);
-        
+                         SCROLL_AREA_AS_NEEDED_VERT_NO_HORIZ);
     }
     
     if (DATA_FILES_IN_SCROLL_BARS) {

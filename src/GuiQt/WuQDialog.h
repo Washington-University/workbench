@@ -51,8 +51,8 @@ namespace caret  {
          */
         enum ScrollAreaStatus {
             SCROLL_AREA_ALWAYS,
-            SCROLL_AREA_ALWAYS_VERT_NO_HORIZ,
             SCROLL_AREA_AS_NEEDED,
+            SCROLL_AREA_AS_NEEDED_VERT_NO_HORIZ,
             SCROLL_AREA_NEVER
         };
 

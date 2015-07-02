@@ -583,7 +583,8 @@ WuQDialog::showEvent(QShowEvent* event)
         const QSize maxSize = WuQtUtilities::getMinimumScreenSize();
         const int32_t margin = 100;
         const int32_t maximumDialogWidth = maxSize.width() - margin;
-        const int32_t maximumDialogHeight = (maxSize.height() / 2) - margin;
+        const int32_t maximumDialogHeight = maxSize.height() - (margin * 2); // allow space top/bottom
+        //const int32_t maximumDialogHeight = (maxSize.height() / 2) - margin;
         
         bool putCentralWidgetIntoScrollAreaFlag = false;
         bool testCentralWidgetForTooBig = false;
@@ -591,7 +592,7 @@ WuQDialog::showEvent(QShowEvent* event)
             case SCROLL_AREA_ALWAYS:
                 putCentralWidgetIntoScrollAreaFlag = true;
                 break;
-            case SCROLL_AREA_ALWAYS_VERT_NO_HORIZ:
+            case SCROLL_AREA_AS_NEEDED_VERT_NO_HORIZ:
                 putCentralWidgetIntoScrollAreaFlag = true;
                 break;
             case SCROLL_AREA_AS_NEEDED:
@@ -626,8 +627,9 @@ WuQDialog::showEvent(QShowEvent* event)
             QScrollArea* scrollArea = new QScrollArea();
             scrollArea->setWidgetResizable(true);
             scrollArea->setWidget(m_centralWidget);
-            if (m_placeCentralWidgetInScrollAreaStatus == SCROLL_AREA_ALWAYS_VERT_NO_HORIZ) {
+            if (m_placeCentralWidgetInScrollAreaStatus == SCROLL_AREA_AS_NEEDED_VERT_NO_HORIZ) {
                 scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
             }
             userWidgetLayout->insertWidget(m_centralWidgetLayoutIndex,
                                            scrollArea);
