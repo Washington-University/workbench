@@ -52,10 +52,10 @@ IdentifiedItem::IdentifiedItem()
  *    Text describing the identified item.
  */
 IdentifiedItem::IdentifiedItem(const AString& text)
-: CaretObject(),
-m_text(text)
+: CaretObject()
 {
     initializeMembers();
+    m_text = text;
 }
 
 /**
