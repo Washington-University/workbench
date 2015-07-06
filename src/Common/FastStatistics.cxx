@@ -54,7 +54,7 @@ void FastStatistics::reset()
     m_stdDevPop = 0.0f;
     m_stdDevSample = 0.0f;
     m_mostNeg = 0.0f;
-    m_leastNeg = numeric_limits<float>::max();
+    m_leastNeg = -numeric_limits<float>::max();
     m_leastPos = numeric_limits<float>::max();
     m_mostPos = 0.0f;
     m_leastAbs = numeric_limits<float>::max();
