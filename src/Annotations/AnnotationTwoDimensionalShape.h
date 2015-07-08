@@ -87,6 +87,10 @@ namespace caret {
                                      float& shapeDxOut,
                                      float& shapeDyOut);
         
+        void setWidthAndHeightFromBounds(const float xyzOne[3],
+                                         const float xyzTwo[3],
+                                         const float spaceWidth,
+                                         const float spaceHeight);
         // ADD_NEW_METHODS_HERE
 
         

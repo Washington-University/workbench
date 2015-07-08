@@ -195,28 +195,27 @@ AnnotationCoordinateWidget::updateContent(const AnnotationCoordinateSpaceEnum::E
                 break;
         }
         
-        m_xCoordSpinBox->setRange(xyMin,
-                                  xyMax);
-        m_xCoordSpinBox->setSingleStep(xyzStep);
-        m_yCoordSpinBox->setRange(xyMin,
-                                  xyMax);
-        m_yCoordSpinBox->setSingleStep(xyzStep);
-        m_zCoordSpinBox->setRange(xyMin,
-                                  xyMax);
-        m_zCoordSpinBox->setSingleStep(xyzStep);
-        
         float xyz[3];
         m_coordinate->getXYZ(xyz);
         
         m_xCoordSpinBox->blockSignals(true);
+        m_xCoordSpinBox->setRange(xyMin,
+                                  xyMax);
+        m_xCoordSpinBox->setSingleStep(xyzStep);
         m_xCoordSpinBox->setValue(xyz[0]);
         m_xCoordSpinBox->blockSignals(false);
         
         m_yCoordSpinBox->blockSignals(true);
+        m_yCoordSpinBox->setRange(xyMin,
+                                  xyMax);
+        m_yCoordSpinBox->setSingleStep(xyzStep);
         m_yCoordSpinBox->setValue(xyz[1]);
         m_yCoordSpinBox->blockSignals(false);
         
         m_zCoordSpinBox->blockSignals(true);
+        m_zCoordSpinBox->setRange(zMin,
+                                  zMax);
+        m_zCoordSpinBox->setSingleStep(xyzStep);
         m_zCoordSpinBox->setValue(xyz[2]);
         m_zCoordSpinBox->blockSignals(false);
         

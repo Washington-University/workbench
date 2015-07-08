@@ -251,6 +251,7 @@ EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventHelpViewerDisplay.h
+EventIdentificationRequest.h
 EventImageCapture.h
 EventMacDockMenuUpdate.h
 EventOperatingSystemRequestOpenDataFile.h
@@ -429,6 +430,7 @@ EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventHelpViewerDisplay.cxx
+EventIdentificationRequest.cxx
 EventImageCapture.cxx
 EventMacDockMenuUpdate.cxx
 EventOperatingSystemRequestOpenDataFile.cxx

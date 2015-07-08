@@ -52,9 +52,11 @@ namespace caret {
         virtual ~BrainOpenGLAnnotationDrawingFixedPipeline();
         
         void drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
+                             const int tabViewport[4],
                              const Surface* surfaceDisplayed);
 
-        void drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane);
+        void drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane,
+                                                    const int tabViewport[4]);
         
         // ADD_NEW_METHODS_HERE
 
@@ -96,7 +98,6 @@ namespace caret {
                                             float windowXYZOut[3]) const;
         
         bool getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
-                                 const GLint viewport[4],
                                  const float windowXYZ[3],
                                  float bottomLeftOut[3],
                                  float bottomRightOut[3],
@@ -188,7 +189,10 @@ namespace caret {
         GLdouble m_modelSpaceProjectionMatrix[16];
         
         /** OpenGL Viewport */
-        GLint    m_modelSpaceViewport[4];
+        GLint m_modelSpaceViewport[4];
+        
+        /** Browser tab's viewport */
+        GLint m_tabViewport[4];
         
         /** volume space plane */
         Plane m_volumeSpacePlane;

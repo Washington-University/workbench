@@ -163,6 +163,8 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     this->surfaceNodeColoring = new SurfaceNodeColoring();
     m_brain = NULL;
     m_clippingPlaneGroup = NULL;
+    
+    setTabViewport(NULL);
 }
 
 /**
@@ -244,6 +246,8 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
     m_brain = brain;
     CaretAssert(m_brain);
     
+    setTabViewport(viewportContent);
+    
     m_clippingPlaneGroup = NULL;
     
     this->inverseRotationMatrixValid = false;
@@ -298,6 +302,8 @@ BrainOpenGLFixedPipeline::projectToModel(Brain* brain,
 {
     m_brain = brain;
     CaretAssert(m_brain);
+    
+    setTabViewport(viewportContent);
     
     m_clippingPlaneGroup = NULL;
     
@@ -386,6 +392,25 @@ BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(BrainOpenGLViewpor
 }
 
 /**
+ * Set the viewport for the tab content that is being drawn.
+ * 
+ * @param vpContent
+ *     The viewport content (may be NULL).
+ */
+void
+BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpContent)
+{
+    m_tabViewport[0] = 0;
+    m_tabViewport[1] = 0;
+    m_tabViewport[2] = 0;
+    m_tabViewport[3] = 0;
+    
+    if (vpContent != NULL) {
+        vpContent->getTabViewport(m_tabViewport);
+    }
+}
+
+/**
  * Draw models in their respective viewports.
  *
  * @param brain
@@ -399,6 +424,8 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
 {
     m_brain = brain;
     CaretAssert(m_brain);
+    
+    setTabViewport(NULL);
     
     this->inverseRotationMatrixValid = false;
     
@@ -443,12 +470,8 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
          * Viewport of window.
          */
         BrainOpenGLViewportContent* vpContent = viewportContents[i];
-//        int windowViewport[4];
-//        vpContent->getWindowViewport(windowViewport);
-//        glViewport(windowViewport[0], windowViewport[1], windowViewport[2], windowViewport[3]);
-        int tabViewport[4];
-        vpContent->getTabViewport(tabViewport);
-        glViewport(tabViewport[0], tabViewport[1], tabViewport[2], tabViewport[3]);
+        setTabViewport(vpContent);
+        glViewport(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
         
         /*
          * Update foreground and background colors for model
@@ -495,8 +518,8 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
             glLoadIdentity();
 //            const float width = windowViewport[2];
 //            const float height = windowViewport[3];
-            const float width = tabViewport[2];
-            const float height = tabViewport[3];
+            const float width = m_tabViewport[2];
+            const float height = m_tabViewport[3];
             glOrtho(0.0, width, 0.0, height, -100.0, 100.0);
             
             glMatrixMode(GL_MODELVIEW);
@@ -589,6 +612,7 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
     
     //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
     m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::WINDOW,
+                                         m_tabViewport,
                                       NULL);
     
     glPopMatrix();
@@ -683,6 +707,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             }
             
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::TAB,
+                                                 m_tabViewport,
                                                  NULL);
         }
     }
@@ -1457,9 +1482,11 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              */
             //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
+                                                 m_tabViewport,
                                                  surface);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                                                     m_tabViewport,
                                                   NULL);
             }
         }
@@ -1492,9 +1519,11 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              */
             //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
+                                                 m_tabViewport,
                                               surface);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                                                     m_tabViewport,
                                                   NULL);
             }
             

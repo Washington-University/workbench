@@ -52,6 +52,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
+#include "EventIdentificationRequest.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FtglFontTextRenderer.h"
 #include "GuiManager.h"
@@ -146,6 +147,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IDENTIFICATION_REQUEST);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
@@ -1494,6 +1496,18 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         if (imageCaptureEvent->getBrowserWindowIndex() == this->windowIndex) {
             captureImage(imageCaptureEvent);
             imageCaptureEvent->setEventProcessed();
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_REQUEST) {
+        EventIdentificationRequest* idRequestEvent = dynamic_cast<EventIdentificationRequest*>(event);
+        CaretAssert(idRequestEvent);
+        
+        if (idRequestEvent->getWindowIndex() == this->windowIndex) {
+            SelectionManager* sm = performIdentification(idRequestEvent->getWindowX(),
+                                                         idRequestEvent->getWindowY(),
+                                                         false);
+            idRequestEvent->setSelectionManager(sm);
+            idRequestEvent->setEventProcessed();
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {

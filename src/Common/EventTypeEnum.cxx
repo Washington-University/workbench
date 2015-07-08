@@ -181,6 +181,10 @@ EventTypeEnum::initialize()
                                      "EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION",
                                      "Highlight the location when identification takes place"));
     
+    enumData.push_back(EventTypeEnum(EVENT_IDENTIFICATION_REQUEST,
+                                     "EVENT_IDENTIFICATION_REQUEST",
+                                     "Request an identification operation"));
+    
     enumData.push_back(EventTypeEnum(EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
                                      "EVENT_IDENTIFICATION_SYMBOL_REMOVAL", 
                                      "Remove all identification symbols"));

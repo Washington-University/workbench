@@ -111,8 +111,16 @@ namespace caret {
             void reset() {
                 m_modelXYZValid    = false;
                 m_surfaceNodeValid = false;
+                m_surfaceStructure = StructureEnum::INVALID;
+                m_surfaceNumberOfNodes = 0;
+                m_surfaceNodeIndex = -1;
+                m_surfaceNodeOffset = 0.0;
                 m_tabIndex         = -1;
+                m_tabWidth         = 0;
+                m_tabHeight        = 0;
                 m_windowIndex      = -1;
+                m_windowWidth      = 0;
+                m_windowHeight     = 0;
                 m_modelXYZ[0]  = 0.0;
                 m_modelXYZ[1]  = 0.0;
                 m_modelXYZ[2]  = 0.0;
@@ -127,10 +135,14 @@ namespace caret {
             double m_modelXYZ[3];
             bool   m_modelXYZValid;
             
-            double m_tabXYZ[3];
+            float m_tabWidth;
+            float m_tabHeight;
+            float m_tabXYZ[3];
             int32_t m_tabIndex;
             
-            double m_windowXYZ[3];
+            float m_windowWidth;
+            float m_windowHeight;
+            float m_windowXYZ[3];
             int32_t m_windowIndex;
             
             StructureEnum::Enum m_surfaceStructure;
@@ -139,6 +151,7 @@ namespace caret {
             float m_surfaceNodeOffset;
             bool m_surfaceNodeValid;
         };
+        
         static void getValidCoordinateSpacesFromXY(BrainOpenGLWidget* openGLWidget,
                                                    BrainOpenGLViewportContent* viewportContent,
                                                    const int32_t windowX,
@@ -151,7 +164,7 @@ namespace caret {
         class NewMouseDragCreateAnnotation {
         public:
             NewMouseDragCreateAnnotation(const AnnotationTypeEnum::Enum annotationType,
-                                         const MouseEvent& mouseEvent);
+                                         const MouseEvent& mousePressEvent);
             
             ~NewMouseDragCreateAnnotation();
             
@@ -163,7 +176,7 @@ namespace caret {
                                const int32_t y);
             
             const Annotation* getAnnotation() const;
-            
+
         private:
             Annotation* m_annotation;
             

@@ -47,6 +47,7 @@
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "KeyEvent.h"
+#include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
@@ -54,6 +55,7 @@
 #include "SelectionItemVoxel.h"
 #include "SessionManager.h"
 #include "Surface.h"
+#include "SurfaceMontageViewport.h"
 #include "UserInputModeAnnotationsContextMenu.h"
 #include "UserInputModeAnnotationsWidget.h"
 #include "WuQMessageBox.h"
@@ -765,9 +767,10 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
 {
     if (m_newAnnotationCreatingWithMouseDrag != NULL) {
         
-        CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotation(mouseEvent,
-                                                                                                   m_newAnnotationCreatingWithMouseDrag->getAnnotation(),
-                                                                                                   mouseEvent.getOpenGLWidget()));
+        CaretPointer<AnnotationCreateDialog> annotationDialog(
+            AnnotationCreateDialog::AnnotationCreateDialog::newAnnotationTypeWithBounds(mouseEvent,
+                                                                                        m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getType(),
+                                                                                        mouseEvent.getOpenGLWidget()));
         if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
             
         }
@@ -942,6 +945,8 @@ UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* open
             coordInfoOut.m_tabXYZ[1] = tabY;
             coordInfoOut.m_tabXYZ[2] = 0.0;
             coordInfoOut.m_tabIndex  = tabContent->getTabNumber();
+            coordInfoOut.m_tabWidth  = tabViewport[2];
+            coordInfoOut.m_tabHeight = tabViewport[3];
         }
     }
     
@@ -950,7 +955,9 @@ UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* open
     coordInfoOut.m_windowXYZ[0] = windowViewport[0] + windowX;
     coordInfoOut.m_windowXYZ[1] = windowViewport[1] + windowY;
     coordInfoOut.m_windowXYZ[2] = 0.0;
-    coordInfoOut.m_windowIndex = viewportContent->getWindowIndex();
+    coordInfoOut.m_windowIndex  = viewportContent->getWindowIndex();
+    coordInfoOut.m_windowWidth  = windowViewport[2];
+    coordInfoOut.m_windowHeight = windowViewport[3];
     
     /*
      * Normalize window coordinates (width and height range [0, 1]
@@ -1334,5 +1341,4 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::getAnnotation() const
 {
     return m_annotation;
 }
-
 

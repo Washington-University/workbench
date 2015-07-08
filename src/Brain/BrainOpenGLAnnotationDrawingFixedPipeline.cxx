@@ -272,8 +272,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
  *
  * @param annotation
  *     The annotation whose bounds is computed.
- * @param viewport
- *     The current OpenGL Viewport (x, y, w, h)
  * @param windowXYZ
  *     Window coordinates of the annotation.
  * @param bottomLeftOut
@@ -287,24 +285,37 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
  */
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
-                                                                          const GLint viewport[4],
                                                                           const float windowXYZ[3],
                                                                           float bottomLeftOut[3],
                                                                           float bottomRightOut[3],
                                                                           float topRightOut[3],
                                                                           float topLeftOut[3]) const
 {
-    const float viewportWidth  = viewport[2];
-    const float viewportHeight = viewport[3];
+    float viewportWidth  = m_modelSpaceViewport[2];
+    float viewportHeight = m_modelSpaceViewport[3];
+    if (annotation2D->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::MODEL) {
+        viewportWidth  = m_tabViewport[2];
+        viewportHeight = m_tabViewport[3];
+    }
+    
+    /*
+     * Only use text characters when the text is NOT empty
+     */
+    const AnnotationText* textAnnotation = dynamic_cast<const AnnotationText*>(annotation2D);
+    bool textFlag = false;
+    if (textAnnotation != NULL) {
+        if ( ! textAnnotation->getText().trimmed().isEmpty()) {
+            textFlag = true;
+        }
+    }
     
     bool boundsValid = false;
-    const AnnotationText* textAnnotation = dynamic_cast<const AnnotationText*>(annotation2D);
-    if (textAnnotation != NULL) {
+    if (textFlag) {
         m_brainOpenGLFixedPipeline->textRenderer->getBoundsForTextAtViewportCoords(*textAnnotation,
                                                                                    windowXYZ[0], windowXYZ[1], windowXYZ[2],
                                                                                    bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
         
-        boundsValid       = true;
+        boundsValid = true;
     }
     else {
         boundsValid = annotation2D->getShapeBounds(viewportWidth,
@@ -360,13 +371,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const float rota
  *     The volume slice's plane.
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane)
+BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane,
+                                                                                  const int tabViewport[4])
 {
     if (plane.isValidPlane()) {
         m_volumeSpacePlane = plane;
         m_volumeSpacePlaneValid = true;
         
         drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                        tabViewport,
                         NULL);
     }
     
@@ -384,12 +397,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
+                                                           const int tabViewport[4],
                                                            const Surface* surfaceDisplayed)
 {
     if (m_brainOpenGLFixedPipeline->m_brain == NULL) {
         return;
     }
     
+    m_tabViewport[0] = tabViewport[0];
+    m_tabViewport[1] = tabViewport[1];
+    m_tabViewport[2] = tabViewport[2];
+    m_tabViewport[3] = tabViewport[3];
     
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawing in space "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
@@ -760,7 +778,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     float bottomRight[3];
     float topRight[3];
     float topLeft[3];
-    if ( ! getAnnotationTwoDimShapeBounds(box, m_modelSpaceViewport, windowXYZ,
+    if ( ! getAnnotationTwoDimShapeBounds(box, windowXYZ,
                                bottomLeft, bottomRight, topRight, topLeft)) {
         return;
     }
@@ -864,7 +882,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     float bottomRight[3];
     float topRight[3];
     float topLeft[3];
-    if ( ! getAnnotationTwoDimShapeBounds(oval, m_modelSpaceViewport, windowXYZ,
+    if ( ! getAnnotationTwoDimShapeBounds(oval, windowXYZ,
                                           bottomLeft, bottomRight, topRight, topLeft)) {
         return;
     }
@@ -1128,9 +1146,35 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                                                        *text);
                 }
                 else {
-                    m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
-                                                                                       windowXYZ[1],
-                                                                                       *text);
+                    if (text->getText().trimmed().isEmpty()) {
+                        /*
+                         * Text is empty when user is dragging mouse to create a
+                         * text region.  In this case, use the bounds of the 
+                         * two-dim shape.
+                         */
+                        float bl[3];
+                        float br[3];
+                        float tr[3];
+                        float tl[3];
+                        getAnnotationTwoDimShapeBounds(text, windowXYZ, bl, br, tr, tl);
+                        
+                        std::vector<float> boxCoords;
+                        boxCoords.insert(boxCoords.end(), bl, bl + 3);
+                        boxCoords.insert(boxCoords.end(), br, br + 3);
+                        boxCoords.insert(boxCoords.end(), tr, tr + 3);
+                        boxCoords.insert(boxCoords.end(), tl, tl + 3);
+                        
+                        if (boxCoords.size() == 12) {
+                            BrainOpenGLPrimitiveDrawing::drawLineLoop(boxCoords,
+                                                                      foregroundRGBA,
+                                                                      text->getForegroundLineWidth());
+                        }
+                    }
+                    else {
+                        m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
+                                                                                           windowXYZ[1],
+                                                                                           *text);
+                    }
                 }
                 
                 setDepthTestingStatus(depthTestFlag);

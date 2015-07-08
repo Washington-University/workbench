@@ -778,7 +778,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const Volume
     /*
      * Draw model space annotaitons on the volume slice
      */
-    m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(slicePlane);
+    m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(slicePlane,
+                                                                                        m_fixedPipelineDrawing->m_tabViewport);
     
     m_fixedPipelineDrawing->disableClippingPlanes();
     

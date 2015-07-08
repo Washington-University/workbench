@@ -96,6 +96,8 @@ public:
         EVENT_HELP_VIEWER_DISPLAY,
         /** Highlight location when an identification occurs */
         EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION,
+        /** Perform an identification operation */
+        EVENT_IDENTIFICATION_REQUEST,
         /** Remove all identification symbols */
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
         /** Browser window image capture */

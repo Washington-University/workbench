@@ -113,7 +113,31 @@ AnnotationCreateDialog::newAnnotationType(const MouseEvent& mouseEvent,
                                                  const AnnotationTypeEnum::Enum annotationType,
                                                  QWidget* parent)
 {
-    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE,
+    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_CLICK,
+                                                                mouseEvent,
+                                                                NULL,
+                                                                NULL,
+                                                                annotationType,
+                                                                parent);
+    return dialog;
+}
+
+/**
+ * Get a dialog for creating a new annotation using an annotation type.
+ *
+ * @param mouseEvent
+ *     The mouse event.
+ * @param annotationType
+ *      Type of annotation that is being created.
+ * @param parent
+ *      Optional parent for this dialog.
+ */
+AnnotationCreateDialog*
+AnnotationCreateDialog::newAnnotationTypeWithBounds(const MouseEvent& mouseEvent,
+                                          const AnnotationTypeEnum::Enum annotationType,
+                                          QWidget* parent)
+{
+    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE,
                                                                 mouseEvent,
                                                                 NULL,
                                                                 NULL,
@@ -156,7 +180,7 @@ AnnotationCreateDialog::newPasteAnnotation(const MouseEvent& mouseEvent,
  * @param mode
  *     The dialog's mode.
  * @param mouseEvent
- *     The mouse event indicating where user clicked in the window
+ *     The mouse event.
  * @param annotationFile
  *     File containing the annotation that is copied (may be NULL).
  * @param annotation
@@ -220,11 +244,18 @@ m_annotationType(annotationType)
                 }
             }
             break;
-        case MODE_NEW_ANNOTATION_TYPE:
+        case MODE_NEW_ANNOTATION_TYPE_CLICK:
+            break;
+        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
+            windowX = mouseEvent.getPressedX();
+            windowY = mouseEvent.getPressedY();
+            windowTwoX = mouseEvent.getX();
+            windowTwoY = mouseEvent.getY();
             break;
         case MODE_PASTE_ANNOTATION:
             break;
     }
+    
     UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
                                                              mouseEvent.getViewportContent(),
                                                              windowX,
@@ -255,7 +286,13 @@ m_annotationType(annotationType)
     
     switch (m_mode) {
         case MODE_ADD_NEW_ANNOTATION:
-        case MODE_NEW_ANNOTATION_TYPE:
+        case MODE_NEW_ANNOTATION_TYPE_CLICK:
+            setWindowTitle("New Annotation");
+            if (s_previousSelections.m_valid) {
+                m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
+            }
+            break;
+        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
             setWindowTitle("New Annotation");
             if (s_previousSelections.m_valid) {
                 m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
@@ -291,7 +328,9 @@ m_annotationType(annotationType)
         switch (m_mode) {
             case MODE_ADD_NEW_ANNOTATION:
                 break;
-            case MODE_NEW_ANNOTATION_TYPE:
+            case MODE_NEW_ANNOTATION_TYPE_CLICK:
+                break;
+            case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
                 break;
             case MODE_PASTE_ANNOTATION:
             {
@@ -305,131 +344,6 @@ m_annotationType(annotationType)
         }
     }    
 }
-
-
-///**
-// * Constructor for creating an annotation from a single mouse click.
-// *
-// * @param mouseEvent
-// *     The mouse event indicating where user clicked in the window
-// * @param annotationType
-// *      Type of annotation that is being created.
-// * @param parent
-// *      Optional parent for this dialog.
-// */
-//AnnotationCreateDialog::AnnotationCreateDialog(const MouseEvent& mouseEvent,
-//                                               const AnnotationTypeEnum::Enum annotationType,
-//                                               QWidget* parent)
-//: WuQDialogModal("Insert Annotation",
-//                 parent),
-//m_mode(MODE_NEW_ANNOTATION_TYPE),
-//m_annotationToPastesFile(NULL),
-//m_annotationToPaste(NULL),
-//m_annotationType(annotationType)
-//{
-//    createDialog(mouseEvent);
-//}
-//
-///**
-// * Insert a copy (pasting) of an annotation.
-// *
-// * @param mouseEvent
-// *     The mouse event indicating where user clicked in the window
-// * @param annotationFile
-// *     File containing the annotation that is copied.
-// * @param annotation
-// *     Annotation that is copied.
-// * @param parent
-// *      Optional parent for this dialog.
-// */
-//AnnotationCreateDialog::AnnotationCreateDialog(const MouseEvent& mouseEvent,
-//                                               const AnnotationFile* annotationFile,
-//                                               const Annotation* annotation,
-//                                               QWidget* parent)
-//: WuQDialogModal("Paste Annotation",
-//                 parent),
-//m_mode(MODE_PASTE_ANNOTATION),
-//m_annotationToPastesFile(annotationFile),
-//m_annotationToPaste(annotation),
-//m_annotationType(annotation->getType())
-//{
-//    CaretAssert(annotationFile);
-//    CaretAssert(annotation);
-//    createDialog(mouseEvent);
-//}
-//
-///**
-// * Create the dialog.
-// *
-// * @param mouseEvent
-// *     The mouse event indicating where user clicked in the window
-// */
-//void
-//AnnotationCreateDialog::createDialog(const MouseEvent& mouseEvent)
-//{
-//    m_textLineEdit = NULL;
-//    
-//    /*
-//     * Get coordinates at the mouse location.
-//     */
-//    UserInputModeAnnotations::getCoordinatesFromMouseLocation(mouseEvent,
-//                                                              m_coordInfo);
-//    
-//    m_fileSelectionWidget = createFileSelectionWidget();
-//    m_coordinateSelectionWidget = new AnnotationCoordinateSelectionWidget(m_annotationType,
-//                                                                          m_coordInfo);
-//    QGroupBox* coordGroupBox = new QGroupBox("Coordinate Space");
-//    QVBoxLayout* coordGroupLayout = new QVBoxLayout(coordGroupBox);
-//    coordGroupLayout->setMargin(0);
-//    coordGroupLayout->addWidget(m_coordinateSelectionWidget);
-//    
-//    switch (m_mode) {
-//        case MODE_NEW_ANNOTATION_TYPE:
-//            if (s_previousSelections.m_valid) {
-//                m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
-//            }
-//            break;
-//        case MODE_PASTE_ANNOTATION:
-//            m_coordinateSelectionWidget->selectCoordinateSpace(m_annotationToPaste->getCoordinateSpace());
-//            break;
-//    }
-//    
-//    QWidget* textWidget = ((m_annotationType == AnnotationTypeEnum::TEXT)
-//                           ? createTextWidget()
-//                           : NULL);
-//    
-//    QWidget* dialogWidget = new QWidget();
-//    QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
-//    if (m_fileSelectionWidget != NULL) {
-//        layout->addWidget(m_fileSelectionWidget);
-//    }
-//    layout->addWidget(coordGroupBox);
-//    if (textWidget != NULL) {
-//        layout->addWidget(textWidget);
-//    }
-//    
-//    setCentralWidget(dialogWidget,
-//                     SCROLL_AREA_NEVER);
-//    
-//    if (m_annotationType == AnnotationTypeEnum::TEXT) {
-//        CaretAssert(m_textLineEdit);
-//        m_textLineEdit->setFocus();
-//        
-//        switch (m_mode) {
-//            case MODE_NEW_ANNOTATION_TYPE:
-//                break;
-//            case MODE_PASTE_ANNOTATION:
-//            {
-//                const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(m_annotationToPaste);
-//                if (textAnn != NULL) {
-//                    m_textLineEdit->setText(textAnn->getText());
-//                    m_textLineEdit->selectAll();
-//                }
-//            }
-//                break;
-//        }
-//    }
-//}
 
 /**
  * Destructor.
@@ -470,7 +384,8 @@ AnnotationCreateDialog::createFileSelectionWidget()
     AnnotationFile* annotationFile = NULL;
     switch (m_mode) {
         case MODE_ADD_NEW_ANNOTATION:
-        case MODE_NEW_ANNOTATION_TYPE:
+        case MODE_NEW_ANNOTATION_TYPE_CLICK:
+        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
             if (s_previousSelections.m_valid) {
                 annotationFile = s_previousSelections.m_annotationFile;
             }
@@ -642,7 +557,8 @@ AnnotationCreateDialog::okButtonClicked()
             annotation.grabNew(annCopy);
         }
             break;
-        case MODE_NEW_ANNOTATION_TYPE:
+        case MODE_NEW_ANNOTATION_TYPE_CLICK:
+        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
             setAnnotationsCoordinatesFlag = true;
             annotation.grabNew(Annotation::newAnnotationOfType(m_annotationType));
             if (m_annotationType == AnnotationTypeEnum::TEXT) {
@@ -650,27 +566,6 @@ AnnotationCreateDialog::okButtonClicked()
                 text->setText(userText);
                 annotation.grabNew(text);
             }
-//            switch (m_annotationType) {
-//                case AnnotationTypeEnum::BOX:
-//                    annotation.grabNew(new AnnotationBox());
-//                    break;
-//                case AnnotationTypeEnum::IMAGE:
-//                    annotation.grabNew(new AnnotationImage());
-//                    break;
-//                case AnnotationTypeEnum::LINE:
-//                    annotation.grabNew(new AnnotationLine());
-//                    break;
-//                case AnnotationTypeEnum::OVAL:
-//                    annotation.grabNew(new AnnotationOval());
-//                    break;
-//                case AnnotationTypeEnum::TEXT:
-//                {
-//                    AnnotationText* text = new AnnotationText();
-//                    text->setText(userText);
-//                    annotation.grabNew(text);
-//                }
-//                    break;
-//            }
             break;
         case MODE_PASTE_ANNOTATION:
         {

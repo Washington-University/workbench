@@ -487,6 +487,8 @@ namespace caret {
         
         void updateForegroundAndBackgroundColors(BrainOpenGLViewportContent* vpContent);
         
+        void setTabViewport(const BrainOpenGLViewportContent* vpContent);
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         
@@ -510,6 +512,9 @@ namespace caret {
         
         int32_t mouseX;
         int32_t mouseY;
+        
+        /** Viewport for tab content that is being drawn */
+        int m_tabViewport[4];
         
         /** Clipping plane group active in browser tab */
         ClippingPlaneGroup* m_clippingPlaneGroup;

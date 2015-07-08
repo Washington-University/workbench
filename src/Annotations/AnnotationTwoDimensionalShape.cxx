@@ -822,6 +822,52 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
 }
 
 /**
+ * Set the width and height of the shape from bounding coordinates.
+ *
+ * @param xyzOne
+ *     First bounding coordinate in absolute tab coordinates
+ * @param xyzTwo
+ *     Second bounding coordinate in absolute tab coordinates
+ * @param spaceWidth
+ *     Width of space.
+ * @param spaceHeight
+ *     Height of space.
+ */
+void
+AnnotationTwoDimensionalShape::setWidthAndHeightFromBounds(const float xyzOne[3],
+                                                           const float xyzTwo[3],
+                                                           const float spaceWidth,
+                                                           const float spaceHeight)
+{
+    const float minX = std::min(xyzOne[0],
+                                xyzTwo[0]);
+    const float maxX = std::max(xyzOne[0],
+                                xyzTwo[0]);
+    
+    const float minY = std::min(xyzOne[1],
+                                xyzTwo[1]);
+    const float maxY = std::max(xyzOne[1],
+                                xyzTwo[1]);
+    
+    const float width  = maxX - minX;
+    const float height = maxY - minY;
+    const float aspectRatio = ((width > 0.0)
+                               ? (height / width)
+                               : 1.0);
+    
+    const float relativeWidth  = (width  / static_cast<float>(spaceWidth));
+    const float relativeHeight = (height / static_cast<float>(spaceHeight));
+    
+    setWidth(relativeWidth);
+    if (isUseHeightAsAspectRatio()) {
+        setHeight(aspectRatio);
+    }
+    else {
+        setHeight(relativeHeight);
+    }
+}
+
+/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes

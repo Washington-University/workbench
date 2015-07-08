@@ -51,6 +51,10 @@ namespace caret {
                                                          const AnnotationTypeEnum::Enum annotationType,
                                                          QWidget* parent = 0);
         
+        static AnnotationCreateDialog* newAnnotationTypeWithBounds(const MouseEvent& mousePressEvent,
+                                                                   const AnnotationTypeEnum::Enum annotationType,
+                                                                   QWidget* parent = 0);
+        
         static AnnotationCreateDialog* newPasteAnnotation(const MouseEvent& mouseEvent,
                                                           const AnnotationFile* annotationFile,
                                                           const Annotation* annotation,
@@ -79,8 +83,10 @@ namespace caret {
         enum Mode {
             /** Adding a new annotation */
             MODE_ADD_NEW_ANNOTATION,
-            /** New annotation from annotation type */
-            MODE_NEW_ANNOTATION_TYPE,
+            /** New annotation from annotation type at mouse click */
+            MODE_NEW_ANNOTATION_TYPE_CLICK,
+            /** New annotation from annotation type at mouse press and release */
+            MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE,
             /** Paste an annotation */
             MODE_PASTE_ANNOTATION
         };
