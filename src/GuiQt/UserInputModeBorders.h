@@ -67,6 +67,8 @@ namespace caret {
         
         virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent);
         
+        virtual void mouseLeftClickWithCtrlShift(const MouseEvent& mouseEvent);
+        
         virtual void mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent);
         
         virtual CursorEnum::Enum getCursor() const;

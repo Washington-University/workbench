@@ -449,6 +449,33 @@ UserInputModeBorders::mouseLeftClickWithShift(const MouseEvent& /*mouseEvent*/)
 }
 
 /**
+ * Process a mouse left click with ctrl and shift keys down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeBorders::mouseLeftClickWithCtrlShift(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    const int mouseX = mouseEvent.getX();
+    const int mouseY = mouseEvent.getY();
+    
+    switch (this->mode) {
+        case MODE_DRAW:
+            this->drawPointAtMouseXY(openGLWidget,
+                                     mouseX,
+                                     mouseY);
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+            break;
+        case MODE_EDIT:
+            break;
+        case MODE_ROI:
+            break;
+    }
+}
+
+/**
  * Process a mouse left drag with ctrl and shift keys down event.
  *
  * @param mouseEvent

@@ -1038,6 +1038,10 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             else if (keyModifiers == Qt::ShiftModifier) {
                 this->selectedUserInputProcessor->mouseLeftClickWithShift(mouseEvent);
             }
+            else if (keyModifiers == (Qt::ShiftModifier
+                                      | Qt::ControlModifier)) {
+                this->selectedUserInputProcessor->mouseLeftClickWithCtrlShift(mouseEvent);
+            }
         }
     }
     
