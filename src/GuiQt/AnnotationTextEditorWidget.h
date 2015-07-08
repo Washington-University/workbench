@@ -21,13 +21,14 @@
  */
 /*LICENSE_END*/
 
-
+#include <QLineEdit>
 #include <QWidget>
 
 class QTextEdit;
 
 namespace caret {
 
+    class AnnotationLineEdit;
     class AnnotationText;
     class EnumComboBoxTemplate;
     
@@ -49,7 +50,9 @@ namespace caret {
     private slots:
         void annotationTextChanged();
         
-        void editTextActionClicked();
+        void displayTextEditor();
+        
+        void textEditorDialogTextChanged();
         
         void annotationTextConnectTypeEnumComboBoxItemActivated();
         
@@ -58,16 +61,39 @@ namespace caret {
 
         AnnotationTextEditorWidget& operator=(const AnnotationTextEditorWidget&);
         
+        void updateLineEditText(const QString& text);
+        
         const int32_t m_browserWindowIndex;
         
         AnnotationText* m_annotationText;
         
         QTextEdit* m_textEditorInDialog;
         
+        AnnotationLineEdit* m_textLineEdit;
+        
         EnumComboBoxTemplate* m_annotationTextConnectTypeEnumComboBox;
         
         // ADD_NEW_MEMBERS_HERE
 
+    };
+    
+    /**
+     * A line edit that emits a signal if the user double-clicks
+     * in the line edit.
+     */
+    class AnnotationLineEdit : public QLineEdit {
+        Q_OBJECT
+        
+    public:
+        AnnotationLineEdit(QWidget* parent = 0) : QLineEdit(parent) { }
+        
+        virtual ~AnnotationLineEdit() { }
+        
+    signals:
+        void doubleClickInLineEdit();
+        
+    protected:
+        void mouseDoubleClickEvent(QMouseEvent*) { emit doubleClickInLineEdit(); }
     };
     
 #ifdef __ANNOTATION_TEXT_EDITOR_WIDGET_DECLARE__
