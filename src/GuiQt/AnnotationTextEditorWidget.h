@@ -24,8 +24,6 @@
 #include <QLineEdit>
 #include <QWidget>
 
-class QTextEdit;
-
 namespace caret {
 
     class AnnotationLineEdit;
@@ -52,7 +50,7 @@ namespace caret {
         
         void displayTextEditor();
         
-        void textEditorDialogTextChanged();
+        void textEditorDialogTextChanged(const QString&);
         
         void annotationTextConnectTypeEnumComboBoxItemActivated();
         
@@ -66,8 +64,6 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         AnnotationText* m_annotationText;
-        
-        QTextEdit* m_textEditorInDialog;
         
         AnnotationLineEdit* m_textLineEdit;
         

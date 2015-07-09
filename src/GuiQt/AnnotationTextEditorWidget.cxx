@@ -25,11 +25,11 @@
 
 #include <QLabel>
 #include <QLineEdit>
-#include <QTextEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
 
 #include "AnnotationText.h"
+#include "AnnotationTextEditorDialog.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -59,8 +59,6 @@ AnnotationTextEditorWidget::AnnotationTextEditorWidget(const int32_t browserWind
 QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    m_textEditorInDialog = NULL;
-    
     QLabel* textLabel = new QLabel("Text");
 
     m_textLineEdit = new AnnotationLineEdit();
@@ -68,6 +66,8 @@ m_browserWindowIndex(browserWindowIndex)
                      this, SLOT(annotationTextChanged()));
     QObject::connect(m_textLineEdit, SIGNAL(doubleClickInLineEdit()),
                      this, SLOT(displayTextEditor()));
+    m_textLineEdit->setToolTip("Insert lines breaks with '\\n' \n"
+                               "Double-click text to edit text in a multi-line text dialog");
     
     const QString textConnectToolTip("Connect text to brainordinate with arrow or line");
     m_annotationTextConnectTypeEnumComboBox = new EnumComboBoxTemplate(this);
@@ -136,37 +136,21 @@ void
 AnnotationTextEditorWidget::displayTextEditor()
 {
     if (m_annotationText != NULL) {
-        AString savedText = m_annotationText->getText();
-        
-        WuQDataEntryDialog ded("Edit Annotation Text",
-                               this,
-                               false);
-        m_textEditorInDialog = ded.addTextEdit("",
-                                               savedText,
-                                               false);
-        QObject::connect(m_textEditorInDialog, SIGNAL(textChanged()),
-                         this, SLOT(textEditorDialogTextChanged()));
-        
-        if (ded.exec() == WuQDataEntryDialog::Accepted) {
-            annotationTextChanged();
-        }
-        else {
-            updateLineEditText(savedText);
-            annotationTextChanged();
-        }
+        AnnotationTextEditorDialog ted(m_annotationText,
+                                       this);
+        QObject::connect(&ted, SIGNAL(textHasBeenChanged(const QString&)),
+                         this, SLOT(textEditorDialogTextChanged(const QString&)));
+        ted.exec();
     }
-    
-    m_textEditorInDialog = NULL;
 }
 
 /**
  * Gets called when text is edited in the text editor dialog.
  */
 void
-AnnotationTextEditorWidget::textEditorDialogTextChanged()
+AnnotationTextEditorWidget::textEditorDialogTextChanged(const QString& text)
 {
-    CaretAssert(m_textEditorInDialog);
-    updateLineEditText(m_textEditorInDialog->toPlainText());
+    updateLineEditText(text);
     annotationTextChanged();
 }
 
@@ -177,7 +161,9 @@ AnnotationTextEditorWidget::textEditorDialogTextChanged()
 void
 AnnotationTextEditorWidget::annotationTextChanged()
 {
-    m_annotationText->setText(m_textLineEdit->text().trimmed());
+    QString s(m_textLineEdit->text().trimmed());
+    s.replace("\\n", "\n");
+    m_annotationText->setText(s);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -191,7 +177,9 @@ AnnotationTextEditorWidget::annotationTextChanged()
 void
 AnnotationTextEditorWidget::updateLineEditText(const QString& text)
 {
-    m_textLineEdit->setText(text.trimmed());
+    QString s(text);
+    s.replace("\n", "\\n");
+    m_textLineEdit->setText(s);
 }
 
 /**

@@ -189,5 +189,6 @@ UserInputModeAnnotationsContextMenu::setAnnotationText()
                       this->pos().y() + 20);
     ted.move(diaglogPos);
     ted.exec();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 

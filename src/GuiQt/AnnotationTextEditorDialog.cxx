@@ -24,7 +24,7 @@
 #undef __ANNOTATION_TEXT_EDITOR_DIALOG_DECLARE__
 
 #include <QDialogButtonBox>
-#include <QLineEdit>
+#include <QTextEdit>
 #include <QVBoxLayout>
 
 #include "AnnotationText.h"
@@ -60,19 +60,17 @@ m_textAnnotation(textAnnotation)
     flags |= (Qt::CustomizeWindowHint);  // disables min/max buttons
     setWindowFlags(flags);
     
-    setWindowTitle("Edit Text");
+    setWindowTitle("Edit Annotation Text");
     
     m_uneditedText = textAnnotation->getText();
     
-    m_textEdit = new QLineEdit();
+    m_textEdit = new QTextEdit();
     m_textEdit->setText(textAnnotation->getText());
     m_textEdit->selectAll();
-    m_textEdit->setToolTip("Press RETURN to save text editing\n"
-                           "Press ESCAPE to cancel text editing");
-    QObject::connect(m_textEdit, SIGNAL(textChanged(const QString&)),
-                     this, SLOT(textWasEdited(const QString&)));
-    QObject::connect(m_textEdit, SIGNAL(returnPressed()),
-                     this, SLOT(textReturnedPressed()));
+    m_textEdit->setToolTip("Press OK to save text changes and close dialog\n"
+                           "Press CANCEL to revert changes and close dialog");
+    QObject::connect(m_textEdit, SIGNAL(textChanged()),
+                     this, SLOT(textWasEdited()));
     
     QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
                                                        | QDialogButtonBox::Cancel);
@@ -106,20 +104,12 @@ AnnotationTextEditorDialog::done(int resultCode)
     }
     else {
         m_textAnnotation->setText(m_uneditedText);
+        emit textHasBeenChanged(m_textAnnotation->getText());
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
     QDialog::done(resultCode);
-}
-
-/**
- * Called when the return key is pressed.
- */
-void
-AnnotationTextEditorDialog::textReturnedPressed()
-{
-    accept();
 }
 
 /**
@@ -129,9 +119,11 @@ AnnotationTextEditorDialog::textReturnedPressed()
  *     Text entered by user.
  */
 void
-AnnotationTextEditorDialog::textWasEdited(const QString& text)
+AnnotationTextEditorDialog::textWasEdited()
 {
-    m_textAnnotation->setText(text);
+    m_textAnnotation->setText(m_textEdit->toPlainText().trimmed());
+    
+    emit textHasBeenChanged(m_textAnnotation->getText());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

@@ -24,7 +24,7 @@
 
 #include <QDialog>
 
-class QLineEdit;
+class QTextEdit;
 
 namespace caret {
 
@@ -42,10 +42,11 @@ namespace caret {
         
         virtual void done(int resultCode);
         
-    private slots:
-        void textWasEdited(const QString& text);
+    signals:
+        void textHasBeenChanged(const QString&);
         
-        void textReturnedPressed();
+    private slots:
+        void textWasEdited();
         
         // ADD_NEW_METHODS_HERE
 
@@ -58,7 +59,7 @@ namespace caret {
         
         QString m_uneditedText;
         
-        QLineEdit* m_textEdit;
+        QTextEdit* m_textEdit;
         
         // ADD_NEW_MEMBERS_HERE
 
