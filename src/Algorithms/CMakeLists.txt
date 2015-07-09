@@ -77,6 +77,7 @@ AlgorithmMetricROIsFromExtrema.h
 AlgorithmMetricROIsToBorder.h
 AlgorithmMetricSmoothing.h
 AlgorithmMetricTFCE.h
+AlgorithmMetricToVolumeMapping.h
 AlgorithmMetricVectorOperation.h
 AlgorithmMetricVectorTowardROI.h
 AlgorithmNodesInsideBorder.h
@@ -181,6 +182,7 @@ AlgorithmMetricROIsFromExtrema.cxx
 AlgorithmMetricROIsToBorder.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmMetricTFCE.cxx
+AlgorithmMetricToVolumeMapping.cxx
 AlgorithmMetricVectorOperation.cxx
 AlgorithmMetricVectorTowardROI.cxx
 AlgorithmNodesInsideBorder.cxx

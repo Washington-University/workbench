@@ -106,7 +106,7 @@ OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key
 ParameterComponent* ParameterComponent::createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description)
 {
     CaretAssertMessage(checkUniqueRepeatable(key), "repeatable parameter created with previously used key");
-    if (optionSwitch.isEmpty() || optionSwitch[0] != '-') CaretLogWarning("developer warning: option '" + optionSwitch + "' created, but does not start with dash");
+    if (optionSwitch.isEmpty() || optionSwitch[0] != '-') CaretLogWarning("developer warning: repeatable option '" + optionSwitch + "' created, but does not start with dash");
     RepeatableOption* newOpt = new RepeatableOption(key, optionSwitch, description);
     m_repeatableOptions.push_back(newOpt);
     return &(newOpt->m_template);

@@ -95,6 +95,7 @@ NodeAndVoxelColoring.h
 OxfordSparseThreeFile.h
 PaletteFile.h
 RgbaFile.h
+RibbonMappingHelper.h
 SceneFile.h
 SceneFileSaxReader.h
 SignedDistanceHelper.h
@@ -202,6 +203,7 @@ NodeAndVoxelColoring.cxx
 OxfordSparseThreeFile.cxx
 PaletteFile.cxx
 RgbaFile.cxx
+RibbonMappingHelper.cxx
 SceneFile.cxx
 SceneFileSaxReader.cxx
 SignedDistanceHelper.cxx

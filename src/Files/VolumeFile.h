@@ -151,6 +151,9 @@ namespace caret {
         ///recreates the volume file storage with new size and spacing
         void reinitialize(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1, SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY);
         
+        ///convenient version for 3D or 4D from a VolumeSpace
+        void reinitialize(const VolumeSpace& volSpaceIn, const int64_t numFrames = 1, const int64_t numComponents = 1, SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY);
+        
         void addSubvolumes(const int64_t& numToAdd);
         
         void setType(SubvolumeAttributes::VolumeType whatType);

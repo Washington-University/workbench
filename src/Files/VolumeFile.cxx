@@ -109,6 +109,18 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     setType(whatType);
 }
 
+void VolumeFile::reinitialize(const VolumeSpace& volSpaceIn, const int64_t numFrames, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
+{
+    CaretAssert(numFrames > 0);
+    const int64_t* dimsPtr = volSpaceIn.getDims();
+    vector<int64_t> dims(dimsPtr, dimsPtr + 3);
+    if (numFrames > 1)
+    {
+        dims.push_back(numFrames);
+    }
+    reinitialize(dims, volSpaceIn.getSform(), numComponents, whatType);
+}
+
 void VolumeFile::addSubvolumes(const int64_t& numToAdd)
 {
     VolumeBase::addSubvolumes(numToAdd);
