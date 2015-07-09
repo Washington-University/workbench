@@ -844,6 +844,7 @@ UserInputModeAnnotations::mouseLeftDoubleClick(const MouseEvent& mouseEvent)
                 ted.move(openGLWidget->mapToGlobal(QPoint(mouseX,
                                                           (openGLWidget->height() - mouseY + 20))));
                 ted.exec();
+                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
             }
         }
     }
