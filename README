@@ -71,7 +71,7 @@ Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 originally licensed LGPLv2.1 (or GPLv3, or a commercial license)
 modified to change some UI behaviors otherwise hardcoded into QT classes
 
-Files/SignedDistanceHelper.cxx, Algorithms/AlgorithmVolumeToSurfaceMapping.cxx:
+Files/SignedDistanceHelper.cxx, Files/RibbonMappingHelper.cxx:
 make use of PNPOLY, http://www.ecse.rpi.edu/~wrf/Research/Short_Notes/pnpoly.html
 Copyright (c) 1970-2003, Wm. Randolph Franklin
 originally licensed with 3-clause BSD/MIT license, see files in question

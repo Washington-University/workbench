@@ -42,7 +42,7 @@ Copyright: 2014 Washington University School of Medicine
            2012 Digia Plc and/or its subsidiary(-ies).
 License: Qt-commercial or LGPL-2.1 or GPL-3.0, and GPL-2+
 
-Files: src/Files/SignedDistanceHelper.cxx src/Algorithms/AlgorithmVolumeToSurfaceMapping.cxx
+Files: src/Files/SignedDistanceHelper.cxx src/Files/RibbonMappingHelper.cxx
 Copyright: 2014 Washington University School of Medicine
            1970-2003, Wm. Randolph Franklin
 License: GPL-2+ and PNPOLY-BSD-3-Clause
