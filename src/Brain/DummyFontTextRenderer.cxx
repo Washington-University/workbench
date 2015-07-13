@@ -172,28 +172,22 @@ DummyFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& /*
 }
 
 /**
- * Get the bounds of text (in pixels) using the given text
+ * Get the estimated width and height of text (in pixels) using the given text
  * attributes.
  *
  * See http://ftgl.sourceforge.net/docs/html/metrics.png
  *
  * @param annotationText
- *   Text and attributes for text drawing.
- * @param xMinOut
- *    Minimum X of text.
- * @param xMaxOut
- *    Maximum X of text.
- * @param yMinOut
- *    Minimum Y of text.
- * @param yMaxOut
- *    Maximum Y of text.
+ *   Text for width and height estimation.
+ * @param widthOut
+ *    Estimated width of text.
+ * @param heightOut
+ *    Estimated height of text.
  */
 void
-DummyFontTextRenderer::getTextBoundsInPixels(const AnnotationText& /*annotationText*/,
-                                             double& /*xMinOut*/,
-                                             double& /*xMaxOut*/,
-                                             double& /*yMinOut*/,
-                                             double& /*yMaxOut*/)
+DummyFontTextRenderer::getTextWidthHeightInPixels(const AnnotationText& /*annotationText*/,
+                                                  double& /*widthOut*/,
+                                                  double& /*heightOut*/)
 {
 }
 

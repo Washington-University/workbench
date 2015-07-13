@@ -694,19 +694,11 @@ BrainOpenGLChartDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeig
          iter++) {
         const AString text = *iter;
         if ( ! text.isEmpty()) {
-            double textMinX   = 0;
-            double textMaxX   = 0;
-            double textMinY   = 0;
-            double textMaxY   = 0;
             AnnotationText annotationText;
             annotationText.setText(text);
-            textRenderer->getTextBoundsInPixels(annotationText,
-                                                textMinX,
-                                                textMaxX,
-                                                textMinY,
-                                                textMaxY);
-            const double textWidth  = textMaxX - textMinX;
-            const double textHeight = textMaxY - textMinY;
+            double textWidth = 0.0;
+            double textHeight = 0.0;
+            textRenderer->getTextWidthHeightInPixels(annotationText, textWidth, textHeight);
             
             widthOut  = std::max(widthOut,  textWidth);
             heightOut = std::max(heightOut, textHeight);

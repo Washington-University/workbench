@@ -132,27 +132,21 @@ namespace caret {
         }
         
         /**
-         * Get the bounds of text (in pixels) using the given text
+         * Get the estimated width and height of text (in pixels) using the given text
          * attributes.
          *
          * See http://ftgl.sourceforge.net/docs/html/metrics.png
          *
          * @param annotationText
-         *   Text that is to be drawn.
-         * @param xMinOut
-         *    Minimum X of text.
-         * @param xMaxOut
-         *    Maximum X of text.
-         * @param yMinOut
-         *    Minimum Y of text.
-         * @param yMaxOut
-         *    Maximum Y of text.
+         *   Text for width and height estimation.
+         * @param widthOut
+         *    Estimated width of text.
+         * @param heightOut
+         *    Estimated height of text.
          */
-        virtual void getTextBoundsInPixels(const AnnotationText& annotationText,
-                                           double& xMinOut,
-                                           double& xMaxOut,
-                                           double& yMinOut,
-                                           double& yMaxOut) = 0;
+        virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                double& widthOut,
+                                                double& heightOut) = 0;
         
         /**
          * Get the bounds of text (in pixels) using the given text

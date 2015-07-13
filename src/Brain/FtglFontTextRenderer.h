@@ -54,20 +54,19 @@ namespace caret {
                                            const double modelZ,
                                            const AnnotationText& annotationText);
         
-        void getTextBoundsInPixels(const AnnotationText& annotationText,
-                                   double& xMinOut,
-                                   double& xMaxOut,
-                                   double& yMinOut,
-                                   double& yMaxOut);
+        virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                double& widthOut,
+                                                double& heightOut);
         
-        void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
-                                              const double viewportX,
-                                              const double viewportY,
-                                              const double viewportZ,
-                                              double bottomLeftOut[3],
-                                              double bottomRightOut[3],
-                                              double topRightOut[3],
-                                              double topLeftOut[3]);
+        
+        virtual void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                      const double viewportX,
+                                                      const double viewportY,
+                                                      const double viewportZ,
+                                                      double bottomLeftOut[3],
+                                                      double bottomRightOut[3],
+                                                      double topRightOut[3],
+                                                      double topLeftOut[3]);
         
         virtual AString getName() const;
         
@@ -81,25 +80,11 @@ namespace caret {
 
         FtglFontTextRenderer& operator=(const FtglFontTextRenderer&);
         
-        void test(const double viewportX,
-                  const double viewportY,
-                  const double viewportZ,
-                  const AnnotationText& annotationText);
-        
-        void drawHorizontalTextAtWindowCoords(const double windowX,
-                                              const double windowY,
-                                              const double windowZ,
+        void drawTextAtViewportCoordsInternal(const DepthTestEnum depthTesting,
+                                              const double viewportX,
+                                              const double viewportY,
+                                              const double viewportZ,
                                               const AnnotationText& annotationText);
-        
-        void drawHorizontalMultiLineTextAtWindowCoords(const double windowX,
-                                                       const double windowY,
-                                                       const double windowZ,
-                                                       const AnnotationText& annotationText);
-        
-        void drawVerticalTextAtWindowCoords(const double windowX,
-                                            const double windowY,
-                                            const double windowZ,
-                                            const AnnotationText& annotationText);
         
         FTFont* getFont(const AnnotationText& annotationText,
                         const bool creatingDefaultFontFlag);
@@ -121,83 +106,6 @@ namespace caret {
             
             bool m_valid;
         };
-        
-        class CharInfo {
-        public:
-            CharInfo(const QString& theChar,
-                     double x,
-                     double y) : m_char(theChar), m_x(x), m_y(y) { }
-            QString m_char;
-            double m_x;
-            double m_y;
-        };
-        
-        class LineInfo {
-        public:
-            LineInfo(const QString& text,
-                     double firstTextCharacterXYZ[3],
-                     double rotationPointXYZ[3]) {
-                m_text = text;
-                m_firstTextCharacterXYZ[0] = firstTextCharacterXYZ[0];
-                m_firstTextCharacterXYZ[1] = firstTextCharacterXYZ[1];
-                m_firstTextCharacterXYZ[2] = firstTextCharacterXYZ[2];
-                m_rotationPointXYZ[0] = rotationPointXYZ[0];
-                m_rotationPointXYZ[1] = rotationPointXYZ[1];
-                m_rotationPointXYZ[2] = rotationPointXYZ[2];
-            }
-            
-            QString m_text;
-            double m_firstTextCharacterXYZ[3];
-            double m_rotationPointXYZ[3];
-            
-        };
-        
-        void getBoundsForHorizontalTextAtWindowCoords(const AnnotationText& annotationText,
-                                                      const double viewportX,
-                                                      const double viewportY,
-                                                      const double viewportZ,
-                                                      double bottomLeftOut[3],
-                                                      double bottomRightOut[3],
-                                                      double topRightOut[3],
-                                                      double topLeftOut[3],
-                                                      double firstTextCharacterXYZOut[3],
-                                                      double rotationPointXYZOut[3]);
-        
-        void getBoundsForHorizontalMultiLineTextAtWindowCoords(const AnnotationText& annotationText,
-                                                      const double viewportX,
-                                                      const double viewportY,
-                                                      const double viewportZ,
-                                                      double bottomLeftOut[3],
-                                                      double bottomRightOut[3],
-                                                      double topRightOut[3],
-                                                      double topLeftOut[3],
-                                                      std::vector<LineInfo>& lineInfoOut);
-        
-        void getBoundsForVerticalTextAtWindowCoords(const AnnotationText& annotationText,
-                                                    const double viewportX,
-                                                    const double viewportY,
-                                                    const double viewportZ,
-                                                    double bottomLeftOut[3],
-                                                    double bottomRightOut[3],
-                                                    double topRightOut[3],
-                                                    double topLeftOut[3],
-                                                    double rotationPointXYZOut[3],
-                                                    std::vector<CharInfo>& textCharsToDraw);
-        
-        void getVerticalTextCharInfo(const AnnotationText& annotationText,
-                                     double& xMinOut,
-                                     double& xMaxOut,
-                                     double& heightOut,
-                                     std::vector<CharInfo>& charInfoOut);
-        
-        void getTextCharInfo(const AnnotationText& annotationText,
-                             double& xMinOut,
-                             double& xMaxOut,
-                             double& yMinOut,
-                             double& yMaxOut,
-                             double& widthOut,
-                             double& heightOut,
-                             std::vector<CharInfo>& charsInfoOut);
         
         class TextCell {
         public:

@@ -51,11 +51,9 @@ namespace caret {
                                            const double modelZ,
                                            const AnnotationText& annotationText);
         
-        void getTextBoundsInPixels(const AnnotationText& annotationTexts,
-                                   double& xMinOut,
-                                   double& xMaxOut,
-                                   double& yMinOut,
-                                   double& yMaxOut);
+        virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                double& widthOut,
+                                                double& heightOut);
         
         virtual void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
                                                       const double viewportX,
