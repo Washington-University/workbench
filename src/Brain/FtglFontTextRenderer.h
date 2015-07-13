@@ -26,6 +26,7 @@
 
 #include "BrainOpenGLTextRenderInterface.h"
 
+class FTBBox;
 class FTFont;
 
 namespace caret {
@@ -80,10 +81,20 @@ namespace caret {
 
         FtglFontTextRenderer& operator=(const FtglFontTextRenderer&);
         
+        void test(const double viewportX,
+                  const double viewportY,
+                  const double viewportZ,
+                  const AnnotationText& annotationText);
+        
         void drawHorizontalTextAtWindowCoords(const double windowX,
                                               const double windowY,
                                               const double windowZ,
                                               const AnnotationText& annotationText);
+        
+        void drawHorizontalMultiLineTextAtWindowCoords(const double windowX,
+                                                       const double windowY,
+                                                       const double windowZ,
+                                                       const AnnotationText& annotationText);
         
         void drawVerticalTextAtWindowCoords(const double windowX,
                                             const double windowY,
@@ -121,6 +132,26 @@ namespace caret {
             double m_y;
         };
         
+        class LineInfo {
+        public:
+            LineInfo(const QString& text,
+                     double firstTextCharacterXYZ[3],
+                     double rotationPointXYZ[3]) {
+                m_text = text;
+                m_firstTextCharacterXYZ[0] = firstTextCharacterXYZ[0];
+                m_firstTextCharacterXYZ[1] = firstTextCharacterXYZ[1];
+                m_firstTextCharacterXYZ[2] = firstTextCharacterXYZ[2];
+                m_rotationPointXYZ[0] = rotationPointXYZ[0];
+                m_rotationPointXYZ[1] = rotationPointXYZ[1];
+                m_rotationPointXYZ[2] = rotationPointXYZ[2];
+            }
+            
+            QString m_text;
+            double m_firstTextCharacterXYZ[3];
+            double m_rotationPointXYZ[3];
+            
+        };
+        
         void getBoundsForHorizontalTextAtWindowCoords(const AnnotationText& annotationText,
                                                       const double viewportX,
                                                       const double viewportY,
@@ -131,6 +162,16 @@ namespace caret {
                                                       double topLeftOut[3],
                                                       double firstTextCharacterXYZOut[3],
                                                       double rotationPointXYZOut[3]);
+        
+        void getBoundsForHorizontalMultiLineTextAtWindowCoords(const AnnotationText& annotationText,
+                                                      const double viewportX,
+                                                      const double viewportY,
+                                                      const double viewportZ,
+                                                      double bottomLeftOut[3],
+                                                      double bottomRightOut[3],
+                                                      double topRightOut[3],
+                                                      double topLeftOut[3],
+                                                      std::vector<LineInfo>& lineInfoOut);
         
         void getBoundsForVerticalTextAtWindowCoords(const AnnotationText& annotationText,
                                                     const double viewportX,
@@ -148,6 +189,87 @@ namespace caret {
                                      double& xMaxOut,
                                      double& heightOut,
                                      std::vector<CharInfo>& charInfoOut);
+        
+        void getTextCharInfo(const AnnotationText& annotationText,
+                             double& xMinOut,
+                             double& xMaxOut,
+                             double& yMinOut,
+                             double& yMaxOut,
+                             double& widthOut,
+                             double& heightOut,
+                             std::vector<CharInfo>& charsInfoOut);
+        
+        class TextCell {
+        public:
+            TextCell(const QString& text,
+                     const int32_t row,
+                     const int32_t column,
+                     const FTBBox& textBounds);
+            
+            const QString m_text;
+            const int32_t m_row;
+            const int32_t m_column;
+            
+            const double m_boundsMinX;
+            const double m_boundsMaxX;
+            const double m_boundsMinY;
+            const double m_boundsMaxY;
+            
+            double m_width;
+            double m_height;
+            
+            double m_viewportX;
+            double m_viewportY;
+            double m_viewportZ;
+        };
+        
+        class TextDrawInfo {
+        public:
+            TextDrawInfo(const double viewportX,
+                         const double viewportY,
+                         const double viewportZ);
+            
+            void addTextCell(const TextCell& textCell);
+            
+            TextCell* getCellAtRowColumn(const int32_t row,
+                                         const int32_t column);
+            
+            void setBounds(const double minX,
+                           const double maxX,
+                           const double minY,
+                           const double maxY);
+            
+            void getBounds(double bottomLeftOut[3],
+                           double bottomRightOut[3],
+                           double topRightOut[3],
+                           double topLeftOut[3]) const;
+
+            const double m_viewportX;
+            const double m_viewportY;
+            const double m_viewportZ;
+            
+            int32_t m_numRows;
+            int32_t m_numColumns;
+            
+            double m_minX;
+            double m_maxX;
+            double m_minY;
+            double m_maxY;
+            
+            std::vector<TextCell> m_textCells;
+        };
+        
+        void assignTextRowColumnLocations(const AnnotationText& annotationText,
+                                       TextDrawInfo& textDrawInfoOut);
+        
+        void setTextViewportCoordinates(const double viewportX,
+                                        const double viewportY,
+                                        const double viewportZ,
+                                        const AnnotationText& annotationText,
+                                        TextDrawInfo& textDrawInfo);
+        
+        void drawTextAtViewportCoordinatesInternal(const AnnotationText& annotationText,
+                                           const TextDrawInfo& textDrawInfo);
         
         void applyForegroundColoring(const AnnotationText& annotationText);
         
