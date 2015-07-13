@@ -355,17 +355,26 @@ FtglFontTextRenderer::setTextViewportCoordinates(const double viewportX,
             TextCell* tc = textDrawInfo.getCellAtRowColumn(jRow, iCol);
             if (tc != NULL) {
                 double textOffsetX = 0;
-                switch (annotationText.getHorizontalAlignment()) {
-                    case AnnotationTextAlignHorizontalEnum::CENTER:
-                        textOffsetX = -tc->m_width / 2.0;
+                
+                switch (annotationText.getOrientation()) {
+                    case AnnotationTextOrientationEnum::HORIZONTAL:
+                        switch (annotationText.getHorizontalAlignment()) {
+                            case AnnotationTextAlignHorizontalEnum::CENTER:
+                                textOffsetX = -tc->m_width / 2.0;
+                                break;
+                            case AnnotationTextAlignHorizontalEnum::LEFT:
+                                textOffsetX = -tc->m_boundsMinX;
+                                break;
+                            case AnnotationTextAlignHorizontalEnum::RIGHT:
+                                textOffsetX = -tc->m_boundsMaxX;
+                                break;
+                        }
                         break;
-                    case AnnotationTextAlignHorizontalEnum::LEFT:
-                        textOffsetX = -tc->m_boundsMinX;
-                        break;
-                    case AnnotationTextAlignHorizontalEnum::RIGHT:
-                        textOffsetX = -tc->m_boundsMaxX;
+                    case AnnotationTextOrientationEnum::STACKED:
+                        textOffsetX = tc->m_boundsMinX;
                         break;
                 }
+
                 
                 double textOffsetY = -tc->m_height;
 //                double textOffsetY = 0;
@@ -456,6 +465,44 @@ FtglFontTextRenderer::setTextViewportCoordinates(const double viewportX,
     }
     
     if (allValidFlag) {
+        /*
+         * Adjust X-coordinates for stacked text
+         */
+        switch (annotationText.getOrientation()) {
+            case AnnotationTextOrientationEnum::HORIZONTAL:
+                break;
+            case AnnotationTextOrientationEnum::STACKED:
+            {
+                const double textWidth = allTextMaxX - allTextMinX;
+                double offsetX = 0.0;
+                
+                switch (annotationText.getHorizontalAlignment()) {
+                    case AnnotationTextAlignHorizontalEnum::CENTER:
+                        offsetX = -textWidth / 2.0;
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::LEFT:
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::RIGHT:
+                        offsetX = -textWidth;
+                        break;
+                }
+                
+                for (int32_t iCol = 0; iCol < textDrawInfo.m_numColumns; iCol++) {
+                    for (int32_t jRow = 0; jRow < textDrawInfo.m_numRows; jRow++) {
+                        TextCell* tc = textDrawInfo.getCellAtRowColumn(jRow,
+                                                                       iCol);
+                        if (tc != NULL) {
+                            tc->m_viewportX += offsetX;
+                        }
+                    }
+                }
+                
+                allTextMinX += offsetX;
+                allTextMaxX += offsetX;
+            }
+                break;
+        }
+        
         textDrawInfo.setBounds(allTextMinX,
                                allTextMaxX,
                                allTextMinY,
@@ -539,7 +586,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    const bool drawCrosshairsAtFontStartingCoordinate = true;
+    const bool drawCrosshairsAtFontStartingCoordinate = false;
     if (drawCrosshairsAtFontStartingCoordinate) {
         GLfloat savedRGBA[4];
         glGetFloatv(GL_CURRENT_COLOR, savedRGBA);
@@ -2008,9 +2055,6 @@ FtglFontTextRenderer::applyBackgroundColoring(const AnnotationText& annotationTe
 {
     float backgroundColor[4];
     annotationText.getBackgroundColorRGBA(backgroundColor);
-    backgroundColor[0] = 0.0;
-    backgroundColor[1] = 0.0;
-    backgroundColor[2] = 1.0;
     if (backgroundColor[3] > 0.0) {
         const AString bg("Background for \"" + annotationText.getText() + ": BL="
                          + AString::fromNumbers(bottomLeftOut, 3, ",") + "  BR="
