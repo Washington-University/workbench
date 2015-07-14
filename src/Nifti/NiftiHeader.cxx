@@ -51,6 +51,38 @@ NiftiHeader::NiftiHeader()
     m_isSwapped = false;
 }
 
+AbstractHeader* NiftiHeader::clone() const
+{
+    return new NiftiHeader(*this);
+}
+
+NiftiHeader::NiftiHeader(const NiftiHeader& rhs)
+{
+    m_header = rhs.m_header;
+    m_isSwapped = rhs.m_isSwapped;
+    m_version = rhs.m_version;
+    m_extensions.reserve(rhs.m_extensions.size());
+    for (size_t i = 0; i < rhs.m_extensions.size(); ++i)
+    {
+        m_extensions.push_back(CaretPointer<NiftiExtension>(new NiftiExtension(*(rhs.m_extensions[i]))));
+    }
+}
+
+NiftiHeader& NiftiHeader::operator=(const NiftiHeader& rhs)
+{
+    if (this == &rhs) return *this;
+    m_header = rhs.m_header;
+    m_isSwapped = rhs.m_isSwapped;
+    m_version = rhs.m_version;
+    m_extensions.clear();
+    m_extensions.reserve(rhs.m_extensions.size());
+    for (size_t i = 0; i < rhs.m_extensions.size(); ++i)
+    {
+        m_extensions.push_back(CaretPointer<NiftiExtension>(new NiftiExtension(*(rhs.m_extensions[i]))));
+    }
+    return *this;
+}
+
 bool NiftiHeader::canWriteVersion(const int& version) const
 {
     if (computeVoxOffset(version) < 0) return false;//error condition, can happen if an extension is longer than 2^31

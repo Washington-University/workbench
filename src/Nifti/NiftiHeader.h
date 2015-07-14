@@ -43,12 +43,15 @@ namespace caret
         std::vector<CaretPointer<NiftiExtension> > m_extensions;//allow direct access to the extensions
         
         NiftiHeader();
+        NiftiHeader(const NiftiHeader& rhs);
+        NiftiHeader& operator=(const NiftiHeader& rhs);
         void read(CaretBinaryFile& inFile);
         void write(CaretBinaryFile& outFile, const int& version = 1, const bool& swapEndian = false);//returns new vox_offset, doesn't set it internally
         bool canWriteVersion(const int& version) const;
         bool isSwapped() const { return m_isSwapped; }
         int version() const { return m_version; }
         HeaderType getType() const { return NIFTI; }
+        AbstractHeader* clone() const;
         
         std::vector<int64_t> getDimensions() const;
         std::vector<std::vector<float> > getSForm() const;

@@ -38,6 +38,7 @@ namespace caret {
             NIFTI
         };
         virtual HeaderType getType() const = 0;
+        virtual AbstractHeader* clone() const = 0;
         virtual ~AbstractHeader();
     };
     

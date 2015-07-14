@@ -39,6 +39,7 @@ AbstractHeader::~AbstractHeader()
 
 void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
+    CaretAssert(numComponents > 0);
     clear();
     int numDims = (int)dimensionsIn.size();
     if (numDims < 3)

@@ -35,11 +35,11 @@ namespace caret {
         int m_numDivisions, m_curNodes, m_curTiles;
         SurfaceFile* m_surface;
         std::vector<std::vector<std::vector<int> > > m_edgenodes;
+        static void getNumberOfNodesAndTrianglesFromDivisions(const int& divisions, int& numNodesOut, int& numTrianglesOut);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        void getNumberOfNodesAndTrianglesFromDivisions(const int& divisions, int& numNodesOut, int& numTrianglesOut);
         AlgorithmSurfaceCreateSphere(ProgressObject* myProgObj, const int& numVertices, SurfaceFile* mySurfOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

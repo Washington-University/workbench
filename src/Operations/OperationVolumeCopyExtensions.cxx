@@ -73,7 +73,7 @@ void OperationVolumeCopyExtensions::useParameters(OperationParameters* myParams,
     if (dataDims[4] != extDims[4]) throw OperationException("number of components (rgb or complex datatypes) does not match");
     if (dataVol->getOriginalDimensions() != extVol->getOriginalDimensions()) throw OperationException("non-spatial dimensions do not match");
     outVol->reinitialize(dataVol->getOriginalDimensions(), dataVol->getSform(), dataDims[4], extVol->getType());
-    outVol->m_header = extVol->m_header;//copy all standard header fields, too
+    outVol->m_header.grabNew(extVol->m_header->clone());//copy all standard header fields, too
     if (dropUnknown)
     {
         switch (outVol->m_header->getType())
