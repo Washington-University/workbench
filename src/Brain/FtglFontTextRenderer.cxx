@@ -89,7 +89,7 @@ using namespace FTGL;
 
 using namespace caret;
 
-static const bool doMultilineTextFlag =  false;
+static const bool debugPrintFlag =  false;
 
 
 /**
@@ -109,6 +109,7 @@ static const bool doMultilineTextFlag =  false;
  * requires a raster position and if the raster position 
  * is slightly outside the viewport all text is clipped.
  */
+
 /**
  * Constructor.
  */
@@ -372,7 +373,7 @@ FtglFontTextRenderer::setTextViewportCoordinates(const double viewportX,
                         }
                         break;
                     case AnnotationTextOrientationEnum::STACKED:
-                        textOffsetX = tc->m_boundsMinX;
+                        textOffsetX = -tc->m_boundsMinX - (tc->m_width / 2.0);
                         break;
                 }
 
@@ -467,7 +468,9 @@ FtglFontTextRenderer::setTextViewportCoordinates(const double viewportX,
     
     if (allValidFlag) {
         /*
-         * Adjust X-coordinates for stacked text
+         * Stacked text may contain multiple columns so apply an 
+         * offset to each column so that the columns of text are
+         * properly aligned.
          */
         switch (annotationText.getOrientation()) {
             case AnnotationTextOrientationEnum::HORIZONTAL:
@@ -725,6 +728,22 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                      annotationText);
 }
 
+/**
+ * Draw annnotation text at the given viewport coordinates using
+ * the the annotations attributes for the style of text and the
+ * depth testing method.
+ *
+ * @param depthTesting
+ *     Type of depth testing when drawing text.
+ * @param viewportX
+ *     Viewport X-coordinate.
+ * @param viewportY
+ *     Viewport Y-coordinate.
+ * @param viewportZ
+ *     Viewport Z-coordinate.
+ * @param annotationText
+ *     Annotation text and attributes.
+ */
 void
 FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depthTesting,
                                       const double viewportX,
@@ -747,18 +766,20 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
                                annotationText,
                                textDrawInfo);
     
-//    std::cout << "Text: " << qPrintable(AnnotationTextOrientationEnum::toGuiName(annotationText.getOrientation())) << " " << qPrintable(annotationText.getText()) << std::endl;
-//    std::cout << "   Bounds xMin=" << textDrawInfo.m_minX << " xMax=" << textDrawInfo.m_maxX << " yMin=" << textDrawInfo.m_minY << " yMax=" << textDrawInfo.m_maxY << std::endl;
-//    for (int32_t iRow = 0; iRow < textDrawInfo.m_numRows; iRow++) {
-//        for (int32_t iCol = 0; iCol < textDrawInfo.m_numColumns; iCol++) {
-//            const TextCell* tc = textDrawInfo.getCellAtRowColumn(iRow, iCol);
-//            if (tc != NULL) {
-//                std::cout << "   row=" << tc->m_row << " col=" << tc->m_column << " : " << qPrintable(tc->m_text) << std::endl;
-//                std::cout << "   vpX=" << tc->m_viewportX << " vpY=" << tc->m_viewportY  << " vpZ=" << tc->m_viewportZ << std::endl;
-//            }
-//        }
-//    }
-//    std::cout << std::endl << std::endl;
+    if (debugPrintFlag) {
+        std::cout << "Text: " << qPrintable(AnnotationTextOrientationEnum::toGuiName(annotationText.getOrientation())) << " " << qPrintable(annotationText.getText()) << std::endl;
+        std::cout << "   Bounds xMin=" << textDrawInfo.m_minX << " xMax=" << textDrawInfo.m_maxX << " yMin=" << textDrawInfo.m_minY << " yMax=" << textDrawInfo.m_maxY << std::endl;
+        for (int32_t iRow = 0; iRow < textDrawInfo.m_numRows; iRow++) {
+            for (int32_t iCol = 0; iCol < textDrawInfo.m_numColumns; iCol++) {
+                const TextCell* tc = textDrawInfo.getCellAtRowColumn(iRow, iCol);
+                if (tc != NULL) {
+                    std::cout << "   row=" << tc->m_row << " col=" << tc->m_column << " : " << qPrintable(tc->m_text) << std::endl;
+                    std::cout << "   vpX=" << tc->m_viewportX << " vpY=" << tc->m_viewportY  << " vpZ=" << tc->m_viewportZ << std::endl;
+                }
+            }
+        }
+        std::cout << std::endl << std::endl;
+    }
     
     drawTextAtViewportCoordinatesInternal(annotationText,
                                           textDrawInfo);
@@ -866,8 +887,6 @@ FtglFontTextRenderer::applyBackgroundColoring(const AnnotationText& annotationTe
  *
  * @param annotationText
  *   Annotation Text that is to be drawn.
- * @param textBoundsBox
- *   Bounding box for text (min-x, min-y, max-x, max-y)
  */
 void
 FtglFontTextRenderer::applyForegroundColoring(const AnnotationText& annotationText)
@@ -964,10 +983,6 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                          windowZ,
                                          annotationText);
         
-//        drawTextAtViewportCoords(x,
-//                                 y,
-//                                 windowZ,
-//                                 annotationText);
     }
     else {
         CaretLogSevere("gluProject() failed for drawing text at model coordinates.");
@@ -1157,7 +1172,19 @@ FtglFontTextRenderer::getName() const
 
 
 
-
+/**
+ * Constructs a text cell which contains information
+ * for rendering text characters.
+ *
+ * @param text
+ *     The text characters.
+ * @param row
+ *     The cell's row.
+ * @param column
+ *     The cell's column.
+ * @param textBounds
+ *     Bounds of text from FTGL.
+ */
 FtglFontTextRenderer::TextCell::TextCell(const QString& text,
          const int32_t row,
          const int32_t column,
@@ -1178,6 +1205,18 @@ m_boundsMaxY(textBounds.Upper().Y())
     m_viewportZ = 0.0;
 }
 
+/**
+ * Constructor for text drawing information.  It contains information
+ * for drawing text that is split up using the text orientation
+ * and newlines.
+ *
+ * @param viewportX
+ *     X viewport coordinate.
+ * @param viewportY
+ *     Y viewport coordinate.
+ * @param viewportZ
+ *     Z viewport coordinate.
+ */
 FtglFontTextRenderer::TextDrawInfo::TextDrawInfo(const double viewportX,
                                                  const double viewportY,
                                                  const double viewportZ)
@@ -1194,6 +1233,12 @@ m_maxY(0.0)
     
 }
 
+/*
+ * Add the given text cell.
+ *
+ * @param textCell
+ *     Text cell that is added.
+ */
 void
 FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::addTextCell(const TextCell& textCell)
 {
@@ -1206,6 +1251,16 @@ FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::addTextCell(const TextCell& te
                          textCell.m_row + 1);
 }
 
+/**
+ * Get the text cell at the given row and column.
+ *
+ * @param row
+ *     Row of text cell.
+ * @param column
+ *     Column of text cell.
+ * @return
+ *     Pointer to cell at row/column or NULL if not found.
+ */
 FtglFontTextRenderer::TextCell*
 FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::getCellAtRowColumn(const int32_t row,
                              const int32_t column)
@@ -1222,6 +1277,19 @@ FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::getCellAtRowColumn(const int32
     return NULL;
 }
 
+/**
+ * Set the bounds of the all text that is drawn.  The
+ * bounds is used for selection and the background color.
+ *
+ * @param minX
+ *     Bounds minimum X.
+ * @param maxX
+ *     Bounds maximum X.
+ * @param minY
+ *     Bounds minimum Y.
+ * @param maxY
+ *     Bounds maximum Y.
+ */
 void
 FtglFontTextRenderer::TextDrawInfo::setBounds(const double minX,
                                               const double maxX,
@@ -1233,6 +1301,20 @@ FtglFontTextRenderer::TextDrawInfo::setBounds(const double minX,
     m_minY = minY;
     m_maxY = maxY;
 }
+
+/**
+ * Get the bounds of the all text that is drawn.  The
+ * bounds is used for selection and the background color.
+ *
+ * @param minX
+ *     Bounds minimum X.
+ * @param maxX
+ *     Bounds maximum X.
+ * @param minY
+ *     Bounds minimum Y.
+ * @param maxY
+ *     Bounds maximum Y.
+ */
 void
 FtglFontTextRenderer::TextDrawInfo::getBounds(double bottomLeftOut[3],
                                               double bottomRightOut[3],
