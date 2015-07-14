@@ -609,31 +609,61 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
     
-    double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
-    textDrawInfo.getBounds(bottomLeft, bottomRight, topRight, topLeft);
+    double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
+    textDrawInfo.getBounds(bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
     
     glPushMatrix();
     glLoadIdentity();
-    applyBackgroundColoring(annotationText,
-                            bottomLeft,
-                            bottomRight,
-                            topRight,
-                            topLeft);
+    applyBackgroundColoring(textDrawInfo);
     applyForegroundColoring(annotationText);
     
-    for (std::vector<TextCell>::const_iterator iter = textDrawInfo.m_textCells.begin();
-         iter != textDrawInfo.m_textCells.end();
-         iter++) {
-        const TextCell& tc = *iter;
+    const float rotationAngle = annotationText.getRotationAngle();
+    const TextCell* firstTextCell = textDrawInfo.getCellAtRowColumn(0, 0);
+    if ((rotationAngle != 0.0)
+      && (firstTextCell != NULL)){
+        const double firstX = firstTextCell->m_viewportX;
+        const double firstY = firstTextCell->m_viewportY;
+        const double firstZ = firstTextCell->m_viewportZ;
         
-        glPushMatrix();
-        glLoadIdentity();
+        glTranslated(rotationPointXYZ[0], rotationPointXYZ[1], rotationPointXYZ[2]);
+//        glTranslated(firstX, firstY, firstZ);
+        glRotated(rotationAngle, 0.0, 0.0, -1.0);
         
-        glTranslated(tc.m_viewportX,
-                     tc.m_viewportY,
-                     tc.m_viewportZ);
-        font->Render(tc.m_text.toAscii().constData());
-        glPopMatrix();
+        for (std::vector<TextCell>::const_iterator iter = textDrawInfo.m_textCells.begin();
+             iter != textDrawInfo.m_textCells.end();
+             iter++) {
+            const TextCell& tc = *iter;
+
+//            const double offsetX = tc.m_viewportX - firstX;
+//            const double offsetY = tc.m_viewportY - firstY;
+//            const double offsetZ = tc.m_viewportZ - firstZ;
+            const double offsetX = tc.m_viewportX - rotationPointXYZ[0];
+            const double offsetY = tc.m_viewportY - rotationPointXYZ[1];
+            const double offsetZ = tc.m_viewportZ - rotationPointXYZ[2];
+            
+            glPushMatrix();
+            glTranslated(offsetX,
+                         offsetY,
+                         offsetZ);
+            font->Render(tc.m_text.toAscii().constData());
+            glPopMatrix();
+        }
+    }
+    else {
+        for (std::vector<TextCell>::const_iterator iter = textDrawInfo.m_textCells.begin();
+             iter != textDrawInfo.m_textCells.end();
+             iter++) {
+            const TextCell& tc = *iter;
+            
+            glPushMatrix();
+            glLoadIdentity();
+            
+            glTranslated(tc.m_viewportX,
+                         tc.m_viewportY,
+                         tc.m_viewportZ);
+            font->Render(tc.m_text.toAscii().constData());
+            glPopMatrix();
+        }
     }
 
     
@@ -757,9 +787,12 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
     
     m_depthTestingStatus = depthTesting;
     
-    TextDrawInfo textDrawInfo(viewportX,
+    TextDrawInfo textDrawInfo(annotationText,
+                              viewportX,
                               viewportY,
-                              viewportZ);
+                              viewportZ,
+                              annotationText.getRotationAngle());
+    
     setTextViewportCoordinates(viewportX,
                                viewportY,
                                viewportZ,
@@ -820,9 +853,11 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                                        double topRightOut[3],
                                                        double topLeftOut[3])
 {
-    TextDrawInfo textDrawInfo(viewportX,
+    TextDrawInfo textDrawInfo(annotationText,
+                              viewportX,
                               viewportY,
-                              viewportZ);
+                              viewportZ,
+                              annotationText.getRotationAngle());
     
     setTextViewportCoordinates(viewportX,
                                viewportY,
@@ -830,10 +865,12 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                annotationText,
                                textDrawInfo);
     
+    double rotationPointXYZ[3];
     textDrawInfo.getBounds(bottomLeftOut,
                            bottomRightOut,
                            topRightOut,
-                           topLeftOut);
+                           topLeftOut,
+                           rotationPointXYZ);
 }
 
 
@@ -857,14 +894,14 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
  *    The top left corner of the text bounds.
  */
 void
-FtglFontTextRenderer::applyBackgroundColoring(const AnnotationText& annotationText,
-                                              const double bottomLeftOut[3],
-                                              const double bottomRightOut[3],
-                                              const double topRightOut[3],
-                                              const double topLeftOut[3])
+FtglFontTextRenderer::applyBackgroundColoring(const TextDrawInfo& textDrawInfo)
 {
+    double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
+;
+    textDrawInfo.getBounds(bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
+    
     float backgroundColor[4];
-    annotationText.getBackgroundColorRGBA(backgroundColor);
+    textDrawInfo.m_annotationText.getBackgroundColorRGBA(backgroundColor);
     if (backgroundColor[3] > 0.0) {
 //        const AString bg("Background for \"" + annotationText.getText() + ": BL="
 //                         + AString::fromNumbers(bottomLeftOut, 3, ",") + "  BR="
@@ -874,10 +911,10 @@ FtglFontTextRenderer::applyBackgroundColoring(const AnnotationText& annotationTe
 //        std::cout << qPrintable(bg) << std::endl;
         glColor4fv(backgroundColor);
         glBegin(GL_TRIANGLE_STRIP);
-        glVertex3dv(bottomLeftOut);
-        glVertex3dv(bottomRightOut);
-        glVertex3dv(topLeftOut);
-        glVertex3dv(topRightOut);
+        glVertex3dv(bottomLeft);
+        glVertex3dv(bottomRight);
+        glVertex3dv(topLeft);
+        glVertex3dv(topRight);
         glEnd();
     }
 }
@@ -1210,19 +1247,27 @@ m_boundsMaxY(textBounds.Upper().Y())
  * for drawing text that is split up using the text orientation
  * and newlines.
  *
+ * @param annotationText
+ *     The annotation.
  * @param viewportX
- *     X viewport coordinate.
+ *     X viewport coordinate for drawing text.
  * @param viewportY
- *     Y viewport coordinate.
+ *     Y viewport coordinate for drawing text.
  * @param viewportZ
- *     Z viewport coordinate.
+ *     Z viewport coordinate for drawing text.
+ * @param rotationAngle
+ *     Annotation's rotation angle for drawing text.
  */
-FtglFontTextRenderer::TextDrawInfo::TextDrawInfo(const double viewportX,
+FtglFontTextRenderer::TextDrawInfo::TextDrawInfo(const AnnotationText& annotationText,
+                                                 const double viewportX,
                                                  const double viewportY,
-                                                 const double viewportZ)
-: m_viewportX(viewportX),
+                                                 const double viewportZ,
+                                                 const double rotationAngle)
+: m_annotationText(annotationText),
+m_viewportX(viewportX),
 m_viewportY(viewportY),
 m_viewportZ(viewportZ),
+m_rotationAngle(rotationAngle),
 m_numRows(0),
 m_numColumns(0),
 m_minX(0.0),
@@ -1263,12 +1308,38 @@ FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::addTextCell(const TextCell& te
  */
 FtglFontTextRenderer::TextCell*
 FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::getCellAtRowColumn(const int32_t row,
-                             const int32_t column)
+                             const int32_t column) 
 {
     for (std::vector<TextCell>::iterator iter = m_textCells.begin();
          iter != m_textCells.end();
          iter++) {
         TextCell& tc = *iter;
+        if ((tc.m_row == row)
+            && (tc.m_column == column)) {
+            return &tc;
+        }
+    }
+    return NULL;
+}
+
+/**
+ * Get the text cell at the given row and column.
+ *
+ * @param row
+ *     Row of text cell.
+ * @param column
+ *     Column of text cell.
+ * @return
+ *     Pointer to cell at row/column or NULL if not found.
+ */
+const FtglFontTextRenderer::TextCell*
+FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::getCellAtRowColumn(const int32_t row,
+                                                                     const int32_t column) const
+{
+    for (std::vector<TextCell>::const_iterator iter = m_textCells.begin();
+         iter != m_textCells.end();
+         iter++) {
+        const TextCell& tc = *iter;
         if ((tc.m_row == row)
             && (tc.m_column == column)) {
             return &tc;
@@ -1314,12 +1385,15 @@ FtglFontTextRenderer::TextDrawInfo::setBounds(const double minX,
  *     Bounds minimum Y.
  * @param maxY
  *     Bounds maximum Y.
+ * @param rotationPointXYZOut
+ *     Output containing rotation point for bounds.
  */
 void
 FtglFontTextRenderer::TextDrawInfo::getBounds(double bottomLeftOut[3],
                                               double bottomRightOut[3],
                                               double topRightOut[3],
-                                              double topLeftOut[3]) const
+                                              double topLeftOut[3],
+                                              double rotationPointXYZOut[3]) const
 {
     bottomLeftOut[0]  = m_minX;
     bottomLeftOut[1]  = m_minY;
@@ -1333,6 +1407,104 @@ FtglFontTextRenderer::TextDrawInfo::getBounds(double bottomLeftOut[3],
     topLeftOut[0]     = m_minX;
     topLeftOut[1]     = m_maxY;
     topLeftOut[2]     = m_viewportZ;
+    
+    double rotationX = m_minX;
+    double rotationY = m_minY;
+    
+    if (m_rotationAngle != 0.0) {
+        
+        switch (m_annotationText.getVerticalAlignment()) {
+            case AnnotationTextAlignVerticalEnum::BOTTOM:
+                switch (m_annotationText.getHorizontalAlignment()) {
+                    case AnnotationTextAlignHorizontalEnum::CENTER:
+                        rotationX = (bottomLeftOut[0] + bottomRightOut[0]) / 2.0;
+                        rotationY = (bottomLeftOut[1] + bottomRightOut[1]) / 2.0;
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::LEFT:
+                        rotationX = bottomLeftOut[0];
+                        rotationY = bottomLeftOut[1];
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::RIGHT:
+                        rotationX = bottomRightOut[0];
+                        rotationY = bottomRightOut[1];
+                        break;
+                }
+                break;
+            case AnnotationTextAlignVerticalEnum::MIDDLE:
+                switch (m_annotationText.getHorizontalAlignment()) {
+                    case AnnotationTextAlignHorizontalEnum::CENTER:
+                        rotationX = (bottomLeftOut[0] + bottomRightOut[0] + topLeftOut[0] + topRightOut[0]) / 4.0;
+                        rotationY = (bottomLeftOut[1] + bottomRightOut[1] + topLeftOut[1] + topRightOut[1]) / 4.0;
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::LEFT:
+                        rotationX = (bottomLeftOut[0] + topLeftOut[0]) / 2.0;
+                        rotationY = (bottomLeftOut[1] + topLeftOut[1]) / 2.0;
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::RIGHT:
+                        rotationX = (topRightOut[0] + bottomRightOut[0]) / 2.0;
+                        rotationY = (topRightOut[1] + bottomRightOut[1]) / 2.0;
+                        break;
+                }
+                break;
+            case AnnotationTextAlignVerticalEnum::TOP:
+                switch (m_annotationText.getHorizontalAlignment()) {
+                    case AnnotationTextAlignHorizontalEnum::CENTER:
+                        rotationX = (topLeftOut[0] + topRightOut[0]) / 2.0;
+                        rotationY = (topLeftOut[1] + topRightOut[1]) / 2.0;
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::LEFT:
+                        rotationX = topLeftOut[0];
+                        rotationY = topLeftOut[1];
+                        break;
+                    case AnnotationTextAlignHorizontalEnum::RIGHT:
+                        rotationX = topRightOut[0];
+                        rotationY = topRightOut[1];
+                        break;
+                }
+                break;
+        }
+        
+        
+//        double allRotationX = m_minX;
+//        switch (m_annotationText.getHorizontalAlignment()) {
+//            case AnnotationTextAlignHorizontalEnum::CENTER:
+//                allRotationX = (m_minX + m_maxX) / 2.0;
+//                break;
+//            case AnnotationTextAlignHorizontalEnum::LEFT:
+//                allRotationX = m_minX;
+//                break;
+//            case AnnotationTextAlignHorizontalEnum::RIGHT:
+//                allRotationX = m_maxX;
+//                break;
+//        }
+//        
+//        double allRotationY = m_minY;
+//        switch (m_annotationText.getVerticalAlignment()) {
+//            case AnnotationTextAlignVerticalEnum::BOTTOM:
+//                allRotationY = m_minY;
+//                break;
+//            case AnnotationTextAlignVerticalEnum::MIDDLE:
+//                allRotationY = (m_minY + m_maxY) / 2.0;
+//                break;
+//            case AnnotationTextAlignVerticalEnum::TOP:
+//                allRotationY = m_maxY;
+//                break;
+//        }
+        
+        rotationPointXYZOut[0] = rotationX;
+        rotationPointXYZOut[1] = rotationY;
+        rotationPointXYZOut[2] = 0.0;
+        
+        Matrix4x4 matrix;
+        matrix.translate(-rotationX, -rotationY, 0.0);
+        matrix.rotateZ(-m_rotationAngle);
+        matrix.translate(rotationX, rotationY, 0.0);
+        
+        matrix.multiplyPoint3(bottomLeftOut);
+        matrix.multiplyPoint3(bottomRightOut);
+        matrix.multiplyPoint3(topRightOut);
+        matrix.multiplyPoint3(topLeftOut);
+    }
 }
 
 

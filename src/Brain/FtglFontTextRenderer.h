@@ -133,14 +133,19 @@ namespace caret {
         
         class TextDrawInfo {
         public:
-            TextDrawInfo(const double viewportX,
+            TextDrawInfo(const AnnotationText& annotationText,
+                         const double viewportX,
                          const double viewportY,
-                         const double viewportZ);
+                         const double viewportZ,
+                         const double rotationAngle);
             
             void addTextCell(const TextCell& textCell);
             
             TextCell* getCellAtRowColumn(const int32_t row,
                                          const int32_t column);
+            
+            const TextCell* getCellAtRowColumn(const int32_t row,
+                                         const int32_t column) const;
             
             void setBounds(const double minX,
                            const double maxX,
@@ -150,11 +155,16 @@ namespace caret {
             void getBounds(double bottomLeftOut[3],
                            double bottomRightOut[3],
                            double topRightOut[3],
-                           double topLeftOut[3]) const;
+                           double topLeftOut[3],
+                           double rotationPointXYZOut[3]) const;
 
+            const AnnotationText& m_annotationText;
+            
             const double m_viewportX;
             const double m_viewportY;
             const double m_viewportZ;
+            
+            const double m_rotationAngle;
             
             int32_t m_numRows;
             int32_t m_numColumns;
@@ -181,11 +191,7 @@ namespace caret {
         
         void applyForegroundColoring(const AnnotationText& annotationText);
         
-        void applyBackgroundColoring(const AnnotationText& annotationText,
-                                     const double bottomLeftOut[3],
-                                     const double bottomRightOut[3],
-                                     const double topRightOut[3],
-                                     const double topLeftOut[3]);
+        void applyBackgroundColoring(const TextDrawInfo& textDrawInfo);
         
         void saveStateOfOpenGL();
         
