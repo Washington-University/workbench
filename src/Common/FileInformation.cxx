@@ -514,9 +514,6 @@ FileInformation::getFileExtension() const
 /**
  * Get the components for a filename.
  *
- * NOTE: If this is NOT a file (isFile() returns false) all outputs
- * will be empty.
- *
  * Example: /Volumes/myelin1/caret7_gui_design/data/HCP_demo/areas.border
  * Returns
  *   absolutePathOut => /Volumes/myelin1/caret7_gui_design/data/HCP_demo
@@ -537,16 +534,9 @@ FileInformation::getFileComponents(AString& absolutePathOut,
                                    AString& fileNameWithoutExtensionOut,
                                    AString& extensionWithoutDotOut) const
 {
-    if (isFile()) {
-        absolutePathOut             = getAbsolutePath();
-        fileNameWithoutExtensionOut = getFileNameNoExtension();
-        extensionWithoutDotOut      = getFileExtension();
-    }
-    else {
-        absolutePathOut = "";
-        fileNameWithoutExtensionOut = "";
-        extensionWithoutDotOut = "";
-    }
+    absolutePathOut             = getAbsolutePath();
+    fileNameWithoutExtensionOut = getFileNameNoExtension();
+    extensionWithoutDotOut      = getFileExtension();
 }
 
 /**
@@ -574,6 +564,74 @@ FileInformation::assembleFileComponents(AString& pathName,
     }
 
     return name;
+}
+
+/**
+ * Convert, if needed, the file information to a local, absolute path.
+ *
+ * If the file is a remote file, the file name is added to the given current directory.
+ *
+ * If the file is local but a relative path, the filename is added to the given
+ * current directory.
+ * 
+ * If the file is local but an absolute path, the result of getAbsoluteFilePath()
+ * is returned.
+ *
+ * @param currentDirectory
+ *     The current directory used by remote and relative file paths.
+ * @param dataFileType
+ *     The type of data file.  If the type is not UNKNOWN, and the 
+ *     the file name does not end in the proper extension, the extension
+ *     is added to the file.
+ @ @return
+ *     The local absolute file path.
+ */
+AString
+FileInformation::getAsLocalAbsoluteFilePath(const AString& currentDirectory,
+                                            const DataFileTypeEnum::Enum dataFileType) const
+{
+    AString thePath, theName, theExtension;
+    getFileComponents(thePath,
+                      theName,
+                      theExtension);
+    
+    if (m_isLocalFile) {
+        if (m_fileInfo.isRelative()) {
+            thePath = currentDirectory;
+        }
+    }
+    else if (m_isRemoteFile) {
+        thePath = currentDirectory;
+        theName = theName.replace("?", "_");
+        theName = theName.replace(":", "_");
+        theName = theName.replace("=", "_");
+        theName = theName.replace("@", "_");
+    }
+    
+    if (dataFileType != DataFileTypeEnum::UNKNOWN) {
+        AString validExtension = "";
+        const std::vector<AString> validExtensions = DataFileTypeEnum::getAllFileExtensions(dataFileType);
+        for (std::vector<AString>::const_iterator iter = validExtensions.begin();
+             iter != validExtensions.end();
+             iter++) {
+            const AString ext = *iter;
+            if (theExtension == ext) {
+                validExtension = ext;
+                break;
+            }
+        }
+
+        if (validExtension.isEmpty()) {
+            validExtension = DataFileTypeEnum::toFileExtension(dataFileType);
+        }
+        
+        theExtension = validExtension;
+    }
+    
+    const AString nameOut = assembleFileComponents(thePath,
+                                                   theName,
+                                                   theExtension);
+    return nameOut;
 }
 
 

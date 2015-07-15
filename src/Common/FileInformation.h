@@ -23,6 +23,7 @@
 
 
 #include "CaretObject.h"
+#include "DataFileTypeEnum.h"
 
 #include <QFileInfo>
 #include <QUrl>
@@ -63,6 +64,9 @@ namespace caret {
         bool isHidden() const;
         
         int64_t size() const;
+        
+        AString getAsLocalAbsoluteFilePath(const AString& currentDirectory,
+                                           const DataFileTypeEnum::Enum dataFileType) const;
         
         AString getFileNameFollowedByPathNameForGUI() const;
         
