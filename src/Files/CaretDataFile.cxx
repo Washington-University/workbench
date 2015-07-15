@@ -338,11 +338,20 @@ CaretDataFile::supportsWriting() const
  * @return The name (and path if present) of the file with the
  * filename's extension removed.  
  *
- * First, all valid extensions
- * from the DataFileTypeEnum are tested and if one matches it
- * is used as the extension.  If none of the extensions from the
- * DataFileTypeEnum match, anything including the last "." is 
- * removed.  Lastly, if there is not "." in the name of the file
+ * First, the filename is tested to see if it ends with any of the valid
+ * file extensions for the DataFileTypeEnum.  If any of the extensions match,
+ * the filename, with the extension removed, is returned.  The valud
+ * file extensions are used since many GIFTI and CIFTI files contain
+ * a "." in their extensions (eg: .surf.gii   .dconn.nii).
+ *
+ *  /mnt/path/anatomical.surf.gii "returns" /mnt/path/anatomical
+ *
+ * Second, the last "/" (directory separator) is found to locate where
+ * the name of the file, excluding the path, is located.  Using just
+ * the name of the file, anything before the last "." is returned.
+ * removed.  
+ *
+ * Third, if there is not "." in the name of the file
  * the equivalent of getFileName() is returned.
  */
 AString
@@ -352,7 +361,9 @@ CaretDataFile::getFileNameNoExtension() const
     
     std::vector<AString> dataFileTypeExtensions = DataFileTypeEnum::getAllFileExtensions(getDataFileType());
     
-    
+    /*
+     * Test using file type extensions
+     */
     for (std::vector<AString>::iterator iter = dataFileTypeExtensions.begin();
          iter != dataFileTypeExtensions.end();
          iter++) {
@@ -364,9 +375,24 @@ CaretDataFile::getFileNameNoExtension() const
         }
     }
     
-    const int offset = name.lastIndexOf(".");
-    if (offset > 0) {
-        name.resize(offset - 1);
+    /*
+     * Look for the last "." and the last forward slash or back slash
+     *
+     * Dont' was to chop off a "." in the path (eg: /mnt/back.up/file)
+     */
+    const int lastSlashIndex = std::max(name.lastIndexOf("/"),
+                                        name.lastIndexOf("\\"));
+    
+    const int dotIndex = name.lastIndexOf(".");
+    if (lastSlashIndex > 0) {
+        if (dotIndex > lastSlashIndex) {
+            name.resize(dotIndex);
+        }
+    }
+    else {
+        if (dotIndex > 0) {
+            name.resize(dotIndex);
+        }
     }
     
     return name;
