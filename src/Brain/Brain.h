@@ -647,9 +647,7 @@ namespace caret {
                                  CaretDataFile* caretDataFile,
                                  const AString& filename);
         
-        AString updateFileNameForReading(const AString& filename);
-        
-        AString updateFileNameForWriting(const AString& filename);
+        AString convertFilePathNameToAbsolutePathName(const AString& filename);
         
         void updateChartModel();
         
