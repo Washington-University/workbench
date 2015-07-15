@@ -578,14 +578,20 @@ FileInformation::assembleFileComponents(AString& pathName,
 
 
 /**
- * @return The file's absolute path.
- * Note: A remote file returns the original, full URL.
+ * @return The file's absolute path.  It DOES NOT include the file's name.
+ * Note: A remote file returns everything up to the last slash.
  */
 AString
 FileInformation::getAbsolutePath() const
 {
     if (m_isRemoteFile) {
-        return m_urlInfo.toString();
+        const AString fullName = m_urlInfo.toString();
+        const int lastSlashIndex = fullName.lastIndexOf("/");
+        if (lastSlashIndex > 0) {
+            const AString thePath = fullName.left(lastSlashIndex);
+            return thePath;
+        }
+        return fullName;
     }
     
     return m_fileInfo.absolutePath();
