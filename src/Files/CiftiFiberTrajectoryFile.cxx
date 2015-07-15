@@ -39,6 +39,7 @@
 #include "EventProgressUpdate.h"
 #include "FiberOrientationTrajectory.h"
 #include "FiberTrajectoryMapProperties.h"
+#include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "PaletteColorMapping.h"
 #include "SceneClass.h"
@@ -834,7 +835,8 @@ public:
  *    Pointer to new file that was created or NULL if creation failed.
  */
 CiftiFiberTrajectoryFile*
-CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& errorMessageOut) const
+CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(const AString& destinationDirectory,
+                                                                  AString& errorMessageOut) const
 {
     errorMessageOut = "";
     
@@ -852,10 +854,30 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& error
             rowInfo = ("_"
                        + m_loadedDataDescriptionForFileCopy);
         }
-        AString defaultFileName = (getFileNameNoExtension()
-                                   + rowInfo
-                                   + "."
-                                   + DataFileTypeEnum::toFileExtension(getDataFileType()));
+        
+        
+        /*
+         * May need to convert a remote path to a local path
+         */
+        FileInformation initialFileNameInfo(getFileName());
+        const AString scalarFileName = initialFileNameInfo.getAsLocalAbsoluteFilePath(destinationDirectory,
+                                                                                      getDataFileType());
+        
+        /*
+         * Create name of scalar file with row/column information
+         */
+        FileInformation scalarFileInfo(scalarFileName);
+        AString thePath, theName, theExtension;
+        scalarFileInfo.getFileComponents(thePath,
+                                         theName,
+                                         theExtension);
+        theName.append(rowInfo);
+        const AString newFileName = FileInformation::assembleFileComponents(thePath,
+                                                                            theName,
+                                                                            theExtension);
+        
+        
+        
         
         
         const AString tempFileName = (QDir::tempPath()
@@ -866,7 +888,7 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& error
         writeLoadedDataToFile(tempFileName);
         
         newFile->readFile(tempFileName);
-        newFile->setFileName(defaultFileName);
+        newFile->setFileName(newFileName);
         newFile->setMatchingFiberOrientationFile(const_cast<CiftiFiberOrientationFile*>(getMatchingFiberOrientationFile()));
         newFile->m_fiberTrajectoryMapProperties->copy(*getFiberTrajectoryMapProperties());
         newFile->setModified();

@@ -31,6 +31,7 @@
 #include "CiftiFile.h"
 #include "CiftiXML.h"
 #include "DataFileException.h"
+#include "FileInformation.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 
@@ -70,6 +71,9 @@ CiftiBrainordinateScalarFile::~CiftiBrainordinateScalarFile()
  *
  * @param sourceCiftiMatrixFile
  *    Cifti connectivity matrix file.
+ * @param destinationDirectory
+ *    Directory in which file is placed if the input matrix file is not 
+ *    in a valid local (user's file system) directory.
  * @param errorMessageOut
  *    Will describe problem if there is an error.
  * @return
@@ -78,6 +82,7 @@ CiftiBrainordinateScalarFile::~CiftiBrainordinateScalarFile()
  */
 CiftiBrainordinateScalarFile*
 CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* sourceCiftiMatrixFile,
+                                                                              const AString& destinationDirectory,
                                                                               AString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -138,18 +143,26 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         scalarFile->m_ciftiFile.grabNew(ciftiFile);
 
         /*
-         * Create name of scalar file
+         * May need to convert a remote path to a local path
          */
-        AString newFileName = sourceCiftiMatrixFile->getFileNameNoExtension();
-        newFileName.append("_");
-        newFileName.append(sourceCiftiMatrixFile->getRowLoadedText());
-        newFileName.append(".");
-        newFileName.append(DataFileTypeEnum::toFileExtension(scalarFile->getDataFileType()));
-        scalarFile->setFileName(newFileName);
+        FileInformation initialFileNameInfo(sourceCiftiMatrixFile->getFileName());
+        const AString scalarFileName = initialFileNameInfo.getAsLocalAbsoluteFilePath(destinationDirectory,
+                                                                                      scalarFile->getDataFileType());
         
         /*
-         * Add the CiftiFile to the Scalar file
+         * Create name of scalar file with row/column information
          */
+        FileInformation scalarFileInfo(scalarFileName);
+        AString thePath, theName, theExtension;
+        scalarFileInfo.getFileComponents(thePath,
+                                         theName,
+                                         theExtension);
+        theName.append("_" + sourceCiftiMatrixFile->getRowLoadedText());
+        const AString newFileName = FileInformation::assembleFileComponents(thePath,
+                                                                            theName,
+                                                                            theExtension);
+        scalarFile->setFileName(newFileName);
+        
         scalarFile->initializeAfterReading(newFileName);
         scalarFile->setModified();
         

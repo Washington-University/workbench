@@ -40,6 +40,7 @@ namespace caret {
         virtual ~CiftiBrainordinateScalarFile();
         
         static CiftiBrainordinateScalarFile* newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile,
+                                                                                             const AString& destinationDirectory,
                                                                                              AString& errorMessageOut);
 
         virtual bool isLineSeriesChartingEnabled(const int32_t tabIndex) const;

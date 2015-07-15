@@ -445,9 +445,11 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
     bool errorFlag = false;
     AString errorMessage;
     
+    const AString directoryName = GuiManager::get()->getBrain()->getCurrentDirectory();
     if (matrixFile != NULL) {
         CiftiBrainordinateScalarFile* scalarFile =
         CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(matrixFile,
+                                                                                      directoryName,
                                                                                       errorMessage);
         if (scalarFile != NULL) {
             EventDataFileAdd dataFileAdd(scalarFile);
@@ -463,7 +465,8 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
         }
     }
     else if (trajFile != NULL) {
-        CiftiFiberTrajectoryFile* newTrajFile = trajFile->newFiberTrajectoryFileFromLoadedRowData(errorMessage);
+        CiftiFiberTrajectoryFile* newTrajFile = trajFile->newFiberTrajectoryFileFromLoadedRowData(directoryName,
+                                                                                                  errorMessage);
 
         if (newTrajFile != NULL) {
             EventDataFileAdd dataFileAdd(newTrajFile);
