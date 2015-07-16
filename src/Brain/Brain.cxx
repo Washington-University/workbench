@@ -6457,7 +6457,7 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
          iter != allCaretDataFiles.end();
          iter++) {
         CaretDataFile* cdf = *iter;
-        const AString caretDataFileName = cdf->getFileNameNoPath();
+        const AString caretDataFileName = cdf->getFileName();  // use full path 7/16/2015 cdf->getFileNameNoPath();
         SceneClass* caretDataFileSceneClass = cdf->saveToScene(sceneAttributes,
                                                       caretDataFileName);
         if (caretDataFileSceneClass != NULL) {
@@ -6617,15 +6617,35 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
              iter != allCaretDataFiles.end();
              iter++) {
             CaretDataFile* caretDataFile = *iter;
-            const AString caretDataFileName = caretDataFile->getFileNameNoPath();
+            CaretAssert(caretDataFile);
+            const AString caretDataFileNameNoPath   = caretDataFile->getFileNameNoPath();
+            const AString caretDataFileNameFullPath = caretDataFile->getFileName();
+            
+            SceneClass* bestMatchingSceneClass = NULL;
+            int64_t bestMatchingCount = 0;
             
             const int32_t numCaretDataFileScenes = caretDataFileSceneArray->getNumberOfArrayElements();
             for (int32_t i = 0; i < numCaretDataFileScenes; i++) {
                 const SceneClass* fileSceneClass = caretDataFileSceneArray->getClassAtIndex(i);
-                if (caretDataFileName == fileSceneClass->getName()) {
-                    caretDataFile->restoreFromScene(sceneAttributes,
-                                                    fileSceneClass);
+                const AString fileNameFullPath = fileSceneClass->getName();
+                const FileInformation fileInfo(fileNameFullPath);
+                const AString fileNameNoPath = fileInfo.getFileName();
+                
+                if (caretDataFileNameNoPath == fileNameNoPath) {
+                    const int64_t matchCount = caretDataFileNameFullPath.countMatchingCharactersFromEnd(fileNameFullPath);
+                    if (matchCount > bestMatchingCount) {
+                        bestMatchingSceneClass = const_cast<SceneClass*>(fileSceneClass);
+                        bestMatchingCount      = matchCount;
+                    }
+//                    caretDataFile->restoreFromScene(sceneAttributes,
+//                                                    fileSceneClass);
                 }
+            }
+            
+            if (bestMatchingCount > 0) {
+                CaretAssert(bestMatchingSceneClass);
+                caretDataFile->restoreFromScene(sceneAttributes,
+                                                bestMatchingSceneClass);
             }
         }
     }

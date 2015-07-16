@@ -218,7 +218,8 @@ CiftiFiberTrajectoryFile::setMatchingFiberOrientationFile(CiftiFiberOrientationF
 {
     m_matchingFiberOrientationFile = matchingFiberOrientationFile;
     if (m_matchingFiberOrientationFile != NULL) {
-        m_matchingFiberOrientationFileName = m_matchingFiberOrientationFile->getFileNameNoPath();
+//        m_matchingFiberOrientationFileName = m_matchingFiberOrientationFile->getFileNameNoPath();
+        m_matchingFiberOrientationFileName = m_matchingFiberOrientationFile->getFileName();
         
         switch (m_fiberTrajectoryFileType) {
             case FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE:
@@ -257,20 +258,45 @@ CiftiFiberTrajectoryFile::updateMatchingFiberOrientationFileFromList(std::vector
      */
     if (m_matchingFiberOrientationFileNameFromRestoredScene.isEmpty() == false) {
         bool matched = false;
+    
+        CiftiFiberOrientationFile* matchedOrientFile = NULL;
+        int64_t matchedOrientFileCount = 0;
+        
+        const FileInformation fileInfo(m_matchingFiberOrientationFileNameFromRestoredScene);
+        const AString matchingFileNameNoPath = fileInfo.getFileName();
         
         for (std::vector<CiftiFiberOrientationFile*>::iterator iter = matchingFiberOrientationFiles.begin();
              iter != matchingFiberOrientationFiles.end();
              iter++) {
             /*
              * Try and see if it matches for this file
+             * (1) Verify compatibility
+             * (2) Match name of file without path
+             * (3) Match path starting at end of path
              */
             CiftiFiberOrientationFile* orientationFile = *iter;
-            if (orientationFile->getFileNameNoPath() == m_matchingFiberOrientationFileNameFromRestoredScene) {
-                if (isFiberOrientationFileCombatible(orientationFile)) {
-                    setMatchingFiberOrientationFile(orientationFile);
-                    matched = true;
+            CaretAssert(orientationFile);
+            if (isFiberOrientationFileCombatible(orientationFile)) {
+                if (matchingFileNameNoPath == orientationFile->getFileNameNoPath()) {
+                    const AString orientationFileName = orientationFile->getFileName();
+                    const int64_t endMatchCount = orientationFileName.countMatchingCharactersFromEnd(m_matchingFiberOrientationFileNameFromRestoredScene);
+                    
+                    if (endMatchCount > matchedOrientFileCount) {
+                        matchedOrientFile = orientationFile;
+                        matchedOrientFileCount = endMatchCount;
+                    }
                 }
             }
+//            if (orientationFile->getFileNameNoPath() == m_matchingFiberOrientationFileNameFromRestoredScene) {
+//                if (isFiberOrientationFileCombatible(orientationFile)) {
+//                    setMatchingFiberOrientationFile(orientationFile);
+//                    matched = true;
+//                }
+//            }
+        }
+        
+        if (matchedOrientFileCount > 0) {
+            setMatchingFiberOrientationFile(matchedOrientFile);
         }
         
         /*
