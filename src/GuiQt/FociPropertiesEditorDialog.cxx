@@ -434,6 +434,7 @@ FociPropertiesEditorDialog::newFociFileButtonClicked()
      * Let user choose a different path/name
      */
     FociFile* newFociFile = new FociFile();
+    GuiManager::get()->getBrain()->convertDataFilePathNameToAbsolutePathName(newFociFile);
     AString newFociFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::FOCI,
                                                                       this,
                                                                       "Choose Foci File Name",

@@ -371,6 +371,7 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
          * Let user choose a different path/name
          */
         BorderFile* newBorderFile = new BorderFile();
+        GuiManager::get()->getBrain()->convertDataFilePathNameToAbsolutePathName(newBorderFile);
         AString newBorderFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::BORDER,
                                                                            this,
                                                                            "Choose Border File Name",

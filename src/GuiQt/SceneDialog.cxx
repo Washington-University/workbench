@@ -401,6 +401,7 @@ SceneDialog::newSceneFileButtonClicked()
      * Let user choose a different path/name
      */
     SceneFile* newSceneFile = new SceneFile();
+    GuiManager::get()->getBrain()->convertDataFilePathNameToAbsolutePathName(newSceneFile);
     AString newSceneFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::SCENE,
                                                                       this,
                                                                       "Choose Scene File Name",

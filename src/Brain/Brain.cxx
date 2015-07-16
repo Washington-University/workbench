@@ -5390,6 +5390,21 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
     }
 }
 
+/**
+ * If the file is NOT an absolute path, the name of the file path is updated
+ * to include the current directory.
+ *
+ * @param caretDataFile
+ *     File that may have its name updated.
+ */
+void
+Brain::convertDataFilePathNameToAbsolutePathName(CaretDataFile* caretDataFile) const
+{
+    CaretAssert(caretDataFile);
+    
+    const AString newFileName = convertFilePathNameToAbsolutePathName(caretDataFile->getFileName());
+    caretDataFile->setFileName(newFileName);
+}
 
 /**
  * Exampine the file path name to determine if it is an
@@ -5407,7 +5422,7 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
  *    updating it to an absolute path.
  */
 AString 
-Brain::convertFilePathNameToAbsolutePathName(const AString& filename)
+Brain::convertFilePathNameToAbsolutePathName(const AString& filename) const
 {
     /*
      * If file is on network, is is considered an absolute path

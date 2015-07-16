@@ -317,6 +317,8 @@ namespace caret {
         
         void setCurrentDirectory(const AString& currentDirectory);
         
+        void convertDataFilePathNameToAbsolutePathName(CaretDataFile* caretDataFile) const;
+        
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                              const bool includeSpecFile = false) const;
         
@@ -647,7 +649,7 @@ namespace caret {
                                  CaretDataFile* caretDataFile,
                                  const AString& filename);
         
-        AString convertFilePathNameToAbsolutePathName(const AString& filename);
+        AString convertFilePathNameToAbsolutePathName(const AString& filename) const;
         
         void updateChartModel();
         
