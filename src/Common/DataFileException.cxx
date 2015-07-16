@@ -85,10 +85,10 @@ DataFileException::DataFileException(const AString& dataFileName,
         FileInformation fileInfo(dataFileName);
         const AString pathName = fileInfo.getPathName();
         
-        msg.appendWithNewLine("When using file '" + fileInfo.getFileName() + "'");
+        msg.appendWithNewLine("File: " + fileInfo.getFileName());
         if ( ! pathName.isEmpty()) {
             if (pathName != ".") {
-                msg.appendWithNewLine("(" + pathName + ")");
+                msg.appendWithNewLine("Path: " + pathName);
             }
         }
     }
