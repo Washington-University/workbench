@@ -102,6 +102,8 @@ namespace caret {
         
         void appendWithNewLine(const AString& str);
         
+        int64_t countMatchingCharactersFromEnd(const AString& rhs) const;
+        
         static void toNumbers(const AString& s,
                               std::vector<float>& numbersOut);
         static void toNumbers(const AString& s,

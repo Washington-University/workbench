@@ -833,3 +833,36 @@ AString::appendWithNewLine(const AString& str)
     append(str);
 }
 
+/**
+ * Count the number of matching characters with the other string
+ * starting at the end of the strings.
+ * 
+ * Example: this="someText"  rhs="moreText" => result=4
+ * @rhs 
+ *    The other string.
+ * @return
+ *    Number of character that match from the end of this and rhs.
+ */
+int64_t
+AString::countMatchingCharactersFromEnd(const AString& rhs) const
+{
+    int64_t matchCount = 0;
+    
+    const int64_t myLength  = length();
+    const int64_t rhsLength = rhs.length();
+    const int64_t minLength  = std::min(myLength,
+                                       rhsLength);
+    
+    for (int32_t offset = 1; offset <= minLength; offset++) {
+        if (at(myLength - offset) == rhs.at(rhsLength - offset)) {
+            matchCount++;
+        }
+        else {
+            break;
+        }
+    }
+
+    return matchCount;
+}
+
+
