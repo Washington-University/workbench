@@ -6735,8 +6735,21 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
          borderIter != m_borderFiles.end();
          borderIter++) {
         BorderFile* bf = *borderIter;
-        bf->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
-                                                              sceneClass->getClass(bf->getFileNameNoPath()));
+        const SceneClass* borderScene = sceneClass->getClass(bf->getFileNameNoPath());
+        if (borderScene != NULL) {
+            /*
+             * WB-533 Default State of Borders in Scenes
+             *
+             * When there is scene information for a border file, disable the display
+             * of all classes and names prior to restoring the class/name hierarchy.  
+             * The purpose of this is to prevent the display of borders that have been
+             * added to the border file AFTER the scene was created.
+             */
+            GroupAndNameHierarchyModel* groupAndNameModel = bf->getGroupAndNameHierarchyModel();
+            groupAndNameModel->setAllSelected(false);
+            bf->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
+                                                                  borderScene);
+        }
     }
     for (std::vector<FociFile*>::iterator fociIter = m_fociFiles.begin();
          fociIter != m_fociFiles.end();
