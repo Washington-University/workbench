@@ -341,14 +341,16 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                         
                         const int32_t tabIndexToHighlight = -1;
                         std::vector<BrainOpenGLViewportContent*> viewports = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabContent,
-                                                                                                                                          brain,
+                                                                                                                                          i,
+                                                                                                                                          //brain,
                                                                                                                                           imageWidth,
                                                                                                                                           imageHeight,
                                                                                                                                           rowHeights,
                                                                                                                                           columnWidths,
                                                                                                                                           tabIndexToHighlight);
                         
-                        brainOpenGL->drawModels(viewports);
+                        brainOpenGL->drawModels(brain,
+                                                viewports);
 
                         const int32_t outputImageIndex = ((numBrowserClasses > 1)
                                                           ? i
@@ -401,7 +403,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     std::vector<BrainOpenGLViewportContent*> viewportContents;
                     viewportContents.push_back(&content);
                     
-                    brainOpenGL->drawModels(viewportContents);
+                    brainOpenGL->drawModels(brain,
+                                            viewportContents);
                     
                     const int32_t outputImageIndex = ((numBrowserClasses > 1)
                                                       ? i

@@ -533,6 +533,7 @@ BrainOpenGLWidget::clearDrawingViewportContents()
 /**
  * Update the cursor from the active user input processor.
  */
+void
 BrainOpenGLWidget::updateCursor()
 {
     /*
@@ -580,6 +581,7 @@ BrainOpenGLWidget::paintGL()
     if (numToDraw == 1) {
         BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(windowViewport,
                                                                         windowViewport,
+                                                                        this->windowIndex,
                                                                         false,
                                                                         getModelEvent.getTabContentToDraw(0));
         this->drawingViewportContents.push_back(vc);
@@ -663,7 +665,7 @@ BrainOpenGLWidget::paintGL()
 //  ANNOTATIONS Continuing annotation development.  Testing annotations in different 'spaces'.
         }
         this->drawingViewportContents = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
-                                                                                                     GuiManager::get()->getBrain(),
+                                                                                                     this->windowIndex,
                                                                                                      windowWidth,
                                                                                                      windowHeight,
                                                                                                      rowHeights,

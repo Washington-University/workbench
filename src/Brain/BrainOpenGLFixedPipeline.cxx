@@ -587,6 +587,7 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     
+    m_brain = NULL;
 }
 
 /**

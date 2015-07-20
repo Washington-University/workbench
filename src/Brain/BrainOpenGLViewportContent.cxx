@@ -309,8 +309,8 @@ BrainOpenGLViewportContent::toString() const
  *
  * @paramj tabContents
  *     Content of each tab.
- * @param brain
- *     The brain.
+ * @param windowIndex
+ *     Index of the window.
  * @param windowWidth
  *     Width of the window.
  * @param windowHeight
@@ -326,8 +326,8 @@ BrainOpenGLViewportContent::toString() const
  */
 std::vector<BrainOpenGLViewportContent*>
 BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
-                                                             Brain* brain,
-                                                             const int32_t /*windowWidth*/,
+                                                             const int32_t windowIndex,
+                                                             const int32_t windowWidth,
                                                              const int32_t windowHeight,
                                                              const std::vector<int32_t>& rowHeights,
                                                              const std::vector<int32_t>& columnWidths,
@@ -353,6 +353,12 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         for (int32_t j = 0; j < numCols; j++) {
             const int32_t vpWidth = columnWidths[j];
             if (iTab < numTabs) {
+                const int windowViewport[4] = {
+                    0,
+                    0,
+                    windowWidth,
+                    windowHeight
+                };
                 const int modelViewport[4] = {
                     vpX,
                     vpY,
@@ -364,10 +370,10 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                 BrowserTabContent* tabContent = tabContents[iTab];
                 const bool highlightTab = (highlightTabIndex == tabContent->getTabNumber());
                 BrainOpenGLViewportContent* vc =
-                new BrainOpenGLViewportContent(modelViewport,
+                new BrainOpenGLViewportContent(windowViewport,
                                                modelViewport,
                                                highlightTab,
-                                               brain,
+                                               windowIndex,
                                                tabContent);
                 viewportContentsOut.push_back(vc);
             }

@@ -56,7 +56,7 @@ namespace caret {
         bool isTabHighlighted() const;
         
         static std::vector<BrainOpenGLViewportContent*> createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
-                                                                                         Brain* brain,
+                                                                                         const int32_t windowIndex,
                                                                                          const int32_t windowWidth,
                                                                                          const int32_t windowHeight,
                                                                                          const std::vector<int32_t>& rowHeights,
