@@ -655,7 +655,7 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
  *     Mouse event information.
  */
 void
-UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
+UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& /*mouseEvent*/)
 {
     const bool allowSelectionOfMultipleAnnotationsFlag = false;
     if ( ! allowSelectionOfMultipleAnnotationsFlag) {

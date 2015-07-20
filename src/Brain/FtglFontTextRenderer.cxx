@@ -257,6 +257,7 @@ void
 FtglFontTextRenderer::assignTextRowColumnLocations(const AnnotationText& annotationText,
                                                 TextDrawInfo& textDrawInfoOut)
 {
+#ifdef HAVE_FREETYPE
     FTFont* font = getFont(annotationText,
                            false);
     if ( ! font) {
@@ -281,9 +282,12 @@ FtglFontTextRenderer::assignTextRowColumnLocations(const AnnotationText& annotat
             {
                 const FTBBox bounds = font->BBox(textChars.toAscii().constData());
                 textDrawInfoOut.addTextCell(TextCell(textChars,
-                                                    rowIndex,
-                                                    columnIndex,
-                                                     bounds));
+                                                     rowIndex,
+                                                     columnIndex,
+                                                     bounds.Lower().X(),
+                                                     bounds.Upper().X(),
+                                                     bounds.Lower().Y(),
+                                                     bounds.Upper().Y()));
                 
                 rowIndex++;
             }
@@ -298,7 +302,10 @@ FtglFontTextRenderer::assignTextRowColumnLocations(const AnnotationText& annotat
                     textDrawInfoOut.addTextCell(TextCell(oneChar,
                                                          rowIndex,
                                                          columnIndex,
-                                                         bounds));
+                                                         bounds.Lower().X(),
+                                                         bounds.Upper().X(),
+                                                         bounds.Lower().Y(),
+                                                         bounds.Upper().Y()));
                     
                     rowIndex++;
                 }
@@ -308,6 +315,9 @@ FtglFontTextRenderer::assignTextRowColumnLocations(const AnnotationText& annotat
                 break;
         }
     }
+#else  // HAVE_FREETYPE
+    CaretLogSevere("Trying to use FTGL Font rendering but FTGL is not valid.");
+#endif // HAVE_FREETYPE
 }
 
 /**
@@ -621,9 +631,9 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     const TextCell* firstTextCell = textDrawInfo.getCellAtRowColumn(0, 0);
     if ((rotationAngle != 0.0)
       && (firstTextCell != NULL)){
-        const double firstX = firstTextCell->m_viewportX;
-        const double firstY = firstTextCell->m_viewportY;
-        const double firstZ = firstTextCell->m_viewportZ;
+//        const double firstX = firstTextCell->m_viewportX;
+//        const double firstY = firstTextCell->m_viewportY;
+//        const double firstZ = firstTextCell->m_viewportZ;
         
         glTranslated(rotationPointXYZ[0], rotationPointXYZ[1], rotationPointXYZ[2]);
 //        glTranslated(firstX, firstY, firstZ);
@@ -1219,20 +1229,29 @@ FtglFontTextRenderer::getName() const
  *     The cell's row.
  * @param column
  *     The cell's column.
- * @param textBounds
- *     Bounds of text from FTGL.
+ * @param boundsMinX
+ *     Minimum-X of text bounds.
+ * @param boundsMaxX
+ *     Maximum-X of text bounds.
+ * @param boundsMinY
+ *     Minimum-Y of text bounds.
+ * @param boundsMaxY
+ *     Maximum-Y of text bounds.
  */
 FtglFontTextRenderer::TextCell::TextCell(const QString& text,
-         const int32_t row,
-         const int32_t column,
-         const FTBBox& textBounds)
+                                         const int32_t row,
+                                         const int32_t column,
+                                         const double boundsMinX,
+                                         const double boundsMaxX,
+                                         const double boundsMinY,
+                                         const double boundsMaxY)
 : m_text(text),
 m_row(row),
 m_column(column),
-m_boundsMinX(textBounds.Lower().X()),
-m_boundsMaxX(textBounds.Upper().X()),
-m_boundsMinY(textBounds.Lower().Y()),
-m_boundsMaxY(textBounds.Upper().Y())
+m_boundsMinX(boundsMinX),
+m_boundsMaxX(boundsMaxX),
+m_boundsMinY(boundsMinY),
+m_boundsMaxY(boundsMaxY)
 {
     m_width  = m_boundsMaxX - m_boundsMinX;
     m_height = m_boundsMaxY - m_boundsMinY;

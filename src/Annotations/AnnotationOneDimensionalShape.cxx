@@ -206,8 +206,8 @@ void
 AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                                         const float viewportWidth,
                                                         const float viewportHeight,
-                                                        const float mouseX,
-                                                        const float mouseY,
+                                                        const float /*mouseX*/,
+                                                        const float /*mouseY*/,
                                                         const float mouseDX,
                                                         const float mouseDY)
 {

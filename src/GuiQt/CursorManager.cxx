@@ -262,7 +262,6 @@ CursorManager::createRotationCursor()
     /*
      * points left to right in rotation symbol
      */
-    const int middle = width / 2;
     const int a = 2;
     const int b = 6;
     const int c = width - 14;

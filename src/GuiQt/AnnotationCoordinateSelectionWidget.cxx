@@ -598,7 +598,7 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
     errorMessageOut.clear();
     
     bool valid = false;
-    const AnnotationCoordinateSpaceEnum::Enum coordSpace = getSelectedCoordinateSpace(valid);
+    getSelectedCoordinateSpace(valid);
     if ( ! valid) {
         errorMessageOut = ("A coordinate space has not been selected.");
         return false;

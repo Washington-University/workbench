@@ -26,7 +26,6 @@
 
 #include "BrainOpenGLTextRenderInterface.h"
 
-class FTBBox;
 class FTFont;
 
 namespace caret {
@@ -112,7 +111,10 @@ namespace caret {
             TextCell(const QString& text,
                      const int32_t row,
                      const int32_t column,
-                     const FTBBox& textBounds);
+                     const double boundsMinX,
+                     const double boundsMaxX,
+                     const double boundsMinY,
+                     const double boundsMaxY);
             
             const QString m_text;
             const int32_t m_row;
