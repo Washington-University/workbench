@@ -585,19 +585,19 @@ AnnotationFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    if ( ! isEmpty()) {
-        try {
-        AnnotationFileXmlWriter writer;
-        QString fileContentInString;
-        writer.writeFileToString(this,
-                                 fileContentInString);
-        sceneClass->addString("AnnotationFileContent",
-                              fileContentInString);
-        }
-        catch (const DataFileException& dfe) {
-            sceneAttributes->addToErrorMessage(dfe.whatString());
-        }
-    }
+//    if ( ! isEmpty()) {
+//        try {
+//        AnnotationFileXmlWriter writer;
+//        QString fileContentInString;
+//        writer.writeFileToString(this,
+//                                 fileContentInString);
+//        sceneClass->addString("AnnotationFileContent",
+//                              fileContentInString);
+//        }
+//        catch (const DataFileException& dfe) {
+//            sceneAttributes->addToErrorMessage(dfe.whatString());
+//        }
+//    }
 }
 
 /**
@@ -616,24 +616,21 @@ void
 AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                          const SceneClass* sceneClass)
 {
-    
-    clear(); //????
-    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
-    QString fileContentInString = sceneClass->getStringValue("AnnotationFileContent");
-    if ( ! fileContentInString.isEmpty()) {
-        try {
-            AnnotationFileXmlReader reader;
-            reader.readFileFromString(fileContentInString,
-                                      this);
-            
-            clearModified();
-        }
-        catch (const DataFileException& dfe) {
-            sceneAttributes->addToErrorMessage(dfe.whatString());
-        }
-    }
+//    QString fileContentInString = sceneClass->getStringValue("AnnotationFileContent");
+//    if ( ! fileContentInString.isEmpty()) {
+//        try {
+//            AnnotationFileXmlReader reader;
+//            reader.readFileFromString(fileContentInString,
+//                                      this);
+//            
+//            clearModified();
+//        }
+//        catch (const DataFileException& dfe) {
+//            sceneAttributes->addToErrorMessage(dfe.whatString());
+//        }
+//    }
 }
 
