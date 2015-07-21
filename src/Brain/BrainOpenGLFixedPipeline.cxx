@@ -5060,6 +5060,11 @@ BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* model,
         msg += ("Projection Matrix Stack Depth " + AString::number(projStackDepth) + "\n");
         msg += ("Model Matrix Stack Depth " + AString::number(modelStackDepth) + "\n");
         msg += ("Name Matrix Stack Depth " + AString::number(nameStackDepth) + "\n");
+        SystemBacktrace myBacktrace;
+        SystemUtilities::getBackTrace(myBacktrace);
+        msg += ("Backtrace:\n"
+                + myBacktrace.toSymbolString()
+                + "\n");
         CaretLogSevere(msg);
     }
 }
