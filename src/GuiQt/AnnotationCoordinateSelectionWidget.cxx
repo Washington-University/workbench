@@ -950,15 +950,19 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
     
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::MODEL:
-            dpa->setDisplayModelAnnotations(m_coordInfo.m_tabIndex,
-                                            true);
+            if (m_coordInfo.m_tabIndex >= 0) {
+                dpa->setDisplayModelAnnotations(m_coordInfo.m_tabIndex,
+                                                true);
+            }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
             CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            dpa->setDisplaySurfaceAnnotations(m_coordInfo.m_tabIndex,
-                                              true);
+            if (m_coordInfo.m_tabIndex >= 0) {
+                dpa->setDisplaySurfaceAnnotations(m_coordInfo.m_tabIndex,
+                                                  true);
+            }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             dpa->setDisplayTabAnnotations(annotation->getTabIndex(),

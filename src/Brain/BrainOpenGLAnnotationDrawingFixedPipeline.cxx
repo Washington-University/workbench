@@ -552,6 +552,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
         m_brainOpenGLFixedPipeline->m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
     }
 
+    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("Before draw annotations loop in space: "
+                                                           + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
     for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
          fileIter != allAnnotationFiles.end();
          fileIter++) {
@@ -625,6 +627,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                            surfaceDisplayed);
         }
     }
+    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("After draw annotations loop in space: "
+                                                           + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
     
     if (m_selectionModeFlag) {
         CaretAssert(annotationID);
@@ -659,12 +663,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
         /*
          * Annotation being drawn by the user.
          */
+        m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
+                                                        "Start of annotation drawn by user model space.");
         if (annotationBeingDrawn != NULL) {
             AnnotationFile dummyFile;
             drawAnnotation(&dummyFile,
                            const_cast<Annotation*>(annotationBeingDrawn),
                            surfaceDisplayed);
         }
+        m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
+                                                        "End of annotation drawn by user model space.");
     }
     
     /*
