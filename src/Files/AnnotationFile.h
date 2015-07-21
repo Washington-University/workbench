@@ -35,7 +35,27 @@ namespace caret {
     class AnnotationFile : public CaretDataFile, public EventListenerInterface {
         
     public:
+        /**
+         * Sub-type of the annotation file
+         */
+        enum AnnotationFileSubType {
+            /** 
+             * Normal annotation file which saves its annotation
+             * to a file
+             */
+            ANNOTATION_FILE_SAVE_TO_FILE,
+            /**
+             * Special variant of annotation file that restores and saves the
+             * annotations with the scene methods.  This is used by the 
+             * "Brain" for the scene annotation file that is only saved
+             * to scenes and never saved to a file.
+             */
+            ANNOTATION_FILE_SAVE_TO_SCENE
+        };
+        
         AnnotationFile();
+        
+        AnnotationFile(const AnnotationFileSubType fileSubType);
         
         virtual ~AnnotationFile();
         
@@ -98,6 +118,10 @@ namespace caret {
         void copyHelperAnnotationFile(const AnnotationFile& obj);
 
         void clearPrivate();
+        
+        void initializeAnnotationFile();
+        
+        const AnnotationFileSubType m_fileSubType;
         
         SceneClassAssistant* m_sceneAssistant;
 

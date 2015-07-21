@@ -132,7 +132,7 @@ Brain::Brain()
     m_specFile->setFileName("");
     m_specFile->clearModified();
     
-    m_sceneAnnotationFile = new AnnotationFile();
+    m_sceneAnnotationFile = new AnnotationFile(AnnotationFile::ANNOTATION_FILE_SAVE_TO_SCENE);
     m_sceneAnnotationFile->setFileName("Scene Annotations");
     m_sceneAnnotationFile->clearModified();
     

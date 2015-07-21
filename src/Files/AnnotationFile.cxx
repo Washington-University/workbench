@@ -32,6 +32,7 @@
 #include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
+#include "CaretLogger.h"
 #include "DataFileException.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
@@ -49,13 +50,13 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructor for annotation file that saves annotations to a file.
  */
 AnnotationFile::AnnotationFile()
-: CaretDataFile(DataFileTypeEnum::ANNOTATION)
+: CaretDataFile(DataFileTypeEnum::ANNOTATION),
+m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
 {
-    m_metadata.grabNew(new GiftiMetaData());
-    m_sceneAssistant = new SceneClassAssistant();
+    initializeAnnotationFile();
     
     const bool addExampleDataFlag = false;
     if (addExampleDataFlag) {
@@ -210,6 +211,24 @@ AnnotationFile::AnnotationFile()
 }
 
 /**
+ * Constructor for annotation file that accepts a sub file type
+ * so that annotations may be saved to a file or a scene.
+ *
+ * This method is intended for use by the "Brain" for its
+ * scene annotation file.
+ *
+ * @param fileSubType
+ *     Type of saving of annotations.
+ */
+AnnotationFile::AnnotationFile(const AnnotationFileSubType fileSubType)
+: CaretDataFile(DataFileTypeEnum::ANNOTATION),
+m_fileSubType(fileSubType)
+{
+    initializeAnnotationFile();
+}
+
+
+/**
  * Destructor.
  */
 AnnotationFile::~AnnotationFile()
@@ -273,8 +292,11 @@ AnnotationFile::setAllAnnotationsSelected(const bool selectedStatus)
  */
 AnnotationFile::AnnotationFile(const AnnotationFile& obj)
 : CaretDataFile(obj),
-EventListenerInterface()
+EventListenerInterface(),
+m_fileSubType(obj.m_fileSubType)
 {
+    initializeAnnotationFile();
+    
     this->copyHelperAnnotationFile(obj);
 }
 
@@ -293,6 +315,16 @@ AnnotationFile::operator=(const AnnotationFile& obj)
         this->copyHelperAnnotationFile(obj);
     }
     return *this;    
+}
+
+/**
+ * Initialize an instance of an annotation file.
+ */
+void
+AnnotationFile::initializeAnnotationFile()
+{
+    m_metadata.grabNew(new GiftiMetaData());
+    m_sceneAssistant = new SceneClassAssistant();
 }
 
 /**
@@ -585,19 +617,25 @@ AnnotationFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-//    if ( ! isEmpty()) {
-//        try {
-//        AnnotationFileXmlWriter writer;
-//        QString fileContentInString;
-//        writer.writeFileToString(this,
-//                                 fileContentInString);
-//        sceneClass->addString("AnnotationFileContent",
-//                              fileContentInString);
-//        }
-//        catch (const DataFileException& dfe) {
-//            sceneAttributes->addToErrorMessage(dfe.whatString());
-//        }
-//    }
+    switch (m_fileSubType) {
+        case ANNOTATION_FILE_SAVE_TO_FILE:
+            break;
+        case ANNOTATION_FILE_SAVE_TO_SCENE:
+            if ( ! isEmpty()) {
+                try {
+                    AnnotationFileXmlWriter writer;
+                    QString fileContentInString;
+                    writer.writeFileToString(this,
+                                             fileContentInString);
+                    sceneClass->addString("AnnotationFileContent",
+                                          fileContentInString);
+                }
+                catch (const DataFileException& dfe) {
+                    sceneAttributes->addToErrorMessage(dfe.whatString());
+                }
+            }
+            break;
+    }
 }
 
 /**
@@ -619,18 +657,24 @@ AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
-//    QString fileContentInString = sceneClass->getStringValue("AnnotationFileContent");
-//    if ( ! fileContentInString.isEmpty()) {
-//        try {
-//            AnnotationFileXmlReader reader;
-//            reader.readFileFromString(fileContentInString,
-//                                      this);
-//            
-//            clearModified();
-//        }
-//        catch (const DataFileException& dfe) {
-//            sceneAttributes->addToErrorMessage(dfe.whatString());
-//        }
-//    }
+    switch (m_fileSubType) {
+        case ANNOTATION_FILE_SAVE_TO_FILE:
+            break;
+        case ANNOTATION_FILE_SAVE_TO_SCENE:
+            QString fileContentInString = sceneClass->getStringValue("AnnotationFileContent");
+            if ( ! fileContentInString.isEmpty()) {
+                try {
+                    AnnotationFileXmlReader reader;
+                    reader.readFileFromString(fileContentInString,
+                                              this);
+                    
+                    clearModified();
+                }
+                catch (const DataFileException& dfe) {
+                    sceneAttributes->addToErrorMessage(dfe.whatString());
+                }
+            }
+            break;
+    }
 }
 
