@@ -27,7 +27,7 @@
 #include "WuQDialogModal.h"
 
 class QButtonGroup;
-class QLineEdit;
+class QTextEdit;
 class QRadioButton;
 
 namespace caret {
@@ -140,7 +140,7 @@ namespace caret {
         
         //QButtonGroup* m_spaceButtonGroup;
         
-        QLineEdit* m_textLineEdit;
+        QTextEdit* m_textEdit;
         
         UserInputModeAnnotations::CoordinateInformation m_coordInfo;
         

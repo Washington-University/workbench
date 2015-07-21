@@ -27,8 +27,8 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QLineEdit>
 #include <QRadioButton>
+#include <QTextEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -203,7 +203,7 @@ m_annotationToPastesFile(annotationFile),
 m_annotationToPaste(annotation),
 m_annotationType(annotationType)
 {
-    m_textLineEdit = NULL;
+    m_textEdit = NULL;
     
     /*
      * Get coordinates at the mouse location.
@@ -322,8 +322,8 @@ m_annotationType(annotationType)
                      SCROLL_AREA_NEVER);
     
     if (m_annotationType == AnnotationTypeEnum::TEXT) {
-        CaretAssert(m_textLineEdit);
-        m_textLineEdit->setFocus();
+        CaretAssert(m_textEdit);
+        m_textEdit->setFocus();
         
         switch (m_mode) {
             case MODE_ADD_NEW_ANNOTATION:
@@ -336,8 +336,8 @@ m_annotationType(annotationType)
             {
                 const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(m_annotationToPaste);
                 if (textAnn != NULL) {
-                    m_textLineEdit->setText(textAnn->getText());
-                    m_textLineEdit->selectAll();
+                    m_textEdit->setText(textAnn->getText());
+                    m_textEdit->selectAll();
                 }
             }
                 break;
@@ -474,13 +474,13 @@ AnnotationCreateDialog::newAnnotationFileButtonClicked()
 QWidget*
 AnnotationCreateDialog::createTextWidget()
 {
-    m_textLineEdit = new QLineEdit();
-    m_textLineEdit->setText("");
-    m_textLineEdit->selectAll();
+    m_textEdit = new QTextEdit();
+    m_textEdit->setText("");
+    m_textEdit->selectAll();
     
     QGroupBox* groupBox = new QGroupBox("Text");
     QHBoxLayout* layout = new QHBoxLayout(groupBox);
-    layout->addWidget(m_textLineEdit, 100);
+    layout->addWidget(m_textEdit, 100);
     
     return groupBox;
 }
@@ -512,7 +512,7 @@ AnnotationCreateDialog::okButtonClicked()
     
     QString userText;
     if (m_annotationType == AnnotationTypeEnum::TEXT) {
-        userText = m_textLineEdit->text().trimmed();
+        userText = m_textEdit->toPlainText().trimmed();
         if (userText.isEmpty()) {
             errorMessage.appendWithNewLine("Text is missing.");
         }
