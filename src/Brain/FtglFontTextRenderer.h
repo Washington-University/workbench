@@ -116,14 +116,15 @@ namespace caret {
                      const double boundsMinY,
                      const double boundsMaxY);
             
-            const QString m_text;
-            const int32_t m_row;
-            const int32_t m_column;
             
-            const double m_boundsMinX;
-            const double m_boundsMaxX;
-            const double m_boundsMinY;
-            const double m_boundsMaxY;
+            QString m_text;
+            int32_t m_row;
+            int32_t m_column;
+            
+            double m_boundsMinX;
+            double m_boundsMaxX;
+            double m_boundsMinY;
+            double m_boundsMaxY;
             
             double m_width;
             double m_height;

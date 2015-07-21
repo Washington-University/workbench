@@ -65,7 +65,8 @@ Margin::~Margin()
  *    Object that is copied.
  */
 Margin::Margin(const Margin& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperMargin(obj);
 }

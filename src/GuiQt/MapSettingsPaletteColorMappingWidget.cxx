@@ -1923,9 +1923,7 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
     
-    bool assignToAllMaps = false;
     if (this->applyAllMapsCheckBox->checkState() == Qt::Checked) {
-        assignToAllMaps = true;
         const int numMaps = this->caretMappableDataFile->getNumberOfMaps();
         for (int32_t i = 0; i < numMaps; i++) {
             PaletteColorMapping* pcm = this->caretMappableDataFile->getMapPaletteColorMapping(i);
@@ -1933,15 +1931,6 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
                 pcm->copy(*this->paletteColorMapping);
             }
         }
-    }
-    
-    /*
-     * If no map attributes (one palette applies to all maps),
-     * update coloring for all maps since all of the maps will
-     * need their coloring updated.
-     */
-    if (this->caretMappableDataFile->hasMapAttributes() == false) {
-        assignToAllMaps = true;
     }
     
     this->updateHistogramPlot();

@@ -2195,10 +2195,6 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);
         SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
         CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
-        CaretMappableDataFile* caretMappableDataFile = NULL;
-        if (caretDataFile != NULL) {
-            caretMappableDataFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
-        }
         QAction* copyFilePathToClipboardAction = NULL;
         QAction* editMetaDataAction = NULL;
         QAction* setFileNameAction = NULL;

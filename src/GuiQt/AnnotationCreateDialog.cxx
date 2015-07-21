@@ -545,7 +545,6 @@ AnnotationCreateDialog::okButtonClicked()
     CaretPointer<Annotation> annotation;
     annotation.grabNew(NULL);
     
-    bool setAnnotationsCoordinatesFlag = false;
     switch (m_mode) {
         case MODE_ADD_NEW_ANNOTATION:
         {
@@ -559,7 +558,6 @@ AnnotationCreateDialog::okButtonClicked()
             break;
         case MODE_NEW_ANNOTATION_TYPE_CLICK:
         case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
-            setAnnotationsCoordinatesFlag = true;
             annotation.grabNew(Annotation::newAnnotationOfType(m_annotationType));
             if (m_annotationType == AnnotationTypeEnum::TEXT) {
                 AnnotationText* text = new AnnotationText();
@@ -569,7 +567,6 @@ AnnotationCreateDialog::okButtonClicked()
             break;
         case MODE_PASTE_ANNOTATION:
         {
-            setAnnotationsCoordinatesFlag = true;
             Annotation* annCopy = m_annotationToPaste->clone();
             AnnotationText* annText = dynamic_cast<AnnotationText*>(annCopy);
             if (annText != NULL) {

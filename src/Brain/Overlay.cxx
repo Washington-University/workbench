@@ -358,10 +358,8 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
          iter++) {
         CaretMappableDataFile* mapFile = *iter;
         bool useIt = false;
-        bool mappable = false;
         
         if (mapFile->isSurfaceMappable()) {
-            mappable = true;
             if (showSurfaceMapFiles) {
                 
                 for (std::vector<StructureEnum::Enum>::const_iterator iter = m_includeSurfaceStructures.begin();
@@ -375,7 +373,6 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
             }
         }
         if (mapFile->isVolumeMappable()) {
-            mappable = true;
             if (showVolumeMapFiles) {
                 useIt = true;
             }
