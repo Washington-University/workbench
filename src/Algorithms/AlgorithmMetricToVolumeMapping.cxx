@@ -67,11 +67,10 @@ OperationParameters* AlgorithmMetricToVolumeMapping::getParameters()
     ribbonSubdivOpt->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  ") +
-        "DO NOT add the info about what the command line format is, and do not give the command switch, " +
-        "short description, or the short descriptions of parameters.  " +
-        "Do not indent, manually break long lines, or format the text in any way " +
-        "other than to separate paragraphs within the help text prose, usually with two newlines."
+        AString("Maps values from a metric file into a volume file.  ") +
+        "You must specify exactly one mapping method option.  " +
+        "The -nearest-vertex method uses the value from the vertex closest to the voxel center (useful for integer values).  " +
+        "The -ribbon-constrained method uses the same method as in -volume-to-surface-mapping, then uses the weights in reverse.  "
     );
     return ret;
 }

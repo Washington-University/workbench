@@ -34,8 +34,10 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
+        ///nearest vertex
         AlgorithmMetricToVolumeMapping(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
                                        VolumeFile* myVolOut, const float& nearDist);
+        ///ribbon constrained
         AlgorithmMetricToVolumeMapping(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
                                        VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int& subDivs = 3);
         static OperationParameters* getParameters();
