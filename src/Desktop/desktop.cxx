@@ -661,7 +661,9 @@ void printHelp(const AString& progName)
     }
     
     cout
-    << "        other styles may be available on other systems" << endl
+    << "        The selected style is listed on File Menu->About wb_view " << endl
+    << "        (On Macs: wb_view Menu->About wb_view)." << endl
+    << "        Other styles may be available on other systems." << endl
     << endl
     << "    -spec-load-all" << endl
     << "        load all files in the given spec file, don't show spec file dialog" << endl

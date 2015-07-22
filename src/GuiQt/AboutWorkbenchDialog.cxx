@@ -23,9 +23,11 @@
 #include "AboutWorkbenchDialog.h"
 #undef __ABOUT_WORKBENCH_DIALOG_DECLARE__
 
+#include <QApplication>
 #include <QDate>
 #include <QDesktopServices>
 #include <QLabel>
+#include <QStyle>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -164,6 +166,12 @@ AboutWorkbenchDialog::displayMoreInformation()
     std::vector<AString> informationData;
     appInfo.getAllInformation(informationData);
     
+    QString styleName("Undefined");
+    QStyle* appStyle = QApplication::style();
+    if (appStyle != NULL) {
+        styleName = appStyle->objectName();
+    }
+    informationData.push_back(QString("Style Name: " + styleName));
     
     
     WuQDataEntryDialog ded("More " + appInfo.getName() + " Information",
