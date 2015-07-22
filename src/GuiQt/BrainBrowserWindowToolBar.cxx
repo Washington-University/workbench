@@ -347,10 +347,10 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     this->userInputControlsWidgetLayout = new QHBoxLayout();
     this->userInputControlsWidgetLayout->addSpacing(5);
-    WuQtUtilities::setLayoutSpacingAndMargins(this->userInputControlsWidgetLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(this->userInputControlsWidgetLayout, 0, 0);
     this->userInputControlsWidget = new QWidget();
     QVBoxLayout* userInputLayout = new QVBoxLayout(this->userInputControlsWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(userInputLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(userInputLayout, 2, 0);
     userInputLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     userInputLayout->addLayout(this->userInputControlsWidgetLayout);
     userInputControlsWidgetActiveInputWidget = NULL;
