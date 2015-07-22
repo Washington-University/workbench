@@ -82,10 +82,10 @@ m_windowIndex(windowIndex)
     CaretAssert(inputModeVolumeEdit);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    //WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(createSelectionToolBar());
     layout->addWidget(createModeToolBar());
-    //setSizePolicy(sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
+    setSizePolicy(sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR);
 }
