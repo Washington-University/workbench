@@ -83,8 +83,8 @@ m_windowIndex(windowIndex)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-//    layout->addWidget(createSelectionToolBar());
-    layout->addWidget(createModeToolBar());
+    layout->addWidget(createSelectionToolBar());
+//    layout->addWidget(createModeToolBar());
     setSizePolicy(sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR);
