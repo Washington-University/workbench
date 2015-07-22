@@ -1309,6 +1309,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         }
     }
     
+    bool dataWasLoadedFlag = false;
     if (userCancelled) {
         m_loadedRowData.clear();
         m_loadedRowData.resize(dataCount, 0.0);
@@ -1328,13 +1329,12 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         
         m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
                                                                voxelIndices);
-        
-        return true;
+        dataWasLoadedFlag = true;
     }
     
     updateForChangeInMapDataWithMapIndex(0);
     
-    return false;
+    return dataWasLoadedFlag;
 }
 
 /**
