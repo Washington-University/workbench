@@ -28,12 +28,16 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
 
@@ -163,7 +167,13 @@ AnnotationTextEditorWidget::annotationTextChanged()
 {
     QString s(m_textLineEdit->text().trimmed());
     s.replace("\\n", "\n");
-    m_annotationText->setText(s);
+    
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeTextCharacters(s, annMan->getSelectedAnnotations());
+    annMan->applyCommand(undoCommand);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -190,7 +200,13 @@ AnnotationTextEditorWidget::annotationTextConnectTypeEnumComboBoxItemActivated()
 {
     if (m_annotationText != NULL) {
         const AnnotationTextConnectTypeEnum::Enum connectType = m_annotationTextConnectTypeEnumComboBox->getSelectedItem<AnnotationTextConnectTypeEnum,AnnotationTextConnectTypeEnum::Enum>();
-        m_annotationText->setConnectToBrainordinate(connectType);
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeTextConnectToBrainordinate(connectType,
+                                                       annMan->getSelectedAnnotations());
+        annMan->applyCommand(undoCommand);
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
     

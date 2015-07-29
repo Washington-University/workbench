@@ -63,6 +63,8 @@ m_type(type)
  */
 Annotation::~Annotation()
 {
+    //std::cout << "Deleting annotation of type: " << qPrintable(AnnotationTypeEnum::toGuiName(m_type)) << std::endl;
+    
     delete m_sceneAssistant;
 }
 
@@ -178,6 +180,73 @@ Annotation::clone() const
     
     return myClone;
 }
+
+/**
+ * Replace "this" annotation with content of the given annotation.
+ * The annotation must by the same type and class.
+ *
+ * @param annotation
+ *     Annotation whose content is copied to "this" annotation.
+ */
+void
+Annotation::replaceWithCopyOfAnnotation(const Annotation* annotation)
+{
+    CaretAssert(annotation);
+    
+    const AnnotationTypeEnum::Enum myType = getType();
+    
+    if (myType != annotation->getType()) {
+        CaretLogSevere("Attempting to replace  "
+                       + AnnotationTypeEnum::toGuiName(myType)
+                       + " with annotation of different type: "
+                       + AnnotationTypeEnum::toGuiName(annotation->getType()));
+        return;
+    }
+    
+    *this = *annotation;
+    
+//    switch (myType) {
+//        case AnnotationTypeEnum::BOX:
+//        {
+//            AnnotationBox* copyToAnn = dynamic_cast<AnnotationBox*>(this);
+//            
+////            const AnnotationBox* box = dynamic_cast<const AnnotationBox*>(this);
+////            CaretAssert(box);
+////            myClone = new AnnotationBox(*box);
+//        }
+//            break;
+//        case AnnotationTypeEnum::IMAGE:
+//        {
+////            const AnnotationImage* image = dynamic_cast<const AnnotationImage*>(this);
+////            CaretAssert(image);
+////            myClone = new AnnotationImage(*image);
+//        }
+//            break;
+//        case AnnotationTypeEnum::LINE:
+//        {
+////            const AnnotationLine* line = dynamic_cast<const AnnotationLine*>(this);
+////            CaretAssert(line);
+////            myClone = new AnnotationLine(*line);
+//        }
+//            break;
+//        case AnnotationTypeEnum::OVAL:
+//        {
+////            const AnnotationOval* oval = dynamic_cast<const AnnotationOval*>(this);
+////            CaretAssert(oval);
+////            myClone = new AnnotationOval(*oval);
+//        }
+//            break;
+//        case AnnotationTypeEnum::TEXT:
+//        {
+////            const AnnotationText* text = dynamic_cast<const AnnotationText*>(this);
+////            CaretAssert(text);
+////            myClone = new AnnotationText(*text);
+//        }
+//            break;
+//    }
+    
+}
+
 
 /**
  * Factory method for creating an annotation of the given type.

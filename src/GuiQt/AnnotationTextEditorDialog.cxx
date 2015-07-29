@@ -27,10 +27,14 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 
+#include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationText.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -103,11 +107,10 @@ AnnotationTextEditorDialog::done(int resultCode)
     if (resultCode == QDialog::Accepted) {
     }
     else {
-        m_textAnnotation->setText(m_uneditedText);
-        emit textHasBeenChanged(m_textAnnotation->getText());
+        m_textEdit->setText(m_uneditedText);
     }
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+  
+    textWasEdited();
     
     QDialog::done(resultCode);
 }
@@ -121,9 +124,13 @@ AnnotationTextEditorDialog::done(int resultCode)
 void
 AnnotationTextEditorDialog::textWasEdited()
 {
-    m_textAnnotation->setText(m_textEdit->toPlainText().trimmed());
+    const QString text = m_textEdit->toPlainText().trimmed();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeTextCharacters(text,
+                                       annMan->getSelectedAnnotations());
+    annMan->applyCommand(undoCommand);
     
-    emit textHasBeenChanged(m_textAnnotation->getText());
-    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

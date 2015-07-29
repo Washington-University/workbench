@@ -39,6 +39,7 @@
 #include "AnnotationLineArrowTipsWidget.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
+#include "AnnotationRedoUndoWidget.h"
 #include "AnnotationRotationWidget.h"
 #include "AnnotationText.h"
 #include "AnnotationTextAlignmentWidget.h"
@@ -91,9 +92,11 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_textOrientationWidget      = new AnnotationTextOrientationWidget(m_browserWindowIndex);
     
-    m_coordinateOneWidget        = new AnnotationCoordinateWidget(m_browserWindowIndex);
+    m_coordinateOneWidget        = new AnnotationCoordinateWidget(AnnotationCoordinateWidget::COORDINATE_ONE,
+                                                                  m_browserWindowIndex);
     
-    m_coordinateTwoWidget        = new AnnotationCoordinateWidget(m_browserWindowIndex);
+    m_coordinateTwoWidget        = new AnnotationCoordinateWidget(AnnotationCoordinateWidget::COORDINATE_TWO,
+                                                                  m_browserWindowIndex);
     
     m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_browserWindowIndex);
     
@@ -102,6 +105,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     m_formatWidget               = new AnnotationFormatWidget(m_browserWindowIndex);
     
     m_insertDeleteWidget         = new AnnotationInsertNewWidget(m_browserWindowIndex);
+    
+    m_redoUndoWidget             = new AnnotationRedoUndoWidget(m_browserWindowIndex);
     
     /*
      * Connect signals for setting a coordinate with the mouse.
@@ -131,6 +136,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     topRowLayout->addWidget(m_insertDeleteWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_formatWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_redoUndoWidget, 0, Qt::AlignTop);
     topRowLayout->addStretch();
     
     /*
@@ -155,6 +162,7 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
@@ -193,9 +201,11 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* updateEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(updateEvent);
-        
         updateAnnotationWidgetsFlag = true;
         
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE) {
+        updateAnnotationWidgetsFlag = true;
     }
     else {
         return;
@@ -299,16 +309,16 @@ UserInputModeAnnotationsWidget::updateWidget()
         coordinateSpace = annotationBeingEdited->getCoordinateSpace();
     }
     
-    m_coordinateOneWidget->updateContent(coordinateSpace,
-                                         coordinateOne);
+    m_coordinateOneWidget->updateContent(annotationBeingEdited);
     if (coordinateTwo != NULL) {
-        m_coordinateTwoWidget->updateContent(coordinateSpace,
-                                             coordinateTwo);
+        m_coordinateTwoWidget->updateContent(annotationBeingEdited);
         m_coordinateTwoWidget->setVisible(true);
     }
     else {
         m_coordinateTwoWidget->setVisible(false);
     }
+    
+    m_redoUndoWidget->updateContent();
 }
 
 

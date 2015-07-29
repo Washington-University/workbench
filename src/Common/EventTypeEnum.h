@@ -40,8 +40,12 @@ public:
         EVENT_INVALID,
         /** Alert user about something */
         EVENT_ALERT_USER,
+        /** Delete or undelete an annotation from an annotation file */
+        EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE,
         /** Annotation create new of a particular type */
         EVENT_ANNOTATION_CREATE_NEW_TYPE,
+        /** Annotation toolbar update */
+        EVENT_ANNOTATION_TOOLBAR_UPDATE,
         /** Inform that Brain has been reset (new spec or scene loaded) */
         EVENT_BRAIN_RESET,
         /** Get all brain structures */

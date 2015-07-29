@@ -29,6 +29,7 @@
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"
 #include "AnnotationTwoDimensionalShape.h"
@@ -291,17 +292,13 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
                     std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
                     if ( ! selectedAnnotations.empty()) {
-//                        if (WuQMessageBox::warningOkCancel(m_annotationToolsWidget,
-//                                                           "Delete selected annotation(s)?")) {
-                            /*
-                             * Delete all selected annotations and update graphics and UI.
-                             */
-                            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-                            annotationManager->deleteSelectedAnnotations();
-                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-                        }
-//                    }
+                        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                        undoCommand->setModeDeleteAnnotations(selectedAnnotations);
+                        annotationManager->applyCommand(undoCommand);
+                        
+                        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                    }
                 }
                     break;
                 case MODE_SET_COORDINATE_ONE:
@@ -382,28 +379,90 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     AnnotationOneDimensionalShape* oneDim = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotationBeingEdited);
                     AnnotationTwoDimensionalShape* twoDim = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotationBeingEdited);
                     
-                    if (oneDim != NULL) {
-                        float xyz[3];
-                        oneDim->getStartCoordinate()->getXYZ(xyz);
-                        xyz[0] += dx;
-                        xyz[1] += dy;
-                        oneDim->getStartCoordinate()->setXYZ(xyz);
-                        
-                        oneDim->getEndCoordinate()->getXYZ(xyz);
-                        xyz[0] += dx;
-                        xyz[1] += dy;
-                        oneDim->getEndCoordinate()->setXYZ(xyz);
-                    }
+//                    if (oneDim != NULL) {
+//                        float xyz[3];
+//                        oneDim->getStartCoordinate()->getXYZ(xyz);
+//                        xyz[0] += dx;
+//                        xyz[1] += dy;
+//                        oneDim->getStartCoordinate()->setXYZ(xyz);
+//                        
+//                        oneDim->getEndCoordinate()->getXYZ(xyz);
+//                        xyz[0] += dx;
+//                        xyz[1] += dy;
+//                        oneDim->getEndCoordinate()->setXYZ(xyz);
+//                    }
+//                    
+//                    if (twoDim != NULL) {
+//                        float xyz[3];
+//                        twoDim->getCoordinate()->getXYZ(xyz);
+//                        xyz[0] += dx;
+//                        xyz[1] += dy;
+//                        twoDim->getCoordinate()->setXYZ(xyz);
+//                    }
+//
+//                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                     
-                    if (twoDim != NULL) {
-                        float xyz[3];
-                        twoDim->getCoordinate()->getXYZ(xyz);
-                        xyz[0] += dx;
-                        xyz[1] += dy;
-                        twoDim->getCoordinate()->setXYZ(xyz);
-                    }
-
-                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                    {
+                            bool surfaceFlag = false;
+                            switch (m_annotationBeingEdited->getCoordinateSpace()) {
+                                case AnnotationCoordinateSpaceEnum::MODEL:
+                                    break;
+                                case AnnotationCoordinateSpaceEnum::PIXELS:
+                                    break;
+                                case AnnotationCoordinateSpaceEnum::SURFACE:
+                                    surfaceFlag = true;
+                                    break;
+                                case AnnotationCoordinateSpaceEnum::TAB:
+                                    break;
+                                case AnnotationCoordinateSpaceEnum::WINDOW:
+                                    break;
+                            }
+                            
+                            if ( ! surfaceFlag) {
+                                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                                std::vector<Annotation*> annotations;
+                                annotations.push_back(m_annotationBeingEdited);
+                                
+                                if (oneDim != NULL) {
+                                    AnnotationCoordinate startCoord = *oneDim->getStartCoordinate();
+                                    float xyzStart[3];
+                                    startCoord.getXYZ(xyzStart);
+                                    xyzStart[0] += dx;
+                                    xyzStart[1] += dy;
+                                    startCoord.setXYZ(xyzStart);
+                                    
+                                    AnnotationCoordinate endCoord   = *oneDim->getEndCoordinate();
+                                    float xyzEnd[3];
+                                    endCoord.getXYZ(xyzEnd);
+                                    xyzEnd[0] += dx;
+                                    xyzEnd[1] += dy;
+                                    endCoord.setXYZ(xyzEnd);
+                                    
+                                    undoCommand->setModeCoordinateOneAndTwo(startCoord, endCoord, annotations);
+                                }
+                                else if (twoDim != NULL) {
+                                    AnnotationCoordinate coord = *twoDim->getCoordinate();
+                                    float xyz[3];
+                                    coord.getXYZ(xyz);
+                                    xyz[0] += dx;
+                                    xyz[1] += dy;
+                                    coord.setXYZ(xyz);
+                                    
+                                    undoCommand->setModeCoordinateOne(coord,
+                                                                      annotations);
+                                }
+                                else {
+                                    CaretAssert(0);
+                                }
+                                
+                                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                                annMan->applyCommand(undoCommand);
+                                
+                                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            }
+                            
+                        }
                 }
             }
         }
@@ -497,13 +556,34 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 
                 const float mouseViewportX = mouseEvent.getX() - spaceOriginX;
                 const float mouseViewportY = mouseEvent.getY() - spaceOriginY;
-                m_annotationBeingDragged->applyMoveOrResizeFromGUI(m_annotationBeingDraggedHandleType,
-                                                                   spaceWidth,
-                                                                   spaceHeight,
-                                                                   mouseViewportX,
-                                                                   mouseViewportY,
-                                                                   dx,
-                                                                   dy);
+//                m_annotationBeingDragged->applyMoveOrResizeFromGUI(m_annotationBeingDraggedHandleType,
+//                                                                   spaceWidth,
+//                                                                   spaceHeight,
+//                                                                   mouseViewportX,
+//                                                                   mouseViewportY,
+//                                                                   dx,
+//                                                                   dy);
+                
+                CaretPointer<Annotation> annotationModified(m_annotationBeingDragged->clone());
+                annotationModified->applyMoveOrResizeFromGUI(m_annotationBeingDraggedHandleType,
+                                                             spaceWidth,
+                                                             spaceHeight,
+                                                             mouseViewportX,
+                                                             mouseViewportY,
+                                                             dx,
+                                                             dy);
+                
+                AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+                std::vector<Annotation*> annotationsBeforeMoveAndResize;
+                annotationsBeforeMoveAndResize.push_back(m_annotationBeingDragged);
+                std::vector<Annotation*> annotationsAfterMoveAndResize;
+                annotationsAfterMoveAndResize.push_back(annotationModified);
+                
+                command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
+                                                annotationsAfterMoveAndResize);
+                
+                AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+                annotationManager->applyCommand(command);
                 
 //                switch (m_annotationUnderMouseSizeHandleType) {
 //                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:

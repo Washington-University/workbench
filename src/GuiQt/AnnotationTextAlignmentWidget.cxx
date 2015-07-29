@@ -36,10 +36,14 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationText.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "MathFunctions.h"
 #include "WuQtUtilities.h"
 
@@ -236,12 +240,15 @@ AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action
     AnnotationTextAlignHorizontalEnum::Enum actionAlign = AnnotationTextAlignHorizontalEnum::fromIntegerCode(intValue,
                                                                                                              &valid);
     if (valid) {
-        if (m_annotationText != NULL) {
-            m_annotationText->setHorizontalAlignment(actionAlign);
-        }
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeTextAlignmentHorizontal(actionAlign,
+                                                    annMan->getSelectedAnnotations());
+        annMan->applyCommand(undoCommand);
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
-
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -259,12 +266,15 @@ AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
     AnnotationTextAlignVerticalEnum::Enum actionAlign = AnnotationTextAlignVerticalEnum::fromIntegerCode(intValue,
                                                                                                              &valid);
     if (valid) {
-        if (m_annotationText != NULL) {
-            m_annotationText->setVerticalAlignment(actionAlign);
-        }
-    }
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeTextAlignmentVertical(actionAlign,
+                                                  annMan->getSelectedAnnotations());
+        annMan->applyCommand(undoCommand);
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }    
 }
 
 /**

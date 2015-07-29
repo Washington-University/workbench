@@ -31,13 +31,17 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationRedoUndoCommand.h"
+#include "Brain.h"
 #include "BrainOpenGL.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumMenu.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "WuQFactory.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -212,12 +216,10 @@ void
 AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretColor)
 {
     if (m_annotation != NULL) {
-        m_annotation->setBackgroundColor(caretColor);
+        float rgba[4];
+        m_annotation->getCustomBackgroundColor(rgba);
         
         if (caretColor == CaretColorEnum::CUSTOM) {
-            float rgba[4];
-            m_annotation->getCustomBackgroundColor(rgba);
-            
             QColor color;
             color.setRgbF(rgba[0], rgba[1], rgba[2]);
             
@@ -228,12 +230,20 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
                 rgba[0] = newColor.redF();
                 rgba[1] = newColor.greenF();
                 rgba[2] = newColor.blueF();
-                m_annotation->setCustomBackgroundColor(rgba);
+                //m_annotation->setCustomBackgroundColor(rgba);
             }
         }
+        
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeColorBackground(caretColor,
+                                           rgba,
+                                           annMan->getSelectedAnnotations());
+        annMan->applyCommand(undoCommand);
     }
 
     updateBackgroundColorButton();
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -328,27 +338,33 @@ void
 AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretColor)
 {
     if (m_annotation != NULL) {
-        m_annotation->setForegroundColor(caretColor);
+        float rgba[4];
+        m_annotation->getCustomForegroundColor(rgba);
         
         if (caretColor == CaretColorEnum::CUSTOM) {
-            float rgba[4];
-            m_annotation->getCustomForegroundColor(rgba);
-            
             QColor color;
             color.setRgbF(rgba[0], rgba[1], rgba[2]);
             
             QColor newColor = QColorDialog::getColor(color,
-                                                     m_foregroundToolButton,
+                                                     m_backgroundToolButton,
                                                      "Foreground Color");
             if (newColor.isValid()) {
                 rgba[0] = newColor.redF();
                 rgba[1] = newColor.greenF();
                 rgba[2] = newColor.blueF();
-                m_annotation->setCustomForegroundColor(rgba);
+                //m_annotation->setCustomForegroundColor(rgba);
             }
         }
+        
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeColorForeground(caretColor,
+                                            rgba,
+                                            annMan->getSelectedAnnotations());
+        annMan->applyCommand(undoCommand);
     }
     updateForegroundColorButton();
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -361,10 +377,13 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
 void
 AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
 {
-    if (m_annotation != NULL) {
-        m_annotation->setForegroundLineWidth(value);
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeLineWidthForeground(value, annMan->getSelectedAnnotations());
+        annMan->applyCommand(undoCommand);
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
 }
 
 /**

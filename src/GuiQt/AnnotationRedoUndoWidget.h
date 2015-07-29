@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_LINE_ARROW_TIPS_WIDGET_H__
-#define __ANNOTATION_LINE_ARROW_TIPS_WIDGET_H__
+#ifndef __ANNOTATION_REDO_UNDO_WIDGET_H__
+#define __ANNOTATION_REDO_UNDO_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -24,52 +24,48 @@
 
 #include <QWidget>
 
-class QToolButton;
+
 
 namespace caret {
 
-    class AnnotationLine;
-    
-    class AnnotationLineArrowTipsWidget : public QWidget {
+    class AnnotationRedoUndoWidget : public QWidget {
         
         Q_OBJECT
 
     public:
-        AnnotationLineArrowTipsWidget(const int32_t browserWindowIndex,
-                                      QWidget* parent = 0);
+        AnnotationRedoUndoWidget(const int32_t browserWindowIndex,
+                                 QWidget* parent = 0);
         
-        virtual ~AnnotationLineArrowTipsWidget();
+        virtual ~AnnotationRedoUndoWidget();
         
-        void updateContent(AnnotationLine* annotationLine);
+        void updateContent();
         
     private slots:
-        void startArrowTipActionToggled();
+        void redoActionTriggered();
         
-        void endArrowTipActionToggled();
+        void undoActionTriggered();
         
 
         // ADD_NEW_METHODS_HERE
 
     private:
-        AnnotationLineArrowTipsWidget(const AnnotationLineArrowTipsWidget&);
+        AnnotationRedoUndoWidget(const AnnotationRedoUndoWidget&);
 
-        AnnotationLineArrowTipsWidget& operator=(const AnnotationLineArrowTipsWidget&);
+        AnnotationRedoUndoWidget& operator=(const AnnotationRedoUndoWidget&);
         
         const int32_t m_browserWindowIndex;
         
-        QToolButton* m_startArrowToolButton;
+        QAction* m_redoAction;
         
-        QToolButton* m_endArrowToolButton;
-        
-        AnnotationLine* m_annotationLine;
+        QAction* m_undoAction;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __ANNOTATION_LINE_ARROW_TIPS_WIDGET_DECLARE__
+#ifdef __ANNOTATION_REDO_UNDO_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_LINE_ARROW_TIPS_WIDGET_DECLARE__
+#endif // __ANNOTATION_REDO_UNDO_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_LINE_ARROW_TIPS_WIDGET_H__
+#endif  //__ANNOTATION_REDO_UNDO_WIDGET_H__

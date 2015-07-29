@@ -72,6 +72,14 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_CREATE_NEW_TYPE,
                                      "EVENT_ANNOTATION_CREATE_NEW_TYPE",
                                      "Event to create a new annotation of a particular type"));
+
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE,
+                                     "EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE",
+                                     "Event to delete or undelete an annotation from an annotation file"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TOOLBAR_UPDATE,
+                                     "EVENT_ANNOTATION_TOOLBAR_UPDATE",
+                                     "Event to update annotation toolbar"));
     
     enumData.push_back(EventTypeEnum(EVENT_BRAIN_RESET,
                                      "EVENT_BRAIN_RESET",

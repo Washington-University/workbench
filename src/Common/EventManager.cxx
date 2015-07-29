@@ -452,6 +452,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
 {
     
     switch (eventType) {
+        case EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE:
         {
             sendEvent(Event(eventType).getPointer());
@@ -465,10 +466,10 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
             CaretAssertMessage(0, msg);
             CaretLogSevere(msg);
         }
-            return;
             break;
         case EventTypeEnum::EVENT_ALERT_USER:
         case EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE:
+        case EventTypeEnum::EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE:
         case EventTypeEnum::EVENT_BRAIN_RESET:
         case EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_DELETE:

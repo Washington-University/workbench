@@ -336,6 +336,25 @@ CaretUndoStack::redo()
     }
 }
 
+/**
+ * @return Returns the description of the command which will be
+ * redone in the next call to redo().
+ */
+AString
+CaretUndoStack::redoText()
+{
+    AString text;
+    
+    if ( ! m_undoStack.empty()) {
+        if ((m_undoStackIndex >= 0)
+            && (m_undoStackIndex < count())) {
+            text = m_undoStack.at(m_undoStackIndex)->getDescription();
+        }
+    }
+    
+    return text;
+}
+
 
 /**
  * Undoes the command below the current command by calling QUndoCommand::undo(). 
@@ -358,8 +377,30 @@ CaretUndoStack::undo()
     }
 }
 
+
 /**
- * When the number of commands on a stack exceedes the stack's undo limit, 
+ * @return Returns the description of the command which will be
+ * undone in the next call to undo().
+ */
+AString
+CaretUndoStack::undoText()
+{
+    AString text;
+    
+    if ( ! m_undoStack.empty()) {
+        if ((m_undoStackIndex > 0)
+            && (m_undoStackIndex <= count())) {
+            const int32_t undoIndex = m_undoStackIndex - 1;
+            text = m_undoStack.at(undoIndex)->getDescription();
+        }
+    }
+    
+    return text;
+}
+
+
+/**
+ * When the number of commands on a stack exceedes the stack's undo limit,
  * commands are deleted from the bottom of the stack.  The default
  * value is 0, which means that there is no limit.
  * 

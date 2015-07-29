@@ -31,6 +31,7 @@ class QSpinBox;
 
 namespace caret {
 
+    class Annotation;
     class AnnotationCoordinate;
     class StructureEnumComboBox;
     
@@ -39,7 +40,13 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationCoordinateWidget(const int32_t browserWindowIndex,
+        enum WhichCoordinate {
+            COORDINATE_ONE,
+            COORDINATE_TWO
+        };
+        
+        AnnotationCoordinateWidget(const WhichCoordinate whichCoordinate,
+                                   const int32_t browserWindowIndex,
                                    QWidget* parent = 0);
         
         virtual ~AnnotationCoordinateWidget();
@@ -47,16 +54,13 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        void updateContent(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
-                           AnnotationCoordinate* coordinate);
+        void updateContent(Annotation* annotation);
         
     signals:
         void signalSelectCoordinateWithMouse();
         
     private slots:
-        void xyzValueChanged();
-        
-        void surfaceValueChanged();
+        void valueChanged();
         
         void setCoordinateActionTriggered();
         
@@ -65,8 +69,12 @@ namespace caret {
 
         AnnotationCoordinateWidget& operator=(const AnnotationCoordinateWidget&);
         
+        AnnotationCoordinate* getCoordinate();
+        
         // ADD_NEW_MEMBERS_HERE
 
+        const WhichCoordinate m_whichCoordinate;
+        
         const int32_t m_browserWindowIndex;
         
         QWidget* m_surfaceWidget;
@@ -85,9 +93,7 @@ namespace caret {
         
         QDoubleSpinBox* m_zCoordSpinBox;
 
-        AnnotationCoordinateSpaceEnum::Enum m_coordinateSpace;
-        
-        AnnotationCoordinate* m_coordinate;
+        Annotation* m_annotation;
         
     };
     

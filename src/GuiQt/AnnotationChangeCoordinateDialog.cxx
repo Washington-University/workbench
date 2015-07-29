@@ -194,9 +194,7 @@ AnnotationChangeCoordinateDialog::okButtonClicked()
 {
     QString errorMessage;
     if ( ! m_coordinateSelectionWidget->changeAnnotationCoordinate(m_annotation,
-                                                                m_coordinate,
-                                                                m_secondCoordinate,
-                                                                errorMessage)) {
+                                                                   errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
         return;

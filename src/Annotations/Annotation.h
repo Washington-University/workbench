@@ -47,6 +47,8 @@ namespace caret {
         
         Annotation* clone() const;
         
+        void replaceWithCopyOfAnnotation(const Annotation* annotation);
+        
         QString getShortDescriptiveString() const;
         
         AnnotationTypeEnum::Enum getType() const ;
@@ -130,6 +132,8 @@ namespace caret {
                                               const float mouseDY) = 0;
         
         bool isMovableOrResizableFromGUI() const;
+        
+        virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation) = 0;
         
         // ADD_NEW_METHODS_HERE
 

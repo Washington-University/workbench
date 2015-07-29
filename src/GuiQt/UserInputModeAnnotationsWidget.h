@@ -37,6 +37,7 @@ namespace caret {
     class AnnotationFormatWidget;
     class AnnotationInsertNewWidget;
     class AnnotationLineArrowTipsWidget;
+    class AnnotationRedoUndoWidget;
     class AnnotationRotationWidget;
     class AnnotationTextAlignmentWidget;
     class AnnotationTextEditorWidget;
@@ -102,6 +103,8 @@ namespace caret {
         AnnotationTextOrientationWidget* m_textOrientationWidget;
         
         AnnotationInsertNewWidget* m_insertDeleteWidget;
+        
+        AnnotationRedoUndoWidget* m_redoUndoWidget;
         
         // ADD_NEW_MEMBERS_HERE
 

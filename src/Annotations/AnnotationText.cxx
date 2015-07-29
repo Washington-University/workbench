@@ -441,6 +441,20 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
 }
 
 /**
+ * Apply the coordinates, size, and rotation from the given annotation
+ * to this annotation.
+ *
+ * @param otherAnnotation
+ *     The other annotation from which attributes are obtained.
+ */
+void
+AnnotationText::applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation)
+{
+    AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(otherAnnotation);
+}
+
+
+/**
  * Apply a move or resize operation received from the GUI.
  *
  * @param handleSelected

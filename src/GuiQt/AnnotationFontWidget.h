@@ -44,7 +44,15 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     private slots:
-        void slotItemValueChanged();
+        void fontBoldChanged();
+
+        void fontItalicChanged();
+        
+        void fontNameChanged();
+        
+        void fontSizeChanged();
+        
+        void fontUnderlineChanged();
         
     private:
         AnnotationFontWidget(const AnnotationFontWidget&);
@@ -65,9 +73,6 @@ namespace caret {
         
         QAction* m_underlineFontAction;
         
-        QAction* m_foregroundColorAction;
-        
-        QAction* m_backgroundColorAction;
         
         // ADD_NEW_MEMBERS_HERE
 

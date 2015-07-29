@@ -36,6 +36,9 @@ AnnotationTextConnectTypeEnum.h
 AnnotationTextOrientationEnum.h
 AnnotationTwoDimensionalShape.h
 AnnotationTypeEnum.h
+AnnotationRedoUndoCommand.h
+AnnotationRedoUndoCommandModeEnum.h
+EventAnnotationDeleteUndeleteFromFile.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
@@ -56,6 +59,9 @@ AnnotationTextConnectTypeEnum.cxx
 AnnotationTextOrientationEnum.cxx
 AnnotationTwoDimensionalShape.cxx
 AnnotationTypeEnum.cxx
+AnnotationRedoUndoCommand.cxx
+AnnotationRedoUndoCommandModeEnum.cxx
+EventAnnotationDeleteUndeleteFromFile.cxx
 )
 
 #

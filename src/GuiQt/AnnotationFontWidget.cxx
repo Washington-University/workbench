@@ -29,20 +29,25 @@
 #include "AnnotationFontWidget.h"
 #undef __ANNOTATION_FONT_WIDGET_DECLARE__
 
+#include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationFontNameEnum.h"
 #include "AnnotationFontSizeEnum.h"
 #include "AnnotationText.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "WuQtUtilities.h"
+
 using namespace caret;
 
 
-    
+
 /**
- * \class caret::AnnotationFontWidget 
+ * \class caret::AnnotationFontWidget
  * \brief Widget for annotation font selection
  * \ingroup GuiQt
  */
@@ -72,7 +77,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_fontNameComboBox = new EnumComboBoxTemplate(this);
     m_fontNameComboBox->setup<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>();
     QObject::connect(m_fontNameComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(slotItemValueChanged()));
+                     this, SLOT(fontNameChanged()));
     WuQtUtilities::setToolTipAndStatusTip(m_fontNameComboBox->getWidget(),
                                           "Change font");
     
@@ -82,7 +87,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_fontSizeComboBox = new EnumComboBoxTemplate(this);
     m_fontSizeComboBox->setup<AnnotationFontSizeEnum,AnnotationFontSizeEnum::Enum>();
     QObject::connect(m_fontSizeComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(slotItemValueChanged()));
+                     this, SLOT(fontSizeChanged()));
     WuQtUtilities::setToolTipAndStatusTip(m_fontSizeComboBox->getWidget(),
                                           "Change font size (height)");
     
@@ -91,7 +96,7 @@ m_browserWindowIndex(browserWindowIndex)
      */
     m_boldFontAction = WuQtUtilities::createAction("B", //boldFontText.toStringWithHtmlBody(),
                                                    "Enable/disable bold styling",
-                                                   this, this, SLOT(slotItemValueChanged()));
+                                                   this, this, SLOT(fontBoldChanged()));
     m_boldFontAction->setCheckable(true);
     QToolButton* boldFontToolButton = new QToolButton();
     boldFontToolButton->setDefaultAction(m_boldFontAction);
@@ -102,12 +107,12 @@ m_browserWindowIndex(browserWindowIndex)
     QFont boldFont = boldFontToolButton->font();
     boldFont.setBold(true);
     boldFontToolButton->setFont(boldFont);
-
+    
     /*
      * Italic font toolbutton
      */
     m_italicFontAction = WuQtUtilities::createAction("i", "Enable/disable italic styling",
-                                                     this, this, SLOT(slotItemValueChanged()));
+                                                     this, this, SLOT(fontItalicChanged()));
     m_italicFontAction->setCheckable(true);
     QToolButton* italicFontToolButton = new QToolButton();
     italicFontToolButton->setDefaultAction(m_italicFontAction);
@@ -123,7 +128,7 @@ m_browserWindowIndex(browserWindowIndex)
      * Underline font toolbutton
      */
     m_underlineFontAction =  WuQtUtilities::createAction("U", "Enable/disable font underlining",
-                                                         this, this, SLOT(slotItemValueChanged()));
+                                                         this, this, SLOT(fontUnderlineChanged()));
     m_underlineFontAction->setCheckable(true);
     QToolButton* underlineFontToolButton = new QToolButton();
     underlineFontToolButton->setDefaultAction(m_underlineFontAction);
@@ -172,7 +177,7 @@ AnnotationFontWidget::~AnnotationFontWidget()
 
 /**
  * Update the content of this widget with the given text annotation.
- * 
+ *
  * @param annotationText
  *     Text annotation for display (may be NULL).
  */
@@ -183,7 +188,7 @@ AnnotationFontWidget::updateContent(AnnotationText* annotationText)
     
     if (m_annotationText != NULL) {
         m_fontNameComboBox->setSelectedItem<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>(m_annotationText->getFont());
-
+        
         m_fontSizeComboBox->setSelectedItem<AnnotationFontSizeEnum,AnnotationFontSizeEnum::Enum>(m_annotationText->getFontSize());
         
         m_boldFontAction->setChecked(m_annotationText->isBoldEnabled());
@@ -195,24 +200,83 @@ AnnotationFontWidget::updateContent(AnnotationText* annotationText)
 }
 
 /**
- * Gets called when the user changes a GUI controls value.
+ * Gets called when font bold changed.
  */
 void
-AnnotationFontWidget::slotItemValueChanged()
+AnnotationFontWidget::fontBoldChanged()
 {
-    if (m_annotationText != NULL) {
-        const AnnotationFontNameEnum::Enum fontName = m_fontNameComboBox->getSelectedItem<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>();
-        m_annotationText->setFont(fontName);
-        
-        const AnnotationFontSizeEnum::Enum fontSize = m_fontSizeComboBox->getSelectedItem<AnnotationFontSizeEnum, AnnotationFontSizeEnum::Enum>();
-        m_annotationText->setFontSize(fontSize);
-        
-        m_annotationText->setBoldEnabled(m_boldFontAction->isChecked());
-        m_annotationText->setItalicEnabled(m_italicFontAction->isChecked());
-        m_annotationText->setUnderlineEnabled(m_underlineFontAction->isChecked());
-        
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+    command->setModeTextFontBold(m_boldFontAction->isChecked(),
+                                 annMan->getSelectedAnnotations());
+    annMan->applyCommand(command);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Gets called when font italic changed.
+ */
+void
+AnnotationFontWidget::fontItalicChanged()
+{
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+    command->setModeTextFontItalic(m_italicFontAction->isChecked(),
+                                   annMan->getSelectedAnnotations());
+    annMan->applyCommand(command);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
 
+/**
+ * Gets called when font name changed.
+ */
+void
+AnnotationFontWidget::fontNameChanged()
+{
+    const AnnotationFontNameEnum::Enum fontName = m_fontNameComboBox->getSelectedItem<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+    command->setModeTextFontName(fontName,
+                                 annMan->getSelectedAnnotations());
+    annMan->applyCommand(command);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Gets called when font size changed.
+ */
+void
+AnnotationFontWidget::fontSizeChanged()
+{
+    const AnnotationFontSizeEnum::Enum fontSize = m_fontSizeComboBox->getSelectedItem<AnnotationFontSizeEnum, AnnotationFontSizeEnum::Enum>();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+    command->setModeTextFontSize(fontSize,
+                                 annMan->getSelectedAnnotations());
+    annMan->applyCommand(command);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Gets called when font underline changed.
+ */
+void
+AnnotationFontWidget::fontUnderlineChanged()
+{
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+    command->setModeTextFontUnderline(m_underlineFontAction->isChecked(),
+                                      annMan->getSelectedAnnotations());
+    annMan->applyCommand(command);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}

@@ -50,22 +50,14 @@ namespace caret {
     private slots:
         void deleteActionTriggered();
         
-        void textActionTriggered();
-        
         void shapeActionTriggered();
         
         void shapeMenuActionTriggered(QAction* action);
-        
-        void undeleteMenuAboutToShow();
-        
-        void itemSelectedFromUndeleteMenu(QAction* action);
         
     private:
         AnnotationInsertNewWidget(const AnnotationInsertNewWidget&);
 
         AnnotationInsertNewWidget& operator=(const AnnotationInsertNewWidget&);
-        
-        QWidget* createTextToolButton();
         
         QWidget* createShapeToolButton();
         
@@ -85,8 +77,6 @@ namespace caret {
         QToolButton* m_deleteToolButton;
         
         QAction* m_deleteToolButtonAction;
-        
-        QMenu* m_undeleteMenu;
         
         // ADD_NEW_MEMBERS_HERE
 

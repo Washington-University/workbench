@@ -102,9 +102,13 @@ namespace caret {
         
         void redo();
         
+        AString redoText();
+        
         void undo();
         
         void undoAll();
+        
+        AString undoText();
         
         void setUndoLimit(const int32_t undoLimit);
         

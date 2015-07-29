@@ -29,9 +29,13 @@
 #include <QToolButton>
 
 #include "AnnotationLine.h"
+#include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -64,7 +68,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_endArrowToolButton->setToolTip("Show arrow at line's end coordinate");
     m_endArrowToolButton->setFixedSize(toolButtonSize);
     QObject::connect(m_endArrowToolButton, SIGNAL(clicked(bool)),
-                     this, SLOT(arrowTipActionToggled()));
+                     this, SLOT(endArrowTipActionToggled()));
     
     m_startArrowToolButton = new QToolButton();
     m_startArrowToolButton->setArrowType(Qt::UpArrow);
@@ -72,7 +76,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_startArrowToolButton->setToolTip("Show arrow at line's start coordinate");
     m_startArrowToolButton->setFixedSize(toolButtonSize);
     QObject::connect(m_startArrowToolButton, SIGNAL(clicked(bool)),
-                     this, SLOT(arrowTipActionToggled()));
+                     this, SLOT(startArrowTipActionToggled()));
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
@@ -116,14 +120,38 @@ AnnotationLineArrowTipsWidget::updateContent(AnnotationLine* annotationLine)
 
 
 /**
- * Gets called when one of the arrow buttons is toggled.
+ * Gets called when the line arrow start buttons is toggled.
  */
 void
-AnnotationLineArrowTipsWidget::arrowTipActionToggled()
+AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
 {
     if (m_annotationLine != NULL) {
-        m_annotationLine->setDisplayStartArrow(m_startArrowToolButton->isChecked());
-        m_annotationLine->setDisplayEndArrow(m_endArrowToolButton->isChecked());
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeLineArrowStart(m_startArrowToolButton->isChecked(),
+                                           annMan->getSelectedAnnotations());
+        annMan->applyCommand(undoCommand);
+        
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+/**
+ * Gets called when the line arrow end buttons is toggled.
+ */
+void
+AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
+{
+    if (m_annotationLine != NULL) {
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeLineArrowEnd(m_endArrowToolButton->isChecked(),
+                                         annMan->getSelectedAnnotations());
+        annMan->applyCommand(undoCommand);
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }

@@ -71,6 +71,8 @@ namespace caret {
                                               const float mouseDX,
                                               const float mouseDY);
         
+        virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
+        
         virtual bool getShapeBounds(const float viewportWidth,
                                     const float viewportHeight,
                                     const float viewportXYZ[3],

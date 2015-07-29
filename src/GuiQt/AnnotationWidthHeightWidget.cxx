@@ -28,10 +28,14 @@
 #include <QHBoxLayout>
 
 #include "AnnotationBox.h"
+#include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationTwoDimensionalShape.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "WuQFactory.h"
 #include "WuQtUtilities.h"
 
@@ -141,10 +145,14 @@ AnnotationWidthHeightWidget::updateContent(AnnotationTwoDimensionalShape* annota
 void
 AnnotationWidthHeightWidget::heightValueChanged(double value)
 {
-    if (m_annotation2D != NULL) {
-        m_annotation2D->setHeight(value);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeTwoDimHeight(value,
+                                     annMan->getSelectedAnnotations());
+    annMan->applyCommand(undoCommand);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -156,9 +164,13 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
 void
 AnnotationWidthHeightWidget::widthValueChanged(double value)
 {
-    if (m_annotation2D != NULL) {
-        m_annotation2D->setWidth(value);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeTwoDimWidth(value,
+                                     annMan->getSelectedAnnotations());
+    annMan->applyCommand(undoCommand);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

@@ -62,6 +62,8 @@ namespace caret {
                                               const float mouseDX,
                                               const float mouseDY);
 
+        virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
+        
         // ADD_NEW_METHODS_HERE
 
           

@@ -32,7 +32,9 @@
 
 #include "Annotation.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
 #include "BrainStructure.h"
@@ -419,12 +421,11 @@ AnnotationCoordinateSelectionWidget::getSelectedCoordinateSpace(bool& validOut) 
     
 }
 
-
 /**
  * Set the coordinate with the current space selection.
  *
- * @param coordinate
- *     Coordinate that is set.
+ * @param annotation
+ *     Annotation whose coordinates are changed.
  * @param errorMessageOut
  *     Contains error information.
  * @return
@@ -432,12 +433,9 @@ AnnotationCoordinateSelectionWidget::getSelectedCoordinateSpace(bool& validOut) 
  */
 bool
 AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* annotation,
-                                                                AnnotationCoordinate* coordinate,
-                                                                AnnotationCoordinate* otherCoordinate,
                                                                 QString& errorMessageOut)
 {
     CaretAssert(annotation);
-    CaretAssert(coordinate);
     
     errorMessageOut.clear();
     
@@ -447,8 +445,25 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         errorMessageOut = ("A coordinate space has not been selected.");
         return false;
     }
+
+    CaretPointer<Annotation> redoAnnotation(annotation->clone());
     
-    const AnnotationCoordinateSpaceEnum::Enum oldSpace = annotation->getCoordinateSpace();
+    AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(redoAnnotation.getPointer());
+    AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(redoAnnotation.getPointer());
+
+    
+    AnnotationCoordinate* coordinate = NULL;
+    AnnotationCoordinate* otherCoordinate = NULL;
+    
+    if (oneDimShape != NULL) {
+        coordinate      = oneDimShape->getStartCoordinate();
+        otherCoordinate = oneDimShape->getEndCoordinate();
+    }
+    else {
+        coordinate = twoDimShape->getCoordinate();
+    }
+    
+    const AnnotationCoordinateSpaceEnum::Enum oldSpace = redoAnnotation->getCoordinateSpace();
     
     /*
      * If annotation has two coordinates, get the difference of the two coordinates
@@ -457,7 +472,6 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
      */
     float diffXyz[3]  = { 0.0, 0.0, 0.0 };
     bool diffXyzValid = false;
-    AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
     if ((oneDimShape != NULL)
         && (otherCoordinate != NULL)) {
         float xyz[3];
@@ -487,13 +501,13 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             diffXyz[2] = otherXyz[2] - xyz[2];
         }
     }
-
+    
     bool setOtherCoordinateFlag = false;
     switch (newSpace) {
         case AnnotationCoordinateSpaceEnum::MODEL:
             if (m_coordInfo.m_modelXYZValid) {
                 coordinate->setXYZ(m_coordInfo.m_modelXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
+                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
             }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -502,19 +516,19 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (m_coordInfo.m_surfaceNodeValid) {
                 coordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
-                                            m_coordInfo.m_surfaceNumberOfNodes,
-                                            m_coordInfo.m_surfaceNodeIndex,
-                                            m_coordInfo.m_surfaceNodeOffset);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+                                           m_coordInfo.m_surfaceNumberOfNodes,
+                                           m_coordInfo.m_surfaceNodeIndex,
+                                           m_coordInfo.m_surfaceNodeOffset);
+                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             if (m_coordInfo.m_tabIndex >= 0) {
-                const int32_t oldTabIndex = annotation->getTabIndex();
+                const int32_t oldTabIndex = redoAnnotation->getTabIndex();
                 const int32_t newTabIndex = m_coordInfo.m_tabIndex;
                 coordinate->setXYZ(m_coordInfo.m_tabXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-                annotation->setTabIndex(newTabIndex);
+                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+                redoAnnotation->setTabIndex(newTabIndex);
                 
                 /*
                  * Will need to move 'other' coordinate since it may not
@@ -530,11 +544,11 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             if (m_coordInfo.m_windowIndex >= 0) {
-                const int32_t oldWindowIndex = annotation->getWindowIndex();
+                const int32_t oldWindowIndex = redoAnnotation->getWindowIndex();
                 const int32_t newWindowIndex = m_coordInfo.m_windowIndex;
                 coordinate->setXYZ(m_coordInfo.m_windowXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-                annotation->setWindowIndex(newWindowIndex);
+                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+                redoAnnotation->setWindowIndex(newWindowIndex);
                 
                 /*
                  * VERIFY
@@ -554,29 +568,41 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
     /*
      * If the space changes, the 'other' coordinate will need to be moved.
      * For example, if the     */
-        if (setOtherCoordinateFlag) {
-            float xyz[3];
-            coordinate->getXYZ(xyz);
-            if (diffXyzValid) {
-                xyz[0] += diffXyz[0];
-                xyz[1] += diffXyz[1];
-                xyz[2] += diffXyz[2];
-                xyz[0] = MathFunctions::clamp(xyz[0], 0.01, 0.99);
-                xyz[1] = MathFunctions::clamp(xyz[1], 0.01, 0.99);
-                xyz[2] = MathFunctions::clamp(xyz[2], 0.01, 0.99);
+    if (setOtherCoordinateFlag) {
+        float xyz[3];
+        coordinate->getXYZ(xyz);
+        if (diffXyzValid) {
+            xyz[0] += diffXyz[0];
+            xyz[1] += diffXyz[1];
+            xyz[2] += diffXyz[2];
+            xyz[0] = MathFunctions::clamp(xyz[0], 0.01, 0.99);
+            xyz[1] = MathFunctions::clamp(xyz[1], 0.01, 0.99);
+            xyz[2] = MathFunctions::clamp(xyz[2], 0.01, 0.99);
+        }
+        else {
+            if (xyz[1] > 0.5) {
+                xyz[1] -= 0.25;
             }
             else {
-                if (xyz[1] > 0.5) {
-                    xyz[1] -= 0.25;
-                }
-                else {
-                    xyz[1] += 0.25;
-                }
+                xyz[1] += 0.25;
             }
-            otherCoordinate->setXYZ(xyz);
         }
+        otherCoordinate->setXYZ(xyz);
+    }
     
-    updateAnnotationDisplayProperties(annotation);
+    std::vector<Annotation*> annotationsBeforeMoveAndResize;
+    annotationsBeforeMoveAndResize.push_back(annotation);
+    
+    std::vector<Annotation*> annotationsAfterMoveAndResize;
+    annotationsAfterMoveAndResize.push_back(redoAnnotation);
+    
+    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+    command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
+                                    annotationsAfterMoveAndResize);
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    annotationManager->applyCommand(command);
+    
+    updateAnnotationDisplayProperties(redoAnnotation);
     
     return true;
 }

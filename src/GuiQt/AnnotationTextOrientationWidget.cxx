@@ -32,10 +32,14 @@
 #include <QRectF>
 #include <QToolButton>
 
+#include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationText.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -147,12 +151,15 @@ AnnotationTextOrientationWidget::orientationActionSelected(QAction* action)
     AnnotationTextOrientationEnum::Enum actionOrientation = AnnotationTextOrientationEnum::fromIntegerCode(intValue,
                                                                                                          &valid);
     if (valid) {
-        if (m_annotationText != NULL) {
-            m_annotationText->setOrientation(actionOrientation);
-        }
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeTextOrientation(actionOrientation,
+                                            annMan->getSelectedAnnotations());
+        annMan->applyCommand(undoCommand);
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

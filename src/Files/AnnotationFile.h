@@ -21,6 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
+#include <QSharedPointer>
 
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
@@ -77,7 +80,7 @@ namespace caret {
 
         void addAnnotation(Annotation* annotation);
 
-        const std::vector<Annotation*>& getAllAnnotations() const;
+        const std::vector<Annotation*> getAllAnnotations() const;
         
         int32_t getNumberOfAnnotations() const;
         
@@ -85,7 +88,9 @@ namespace caret {
         
         const Annotation* getAnnotation(const int32_t index) const;
         
-        bool removeAnnotation(const Annotation* annotation);
+        bool containsAnnotation(const Annotation* annotation) const;
+        
+        bool deleteAnnotation(const Annotation* annotation);
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
@@ -121,13 +126,22 @@ namespace caret {
         
         void initializeAnnotationFile();
         
+        bool deleteAnnotationPrivate(const Annotation* annotation,
+                                     const bool saveAnnotationForUndeleteFlag);
+        
         const AnnotationFileSubType m_fileSubType;
         
         SceneClassAssistant* m_sceneAssistant;
 
         CaretPointer<GiftiMetaData> m_metadata;
         
-        std::vector<Annotation*> m_annotations;
+        std::vector<QSharedPointer<Annotation> > m_annotations;
+        
+        std::set<QSharedPointer<Annotation> > m_deletedAnnotations;
+        
+        typedef std::vector<QSharedPointer<Annotation> >::iterator AnnotationIterator;
+        
+        typedef std::vector<QSharedPointer<Annotation> >::const_iterator AnnotationConstIterator;
         
         // ADD_NEW_MEMBERS_HERE
 

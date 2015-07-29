@@ -28,10 +28,14 @@
 #include <QHBoxLayout>
 
 
+#include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationTwoDimensionalShape.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "WuQFactory.h"
 #include "WuQtUtilities.h"
 
@@ -97,7 +101,9 @@ AnnotationRotationWidget::updateContent(AnnotationTwoDimensionalShape* annotatio
         if (rotation < 0.0) {
             rotation += 360.0;
         }
+        m_rotationSpinBox->blockSignals(true);
         m_rotationSpinBox->setValue(rotation);
+        m_rotationSpinBox->blockSignals(false);
         
         setEnabled(true);
     }
@@ -115,8 +121,12 @@ AnnotationRotationWidget::updateContent(AnnotationTwoDimensionalShape* annotatio
 void
 AnnotationRotationWidget::rotationValueChanged(double value)
 {
-    if (m_annotation2D != NULL) {
-        m_annotation2D->setRotationAngle(value);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeRotationAngle(value,
+                                      annMan->getSelectedAnnotations());
+    annMan->applyCommand(undoCommand);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

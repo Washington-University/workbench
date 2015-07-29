@@ -29,6 +29,7 @@
 #include "AnnotationCreateDialog.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"
 #include "Brain.h"
@@ -132,12 +133,26 @@ UserInputModeAnnotationsContextMenu::copyAnnotationToAnnotationClipboard()
 void
 UserInputModeAnnotationsContextMenu::deleteAnnotation()
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->deleteAnnotation(m_annotation);
-    m_annotation = NULL;
+//    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+//    annotationManager->deleteAnnotation(m_annotation);
+//    m_annotation = NULL;
+//
+//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    CaretAssert(m_annotation);
+    
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations;
+    selectedAnnotations.push_back(m_annotation);
+    if ( ! selectedAnnotations.empty()) {
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeDeleteAnnotations(selectedAnnotations);
+        annotationManager->applyCommand(undoCommand);
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
 }
 
 

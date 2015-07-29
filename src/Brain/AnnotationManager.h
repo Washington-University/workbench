@@ -32,6 +32,7 @@
 namespace caret {
     class Annotation;
     class AnnotationFile;
+    class AnnotationRedoUndoCommand;
     class Brain;
     class CaretUndoStack;
     class SceneClassAssistant;
@@ -61,6 +62,8 @@ namespace caret {
         
         virtual ~AnnotationManager();
         
+        void applyCommand(AnnotationRedoUndoCommand* command);
+        
         void reset();
         
         void deselectAllAnnotations();
@@ -75,6 +78,8 @@ namespace caret {
         std::vector<Annotation*> getAllAnnotations() const;
         
         std::vector<Annotation*> getSelectedAnnotations() const;
+        
+        std::vector<AnnotationFile*> getFilesContainingAnnotations(const std::vector<Annotation*> annotations) const;
         
         bool isAnnotationOnClipboardValid() const;
         
@@ -92,9 +97,7 @@ namespace caret {
         void setAnnotationBeingDrawnInWindow(const int32_t windowIndex,
                                              const Annotation* annotation);
         
-        CaretUndoStack* getUndoStack();
-        
-        const CaretUndoStack* getUndoStack() const;
+        CaretUndoStack* getCommandRedoUndoStack();
         
         // ADD_NEW_METHODS_HERE
 
@@ -144,7 +147,7 @@ namespace caret {
         
         CaretPointer<Annotation> m_clipboardAnnotation;
         
-        CaretPointer<CaretUndoStack> m_undoStack;
+        CaretPointer<CaretUndoStack> m_annotationRedoUndoStack;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -153,8 +156,9 @@ namespace caret {
     class AnnotationManagerDeleteUndoCommand : public CaretUndoCommand {
         
     public:
-        AnnotationManagerDeleteUndoCommand(AnnotationFile* annotationFile,
-                                           const Annotation* annotation);
+        AnnotationManagerDeleteUndoCommand(Brain* brain,
+                                           AnnotationFile* annotationFile,
+                                           Annotation* annotation);
         
         ~AnnotationManagerDeleteUndoCommand();
         
@@ -167,6 +171,8 @@ namespace caret {
         const Annotation* getAnnotation() const;
         
     private:
+        Brain* m_brain;
+        
         AnnotationFile* m_annotationFile;
         
         Annotation* m_annotation;

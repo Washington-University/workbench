@@ -269,6 +269,34 @@ AnnotationTwoDimensionalShape::clearModified()
 }
 
 /**
+ * Apply the coordinates, size, and rotation from the given annotation
+ * to this annotation.
+ *
+ * @param otherAnnotation
+ *     The other annotation from which attributes are obtained.
+ */
+void
+AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation)
+{
+    CaretAssert(otherAnnotation);
+    const AnnotationTwoDimensionalShape* otherTwoDim = dynamic_cast<const AnnotationTwoDimensionalShape*>(otherAnnotation);
+    CaretAssert(otherTwoDim);
+    
+    AnnotationCoordinate* coord = getCoordinate();
+    const AnnotationCoordinate* otherCoord = otherTwoDim->getCoordinate();
+    *coord = *otherCoord;
+    
+    setWidth(otherTwoDim->getWidth());
+    setHeight(otherTwoDim->getHeight());
+    setRotationAngle(otherTwoDim->getRotationAngle());
+    
+    setCoordinateSpace(otherAnnotation->getCoordinateSpace());
+    setTabIndex(otherAnnotation->getTabIndex());
+    setWindowIndex(otherAnnotation->getWindowIndex());
+}
+
+
+/**
  * Apply a move or resize operation received from the GUI.
  *
  * @param handleSelected

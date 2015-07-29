@@ -55,8 +55,6 @@ namespace caret {
         AnnotationCoordinateSpaceEnum::Enum getSelectedCoordinateSpace(bool& validOut) const;
         
         bool changeAnnotationCoordinate(Annotation* annotation,
-                                        AnnotationCoordinate* coordinate,
-                                        AnnotationCoordinate* otherCoordinate,
                                         QString& errorMessageOut);
         
         bool setCoordinateForNewAnnotation(Annotation* annotation,

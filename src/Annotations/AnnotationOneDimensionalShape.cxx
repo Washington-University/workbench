@@ -185,6 +185,33 @@ AnnotationOneDimensionalShape::clearModified()
 }
 
 /**
+ * Apply the coordinates, size, and rotation from the given annotation
+ * to this annotation.
+ * 
+ * @param otherAnnotation
+ *     The other annotation from which attributes are obtained.
+ */
+void
+AnnotationOneDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation)
+{
+    CaretAssert(otherAnnotation);
+    const AnnotationOneDimensionalShape* otherOneDim = dynamic_cast<const AnnotationOneDimensionalShape*>(otherAnnotation);
+    CaretAssert(otherOneDim);
+    
+    AnnotationCoordinate* startCoord = getStartCoordinate();
+    const AnnotationCoordinate* otherStartCoord = otherOneDim->getStartCoordinate();
+    *startCoord = *otherStartCoord;
+    
+    AnnotationCoordinate* endCoord = getEndCoordinate();
+    const AnnotationCoordinate* otherEndCoord = otherOneDim->getEndCoordinate();
+    *endCoord = *otherEndCoord;
+    
+    setCoordinateSpace(otherAnnotation->getCoordinateSpace());
+    setTabIndex(otherAnnotation->getTabIndex());
+    setWindowIndex(otherAnnotation->getWindowIndex());
+}
+
+/**
  * Apply a move or resize operation received from the GUI.
  *
  * @param handleSelected
