@@ -105,23 +105,11 @@ AnnotationRedoUndoWidget::updateContent()
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
 
-    if (undoStack->canRedo()) {
-        m_redoAction->setEnabled(true);
-        m_redoAction->setToolTip(undoStack->redoText());
-    }
-    else {
-        m_redoAction->setEnabled(false);
-        m_redoAction->setToolTip("Redo");
-    }
+    m_redoAction->setEnabled(undoStack->canRedo());
+    m_redoAction->setToolTip(undoStack->redoText());
     
-    if (undoStack->canUndo()) {
-        m_undoAction->setEnabled(true);
-        m_undoAction->setToolTip(undoStack->undoText());
-    }
-    else {
-        m_undoAction->setEnabled(false);
-        m_undoAction->setToolTip("Undo");
-    }
+    m_undoAction->setEnabled(undoStack->canUndo());
+    m_undoAction->setToolTip(undoStack->undoText());
 }
 
 
