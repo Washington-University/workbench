@@ -44,7 +44,6 @@
 #include "EventAnnotationCreateNewType.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
-#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "KeyEvent.h"
@@ -924,7 +923,7 @@ UserInputModeAnnotations::mouseLeftDoubleClick(const MouseEvent& mouseEvent)
                 ted.move(openGLWidget->mapToGlobal(QPoint(mouseX,
                                                           (openGLWidget->height() - mouseY + 20))));
                 ted.exec();
-                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
             }
         }
     }
@@ -1116,7 +1115,7 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
 
     setMode(MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
 
 
@@ -1145,7 +1144,7 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
 
     setMode(MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
 
 
