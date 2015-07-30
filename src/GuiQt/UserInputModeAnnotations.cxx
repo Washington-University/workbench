@@ -549,6 +549,9 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
                                                 annotationsAfterMoveAndResize);
                 
+                if ( ! mouseEvent.isFirstDragging()) {
+                    command->setMergeEnabled(true);
+                }
                 AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
                 annotationManager->applyCommand(command);
                 

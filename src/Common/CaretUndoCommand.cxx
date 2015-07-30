@@ -70,6 +70,8 @@
 #undef __CARET_UNDO_COMMAND_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+
 using namespace caret;
 
 
@@ -83,20 +85,18 @@ using namespace caret;
  *
  * Design is based off Qt's QUndoCommand.
  *
- * While using QUndoCommand would be preferred, it cannot be used because:
- * (1) It is located in Qt's GUI module which is not accessible to
+ * While using QUndoCommand would be preferred, it cannot be used because
+ * It is located in Qt's GUI module which is not accessible to
  * Caret's "lower level" modules.
- * (2) QUndoCommand is targeted to text documents.
- *
  */
 
 /**
  * Constructor.
  */
 CaretUndoCommand::CaretUndoCommand()
-: CaretObject()
+: CaretObject(),
+m_mergeFlag(false)
 {
-    
 }
 
 /**
@@ -125,3 +125,54 @@ CaretUndoCommand::setDescription(const AString& description)
 {
     m_description = description;
 }
+
+/**
+ * @return Is merge enabled for this command?
+ *
+ * When merge is enabled and a command is passed
+ * to CaretUndoStack::push(), CaretUndoStack will
+ * try to merge the command with the command at
+ * the top of the undo stack.  */
+bool
+CaretUndoCommand::isMergeEnabled() const
+{
+    return m_mergeFlag;
+}
+
+/**
+ * Set the merge status for this command.
+ *
+ * When merge is enabled and a command is passed
+ * to CaretUndoStack::push(), CaretUndoStack will
+ * try to merge the command with the command at
+ * the top of the undo stack.
+ *
+ * @param mergeStatus
+ *     New merge status for this command.
+ */
+void
+CaretUndoCommand::setMergeEnabled(const bool mergeStatus)
+{
+    m_mergeFlag = mergeStatus;
+}
+
+
+/**
+ * Attempts to merge this command with command. Returns true on success; otherwise returns false.
+ *
+ * If this function returns true, calling this command's redo() must have the same effect as 
+ * redoing both this command and command. Similarly, calling this command's undo() must have 
+ * the same effect as undoing command and this command.
+ *
+ * The default implementation returns false.
+ *
+ * @return True if the given command was merged with this command, else false.
+ */
+bool
+CaretUndoCommand::mergeWith(const CaretUndoCommand* /*command*/)
+{
+    CaretLogWarning("The default implementation of CaretUndoCommand::mergeWith() was called and this should never happened.  "
+                    "This method should have been overriden by its sub class.");
+    return false;
+}
+

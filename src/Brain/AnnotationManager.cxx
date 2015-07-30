@@ -101,13 +101,13 @@ AnnotationManager::reset()
  *
  * @param command
  *     Command that will be applied to the selected annotations.
- *     Annotation manager will take ownership of the command and 
+ *     Annotation manager will take ownership of the command and
  *     destroy it at the appropriate time.
  */
 void
 AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command)
 {
-    CaretAssert(command);
+     CaretAssert(command);
     
     /*
      * Ignore command if it does not apply to any annotations
@@ -121,9 +121,9 @@ AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command)
      * "Redo" applies the command
      */
     command->redo();
-    
+
     /*
-     * Put it on the redo/undo stack
+     * Add command to undo stack
      */
     m_annotationRedoUndoStack->push(command);
 }

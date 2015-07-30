@@ -46,6 +46,8 @@ namespace caret {
         
         int32_t count() const;
         
+        virtual bool mergeWith(const CaretUndoCommand* command);
+        
         void setModeCoordinateOne(const AnnotationCoordinate& coordinate,
                                   const std::vector<Annotation*>& annotations);
         
@@ -143,6 +145,10 @@ namespace caret {
                 }
             }
 
+            bool operator=(const AnnotationMemento& am) const {
+                return (m_annotation < am.m_annotation);
+            }
+            
             Annotation* m_annotation;
             
             Annotation* m_undoAnnotation;
@@ -158,9 +164,19 @@ namespace caret {
         void applyRedoOrUndo(Annotation* annotation,
                              const Annotation* annotationValue) const;
 
+        void sortAnnotationMementos() const;
+        
+        static bool equalAnnotationMemento(const AnnotationMemento* am1,
+                                           const AnnotationMemento* am2);
+
+        static bool lessThanAnnotationMemento(const AnnotationMemento* am1,
+                                              const AnnotationMemento* am2);
+        
         AnnotationRedoUndoCommandModeEnum::Enum m_mode;
         
-        std::vector<AnnotationMemento*> m_annotationMementos;
+        mutable std::vector<AnnotationMemento*> m_annotationMementos;
+        
+        mutable bool m_sortedFlag;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -61,7 +61,7 @@ namespace caret {
         AnnotationManager(Brain* brain);
         
         virtual ~AnnotationManager();
-        
+
         void applyCommand(AnnotationRedoUndoCommand* command);
         
         void reset();

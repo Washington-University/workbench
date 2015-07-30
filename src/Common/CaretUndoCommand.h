@@ -84,6 +84,12 @@ namespace caret {
         AString getDescription() const;
         
         void setDescription(const AString& description);
+        
+        bool isMergeEnabled() const;
+        
+        void setMergeEnabled(const bool mergeStatus);
+        
+        virtual bool mergeWith(const CaretUndoCommand* command);
 
         /**
          * Operation that "redoes" the command.
@@ -103,6 +109,8 @@ namespace caret {
         CaretUndoCommand& operator=(const CaretUndoCommand&);
         
         AString m_description;
+        
+        bool m_mergeFlag;
         
         // ADD_NEW_MEMBERS_HERE
 

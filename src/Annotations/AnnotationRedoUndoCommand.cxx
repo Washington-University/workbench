@@ -47,7 +47,8 @@ using namespace caret;
 AnnotationRedoUndoCommand::AnnotationRedoUndoCommand()
 : CaretUndoCommand()
 {
-    m_mode = AnnotationRedoUndoCommandModeEnum::INVALID;
+    m_mode       = AnnotationRedoUndoCommandModeEnum::INVALID;
+    m_sortedFlag = false;
 }
 
 /**
@@ -424,6 +425,62 @@ AnnotationRedoUndoCommand::count() const
 {
     return m_annotationMementos.size();
 }
+
+/**
+ * Attempts to merge this command with command. Returns true on success; otherwise returns false.
+ *
+ * If this function returns true, calling this command's redo() must have the same effect as
+ * redoing both this command and command. Similarly, calling this command's undo() must have
+ * the same effect as undoing command and this command.
+ *
+ * @return True if the given command was merged with this command, else false.
+ */
+bool
+AnnotationRedoUndoCommand::mergeWith(const CaretUndoCommand* command)
+{
+    const AnnotationRedoUndoCommand* otherCommand = dynamic_cast<const AnnotationRedoUndoCommand*>(command);
+    CaretAssert(otherCommand);
+    
+    /*
+     * Assume compatibility if same mode and applied to same number of annotations.
+     */
+    if (m_mode != otherCommand->m_mode) {
+        return false;
+    }
+    
+    if (m_annotationMementos.size() != otherCommand->m_annotationMementos.size()) {
+        return false;
+    }
+    
+    /*
+     * Sort mementos so that the standard library's equal() function
+     * can compare the annotation pointers
+     */
+    sortAnnotationMementos();
+    otherCommand->sortAnnotationMementos();
+    
+    /*
+     * Compare to verify that the corresponding annotation mementos
+     * are the same.
+     */
+    if ( ! std::equal(m_annotationMementos.begin(),
+                      m_annotationMementos.end(),
+                      otherCommand->m_annotationMementos.begin(),
+                      AnnotationRedoUndoCommand::equalAnnotationMemento)) {
+        return false;
+    }
+    
+    const int32_t numAnnMem = static_cast<int32_t>(m_annotationMementos.size());
+    for (int32_t i = 0; i < numAnnMem; i++) {
+        CaretAssertVectorIndex(m_annotationMementos, i);
+        CaretAssertVectorIndex(otherCommand->m_annotationMementos, i);
+        delete m_annotationMementos[i]->m_redoAnnotation;
+        m_annotationMementos[i]->m_redoAnnotation = otherCommand->m_annotationMementos[i]->m_redoAnnotation->clone();
+    }
+    
+    return true;
+}
+
 
 /**
  * Set them mode to first coordinate and create the redo/undo instances.
@@ -1277,5 +1334,68 @@ AnnotationRedoUndoCommand::setModeTwoDimWidth(const float newWidth,
         }
     }
 }
+
+/**
+ * Compare the two annotation mementos using the annotation pointer.
+ *
+ * @param am1
+ *     Left side for comparison.
+ * @param am2
+ *     Right side for comparison.
+ * @return
+ *     True if left side's annotation pointer is equal to the right side's annotation pointer.
+ */
+bool
+AnnotationRedoUndoCommand::equalAnnotationMemento(const AnnotationMemento* am1,
+                                                  const AnnotationMemento* am2)
+{
+    CaretAssert(am1);
+    CaretAssert(am2);
+
+    return (am1->m_annotation == am2->m_annotation);
+}
+
+
+
+/**
+ * Compare the two annotation mementos using the annotation pointer.
+ * 
+ * @param am1
+ *     Left side for comparison.
+ * @param am2
+ *     Right side for comparison.
+ * @return
+ *     True if left side's annotation pointer is less than right side's annotation pointer.
+ */
+bool
+AnnotationRedoUndoCommand::lessThanAnnotationMemento(const AnnotationMemento* am1,
+                                                     const AnnotationMemento* am2)
+{
+    CaretAssert(am1);
+    CaretAssert(am2);
+    
+    return (am1->m_annotation < am2->m_annotation);
+}
+
+/**
+ * Sort the annotation mementos in this redo/undo command.
+ * The mergeWith() method needs to compare the mementos 
+ * in two command and when the mementos are sorted,
+ * it allows faster comparison.
+ */
+void
+AnnotationRedoUndoCommand::sortAnnotationMementos() const
+{
+    if (m_sortedFlag) {
+        return;
+    }
+    
+    std::sort(m_annotationMementos.begin(),
+              m_annotationMementos.end(),
+              AnnotationRedoUndoCommand::lessThanAnnotationMemento);
+    
+    m_sortedFlag = true;
+}
+
 
 

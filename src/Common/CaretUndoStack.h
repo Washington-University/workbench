@@ -98,7 +98,7 @@ namespace caret {
         
         const CaretUndoCommand* command(const int32_t index) const;
         
-        void push(CaretUndoCommand* cmd);
+        void push(CaretUndoCommand* newCommand);
         
         void redo();
         

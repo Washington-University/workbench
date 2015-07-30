@@ -278,15 +278,21 @@ CaretUndoStack::command(const int32_t index) const
  * all commands above it are deleted. Hence cmd always ends up being the 
  * top-most on the stack.
  *
+ * If the command's merge status is set, an attempt will be made to
+ * merge the given command with the command at the top of the stack.
+ * If successful there is no need to push the new command onto the stack
+ * since it has been merged and the command will be deleted.  If merge
+ * is NOT successful, the command will be pushed onto the stack.
+ *
  * Once a command is pushed, the stack takes ownership of it. There are 
  * no getters to return the command, since modifying it after it has been 
  * executed will almost always lead to corruption of the document's state.
  *
- * @param cmd
+ * @param newCommand
  *    Command pushed onto the stack.
  */
 void
-CaretUndoStack::push(CaretUndoCommand* cmd)
+CaretUndoStack::push(CaretUndoCommand* newCommand)
 {
     if (index() < count()) {
         /*
@@ -299,7 +305,30 @@ CaretUndoStack::push(CaretUndoCommand* cmd)
         }
     }
     
-    m_undoStack.push_back(cmd);
+    if (newCommand->isMergeEnabled()) {
+        if (m_undoStack.empty()) {
+            CaretLogWarning("Attempting to merge a command on CaretUndoStack but stack is empty.  "
+                            "Command has been added to stack.  Command description: "
+                            + newCommand->getDescription());
+        }
+        else {
+            CaretUndoCommand* command = m_undoStack.back();
+            CaretAssert(command);
+            if (command->mergeWith(newCommand)) {
+                delete newCommand;
+                return;
+            }
+            else {
+                CaretLogWarning("Attempting to merge a command failed.  "
+                                "Command has been added to stack.  Command description: "
+                                + newCommand->getDescription()
+                                + "  Attempted to merge with: "
+                                + command->getDescription());
+            }
+        }
+    }
+    
+    m_undoStack.push_back(newCommand);
     
     if (m_undoLimit > 0) {
         /*
