@@ -39,7 +39,8 @@ namespace caret {
     public:
         KeyEvent(BrainOpenGLWidget* openGLWidget,
                  const int32_t browserWindowIndex,
-                 const int32_t keyCode);
+                 const int32_t keyCode,
+                 const bool firstKeyPressFlag);
         
         virtual ~KeyEvent();
         
@@ -59,6 +60,8 @@ namespace caret {
         
         int32_t getKeyCode() const;
         
+        bool isFirstKeyPressFlag() const;
+        
     private:
         BrainOpenGLWidget* m_openGLWidget;
         
@@ -66,6 +69,7 @@ namespace caret {
         
         const int32_t m_keyCode;
         
+        const bool m_firstKeyPressFlag;
     };
     
 } // namespace

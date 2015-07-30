@@ -42,11 +42,13 @@ using namespace caret;
  */
 KeyEvent::KeyEvent(BrainOpenGLWidget* openGLWidget,
                    const int32_t browserWindowIndex,
-                   const int32_t keyCode)
+                   const int32_t keyCode,
+                   const bool firstKeyPressFlag)
 : CaretObject(),
 m_openGLWidget(openGLWidget),
 m_browserWindowIndex(browserWindowIndex),
-m_keyCode(keyCode)
+m_keyCode(keyCode),
+m_firstKeyPressFlag(firstKeyPressFlag)
 {
 }
 
@@ -106,5 +108,17 @@ int32_t
 KeyEvent::getKeyCode() const
 {
     return m_keyCode;
+}
+
+/**
+ * @return Is this the first (of possibly many) key press events?
+ * If a key is held down for a period of time, this method
+ * will return true for only the first key press events.
+ *
+ */
+bool
+KeyEvent::isFirstKeyPressFlag() const
+{
+    return m_firstKeyPressFlag;
 }
 

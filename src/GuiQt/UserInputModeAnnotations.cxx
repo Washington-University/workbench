@@ -429,6 +429,10 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                     CaretAssert(0);
                                 }
                                 
+                                if ( ! keyEvent.isFirstKeyPressFlag()) {
+                                    undoCommand->setMergeEnabled(true);
+                                }
+                                
                                 AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
                                 annMan->applyCommand(undoCommand);
                                 

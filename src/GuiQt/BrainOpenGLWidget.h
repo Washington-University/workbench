@@ -105,6 +105,8 @@ namespace caret {
         
         virtual void keyPressEvent(QKeyEvent* e);
         
+        virtual void keyReleaseEvent(QKeyEvent* e);
+        
         virtual void mouseDoubleClickEvent(QMouseEvent* e);
         
         virtual void mouseMoveEvent(QMouseEvent* e);
@@ -159,6 +161,8 @@ namespace caret {
         int lastMouseX;
         
         int lastMouseY;
+        
+        bool m_newKeyPressStartedFlag;
         
         BrainOpenGLTextRenderInterface* textRenderer;
         

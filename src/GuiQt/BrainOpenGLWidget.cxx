@@ -135,6 +135,8 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->mousePressY = -10000;
     this->mouseNewDraggingStartedFlag = false;
     
+    m_newKeyPressStartedFlag = true;
+    
     /*
      * Mouse tracking must be on to receive mouse move events
      * when the mouse is NOT down.  When this property is false
@@ -844,23 +846,37 @@ BrainOpenGLWidget::checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
 }
 
 /**
- * Receive mouse move events from Qt.
- * @param me
- *    The mouse event.
+ * Receive key press events from Qt.
+ * @param e
+ *    The key event.
  */
 void
 BrainOpenGLWidget::keyPressEvent(QKeyEvent* e)
 {
     KeyEvent keyEvent(this,
                       this->windowIndex,
-                      e->key());
+                      e->key(),
+                      m_newKeyPressStartedFlag);
     
     this->selectedUserInputProcessor->keyPressEvent(keyEvent);
     
     e->accept();
+    
+    m_newKeyPressStartedFlag = false;
 }
 
-
+/**
+ * Receive key release events from Qt.
+ * @param e
+ *    The key event.
+ */
+void
+BrainOpenGLWidget::keyReleaseEvent(QKeyEvent* e)
+{
+    m_newKeyPressStartedFlag = true;
+    
+    e->accept();
+}
 
 /**
  * Receive mouse press events from Qt.
