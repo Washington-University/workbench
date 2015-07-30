@@ -323,26 +323,6 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
                                                         const float mouseDX,
                                                         const float mouseDY)
 {
-//    bool resizableSpaceFlag = false;
-//    switch (getCoordinateSpace()) {
-//        case AnnotationCoordinateSpaceEnum::MODEL:
-//            break;
-//        case AnnotationCoordinateSpaceEnum::PIXELS:
-//            break;
-//        case AnnotationCoordinateSpaceEnum::SURFACE:
-//            break;
-//        case AnnotationCoordinateSpaceEnum::TAB:
-//            resizableSpaceFlag = true;
-//            break;
-//        case AnnotationCoordinateSpaceEnum::WINDOW:
-//            resizableSpaceFlag = true;
-//            break;
-//    }
-//    
-//    if ( ! resizableSpaceFlag) {
-//        return;
-//    }
-    
     float xyz[3];
     m_coordinate->getXYZ(xyz);
     

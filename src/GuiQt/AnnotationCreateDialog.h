@@ -60,15 +60,6 @@ namespace caret {
                                                           const Annotation* annotation,
                                                           QWidget* parent = 0);
         
-//        AnnotationCreateDialog(const MouseEvent& mouseEvent,
-//                               const AnnotationTypeEnum::Enum annotationType,
-//                               QWidget* parent = 0);
-//        
-//        AnnotationCreateDialog(const MouseEvent& mouseEvent,
-//                               const AnnotationFile* annotationFile,
-//                               const Annotation* annotation,
-//                               QWidget* parent = 0);
-        
         virtual ~AnnotationCreateDialog();
 
         virtual void okButtonClicked();

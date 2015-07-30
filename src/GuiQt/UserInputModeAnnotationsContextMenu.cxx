@@ -133,13 +133,6 @@ UserInputModeAnnotationsContextMenu::copyAnnotationToAnnotationClipboard()
 void
 UserInputModeAnnotationsContextMenu::deleteAnnotation()
 {
-//    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-//    annotationManager->deleteAnnotation(m_annotation);
-//    m_annotation = NULL;
-//
-//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-
     CaretAssert(m_annotation);
     
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
@@ -175,13 +168,6 @@ UserInputModeAnnotationsContextMenu::pasteAnnotationFromAnnotationClipboard()
         if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
             
         }
-
-        
-//        AnnotationCreateDialog pasteDialog(m_mouseEvent,
-//                                           annotationFile,
-//                                           annotation,
-//                                           m_parentOpenGLWidget);
-//        pasteDialog.exec();
 
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());

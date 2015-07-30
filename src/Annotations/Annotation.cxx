@@ -204,47 +204,6 @@ Annotation::replaceWithCopyOfAnnotation(const Annotation* annotation)
     }
     
     *this = *annotation;
-    
-//    switch (myType) {
-//        case AnnotationTypeEnum::BOX:
-//        {
-//            AnnotationBox* copyToAnn = dynamic_cast<AnnotationBox*>(this);
-//            
-////            const AnnotationBox* box = dynamic_cast<const AnnotationBox*>(this);
-////            CaretAssert(box);
-////            myClone = new AnnotationBox(*box);
-//        }
-//            break;
-//        case AnnotationTypeEnum::IMAGE:
-//        {
-////            const AnnotationImage* image = dynamic_cast<const AnnotationImage*>(this);
-////            CaretAssert(image);
-////            myClone = new AnnotationImage(*image);
-//        }
-//            break;
-//        case AnnotationTypeEnum::LINE:
-//        {
-////            const AnnotationLine* line = dynamic_cast<const AnnotationLine*>(this);
-////            CaretAssert(line);
-////            myClone = new AnnotationLine(*line);
-//        }
-//            break;
-//        case AnnotationTypeEnum::OVAL:
-//        {
-////            const AnnotationOval* oval = dynamic_cast<const AnnotationOval*>(this);
-////            CaretAssert(oval);
-////            myClone = new AnnotationOval(*oval);
-//        }
-//            break;
-//        case AnnotationTypeEnum::TEXT:
-//        {
-////            const AnnotationText* text = dynamic_cast<const AnnotationText*>(this);
-////            CaretAssert(text);
-////            myClone = new AnnotationText(*text);
-//        }
-//            break;
-//    }
-    
 }
 
 

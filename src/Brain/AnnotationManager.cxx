@@ -58,7 +58,7 @@ m_brain(brain)
     m_clipboardAnnotation.grabNew(NULL);
     
     m_annotationRedoUndoStack.grabNew(new CaretUndoStack());
-    m_annotationRedoUndoStack->setUndoLimit(50);
+    m_annotationRedoUndoStack->setUndoLimit(500);
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         m_annotationBeingDrawnInWindow[i] = NULL;
@@ -186,27 +186,6 @@ AnnotationManager::deleteSelectedAnnotations()
          annIter++) {
         deleteAnnotation(*annIter);
     }
-    
-//    std::vector<AnnotationFile*> annotationFiles;
-//    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
-//    
-//    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
-//         annIter != allAnnotations.end();
-//         annIter++) {
-//        for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
-//             fileIter != annotationFiles.end();
-//             fileIter++) {
-//            AnnotationFile* file = *fileIter;
-//            CaretAssert(file);
-//            
-//            Annotation* annotation = *annIter;
-//            CaretAssert(annotation);
-//            
-//            if (file->removeAnnotation(annotation)) {
-//                break;
-//            }
-//        }
-//    }
 }
 
 /**
@@ -487,17 +466,6 @@ AnnotationManager::getCommandRedoUndoStack()
 {
     return m_annotationRedoUndoStack;
 }
-
-
-
-///**
-// * @return Pointer to the undo stack.
-// */
-//const CaretUndoStack*
-//AnnotationManager::getUndoStack() const
-//{
-//    return m_undoStack;
-//}
 
 /**
  * Save information specific to this type of model to the scene.
