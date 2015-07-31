@@ -185,12 +185,20 @@ namespace caret {
         virtual void mouseLeftDragWithShift(const MouseEvent& /*mouseEvent*/) { }
         
         /**
-         * Process a mouse move with no buttons down
+         * Process a mouse move with no buttons or keys down
          *
          * @param mouseEvent
          *     Mouse event information.
          */
         virtual void mouseMove(const MouseEvent& /*mouseEvent*/) { }
+        
+        /**
+         * Process a mouse move with no buttons and shift key down
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseMoveWithShift(const MouseEvent& /*mouseEvent*/) { }
         
         /**
          * Show a context menu (pop-up menu at mouse location)

@@ -1384,21 +1384,25 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             this->lastMouseY = mouseY;
         }
         else if (mouseButtons == Qt::NoButton) {
+            BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+                                                                                       mouseY);
+            
+            MouseEvent mouseEvent(viewportContent,
+                                  this,
+                                  this->windowIndex,
+                                  mouseX,
+                                  mouseY,
+                                  0,
+                                  0,
+                                  this->mousePressX,
+                                  this->mousePressY,
+                                  this->mouseNewDraggingStartedFlag);
+            
             if (keyModifiers == Qt::NoModifier) {
-                BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
-                                                                                           mouseY);
-                
-                MouseEvent mouseEvent(viewportContent,
-                                      this,
-                                      this->windowIndex,
-                                      mouseX,
-                                      mouseY,
-                                      0,
-                                      0,
-                                      this->mousePressX,
-                                      this->mousePressY,
-                                      this->mouseNewDraggingStartedFlag);
                 this->selectedUserInputProcessor->mouseMove(mouseEvent);
+            }
+            else if (keyModifiers == Qt::ShiftModifier) {
+                this->selectedUserInputProcessor->mouseMoveWithShift(mouseEvent);
             }
         }
     }

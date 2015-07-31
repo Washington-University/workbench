@@ -94,6 +94,8 @@ namespace caret {
 
         virtual void mouseMove(const MouseEvent& mouseEvent);
 
+        virtual void mouseMoveWithShift(const MouseEvent& mouseEvent);
+        
         virtual void showContextMenu(const MouseEvent& mouseEvent,
                                      const QPoint& menuPosition,
                                      BrainOpenGLWidget* openGLWidget);
@@ -228,6 +230,8 @@ namespace caret {
         AnnotationSizingHandleTypeEnum::Enum m_annotationBeingDraggedHandleType;
         
         CaretPointer<NewMouseDragCreateAnnotation> m_newAnnotationCreatingWithMouseDrag;
+        
+        bool m_allowMultipleSelectionModeFlag;
         
         // ADD_NEW_MEMBERS_HERE
 

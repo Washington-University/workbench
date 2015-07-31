@@ -73,7 +73,8 @@ namespace caret {
         void deleteSelectedAnnotations();
         
         void selectAnnotation(const SelectionMode selectionMode,
-                               Annotation* selectedAnnotation);
+                              const bool shiftKeyDownFlag,
+                              Annotation* selectedAnnotation);
         
         std::vector<Annotation*> getAllAnnotations() const;
         
@@ -130,6 +131,11 @@ namespace caret {
         AnnotationManager(const AnnotationManager&);
 
         AnnotationManager& operator=(const AnnotationManager&);
+        
+        void processExtendedModeSelection(const bool shiftKeyDownFlag,
+                                          Annotation* selectedAnnotation);
+        
+        void processSingleModeSelection(Annotation* selectedAnnotation);
         
         SceneClassAssistant* m_sceneAssistant;
 

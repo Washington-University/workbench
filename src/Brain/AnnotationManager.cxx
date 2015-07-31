@@ -237,44 +237,117 @@ AnnotationManager::getFilesContainingAnnotations(const std::vector<Annotation*> 
  *
  * @param selectionMode
  *     The annotation selection mode.
+ * @param shiftKeyDown
+ *     The shift key is down
  * @param selectedAnnotation
  *     Annotation whose selection is updated.
  *     May be NULL.
  */
 void
 AnnotationManager::selectAnnotation(const SelectionMode selectionMode,
+                                    const bool shiftKeyDownFlag,
                                     Annotation* selectedAnnotation)
 {
-    std::vector<Annotation*> allAnnotations = getAllAnnotations();
+    switch (selectionMode) {
+        case SELECTION_MODE_EXTENDED:
+            processExtendedModeSelection(shiftKeyDownFlag,
+                                         selectedAnnotation);
+            break;
+        case SELECTION_MODE_SINGLE:
+            processSingleModeSelection(selectedAnnotation);
+            break;
+    }
     
-    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
-         annIter != allAnnotations.end();
-         annIter++) {
-        Annotation* annotation = *annIter;
-        CaretAssert(annotation);
-        
-        switch (selectionMode) {
-            case SELECTION_MODE_EXTENDED:
-                /*
-                 * Any number of annotations may be selected.
-                 * Just toggle the status of the annotation.
-                 */
-                if (annotation == selectedAnnotation) {
-                    annotation->setSelected( ! annotation->isSelected());
-                }
-                break;
-            case SELECTION_MODE_SINGLE:
-                /*
-                 * Zero or one annotations may be selected
-                 */
-                if (annotation == selectedAnnotation) {
-                    annotation->setSelected(true);
-                }
-                else {
-                    annotation->setSelected(false);
-                }
-                break;
+//    std::vector<Annotation*> allAnnotations = getAllAnnotations();
+//    
+//    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
+//         annIter != allAnnotations.end();
+//         annIter++) {
+//        Annotation* annotation = *annIter;
+//        CaretAssert(annotation);
+//        
+//        switch (selectionMode) {
+//            case SELECTION_MODE_EXTENDED:
+//                /*
+//                 * Any number of annotations may be selected.
+//                 * Just toggle the status of the annotation.
+//                 */
+//                if (annotation == selectedAnnotation) {
+//                    annotation->setSelected( ! annotation->isSelected());
+//                }
+//                break;
+//            case SELECTION_MODE_SINGLE:
+//                /*
+//                 * Zero or one annotations may be selected
+//                 */
+//                if (annotation == selectedAnnotation) {
+//                    annotation->setSelected(true);
+//                }
+//                else {
+//                    annotation->setSelected(false);
+//                }
+//                break;
+//        }
+//    }
+}
+
+/**
+ * Process extended mode annotation selection.
+ * 
+ * @param shiftKeyDownFlag
+ *     True if the shift key is down.
+ * @param selectedAnnotation
+ *     Annotation that was selected (NULL if no annotation selected).
+ */
+void
+AnnotationManager::processExtendedModeSelection(const bool shiftKeyDownFlag,
+                                                Annotation* selectedAnnotation)
+{
+    if (selectedAnnotation != NULL) {
+        if (shiftKeyDownFlag) {
+            /*
+             * When shift key is down, the annotation's selection status
+             * is toggled
+             */
+            selectedAnnotation->setSelected( ! selectedAnnotation->isSelected());
         }
+        else {
+            if (selectedAnnotation->isSelected()) {
+                /* cannot deselect an annotation WITHOUT shift key down */
+            }
+            else {
+                /*
+                 * Clicking an annotation without shift key selects the
+                 * annotation but deselects all other annotations.
+                 */
+                deselectAllAnnotations();
+                selectedAnnotation->setSelected(true);
+            }
+        }
+    }
+    else {
+        if (shiftKeyDownFlag) {
+            /* do nothing with shift key down and no annotation clicked */
+        }
+        else {
+            deselectAllAnnotations();
+        }
+    }
+}
+
+/**
+ * Process single mode annotation selection.
+ *
+ * @param selectedAnnotation
+ *     Annotation that was selected (NULL if no annotation selected).
+ */
+void
+AnnotationManager::processSingleModeSelection(Annotation* selectedAnnotation)
+{
+    deselectAllAnnotations();
+    
+    if (selectedAnnotation != NULL) {
+        selectedAnnotation->setSelected(true);
     }
 }
 

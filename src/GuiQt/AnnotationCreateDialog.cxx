@@ -593,6 +593,7 @@ AnnotationCreateDialog::okButtonClicked()
 
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     annotationManager->selectAnnotation(AnnotationManager::SELECTION_MODE_SINGLE,
+                                        false,
                                         annotationPointer);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
