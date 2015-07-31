@@ -1323,11 +1323,14 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             mappingMostPositive  = this->getUserScalePositiveMaximum();
             break;
     }
-    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive) * (1.0f - SMALL_POSITIVE);//if the "zero" color is extended to more than exact zeros, this correction prevents normalization from returning something greater than 1
+    //TSC: the excluded zone of normalization is a SEPARATE issue to zero detection in the data
+    //specifically, it is a HACK, in order for palettes to be able to specify a special color for data that is 0, which is not involved in color interpolation
+    const float PALETTE_ZERO_COLOR_ZONE = 0.00001f;
+    float mappingPositiveDenominator = (mappingMostPositive - mappingLeastPositive) / (1.0f - PALETTE_ZERO_COLOR_ZONE);//this correction prevents normalization from assigning most positive a normalized value greater than 1
     if (mappingPositiveDenominator == 0.0) {
         mappingPositiveDenominator = 1.0;
     }
-    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative) * (1.0f + SMALL_NEGATIVE);//ditto, but SMALL_NEGATIVE is negative
+    float mappingNegativeDenominator = (mappingMostNegative - mappingLeastNegative) / (-1.0f + PALETTE_ZERO_COLOR_ZONE);//ditto, but most negative maps to -1
     if (mappingNegativeDenominator == 0.0) {
         mappingNegativeDenominator = 1.0;
     }
@@ -1340,27 +1343,21 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
          */
         float normalized = 0.0f;
         if (scalar > 0.0) {
-            if (scalar >= mappingMostPositive) {
+            normalized = (scalar - mappingLeastPositive) / mappingPositiveDenominator + PALETTE_ZERO_COLOR_ZONE;
+            if (normalized > 1.0f) {
                 normalized = 1.0f;
             }
-            else if (scalar >= mappingLeastPositive) {
-                float numerator = scalar - mappingLeastPositive;
-                normalized = numerator / mappingPositiveDenominator + SMALL_POSITIVE; // JWH 24 April 2015   0.00001f;//don't return less than 0.00001f if input is positive
-            }
-            else {
-                normalized = SMALL_POSITIVE;  // JWH 24 April 2015  0.00001f;
+            else if (normalized < PALETTE_ZERO_COLOR_ZONE) {
+                normalized = PALETTE_ZERO_COLOR_ZONE;
             }
         }
         else if (scalar < 0.0) {
-            if (scalar <= mappingMostNegative) {
+            normalized = (scalar - mappingLeastNegative) / mappingNegativeDenominator - PALETTE_ZERO_COLOR_ZONE;
+            if (normalized < -1.0f) {
                 normalized = -1.0f;
             }
-            else if (scalar <= mappingLeastNegative) {
-                float numerator = scalar - mappingLeastNegative;
-                normalized = numerator / mappingNegativeDenominator + SMALL_NEGATIVE;  // JWH 24 April 2015  - 0.00001f;
-            }
-            else {
-                normalized = SMALL_NEGATIVE;   // JWH 24 April 2015   -0.00001f;
+            else if (normalized > -PALETTE_ZERO_COLOR_ZONE) {
+                normalized = -PALETTE_ZERO_COLOR_ZONE;
             }
         }
         normalizedValuesOut[i] = normalized;
