@@ -849,7 +849,9 @@ WuQDialog::clicked(QAbstractButton* button)
 {
     QDialogButtonBox::StandardButton standardButton = this->getDialogButtonBox()->standardButton(button);
     if (standardButton == QDialogButtonBox::Ok) {
+        button->setEnabled(false);
         okButtonClicked();
+        button->setEnabled(true);
     }
     else if (standardButton == QDialogButtonBox::Cancel) {
         cancelButtonClicked();
