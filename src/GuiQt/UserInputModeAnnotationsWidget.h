@@ -32,6 +32,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationColorWidget;
+    class AnnotationCoordinateSpaceWidget;
     class AnnotationCoordinateWidget;
     class AnnotationFontWidget;
     class AnnotationFormatWidget;
@@ -79,6 +80,8 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         UserInputModeAnnotations* m_inputModeAnnotations;
+        
+        AnnotationCoordinateSpaceWidget* m_coordinateSpaceWidget;
         
         AnnotationCoordinateWidget* m_coordinateOneWidget;
         

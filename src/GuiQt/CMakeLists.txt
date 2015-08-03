@@ -40,6 +40,7 @@ AnnotationMenuArrange.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
 AnnotationSelectionViewController.h
+AnnotationCoordinateSpaceWidget.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorDialog.h
 AnnotationTextEditorWidget.h
@@ -192,6 +193,7 @@ AnnotationMenuArrange.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
 AnnotationSelectionViewController.h
+AnnotationCoordinateSpaceWidget.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorDialog.h
 AnnotationTextEditorWidget.h
@@ -373,6 +375,7 @@ AnnotationMenuArrange.cxx
 AnnotationRedoUndoWidget.cxx
 AnnotationRotationWidget.cxx
 AnnotationSelectionViewController.cxx
+AnnotationCoordinateSpaceWidget.cxx
 AnnotationTextAlignmentWidget.cxx
 AnnotationTextEditorDialog.cxx
 AnnotationTextEditorWidget.cxx

@@ -55,6 +55,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param browserWindowIndex
+ *     Index of window in which this instance is displayed
  * @param parent
  *     Parent for this widget.
  */

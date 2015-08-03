@@ -30,6 +30,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationCoordinateSpaceWidget.h"
 #include "AnnotationCoordinateWidget.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationFontWidget.h"
@@ -92,6 +93,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_textOrientationWidget      = new AnnotationTextOrientationWidget(m_browserWindowIndex);
     
+    m_coordinateSpaceWidget      = new AnnotationCoordinateSpaceWidget(m_browserWindowIndex);
+    
     m_coordinateOneWidget        = new AnnotationCoordinateWidget(AnnotationCoordinateWidget::COORDINATE_ONE,
                                                                   m_browserWindowIndex);
     
@@ -145,6 +148,8 @@ m_inputModeAnnotations(inputModeAnnotations)
      */
     QHBoxLayout* bottomRowLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 2);
+    bottomRowLayout->addWidget(m_coordinateSpaceWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomRowLayout->addWidget(m_coordinateOneWidget);
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomRowLayout->addWidget(m_coordinateTwoWidget);
@@ -302,6 +307,7 @@ UserInputModeAnnotationsWidget::updateWidget()
         }
     }
     
+    m_coordinateSpaceWidget->updateContent(selectedAnnotations);
     m_fontWidget->updateContent(textAnnotations);
     m_textEditorWidget->updateContent(textAnnotations);
     m_colorWidget->updateContent(selectedAnnotations);
