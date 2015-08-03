@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include <vector>
 #include <QWidget>
 
 class QDoubleSpinBox;
@@ -43,7 +43,7 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        void updateContent(AnnotationTwoDimensionalShape* annotation2D);
+        void updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotation2D);
         
     private slots:
         void rotationValueChanged(double value);

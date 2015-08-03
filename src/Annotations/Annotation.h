@@ -103,6 +103,8 @@ namespace caret {
         
         virtual bool isForegroundLineWidthSupported() const;
         
+        virtual bool isBackgroundColorSupported() const;
+        
         bool isSelected() const;
         
         /**

@@ -26,12 +26,9 @@
 
 #include "AnnotationTypeEnum.h"
 
-class QMenu;
 class QToolButton;
 
 namespace caret {
-    class Annotation;
-    
     class AnnotationInsertNewWidget : public QWidget {
         
         Q_OBJECT
@@ -45,7 +42,7 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        void updateContent(Annotation* annotation);
+        void updateContent();
         
     private slots:
         void deleteActionTriggered();
@@ -69,8 +66,6 @@ namespace caret {
         void createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType);
         
         const int32_t m_browserWindowIndex;
-        
-        Annotation* m_annotation;
         
         QAction* m_shapeToolButtonAction;
         

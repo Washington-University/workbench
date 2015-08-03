@@ -88,16 +88,14 @@ AnnotationRotationWidget::~AnnotationRotationWidget()
 /**
  * Update with the given annotation.
  *
- * @param annotation2D.
+ * @param annotations2D.
  *    Two dimensional annotation.
  */
 void
-AnnotationRotationWidget::updateContent(AnnotationTwoDimensionalShape* annotation2D)
+AnnotationRotationWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
 {
-    m_annotation2D = annotation2D;
-    
-    if (m_annotation2D != NULL) {
-        double rotation = m_annotation2D->getRotationAngle();
+    if ( ! annotations2D.empty()) {
+        double rotation = annotations2D[0]->getRotationAngle();
         if (rotation < 0.0) {
             rotation += 360.0;
         }

@@ -46,6 +46,8 @@ namespace caret {
         
         void setDisplayEndArrow(const bool displayArrow);
         
+        virtual bool isBackgroundColorSupported() const;
+        
         // ADD_NEW_METHODS_HERE
 
           

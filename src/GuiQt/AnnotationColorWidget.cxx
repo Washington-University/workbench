@@ -67,8 +67,6 @@ AnnotationColorWidget::AnnotationColorWidget(const int32_t browserWindowIndex,
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    m_annotation = NULL;
-    
     QLabel* backLabel      = new QLabel("Fill");
     QLabel* backColorLabel = new QLabel("Color");
     QLabel* lineLabel      = new QLabel("Line");
@@ -187,14 +185,14 @@ AnnotationColorWidget::~AnnotationColorWidget()
 /**
  * Update with the given annotation.
  *
- * @param annotation.
+ * @param annotations
  */
 void
-AnnotationColorWidget::updateContent(Annotation* annotation)
+AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotations)
 {
-    m_annotation = annotation;
+    m_annotations = annotations;
     
-    if (m_annotation != NULL) {
+    if ( ! m_annotations.empty()) {
         setEnabled(true);
     }
     else {
@@ -215,9 +213,9 @@ AnnotationColorWidget::updateContent(Annotation* annotation)
 void
 AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretColor)
 {
-    if (m_annotation != NULL) {
+    if (! m_annotations.empty()) {
         float rgba[4];
-        m_annotation->getCustomBackgroundColor(rgba);
+        m_annotations[0]->getCustomBackgroundColor(rgba);
         
         if (caretColor == CaretColorEnum::CUSTOM) {
             QColor color;
@@ -258,32 +256,45 @@ AnnotationColorWidget::updateBackgroundColorButton()
     CaretColorEnum::toRGBFloat(colorEnum, rgba);
     rgba[3] = 1.0;
     
-    if (m_annotation != NULL) {
-        colorEnum = m_annotation->getBackgroundColor();
-        m_annotation->getBackgroundColorRGBA(rgba);
-        
-        float customRGBA[4];
-        m_annotation->getCustomBackgroundColor(customRGBA);
-        m_backgroundColorMenu->setCustomIconColor(customRGBA);
-        
+    const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());
+    if (numAnnotations > 0) {
+        bool firstColorSupportFlag = true;
         bool enableBackgroundFlag = false;
-        switch (m_annotation->getType()) {
-            case AnnotationTypeEnum::BOX:
-                enableBackgroundFlag = true;
-                break;
-            case AnnotationTypeEnum::IMAGE:
-                enableBackgroundFlag = false;
-                break;
-            case AnnotationTypeEnum::LINE:
-                enableBackgroundFlag = false;
-                break;
-            case AnnotationTypeEnum::OVAL:
-                enableBackgroundFlag = true;
-                break;
-            case AnnotationTypeEnum::TEXT:
-                enableBackgroundFlag = true;
-                break;
+        bool allSameColorFlag = true;
+        
+        for (int32_t i = 0; i < numAnnotations; i++) {
+            if (m_annotations[0]->isBackgroundColorSupported()) {
+                if (firstColorSupportFlag) {
+                    m_annotations[i]->getBackgroundColorRGBA(rgba);
+                    firstColorSupportFlag = false;
+                    enableBackgroundFlag = true;
+                }
+                else {
+                    float colorRGBA[4];
+                    m_annotations[i]->getBackgroundColorRGBA(colorRGBA);
+                    for (int32_t iColor = 0; iColor < 4; iColor++) {
+                        if (rgba[iColor] != colorRGBA[iColor]) {
+                            allSameColorFlag = false;
+                            break;
+                        }
+                    }
+                    
+                    if ( ! allSameColorFlag) {
+                        break;
+                    }
+                }
+            }
         }
+        
+        if (allSameColorFlag) {
+            colorEnum = m_annotations[0]->getBackgroundColor();
+            m_annotations[0]->getBackgroundColorRGBA(rgba);
+            
+            float customRGBA[4];
+            m_annotations[0]->getCustomBackgroundColor(customRGBA);
+            m_backgroundColorMenu->setCustomIconColor(customRGBA);
+        }
+        
         
         m_backgroundWidgetGroup->setEnabled(enableBackgroundFlag);
         if ( ! enableBackgroundFlag) {
@@ -309,18 +320,65 @@ AnnotationColorWidget::updateBackgroundColorButton()
 void
 AnnotationColorWidget::updateForegroundColorButton()
 {
-    CaretColorEnum::Enum colorEnum = CaretColorEnum::WHITE;
+//    CaretColorEnum::Enum colorEnum = CaretColorEnum::WHITE;
+//    float rgba[4];
+//    CaretColorEnum::toRGBFloat(colorEnum, rgba);
+//    rgba[3] = 1.0;
+//    
+//    if ( ! m_annotations.empty()) {
+//        colorEnum = m_annotations[0]->getForegroundColor();
+//        m_annotations[0]->getForegroundColorRGBA(rgba);
+//
+//        float customRGBA[4];
+//        m_annotations[0]->getCustomForegroundColor(customRGBA);
+//        m_foregroundColorMenu->setCustomIconColor(customRGBA);
+//    }
+    CaretColorEnum::Enum colorEnum = CaretColorEnum::NONE;
     float rgba[4];
     CaretColorEnum::toRGBFloat(colorEnum, rgba);
     rgba[3] = 1.0;
     
-    if (m_annotation != NULL) {
-        colorEnum = m_annotation->getForegroundColor();
-        m_annotation->getForegroundColorRGBA(rgba);
-
-        float customRGBA[4];
-        m_annotation->getCustomForegroundColor(customRGBA);
-        m_foregroundColorMenu->setCustomIconColor(customRGBA);
+    const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());
+    if (numAnnotations > 0) {
+        bool firstColorSupportFlag = true;
+        bool enableForegroundFlag = false;
+        bool allSameColorFlag = true;
+        
+        for (int32_t i = 0; i < numAnnotations; i++) {
+                if (firstColorSupportFlag) {
+                    m_annotations[i]->getForegroundColorRGBA(rgba);
+                    firstColorSupportFlag = false;
+                    enableForegroundFlag = true;
+                }
+                else {
+                    float colorRGBA[4];
+                    m_annotations[i]->getForegroundColorRGBA(colorRGBA);
+                    for (int32_t iColor = 0; iColor < 4; iColor++) {
+                        if (rgba[iColor] != colorRGBA[iColor]) {
+                            allSameColorFlag = false;
+                            break;
+                        }
+                    }
+                    
+                    if ( ! allSameColorFlag) {
+                        break;
+                    }
+                }
+        }
+        
+        if (allSameColorFlag) {
+            colorEnum = m_annotations[0]->getForegroundColor();
+            m_annotations[0]->getForegroundColorRGBA(rgba);
+            
+            float customRGBA[4];
+            m_annotations[0]->getCustomForegroundColor(customRGBA);
+            m_foregroundColorMenu->setCustomIconColor(customRGBA);
+        }
+        
+        
+        if ( ! enableForegroundFlag) {
+            colorEnum = CaretColorEnum::NONE;
+        }
     }
     
     QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_foregroundToolButton, 24, 24, colorEnum, rgba, true);
@@ -337,9 +395,9 @@ AnnotationColorWidget::updateForegroundColorButton()
 void
 AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretColor)
 {
-    if (m_annotation != NULL) {
+    if ( ! m_annotations.empty()) {
         float rgba[4];
-        m_annotation->getCustomForegroundColor(rgba);
+        m_annotations[0]->getCustomForegroundColor(rgba);
         
         if (caretColor == CaretColorEnum::CUSTOM) {
             QColor color;
@@ -377,13 +435,26 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
 void
 AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
 {
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeLineWidthForeground(value, annMan->getSelectedAnnotations());
-        annMan->applyCommand(undoCommand);
-        
-        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    if ( ! m_foregroundThicknessSpinBox->specialValueText().isEmpty()) {
+        if (m_foregroundThicknessSpinBox->specialValueText()
+            == m_foregroundThicknessSpinBox->text()) {
+            /*
+             * Ignore special text which is available when 
+             * there are multiple annotations with different
+             * foreground thicknesses.
+             */
+            std::cout << "Ignoring special text " << std::endl;
+            return;
+        }
+    }
+    
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    undoCommand->setModeLineWidthForeground(value, annMan->getSelectedAnnotations());
+    annMan->applyCommand(undoCommand);
+    
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -392,17 +463,43 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
 void
 AnnotationColorWidget::updateForegroundThicknessSpinBox()
 {
-    float value = 0.0;
-    bool widgetEnabled = false;
-    if (m_annotation != NULL) {
-        if (m_annotation->isForegroundLineWidthSupported()) {
-            value = m_annotation->getForegroundLineWidth();
-            widgetEnabled = true;
+    float lineWidthValue = 1.0;
+    bool  lineWidthValid = false;
+    bool  haveMultipleLineWidthValues = false;
+    
+    const int32_t numAnnotations = static_cast<int32_t>(m_annotations.size());
+    if (numAnnotations > 0) {
+        for (int32_t i = 0; i < numAnnotations; i++) {
+            if (m_annotations[i]->isForegroundLineWidthSupported()) {
+                const float annLineWidth = m_annotations[i]->getForegroundLineWidth();
+                if (lineWidthValid) {
+                    if (annLineWidth != lineWidthValue) {
+                        haveMultipleLineWidthValues = true;
+                    }
+                    lineWidthValue = std::min(lineWidthValue,
+                                              annLineWidth);
+                }
+                else {
+                    lineWidthValue = annLineWidth;
+                    lineWidthValid = true;
+                }
+            }
         }
     }
     
+    /*
+     * When the selected annotations have different line
+     * widths, the valid displayed is the minimum line
+     * width with a suffix consisting of a plus symbol.
+     */
     m_foregroundThicknessSpinBox->blockSignals(true);
-    m_foregroundThicknessSpinBox->setValue(value);
+    m_foregroundThicknessSpinBox->setValue(lineWidthValue);
+    m_foregroundThicknessSpinBox->setEnabled(lineWidthValid);
+    if (haveMultipleLineWidthValues) {
+        m_foregroundThicknessSpinBox->setSuffix("+");
+    }
+    else {
+        m_foregroundThicknessSpinBox->setSuffix("");
+    }
     m_foregroundThicknessSpinBox->blockSignals(false);
-    m_foregroundThicknessSpinBox->setEnabled(widgetEnabled);
 }

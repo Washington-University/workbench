@@ -40,7 +40,7 @@ namespace caret {
         
         virtual ~AnnotationLineArrowTipsWidget();
         
-        void updateContent(AnnotationLine* annotationLine);
+        void updateContent(std::vector<AnnotationLine*>& annotationLines);
         
     private slots:
         void startArrowTipActionToggled();

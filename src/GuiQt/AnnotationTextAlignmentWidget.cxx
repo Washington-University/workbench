@@ -70,14 +70,13 @@ AnnotationTextAlignmentWidget::AnnotationTextAlignmentWidget(const int32_t brows
 m_browserWindowIndex(browserWindowIndex)
 {
     m_smallLayoutFlag = true;
-    m_annotationText = NULL;
     
     QToolButton* leftAlignToolButton   = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::LEFT);
     QToolButton* centerAlignToolButton = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::CENTER);
     QToolButton* rightAlignToolButton  = createHorizontalAlignmentToolButton(AnnotationTextAlignHorizontalEnum::RIGHT);
     
     m_horizontalAlignActionGroup = new QActionGroup(this);
-    m_horizontalAlignActionGroup->setExclusive(true);
+    m_horizontalAlignActionGroup->setExclusive(false); // not exclusive as may need to turn all off
     m_horizontalAlignActionGroup->addAction(leftAlignToolButton->defaultAction());
     m_horizontalAlignActionGroup->addAction(centerAlignToolButton->defaultAction());
     m_horizontalAlignActionGroup->addAction(rightAlignToolButton->defaultAction());
@@ -90,7 +89,7 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* bottomAlignToolButton = createVerticalAlignmentToolButton(AnnotationTextAlignVerticalEnum::BOTTOM);
     
     m_verticalAlignActionGroup = new QActionGroup(this);
-    m_verticalAlignActionGroup->setExclusive(true);
+    m_verticalAlignActionGroup->setExclusive(false); // not exclusive as may need to turn all off
     m_verticalAlignActionGroup->addAction(topAlignToolButton->defaultAction());
     m_verticalAlignActionGroup->addAction(middleAlignToolButton->defaultAction());
     m_verticalAlignActionGroup->addAction(bottomAlignToolButton->defaultAction());
@@ -154,80 +153,123 @@ AnnotationTextAlignmentWidget::~AnnotationTextAlignmentWidget()
 /**
  * Update with the given annotation.
  *
- * @param annotation.
+ * @param annotationTexts.
  */
 void
-AnnotationTextAlignmentWidget::updateContent(AnnotationText* annotationText)
+AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
-    m_annotationText = annotationText;
-    
-    if (m_annotationText != NULL) {
+    {
         /*
          * Update horizontal alignment
          */
-        {
-            QAction* selectedAction = NULL;
-            QList<QAction*> allActions = m_horizontalAlignActionGroup->actions();
-            QListIterator<QAction*> iter(allActions);
-            while (iter.hasNext()) {
-                QAction* action = iter.next();
-                const int intValue = action->data().toInt();
-                bool valid = false;
-                AnnotationTextAlignHorizontalEnum::Enum actionAlign = AnnotationTextAlignHorizontalEnum::fromIntegerCode(intValue,
-                                                                                                                         &valid);
-                if (valid) {
-                    if (actionAlign == annotationText->getHorizontalAlignment()) {
-                        selectedAction = action;
-                        break;
+        m_horizontalAlignActionGroup->blockSignals(true);
+        
+        /*
+         * If multiple annotations are selected, the may have different alignments.
+         */
+        std::set<AnnotationTextAlignHorizontalEnum::Enum> selectedAlignments;
+        for (std::vector<AnnotationText*>::iterator iter = annotationTexts.begin();
+             iter != annotationTexts.end();
+             iter++) {
+            const AnnotationText* annText = *iter;
+            CaretAssert(annText);
+            selectedAlignments.insert(annText->getHorizontalAlignment());
+        }
+        
+        AnnotationTextAlignHorizontalEnum::Enum alignment = AnnotationTextAlignHorizontalEnum::LEFT;
+        bool alignmentValid = false;
+        if (selectedAlignments.size() == 1) {
+            alignment = *(selectedAlignments.begin());
+            alignmentValid = true;
+        }
+        
+        /*
+         * Update the status of each action
+         *
+         * An action is "checked" if an only if all selected annotations
+         * have the same alignment.
+         */
+        QList<QAction*> allActions = m_horizontalAlignActionGroup->actions();
+        QListIterator<QAction*> iter(allActions);
+        while (iter.hasNext()) {
+            QAction* action = iter.next();
+            const int intValue = action->data().toInt();
+            bool valid = false;
+            AnnotationTextAlignHorizontalEnum::Enum actionAlign = AnnotationTextAlignHorizontalEnum::fromIntegerCode(intValue,
+                                                                                                                     &valid);
+            bool actionChecked = false;
+            if (valid) {
+                if (alignmentValid) {
+                    if (actionAlign == alignment) {
+                        actionChecked = true;
                     }
                 }
             }
-            
-            if (selectedAction != NULL) {
-                m_horizontalAlignActionGroup->blockSignals(true);
-                selectedAction->setChecked(true);
-                m_horizontalAlignActionGroup->blockSignals(false);
-            }
+            action->setChecked(actionChecked);
         }
-
+        
+        m_horizontalAlignActionGroup->blockSignals(false);
+    }
+    
+    {
         /*
          * Update vertical alignment
          */
-        {
-            QAction* selectedAction = NULL;
-            QList<QAction*> allActions = m_verticalAlignActionGroup->actions();
-            QListIterator<QAction*> iter(allActions);
-            while (iter.hasNext()) {
-                QAction* action = iter.next();
-                const int intValue = action->data().toInt();
-                bool valid = false;
-                AnnotationTextAlignVerticalEnum::Enum actionAlign = AnnotationTextAlignVerticalEnum::fromIntegerCode(intValue,
-                                                                                                                         &valid);
-                if (valid) {
-                    if (actionAlign == annotationText->getVerticalAlignment()) {
-                        selectedAction = action;
-                        break;
+        m_verticalAlignActionGroup->blockSignals(true);
+        
+        /*
+         * If multiple annotations are selected, the may have different alignments.
+         */
+        std::set<AnnotationTextAlignVerticalEnum::Enum> selectedAlignments;
+        for (std::vector<AnnotationText*>::iterator iter = annotationTexts.begin();
+             iter != annotationTexts.end();
+             iter++) {
+            const AnnotationText* annText = *iter;
+            CaretAssert(annText);
+            selectedAlignments.insert(annText->getVerticalAlignment());
+        }
+        
+        AnnotationTextAlignVerticalEnum::Enum alignment = AnnotationTextAlignVerticalEnum::TOP;
+        bool alignmentValid = false;
+        if (selectedAlignments.size() == 1) {
+            alignment = *(selectedAlignments.begin());
+            alignmentValid = true;
+        }
+        
+        /*
+         * Update the status of each action
+         *
+         * An action is "checked" if an only if all selected annotations
+         * have the same alignment.
+         */
+        QList<QAction*> allActions = m_verticalAlignActionGroup->actions();
+        QListIterator<QAction*> iter(allActions);
+        while (iter.hasNext()) {
+            QAction* action = iter.next();
+            const int intValue = action->data().toInt();
+            bool valid = false;
+            AnnotationTextAlignVerticalEnum::Enum actionAlign = AnnotationTextAlignVerticalEnum::fromIntegerCode(intValue,
+                                                                                                                 &valid);
+            bool actionChecked = false;
+            if (valid) {
+                if (alignmentValid) {
+                    if (actionAlign == alignment) {
+                        actionChecked = true;
                     }
                 }
             }
-            
-            if (selectedAction != NULL) {
-                m_verticalAlignActionGroup->blockSignals(true);
-                selectedAction->setChecked(true);
-                m_verticalAlignActionGroup->blockSignals(false);
-            }
+            action->setChecked(actionChecked);
         }
         
-        setEnabled(true);
+        m_verticalAlignActionGroup->blockSignals(false);
     }
-    else {
-        setEnabled(false);
-    }
+    
+    setEnabled( ! annotationTexts.empty());
 }
 
 /**
  * Gets called when a horizontal alignment selection is made.
- * 
+ *
  * @param action
  *     Action that was selected.
  */

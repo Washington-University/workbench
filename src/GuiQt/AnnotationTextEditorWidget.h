@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <vector>
 #include <QLineEdit>
 #include <QWidget>
 
@@ -43,7 +44,7 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        void updateContent(AnnotationText* annotationText);
+        void updateContent(std::vector<AnnotationText*>& annotationTexts);
 
     private slots:
         void annotationTextChanged();

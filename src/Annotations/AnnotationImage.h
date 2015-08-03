@@ -41,6 +41,8 @@ namespace caret {
         
         virtual bool isForegroundLineWidthSupported() const;
         
+        virtual bool isBackgroundColorSupported() const;
+        
 
         // ADD_NEW_METHODS_HERE
 

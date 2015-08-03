@@ -117,6 +117,18 @@ AnnotationImage::isForegroundLineWidthSupported() const
 }
 
 /**
+ * @return Is background color supported?
+ * Most annotations support a background color.
+ * Annotations that do not support a background color
+ * must override this method and return a value of false.
+ */
+bool
+AnnotationImage::isBackgroundColorSupported() const
+{
+    return false;
+}
+
+/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes

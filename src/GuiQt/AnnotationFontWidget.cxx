@@ -63,13 +63,10 @@ AnnotationFontWidget::AnnotationFontWidget(const int32_t browserWindowIndex,
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    m_annotationText = NULL;
-    
     /*
      * "Font" label
      */
     QLabel* fontLabel = new QLabel("Font ");
-    m_annotationText = NULL;
     
     /*
      * Combo box for font name selection
@@ -178,25 +175,77 @@ AnnotationFontWidget::~AnnotationFontWidget()
 /**
  * Update the content of this widget with the given text annotation.
  *
- * @param annotationText
- *     Text annotation for display (may be NULL).
+ * @param annotationTexts
+ *     Text annotations for display (may be NULL).
  */
 void
-AnnotationFontWidget::updateContent(AnnotationText* annotationText)
+AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
-    m_annotationText = annotationText;
-    
-    if (m_annotationText != NULL) {
-        m_fontNameComboBox->setSelectedItem<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>(m_annotationText->getFont());
+    if ( ! annotationTexts.empty()) {
+        bool boldOnFlag      = true;
+        bool italicOnFlag    = true;
+        bool underlineOnFlag = true;
         
-        m_fontSizeComboBox->setSelectedItem<AnnotationFontSizeEnum,AnnotationFontSizeEnum::Enum>(m_annotationText->getFontSize());
+        AnnotationFontNameEnum::Enum fontName = AnnotationFontNameEnum::VERA;
+        int32_t fontSizeIntegerCode = 100000;
+        bool fontNameValid = true;
+        bool haveMultipleFontSizeValues = false;
         
-        m_boldFontAction->setChecked(m_annotationText->isBoldEnabled());
-        m_italicFontAction->setChecked(m_annotationText->isItalicEnabled());
-        m_underlineFontAction->setChecked(m_annotationText->isUnderlineEnabled());
+        const int32_t numAnn = static_cast<int32_t>(annotationTexts.size());
+        for (int32_t i = 0; i < numAnn; i++) {
+            CaretAssertVectorIndex(annotationTexts, i);
+            const AnnotationText* annText = annotationTexts[i];
+            
+            const AnnotationFontSizeEnum::Enum fontSize = annText->getFontSize();
+            const int32_t fontIntCode = AnnotationFontSizeEnum::toIntegerCode(fontSize);
+            if (i == 0) {
+                fontName = annText->getFont();
+                fontSizeIntegerCode = fontIntCode;
+            }
+            else {
+                if (annText->getFont() != fontName) {
+                    fontNameValid = false;
+                }
+                if (fontSizeIntegerCode != fontIntCode) {
+                    haveMultipleFontSizeValues = true;
+                    fontSizeIntegerCode = std::min(fontSizeIntegerCode,
+                                                   fontIntCode);
+                }
+            }
+            
+            if ( ! annText->isBoldEnabled()) {
+                boldOnFlag = false;
+            }
+            if ( ! annText->isItalicEnabled()) {
+                italicOnFlag = false;
+            }
+            if ( ! annText->isUnderlineEnabled()) {
+                underlineOnFlag = false;
+            }
+        }
+        
+        m_fontNameComboBox->setSelectedItem<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>(fontName);
+        
+        bool validFontSizeFlag = false;
+        const AnnotationFontSizeEnum::Enum fontSize = AnnotationFontSizeEnum::fromIntegerCode(fontSizeIntegerCode,
+                                                                                              &validFontSizeFlag);
+        if (validFontSizeFlag) {
+            m_fontSizeComboBox->setSelectedItem<AnnotationFontSizeEnum,AnnotationFontSizeEnum::Enum>(fontSize);
+            if (haveMultipleFontSizeValues) {
+                //m_fontSizeComboBox->setSuffix("+");
+            }
+        }
+        
+        /*
+         * Font styles are ON only if all selected
+         * text annotations have the style enabled
+         */
+        m_boldFontAction->setChecked(boldOnFlag);
+        m_italicFontAction->setChecked(italicOnFlag);
+        m_underlineFontAction->setChecked(underlineOnFlag);
     }
     
-    setEnabled(m_annotationText != NULL);
+    setEnabled( ! annotationTexts.empty());
 }
 
 /**

@@ -433,6 +433,18 @@ Annotation::isForegroundLineWidthSupported() const
     return true;
 }
 
+/**
+ * @return Is background color supported?
+ * Most annotations support a background color.
+ * Annotations that do not support a background color
+ * must override this method and return a value of false.
+ */
+bool
+Annotation::isBackgroundColorSupported() const
+{
+    return true;
+}
+
 
 /**
  * @return The foreground color.

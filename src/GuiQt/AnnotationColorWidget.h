@@ -46,7 +46,7 @@ namespace caret {
         
         virtual ~AnnotationColorWidget();
         
-        void updateContent(Annotation* annotation);
+        void updateContent(std::vector<Annotation*>& annotations);
         
 
         // ADD_NEW_METHODS_HERE
@@ -88,7 +88,7 @@ namespace caret {
         
         WuQWidgetObjectGroup* m_backgroundWidgetGroup;
         
-        Annotation* m_annotation;
+        std::vector<Annotation*> m_annotations;
         
         // ADD_NEW_MEMBERS_HERE
 

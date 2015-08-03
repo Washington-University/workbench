@@ -47,7 +47,7 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        void updateContent(AnnotationText* annotationText);
+        void updateContent(std::vector<AnnotationText*>& annotationTexts);
 
     private slots:
         void horizontalAlignmentActionSelected(QAction* action);
@@ -74,8 +74,6 @@ namespace caret {
         QActionGroup* m_horizontalAlignActionGroup;
         
         QActionGroup* m_verticalAlignActionGroup;
-        
-        AnnotationText* m_annotationText;
         
         bool m_smallLayoutFlag;
         

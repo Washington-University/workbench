@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include <vector>
 #include <QWidget>
 
 namespace caret {
@@ -39,7 +39,7 @@ namespace caret {
         
         virtual ~AnnotationFontWidget();
         
-        void updateContent(AnnotationText* annotationText);
+        void updateContent(std::vector<AnnotationText*>& annotationText);
         
         // ADD_NEW_METHODS_HERE
         
@@ -60,8 +60,6 @@ namespace caret {
         AnnotationFontWidget& operator=(const AnnotationFontWidget&);
         
         const int32_t m_browserWindowIndex;
-        
-        AnnotationText* m_annotationText;
         
         EnumComboBoxTemplate* m_fontNameComboBox;
 

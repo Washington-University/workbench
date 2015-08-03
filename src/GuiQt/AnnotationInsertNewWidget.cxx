@@ -69,8 +69,6 @@ AnnotationInsertNewWidget::AnnotationInsertNewWidget(const int32_t browserWindow
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    m_annotation = NULL;
-    
     QLabel* insertLabel = new QLabel("Insert");
     QLabel* deleteLabel = new QLabel("Delete");
     QWidget* shapeToolButton = createShapeToolButton();
@@ -103,16 +101,11 @@ AnnotationInsertNewWidget::~AnnotationInsertNewWidget()
 }
 
 /**
- * Update with the given annotation.
- *
- * @param annotation.
+ * Update the content.
  */
 void
-AnnotationInsertNewWidget::updateContent(Annotation* annotation)
+AnnotationInsertNewWidget::updateContent()
 {
-    m_annotation = annotation;
-    
-    // always enabled      m_deleteToolButtonAction->setEnabled(m_annotation != NULL);
 }
 
 /**

@@ -63,7 +63,7 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* verticalOrientationToolButton   = createOrientationToolButton(AnnotationTextOrientationEnum::STACKED);
 
     m_orientationActionGroup = new QActionGroup(this);
-    m_orientationActionGroup->setExclusive(true);
+    m_orientationActionGroup->setExclusive(false);
     m_orientationActionGroup->addAction(horizontalOrientationToolButton->defaultAction());
     m_orientationActionGroup->addAction(verticalOrientationToolButton->defaultAction());
     QObject::connect(m_orientationActionGroup, SIGNAL(triggered(QAction*)),
@@ -96,48 +96,106 @@ AnnotationTextOrientationWidget::~AnnotationTextOrientationWidget()
  * @param annotation.
  */
 void
-AnnotationTextOrientationWidget::updateContent(AnnotationText* annotationText)
+AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
-    m_annotationText = annotationText;
-    
-    if (m_annotationText != NULL) {
+    {
         /*
-         * Update horizontal alignment
+         * Update orientation
          */
-        {
-            QAction* selectedAction = NULL;
-            QList<QAction*> allActions = m_orientationActionGroup->actions();
-            QListIterator<QAction*> iter(allActions);
-            while (iter.hasNext()) {
-                QAction* action = iter.next();
-                const int intValue = action->data().toInt();
-                bool valid = false;
-                AnnotationTextOrientationEnum::Enum actionOrient = AnnotationTextOrientationEnum::fromIntegerCode(intValue,
-                                                                                                                         &valid);
-                if (valid) {
-                    if (actionOrient == annotationText->getOrientation()) {
-                        selectedAction = action;
-                        break;
+        m_orientationActionGroup->blockSignals(true);
+        
+        /*
+         * If multiple annotations are selected, the may have different orientation.
+         */
+        std::set<AnnotationTextOrientationEnum::Enum> selectedOrientations;
+        for (std::vector<AnnotationText*>::iterator iter = annotationTexts.begin();
+             iter != annotationTexts.end();
+             iter++) {
+            const AnnotationText* annText = *iter;
+            CaretAssert(annText);
+            selectedOrientations.insert(annText->getOrientation());
+        }
+        
+        AnnotationTextOrientationEnum::Enum orientation = AnnotationTextOrientationEnum::HORIZONTAL;
+        bool orientationValid = false;
+        if (selectedOrientations.size() == 1) {
+            orientation = *(selectedOrientations.begin());
+            orientationValid = true;
+        }
+        
+        /*
+         * Update the status of each action
+         *
+         * An action is "checked" if an only if all selected annotations
+         * have the same orientation.
+         */
+        QList<QAction*> allActions = m_orientationActionGroup->actions();
+        QListIterator<QAction*> iter(allActions);
+        while (iter.hasNext()) {
+            QAction* action = iter.next();
+            const int intValue = action->data().toInt();
+            bool valid = false;
+            AnnotationTextOrientationEnum::Enum actionOrient = AnnotationTextOrientationEnum::fromIntegerCode(intValue,
+                                                                                                                 &valid);
+            bool actionChecked = false;
+            if (valid) {
+                if (orientationValid) {
+                    if (actionOrient == orientation) {
+                        actionChecked = true;
                     }
                 }
             }
-            
-            if (selectedAction != NULL) {
-                m_orientationActionGroup->blockSignals(true);
-                selectedAction->setChecked(true);
-                m_orientationActionGroup->blockSignals(false);
-            }
+            action->setChecked(actionChecked);
         }
         
-        setEnabled(true);
+        m_orientationActionGroup->blockSignals(false);
     }
-    else {
-        setEnabled(false);
-    }
+    
+    setEnabled( ! annotationTexts.empty());
+    
+//    AnnotationText* annotationText = NULL;
+//    if ( ! annotationTexts.empty()) {
+//        annotationText = annotationTexts[0];
+//    }
+//    
+//    if (annotationText != NULL) {
+//        /*
+//         * Update orientation
+//         */
+//        {
+//            QAction* selectedAction = NULL;
+//            QList<QAction*> allActions = m_orientationActionGroup->actions();
+//            QListIterator<QAction*> iter(allActions);
+//            while (iter.hasNext()) {
+//                QAction* action = iter.next();
+//                const int intValue = action->data().toInt();
+//                bool valid = false;
+//                AnnotationTextOrientationEnum::Enum actionOrient = AnnotationTextOrientationEnum::fromIntegerCode(intValue,
+//                                                                                                                         &valid);
+//                if (valid) {
+//                    if (actionOrient == annotationText->getOrientation()) {
+//                        selectedAction = action;
+//                        break;
+//                    }
+//                }
+//            }
+//            
+//            if (selectedAction != NULL) {
+//                m_orientationActionGroup->blockSignals(true);
+//                selectedAction->setChecked(true);
+//                m_orientationActionGroup->blockSignals(false);
+//            }
+//        }
+//        
+//        setEnabled(true);
+//    }
+//    else {
+//        setEnabled(false);
+//    }
 }
 
 /**
- * Gets called when a vertical alignment selection is made.
+ * Gets called when a orientation selection is made.
  *
  * @param action
  *     Action that was selected.

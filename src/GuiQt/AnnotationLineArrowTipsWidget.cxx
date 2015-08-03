@@ -101,16 +101,19 @@ AnnotationLineArrowTipsWidget::~AnnotationLineArrowTipsWidget()
 /**
  * Update with the given line annotation.
  *
- * @param annotationLine
+ * @param annotationLines
  */
 void
-AnnotationLineArrowTipsWidget::updateContent(AnnotationLine* annotationLine)
+AnnotationLineArrowTipsWidget::updateContent(std::vector<AnnotationLine*>& annotationLines)
 {
-    m_annotationLine = annotationLine;
+    AnnotationLine* line = NULL;
+    if ( ! annotationLines.empty()) {
+        line = annotationLines[0];
+    }
     
-    if (m_annotationLine != NULL) {
-        m_startArrowToolButton->setChecked(m_annotationLine->isDisplayStartArrow());
-        m_endArrowToolButton->setChecked(m_annotationLine->isDisplayEndArrow());
+    if (line != NULL) {
+        m_startArrowToolButton->setChecked(line->isDisplayStartArrow());
+        m_endArrowToolButton->setChecked(line->isDisplayEndArrow());
         setEnabled(true);
     }
     else {
@@ -125,7 +128,7 @@ AnnotationLineArrowTipsWidget::updateContent(AnnotationLine* annotationLine)
 void
 AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
 {
-    if (m_annotationLine != NULL) {
+//    if (m_annotationLine != NULL) {
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLineArrowStart(m_startArrowToolButton->isChecked(),
@@ -135,7 +138,7 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+//    }
 }
 
 /**
@@ -144,7 +147,7 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
 void
 AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
 {
-    if (m_annotationLine != NULL) {
+//    if (m_annotationLine != NULL) {
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLineArrowEnd(m_endArrowToolButton->isChecked(),
@@ -153,5 +156,5 @@ AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+//    }
 }

@@ -46,7 +46,7 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        void updateContent(AnnotationText* annotationText);
+        void updateContent(std::vector<AnnotationText*>& annotationTexts);
     
     private slots:
         void orientationActionSelected(QAction* action);
@@ -64,8 +64,6 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         QActionGroup* m_orientationActionGroup;
-        
-        AnnotationText* m_annotationText;
         
         // ADD_NEW_MEMBERS_HERE
 

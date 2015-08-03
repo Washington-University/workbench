@@ -63,6 +63,7 @@ AnnotationTextEditorWidget::AnnotationTextEditorWidget(const int32_t browserWind
 QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
+    m_annotationText = NULL;
     QLabel* textLabel = new QLabel("Text");
 
     m_textLineEdit = new AnnotationLineEdit();
@@ -104,9 +105,12 @@ AnnotationTextEditorWidget::~AnnotationTextEditorWidget()
  * @param annotation.
  */
 void
-AnnotationTextEditorWidget::updateContent(AnnotationText* annotationText)
+AnnotationTextEditorWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
 {
-    m_annotationText = annotationText;
+    m_annotationText = NULL;
+    if (annotationTexts.size() == 1) {
+        m_annotationText = annotationTexts[0];
+    }
 
     
     AnnotationTextConnectTypeEnum::Enum connectValue = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;

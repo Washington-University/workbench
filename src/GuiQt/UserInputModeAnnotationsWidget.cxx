@@ -265,53 +265,67 @@ UserInputModeAnnotationsWidget::updateWidget()
     
     std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
     
-    Annotation* annotationBeingEdited = NULL;
+//    Annotation* annotationBeingEdited = NULL;
+//    if (selectedAnnotations.size() == 1) {
+//        annotationBeingEdited = selectedAnnotations[0];
+//    }
+    
+    std::vector<AnnotationLine*> lineAnnotations;
+    std::vector<AnnotationText*> textAnnotations;
+    std::vector<AnnotationTwoDimensionalShape*> twoDimAnnotations;
+    std::vector<AnnotationOneDimensionalShape*> oneDimAnnotations;
+    
+    for (std::vector<Annotation*>::iterator iter = selectedAnnotations.begin();
+         iter != selectedAnnotations.end();
+         iter++) {
+        Annotation* ann = *iter;
+        CaretAssert(ann);
+        
+        AnnotationText* annText = dynamic_cast<AnnotationText*>(ann);
+        if (annText != NULL) {
+            textAnnotations.push_back(annText);
+        }
+        
+        AnnotationOneDimensionalShape* annOne = dynamic_cast<AnnotationOneDimensionalShape*>(ann);
+        if (annOne != NULL) {
+            oneDimAnnotations.push_back(annOne);
+        }
+        
+        AnnotationTwoDimensionalShape* annTwo= dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
+        if (annTwo != NULL) {
+            twoDimAnnotations.push_back(annTwo);
+        }
+        
+        AnnotationLine* annLine = dynamic_cast<AnnotationLine*>(ann);
+        if (annLine != NULL) {
+            lineAnnotations.push_back(annLine);
+        }
+    }
+    
+    m_fontWidget->updateContent(textAnnotations);
+    m_textEditorWidget->updateContent(textAnnotations);
+    m_colorWidget->updateContent(selectedAnnotations);
+    m_lineArrowTipsWidget->updateContent(lineAnnotations);
+    m_textAlignmentWidget->updateContent(textAnnotations);
+    m_textOrientationWidget->updateContent(textAnnotations);
+    m_widthHeightWidget->updateContent(twoDimAnnotations);
+    m_rotationWidget->updateContent(twoDimAnnotations);
+    m_insertDeleteWidget->updateContent();
+    
+//    AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
+//    if (annotationBeingEdited != NULL) {
+//        coordinateSpace = annotationBeingEdited->getCoordinateSpace();
+//    }
+    
+    Annotation* coordEditAnnotation = NULL;
+    AnnotationOneDimensionalShape* coordEditOneDimAnnotation = NULL;
     if (selectedAnnotations.size() == 1) {
-        annotationBeingEdited = selectedAnnotations[0];
+        coordEditAnnotation = selectedAnnotations[0];
+        coordEditOneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(coordEditAnnotation);
     }
-    
-    AnnotationLine* lineAnnotation = NULL;
-    AnnotationText* textAnnotation = NULL;
-    AnnotationTwoDimensionalShape* twoDimAnnotation = NULL;
-    AnnotationOneDimensionalShape* oneDimAnnotation = NULL;
-    
-    AnnotationCoordinate* coordinateOne = NULL;
-    AnnotationCoordinate* coordinateTwo = NULL;
-    if (annotationBeingEdited != NULL) {
-        textAnnotation   = dynamic_cast<AnnotationText*>(annotationBeingEdited);
-        
-        oneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(annotationBeingEdited);
-        if (oneDimAnnotation != NULL) {
-            coordinateOne = oneDimAnnotation->getStartCoordinate();
-            coordinateTwo = oneDimAnnotation->getEndCoordinate();
-        }
-        
-        twoDimAnnotation = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationBeingEdited);
-        if (twoDimAnnotation != NULL) {
-            coordinateOne = twoDimAnnotation->getCoordinate();
-        }
-        
-        lineAnnotation = dynamic_cast<AnnotationLine*>(annotationBeingEdited);
-    }
-    
-    m_fontWidget->updateContent(textAnnotation);
-    m_textEditorWidget->updateContent(textAnnotation);
-    m_colorWidget->updateContent(annotationBeingEdited);
-    m_lineArrowTipsWidget->updateContent(lineAnnotation);
-    m_textAlignmentWidget->updateContent(textAnnotation);
-    m_textOrientationWidget->updateContent(textAnnotation);
-    m_widthHeightWidget->updateContent(twoDimAnnotation);
-    m_rotationWidget->updateContent(twoDimAnnotation);
-    m_insertDeleteWidget->updateContent(annotationBeingEdited);
-    
-    AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
-    if (annotationBeingEdited != NULL) {
-        coordinateSpace = annotationBeingEdited->getCoordinateSpace();
-    }
-    
-    m_coordinateOneWidget->updateContent(annotationBeingEdited);
-    if (coordinateTwo != NULL) {
-        m_coordinateTwoWidget->updateContent(annotationBeingEdited);
+    m_coordinateOneWidget->updateContent(coordEditAnnotation);
+    if (coordEditOneDimAnnotation != NULL) {
+        m_coordinateTwoWidget->updateContent(coordEditOneDimAnnotation);
         m_coordinateTwoWidget->setVisible(true);
     }
     else {
