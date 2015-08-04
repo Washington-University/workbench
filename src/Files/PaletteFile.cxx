@@ -1126,599 +1126,84 @@ PaletteFile::addDefaultPalettes()
      *
      * lut->m_lutName = std::string("Red");
      */
+    //TSC: no "lookup tables" for purely interpolated palettes!  bad for performance.
     if (this->getPaletteByName("fsl_red") == NULL) {
         Palette fslRed;
         fslRed.setName("fsl_red");
-        
-        float offset = 100.0;
-        float step = (255 - offset) / 255.0;
-        for (int32_t i = 254; i >= 0; i--) {
-            const int32_t red = int(((i + 1) * step) + offset);
-            const AString colorName = ("fsl_red_"
-                                       + AString::number(i));
-            this->addColor(colorName, red, 0.0, 0.0);
-            
-            const float scalar = (red / 255.0);
-            fslRed.addScalarAndColor(scalar,
-                                     colorName);
-        }
+        this->addColor("fsl_red_0", 100, 0, 0);
+        this->addColor("fsl_red_1", 255, 0, 0);
+        fslRed.addScalarAndColor(1.0f, "fsl_red_1");
+        fslRed.addScalarAndColor(0.0f, "fsl_red_0");
         addPalette(fslRed);
     }
     
     if (this->getPaletteByName("fsl_green") == NULL) {
-        Palette fslYellow;
-        fslYellow.setName("fsl_green");
-        
-        float offset = 100.0;
-        float step = (255 - offset) / 255.0;
-        for (int32_t i = 254; i >= 0; i--) {
-            const int32_t green = int(((i + 1) * step) + offset);
-            const AString colorName = ("fsl_green_"
-                                       + AString::number(i));
-            this->addColor(colorName, 0.0, green, 0.0);
-            
-            const float scalar = (green / 255.0);
-            fslYellow.addScalarAndColor(scalar,
-                                        colorName);
-        }
-        addPalette(fslYellow);
+        Palette fslGreen;
+        fslGreen.setName("fsl_green");
+        this->addColor("fsl_green_0", 0, 100, 0);
+        this->addColor("fsl_green_1", 0, 255, 0);
+        fslGreen.addScalarAndColor(1.0f, "fsl_green_1");
+        fslGreen.addScalarAndColor(0.0f, "fsl_green_0");
+        addPalette(fslGreen);
     }
     
     if (this->getPaletteByName("fsl_blue") == NULL) {
-        Palette fslYellow;
-        fslYellow.setName("fsl_blue");
-        
-        float offset = 100.0;
-        float step = (255 - offset) / 255.0;
-        for (int32_t i = 254; i >= 0; i--) {
-            const int32_t blue = int(((i + 1) * step) + offset);
-            const AString colorName = ("fsl_blue_"
-                                       + AString::number(i));
-            this->addColor(colorName, 0.0, 0.0, blue);
-            
-            const float scalar = (blue / 255.0);
-            fslYellow.addScalarAndColor(scalar,
-                                        colorName);
-        }
-        addPalette(fslYellow);
+        Palette fslBlue;
+        fslBlue.setName("fsl_blue");
+        this->addColor("fsl_blue_0", 0, 0, 100);
+        this->addColor("fsl_blue_1", 0, 0, 255);
+        fslBlue.addScalarAndColor(1.0f, "fsl_blue_1");
+        fslBlue.addScalarAndColor(0.0f, "fsl_blue_0");
+        addPalette(fslBlue);
     }
     
     if (this->getPaletteByName("fsl_yellow") == NULL) {
         Palette fslYellow;
         fslYellow.setName("fsl_yellow");
-        
-        float offset = 100.0;
-        float step = (255 - offset) / 255.0;
-        for (int32_t i = 254; i >= 0; i--) {
-            const int32_t yellow = int(((i + 1) * step) + offset);
-            const AString colorName = ("fsl_yellow_"
-                                       + AString::number(i));
-            this->addColor(colorName, yellow, yellow, 0.0);
-            
-            const float scalar = (yellow / 255.0);
-            fslYellow.addScalarAndColor(scalar,
-                                        colorName);
-        }
+        this->addColor("fsl_yellow_0", 100, 100, 0);
+        this->addColor("fsl_yellow_1", 255, 255, 0);
+        fslYellow.addScalarAndColor(1.0f, "fsl_yellow_1");
+        fslYellow.addScalarAndColor(0.0f, "fsl_yellow_0");
         addPalette(fslYellow);
     }
     
     if (this->getPaletteByName("JET256") == NULL) {
-        this->addColor("_J0",    0.00 *255.0,   0.00 * 255.0,  0.52 * 255.0 );
-        this->addColor("_J3",    0.00 *255.0,   0.00 * 255.0,  0.53 * 255.0 );
-        this->addColor("_J7",    0.00 *255.0,   0.00 * 255.0,  0.55 * 255.0 );
-        this->addColor("_J11",    0.00 *255.0,   0.00 * 255.0,  0.56 * 255.0 );
-        this->addColor("_J15",    0.00 *255.0,   0.00 * 255.0,  0.58 * 255.0 );
-        this->addColor("_J19",    0.00 *255.0,   0.00 * 255.0,  0.59 * 255.0 );
-        this->addColor("_J23",    0.00 *255.0,   0.00 * 255.0,  0.61 * 255.0 );
-        this->addColor("_J27",    0.00 *255.0,   0.00 * 255.0,  0.63 * 255.0 );
-        this->addColor("_J31",    0.00 *255.0,   0.00 * 255.0,  0.64 * 255.0 );
-        this->addColor("_J35",    0.00 *255.0,   0.00 * 255.0,  0.66 * 255.0 );
-        this->addColor("_J39",    0.00 *255.0,   0.00 * 255.0,  0.67 * 255.0 );
-        this->addColor("_J43",    0.00 *255.0,   0.00 * 255.0,  0.69 * 255.0 );
-        this->addColor("_J47",    0.00 *255.0,   0.00 * 255.0,  0.70 * 255.0 );
-        this->addColor("_J50",    0.00 *255.0,   0.00 * 255.0,  0.72 * 255.0 );
-        this->addColor("_J54",    0.00 *255.0,   0.00 * 255.0,  0.73 * 255.0 );
-        this->addColor("_J58",    0.00 *255.0,   0.00 * 255.0,  0.75 * 255.0 );
-        this->addColor("_J62",    0.00 *255.0,   0.00 * 255.0,  0.77 * 255.0 );
-        this->addColor("_J66",    0.00 *255.0,   0.00 * 255.0,  0.78 * 255.0 );
-        this->addColor("_J70",    0.00 *255.0,   0.00 * 255.0,  0.80 * 255.0 );
-        this->addColor("_J74",    0.00 *255.0,   0.00 * 255.0,  0.81 * 255.0 );
-        this->addColor("_J78",    0.00 *255.0,   0.00 * 255.0,  0.83 * 255.0 );
-        this->addColor("_J82",    0.00 *255.0,   0.00 * 255.0,  0.84 * 255.0 );
-        this->addColor("_J86",    0.00 *255.0,   0.00 * 255.0,  0.86 * 255.0 );
-        this->addColor("_J90",    0.00 *255.0,   0.00 * 255.0,  0.88 * 255.0 );
-        this->addColor("_J94",    0.00 *255.0,   0.00 * 255.0,  0.89 * 255.0 );
-        this->addColor("_J98",    0.00 *255.0,   0.00 * 255.0,  0.91 * 255.0 );
-        this->addColor("_J101",    0.00 *255.0,   0.00 * 255.0,  0.92 * 255.0 );
-        this->addColor("_J105",    0.00 *255.0,   0.00 * 255.0,  0.94 * 255.0 );
-        this->addColor("_J109",    0.00 *255.0,   0.00 * 255.0,  0.95 * 255.0 );
-        this->addColor("_J113",    0.00 *255.0,   0.00 * 255.0,  0.97 * 255.0 );
-        this->addColor("_J117",    0.00 *255.0,   0.00 * 255.0,  0.98 * 255.0 );
-        this->addColor("_J121",    0.00 *255.0,   0.00 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J125",    0.00 *255.0,   0.02 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J129",    0.00 *255.0,   0.03 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J133",    0.00 *255.0,   0.05 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J137",    0.00 *255.0,   0.06 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J141",    0.00 *255.0,   0.08 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J145",    0.00 *255.0,   0.09 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J149",    0.00 *255.0,   0.11 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J152",    0.00 *255.0,   0.13 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J156",    0.00 *255.0,   0.14 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J160",    0.00 *255.0,   0.16 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J164",    0.00 *255.0,   0.17 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J168",    0.00 *255.0,   0.19 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J172",    0.00 *255.0,   0.20 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J176",    0.00 *255.0,   0.22 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J180",    0.00 *255.0,   0.23 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J184",    0.00 *255.0,   0.25 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J188",    0.00 *255.0,   0.27 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J192",    0.00 *255.0,   0.28 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J196",    0.00 *255.0,   0.30 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J200",    0.00 *255.0,   0.31 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J203",    0.00 *255.0,   0.33 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J207",    0.00 *255.0,   0.34 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J211",    0.00 *255.0,   0.36 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J215",    0.00 *255.0,   0.38 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J219",    0.00 *255.0,   0.39 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J223",    0.00 *255.0,   0.41 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J227",    0.00 *255.0,   0.42 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J231",    0.00 *255.0,   0.44 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J235",    0.00 *255.0,   0.45 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J239",    0.00 *255.0,   0.47 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J243",    0.00 *255.0,   0.48 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J247",    0.00 *255.0,   0.50 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J250",    0.00 *255.0,   0.52 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J254",    0.00 *255.0,   0.53 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J258",    0.00 *255.0,   0.55 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J262",    0.00 *255.0,   0.56 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J266",    0.00 *255.0,   0.58 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J270",    0.00 *255.0,   0.59 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J274",    0.00 *255.0,   0.61 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J278",    0.00 *255.0,   0.63 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J282",    0.00 *255.0,   0.64 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J286",    0.00 *255.0,   0.66 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J290",    0.00 *255.0,   0.67 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J294",    0.00 *255.0,   0.69 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J298",    0.00 *255.0,   0.70 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J301",    0.00 *255.0,   0.72 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J305",    0.00 *255.0,   0.73 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J309",    0.00 *255.0,   0.75 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J313",    0.00 *255.0,   0.77 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J317",    0.00 *255.0,   0.78 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J321",    0.00 *255.0,   0.80 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J325",    0.00 *255.0,   0.81 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J329",    0.00 *255.0,   0.83 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J333",    0.00 *255.0,   0.84 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J337",    0.00 *255.0,   0.86 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J341",    0.00 *255.0,   0.88 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J345",    0.00 *255.0,   0.89 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J349",    0.00 *255.0,   0.91 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J352",    0.00 *255.0,   0.92 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J356",    0.00 *255.0,   0.94 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J360",    0.00 *255.0,   0.95 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J364",    0.00 *255.0,   0.97 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J368",    0.00 *255.0,   0.98 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J372",    0.00 *255.0,   1.00 * 255.0,  1.00 * 255.0 );
-        this->addColor("_J376",    0.02 *255.0,   1.00 * 255.0,  0.98 * 255.0 );
-        this->addColor("_J380",    0.03 *255.0,   1.00 * 255.0,  0.97 * 255.0 );
-        this->addColor("_J384",    0.05 *255.0,   1.00 * 255.0,  0.95 * 255.0 );
-        this->addColor("_J388",    0.06 *255.0,   1.00 * 255.0,  0.94 * 255.0 );
-        this->addColor("_J392",    0.08 *255.0,   1.00 * 255.0,  0.92 * 255.0 );
-        this->addColor("_J396",    0.09 *255.0,   1.00 * 255.0,  0.91 * 255.0 );
-        this->addColor("_J400",    0.11 *255.0,   1.00 * 255.0,  0.89 * 255.0 );
-        this->addColor("_J403",    0.13 *255.0,   1.00 * 255.0,  0.88 * 255.0 );
-        this->addColor("_J407",    0.14 *255.0,   1.00 * 255.0,  0.86 * 255.0 );
-        this->addColor("_J411",    0.16 *255.0,   1.00 * 255.0,  0.84 * 255.0 );
-        this->addColor("_J415",    0.17 *255.0,   1.00 * 255.0,  0.83 * 255.0 );
-        this->addColor("_J419",    0.19 *255.0,   1.00 * 255.0,  0.81 * 255.0 );
-        this->addColor("_J423",    0.20 *255.0,   1.00 * 255.0,  0.80 * 255.0 );
-        this->addColor("_J427",    0.22 *255.0,   1.00 * 255.0,  0.78 * 255.0 );
-        this->addColor("_J431",    0.23 *255.0,   1.00 * 255.0,  0.77 * 255.0 );
-        this->addColor("_J435",    0.25 *255.0,   1.00 * 255.0,  0.75 * 255.0 );
-        this->addColor("_J439",    0.27 *255.0,   1.00 * 255.0,  0.73 * 255.0 );
-        this->addColor("_J443",    0.28 *255.0,   1.00 * 255.0,  0.72 * 255.0 );
-        this->addColor("_J447",    0.30 *255.0,   1.00 * 255.0,  0.70 * 255.0 );
-        this->addColor("_J450",    0.31 *255.0,   1.00 * 255.0,  0.69 * 255.0 );
-        this->addColor("_J454",    0.33 *255.0,   1.00 * 255.0,  0.67 * 255.0 );
-        this->addColor("_J458",    0.34 *255.0,   1.00 * 255.0,  0.66 * 255.0 );
-        this->addColor("_J462",    0.36 *255.0,   1.00 * 255.0,  0.64 * 255.0 );
-        this->addColor("_J466",    0.38 *255.0,   1.00 * 255.0,  0.63 * 255.0 );
-        this->addColor("_J470",    0.39 *255.0,   1.00 * 255.0,  0.61 * 255.0 );
-        this->addColor("_J474",    0.41 *255.0,   1.00 * 255.0,  0.59 * 255.0 );
-        this->addColor("_J478",    0.42 *255.0,   1.00 * 255.0,  0.58 * 255.0 );
-        this->addColor("_J482",    0.44 *255.0,   1.00 * 255.0,  0.56 * 255.0 );
-        this->addColor("_J486",    0.45 *255.0,   1.00 * 255.0,  0.55 * 255.0 );
-        this->addColor("_J490",    0.47 *255.0,   1.00 * 255.0,  0.53 * 255.0 );
-        this->addColor("_J494",    0.48 *255.0,   1.00 * 255.0,  0.52 * 255.0 );
-        this->addColor("_J498",    0.50 *255.0,   1.00 * 255.0,  0.50 * 255.0 );
-        this->addColor("_J501",    0.52 *255.0,   1.00 * 255.0,  0.48 * 255.0 );
-        this->addColor("_J505",    0.53 *255.0,   1.00 * 255.0,  0.47 * 255.0 );
-        this->addColor("_J509",    0.55 *255.0,   1.00 * 255.0,  0.45 * 255.0 );
-        this->addColor("_J513",    0.56 *255.0,   1.00 * 255.0,  0.44 * 255.0 );
-        this->addColor("_J517",    0.58 *255.0,   1.00 * 255.0,  0.42 * 255.0 );
-        this->addColor("_J521",    0.59 *255.0,   1.00 * 255.0,  0.41 * 255.0 );
-        this->addColor("_J525",    0.61 *255.0,   1.00 * 255.0,  0.39 * 255.0 );
-        this->addColor("_J529",    0.63 *255.0,   1.00 * 255.0,  0.38 * 255.0 );
-        this->addColor("_J533",    0.64 *255.0,   1.00 * 255.0,  0.36 * 255.0 );
-        this->addColor("_J537",    0.66 *255.0,   1.00 * 255.0,  0.34 * 255.0 );
-        this->addColor("_J541",    0.67 *255.0,   1.00 * 255.0,  0.33 * 255.0 );
-        this->addColor("_J545",    0.69 *255.0,   1.00 * 255.0,  0.31 * 255.0 );
-        this->addColor("_J549",    0.70 *255.0,   1.00 * 255.0,  0.30 * 255.0 );
-        this->addColor("_J552",    0.72 *255.0,   1.00 * 255.0,  0.28 * 255.0 );
-        this->addColor("_J556",    0.73 *255.0,   1.00 * 255.0,  0.27 * 255.0 );
-        this->addColor("_J560",    0.75 *255.0,   1.00 * 255.0,  0.25 * 255.0 );
-        this->addColor("_J564",    0.77 *255.0,   1.00 * 255.0,  0.23 * 255.0 );
-        this->addColor("_J568",    0.78 *255.0,   1.00 * 255.0,  0.22 * 255.0 );
-        this->addColor("_J572",    0.80 *255.0,   1.00 * 255.0,  0.20 * 255.0 );
-        this->addColor("_J576",    0.81 *255.0,   1.00 * 255.0,  0.19 * 255.0 );
-        this->addColor("_J580",    0.83 *255.0,   1.00 * 255.0,  0.17 * 255.0 );
-        this->addColor("_J584",    0.84 *255.0,   1.00 * 255.0,  0.16 * 255.0 );
-        this->addColor("_J588",    0.86 *255.0,   1.00 * 255.0,  0.14 * 255.0 );
-        this->addColor("_J592",    0.88 *255.0,   1.00 * 255.0,  0.13 * 255.0 );
-        this->addColor("_J596",    0.89 *255.0,   1.00 * 255.0,  0.11 * 255.0 );
-        this->addColor("_J600",    0.91 *255.0,   1.00 * 255.0,  0.09 * 255.0 );
-        this->addColor("_J603",    0.92 *255.0,   1.00 * 255.0,  0.08 * 255.0 );
-        this->addColor("_J607",    0.94 *255.0,   1.00 * 255.0,  0.06 * 255.0 );
-        this->addColor("_J611",    0.95 *255.0,   1.00 * 255.0,  0.05 * 255.0 );
-        this->addColor("_J615",    0.97 *255.0,   1.00 * 255.0,  0.03 * 255.0 );
-        this->addColor("_J619",    0.98 *255.0,   1.00 * 255.0,  0.02 * 255.0 );
-        this->addColor("_J623",    1.00 *255.0,   1.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J627",    1.00 *255.0,   0.98 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J631",    1.00 *255.0,   0.97 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J635",    1.00 *255.0,   0.95 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J639",    1.00 *255.0,   0.94 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J643",    1.00 *255.0,   0.92 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J647",    1.00 *255.0,   0.91 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J650",    1.00 *255.0,   0.89 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J654",    1.00 *255.0,   0.88 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J658",    1.00 *255.0,   0.86 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J662",    1.00 *255.0,   0.84 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J666",    1.00 *255.0,   0.83 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J670",    1.00 *255.0,   0.81 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J674",    1.00 *255.0,   0.80 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J678",    1.00 *255.0,   0.78 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J682",    1.00 *255.0,   0.77 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J686",    1.00 *255.0,   0.75 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J690",    1.00 *255.0,   0.73 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J694",    1.00 *255.0,   0.72 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J698",    1.00 *255.0,   0.70 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J701",    1.00 *255.0,   0.69 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J705",    1.00 *255.0,   0.67 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J709",    1.00 *255.0,   0.66 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J713",    1.00 *255.0,   0.64 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J717",    1.00 *255.0,   0.63 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J721",    1.00 *255.0,   0.61 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J725",    1.00 *255.0,   0.59 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J729",    1.00 *255.0,   0.58 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J733",    1.00 *255.0,   0.56 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J737",    1.00 *255.0,   0.55 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J741",    1.00 *255.0,   0.53 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J745",    1.00 *255.0,   0.52 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J749",    1.00 *255.0,   0.50 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J752",    1.00 *255.0,   0.48 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J756",    1.00 *255.0,   0.47 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J760",    1.00 *255.0,   0.45 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J764",    1.00 *255.0,   0.44 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J768",    1.00 *255.0,   0.42 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J772",    1.00 *255.0,   0.41 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J776",    1.00 *255.0,   0.39 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J780",    1.00 *255.0,   0.38 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J784",    1.00 *255.0,   0.36 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J788",    1.00 *255.0,   0.34 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J792",    1.00 *255.0,   0.33 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J796",    1.00 *255.0,   0.31 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J800",    1.00 *255.0,   0.30 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J803",    1.00 *255.0,   0.28 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J807",    1.00 *255.0,   0.27 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J811",    1.00 *255.0,   0.25 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J815",    1.00 *255.0,   0.23 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J819",    1.00 *255.0,   0.22 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J823",    1.00 *255.0,   0.20 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J827",    1.00 *255.0,   0.19 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J831",    1.00 *255.0,   0.17 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J835",    1.00 *255.0,   0.16 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J839",    1.00 *255.0,   0.14 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J843",    1.00 *255.0,   0.13 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J847",    1.00 *255.0,   0.11 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J850",    1.00 *255.0,   0.09 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J854",    1.00 *255.0,   0.08 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J858",    1.00 *255.0,   0.06 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J862",    1.00 *255.0,   0.05 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J866",    1.00 *255.0,   0.03 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J870",    1.00 *255.0,   0.02 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J874",    1.00 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J878",    0.98 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J882",    0.97 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J886",    0.95 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J890",    0.94 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J894",    0.92 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J898",    0.91 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J901",    0.89 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J905",    0.88 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J909",    0.86 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J913",    0.84 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J917",    0.83 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J921",    0.81 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J925",    0.80 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J929",    0.78 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J933",    0.77 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J937",    0.75 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J941",    0.73 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J945",    0.72 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J949",    0.70 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J952",    0.69 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J956",    0.67 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J960",    0.66 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J964",    0.64 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J968",    0.63 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J972",    0.61 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J976",    0.59 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J980",    0.58 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J984",    0.56 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J988",    0.55 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J992",    0.53 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J996",    0.52 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        this->addColor("_J1000",    0.50 *255.0,   0.00 * 255.0,  0.00 * 255.0 );
-        
-        
         Palette JET256;
         JET256.setName("JET256");
-        JET256.addScalarAndColor( 1.000, "_J1000");
-        JET256.addScalarAndColor( 0.996, "_J996");
-        JET256.addScalarAndColor( 0.992, "_J992");
-        JET256.addScalarAndColor( 0.988, "_J988");
-        JET256.addScalarAndColor( 0.984, "_J984");
-        JET256.addScalarAndColor( 0.980, "_J980");
-        JET256.addScalarAndColor( 0.976, "_J976");
-        JET256.addScalarAndColor( 0.973, "_J972");
-        JET256.addScalarAndColor( 0.969, "_J968");
-        JET256.addScalarAndColor( 0.965, "_J964");
-        JET256.addScalarAndColor( 0.961, "_J960");
-        JET256.addScalarAndColor( 0.957, "_J956");
-        JET256.addScalarAndColor( 0.953, "_J952");
-        JET256.addScalarAndColor( 0.949, "_J949");
-        JET256.addScalarAndColor( 0.945, "_J945");
-        JET256.addScalarAndColor( 0.941, "_J941");
-        JET256.addScalarAndColor( 0.937, "_J937");
-        JET256.addScalarAndColor( 0.933, "_J933");
-        JET256.addScalarAndColor( 0.929, "_J929");
-        JET256.addScalarAndColor( 0.925, "_J925");
-        JET256.addScalarAndColor( 0.922, "_J921");
-        JET256.addScalarAndColor( 0.918, "_J917");
-        JET256.addScalarAndColor( 0.914, "_J913");
-        JET256.addScalarAndColor( 0.910, "_J909");
-        JET256.addScalarAndColor( 0.906, "_J905");
-        JET256.addScalarAndColor( 0.902, "_J901");
-        JET256.addScalarAndColor( 0.898, "_J898");
-        JET256.addScalarAndColor( 0.894, "_J894");
-        JET256.addScalarAndColor( 0.890, "_J890");
-        JET256.addScalarAndColor( 0.886, "_J886");
-        JET256.addScalarAndColor( 0.882, "_J882");
-        JET256.addScalarAndColor( 0.878, "_J878");
-        JET256.addScalarAndColor( 0.875, "_J874");
-        JET256.addScalarAndColor( 0.871, "_J870");
-        JET256.addScalarAndColor( 0.867, "_J866");
-        JET256.addScalarAndColor( 0.863, "_J862");
-        JET256.addScalarAndColor( 0.859, "_J858");
-        JET256.addScalarAndColor( 0.855, "_J854");
-        JET256.addScalarAndColor( 0.851, "_J850");
-        JET256.addScalarAndColor( 0.847, "_J847");
-        JET256.addScalarAndColor( 0.843, "_J843");
-        JET256.addScalarAndColor( 0.839, "_J839");
-        JET256.addScalarAndColor( 0.835, "_J835");
-        JET256.addScalarAndColor( 0.831, "_J831");
-        JET256.addScalarAndColor( 0.827, "_J827");
-        JET256.addScalarAndColor( 0.824, "_J823");
-        JET256.addScalarAndColor( 0.820, "_J819");
-        JET256.addScalarAndColor( 0.816, "_J815");
-        JET256.addScalarAndColor( 0.812, "_J811");
-        JET256.addScalarAndColor( 0.808, "_J807");
-        JET256.addScalarAndColor( 0.804, "_J803");
-        JET256.addScalarAndColor( 0.800, "_J800");
-        JET256.addScalarAndColor( 0.796, "_J796");
-        JET256.addScalarAndColor( 0.792, "_J792");
-        JET256.addScalarAndColor( 0.788, "_J788");
-        JET256.addScalarAndColor( 0.784, "_J784");
-        JET256.addScalarAndColor( 0.780, "_J780");
-        JET256.addScalarAndColor( 0.776, "_J776");
-        JET256.addScalarAndColor( 0.773, "_J772");
-        JET256.addScalarAndColor( 0.769, "_J768");
-        JET256.addScalarAndColor( 0.765, "_J764");
-        JET256.addScalarAndColor( 0.761, "_J760");
-        JET256.addScalarAndColor( 0.757, "_J756");
-        JET256.addScalarAndColor( 0.753, "_J752");
-        JET256.addScalarAndColor( 0.749, "_J749");
-        JET256.addScalarAndColor( 0.745, "_J745");
-        JET256.addScalarAndColor( 0.741, "_J741");
-        JET256.addScalarAndColor( 0.737, "_J737");
-        JET256.addScalarAndColor( 0.733, "_J733");
-        JET256.addScalarAndColor( 0.729, "_J729");
-        JET256.addScalarAndColor( 0.725, "_J725");
-        JET256.addScalarAndColor( 0.722, "_J721");
-        JET256.addScalarAndColor( 0.718, "_J717");
-        JET256.addScalarAndColor( 0.714, "_J713");
-        JET256.addScalarAndColor( 0.710, "_J709");
-        JET256.addScalarAndColor( 0.706, "_J705");
-        JET256.addScalarAndColor( 0.702, "_J701");
-        JET256.addScalarAndColor( 0.698, "_J698");
-        JET256.addScalarAndColor( 0.694, "_J694");
-        JET256.addScalarAndColor( 0.690, "_J690");
-        JET256.addScalarAndColor( 0.686, "_J686");
-        JET256.addScalarAndColor( 0.682, "_J682");
-        JET256.addScalarAndColor( 0.678, "_J678");
-        JET256.addScalarAndColor( 0.675, "_J674");
-        JET256.addScalarAndColor( 0.671, "_J670");
-        JET256.addScalarAndColor( 0.667, "_J666");
-        JET256.addScalarAndColor( 0.663, "_J662");
-        JET256.addScalarAndColor( 0.659, "_J658");
-        JET256.addScalarAndColor( 0.655, "_J654");
-        JET256.addScalarAndColor( 0.651, "_J650");
-        JET256.addScalarAndColor( 0.647, "_J647");
-        JET256.addScalarAndColor( 0.643, "_J643");
-        JET256.addScalarAndColor( 0.639, "_J639");
-        JET256.addScalarAndColor( 0.635, "_J635");
-        JET256.addScalarAndColor( 0.631, "_J631");
-        JET256.addScalarAndColor( 0.627, "_J627");
-        JET256.addScalarAndColor( 0.624, "_J623");
-        JET256.addScalarAndColor( 0.620, "_J619");
-        JET256.addScalarAndColor( 0.616, "_J615");
-        JET256.addScalarAndColor( 0.612, "_J611");
-        JET256.addScalarAndColor( 0.608, "_J607");
-        JET256.addScalarAndColor( 0.604, "_J603");
-        JET256.addScalarAndColor( 0.600, "_J600");
-        JET256.addScalarAndColor( 0.596, "_J596");
-        JET256.addScalarAndColor( 0.592, "_J592");
-        JET256.addScalarAndColor( 0.588, "_J588");
-        JET256.addScalarAndColor( 0.584, "_J584");
-        JET256.addScalarAndColor( 0.580, "_J580");
-        JET256.addScalarAndColor( 0.576, "_J576");
-        JET256.addScalarAndColor( 0.573, "_J572");
-        JET256.addScalarAndColor( 0.569, "_J568");
-        JET256.addScalarAndColor( 0.565, "_J564");
-        JET256.addScalarAndColor( 0.561, "_J560");
-        JET256.addScalarAndColor( 0.557, "_J556");
-        JET256.addScalarAndColor( 0.553, "_J552");
-        JET256.addScalarAndColor( 0.549, "_J549");
-        JET256.addScalarAndColor( 0.545, "_J545");
-        JET256.addScalarAndColor( 0.541, "_J541");
-        JET256.addScalarAndColor( 0.537, "_J537");
-        JET256.addScalarAndColor( 0.533, "_J533");
-        JET256.addScalarAndColor( 0.529, "_J529");
-        JET256.addScalarAndColor( 0.525, "_J525");
-        JET256.addScalarAndColor( 0.522, "_J521");
-        JET256.addScalarAndColor( 0.518, "_J517");
-        JET256.addScalarAndColor( 0.514, "_J513");
-        JET256.addScalarAndColor( 0.510, "_J509");
-        JET256.addScalarAndColor( 0.506, "_J505");
-        JET256.addScalarAndColor( 0.502, "_J501");
-        JET256.addScalarAndColor( 0.498, "_J498");
-        JET256.addScalarAndColor( 0.494, "_J494");
-        JET256.addScalarAndColor( 0.490, "_J490");
-        JET256.addScalarAndColor( 0.486, "_J486");
-        JET256.addScalarAndColor( 0.482, "_J482");
-        JET256.addScalarAndColor( 0.478, "_J478");
-        JET256.addScalarAndColor( 0.475, "_J474");
-        JET256.addScalarAndColor( 0.471, "_J470");
-        JET256.addScalarAndColor( 0.467, "_J466");
-        JET256.addScalarAndColor( 0.463, "_J462");
-        JET256.addScalarAndColor( 0.459, "_J458");
-        JET256.addScalarAndColor( 0.455, "_J454");
-        JET256.addScalarAndColor( 0.451, "_J450");
-        JET256.addScalarAndColor( 0.447, "_J447");
-        JET256.addScalarAndColor( 0.443, "_J443");
-        JET256.addScalarAndColor( 0.439, "_J439");
-        JET256.addScalarAndColor( 0.435, "_J435");
-        JET256.addScalarAndColor( 0.431, "_J431");
-        JET256.addScalarAndColor( 0.427, "_J427");
-        JET256.addScalarAndColor( 0.424, "_J423");
-        JET256.addScalarAndColor( 0.420, "_J419");
-        JET256.addScalarAndColor( 0.416, "_J415");
-        JET256.addScalarAndColor( 0.412, "_J411");
-        JET256.addScalarAndColor( 0.408, "_J407");
-        JET256.addScalarAndColor( 0.404, "_J403");
-        JET256.addScalarAndColor( 0.400, "_J400");
-        JET256.addScalarAndColor( 0.396, "_J396");
-        JET256.addScalarAndColor( 0.392, "_J392");
-        JET256.addScalarAndColor( 0.388, "_J388");
-        JET256.addScalarAndColor( 0.384, "_J384");
-        JET256.addScalarAndColor( 0.380, "_J380");
-        JET256.addScalarAndColor( 0.376, "_J376");
-        JET256.addScalarAndColor( 0.373, "_J372");
-        JET256.addScalarAndColor( 0.369, "_J368");
-        JET256.addScalarAndColor( 0.365, "_J364");
-        JET256.addScalarAndColor( 0.361, "_J360");
-        JET256.addScalarAndColor( 0.357, "_J356");
-        JET256.addScalarAndColor( 0.353, "_J352");
-        JET256.addScalarAndColor( 0.349, "_J349");
-        JET256.addScalarAndColor( 0.345, "_J345");
-        JET256.addScalarAndColor( 0.341, "_J341");
-        JET256.addScalarAndColor( 0.337, "_J337");
-        JET256.addScalarAndColor( 0.333, "_J333");
-        JET256.addScalarAndColor( 0.329, "_J329");
-        JET256.addScalarAndColor( 0.325, "_J325");
-        JET256.addScalarAndColor( 0.322, "_J321");
-        JET256.addScalarAndColor( 0.318, "_J317");
-        JET256.addScalarAndColor( 0.314, "_J313");
-        JET256.addScalarAndColor( 0.310, "_J309");
-        JET256.addScalarAndColor( 0.306, "_J305");
-        JET256.addScalarAndColor( 0.302, "_J301");
-        JET256.addScalarAndColor( 0.298, "_J298");
-        JET256.addScalarAndColor( 0.294, "_J294");
-        JET256.addScalarAndColor( 0.290, "_J290");
-        JET256.addScalarAndColor( 0.286, "_J286");
-        JET256.addScalarAndColor( 0.282, "_J282");
-        JET256.addScalarAndColor( 0.278, "_J278");
-        JET256.addScalarAndColor( 0.275, "_J274");
-        JET256.addScalarAndColor( 0.271, "_J270");
-        JET256.addScalarAndColor( 0.267, "_J266");
-        JET256.addScalarAndColor( 0.263, "_J262");
-        JET256.addScalarAndColor( 0.259, "_J258");
-        JET256.addScalarAndColor( 0.255, "_J254");
-        JET256.addScalarAndColor( 0.251, "_J250");
-        JET256.addScalarAndColor( 0.247, "_J247");
-        JET256.addScalarAndColor( 0.243, "_J243");
-        JET256.addScalarAndColor( 0.239, "_J239");
-        JET256.addScalarAndColor( 0.235, "_J235");
-        JET256.addScalarAndColor( 0.231, "_J231");
-        JET256.addScalarAndColor( 0.227, "_J227");
-        JET256.addScalarAndColor( 0.224, "_J223");
-        JET256.addScalarAndColor( 0.220, "_J219");
-        JET256.addScalarAndColor( 0.216, "_J215");
-        JET256.addScalarAndColor( 0.212, "_J211");
-        JET256.addScalarAndColor( 0.208, "_J207");
-        JET256.addScalarAndColor( 0.204, "_J203");
-        JET256.addScalarAndColor( 0.200, "_J200");
-        JET256.addScalarAndColor( 0.196, "_J196");
-        JET256.addScalarAndColor( 0.192, "_J192");
-        JET256.addScalarAndColor( 0.188, "_J188");
-        JET256.addScalarAndColor( 0.184, "_J184");
-        JET256.addScalarAndColor( 0.180, "_J180");
-        JET256.addScalarAndColor( 0.176, "_J176");
-        JET256.addScalarAndColor( 0.173, "_J172");
-        JET256.addScalarAndColor( 0.169, "_J168");
-        JET256.addScalarAndColor( 0.165, "_J164");
-        JET256.addScalarAndColor( 0.161, "_J160");
-        JET256.addScalarAndColor( 0.157, "_J156");
-        JET256.addScalarAndColor( 0.153, "_J152");
-        JET256.addScalarAndColor( 0.149, "_J149");
-        JET256.addScalarAndColor( 0.145, "_J145");
-        JET256.addScalarAndColor( 0.141, "_J141");
-        JET256.addScalarAndColor( 0.137, "_J137");
-        JET256.addScalarAndColor( 0.133, "_J133");
-        JET256.addScalarAndColor( 0.129, "_J129");
-        JET256.addScalarAndColor( 0.125, "_J125");
-        JET256.addScalarAndColor( 0.122, "_J121");
-        JET256.addScalarAndColor( 0.118, "_J117");
-        JET256.addScalarAndColor( 0.114, "_J113");
-        JET256.addScalarAndColor( 0.110, "_J109");
-        JET256.addScalarAndColor( 0.106, "_J105");
-        JET256.addScalarAndColor( 0.102, "_J101");
-        JET256.addScalarAndColor( 0.098, "_J98");
-        JET256.addScalarAndColor( 0.094, "_J94");
-        JET256.addScalarAndColor( 0.090, "_J90");
-        JET256.addScalarAndColor( 0.086, "_J86");
-        JET256.addScalarAndColor( 0.082, "_J82");
-        JET256.addScalarAndColor( 0.078, "_J78");
-        JET256.addScalarAndColor( 0.075, "_J74");
-        JET256.addScalarAndColor( 0.071, "_J70");
-        JET256.addScalarAndColor( 0.067, "_J66");
-        JET256.addScalarAndColor( 0.063, "_J62");
-        JET256.addScalarAndColor( 0.059, "_J58");
-        JET256.addScalarAndColor( 0.055, "_J54");
-        JET256.addScalarAndColor( 0.051, "_J50");
-        JET256.addScalarAndColor( 0.047, "_J47");
-        JET256.addScalarAndColor( 0.043, "_J43");
-        JET256.addScalarAndColor( 0.039, "_J39");
-        JET256.addScalarAndColor( 0.035, "_J35");
-        JET256.addScalarAndColor( 0.031, "_J31");
-        JET256.addScalarAndColor( 0.027, "_J27");
-        JET256.addScalarAndColor( 0.024, "_J23");
-        JET256.addScalarAndColor( 0.020, "_J19");
-        JET256.addScalarAndColor( 0.016, "_J15");
-        JET256.addScalarAndColor( 0.012, "_J11");
-        JET256.addScalarAndColor( 0.008, "_J7");
-        JET256.addScalarAndColor( 0.004, "_J3");
-        JET256.addScalarAndColor( 0.000, "_J0");
+
+        //summary of original slow "lookup table" (if closer to previous implementation is desired):
+        //start: 0 -> (0 0 132)
+        //change: 0.121 -> (0 0 255)
+        //change: 0.372 -> (0 255 255)
+        //change: 0.623 -> (255 255 0)
+        //change: 0.874 -> (255 0 0)
+        //end: 1 -> (127 0 0)
+        
+        //alternative round-valued version via https://gist.github.com/bagrow/805122
+        /*(0 0.0 0.0 0.5, \
+           1 0.0 0.0 1.0, \
+           2 0.0 0.5 1.0, \ <- redundant
+           3 0.0 1.0 1.0, \
+           4 0.5 1.0 0.5, \ <- redundant
+           5 1.0 1.0 0.0, \
+           6 1.0 0.5 0.0, \ <- redundant
+           7 1.0 0.0 0.0, \
+           8 0.5 0.0 0.0 )*/
+        
+        this->addColor("_J0", 0, 0, 127);//rounding to probably-intended colors
+        this->addColor("_J1", 0, 0, 255);
+        this->addColor("_J3", 0, 255, 255);//skipping redundant points
+        this->addColor("_J5", 255, 255, 0);
+        this->addColor("_J7", 255, 0, 0);
+        this->addColor("_J8", 127, 0, 0);
+        
+        JET256.addScalarAndColor(1.0f, "_J8");
+        JET256.addScalarAndColor(0.875f, "_J7");//also rounding to probably-intended control points
+        JET256.addScalarAndColor(0.625f, "_J5");
+        JET256.addScalarAndColor(0.375f, "_J3");
+        JET256.addScalarAndColor(0.125f, "_J1");
+        JET256.addScalarAndColor(0.0f, "_J0");
+        
         addPalette(JET256);
     }
     if (modifiedStatus == false) {

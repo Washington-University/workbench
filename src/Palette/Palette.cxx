@@ -156,6 +156,7 @@ void
 Palette::addScalarAndColor(const float scalar,
                            const AString& colorName)
 {
+    CaretAssert(paletteScalars.size() == 0 || scalar <= paletteScalars.back()->getScalar());//die in debug if a palette is constructed incorrectly
     this->paletteScalars.push_back(new PaletteScalarAndColor(scalar, colorName));
     this->setModified();
 }
@@ -325,6 +326,22 @@ Palette::getPaletteColor(
      * binary search algorithm may be slower than the linear
      * algorithm.  It is moderately faster for large palettes
      * such as those from FSL with 256 colors.
+     * 
+     * TSC: The FSL palettes now just interpolate between two colors,
+     * and don't have 256 entries.  Could reorganize the palette
+     * storage to be a vector of structs, rather than of pointers,
+     * to remove cost of indirection.
+     * Also notable is that typical volume files color faster with
+     * methods that color near-zero faster than other values.
+     * I compared performance on the simplified palettes with a simplified
+     * binary search (that doesn't test against the next value after
+     * each guess) and with an interpolation search, with no benefit.
+     * Another possibility would be to prebuild a lookup from rounded
+     * normalized value to min and max possible reference color to
+     * search between (so, values between 0 and 0.01 are always between
+     * the middle and previous point, same for 0.01 to 0.02, etc).  This
+     * could take some substantial reorganization of palette code.
+     * For now, only activate binary search when number of points is large.
      *
      * The linear search could be improved by starting at the bottom
      * when the data value is negative.
@@ -340,7 +357,8 @@ Palette::getPaletteColor(
      * 8     3
      * 9     3.2
      */
-    const bool doBinarySearchFlag = true;
+    int numScalarColors = this->getNumberOfScalarsAndColors();
+    const bool doBinarySearchFlag = numScalarColors > 50;
     
     rgbaOut[0] = 0.0f;
     rgbaOut[1] = 0.0f;
@@ -353,7 +371,6 @@ Palette::getPaletteColor(
     if (scalar < -1.0) scalar = -1.0;
     if (scalar >  1.0) scalar = 1.0;
     
-    int numScalarColors = this->getNumberOfScalarsAndColors();
     if (numScalarColors > 0) {
         
         int32_t highDataIndex = 0;

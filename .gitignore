@@ -1,10 +1,7 @@
-OLD.Makefile
 *.kdev4
 CMakeLists.txt.user*
-vs*
 build
 release
 debug
-qt*
 *.kate-swp
 .DS_Store
