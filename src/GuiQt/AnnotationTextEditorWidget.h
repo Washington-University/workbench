@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
+
 #include <vector>
 #include <QLineEdit>
 #include <QWidget>
