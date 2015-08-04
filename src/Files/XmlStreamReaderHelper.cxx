@@ -90,7 +90,7 @@ XmlStreamReaderHelper::~XmlStreamReaderHelper()
  */
 QString
 XmlStreamReaderHelper::getOptionalAttributeStringValue(const QXmlStreamAttributes& attributes,
-                                        const QString& elementName,
+                                        const QString& /*elementName*/,
                                         const QString& attributeName,
                                         const QString& defaultValue)
 {

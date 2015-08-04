@@ -202,12 +202,13 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
         EventAnnotationCreateNewType* annotationEvent = dynamic_cast<EventAnnotationCreateNewType*>(event);
         CaretAssert(annotationEvent);
         updateAnnotationWidgetsFlag = true;
+        annotationEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* updateEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(updateEvent);
         updateAnnotationWidgetsFlag = true;
-        
+        updateEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE) {
         updateAnnotationWidgetsFlag = true;

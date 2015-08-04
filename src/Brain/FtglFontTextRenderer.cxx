@@ -1304,7 +1304,7 @@ m_maxY(0.0)
  *     Text cell that is added.
  */
 void
-FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::addTextCell(const TextCell& textCell)
+FtglFontTextRenderer::TextDrawInfo::addTextCell(const TextCell& textCell)
 {
     m_textCells.push_back(textCell);
     
@@ -1326,7 +1326,7 @@ FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::addTextCell(const TextCell& te
  *     Pointer to cell at row/column or NULL if not found.
  */
 FtglFontTextRenderer::TextCell*
-FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::getCellAtRowColumn(const int32_t row,
+FtglFontTextRenderer::TextDrawInfo::getCellAtRowColumn(const int32_t row,
                              const int32_t column) 
 {
     for (std::vector<TextCell>::iterator iter = m_textCells.begin();
@@ -1352,7 +1352,7 @@ FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::getCellAtRowColumn(const int32
  *     Pointer to cell at row/column or NULL if not found.
  */
 const FtglFontTextRenderer::TextCell*
-FtglFontTextRenderer::TextDrawInfo::TextDrawInfo::getCellAtRowColumn(const int32_t row,
+FtglFontTextRenderer::TextDrawInfo::getCellAtRowColumn(const int32_t row,
                                                                      const int32_t column) const
 {
     for (std::vector<TextCell>::const_iterator iter = m_textCells.begin();

@@ -151,8 +151,9 @@ TabMarginsDialog::updateDialog()
     
     const std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
     
+    BrowserTabContent* nullValue = NULL;
     std::vector<BrowserTabContent*> allTabsContent(100,
-                                               NULL);
+                                                   nullValue);  // error on linux32    NULL);
     const int32_t numValidTabs = allTabsEvent.getNumberOfBrowserTabs();
     for (int32_t iValid = 0; iValid < numValidTabs; iValid++) {
         BrowserTabContent* tabContent = allTabsEvent.getBrowserTab(iValid);

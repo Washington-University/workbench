@@ -523,7 +523,7 @@ Annotation::getForegroundColorRGBA(float rgbaOut[4]) const
 void
 Annotation::getForegroundColorRGBA(uint8_t rgbaOut[4]) const
 {
-    float rgbaFloat[4];
+    float rgbaFloat[4] = { 0.0, 0.0, 0.0, 0.0 };
     getForegroundColorRGBA(rgbaFloat);
     
     rgbaOut[0] = static_cast<int8_t>(rgbaFloat[0] * 255.0);
@@ -609,7 +609,7 @@ Annotation::getBackgroundColorRGBA(float rgbaOut[4]) const
 void
 Annotation::getBackgroundColorRGBA(uint8_t rgbaOut[4]) const
 {
-    float rgbaFloat[4];
+    float rgbaFloat[4] = { 0.0, 0.0, 0.0, 0.0 };
     getBackgroundColorRGBA(rgbaFloat);
     
     rgbaOut[0] = static_cast<int8_t>(rgbaFloat[0] * 255.0);

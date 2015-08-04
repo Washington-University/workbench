@@ -688,8 +688,6 @@ AnnotationRedoUndoCommand::setModeLineArrowStart(const bool newStatus,
         CaretAssert(annotation);
         
         if (annotation->getType() == AnnotationTypeEnum::LINE) {
-            AnnotationLine* line = dynamic_cast<AnnotationLine*>(annotation);
-            CaretAssert(line);
             AnnotationLine* redoAnnotation = dynamic_cast<AnnotationLine*>(annotation->clone());
             redoAnnotation->setDisplayStartArrow(newStatus);
             Annotation* undoAnnotation = annotation->clone();
@@ -723,8 +721,6 @@ AnnotationRedoUndoCommand::setModeLineArrowEnd(const bool newStatus,
         CaretAssert(annotation);
         
         if (annotation->getType() == AnnotationTypeEnum::LINE) {
-            AnnotationLine* line = dynamic_cast<AnnotationLine*>(annotation);
-            CaretAssert(line);
             AnnotationLine* redoAnnotation = dynamic_cast<AnnotationLine*>(annotation->clone());
             redoAnnotation->setDisplayEndArrow(newStatus);
             Annotation* undoAnnotation = annotation->clone();
