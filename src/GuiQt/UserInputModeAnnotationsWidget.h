@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
 
 #include <QWidget>
 
