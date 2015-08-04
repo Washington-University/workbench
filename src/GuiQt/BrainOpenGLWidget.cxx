@@ -61,7 +61,7 @@
 #include "Matrix4x4.h"
 #include "Model.h"
 #include "MouseEvent.h"
-#include "QtOpenGLTextRenderer.h"
+#include "QGLWidgetTextRenderer.h"
 #include "SelectionManager.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionItemSurfaceNode.h"
@@ -109,7 +109,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
      * Create a Qt text renderer
      */
     if (this->textRenderer == NULL) {
-        this->textRenderer = new QtOpenGLTextRenderer(this);
+        this->textRenderer = new QGLWidgetTextRenderer(this);
         if ( ! this->textRenderer->isValid()) {
             CaretLogWarning("Failed to create Qt text renderer.");
             delete this->textRenderer;

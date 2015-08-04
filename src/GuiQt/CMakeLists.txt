@@ -305,7 +305,7 @@ PlotPanner.h
 PreferencesDialog.h
 ProgressReportingDialog.h
 ProgressReportingWithSlots.h
-QtOpenGLTextRenderer.h
+QGLWidgetTextRenderer.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
@@ -486,7 +486,7 @@ PlotPanner.cxx
 PreferencesDialog.cxx
 ProgressReportingDialog.cxx
 ProgressReportingWithSlots.cxx
-QtOpenGLTextRenderer.cxx
+QGLWidgetTextRenderer.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
