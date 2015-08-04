@@ -223,7 +223,7 @@ TabMarginsDialog::receiveEvent(Event* event)
 
         updateDialog();
         
-        event->setEventProcessed();
+        eventUpdate->setEventProcessed();
     }
 }
 
