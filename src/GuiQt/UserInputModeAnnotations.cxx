@@ -789,10 +789,9 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
 {
     if (m_newAnnotationCreatingWithMouseDrag != NULL) {
         
-        CaretPointer<AnnotationCreateDialog> annotationDialog(
-            AnnotationCreateDialog::AnnotationCreateDialog::newAnnotationTypeWithBounds(mouseEvent,
-                                                                                        m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getType(),
-                                                                                        mouseEvent.getOpenGLWidget()));
+        CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationTypeWithBounds(mouseEvent,
+                                                                                                                  m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getType(),
+                                                                                                                  mouseEvent.getOpenGLWidget()));
         if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
             
         }
