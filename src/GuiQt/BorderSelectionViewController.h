@@ -37,6 +37,7 @@ class QDoubleSpinBox;
 
 namespace caret {
 
+    class CaretColorEnumComboBox;
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
     class EnumComboBoxTemplate;
@@ -96,7 +97,7 @@ namespace caret {
         
         EnumComboBoxTemplate* m_coloringTypeComboBox;
         
-        EnumComboBoxTemplate* m_standardColorComboBox;
+        CaretColorEnumComboBox* m_standardColorComboBox;
         
         QDoubleSpinBox* m_lineWidthSpinBox;
         

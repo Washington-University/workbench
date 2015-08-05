@@ -26,7 +26,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
-//#include <QTabWidget>
 #include <QToolButton>
 
 #define __BORDER_SELECTION_VIEW_CONTROLLER_DECLARE__
@@ -38,6 +37,7 @@
 #include "BrainOpenGL.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretColorEnumComboBox.h"
 #include "GroupAndNameHierarchyViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesBorders.h"
@@ -164,13 +164,11 @@ BorderSelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     
     QLabel* standardColorLabel = new QLabel("Standard Color");
-    m_standardColorComboBox = new EnumComboBoxTemplate(this);
-    m_standardColorComboBox->setup<CaretColorEnum,
-    CaretColorEnum::Enum>();
+    m_standardColorComboBox = new CaretColorEnumComboBox(this);
     m_standardColorComboBox->getWidget()->setToolTip("Select the standard color");
-    QObject::connect(m_standardColorComboBox, SIGNAL(itemActivated()),
+    QObject::connect(m_standardColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(processAttributesChanges()));
-    
+
     float minLineWidth = 0;
     float maxLineWidth = 1000;
     //BrainOpenGL::getMinMaxLineWidth(minLineWidth,
@@ -271,7 +269,7 @@ BorderSelectionViewController::processAttributesChanges()
     const int drawTypeInteger = m_drawTypeComboBox->itemData(selectedDrawTypeIndex).toInt();
     const BorderDrawingTypeEnum::Enum selectedDrawingType = static_cast<BorderDrawingTypeEnum::Enum>(drawTypeInteger);
     const FeatureColoringTypeEnum::Enum selectedColoringType = m_coloringTypeComboBox->getSelectedItem<FeatureColoringTypeEnum, FeatureColoringTypeEnum::Enum>();
-    const CaretColorEnum::Enum standardColorType = m_standardColorComboBox->getSelectedItem<CaretColorEnum, CaretColorEnum::Enum>();
+    const CaretColorEnum::Enum standardColorType = m_standardColorComboBox->getSelectedColor();
     
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
@@ -405,8 +403,8 @@ BorderSelectionViewController::updateBorderViewController()
     
     m_coloringTypeComboBox->setSelectedItem<FeatureColoringTypeEnum, FeatureColoringTypeEnum::Enum>(dpb->getColoringType(displayGroup,
                                                                                                                          browserTabIndex));
-    m_standardColorComboBox->setSelectedItem<CaretColorEnum, CaretColorEnum::Enum>(dpb->getStandardColorType(displayGroup,
-                                                                                                       browserTabIndex));
+    m_standardColorComboBox->setSelectedColor(dpb->getStandardColorType(displayGroup,
+                                                                        browserTabIndex));
     m_lineWidthSpinBox->blockSignals(true);
     m_lineWidthSpinBox->setValue(dpb->getLineWidth(displayGroup,
                                                    browserTabIndex));
