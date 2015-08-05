@@ -93,8 +93,10 @@ public:
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
-    static void getColorEnums(std::vector<Enum>& allColorEnums);
+    static void getAllEnums(std::vector<Enum>& allColorEnums);
 
+    static void getColorEnums(std::vector<Enum>& allColorEnums);
+    
     static void getColorAndOptionalEnums(std::vector<Enum>& allEnums,
                                          const int64_t colorOptions);
     

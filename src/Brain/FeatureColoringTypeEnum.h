@@ -38,7 +38,9 @@ public:
         /** Use class for coloring */
         FEATURE_COLORING_TYPE_CLASS,
         /** Use name for coloring */
-        FEATURE_COLORING_TYPE_NAME
+        FEATURE_COLORING_TYPE_NAME,
+        /** Use color name for standard color */
+        FEATURE_COLORING_TYPE_STANDARD_COLOR
     };
 
     ~FeatureColoringTypeEnum();

@@ -3091,6 +3091,9 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
                     }
                     focus->getClassRgba(rgba);
                     break;
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_STANDARD_COLOR:
+                    CaretAssertMessage(0, "Coloring by syandard color not supported for foci.");
+                    break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());

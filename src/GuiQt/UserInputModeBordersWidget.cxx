@@ -669,7 +669,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
 //                                                                                  bordersFoundFromFile);
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_OPTIMIZE:
-                        CaretAssertToDoFatal();
+                        CaretAssert(0);
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_REPLACE:
                         borderFile->findAllBordersWithPointsNearBothSegmentEndPoints(displayGroup,

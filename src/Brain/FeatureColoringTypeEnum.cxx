@@ -77,10 +77,12 @@ FeatureColoringTypeEnum::initialize()
     enumData.push_back(FeatureColoringTypeEnum(FEATURE_COLORING_TYPE_CLASS,
                                                "FEATURE_COLORING_TYPE_CLASS",
                                                "Class"));
-    
     enumData.push_back(FeatureColoringTypeEnum(FEATURE_COLORING_TYPE_NAME,
                                                "FEATURE_COLORING_TYPE_NAME",
                                                "Name"));
+    enumData.push_back(FeatureColoringTypeEnum(FEATURE_COLORING_TYPE_STANDARD_COLOR,
+                                               "FEATURE_COLORING_TYPE_STANDARD_COLOR",
+                                               "Standard Color"));
 }
 
 /**

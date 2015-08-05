@@ -23,6 +23,7 @@
 
 #include "BrainConstants.h"
 #include "BorderDrawingTypeEnum.h"
+#include "CaretColorEnum.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
 #include "FeatureColoringTypeEnum.h"
@@ -90,6 +91,13 @@ namespace caret {
                             const int32_t tabIndex,
                             const FeatureColoringTypeEnum::Enum drawingType);
         
+        CaretColorEnum::Enum getStandardColorType(const DisplayGroupEnum::Enum displayGroup,
+                                                      const int32_t tabIndex) const;
+        
+        void setStandardColorType(const DisplayGroupEnum::Enum displayGroup,
+                             const int32_t tabIndex,
+                             const CaretColorEnum::Enum caretColor);
+        
         bool isUnstretchedLinesEnabled(const DisplayGroupEnum::Enum displayGroup,
                                        const int32_t tabIndex) const;
         
@@ -139,6 +147,10 @@ namespace caret {
         FeatureColoringTypeEnum::Enum m_coloringTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         FeatureColoringTypeEnum::Enum m_coloringTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        CaretColorEnum::Enum m_standardColorTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        CaretColorEnum::Enum m_standardColorTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         bool m_unstretchedLinesStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         

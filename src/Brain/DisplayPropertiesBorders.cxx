@@ -55,6 +55,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
     const float defaultLineSize  = 1.0;
     const BorderDrawingTypeEnum::Enum defaultDrawingType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
     const FeatureColoringTypeEnum::Enum defaultColoringType = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
+    const CaretColorEnum::Enum defaultColor = CaretColorEnum::BLACK;
     const float defaultUnstretchedLinesLength = 5.0;
     const bool defaultUnstretchedLinesSelection = true;
     
@@ -66,6 +67,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
         m_pointSizeInTab[i] = defaultPointSize;
         m_coloringTypeInTab[i] = defaultColoringType;
         m_drawingTypeInTab[i] = defaultDrawingType;
+        m_standardColorTypeInTab[i] = defaultColor;
         m_unstretchedLinesLengthInTab[i] = defaultUnstretchedLinesLength;
         m_unstretchedLinesStatusInTab[i] = defaultUnstretchedLinesSelection;
     }
@@ -77,6 +79,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
         m_pointSizeInDisplayGroup[i] = defaultPointSize;
         m_coloringTypeInDisplayGroup[i] = defaultColoringType;
         m_drawingTypeInDisplayGroup[i] = defaultDrawingType;
+        m_standardColorTypeInDisplayGroup[i] = defaultColor;
         m_unstretchedLinesLengthInDisplayGroup[i] = defaultUnstretchedLinesLength;
         m_unstretchedLinesStatusInDisplayGroup[i] = defaultUnstretchedLinesSelection;
     }
@@ -144,6 +147,15 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
                                m_unstretchedLinesStatusInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                defaultUnstretchedLinesSelection);
+    
+    
+    m_sceneAssistant->addArray<CaretColorEnum, CaretColorEnum::Enum>("m_standardColorTypeInDisplayGroup",
+                                                                     m_standardColorTypeInDisplayGroup,
+                                                                     DisplayGroupEnum::NUMBER_OF_GROUPS,
+                                                                     defaultColor);
+    
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<CaretColorEnum, CaretColorEnum::Enum>("m_standardColorTypeInTab",
+                                                                                             m_standardColorTypeInTab);
 }
 
 /**
@@ -197,6 +209,7 @@ DisplayPropertiesBorders::copyDisplayProperties(const int32_t sourceTabIndex,
     this->m_lineWidthInTab[targetTabIndex]   = this->m_lineWidthInTab[sourceTabIndex];
     this->m_pointSizeInTab[targetTabIndex]   = this->m_pointSizeInTab[sourceTabIndex];
     this->m_unstretchedLinesLengthInTab[targetTabIndex] = this->m_unstretchedLinesLengthInTab[sourceTabIndex];
+    this->m_standardColorTypeInDisplayGroup[targetTabIndex] = this->m_standardColorTypeInDisplayGroup[sourceTabIndex];
 }
 
 /**
@@ -637,38 +650,90 @@ DisplayPropertiesBorders::setColoringType(const DisplayGroupEnum::Enum displayGr
     }
 }
 
-template <class ET>
-const std::vector<AString> enumArrayToStrings(const ET enumArray[],
-                                              const std::vector<int32_t>& tabIndices)
-{
-    std::vector<AString> stringVector;
 
-    const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
-    for (int32_t i = 0; i < numTabs; i++) {
-        const AString stringValue = ET::nameToString(enumArray[i],
-                                                    false);
-        stringVector.push_back(stringValue);
+
+
+
+
+/**
+ * @return The standard caret coloring type.
+ * @param displayGroup
+ *     Display group.
+ */
+CaretColorEnum::Enum
+DisplayPropertiesBorders::getStandardColorType(const DisplayGroupEnum::Enum displayGroup,
+                                               const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_standardColorTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_standardColorTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_standardColorTypeInTab[tabIndex];
     }
-    return stringVector;
+    return m_standardColorTypeInDisplayGroup[displayGroup];
 }
 
-template <class T, class ET>
-class EnumConvert {
-public:
-    static std::vector<AString> enumArrayToStringsForTabIndices(const ET enumArray[],
-                                                                const std::vector<int32_t>& tabIndices)
-    {
-        std::vector<AString> stringVector;
-        
-        const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
-        for (int32_t i = 0; i < numTabs; i++) {
-            const int32_t tabIndex = tabIndices[i];
-            const AString stringValue = T::toName(enumArray[tabIndex]);
-            stringVector.push_back(stringValue);
-        }
-        return stringVector;
+/**
+ * Set the caret coloring type.
+ * @param displayGroup
+ *     Display group.
+ * @param color
+ *    New color for coloring type.
+ */
+void
+DisplayPropertiesBorders::setStandardColorType(const DisplayGroupEnum::Enum displayGroup,
+                                               const int32_t tabIndex,
+                                               const CaretColorEnum::Enum color)
+{
+    CaretAssertArrayIndex(m_standardColorTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_standardColorTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_standardColorTypeInTab[tabIndex] = color;
     }
-};
+    else {
+        m_standardColorTypeInDisplayGroup[displayGroup] = color;
+    }
+}
+
+//template <class ET>
+//const std::vector<AString> enumArrayToStrings(const ET enumArray[],
+//                                              const std::vector<int32_t>& tabIndices)
+//{
+//    std::vector<AString> stringVector;
+//
+//    const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
+//    for (int32_t i = 0; i < numTabs; i++) {
+//        const AString stringValue = ET::nameToString(enumArray[i],
+//                                                    false);
+//        stringVector.push_back(stringValue);
+//    }
+//    return stringVector;
+//}
+//
+//template <class T, class ET>
+//class EnumConvert {
+//public:
+//    static std::vector<AString> enumArrayToStringsForTabIndices(const ET enumArray[],
+//                                                                const std::vector<int32_t>& tabIndices)
+//    {
+//        std::vector<AString> stringVector;
+//        
+//        const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
+//        for (int32_t i = 0; i < numTabs; i++) {
+//            const int32_t tabIndex = tabIndices[i];
+//            const AString stringValue = T::toName(enumArray[tabIndex]);
+//            stringVector.push_back(stringValue);
+//        }
+//        return stringVector;
+//    }
+//};
 
 /**
  * Create a scene for an instance of a class.

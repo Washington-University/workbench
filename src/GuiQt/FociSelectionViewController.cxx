@@ -149,10 +149,14 @@ FociSelectionViewController::createAttributesWidget()
     QObject::connect(m_pasteOntoSurfaceCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
     
+    std::vector<FeatureColoringTypeEnum::Enum> featureColorTypes;
+    featureColorTypes.push_back(FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS);
+    featureColorTypes.push_back(FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME);
+    
     QLabel* coloringLabel = new QLabel("Coloring");
     m_coloringTypeComboBox = new EnumComboBoxTemplate(this);
-    m_coloringTypeComboBox->setup<FeatureColoringTypeEnum,
-                                  FeatureColoringTypeEnum::Enum>();
+    m_coloringTypeComboBox->setupWithItems<FeatureColoringTypeEnum,
+                                           FeatureColoringTypeEnum::Enum>(featureColorTypes);
     m_coloringTypeComboBox->getWidget()->setToolTip("Select the coloring assignment for foci");
     QObject::connect(m_coloringTypeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(processAttributesChanges()));

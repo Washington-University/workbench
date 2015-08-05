@@ -459,20 +459,29 @@ CaretColorEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     No optional enum values are included.
  */
 void
+CaretColorEnum::getAllEnums(std::vector<CaretColorEnum::Enum>& allColorEnums)
+{
+    if (initializedFlag == false) initialize();
+    
+    getColorAndOptionalEnums(allColorEnums,
+                             OPTION_NO_OPTIONS);
+}
+
+/**
+ * Get all of the enumerated type values THAT REPRESENT A COLOR.  The values can be used
+ * as parameters to toXXX() methods to get associated metadata.
+ *
+ * @param allColorEnums
+ *     A vector that is OUTPUT containing all of the VALID COLOR enumerated values.
+ *     No optional enum values are included.
+ */
+void
 CaretColorEnum::getColorEnums(std::vector<CaretColorEnum::Enum>& allColorEnums)
 {
     if (initializedFlag == false) initialize();
     
     getColorAndOptionalEnums(allColorEnums,
                              OPTION_NO_OPTIONS);
-    
-//    allColorEnums.clear();
-//    
-//    for (std::vector<CaretColorEnum>::iterator iter = enumData.begin();
-//         iter != enumData.end();
-//         iter++) {
-//        allColorEnums.push_back(iter->enumValue);
-//    }
 }
 
 /**

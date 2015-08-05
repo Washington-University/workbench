@@ -2773,6 +2773,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     }
                     focus->getClassRgba(rgba);
                     break;
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_STANDARD_COLOR:
+                    CaretAssertMessage(0, "Coloring by standard color not supported for foci.");
+                    break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
@@ -2942,6 +2945,10 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     
     const FeatureColoringTypeEnum::Enum borderColoringType = borderDisplayProperties->getColoringType(displayGroup,
                                                                                                       this->windowTabIndex);
+    const CaretColorEnum::Enum caretColor = borderDisplayProperties->getStandardColorType(displayGroup,
+                                                                                       this->windowTabIndex);
+    float caretColorRGBA[4];
+    CaretColorEnum::toRGBFloat(caretColor, caretColorRGBA);
     const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(displayGroup,
                                                                                           this->windowTabIndex);
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
@@ -2956,7 +2963,6 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
         
         const GiftiLabelTable* classColorTable = borderFile->getClassColorTable();
         const GiftiLabelTable* nameColorTable  = borderFile->getNameColorTable();
-        
         const int32_t numBorders = borderFile->getNumberOfBorders();
         
         for (int32_t j = 0; j < numBorders; j++) {
@@ -2981,6 +2987,12 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                         }
                     }
                     border->getClassRgba(rgba);
+                    break;
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_STANDARD_COLOR:
+                    rgba[0] = caretColorRGBA[0];
+                    rgba[1] = caretColorRGBA[1];
+                    rgba[2] = caretColorRGBA[2];
+                    rgba[3] = caretColorRGBA[3];
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (border->isNameRgbaValid() == false) {
