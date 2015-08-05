@@ -1326,13 +1326,14 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
     //TSC: the excluded zone of normalization is a SEPARATE issue to zero detection in the data
     //specifically, it is a HACK, in order for palettes to be able to specify a special color for data that is 0, which is not involved in color interpolation
     const float PALETTE_ZERO_COLOR_ZONE = 0.00001f;
+    bool settingsValidPos = true, settingsValidNeg = true;
     float mappingPositiveDenominator = (mappingMostPositive - mappingLeastPositive) / (1.0f - PALETTE_ZERO_COLOR_ZONE);//this correction prevents normalization from assigning most positive a normalized value greater than 1
-    if (mappingPositiveDenominator == 0.0) {
-        mappingPositiveDenominator = 1.0;
+    if (mappingPositiveDenominator == 0.0) {//if we don't want backwards pos/neg settings to invert bright/dark, then change both these tests to be >= 0.0f
+        settingsValidPos = false;
     }
     float mappingNegativeDenominator = (mappingMostNegative - mappingLeastNegative) / (-1.0f + PALETTE_ZERO_COLOR_ZONE);//ditto, but most negative maps to -1
     if (mappingNegativeDenominator == 0.0) {
-        mappingNegativeDenominator = 1.0;
+        settingsValidNeg = false;
     }
     
     for (int64_t i = 0; i < numberOfData; i++) {
@@ -1343,21 +1344,31 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
          */
         float normalized = 0.0f;
         if (scalar > 0.0) {
-            normalized = (scalar - mappingLeastPositive) / mappingPositiveDenominator + PALETTE_ZERO_COLOR_ZONE;
-            if (normalized > 1.0f) {
+            if (settingsValidPos)
+            {
+                normalized = (scalar - mappingLeastPositive) / mappingPositiveDenominator + PALETTE_ZERO_COLOR_ZONE;
+                if (normalized > 1.0f) {
+                    normalized = 1.0f;
+                }
+                else if (normalized < PALETTE_ZERO_COLOR_ZONE) {
+                    normalized = PALETTE_ZERO_COLOR_ZONE;
+                }
+            } else {
                 normalized = 1.0f;
-            }
-            else if (normalized < PALETTE_ZERO_COLOR_ZONE) {
-                normalized = PALETTE_ZERO_COLOR_ZONE;
             }
         }
         else if (scalar < 0.0) {
-            normalized = (scalar - mappingLeastNegative) / mappingNegativeDenominator - PALETTE_ZERO_COLOR_ZONE;
-            if (normalized < -1.0f) {
+            if (settingsValidNeg)
+            {
+                normalized = (scalar - mappingLeastNegative) / mappingNegativeDenominator - PALETTE_ZERO_COLOR_ZONE;
+                if (normalized < -1.0f) {
+                    normalized = -1.0f;
+                }
+                else if (normalized > -PALETTE_ZERO_COLOR_ZONE) {
+                    normalized = -PALETTE_ZERO_COLOR_ZONE;
+                }
+            } else {
                 normalized = -1.0f;
-            }
-            else if (normalized > -PALETTE_ZERO_COLOR_ZONE) {
-                normalized = -PALETTE_ZERO_COLOR_ZONE;
             }
         }
         normalizedValuesOut[i] = normalized;
