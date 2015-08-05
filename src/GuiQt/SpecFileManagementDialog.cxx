@@ -1764,6 +1764,11 @@ SpecFileManagementDialog::okButtonClicked ()
     if (allowDialogToClose) {
         WuQDialogModal::okButtonClicked();
     }
+    else {
+        getDataFileContentFromSpecFile();
+        loadSpecFileContentIntoDialog();
+        updateGraphicWindowsAndUserInterface();
+    }
 }
 
 /**
@@ -1975,6 +1980,19 @@ SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
                     return;
                 }
             }
+            
+            
+            if (m_COLUMN_SAVE_CHECKBOX >= 0) {
+                /*
+                 * Turn of save check box in case file was modified to prevent 
+                 * crash if user hits save file button
+                 */
+                QTableWidgetItem* saveItem = getTableWidgetItem(rowIndex,
+                                                                m_COLUMN_SAVE_CHECKBOX);
+                CaretAssert(saveItem);
+                saveItem->setCheckState(WuQtUtilities::boolToCheckState(false));
+            }
+            
             EventManager::get()->sendEvent(EventDataFileDelete(caretDataFile).getPointer());
             updateFlag = true;
         }
