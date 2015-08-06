@@ -158,7 +158,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_connectivityTabIndex = addToTabWidget(m_connectivityMatrixViewController,
                              "Connectivity");
     }
-    if (isOverlayToolBox) {
+    if (isFeaturesToolBox) {
         m_annotationViewController = new AnnotationSelectionViewController(browserWindowIndex,
                                                                            this);
         m_annotationTabIndex = addToTabWidget(m_annotationViewController,
