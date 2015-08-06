@@ -372,8 +372,8 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                 BrainOpenGLViewportContent* vc =
                 new BrainOpenGLViewportContent(windowViewport,
                                                modelViewport,
-                                               highlightTab,
                                                windowIndex,
+                                               highlightTab,
                                                tabContent);
                 viewportContentsOut.push_back(vc);
             }
