@@ -526,10 +526,10 @@ Annotation::getForegroundColorRGBA(uint8_t rgbaOut[4]) const
     float rgbaFloat[4] = { 0.0, 0.0, 0.0, 0.0 };
     getForegroundColorRGBA(rgbaFloat);
     
-    rgbaOut[0] = static_cast<int8_t>(rgbaFloat[0] * 255.0);
-    rgbaOut[1] = static_cast<int8_t>(rgbaFloat[1] * 255.0);
-    rgbaOut[2] = static_cast<int8_t>(rgbaFloat[2] * 255.0);
-    rgbaOut[3] = static_cast<int8_t>(rgbaFloat[3] * 255.0);
+    rgbaOut[0] = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(rgbaFloat[3] * 255.0);
 }
 
 /**
@@ -612,10 +612,10 @@ Annotation::getBackgroundColorRGBA(uint8_t rgbaOut[4]) const
     float rgbaFloat[4] = { 0.0, 0.0, 0.0, 0.0 };
     getBackgroundColorRGBA(rgbaFloat);
     
-    rgbaOut[0] = static_cast<int8_t>(rgbaFloat[0] * 255.0);
-    rgbaOut[1] = static_cast<int8_t>(rgbaFloat[1] * 255.0);
-    rgbaOut[2] = static_cast<int8_t>(rgbaFloat[2] * 255.0);
-    rgbaOut[3] = static_cast<int8_t>(rgbaFloat[3] * 255.0);
+    rgbaOut[0] = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(rgbaFloat[3] * 255.0);
 }
 
 /**
