@@ -195,6 +195,21 @@ UserInputModeView::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
 }
 
 /**
+ * Process a mouse left click with ctrl and shift keys down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeView::mouseLeftClickWithCtrlShift(const MouseEvent& mouseEvent)
+{
+    /*
+     * Perform identification same as a left click
+     */
+    mouseLeftClick(mouseEvent);
+}
+
+/**
  * Process a mouse left drag with no keys down event.
  *
  * @param mouseEvent

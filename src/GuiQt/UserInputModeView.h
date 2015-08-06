@@ -46,6 +46,8 @@ namespace caret {
         
         virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent);
         
+        virtual void mouseLeftClickWithCtrlShift(const MouseEvent& mouseEvent);
+        
         virtual void mouseLeftDrag(const MouseEvent& mouseEvent);
         
         virtual void mouseLeftDragWithAlt(const MouseEvent& mouseEvent);
