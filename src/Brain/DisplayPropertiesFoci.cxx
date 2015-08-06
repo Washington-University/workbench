@@ -43,6 +43,8 @@ using namespace caret;
 DisplayPropertiesFoci::DisplayPropertiesFoci()
 : DisplayProperties()
 {
+    const CaretColorEnum::Enum defaultColor = CaretColorEnum::BLACK;
+
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
         m_pasteOntoSurfaceInTab[i] = false;
@@ -51,6 +53,7 @@ DisplayPropertiesFoci::DisplayPropertiesFoci()
         m_fociSizeInTab[i] = 4.0;
         m_coloringTypeInTab[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
         m_drawingTypeInTab[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+        m_standardColorTypeInTab[i] = defaultColor;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
@@ -60,6 +63,7 @@ DisplayPropertiesFoci::DisplayPropertiesFoci()
         m_fociSizeInDisplayGroup[i] = 4.0;
         m_coloringTypeInDisplayGroup[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
         m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+        m_standardColorTypeInDisplayGroup[i] = defaultColor;
     }
     
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup", 
@@ -102,6 +106,13 @@ DisplayPropertiesFoci::DisplayPropertiesFoci()
                                                                                m_drawingTypeInDisplayGroup,
                                                                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                                                                FociDrawingTypeEnum::DRAW_AS_SQUARES);
+    m_sceneAssistant->addArray<CaretColorEnum, CaretColorEnum::Enum>("m_standardColorTypeInDisplayGroup",
+                                                                     m_standardColorTypeInDisplayGroup,
+                                                                     DisplayGroupEnum::NUMBER_OF_GROUPS,
+                                                                     defaultColor);
+    
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<CaretColorEnum, CaretColorEnum::Enum>("m_standardColorTypeInTab",
+                                                                                             m_standardColorTypeInTab);
 }
 
 /**
@@ -132,6 +143,7 @@ DisplayPropertiesFoci::copyDisplayProperties(const int32_t sourceTabIndex,
     m_drawingTypeInTab[targetTabIndex]      = m_drawingTypeInTab[sourceTabIndex];
     m_fociSizeInTab[targetTabIndex]         = m_fociSizeInTab[sourceTabIndex];
     m_pasteOntoSurfaceInTab[targetTabIndex] = m_pasteOntoSurfaceInTab[sourceTabIndex];
+    m_standardColorTypeInDisplayGroup[targetTabIndex] = m_standardColorTypeInDisplayGroup[sourceTabIndex];
 }
 
 /**
@@ -376,6 +388,53 @@ DisplayPropertiesFoci::setColoringType(const DisplayGroupEnum::Enum displayGroup
     }
     else {
         m_coloringTypeInDisplayGroup[displayGroup] = coloringType;
+    }
+}
+
+/**
+ * @return The standard caret coloring type.
+ * @param displayGroup
+ *     Display group.
+ */
+CaretColorEnum::Enum
+DisplayPropertiesFoci::getStandardColorType(const DisplayGroupEnum::Enum displayGroup,
+                                               const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_standardColorTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_standardColorTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_standardColorTypeInTab[tabIndex];
+    }
+    return m_standardColorTypeInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the caret coloring type.
+ * @param displayGroup
+ *     Display group.
+ * @param color
+ *    New color for coloring type.
+ */
+void
+DisplayPropertiesFoci::setStandardColorType(const DisplayGroupEnum::Enum displayGroup,
+                                               const int32_t tabIndex,
+                                               const CaretColorEnum::Enum color)
+{
+    CaretAssertArrayIndex(m_standardColorTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_standardColorTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_standardColorTypeInTab[tabIndex] = color;
+    }
+    else {
+        m_standardColorTypeInDisplayGroup[displayGroup] = color;
     }
 }
 

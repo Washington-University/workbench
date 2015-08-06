@@ -3028,6 +3028,11 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
     const DisplayPropertiesFoci* fociDisplayProperties = m_brain->getDisplayPropertiesFoci();
     const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
     
+    const CaretColorEnum::Enum caretColor = fociDisplayProperties->getStandardColorType(displayGroup,
+                                                                                        m_fixedPipelineDrawing->windowTabIndex);
+    float caretColorRGBA[4];
+    CaretColorEnum::toRGBFloat(caretColor, caretColorRGBA);
+    
     if (fociDisplayProperties->isDisplayed(displayGroup,
                                            m_fixedPipelineDrawing->windowTabIndex) == false) {
         return;
@@ -3092,7 +3097,10 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
                     focus->getClassRgba(rgba);
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_STANDARD_COLOR:
-                    CaretAssertMessage(0, "Coloring by syandard color not supported for foci.");
+                    rgba[0] = caretColorRGBA[0];
+                    rgba[1] = caretColorRGBA[1];
+                    rgba[2] = caretColorRGBA[2];
+                    rgba[3] = caretColorRGBA[3];
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {

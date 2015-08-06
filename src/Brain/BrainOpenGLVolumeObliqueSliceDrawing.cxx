@@ -2733,6 +2733,11 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
     const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                   m_fixedPipelineDrawing->windowTabIndex);
     
+    const CaretColorEnum::Enum caretColor = fociDisplayProperties->getStandardColorType(displayGroup,
+                                                                                        m_fixedPipelineDrawing->windowTabIndex);
+    float caretColorRGBA[4];
+    CaretColorEnum::toRGBFloat(caretColor, caretColorRGBA);
+    
     bool drawAsSpheres = false;
     switch (fociDisplayProperties->getDrawingType(displayGroup,
                                                   m_fixedPipelineDrawing->windowTabIndex)) {
@@ -2788,7 +2793,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
                     focus->getClassRgba(rgba);
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_STANDARD_COLOR:
-                    CaretAssertMessage(0, "Coloring by standard color not supported for foci.");
+                    rgba[0] = caretColorRGBA[0];
+                    rgba[1] = caretColorRGBA[1];
+                    rgba[2] = caretColorRGBA[2];
+                    rgba[3] = caretColorRGBA[3];
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {

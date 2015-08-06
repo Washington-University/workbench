@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "BrainConstants.h"
+#include "CaretColorEnum.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
 #include "FeatureColoringTypeEnum.h"
@@ -83,6 +84,13 @@ namespace caret {
                             const int32_t tabIndex,
                             const FociDrawingTypeEnum::Enum drawingType);
         
+        CaretColorEnum::Enum getStandardColorType(const DisplayGroupEnum::Enum displayGroup,
+                                                  const int32_t tabIndex) const;
+        
+        void setStandardColorType(const DisplayGroupEnum::Enum displayGroup,
+                                  const int32_t tabIndex,
+                                  const CaretColorEnum::Enum caretColor);
+        
         void setPasteOntoSurface(const DisplayGroupEnum::Enum displayGroup,
                                  const int32_t tabIndex,
                                  const bool enabled);
@@ -126,6 +134,10 @@ namespace caret {
         FociDrawingTypeEnum::Enum m_drawingTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         FociDrawingTypeEnum::Enum m_drawingTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        CaretColorEnum::Enum m_standardColorTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        CaretColorEnum::Enum m_standardColorTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     };
     

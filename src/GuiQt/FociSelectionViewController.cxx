@@ -37,6 +37,7 @@
 #include "BrainOpenGL.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretColorEnumComboBox.h"
 #include "GroupAndNameHierarchyViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesFoci.h"
@@ -149,16 +150,18 @@ FociSelectionViewController::createAttributesWidget()
     QObject::connect(m_pasteOntoSurfaceCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
     
-    std::vector<FeatureColoringTypeEnum::Enum> featureColorTypes;
-    featureColorTypes.push_back(FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS);
-    featureColorTypes.push_back(FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME);
-    
     QLabel* coloringLabel = new QLabel("Coloring");
     m_coloringTypeComboBox = new EnumComboBoxTemplate(this);
-    m_coloringTypeComboBox->setupWithItems<FeatureColoringTypeEnum,
-                                           FeatureColoringTypeEnum::Enum>(featureColorTypes);
+    m_coloringTypeComboBox->setup<FeatureColoringTypeEnum,
+                                           FeatureColoringTypeEnum::Enum>();
     m_coloringTypeComboBox->getWidget()->setToolTip("Select the coloring assignment for foci");
     QObject::connect(m_coloringTypeComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(processAttributesChanges()));
+    
+    QLabel* standardColorLabel = new QLabel("Standard Color");
+    m_standardColorComboBox = new CaretColorEnumComboBox(this);
+    m_standardColorComboBox->getWidget()->setToolTip("Select the standard color");
+    QObject::connect(m_standardColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(processAttributesChanges()));
     
     std::vector<FociDrawingTypeEnum::Enum> drawingTypeEnums;
@@ -207,6 +210,9 @@ FociSelectionViewController::createAttributesWidget()
     gridLayout->addWidget(coloringLabel, row, 0);
     gridLayout->addWidget(m_coloringTypeComboBox->getWidget(), row, 1);
     row++;
+    gridLayout->addWidget(standardColorLabel, row, 0);
+    gridLayout->addWidget(m_standardColorComboBox->getWidget(), row, 1);
+    row++;
     gridLayout->addWidget(drawAsLabel, row, 0);
     gridLayout->addWidget(m_drawTypeComboBox , row, 1);
     row++;
@@ -237,6 +243,7 @@ FociSelectionViewController::processAttributesChanges()
     const int selectedDrawTypeIndex = m_drawTypeComboBox->currentIndex();
     const int drawTypeInteger = m_drawTypeComboBox->itemData(selectedDrawTypeIndex).toInt();
     const FociDrawingTypeEnum::Enum selectedDrawingType = static_cast<FociDrawingTypeEnum::Enum>(drawTypeInteger);
+    const CaretColorEnum::Enum standardColorType = m_standardColorComboBox->getSelectedColor();
     
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
@@ -258,6 +265,9 @@ FociSelectionViewController::processAttributesChanges()
     dpf->setColoringType(displayGroup,
                          browserTabIndex,
                          selectedColoringType);
+    dpf->setStandardColorType(displayGroup,
+                              browserTabIndex,
+                              standardColorType);
     dpf->setFociSize(displayGroup,
                      browserTabIndex,
                      m_sizeSpinBox->value());
@@ -355,6 +365,8 @@ FociSelectionViewController::updateFociViewController()
     m_coloringTypeComboBox->setSelectedItem<FeatureColoringTypeEnum, FeatureColoringTypeEnum::Enum>(dpf->getColoringType(displayGroup,
                                                                                                                          browserTabIndex));
     
+    m_standardColorComboBox->setSelectedColor(dpf->getStandardColorType(displayGroup,
+                                                                        browserTabIndex));
     const FociDrawingTypeEnum::Enum selectedDrawingType = dpf->getDrawingType(displayGroup,
                                                                               browserTabIndex);
     int32_t selectedDrawingTypeIndex = 0;
