@@ -464,6 +464,12 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                         PaletteColorMapping* pcmMap = getMapPaletteColorMapping(restoreMapIndex);
                         pcmMap->copy(pcm);
                         pcmMap->clearModified();
+                        
+                        /*
+                         * WB-522 When palette loaded from scene,
+                         * mark it as modified.
+                         */
+                        pcmMap->setModified();
                     }
                     catch (const XmlException& e) {
                         sceneAttributes->addToErrorMessage("Failed to decode palette color mapping for file: "
