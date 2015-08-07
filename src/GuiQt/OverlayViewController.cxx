@@ -709,9 +709,11 @@ OverlayViewController::updateViewController(Overlay* overlay)
     if (selectedFile != NULL) {
         FileInformation fileInfo(selectedFile->getFileName());
         fileComboBoxToolTip.append(":\n"
-                                + fileInfo.getFileName()
-                                + "\n"
-                                + fileInfo.getPathName());
+                                   + fileInfo.getFileName()
+                                   + "\n"
+                                   + fileInfo.getPathName()
+                                   + "\n\n"
+                                   + "Copy File Name/Path to Clipboard with Construction Menu");
         
         nameComboBoxToolTip.append(":\n"
                                    + this->mapNameComboBox->currentText());
