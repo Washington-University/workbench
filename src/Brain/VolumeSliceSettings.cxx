@@ -49,7 +49,7 @@ VolumeSliceSettings::VolumeSliceSettings()
     m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
-    m_montageNumberOfColumns = 3;
+    m_montageNumberOfColumns = 6; // 3;
     m_montageNumberOfRows    = 4;
     m_montageSliceSpacing    = 5;
     
