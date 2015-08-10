@@ -1833,7 +1833,7 @@ BrainBrowserWindow::processEditPreferences()
 void 
 BrainBrowserWindow::processInformationDialog()
 {
-    GuiManager::get()->processShowInformationDisplayDialog(this);
+    GuiManager::get()->processShowInformationDisplayDialog(true);
 }
 
 /**
