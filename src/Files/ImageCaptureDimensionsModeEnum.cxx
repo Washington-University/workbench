@@ -1,7 +1,7 @@
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2015 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __IMAGE_SPATIAL_UNITS_ENUM_DECLARE__
-#include "ImageSpatialUnitsEnum.h"
-#undef __IMAGE_SPATIAL_UNITS_ENUM_DECLARE__
+#define __IMAGE_CAPTURE_DIMENSIONS_MODE_ENUM_DECLARE__
+#include "ImageCaptureDimensionsModeEnum.h"
+#undef __IMAGE_CAPTURE_DIMENSIONS_MODE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,10 @@ using namespace caret;
 
     
 /**
- * \class caret::ImageSpatialUnitsEnum 
- * \brief Units of image resolution
+ * \class caret::ImageCaptureDimensionsModeEnum 
+ * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ *
+ * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +42,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_imageSpatialUnitsEnumComboBox;
+ *         EnumComboBoxTemplate* m_imageCaptureDimensionsModeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void imageSpatialUnitsEnumComboBoxItemActivated();
+ *             void imageCaptureDimensionsModeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "ImageSpatialUnitsEnum.h"
+ *         #include "ImageCaptureDimensionsModeEnum.h"
  * 
  *     Instatiate:
- *         m_imageSpatialUnitsEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_imageSpatialUnitsEnumComboBox->setup<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
+ *         m_imageCaptureDimensionsModeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_imageCaptureDimensionsModeEnumComboBox->setup<ImageCaptureDimensionsModeEnum,ImageCaptureDimensionsModeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_imageSpatialUnitsEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(imageSpatialUnitsEnumComboBoxItemActivated()));
+ *         QObject::connect(m_imageCaptureDimensionsModeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(imageCaptureDimensionsModeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_imageSpatialUnitsEnumComboBox->setSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>(NEW_VALUE);
+ *         m_imageCaptureDimensionsModeEnumComboBox->setSelectedItem<ImageCaptureDimensionsModeEnum,ImageCaptureDimensionsModeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const ImageSpatialUnitsEnum::Enum VARIABLE = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
+ *         const ImageCaptureDimensionsModeEnum::Enum VARIABLE = m_imageCaptureDimensionsModeEnumComboBox->getSelectedItem<ImageCaptureDimensionsModeEnum,ImageCaptureDimensionsModeEnum::Enum>();
  * 
  */
 
@@ -78,7 +80,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-ImageSpatialUnitsEnum::ImageSpatialUnitsEnum(const Enum enumValue,
+ImageCaptureDimensionsModeEnum::ImageCaptureDimensionsModeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +93,7 @@ ImageSpatialUnitsEnum::ImageSpatialUnitsEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-ImageSpatialUnitsEnum::~ImageSpatialUnitsEnum()
+ImageCaptureDimensionsModeEnum::~ImageCaptureDimensionsModeEnum()
 {
 }
 
@@ -99,24 +101,21 @@ ImageSpatialUnitsEnum::~ImageSpatialUnitsEnum()
  * Initialize the enumerated metadata.
  */
 void
-ImageSpatialUnitsEnum::initialize()
+ImageCaptureDimensionsModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ImageSpatialUnitsEnum(INCHES,
-                                             "INCHES",
-                                             "inches"));
+    enumData.push_back(ImageCaptureDimensionsModeEnum(IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM, 
+                                    "IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM", 
+                                    ""));
     
-    enumData.push_back(ImageSpatialUnitsEnum(CENTIMETERS,
-                                             "CENTIMETERS",
-                                             "cm"));
+    enumData.push_back(ImageCaptureDimensionsModeEnum(IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE, 
+                                    "IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE", 
+                                    ""));
     
-    enumData.push_back(ImageSpatialUnitsEnum(MILLIMETERS,
-                                             "MILLIMETERS",
-                                             "mm"));
 }
 
 /**
@@ -126,14 +125,14 @@ ImageSpatialUnitsEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ImageSpatialUnitsEnum*
-ImageSpatialUnitsEnum::findData(const Enum enumValue)
+const ImageCaptureDimensionsModeEnum*
+ImageCaptureDimensionsModeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const ImageSpatialUnitsEnum* d = &enumData[i];
+        const ImageCaptureDimensionsModeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -150,10 +149,10 @@ ImageSpatialUnitsEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-ImageSpatialUnitsEnum::toName(Enum enumValue) {
+ImageCaptureDimensionsModeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ImageSpatialUnitsEnum* enumInstance = findData(enumValue);
+    const ImageCaptureDimensionsModeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -167,18 +166,18 @@ ImageSpatialUnitsEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ImageSpatialUnitsEnum::Enum 
-ImageSpatialUnitsEnum::fromName(const AString& name, bool* isValidOut)
+ImageCaptureDimensionsModeEnum::Enum 
+ImageCaptureDimensionsModeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ImageSpatialUnitsEnum::enumData[0].enumValue;
+    Enum enumValue = ImageCaptureDimensionsModeEnum::enumData[0].enumValue;
     
-    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageCaptureDimensionsModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ImageSpatialUnitsEnum& d = *iter;
+        const ImageCaptureDimensionsModeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -190,7 +189,7 @@ ImageSpatialUnitsEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ImageSpatialUnitsEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ImageCaptureDimensionsModeEnum"));
     }
     return enumValue;
 }
@@ -203,10 +202,10 @@ ImageSpatialUnitsEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-ImageSpatialUnitsEnum::toGuiName(Enum enumValue) {
+ImageCaptureDimensionsModeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ImageSpatialUnitsEnum* enumInstance = findData(enumValue);
+    const ImageCaptureDimensionsModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -220,18 +219,18 @@ ImageSpatialUnitsEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ImageSpatialUnitsEnum::Enum 
-ImageSpatialUnitsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ImageCaptureDimensionsModeEnum::Enum 
+ImageCaptureDimensionsModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ImageSpatialUnitsEnum::enumData[0].enumValue;
+    Enum enumValue = ImageCaptureDimensionsModeEnum::enumData[0].enumValue;
     
-    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageCaptureDimensionsModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ImageSpatialUnitsEnum& d = *iter;
+        const ImageCaptureDimensionsModeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -243,7 +242,7 @@ ImageSpatialUnitsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ImageSpatialUnitsEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ImageCaptureDimensionsModeEnum"));
     }
     return enumValue;
 }
@@ -255,10 +254,10 @@ ImageSpatialUnitsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-ImageSpatialUnitsEnum::toIntegerCode(Enum enumValue)
+ImageCaptureDimensionsModeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const ImageSpatialUnitsEnum* enumInstance = findData(enumValue);
+    const ImageCaptureDimensionsModeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -273,18 +272,18 @@ ImageSpatialUnitsEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-ImageSpatialUnitsEnum::Enum
-ImageSpatialUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ImageCaptureDimensionsModeEnum::Enum
+ImageCaptureDimensionsModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ImageSpatialUnitsEnum::enumData[0].enumValue;
+    Enum enumValue = ImageCaptureDimensionsModeEnum::enumData[0].enumValue;
     
-    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageCaptureDimensionsModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ImageSpatialUnitsEnum& enumInstance = *iter;
+        const ImageCaptureDimensionsModeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -296,7 +295,7 @@ ImageSpatialUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidO
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ImageSpatialUnitsEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ImageCaptureDimensionsModeEnum"));
     }
     return enumValue;
 }
@@ -309,13 +308,13 @@ ImageSpatialUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidO
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-ImageSpatialUnitsEnum::getAllEnums(std::vector<ImageSpatialUnitsEnum::Enum>& allEnums)
+ImageCaptureDimensionsModeEnum::getAllEnums(std::vector<ImageCaptureDimensionsModeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageCaptureDimensionsModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -331,16 +330,16 @@ ImageSpatialUnitsEnum::getAllEnums(std::vector<ImageSpatialUnitsEnum::Enum>& all
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ImageSpatialUnitsEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ImageCaptureDimensionsModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageCaptureDimensionsModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(ImageSpatialUnitsEnum::toName(iter->enumValue));
+        allNames.push_back(ImageCaptureDimensionsModeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -357,16 +356,16 @@ ImageSpatialUnitsEnum::getAllNames(std::vector<AString>& allNames, const bool is
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ImageSpatialUnitsEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ImageCaptureDimensionsModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageCaptureDimensionsModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(ImageSpatialUnitsEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ImageCaptureDimensionsModeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

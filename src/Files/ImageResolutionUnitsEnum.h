@@ -1,5 +1,5 @@
-#ifndef __IMAGE_PIXELS_PER_SPATIAL_UNITS_ENUM_H__
-#define __IMAGE_PIXELS_PER_SPATIAL_UNITS_ENUM_H__
+#ifndef __IMAGE_RESOLUTION_UNITS_ENUM_H__
+#define __IMAGE_RESOLUTION_UNITS_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class ImagePixelsPerSpatialUnitsEnum {
+class ImageResolutionUnitsEnum {
 
 public:
     /**
@@ -42,7 +42,7 @@ public:
     };
 
 
-    ~ImagePixelsPerSpatialUnitsEnum();
+    ~ImageResolutionUnitsEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    ImagePixelsPerSpatialUnitsEnum(const Enum enumValue, 
+    ImageResolutionUnitsEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const ImagePixelsPerSpatialUnitsEnum* findData(const Enum enumValue);
+    static const ImageResolutionUnitsEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<ImagePixelsPerSpatialUnitsEnum> enumData;
+    static std::vector<ImageResolutionUnitsEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -94,11 +94,11 @@ private:
     AString guiName;
 };
 
-#ifdef __IMAGE_PIXELS_PER_SPATIAL_UNITS_ENUM_DECLARE__
-std::vector<ImagePixelsPerSpatialUnitsEnum> ImagePixelsPerSpatialUnitsEnum::enumData;
-bool ImagePixelsPerSpatialUnitsEnum::initializedFlag = false;
-int32_t ImagePixelsPerSpatialUnitsEnum::integerCodeCounter = 0; 
-#endif // __IMAGE_PIXELS_PER_SPATIAL_UNITS_ENUM_DECLARE__
+#ifdef __IMAGE_RESOLUTION_UNITS_ENUM_DECLARE__
+std::vector<ImageResolutionUnitsEnum> ImageResolutionUnitsEnum::enumData;
+bool ImageResolutionUnitsEnum::initializedFlag = false;
+int32_t ImageResolutionUnitsEnum::integerCodeCounter = 0; 
+#endif // __IMAGE_RESOLUTION_UNITS_ENUM_DECLARE__
 
 } // namespace
-#endif  //__IMAGE_PIXELS_PER_SPATIAL_UNITS_ENUM_H__
+#endif  //__IMAGE_RESOLUTION_UNITS_ENUM_H__

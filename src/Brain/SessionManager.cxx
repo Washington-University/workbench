@@ -44,6 +44,7 @@
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
 #include "EventProgressUpdate.h"
+#include "ImageCaptureSettings.h"
 #include "LogManager.h"
 #include "MapYokingGroupEnum.h"
 #include "ModelWholeBrain.h"
@@ -65,6 +66,8 @@ SessionManager::SessionManager()
 {
     m_caretPreferences = new CaretPreferences();
     
+    m_imageCaptureDialogSettings = new ImageCaptureSettings();
+
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
     
@@ -113,6 +116,8 @@ SessionManager::~SessionManager()
     
     delete m_ciftiConnectivityMatrixDataFileManager;
     delete m_ciftiFiberTrajectoryManager;
+    
+    delete m_imageCaptureDialogSettings;
     
     delete m_caretPreferences;
 }
@@ -495,6 +500,9 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addChild(new SceneClassArray("m_browserTabs",
                                              browserTabSceneClasses));
     
+    sceneClass->addChild(m_imageCaptureDialogSettings->saveToScene(sceneAttributes,
+                                                                   "m_imageCaptureDialogSettings"));
+    
     return sceneClass;
 }
 
@@ -719,6 +727,9 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_browserTabs[tabIndex] = tab;
     }
     
+    m_imageCaptureDialogSettings->restoreFromScene(sceneAttributes,
+                                                   sceneClass->getClass("m_imageCaptureDialogSettings"));
+    
     CaretLogFine("Time to restore browser tab content was "
                  + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds");
@@ -793,5 +804,22 @@ SessionManager::getCiftiFiberTrajectoryManager() const
     return m_ciftiFiberTrajectoryManager;
 }
 
+/**
+ * @return Image capture settings for image capture dialog.
+ */
+ImageCaptureSettings*
+SessionManager::getImageCaptureDialogSettings()
+{
+    return m_imageCaptureDialogSettings;
+}
+
+/**
+ * @return Image capture settings for image capture dialog (const method)
+ */
+const ImageCaptureSettings*
+SessionManager::getImageCaptureDialogSettings() const
+{
+    return m_imageCaptureDialogSettings;
+}
 
 

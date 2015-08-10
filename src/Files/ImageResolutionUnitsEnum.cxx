@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __IMAGE_PIXELS_PER_SPATIAL_UNITS_ENUM_DECLARE__
-#include "ImagePixelsPerSpatialUnitsEnum.h"
-#undef __IMAGE_PIXELS_PER_SPATIAL_UNITS_ENUM_DECLARE__
+#define __IMAGE_RESOLUTION_UNITS_ENUM_DECLARE__
+#include "ImageResolutionUnitsEnum.h"
+#undef __IMAGE_RESOLUTION_UNITS_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ImagePixelsPerSpatialUnitsEnum 
+ * \class caret::ImageResolutionUnitsEnum 
  * \brief Pixel per spatial unit (inches, cm)
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
@@ -49,21 +49,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "ImagePixelsPerSpatialUnitsEnum.h"
+ *         #include "ImageResolutionUnitsEnum.h"
  * 
  *     Instatiate:
  *         m_imagePixelsPerSpatialUnitsEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_imagePixelsPerSpatialUnitsEnumComboBox->setup<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+ *         m_imagePixelsPerSpatialUnitsEnumComboBox->setup<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_imagePixelsPerSpatialUnitsEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(imagePixelsPerSpatialUnitsEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_imagePixelsPerSpatialUnitsEnumComboBox->setSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>(NEW_VALUE);
+ *         m_imagePixelsPerSpatialUnitsEnumComboBox->setSelectedItem<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const ImagePixelsPerSpatialUnitsEnum::Enum VARIABLE = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+ *         const ImageResolutionUnitsEnum::Enum VARIABLE = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-ImagePixelsPerSpatialUnitsEnum::ImagePixelsPerSpatialUnitsEnum(const Enum enumValue,
+ImageResolutionUnitsEnum::ImageResolutionUnitsEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ ImagePixelsPerSpatialUnitsEnum::ImagePixelsPerSpatialUnitsEnum(const Enum enumVa
 /**
  * Destructor.
  */
-ImagePixelsPerSpatialUnitsEnum::~ImagePixelsPerSpatialUnitsEnum()
+ImageResolutionUnitsEnum::~ImageResolutionUnitsEnum()
 {
 }
 
@@ -99,18 +99,18 @@ ImagePixelsPerSpatialUnitsEnum::~ImagePixelsPerSpatialUnitsEnum()
  * Initialize the enumerated metadata.
  */
 void
-ImagePixelsPerSpatialUnitsEnum::initialize()
+ImageResolutionUnitsEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ImagePixelsPerSpatialUnitsEnum(PIXELS_PER_INCH,
+    enumData.push_back(ImageResolutionUnitsEnum(PIXELS_PER_INCH,
                                                 "PIXELS_PER_INCH",
                                                 "pixels/inch"));
     
-    enumData.push_back(ImagePixelsPerSpatialUnitsEnum(PIXEL_PER_CENTIMETER,
+    enumData.push_back(ImageResolutionUnitsEnum(PIXEL_PER_CENTIMETER,
                                                 "PIXEL_PER_CENTIMETER",
                                                 "pixels/cm"));
 }
@@ -122,14 +122,14 @@ ImagePixelsPerSpatialUnitsEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ImagePixelsPerSpatialUnitsEnum*
-ImagePixelsPerSpatialUnitsEnum::findData(const Enum enumValue)
+const ImageResolutionUnitsEnum*
+ImageResolutionUnitsEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const ImagePixelsPerSpatialUnitsEnum* d = &enumData[i];
+        const ImageResolutionUnitsEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -146,10 +146,10 @@ ImagePixelsPerSpatialUnitsEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-ImagePixelsPerSpatialUnitsEnum::toName(Enum enumValue) {
+ImageResolutionUnitsEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ImagePixelsPerSpatialUnitsEnum* enumInstance = findData(enumValue);
+    const ImageResolutionUnitsEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -163,18 +163,18 @@ ImagePixelsPerSpatialUnitsEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ImagePixelsPerSpatialUnitsEnum::Enum 
-ImagePixelsPerSpatialUnitsEnum::fromName(const AString& name, bool* isValidOut)
+ImageResolutionUnitsEnum::Enum 
+ImageResolutionUnitsEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ImagePixelsPerSpatialUnitsEnum::enumData[0].enumValue;
+    Enum enumValue = ImageResolutionUnitsEnum::enumData[0].enumValue;
     
-    for (std::vector<ImagePixelsPerSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageResolutionUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ImagePixelsPerSpatialUnitsEnum& d = *iter;
+        const ImageResolutionUnitsEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -186,7 +186,7 @@ ImagePixelsPerSpatialUnitsEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ImagePixelsPerSpatialUnitsEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ImageResolutionUnitsEnum"));
     }
     return enumValue;
 }
@@ -199,10 +199,10 @@ ImagePixelsPerSpatialUnitsEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-ImagePixelsPerSpatialUnitsEnum::toGuiName(Enum enumValue) {
+ImageResolutionUnitsEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ImagePixelsPerSpatialUnitsEnum* enumInstance = findData(enumValue);
+    const ImageResolutionUnitsEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -216,18 +216,18 @@ ImagePixelsPerSpatialUnitsEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ImagePixelsPerSpatialUnitsEnum::Enum 
-ImagePixelsPerSpatialUnitsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ImageResolutionUnitsEnum::Enum 
+ImageResolutionUnitsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ImagePixelsPerSpatialUnitsEnum::enumData[0].enumValue;
+    Enum enumValue = ImageResolutionUnitsEnum::enumData[0].enumValue;
     
-    for (std::vector<ImagePixelsPerSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageResolutionUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ImagePixelsPerSpatialUnitsEnum& d = *iter;
+        const ImageResolutionUnitsEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -239,7 +239,7 @@ ImagePixelsPerSpatialUnitsEnum::fromGuiName(const AString& guiName, bool* isVali
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ImagePixelsPerSpatialUnitsEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ImageResolutionUnitsEnum"));
     }
     return enumValue;
 }
@@ -251,10 +251,10 @@ ImagePixelsPerSpatialUnitsEnum::fromGuiName(const AString& guiName, bool* isVali
  *    Integer code for data type.
  */
 int32_t
-ImagePixelsPerSpatialUnitsEnum::toIntegerCode(Enum enumValue)
+ImageResolutionUnitsEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const ImagePixelsPerSpatialUnitsEnum* enumInstance = findData(enumValue);
+    const ImageResolutionUnitsEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -269,18 +269,18 @@ ImagePixelsPerSpatialUnitsEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-ImagePixelsPerSpatialUnitsEnum::Enum
-ImagePixelsPerSpatialUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ImageResolutionUnitsEnum::Enum
+ImageResolutionUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ImagePixelsPerSpatialUnitsEnum::enumData[0].enumValue;
+    Enum enumValue = ImageResolutionUnitsEnum::enumData[0].enumValue;
     
-    for (std::vector<ImagePixelsPerSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageResolutionUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ImagePixelsPerSpatialUnitsEnum& enumInstance = *iter;
+        const ImageResolutionUnitsEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -292,7 +292,7 @@ ImagePixelsPerSpatialUnitsEnum::fromIntegerCode(const int32_t integerCode, bool*
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ImagePixelsPerSpatialUnitsEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ImageResolutionUnitsEnum"));
     }
     return enumValue;
 }
@@ -305,13 +305,13 @@ ImagePixelsPerSpatialUnitsEnum::fromIntegerCode(const int32_t integerCode, bool*
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-ImagePixelsPerSpatialUnitsEnum::getAllEnums(std::vector<ImagePixelsPerSpatialUnitsEnum::Enum>& allEnums)
+ImageResolutionUnitsEnum::getAllEnums(std::vector<ImageResolutionUnitsEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<ImagePixelsPerSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageResolutionUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -327,16 +327,16 @@ ImagePixelsPerSpatialUnitsEnum::getAllEnums(std::vector<ImagePixelsPerSpatialUni
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ImagePixelsPerSpatialUnitsEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ImageResolutionUnitsEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<ImagePixelsPerSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageResolutionUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(ImagePixelsPerSpatialUnitsEnum::toName(iter->enumValue));
+        allNames.push_back(ImageResolutionUnitsEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -353,16 +353,16 @@ ImagePixelsPerSpatialUnitsEnum::getAllNames(std::vector<AString>& allNames, cons
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ImagePixelsPerSpatialUnitsEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ImageResolutionUnitsEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<ImagePixelsPerSpatialUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageResolutionUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(ImagePixelsPerSpatialUnitsEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ImageResolutionUnitsEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

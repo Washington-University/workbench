@@ -36,7 +36,7 @@ namespace caret {
     
     class BrainBrowserWindow;
     class EnumComboBoxTemplate;
-    class ImageDimensionsModel;
+    class ImageCaptureSettings;
     class WuQWidgetObjectGroup;
     
     class ImageCaptureDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -77,6 +77,14 @@ namespace caret {
         
         void scaleProportionallyCheckBoxClicked(bool);
         
+        void imageCroppingCheckBoxClicked(bool);
+        
+        void imageCroppingMarginValueChanged(int);
+        
+        void copyImageToClipboardCheckBoxClicked(bool);
+        
+        void saveImageToFileCheckBoxClicked(bool);
+        
         void sizeRadioButtonClicked(QAbstractButton* button);
         
     private:
@@ -89,11 +97,15 @@ namespace caret {
         QWidget* createImageDimensionsSection();
         QWidget* createImageDestinationSection();
         
+        void updateDimensionsSection();
+        void updateImageOptionsSection();
+        void updateDestinationSection();
+        
         bool getSelectedWindowWidthAndHeight(int32_t& widthOut,
                                              int32_t& heightOut,
                                              float& aspectRatioOut) const;
         
-        void updateDialogWithImageDimensionsModel();
+        //void updateDialogWithImageDimensionsModel();
         
         void updateImageNumberOfBytesLabel();
         
@@ -124,8 +136,6 @@ namespace caret {
         QWidget* m_customDimensionsWidget;
         
         QWidget* m_imageDimensionsWidget;
-        
-        ImageDimensionsModel* m_imageDimensionsModel;
     };
     
 #ifdef __IMAGE_CAPTURE_DIALOG__H__DECLARE__

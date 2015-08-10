@@ -85,9 +85,10 @@ GroupAndNameHierarchyGroup.h
 GroupAndNameHierarchyItem.h
 GroupAndNameHierarchyModel.h
 GroupAndNameHierarchyName.h
-ImageDimensionsModel.h
+ImageCaptureDimensionsModeEnum.h
+ImageCaptureSettings.h
 ImageFile.h
-ImagePixelsPerSpatialUnitsEnum.h
+ImageResolutionUnitsEnum.h
 ImageSpatialUnitsEnum.h
 LabelDrawingProperties.h
 LabelDrawingTypeEnum.h
@@ -199,9 +200,10 @@ GroupAndNameHierarchyGroup.cxx
 GroupAndNameHierarchyItem.cxx
 GroupAndNameHierarchyModel.cxx
 GroupAndNameHierarchyName.cxx
-ImageDimensionsModel.cxx
+ImageCaptureDimensionsModeEnum.cxx
+ImageCaptureSettings.cxx
 ImageFile.cxx
-ImagePixelsPerSpatialUnitsEnum.cxx
+ImageResolutionUnitsEnum.cxx
 ImageSpatialUnitsEnum.cxx
 LabelDrawingProperties.cxx
 LabelDrawingTypeEnum.cxx

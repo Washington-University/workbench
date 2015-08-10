@@ -31,6 +31,7 @@
 #include "DataFileException.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
+#include "ImageCaptureSettings.h"
 #include "ImageFile.h"
 
 using namespace caret;

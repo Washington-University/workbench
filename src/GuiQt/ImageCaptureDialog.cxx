@@ -53,7 +53,7 @@
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
-#include "ImageDimensionsModel.h"
+#include "ImageCaptureSettings.h"
 #include "SessionManager.h"
 #include "CaretFileDialog.h"
 #include "WuQFactory.h"
@@ -82,7 +82,6 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
 : WuQDialogNonModal("Image Capture",
                     parent)
 {
-    m_imageDimensionsModel = new ImageDimensionsModel();
     m_imageDimensionsWidget = NULL;
     
     setDeleteWhenClosed(false);
@@ -137,19 +136,17 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     /*
      * Initialize the custom image size
      */
-    m_imageDimensionsModel->setPixelWidthAndHeight(512,
-                                                   512);
-    updateDialogWithImageDimensionsModel();
-    m_scaleProportionallyCheckBox->setChecked(true);
-    scaleProportionallyCheckBoxClicked(m_scaleProportionallyCheckBox->isChecked());
-    WuQtUtilities::setWordWrappedToolTip(m_scaleProportionallyCheckBox,
-                                         ("If checked, the heights of the pixel and image dimensions "
-                                          "are automatically adjusted so that their proportions "
-                                          "match the proportion of the selected window's "
-                                          "graphics region."));
+//    m_imageDimensionsModel->setPixelWidthAndHeight(512,
+//                                                   512);
+//    updateDialogWithImageDimensionsModel();
+
+//    m_scaleProportionallyCheckBox->setChecked(true);
+//    scaleProportionallyCheckBoxClicked(m_scaleProportionallyCheckBox->isChecked());
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
+
+    updateDimensionsSection();
 }
 
 /**
@@ -158,8 +155,6 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
 ImageCaptureDialog::~ImageCaptureDialog()
 {
     EventManager::get()->removeAllEventsFromListener(this);
-    
-    delete m_imageDimensionsModel;
 }
 
 /**
@@ -195,12 +190,15 @@ QWidget*
 ImageCaptureDialog::createImageOptionsSection()
 {
     m_imageAutoCropCheckBox = new QCheckBox("Automatically Crop Image");
+    QObject::connect(m_imageAutoCropCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(imageCroppingCheckBoxClicked(bool)));
     QLabel* imageAutoCropMarginLabel = new QLabel("   Margin");
     m_imageAutoCropMarginSpinBox = new QSpinBox();
+    QObject::connect(m_imageAutoCropMarginSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(imageCroppingMarginValueChanged(int)));
     m_imageAutoCropMarginSpinBox->setMinimum(0);
     m_imageAutoCropMarginSpinBox->setMaximum(100000);
     m_imageAutoCropMarginSpinBox->setSingleStep(1);
-    m_imageAutoCropMarginSpinBox->setValue(10);
     m_imageAutoCropMarginSpinBox->setMaximumWidth(100);
     
     QHBoxLayout* cropMarginLayout = new QHBoxLayout();
@@ -245,7 +243,6 @@ ImageCaptureDialog::createImageDimensionsSection()
     m_pixelWidthSpinBox->setFixedWidth(pixelSpinBoxWidth);
     m_pixelWidthSpinBox->setRange(100, 10000000);
     m_pixelWidthSpinBox->setSingleStep(1);
-    m_pixelWidthSpinBox->setValue(2560);
     QObject::connect(m_pixelWidthSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(pixelWidthValueChanged(int)));
     
@@ -253,7 +250,6 @@ ImageCaptureDialog::createImageDimensionsSection()
     m_pixelHeightSpinBox->setFixedWidth(pixelSpinBoxWidth);
     m_pixelHeightSpinBox->setRange(100, 10000000);
     m_pixelHeightSpinBox->setSingleStep(1);
-    m_pixelHeightSpinBox->setValue(2048);
     QObject::connect(m_pixelHeightSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(pixelHeightValueChanged(int)));
     
@@ -264,7 +260,6 @@ ImageCaptureDialog::createImageDimensionsSection()
     m_imageWidthSpinBox->setFixedWidth(imageSpinBoxWidth);
     m_imageWidthSpinBox->setRange(0.01, 100000000.0);
     m_imageWidthSpinBox->setSingleStep(0.1);
-    m_imageWidthSpinBox->setValue(2048);
     QObject::connect(m_imageWidthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(imageWidthValueChanged(double)));
     
@@ -272,7 +267,6 @@ ImageCaptureDialog::createImageDimensionsSection()
     m_imageHeightSpinBox->setFixedWidth(imageSpinBoxWidth);
     m_imageHeightSpinBox->setRange(0.01, 100000000.0);
     m_imageHeightSpinBox->setSingleStep(0.1);
-    m_imageHeightSpinBox->setValue(2048);
     QObject::connect(m_imageHeightSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(imageHeightValueChanged(double)));
     
@@ -280,7 +274,6 @@ ImageCaptureDialog::createImageDimensionsSection()
     m_imageResolutionSpinBox->setFixedWidth(imageSpinBoxWidth);
     m_imageResolutionSpinBox->setRange(0.01, 1000000);
     m_imageResolutionSpinBox->setSingleStep(1);
-    m_imageResolutionSpinBox->setValue(72);
     QObject::connect(m_imageResolutionSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(imageResolutionValueChanged(double)));
 
@@ -290,11 +283,16 @@ ImageCaptureDialog::createImageDimensionsSection()
                      this, SLOT(imageSizeUnitsEnumComboBoxItemActivated()));
     
     m_imagePixelsPerSpatialUnitsEnumComboBox = new EnumComboBoxTemplate(this);
-    m_imagePixelsPerSpatialUnitsEnumComboBox->setup<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+    m_imagePixelsPerSpatialUnitsEnumComboBox->setup<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
     QObject::connect(m_imagePixelsPerSpatialUnitsEnumComboBox, SIGNAL(itemActivated()),
                     this, SLOT(imageResolutionUnitsEnumComboBoxItemActivated()));
     
     m_scaleProportionallyCheckBox = new QCheckBox("Scale Proportionally");
+    WuQtUtilities::setWordWrappedToolTip(m_scaleProportionallyCheckBox,
+                                         ("If checked, the heights of the pixel and image dimensions "
+                                          "are automatically adjusted so that their proportions "
+                                          "match the proportion of the selected window's "
+                                          "graphics region."));
     QObject::connect(m_scaleProportionallyCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(scaleProportionallyCheckBoxClicked(bool)));
     
@@ -381,9 +379,9 @@ ImageCaptureDialog::createImageDimensionsSection()
     layout->addWidget(m_customDimensionsWidget, 0, Qt::AlignLeft);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(imageBytesWidget);
-    
-    m_imageSizeWindowRadioButton->setChecked(true);
-    sizeRadioButtonClicked(sizeButtonGroup->checkedButton());
+//    
+//    m_imageSizeWindowRadioButton->setChecked(true);
+//    sizeRadioButtonClicked(sizeButtonGroup->checkedButton());
 
     return groupBox;
 }
@@ -395,16 +393,19 @@ ImageCaptureDialog::createImageDimensionsSection()
  *    Button that was clicked.
  */
 void
-ImageCaptureDialog::sizeRadioButtonClicked(QAbstractButton* button)
+ImageCaptureDialog::sizeRadioButtonClicked(QAbstractButton* /*button*/)
 {
-    if (button == m_imageSizeWindowRadioButton) {
-        m_customDimensionsWidget->setEnabled(false);
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    if (m_imageSizeCustomRadioButton->isChecked()) {
+        imageCaptureSettings->setImageCaptureDimensionsMode(ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM);
     }
-    else if (button == m_imageSizeCustomRadioButton) {
-        m_customDimensionsWidget->setEnabled(true);
+    else if (m_imageSizeWindowRadioButton->isChecked()) {
+        imageCaptureSettings->setImageCaptureDimensionsMode(ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE);
     }
     
-    updateImageNumberOfBytesLabel();
+    updateDimensionsSection();
+//    updateDialogWithImageDimensionsModel();
+//    updateImageNumberOfBytesLabel();
 }
 
 /**
@@ -413,7 +414,9 @@ ImageCaptureDialog::sizeRadioButtonClicked(QAbstractButton* button)
 void
 ImageCaptureDialog::imageResolutionUnitsEnumComboBoxItemActivated()
 {
-    updateDialogWithImageDimensionsModel();
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setImageResolutionUnits(m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImageResolutionUnitsEnum, ImageResolutionUnitsEnum::Enum>());
+    updateDimensionsSection();
 }
 
 /**
@@ -422,40 +425,159 @@ ImageCaptureDialog::imageResolutionUnitsEnumComboBoxItemActivated()
 void
 ImageCaptureDialog::imageSizeUnitsEnumComboBoxItemActivated()
 {
-    updateDialogWithImageDimensionsModel();
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setSpatialUnits(m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum, ImageSpatialUnitsEnum::Enum>());
+    updateDimensionsSection();
 }
 
 /**
- * Update the dialog with data from the image dimensions model.
+ * May be called to update the dialog's content.
  */
 void
-ImageCaptureDialog::updateDialogWithImageDimensionsModel()
+ImageCaptureDialog::updateDialog()
 {
-    m_pixelWidthSpinBox->blockSignals(true);
-    m_pixelWidthSpinBox->setValue(m_imageDimensionsModel->getPixelWidth());
-    m_pixelWidthSpinBox->blockSignals(false);
+    updateBrowserWindowWidthAndHeightLabel();
+    
+    updateDimensionsSection();
+    updateImageOptionsSection();
+    updateDestinationSection();
+}
 
+/**
+ * Update the section.
+ */
+void
+ImageCaptureDialog::updateDimensionsSection()
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    
+    CaretAssert(imageCaptureSettings);
+    
+    switch (imageCaptureSettings->getImageCaptureDimensionsMode()) {
+        case ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM:
+            m_imageSizeCustomRadioButton->setChecked(true);
+            m_customDimensionsWidget->setEnabled(true);
+            break;
+        case ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE:
+            m_imageSizeWindowRadioButton->setChecked(true);
+            m_customDimensionsWidget->setEnabled(false);
+            break;
+    }
+    
+    m_pixelWidthSpinBox->blockSignals(true);
+    m_pixelWidthSpinBox->setValue(imageCaptureSettings->getPixelWidth());
+    m_pixelWidthSpinBox->blockSignals(false);
+    
     m_pixelHeightSpinBox->blockSignals(true);
-    m_pixelHeightSpinBox->setValue(m_imageDimensionsModel->getPixelHeight());
+    m_pixelHeightSpinBox->setValue(imageCaptureSettings->getPixelHeight());
     m_pixelHeightSpinBox->blockSignals(false);
     
-    const ImageSpatialUnitsEnum::Enum spatialUnits = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
-    const ImagePixelsPerSpatialUnitsEnum::Enum pixelsPerSpatialUnit = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+    m_scaleProportionallyCheckBox->setChecked(imageCaptureSettings->isScaleProportionately());
     
     m_imageWidthSpinBox->blockSignals(true);
-    m_imageWidthSpinBox->setValue(m_imageDimensionsModel->getSpatialWidth(spatialUnits));
+    m_imageWidthSpinBox->setValue(imageCaptureSettings->getSpatialWidth());
     m_imageWidthSpinBox->blockSignals(false);
     
     m_imageHeightSpinBox->blockSignals(true);
-    m_imageHeightSpinBox->setValue(m_imageDimensionsModel->getSpatialHeight(spatialUnits));
+    m_imageHeightSpinBox->setValue(imageCaptureSettings->getSpatialHeight());
     m_imageHeightSpinBox->blockSignals(false);
     
     m_imageResolutionSpinBox->blockSignals(true);
-    m_imageResolutionSpinBox->setValue(m_imageDimensionsModel->getNumberOfPixelsPerSpatialUnit(pixelsPerSpatialUnit));
+    m_imageResolutionSpinBox->setValue(imageCaptureSettings->getImageResolutionInSelectedUnits());
     m_imageResolutionSpinBox->blockSignals(false);
     
+    m_imageSpatialUnitsEnumComboBox->setSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>(imageCaptureSettings->getSpatialUnits());
+   
+    m_imagePixelsPerSpatialUnitsEnumComboBox->setSelectedItem<ImageResolutionUnitsEnum, ImageResolutionUnitsEnum::Enum>(imageCaptureSettings->getImageResolutionUnits());
+
+    AString windowSizeText = "Size of Window";
+    
+    int32_t width;
+    int32_t height;
+    float aspectRatio;
+    if (getSelectedWindowWidthAndHeight(width,
+                                        height,
+                                        aspectRatio)) {
+        windowSizeText += (" ("
+                           + AString::number(width)
+                           + " x "
+                           + AString::number(height)
+                           + " pixels)");
+        
+        if (imageCaptureSettings->isScaleProportionately()) {
+            imageCaptureSettings->updateForAspectRatio(width,
+                                                         height);
+        }
+        
+        CaretAssert(m_imageDimensionsWidget);
+        m_imageDimensionsWidget->setEnabled(true);
+    }
+    else {
+        windowSizeText += (" (Invalid Window Number)");
+        
+        CaretAssert(m_imageDimensionsWidget);
+        m_imageDimensionsWidget->setEnabled(false);
+    }
+    
+    m_imageSizeWindowRadioButton->setText(windowSizeText);
+
     updateImageNumberOfBytesLabel();
 }
+
+/**
+ * Update the section.
+ */
+void
+ImageCaptureDialog::updateImageOptionsSection()
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    CaretAssert(imageCaptureSettings);
+    
+    m_imageAutoCropCheckBox->setChecked(imageCaptureSettings->isCroppingEnabled());
+    m_imageAutoCropMarginSpinBox->blockSignals(true);
+    m_imageAutoCropMarginSpinBox->setValue(imageCaptureSettings->getCroppingMargin());
+    m_imageAutoCropMarginSpinBox->blockSignals(false);
+}
+
+/**
+ * Update the section.
+ */
+void
+ImageCaptureDialog::updateDestinationSection()
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    CaretAssert(imageCaptureSettings);
+    
+    m_copyImageToClipboardCheckBox->setChecked(imageCaptureSettings->isCopyToClipboardEnabled());
+    m_saveImageToFileCheckBox->setChecked(imageCaptureSettings->isSaveToFileEnabled());
+    m_imageFileNameLineEdit->setText(imageCaptureSettings->getImageFileName());
+}
+
+
+///**
+// * Update the dialog with data from the image dimensions model.
+// */
+//void
+//ImageCaptureDialog::updateDialogWithImageDimensionsModel()
+//{
+//    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+//    const ImageCaptureDimensionsModeEnum::Enum captureMode = imageCaptureSettings->getImageCaptureDimensionsMode();
+//    switch (captureMode) {
+//        case ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM:
+//            m_imageSizeCustomRadioButton->setChecked(true);
+//            m_customDimensionsWidget->setEnabled(true);
+//            break;
+//        case ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE:
+//            m_imageSizeWindowRadioButton->setChecked(true);
+//            m_customDimensionsWidget->setEnabled(false);
+//            break;
+//    }
+//    
+//    m_scaleProportionallyCheckBox->setChecked(imageCaptureSettings->isScaleProportionately());
+//    
+//    
+//    updateImageNumberOfBytesLabel();
+//}
 
 /**
  * Update the image number of bytes label.
@@ -493,6 +615,47 @@ ImageCaptureDialog::updateImageNumberOfBytesLabel()
     }
 }
 
+/**
+ * Update the radio containing the size of the window.
+ */
+void
+ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    AString windowSizeText = "Size of Window";
+    
+    int32_t width;
+    int32_t height;
+    float aspectRatio;
+    if (getSelectedWindowWidthAndHeight(width,
+                                        height,
+                                        aspectRatio)) {
+        windowSizeText += (" ("
+                           + AString::number(width)
+                           + " x "
+                           + AString::number(height)
+                           + " pixels)");
+        
+        if (m_scaleProportionallyCheckBox->isChecked()) {
+            imageCaptureSettings->updateForAspectRatio(width,
+                                                         height);
+        }
+        
+        updateDimensionsSection();
+        
+        CaretAssert(m_imageDimensionsWidget);
+        m_imageDimensionsWidget->setEnabled(true);
+    }
+    else {
+        windowSizeText += (" (Invalid Window Number)");
+        
+        CaretAssert(m_imageDimensionsWidget);
+        m_imageDimensionsWidget->setEnabled(false);
+    }
+    
+    m_imageSizeWindowRadioButton->setText(windowSizeText);
+    
+}
 
 /**
  * Called when pixel width value is changed.
@@ -503,9 +666,9 @@ ImageCaptureDialog::updateImageNumberOfBytesLabel()
 void
 ImageCaptureDialog::pixelWidthValueChanged(int value)
 {
-    m_imageDimensionsModel->setPixelWidth(value,
-                                          m_scaleProportionallyCheckBox->isChecked());
-    updateDialogWithImageDimensionsModel();
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setPixelWidth(value);
+    updateDimensionsSection();
 }
 
 /**
@@ -517,9 +680,9 @@ ImageCaptureDialog::pixelWidthValueChanged(int value)
 void
 ImageCaptureDialog::pixelHeightValueChanged(int value)
 {
-    m_imageDimensionsModel->setPixelHeight(value,
-                                          m_scaleProportionallyCheckBox->isChecked());
-    updateDialogWithImageDimensionsModel();
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setPixelHeight(value);
+    updateDimensionsSection();
 }
 
 /**
@@ -531,12 +694,10 @@ ImageCaptureDialog::pixelHeightValueChanged(int value)
 void
 ImageCaptureDialog::imageWidthValueChanged(double value)
 {
-    const ImageSpatialUnitsEnum::Enum spatialUnits = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
-    m_imageDimensionsModel->setSpatialWidth(value,
-                                            spatialUnits,
-                                            m_scaleProportionallyCheckBox->isChecked());
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setSpatialWidth(value);
 
-    updateDialogWithImageDimensionsModel();
+    updateDimensionsSection();
 }
 
 /**
@@ -548,12 +709,10 @@ ImageCaptureDialog::imageWidthValueChanged(double value)
 void
 ImageCaptureDialog::imageHeightValueChanged(double value)
 {
-    const ImageSpatialUnitsEnum::Enum spatialUnits = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
-    m_imageDimensionsModel->setSpatialHeight(value,
-                                            spatialUnits,
-                                            m_scaleProportionallyCheckBox->isChecked());
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setSpatialHeight(value);
     
-    updateDialogWithImageDimensionsModel();
+    updateDimensionsSection();
 }
 
 /**
@@ -565,12 +724,10 @@ ImageCaptureDialog::imageHeightValueChanged(double value)
 void
 ImageCaptureDialog::imageResolutionValueChanged(double value)
 {
-    const ImagePixelsPerSpatialUnitsEnum::Enum pixelsPerSpatialUnit = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setImageResolutionInSelectedUnits(value);
     
-    m_imageDimensionsModel->setNumberOfPixelsPerSpatialUnit(value,
-                                                            pixelsPerSpatialUnit);
-    
-    updateDialogWithImageDimensionsModel();
+    updateDimensionsSection();
     
 }
 
@@ -583,6 +740,9 @@ ImageCaptureDialog::imageResolutionValueChanged(double value)
 void
 ImageCaptureDialog::scaleProportionallyCheckBoxClicked(bool checked)
 {
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setScaleProportionately(checked);
+    
     if (checked) {
         /*
          * Will cause pixel height to change appropriately
@@ -593,11 +753,63 @@ ImageCaptureDialog::scaleProportionallyCheckBoxClicked(bool checked)
         if (getSelectedWindowWidthAndHeight(windowWidth,
                                             windowHeight,
                                             aspectRatio)) {
-            m_imageDimensionsModel->updateForAspectRatio(windowWidth,
+            imageCaptureSettings->updateForAspectRatio(windowWidth,
                                                          windowHeight);
-            updateDialogWithImageDimensionsModel();
+            updateDimensionsSection();
         }
     }
+}
+
+/**
+ * Called when value for cropping margin is changed.
+ *
+ * @parm value
+ *     New value for cropping margin.
+ */
+void
+ImageCaptureDialog::imageCroppingMarginValueChanged(int value)
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setCroppingMargin(value);
+}
+
+/**
+ * Called when scale proportionately check box clicked.
+ *
+ * @parm checked
+ *     New checked status.
+ */
+void
+ImageCaptureDialog::imageCroppingCheckBoxClicked(bool checked)
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setCroppingEnabled(checked);
+}
+
+/**
+ * Called when scale proportionately check box clicked.
+ *
+ * @parm checked
+ *     New checked status.
+ */
+void
+ImageCaptureDialog::copyImageToClipboardCheckBoxClicked(bool checked)
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setCopyToClipboardEnabled(checked);
+}
+
+/**
+ * Called when scale proportionately check box clicked.
+ *
+ * @parm checked
+ *     New checked status.
+ */
+void
+ImageCaptureDialog::saveImageToFileCheckBoxClicked(bool checked)
+{
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setSaveToFileEnabled(checked);
 }
 
 /**
@@ -607,8 +819,11 @@ QWidget*
 ImageCaptureDialog::createImageDestinationSection()
 {
     m_copyImageToClipboardCheckBox = new QCheckBox("Copy to Clipboard");
-    m_copyImageToClipboardCheckBox->setChecked(true);
+    QObject::connect(m_copyImageToClipboardCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(copyImageToClipboardCheckBoxClicked(bool)));
     m_saveImageToFileCheckBox = new QCheckBox("Save to File: " );
+    QObject::connect(m_saveImageToFileCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(saveImageToFileCheckBoxClicked(bool)));
     m_imageFileNameLineEdit = new QLineEdit();
     m_imageFileNameLineEdit->setText("untitled.png");
     QPushButton* fileNameSelectionPushButton = new QPushButton("Choose File...");
@@ -647,47 +862,6 @@ ImageCaptureDialog::receiveEvent(Event* event)
 }
 
 /**
- * Update the radio containing the size of the window.
- */
-void
-ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
-{
-    AString windowSizeText = "Size of Window";
-    
-    int32_t width;
-    int32_t height;
-    float aspectRatio;
-    if (getSelectedWindowWidthAndHeight(width,
-                                        height,
-                                        aspectRatio)) {
-        windowSizeText += (" ("
-                           + AString::number(width)
-                           + " x "
-                           + AString::number(height)
-                           + " pixels)");
-        
-        if (m_scaleProportionallyCheckBox->isChecked()) {
-            m_imageDimensionsModel->updateForAspectRatio(width,
-                                                         height);
-        }
-        
-        updateDialogWithImageDimensionsModel();
-        
-        CaretAssert(m_imageDimensionsWidget);
-        m_imageDimensionsWidget->setEnabled(true);
-    }
-    else {
-        windowSizeText += (" (Invalid Window Number)");
-
-        CaretAssert(m_imageDimensionsWidget);
-        m_imageDimensionsWidget->setEnabled(false);
-    }
-    
-    m_imageSizeWindowRadioButton->setText(windowSizeText);
-    
-}
-
-/**
  * Get the width and height of the selected window.
  *
  * @param widthOut
@@ -722,15 +896,6 @@ ImageCaptureDialog::getSelectedWindowWidthAndHeight(int32_t& widthOut,
     return false;
 }
 
-
-/**
- * May be called to update the dialog's content.
- */
-void 
-ImageCaptureDialog::updateDialog()
-{
-    updateBrowserWindowWidthAndHeightLabel();
-}
 
 /**
  * Set the selected browser window to the browser window with the
@@ -783,7 +948,9 @@ ImageCaptureDialog::selectImagePushButtonPressed()
                                                   filters,
                                                   &defaultFileFilter);
     if (name.isEmpty() == false) {
-        m_imageFileNameLineEdit->setText(name.trimmed());
+        ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+        imageCaptureSettings->setImageFileName(name);
+        updateDestinationSection();
     }
 }
 
@@ -793,6 +960,7 @@ ImageCaptureDialog::selectImagePushButtonPressed()
 void
 ImageCaptureDialog::applyButtonClicked()
 {
+    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     const int browserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     
     /*
@@ -828,15 +996,17 @@ ImageCaptureDialog::applyButtonClicked()
         ImageFile imageFile;
         imageFile.setFromQImage(imageCaptureEvent.getImage());
         
-        const float pixelsPerCentimeter = m_imageDimensionsModel->getNumberOfPixelsPerSpatialUnit(ImagePixelsPerSpatialUnitsEnum::PIXEL_PER_CENTIMETER);
+        const float pixelsPerCentimeter = imageCaptureSettings->getImageResolutionInCentimeters();
         const float pixelsPerMeter = pixelsPerCentimeter * 100;
         
         imageFile.setDotsPerMeter(pixelsPerMeter,
                                   pixelsPerMeter);
         
-        if (m_imageAutoCropCheckBox->isChecked()) {
-            const int marginSize = m_imageAutoCropMarginSpinBox->value();
-            imageFile.cropImageRemoveBackground(marginSize, backgroundColor);
+        
+        if (imageCaptureSettings->isCroppingEnabled()) {
+            const int32_t marginSize = imageCaptureSettings->getCroppingMargin();
+            imageFile.cropImageRemoveBackground(marginSize,
+                                                backgroundColor);
         }
         
         if (m_copyImageToClipboardCheckBox->isChecked()) {
