@@ -189,7 +189,16 @@ BrainOpenGLWidget::initializeGL()
         this->openGL = new BrainOpenGLFixedPipeline(createTextRenderer());
     }
     else {
-        
+        /*
+         * You would think Qt would need to call initializedGL() only once.
+         * However, if QGLWidget::renderPixmap() is called, it calls
+         * this method since it needs to create a new OpenGL context.
+         * Since the OpenGL context contains textures (and the font
+         * rendering may use textures), The text renderer must be
+         * recreated.  Otherwise, fonts will be garbage in the
+         * image produced by QGLWidget::renderPixmap().
+         */
+        this->openGL->setTextRenderer(createTextRenderer());
     }
     
     this->openGL->initializeOpenGL();
@@ -265,6 +274,7 @@ BrainOpenGLWidget::getOpenGLInformation()
              + AString::number(numVertexBuffers)
              + " vertex buffers are allocated");
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    info += "\n";
     
     return info;
 }
@@ -1644,9 +1654,17 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
             break;
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP:
         {
+            /*
+             * Note: QGLWidget::renderPixmap() creates a new OpenGL
+             * Context which destroys any textures in the existing
+             * OpenGL context.  So, after execution of 
+             * QGLWidget::renderPixmap(), we need to create a
+             * new text renderer.
+             */
             QPixmap pixmap = this->renderPixmap(imageSizeX,
                                                 imageSizeY);
             image = pixmap.toImage();
+            this->openGL->setTextRenderer(createTextRenderer());
         }
             break;
     }
