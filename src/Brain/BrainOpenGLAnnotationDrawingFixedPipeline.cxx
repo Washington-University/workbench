@@ -311,7 +311,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
     
     bool boundsValid = false;
     if (textFlag) {
-        m_brainOpenGLFixedPipeline->textRenderer->getBoundsForTextAtViewportCoords(*textAnnotation,
+        m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*textAnnotation,
                                                                                    windowXYZ[0], windowXYZ[1], windowXYZ[2],
                                                                                    bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
         
@@ -1084,7 +1084,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     float bottomRight[3];
     float topRight[3];
     float topLeft[3];
-    m_brainOpenGLFixedPipeline->textRenderer->getBoundsForTextAtViewportCoords(*text,
+    m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*text,
                                                                                windowXYZ[0], windowXYZ[1], windowXYZ[2],
                                                                                bottomLeft, bottomRight, topRight, topLeft);
 
@@ -1148,7 +1148,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             
             if (drawForegroundFlag) {
                 if (depthTestFlag) {
-                    m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
+                    m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowXYZ[0],
                                                                                        windowXYZ[1],
                                                                                        windowXYZ[2],
                                                                                        *text);
@@ -1179,7 +1179,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                         }
                     }
                     else {
-                        m_brainOpenGLFixedPipeline->textRenderer->drawTextAtViewportCoords(windowXYZ[0],
+                        m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowXYZ[0],
                                                                                            windowXYZ[1],
                                                                                            *text);
                     }

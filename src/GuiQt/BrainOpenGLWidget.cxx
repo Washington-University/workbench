@@ -91,36 +91,36 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->openGL = NULL;
     this->borderBeingDrawn = new Border();
 
-    this->textRenderer = NULL;
+//    this->textRenderer = NULL;
     
-    /*
-     * Create a FTGL font renderer
-     */
-    if (this->textRenderer == NULL){
-        this->textRenderer = new FtglFontTextRenderer();
-        if ( ! this->textRenderer->isValid()) {
-            CaretLogWarning("Failed to create FTGL text renderer.");
-            delete this->textRenderer;
-            this->textRenderer = NULL;
-        }
-    }
-    
-    /*
-     * Create a Qt text renderer
-     */
-    if (this->textRenderer == NULL) {
-        this->textRenderer = new QGLWidgetTextRenderer(this);
-        if ( ! this->textRenderer->isValid()) {
-            CaretLogWarning("Failed to create Qt text renderer.");
-            delete this->textRenderer;
-            this->textRenderer = NULL;
-        }
-    }
-    
-    if (this->textRenderer == NULL) {
-        CaretLogSevere("Unable to create a text renderer for OpenGL.");
-        this->textRenderer = new DummyFontTextRenderer();
-    }
+//    /*
+//     * Create a FTGL font renderer
+//     */
+//    if (this->textRenderer == NULL){
+//        this->textRenderer = new FtglFontTextRenderer();
+//        if ( ! this->textRenderer->isValid()) {
+//            CaretLogWarning("Failed to create FTGL text renderer.");
+//            delete this->textRenderer;
+//            this->textRenderer = NULL;
+//        }
+//    }
+//    
+//    /*
+//     * Create a Qt text renderer
+//     */
+//    if (this->textRenderer == NULL) {
+//        this->textRenderer = new QGLWidgetTextRenderer(this);
+//        if ( ! this->textRenderer->isValid()) {
+//            CaretLogWarning("Failed to create Qt text renderer.");
+//            delete this->textRenderer;
+//            this->textRenderer = NULL;
+//        }
+//    }
+//    
+//    if (this->textRenderer == NULL) {
+//        CaretLogSevere("Unable to create a text renderer for OpenGL.");
+//        this->textRenderer = new DummyFontTextRenderer();
+//    }
     
     this->windowIndex = windowIndex;
     this->userInputAnnotationsModeProcessor = new UserInputModeAnnotations(windowIndex);
@@ -163,11 +163,6 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     
     this->clearDrawingViewportContents();
     
-    if (this->textRenderer != NULL) {
-        delete this->textRenderer;
-        this->textRenderer = NULL;
-    }
-    
     if (this->openGL != NULL) {
         delete this->openGL;
         this->openGL = NULL;
@@ -191,8 +186,12 @@ void
 BrainOpenGLWidget::initializeGL()
 {
     if (this->openGL == NULL) {
-        this->openGL = new BrainOpenGLFixedPipeline(this->textRenderer); //GuiManager::get()->getBrainOpenGL();
+        this->openGL = new BrainOpenGLFixedPipeline(createTextRenderer());
     }
+    else {
+        
+    }
+    
     this->openGL->initializeOpenGL();
     
     this->lastMouseX = 0;
@@ -201,37 +200,8 @@ BrainOpenGLWidget::initializeGL()
 
     this->setFocusPolicy(Qt::StrongFocus);
     
-    QGLFormat format = this->format();
-    
-    AString msg = ("OpenGL Context:"
-                   "\n   Accum: " + AString::fromBool(format.accum())
-                   + "\n   Accum size: " + AString::number(format.accumBufferSize())
-                   + "\n   Alpha: " + AString::fromBool(format.alpha())
-                   + "\n   Alpha size: " + AString::number(format.alphaBufferSize())
-                   + "\n   Depth: " + AString::fromBool(format.depth())
-                   + "\n   Depth size: " + AString::number(format.depthBufferSize())
-                   + "\n   Direct Rendering: " + AString::fromBool(format.directRendering())
-                   + "\n   Red size: " + AString::number(format.redBufferSize())
-                   + "\n   Green size: " + AString::number(format.greenBufferSize())
-                   + "\n   Blue size: " + AString::number(format.blueBufferSize())
-                   + "\n   Double Buffer: " + AString::fromBool(format.doubleBuffer())
-                   + "\n   RGBA: " + AString::fromBool(format.rgba())
-                   + "\n   Samples: " + AString::fromBool(format.sampleBuffers())
-                   + "\n   Samples size: " + AString::number(format.samples())
-                   + "\n   Stencil: " + AString::fromBool(format.stencil())
-                   + "\n   Stencil size: " + AString::number(format.stencilBufferSize())
-                   + "\n   Swap Interval: " + AString::number(format.swapInterval())
-                   + "\n   Stereo: " + AString::fromBool(format.stereo())
-                   + "\n   Major Version: " + AString::number(format.majorVersion())
-                   + "\n   Minor Version: " + AString::number(format.minorVersion()));
-            
-    msg += ("\n\n" + this->openGL->getOpenGLInformation());
 
-    CaretLogConfig(msg);
-    
-    if (m_openGLVersionInformation.isEmpty()) {
-        m_openGLVersionInformation = msg;
-    }
+    CaretLogConfig(getOpenGLInformation());
     
     if (s_defaultGLFormatInitialized == false) {
         CaretLogSevere("PROGRAM ERROR: The default QGLFormat has not been set.\n"
@@ -246,7 +216,32 @@ BrainOpenGLWidget::initializeGL()
 QString
 BrainOpenGLWidget::getOpenGLInformation()
 {
-    AString info = m_openGLVersionInformation;
+    AString info;
+    
+    QGLFormat format = this->format();
+    info += ("OpenGL Context:"
+             "\n   Accum: " + AString::fromBool(format.accum())
+             + "\n   Accum size: " + AString::number(format.accumBufferSize())
+             + "\n   Alpha: " + AString::fromBool(format.alpha())
+             + "\n   Alpha size: " + AString::number(format.alphaBufferSize())
+             + "\n   Depth: " + AString::fromBool(format.depth())
+             + "\n   Depth size: " + AString::number(format.depthBufferSize())
+             + "\n   Direct Rendering: " + AString::fromBool(format.directRendering())
+             + "\n   Red size: " + AString::number(format.redBufferSize())
+             + "\n   Green size: " + AString::number(format.greenBufferSize())
+             + "\n   Blue size: " + AString::number(format.blueBufferSize())
+             + "\n   Double Buffer: " + AString::fromBool(format.doubleBuffer())
+             + "\n   RGBA: " + AString::fromBool(format.rgba())
+             + "\n   Samples: " + AString::fromBool(format.sampleBuffers())
+             + "\n   Samples size: " + AString::number(format.samples())
+             + "\n   Stencil: " + AString::fromBool(format.stencil())
+             + "\n   Stencil size: " + AString::number(format.stencilBufferSize())
+             + "\n   Swap Interval: " + AString::number(format.swapInterval())
+             + "\n   Stereo: " + AString::fromBool(format.stereo())
+             + "\n   Major Version: " + AString::number(format.majorVersion())
+             + "\n   Minor Version: " + AString::number(format.minorVersion()));
+    
+    info += ("\n\n" + this->openGL->getOpenGLInformation());
     
 #if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
     int32_t numDisplayLists = 0;
@@ -272,6 +267,47 @@ BrainOpenGLWidget::getOpenGLInformation()
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     
     return info;
+}
+
+/**
+ * @return A new text renderer.
+ */
+BrainOpenGLTextRenderInterface*
+BrainOpenGLWidget::createTextRenderer()
+{
+    BrainOpenGLTextRenderInterface* textRendererOut = NULL;
+    
+    /*
+     * Create a FTGL font renderer
+     */
+    if (textRendererOut == NULL){
+        textRendererOut = new FtglFontTextRenderer();
+        if ( ! textRendererOut->isValid()) {
+            CaretLogWarning("Failed to create FTGL text renderer.");
+            delete textRendererOut;
+            textRendererOut = NULL;
+        }
+    }
+    
+    /*
+     * Create a Qt text renderer
+     */
+    if (textRendererOut == NULL) {
+        textRendererOut = new QGLWidgetTextRenderer(this);
+        if ( ! textRendererOut->isValid()) {
+            CaretLogWarning("Failed to create Qt text renderer.");
+            delete textRendererOut;
+            textRendererOut = NULL;
+        }
+    }
+    
+    if (textRendererOut == NULL) {
+        CaretLogSevere("Unable to create a text renderer for OpenGL.  "
+                       "No text will be drawn (dummy text renderer).");
+        textRendererOut = new DummyFontTextRenderer();
+    }
+    
+    return textRendererOut;
 }
 
 /**
@@ -1664,3 +1700,4 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
 }
 
 
+//

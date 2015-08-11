@@ -93,6 +93,10 @@ namespace caret {
          */
         virtual void initializeOpenGL();
         
+        BrainOpenGLTextRenderInterface* getTextRenderer();
+        
+        void setTextRenderer(BrainOpenGLTextRenderInterface* textRenderer);
+        
         /**
          * Draw models in their respective viewports.
          *
@@ -218,9 +222,6 @@ namespace caret {
                                      const GLenum enumValue,
                                      const int32_t numberOfValues) const;
         
-        /** Optional text rendering (if not null) */
-        BrainOpenGLTextRenderInterface* textRenderer;
-        
         Border* borderBeingDrawn;
         
         bool m_drawHighlightedEndPoints;
@@ -263,7 +264,10 @@ namespace caret {
         
         static bool s_supportsVertexBuffers;
         
-        AString m_openGLInformation;
+        /** Optional text rendering (if not null) */
+        BrainOpenGLTextRenderInterface* m_textRenderer;
+        
+        AString m_openGLExtensionsInformation;
     };
 
 #ifdef __BRAIN_OPENGL_DEFINE_H

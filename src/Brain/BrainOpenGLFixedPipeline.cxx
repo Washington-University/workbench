@@ -4896,7 +4896,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
         chartDrawing.drawCartesianChart(m_brain,
                                         this,
                                         viewport,
-                                        this->textRenderer,
+                                        getTextRenderer(),
                                         cartesianChart,
                                         selectionItemDataType,
                                         this->windowTabIndex);
@@ -4906,7 +4906,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
         chartDrawing.drawMatrixChart(m_brain,
                                      this,
                                      viewport,
-                                     this->textRenderer,
+                                     getTextRenderer(),
                                      matrixChartFile,
                                      scalarDataSeriesMapIndex,
                                      selectionItemDataType,
@@ -5769,8 +5769,8 @@ BrainOpenGLFixedPipeline::drawTextAtViewportCoords(const double viewportX,
                                                    const double viewportY,
                                                    const AnnotationText& annotationText)
 {
-    if (this->textRenderer != NULL) {
-        this->textRenderer->drawTextAtViewportCoords(viewportX,
+    if (getTextRenderer() != NULL) {
+        getTextRenderer()->drawTextAtViewportCoords(viewportX,
                                                      viewportY,
                                                      annotationText);
     }
@@ -5797,8 +5797,8 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const double modelX,
                                                 const double modelZ,
                                                 const AnnotationText& annotationText)
 {
-    if (this->textRenderer != NULL) {
-        this->textRenderer->drawTextAtModelCoords(modelX,
+    if (getTextRenderer() != NULL) {
+        getTextRenderer()->drawTextAtModelCoords(modelX,
                                                   modelY,
                                                   modelZ,
                                                   annotationText);
@@ -5818,8 +5818,8 @@ void
 BrainOpenGLFixedPipeline::drawTextAtModelCoords(const double modelXYZ[3],
                                                 const AnnotationText& annotationText)
 {
-    if (this->textRenderer != NULL) {
-        this->textRenderer->drawTextAtModelCoords(modelXYZ,
+    if (getTextRenderer() != NULL) {
+        getTextRenderer()->drawTextAtModelCoords(modelXYZ,
                                                   annotationText);
     }
 }
@@ -5837,8 +5837,8 @@ void
 BrainOpenGLFixedPipeline::drawTextAtModelCoords(const float modelXYZ[3],
                                                 const AnnotationText& annotationText)
 {
-    if (this->textRenderer != NULL) {
-        this->textRenderer->drawTextAtModelCoords(modelXYZ,
+    if (getTextRenderer() != NULL) {
+        getTextRenderer()->drawTextAtModelCoords(modelXYZ,
                                                   annotationText);
     }
 }

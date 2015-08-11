@@ -118,6 +118,9 @@ namespace caret {
         virtual void wheelEvent(QWheelEvent* e);
         
     private:
+        
+        BrainOpenGLTextRenderInterface* createTextRenderer();
+        
         void clearDrawingViewportContents();
         
         BrainOpenGLViewportContent* getViewportContentAtXY(const int x,
@@ -164,8 +167,6 @@ namespace caret {
         
         bool m_newKeyPressStartedFlag;
         
-        BrainOpenGLTextRenderInterface* textRenderer;
-        
         UserInputModeAbstract* selectedUserInputProcessor;
         UserInputModeAnnotations* userInputAnnotationsModeProcessor;
         UserInputModeView* userInputViewModeProcessor;
@@ -176,8 +177,6 @@ namespace caret {
         Border* borderBeingDrawn;
         
         static bool s_defaultGLFormatInitialized;
-        
-        QString m_openGLVersionInformation;
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
