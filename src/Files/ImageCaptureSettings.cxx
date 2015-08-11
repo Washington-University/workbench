@@ -44,7 +44,8 @@ using namespace caret;
  * Constructor.
  */
 ImageCaptureSettings::ImageCaptureSettings()
-: CaretObject()
+: CaretObject(),
+SceneableInterface()
 {
     m_aspectRatio = 1.0;
     m_pixelsPerCentimeter = 72.0 / CENTIMETERS_PER_INCH;
@@ -110,7 +111,8 @@ ImageCaptureSettings::~ImageCaptureSettings()
  *    Object that is copied.
  */
 ImageCaptureSettings::ImageCaptureSettings(const ImageCaptureSettings& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperImageDimensionsModel(obj);
 }
