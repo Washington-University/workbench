@@ -513,11 +513,13 @@ UserInputModeBorders::mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent)
  *     OpenGL widget in which context menu is requested
  */
 void
-UserInputModeBorders::showContextMenu(const MouseEvent& /*mouseEvent*/,
-                                      const QPoint& /*menuPosition*/,
-                                      BrainOpenGLWidget* /*openGLWidget*/)
+UserInputModeBorders::showContextMenu(const MouseEvent& mouseEvent,
+                                      const QPoint& menuPosition,
+                                      BrainOpenGLWidget* openGLWidget)
 {
-    /* no context menu */
+    UserInputModeView::showContextMenu(mouseEvent,
+                                       menuPosition,
+                                       openGLWidget);
 }
 
 
