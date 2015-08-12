@@ -94,21 +94,43 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
     switch (request.m_method)
     {
     case POST:
-        for (int32_t i = 0; i < (int32_t)request.m_arguments.size(); ++i)
         {
-            if (!first) postData += "&";
-            if (request.m_arguments[i].second == "")
+            for (int32_t i = 0; i < (int32_t)request.m_arguments.size(); ++i)
             {
-                postData += request.m_arguments[i].first;
-            } else {
-                postData += request.m_arguments[i].first + "=" + request.m_arguments[i].second;
+                if (!first) postData += "&";
+                if (request.m_arguments[i].second == "")
+                {
+                    postData += request.m_arguments[i].first;
+                } else {
+                    postData += request.m_arguments[i].first + "=" + request.m_arguments[i].second;
+                }
+                first = false;
             }
-            first = false;
+            myRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+            myRequest.setUrl(myUrl);
+            
+            const bool showHeaderValues = false;
+            if (showHeaderValues) {
+                AString requestInfo;
+                QList<QByteArray> readHeaderList = myRequest.rawHeaderList();
+                const int numItems = readHeaderList.size();
+                if (numItems > 0) {
+                    requestInfo.appendWithNewLine("Post URL Header: ");
+                    for (int32_t i = 0; i < numItems; i++) {
+                        const QByteArray headerName = readHeaderList.at(i);
+                        if ( ! headerName.isEmpty()) {
+                            const QByteArray headerValue = myRequest.rawHeader(headerName);
+                            requestInfo.appendWithNewLine("      Name: " + QString(headerName));
+                            requestInfo.appendWithNewLine("      Value: " + QString(headerValue));
+                        }
+                    }
+                    CaretLogInfo(requestInfo);
+                }
+            }
+            
+            myReply = myQNetMgr->post(myRequest, postData);
+            CaretLogInfo("POST URL: " + myUrl.toString());
         }
-        myRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-        myRequest.setUrl(myUrl);
-        CaretLogInfo("POST URL: " + myUrl.toString());
-        myReply = myQNetMgr->post(myRequest, postData);
         break;
     case GET:
         for (int32_t i = 0; i < (int32_t)request.m_arguments.size(); ++i)
