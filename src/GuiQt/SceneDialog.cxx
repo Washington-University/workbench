@@ -54,6 +54,8 @@
 #include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventDataFileAdd.h"
+#include "EventDataFileRead.h"
+#include "EventDataFileReload.h"
 #include "EventImageCapture.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -119,9 +121,19 @@ SceneDialog::SceneDialog(QWidget* parent)
      */
     updateDialog();
     
-    EventManager::get()->addEventListener(this, 
+    EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 
+    /*
+     * Need to use a "processed" event listener for file read and reload events
+     * so that our receiveEvent() method is called after the files have been 
+     * read.
+     */
+    EventManager::get()->addProcessedEventListener(this,
+                                                   EventTypeEnum::EVENT_DATA_FILE_READ);
+    EventManager::get()->addProcessedEventListener(this,
+                                                   EventTypeEnum::EVENT_DATA_FILE_RELOAD);
+    
     resize(650,
            500);
 }
@@ -1140,6 +1152,8 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
 void
 SceneDialog::receiveEvent(Event* event)
 {
+    SceneFile* lastSceneFileRead = NULL;
+    
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* uiEvent =
         dynamic_cast<EventUserInterfaceUpdate*>(event);
@@ -1147,6 +1161,46 @@ SceneDialog::receiveEvent(Event* event)
 
         updateDialog();
         uiEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_READ) {
+        EventDataFileRead* readEvent =
+        dynamic_cast<EventDataFileRead*>(event);
+        CaretAssert(readEvent);
+        
+        /*
+         * Determine if a scene file was read
+         */
+        const int32_t numFilesRead = readEvent->getNumberOfDataFilesToRead();
+        for (int32_t i = (numFilesRead - 1); i >= 0; i--) {
+            if ( ! readEvent->isFileError(i)) {
+                if (readEvent->getDataFileType(i) == DataFileTypeEnum::SCENE) {
+                    CaretDataFile* dataFileRead = readEvent->getDataFileRead(i);
+                    lastSceneFileRead = dynamic_cast<SceneFile*>(dataFileRead);
+                    if (lastSceneFileRead != NULL) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_RELOAD) {
+        EventDataFileReload* reloadEvent =
+        dynamic_cast<EventDataFileReload*>(event);
+        CaretAssert(reloadEvent);
+        
+        if ( ! reloadEvent->isError()) {
+            CaretDataFile* dataFileRead = reloadEvent->getCaretDataFile();
+            lastSceneFileRead = dynamic_cast<SceneFile*>(dataFileRead);
+        }
+    }
+    
+    /*
+     * If a scene file was read, make it the selected scene file
+     * in this dialog.
+     */
+    if (lastSceneFileRead != NULL) {
+        loadSceneFileComboBox(lastSceneFileRead);
+        loadScenesIntoDialog(NULL);
     }
 }
 
