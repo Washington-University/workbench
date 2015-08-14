@@ -635,11 +635,8 @@ BrainOpenGLWidget::paintGL()
         this->drawingViewportContents.push_back(vc);
     }
     else if (numToDraw > 1) {
-        //int32_t numRows = 0;
-        //int32_t numCols = 0;
-        
-        const int32_t windowWidth = this->windowWidth[this->windowIndex];
-        const int32_t windowHeight = this->windowHeight[this->windowIndex];
+        const int32_t windowWidth  = windowViewport[2];
+        const int32_t windowHeight = windowViewport[3];
         
         std::vector<int32_t> rowHeights;
         std::vector<int32_t> columnsWidths;
@@ -665,57 +662,13 @@ BrainOpenGLWidget::paintGL()
         /*
          * Create the viewport drawing contents for all tabs
          */
-//  REPOSITORY keep !!!
     std::vector<BrowserTabContent*> allTabs;
         for (int32_t i = 0; i < getModelEvent.getNumberOfItemsToDraw(); i++) {
             allTabs.push_back(getModelEvent.getTabContentToDraw(i));
-//  ANNOTATIONS
-//        int32_t vpX = 0;
-//        int32_t vpY = this->windowHeight[this->windowIndex];
-//        
-//        int32_t iModel = 0;
-//        for (int32_t i = 0; i < numRows; i++) {
-//            const int32_t vpHeight = rowHeights[i];
-//            vpX = 0;
-//            vpY -= vpHeight;
-//            for (int32_t j = 0; j < numCols; j++) {
-//                const int32_t vpWidth = columnsWidths[j];
-//                if (iModel < numToDraw) {
-//                    const int modelViewport[4] = {
-//                        vpX,
-//                        vpY,
-//                        vpWidth,
-//                        vpHeight
-//                    };
-//                    
-//                    BrowserTabContent* tabContent = getModelEvent.getTabContentToDraw(iModel);
-//                    const bool highlightTab = (getModelEvent.getTabIndexForTileTabsHighlighting() == tabContent->getTabNumber());
-//                    BrainOpenGLViewportContent* vc =
-//                    new BrainOpenGLViewportContent(windowViewport,
-//                                                   modelViewport,
-//                                                   highlightTab,
-//                                                   GuiManager::get()->getBrain(),
-//                                                   tabContent);
-//                    this->drawingViewportContents.push_back(vc);
-//                }
-//                iModel++;
-//                vpX += vpWidth;
-//                
-//                if (iModel >= numToDraw) {
-//                    /*
-//                     * More cells than models for drawing so set loop
-//                     * indices so that loops terminate
-//                     */
-//                    j = numCols;
-//                    i = numRows;
-//                }
-//            }
-//  ANNOTATIONS Continuing annotation development.  Testing annotations in different 'spaces'.
         }
         this->drawingViewportContents = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
                                                                                                      this->windowIndex,
-                                                                                                     windowWidth,
-                                                                                                     windowHeight,
+                                                                                                     windowViewport,
                                                                                                      rowHeights,
                                                                                                      columnsWidths,
                                                                                                      getModelEvent.getTabIndexForTileTabsHighlighting());

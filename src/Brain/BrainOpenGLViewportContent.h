@@ -55,10 +55,12 @@ namespace caret {
         
         bool isTabHighlighted() const;
         
+        static void adjustViewportForAspectRatio(int viewport[4],
+                                                 const float aspectRatio);
+        
         static std::vector<BrainOpenGLViewportContent*> createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
                                                                                          const int32_t windowIndex,
-                                                                                         const int32_t windowWidth,
-                                                                                         const int32_t windowHeight,
+                                                                                         const int32_t windowViewport[4],
                                                                                          const std::vector<int32_t>& rowHeights,
                                                                                          const std::vector<int32_t>& columnWidths,
                                                                                          const int32_t highlightTabIndex);

@@ -3036,6 +3036,19 @@ BrainBrowserWindow::processHcpFeatureRequestWebsiteInBrowser()
 }
 
 /**
+ * @rerturn Aspect ratio of the OpenGL widget.
+ */
+float
+BrainBrowserWindow::getOpenGLWidgetAspectRatio() const
+{
+    const float w = this->m_openGLWidget->width();
+    const float h = this->m_openGLWidget->height();
+    
+    const float aspectRatio = ((w != 0.0) ? (h / w) : 1.0);
+    return aspectRatio;
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes

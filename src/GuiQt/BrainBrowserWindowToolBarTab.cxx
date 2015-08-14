@@ -24,8 +24,10 @@
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_TAB_DECLARE__
 
 #include <QLabel>
+#include <QCheckBox>
 #include <QVBoxLayout>
 
+#include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -64,10 +66,15 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
+    m_aspectRatioLockedCheckBox = new QCheckBox("Lock Aspect");
+    QObject::connect(m_aspectRatioLockedCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(aspectRatioCheckBoxClicked(bool)));
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     layout->addWidget(yokeToLabel);
     layout->addWidget(m_yokingGroupComboBox->getWidget());
+    layout->addWidget(m_aspectRatioLockedCheckBox);
     
     addToWidgetGroup(yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
@@ -92,6 +99,8 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     blockAllSignals(true);
     
     m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getYokingGroup());
+    m_aspectRatioLockedCheckBox->setChecked(browserTabContent->isAspectRatioLocked());
+    
     blockAllSignals(false);
 }
 
@@ -111,6 +120,24 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
     
     m_parentToolBar->updateToolBarComponents(browserTabContent);
 
+    this->updateGraphicsWindow();
+}
+
+void
+BrainBrowserWindowToolBarTab::aspectRatioCheckBoxClicked(bool checked)
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    browserTabContent->setAspectRatioLocked(checked);
+    if (checked) {
+        BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+        CaretAssert(bbw);
+        browserTabContent->setAspectRatio(bbw->getOpenGLWidgetAspectRatio());
+    }
+    
     this->updateGraphicsWindow();
 }
 

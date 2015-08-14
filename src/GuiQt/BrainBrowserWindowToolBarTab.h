@@ -25,7 +25,7 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
-
+class QCheckBox;
 
 namespace caret {
     class BrainBrowserWindowToolBar;
@@ -48,6 +48,8 @@ namespace caret {
     private slots:
         void yokeToGroupComboBoxIndexChanged();
         
+        void aspectRatioCheckBoxClicked(bool);
+        
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
@@ -58,6 +60,8 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         BrainBrowserWindowToolBar* m_parentToolBar;
+        
+        QCheckBox* m_aspectRatioLockedCheckBox;
         
         // ADD_NEW_MEMBERS_HERE
 

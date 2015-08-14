@@ -112,7 +112,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
     m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
-
+    m_aspectRatioLockedStatus = false;
+    m_aspectRatio = 1.0;
+    
     m_margin = new Margin();
     
     m_cerebellumViewingTransformation  = new ViewingTransformationsCerebellum();
@@ -179,6 +181,10 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
                                                                    &m_yokingGroup);
+    m_sceneClassAssistant->add("m_aspectRatioLockedStatus",
+                               &m_aspectRatioLockedStatus);
+    m_sceneClassAssistant->add("m_aspectRatio",
+                               &m_aspectRatio);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
@@ -258,6 +264,9 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_clippingPlaneGroup = *tabToClone->m_clippingPlaneGroup;
     
     m_yokingGroup = tabToClone->m_yokingGroup;
+    
+    m_aspectRatioLockedStatus = tabToClone->m_aspectRatioLockedStatus;
+    m_aspectRatio = tabToClone->m_aspectRatio;
     
     *m_cerebellumViewingTransformation = *tabToClone->m_cerebellumViewingTransformation;
     *m_flatSurfaceViewingTransformation = *tabToClone->m_flatSurfaceViewingTransformation;
@@ -3721,5 +3730,48 @@ BrowserTabContent::updateYokedBrowserTabs()
         }
     }
 }
+
+/**
+ * @return Aspect ratio locked status.
+ */
+bool
+BrowserTabContent::isAspectRatioLocked() const
+{
+    return m_aspectRatioLockedStatus;
+}
+
+/**
+ * Set the aspect ratio locked status.
+ *
+ * @param aspectRatio
+ *     New value for aspect ratio locked status.
+ */
+void
+BrowserTabContent::setAspectRatioLocked(const float aspectRatio)
+{
+    m_aspectRatioLockedStatus = aspectRatio;
+}
+
+/**
+ * @return Aspect ratio.
+ */
+float
+BrowserTabContent::getAspectRatio() const
+{
+    return m_aspectRatio;
+}
+
+/**
+ * Set the aspect ratio.
+ *
+ * @param aspectRatio
+ *     New value for aspect ratio.
+ */
+void
+BrowserTabContent::setAspectRatio(const float aspectRatio)
+{
+    m_aspectRatio = aspectRatio;
+}
+
 
 

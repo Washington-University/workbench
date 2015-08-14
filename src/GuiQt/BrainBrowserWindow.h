@@ -125,6 +125,8 @@ namespace caret {
         
         static int32_t loadRecentSpecFileMenu(QMenu* recentSpecFileMenu);
         
+        float getOpenGLWidgetAspectRatio() const;
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);

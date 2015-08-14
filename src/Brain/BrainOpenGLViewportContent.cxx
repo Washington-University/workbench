@@ -23,6 +23,8 @@
 #include "BrainOpenGLViewportContent.h"
 #undef __BRAIN_OPEN_G_L_VIEWPORT_CONTENT_DECLARE__
 
+#include <cmath>
+
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -99,6 +101,11 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
                            + AString::number(right) + ","
                            + AString::number(bottom) + ","
                            + AString::number(top));
+        }
+        
+        if (browserTabContent->isAspectRatioLocked()) {
+            adjustViewportForAspectRatio(m_modelViewport,
+                                         browserTabContent->getAspectRatio());
         }
     }
     
@@ -214,6 +221,55 @@ BrainOpenGLViewportContent::copyHelperBrainOpenGLViewportContent(const BrainOpen
 }
 
 /**
+ * Adjust the given viewport by applying the given aspect ratio.
+ *
+ * Sets the new height to be width * aspect ratio.  If this new height
+ * is too tall, the viewport width and height is scaled down so that 
+ * the height fits the original viewport size and the viewport is
+ * horizontally centered.  If the new height is less than the original
+ * height, the viewport is centered vertically.
+ *
+ * @param viewport
+ *     The viewport
+ * @param aspectRatio
+ *     The aspect ratio (height ~= width * aspect ratio)
+ */
+void
+BrainOpenGLViewportContent::adjustViewportForAspectRatio(int viewport[4],
+                                                         const float aspectRatio)
+{
+    int32_t heightInt = viewport[3];
+    float widthFloat  = viewport[2];
+    float heightFloat = viewport[3];
+    
+    float preferredHeightFloat = std::round(widthFloat * aspectRatio);
+    const int32_t preferredHeightInt = static_cast<int32_t>(preferredHeightFloat);
+    if (heightInt == preferredHeightInt) {
+        /*
+         * Due to floating point error, when lock is enabled,
+         * the preferred height may be a very small difference
+         * from the current height.  So rounding and then
+         * converting to an int prevents the graphics region
+         * from a small resizing.
+         */
+    }
+    else if (preferredHeightFloat > heightFloat) {
+        const float percentage = heightFloat / preferredHeightFloat;
+        widthFloat *= percentage;
+        
+        const float xOffset = (viewport[2] - widthFloat) / 2.0;
+        viewport[0] += xOffset;
+        viewport[2]  = widthFloat;
+    }
+    else {
+        const float yOffset = (viewport[3] - preferredHeightFloat) / 2.0;
+        viewport[1] += yOffset;
+        viewport[3] = preferredHeightFloat;
+    }
+}
+
+
+/**
  * @return  True indicates that the tab is highlighted (used in
  *    Tile Tabs mode so user knows graphics region corresponding
  *    to the tab that was recently selected).
@@ -311,10 +367,8 @@ BrainOpenGLViewportContent::toString() const
  *     Content of each tab.
  * @param windowIndex
  *     Index of the window.
- * @param windowWidth
- *     Width of the window.
- * @param windowHeight
- *     Height of the window.
+ * @param windowViewport
+ *     The window's viewport.
  * @param rowHeights
  *     Height of each row.
  * @param columnWidths
@@ -327,8 +381,7 @@ BrainOpenGLViewportContent::toString() const
 std::vector<BrainOpenGLViewportContent*>
 BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
                                                              const int32_t windowIndex,
-                                                             const int32_t windowWidth,
-                                                             const int32_t windowHeight,
+                                                             const int32_t windowViewport[4],
                                                              const std::vector<int32_t>& rowHeights,
                                                              const std::vector<int32_t>& columnWidths,
                                                              const int32_t highlightTabIndex)
@@ -343,22 +396,16 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
      * Arrange models left-to-right and top-to-bottom.
      */
     int32_t vpX = 0;
-    int32_t vpY = windowHeight;
+    int32_t vpY = windowViewport[1] + windowViewport[3];
     
     int32_t iTab = 0;
     for (int32_t i = 0; i < numRows; i++) {
         const int32_t vpHeight = rowHeights[i];
-        vpX = 0;
+        vpX = windowViewport[0];
         vpY -= vpHeight;
         for (int32_t j = 0; j < numCols; j++) {
             const int32_t vpWidth = columnWidths[j];
             if (iTab < numTabs) {
-                const int windowViewport[4] = {
-                    0,
-                    0,
-                    windowWidth,
-                    windowHeight
-                };
                 const int modelViewport[4] = {
                     vpX,
                     vpY,
