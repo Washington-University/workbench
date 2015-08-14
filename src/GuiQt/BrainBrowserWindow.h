@@ -127,6 +127,14 @@ namespace caret {
         
         float getOpenGLWidgetAspectRatio() const;
         
+        bool isAspectRatioLocked() const;
+        
+        void setAspectRatioLocked(const float aspectRatio);
+        
+        float getAspectRatio() const;
+        
+        void setAspectRatio(const float aspectRatio);
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);
@@ -356,6 +364,16 @@ namespace caret {
         QMenu* m_recentSpecFileMenu;
         AString m_recentSpecFileMenuOpenConfirmTitle;
         AString m_recentSpecFileMenuLoadNoConfirmTitle;
+        
+        /**
+         * Aspect ratio is locked to a fixed value
+         */
+        bool m_aspectRatioLockedStatus;
+        
+        /**
+         * The aspect ratio
+         */
+        float m_aspectRatio;
         
         BrainBrowserWindowOrientedToolBox* m_overlayHorizontalToolBox;
         BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;

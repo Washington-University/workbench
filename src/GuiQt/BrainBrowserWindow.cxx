@@ -123,6 +123,9 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
     m_viewTileTabsSelected = false;
     
+    m_aspectRatioLockedStatus = false;
+    m_aspectRatio = 1.0;
+    
     m_sceneTileTabsConfigurationText = "From Scene: ";
     m_sceneTileTabsConfiguration = new TileTabsConfiguration();
     m_sceneTileTabsConfiguration->setName(m_sceneTileTabsConfigurationText);
@@ -225,6 +228,10 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
     
     m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_aspectRatioLockedStatus",
+                          &m_aspectRatioLockedStatus);
+    m_sceneAssistant->add("m_aspectRatio",
+                          &m_aspectRatio);
     
     m_defaultWindowComponentStatus.isFeaturesToolBoxDisplayed = m_featuresToolBoxAction->isChecked();
     m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = m_overlayToolBoxAction->isChecked();
@@ -303,10 +310,51 @@ BrainBrowserWindow::isTileTabsSelected() const
 }
 
 /**
+ * @return Aspect ratio locked status.
+ */
+bool
+BrainBrowserWindow::isAspectRatioLocked() const
+{
+    return m_aspectRatioLockedStatus;
+}
+
+/**
+ * Set the aspect ratio locked status.
+ *
+ * @param aspectRatio
+ *     New value for aspect ratio locked status.
+ */
+void
+BrainBrowserWindow::setAspectRatioLocked(const float aspectRatio)
+{
+    m_aspectRatioLockedStatus = aspectRatio;
+}
+
+/**
+ * @return Aspect ratio.
+ */
+float
+BrainBrowserWindow::getAspectRatio() const
+{
+    return m_aspectRatio;
+}
+
+/**
+ * Set the aspect ratio.
+ *
+ * @param aspectRatio
+ *     New value for aspect ratio.
+ */
+void
+BrainBrowserWindow::setAspectRatio(const float aspectRatio)
+{
+    m_aspectRatio = aspectRatio;
+}
+/**
  * @return the index of this browser window.
  */
 int32_t 
-BrainBrowserWindow::getBrowserWindowIndex() const 
+BrainBrowserWindow::getBrowserWindowIndex() const
 { 
     return m_browserWindowIndex; 
 }

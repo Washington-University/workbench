@@ -48,7 +48,9 @@ namespace caret {
     private slots:
         void yokeToGroupComboBoxIndexChanged();
         
-        void aspectRatioCheckBoxClicked(bool);
+        void tabAspectRatioCheckBoxClicked(bool);
+        
+        void windowAspectRatioCheckBoxClicked(bool);
         
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
@@ -61,7 +63,9 @@ namespace caret {
         
         BrainBrowserWindowToolBar* m_parentToolBar;
         
-        QCheckBox* m_aspectRatioLockedCheckBox;
+        QCheckBox* m_tabAspectRatioLockedCheckBox;
+        
+        QCheckBox* m_windowAspectRatioLockedCheckBox;
         
         // ADD_NEW_MEMBERS_HERE
 

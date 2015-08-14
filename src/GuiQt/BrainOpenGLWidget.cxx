@@ -33,6 +33,7 @@
 
 #include "Border.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLShape.h"
 #include "BrainOpenGLViewportContent.h"
@@ -610,6 +611,15 @@ BrainOpenGLWidget::paintGL()
         this->windowHeight[this->windowIndex]
     };
     
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
+    if (bbw != NULL) {
+        if (bbw->isAspectRatioLocked()) {
+            BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
+                                                                     bbw->getAspectRatio());
+        }
+    }
+
+    
     EventBrowserWindowContentGet getModelEvent(this->windowIndex);
     EventManager::get()->sendEvent(getModelEvent.getPointer());
     
@@ -686,7 +696,6 @@ BrainOpenGLWidget::paintGL()
     /*
      * Issue browser window redrawn event
      */
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
     if (bbw != NULL) {
         EventManager::get()->sendEvent(EventBrowserWindowGraphicsRedrawn(bbw).getPointer());
     }
