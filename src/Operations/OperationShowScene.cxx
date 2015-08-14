@@ -250,7 +250,9 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     Brain* brain = SessionManager::get()->getBrain(0);
     
     /*
-     * Renders text
+     * The OpenGL rendering takes ownership of the text renderer
+     * and will delete the text renderer when OpenGL itself
+     * is deleted.
      */
     BrainOpenGLTextRenderInterface* textRenderer = NULL;
     if (textRenderer == NULL) {
@@ -262,7 +264,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                             "No text will be available in graphics window.");
         }
     }
-    
     if (textRenderer == NULL) {
         textRenderer = new DummyFontTextRenderer();
     }
@@ -288,6 +289,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             
             const bool restoreToTabTiles = browserClass->getBooleanValue("m_viewTileTabsAction",
                                                                          false);
+            const int32_t windowIndex = browserClass->getIntegerValue("m_browserWindowIndex", 0);
+            
             /*
              * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
              */
@@ -319,7 +322,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                     throw OperationException("Failed to obtain tab number "
                                                              + AString::number(tabIndex + 1)
                                                              + " for window "
-                                                             + AString::number(i + 1));
+                                                             + AString::number(windowIndex + 1));
                                 }
                                 allTabContent.push_back(tabContent);
                             }
@@ -341,7 +344,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                         
                         const int32_t tabIndexToHighlight = -1;
                         std::vector<BrainOpenGLViewportContent*> viewports = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabContent,
-                                                                                                                                          i,
+                                                                                                                                          windowIndex,
                                                                                                                                           //brain,
                                                                                                                                           viewport,
                                                                                                                                           rowHeights,
@@ -396,8 +399,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     
                     BrainOpenGLViewportContent content(viewport,
                                                        viewport,
-                                                       false,
-                                                       brain,
+                                                       windowIndex,
+                                                       false, // highlight the tab
                                                        tabContent);
                     std::vector<BrainOpenGLViewportContent*> viewportContents;
                     viewportContents.push_back(&content);
@@ -417,10 +420,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                 }
             }
         }
-    }
-    
-    if (textRenderer != NULL) {
-        delete textRenderer;
     }
     
     delete brainOpenGL;
