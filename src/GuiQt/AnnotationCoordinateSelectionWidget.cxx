@@ -152,12 +152,31 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
                               Qt::AlignHCenter);
     }
     
+    if (enableTabSpaceFlag) {
+        if (m_coordInfo.m_tabIndex < 0) {
+            enableTabSpaceFlag = false;
+        }
+        if (m_optionalSecondCoordInfo != NULL) {
+            if (m_optionalSecondCoordInfo->m_tabIndex < 0) {
+                enableTabSpaceFlag = false;
+            }
+        }
+    }
+    
     if (enableModelSpaceFlag) {
         if ( ! m_coordInfo.m_modelXYZValid) {
             enableModelSpaceFlag = false;
         }
         if (m_optionalSecondCoordInfo != NULL) {
             if ( ! m_optionalSecondCoordInfo->m_modelXYZValid) {
+                enableModelSpaceFlag = false;
+            }
+            /*
+             * Only allow model space for two coordinates in the SAME tab.
+             * If tab space is not enabled, then the two model coordinates are
+             * in different tabs.
+             */
+            if ( ! enableTabSpaceFlag) {
                 enableModelSpaceFlag = false;
             }
         }
@@ -193,16 +212,6 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
         }
     }
     
-    if (enableTabSpaceFlag) {
-        if (m_coordInfo.m_tabIndex < 0) {
-            enableTabSpaceFlag = false;
-        }
-        if (m_optionalSecondCoordInfo != NULL) {
-            if (m_optionalSecondCoordInfo->m_tabIndex < 0) {
-                enableTabSpaceFlag = false;
-            }
-        }
-    }
     if (enableTabSpaceFlag) {
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::TAB);
         rb->setText(rb->text()
@@ -290,6 +299,15 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
             if ( ! m_optionalSecondCoordInfo->m_surfaceNodeValid) {
                 enableSurfaceSpaceFlag = false;
             }
+        }
+        
+        /*
+         * Only allow surface space for two coordinates in the SAME tab.
+         * If tab space is not enabled, then the two surface coordinates are
+         * in different tabs.
+         */
+        if ( ! enableTabSpaceFlag) {
+            enableSurfaceSpaceFlag = false;
         }
     }
     if (enableSurfaceSpaceFlag) {
