@@ -1293,9 +1293,6 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const int32_t mou
         
         const float width  = maxX - minX;
         const float height = maxY - minY;
-        const float aspectRatio = ((width > 0.0)
-                                   ? (height / width)
-                                   : 1.0);
         
         const float relativeWidth = ((m_windowWidth > 0.0)
                                      ? (width / static_cast<float>(m_windowWidth))
@@ -1307,12 +1304,7 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const int32_t mou
         AnnotationCoordinate* coord = twoDimShape->getCoordinate();
         setCoordinate(coord, x, y);
         twoDimShape->setWidth(relativeWidth);
-        if (twoDimShape->isUseHeightAsAspectRatio()) {
-            twoDimShape->setHeight(aspectRatio);
-        }
-        else {
-            twoDimShape->setHeight(relativeHeight);
-        }
+        twoDimShape->setHeight(relativeHeight);
     }
     else {
         CaretAssert(0);

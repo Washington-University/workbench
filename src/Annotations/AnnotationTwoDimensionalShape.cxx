@@ -112,10 +112,6 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
     m_width  = 0.25;
     m_height = 0.25;
     
-    if (isUseHeightAsAspectRatio()) {
-        m_height = 1.0;
-    }
-    
     m_rotationAngle = 0.0;
     
     
@@ -167,15 +163,6 @@ AnnotationTwoDimensionalShape::getHeight() const
 void
 AnnotationTwoDimensionalShape::setHeight(const float height)
 {
-    if ( ! isUseHeightAsAspectRatio()) {
-        if ((height < 0.0)
-            || (height > 1.0)) {
-            CaretLogWarning("Annotation height for non-text annotation should range [0.0, 1.0], "
-                            " a relative value, but is "
-                            + AString::number(height));
-        }
-    }
-    
     if (height != m_height) {
         m_height = height;
         setModified();
@@ -200,15 +187,6 @@ AnnotationTwoDimensionalShape::getWidth() const
 void
 AnnotationTwoDimensionalShape::setWidth(const float width)
 {
-    if (! isUseHeightAsAspectRatio()) {
-        if ((width < 0.0)
-            || (width > 1.0)) {
-            CaretLogWarning("Annotation width for non-text annotation should range [0.0, 1.0], "
-                            " a relative value, but is "
-                            + AString::number(width));
-        }
-    }
-
     if (width != m_width) {
         m_width = width;
         setModified();
@@ -609,9 +587,7 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     const float newShapeViewportWidth = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
     const float newWidth = newShapeViewportWidth / viewportWidth;
     const float newShapeViewportHeight = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
-    const float newAspectRatio = ((newShapeViewportWidth != 0.0)
-                                  ? (newShapeViewportHeight / newShapeViewportWidth)
-                                  : 0.0);
+    const float newHeight = newShapeViewportHeight / viewportHeight;
     
     /*
      * Note:
@@ -625,12 +601,13 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         && (newY <= 1.0)
         && (newWidth > 0.01)
         && (newWidth <= 1.0)
-        && (newAspectRatio > 0.01)) {
+        && (newHeight > 0.01)
+        && (newHeight <= 1.0)) {
         xyz[0] = newX;
         xyz[1] = newY;
         m_coordinate->setXYZ(xyz);
         m_width  = newWidth;
-        m_height = newAspectRatio;
+        m_height = newHeight;
         setModified();
         
         //        {
@@ -798,10 +775,7 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
      * NOTE: Annotation's height and width are 'relative' ([0.0, 1.0] percentage) of window size.
      */
     const float halfWidth  = (getWidth()  / 2.0) * viewportWidth;
-    float halfHeight = (getHeight() / 2.0) * viewportHeight;
-    if (isUseHeightAsAspectRatio()) {
-        halfHeight = halfWidth * getHeight();
-    }
+    const float halfHeight = (getHeight() / 2.0) * viewportHeight;
     
     bottomLeftOut[0]  = viewportXYZ[0] - halfWidth;
     bottomLeftOut[1]  = viewportXYZ[1] - halfHeight;
@@ -859,20 +833,12 @@ AnnotationTwoDimensionalShape::setWidthAndHeightFromBounds(const float xyzOne[3]
     
     const float width  = maxX - minX;
     const float height = maxY - minY;
-    const float aspectRatio = ((width > 0.0)
-                               ? (height / width)
-                               : 1.0);
     
     const float relativeWidth  = (width  / static_cast<float>(spaceWidth));
     const float relativeHeight = (height / static_cast<float>(spaceHeight));
     
     setWidth(relativeWidth);
-    if (isUseHeightAsAspectRatio()) {
-        setHeight(aspectRatio);
-    }
-    else {
-        setHeight(relativeHeight);
-    }
+    setHeight(relativeHeight);
 }
 
 /**

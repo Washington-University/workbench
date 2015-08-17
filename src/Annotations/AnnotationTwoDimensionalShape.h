@@ -61,8 +61,6 @@ namespace caret {
 
         virtual void clearModified();
         
-        bool isUseHeightAsAspectRatio() const { return true; }
-        
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                               const float viewportWidth,
                                               const float viewportHeight,

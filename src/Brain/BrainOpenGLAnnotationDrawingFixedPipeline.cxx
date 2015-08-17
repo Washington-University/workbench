@@ -896,10 +896,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     }
     
     const float majorAxis     = (oval->getWidth()  * m_modelSpaceViewport[2]) / 2.0;
-    float minorAxis     = (oval->getHeight() * m_modelSpaceViewport[3]) / 2.0;
-    if (oval->isUseHeightAsAspectRatio()) {
-        minorAxis = majorAxis * oval->getHeight();
-    }
+    const float minorAxis     = (oval->getHeight() * m_modelSpaceViewport[3]) / 2.0;
     const float rotationAngle = oval->getRotationAngle();
     const float outlineWidth  = oval->getForegroundLineWidth();
     

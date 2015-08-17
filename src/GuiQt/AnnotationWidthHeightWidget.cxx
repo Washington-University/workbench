@@ -74,18 +74,6 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setWordWrappedToolTip(m_heightSpinBox,
                                          "Height of 2D Shapes (Box, Image, Oval)");
 
-    {
-        AnnotationBox box;
-        if (box.isUseHeightAsAspectRatio()) {
-            heightLabel->setText(" A:");
-            m_heightSpinBox->setMaximum(1000.0);
-            m_heightSpinBox->setDecimals(6);
-            const QString toolTipText("Aspect ratio of shape\n"
-                                      "height = width * aspect ratio");
-            m_heightSpinBox->setToolTip(toolTipText);
-        }
-    }
-    
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(widthLabel);
