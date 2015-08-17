@@ -3097,6 +3097,24 @@ BrainBrowserWindow::getOpenGLWidgetAspectRatio() const
 }
 
 /**
+ * Get the aspect ratio of the viewport for the given tab index.
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ * @return
+ *     The aspect ratio for the viewport containing the tab.
+ *     A negative value indicates that the tab invalid meaning
+ *     that either the tab is not displayed or the index is
+ *     invalid.
+ */
+float
+BrainBrowserWindow::getOpenGLWidgetAspectRatioForTabIndex(const int32_t tabIndex) const
+{
+    return m_openGLWidget->getAspectRatioForTabIndex(tabIndex);
+}
+
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
@@ -3395,19 +3413,19 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
 }
 
-/**
- * Get the viewport size for the window.
- *
- * @param w
- *    Output width.
- * @param h
- *    Output height.
- */
-void
-BrainBrowserWindow::getViewportSize(int &w, int &h)
-{
-    m_openGLWidget->getViewPortSize(w,h);
-}
+///**
+// * Get the viewport size for the window.
+// *
+// * @param w
+// *    Output width.
+// * @param h
+// *    Output height.
+// */
+//void
+//BrainBrowserWindow::getViewportSize(int &w, int &h)
+//{
+//    m_openGLWidget->getViewPortSize(w,h);
+//}
 
 /**
  * @return A string describing the object's content.

@@ -186,6 +186,10 @@ namespace caret {
             
             int32_t m_mousePressWindowY;
             
+            int32_t m_windowOriginX;
+            
+            int32_t m_windowOriginY;
+            
             float m_windowWidth;
             
             float m_windowHeight;

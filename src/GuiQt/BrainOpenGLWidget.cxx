@@ -331,11 +331,47 @@ BrainOpenGLWidget::resizeGL(int w, int h)
     this->windowHeight[this->windowIndex] = h;
 }
 
-void
-BrainOpenGLWidget::getViewPortSize(int &w, int &h)
+//void
+//BrainOpenGLWidget::getViewPortSize(int &w, int &h)
+//{
+//    w = this->windowWidth[this->windowIndex];
+//    h = this->windowHeight[this->windowIndex];
+//}
+
+/**
+ * Get the aspect ratio of the viewport for the given tab index.
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ * @return
+ *     The aspect ratio for the viewport containing the tab. 
+ *     A negative value indicates that the tab invalid meaning
+ *     that either the tab is not displayed or the index is
+ *     invalid.
+ */
+float
+BrainOpenGLWidget::getAspectRatioForTabIndex(const int32_t tabIndex) const
 {
-    w = this->windowWidth[this->windowIndex];
-    h = this->windowHeight[this->windowIndex];
+    float aspectRatio = -1.0;
+    
+    const int32_t num = static_cast<int32_t>(this->drawingViewportContents.size());
+    for (int32_t i = 0; i < num; i++) {
+        const BrowserTabContent* tabContent = this->drawingViewportContents[i]->getBrowserTabContent();
+        if (tabContent != NULL) {
+            if (tabContent->getTabNumber() == tabIndex) {
+                int viewport[4];
+                this->drawingViewportContents[i]->getTabViewport(viewport);
+                
+                const float width  = viewport[2];
+                const float height = viewport[3];
+                aspectRatio = ((width != 0.0)
+                               ? (height / width)
+                               : 1.0);
+            }
+        }
+    }
+    
+    return aspectRatio;
 }
 
 /**
@@ -756,22 +792,22 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
     
     BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                mouseY);
-    CaretAssert(viewportContent);
-    
-    MouseEvent mouseEvent(viewportContent,
-                          this,
-                          this->windowIndex,
-                          mouseX,
-                          mouseY,
-                          0,
-                          0,
-                          mouseX,
-                          mouseY,
-                          false);
-    
-    this->selectedUserInputProcessor->showContextMenu(mouseEvent,
-                                                      contextMenuEvent->globalPos(),
-                                                      this);
+    if (viewportContent != NULL) {
+        MouseEvent mouseEvent(viewportContent,
+                              this,
+                              this->windowIndex,
+                              mouseX,
+                              mouseY,
+                              0,
+                              0,
+                              mouseX,
+                              mouseY,
+                              false);
+        
+        this->selectedUserInputProcessor->showContextMenu(mouseEvent,
+                                                          contextMenuEvent->globalPos(),
+                                                          this);
+    }
 }
 
 /**
@@ -798,17 +834,19 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
      */
     BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
                                                                                wheelY);
-    MouseEvent mouseEvent(viewportContent,
-                          this,
-                          this->windowIndex,
-                          wheelX,
-                          wheelY,
-                          0,
-                          delta,
-                          0,
-                          0,
-                          this->mouseNewDraggingStartedFlag);
-    this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
+    if (viewportContent != NULL) {
+        MouseEvent mouseEvent(viewportContent,
+                              this,
+                              this->windowIndex,
+                              wheelX,
+                              wheelY,
+                              0,
+                              delta,
+                              0,
+                              0,
+                              this->mouseNewDraggingStartedFlag);
+        this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
+    }
     
     we->accept();
 }
@@ -943,23 +981,24 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 
         BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                    mouseY);
-        
-        MouseEvent mouseEvent(viewportContent,
-                              this,
-                              this->windowIndex,
-                              mouseX,
-                              mouseY,
-                              0,
-                              0,
-                              this->mousePressX,
-                              this->mousePressY,
-                              this->mouseNewDraggingStartedFlag);
-        
-        if (keyModifiers == Qt::NoModifier) {
-            this->selectedUserInputProcessor->mouseLeftPress(mouseEvent);
-        }
-        else if (keyModifiers == Qt::ShiftModifier) {
-           // not implemented  this->selectedUserInputProcessor->mouseLeftPressWithShift(mouseEvent);
+        if (viewportContent != NULL) {
+            MouseEvent mouseEvent(viewportContent,
+                                  this,
+                                  this->windowIndex,
+                                  mouseX,
+                                  mouseY,
+                                  0,
+                                  0,
+                                  this->mousePressX,
+                                  this->mousePressY,
+                                  this->mouseNewDraggingStartedFlag);
+            
+            if (keyModifiers == Qt::NoModifier) {
+                this->selectedUserInputProcessor->mouseLeftPress(mouseEvent);
+            }
+            else if (keyModifiers == Qt::ShiftModifier) {
+                // not implemented  this->selectedUserInputProcessor->mouseLeftPressWithShift(mouseEvent);
+            }
         }
     }
     else {
@@ -1007,18 +1046,19 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
              */
             BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                        mouseY);
-            
-            MouseEvent mouseEvent(viewportContent,
-                                  this,
-                                  this->windowIndex,
-                                  mouseX,
-                                  mouseY,
-                                  0,
-                                  0,
-                                  this->mousePressX,
-                                  this->mousePressY,
-                                  this->mouseNewDraggingStartedFlag);
-            this->selectedUserInputProcessor->mouseLeftRelease(mouseEvent);
+            if (viewportContent != NULL) {
+                MouseEvent mouseEvent(viewportContent,
+                                      this,
+                                      this->windowIndex,
+                                      mouseX,
+                                      mouseY,
+                                      0,
+                                      0,
+                                      this->mousePressX,
+                                      this->mousePressY,
+                                      this->mouseNewDraggingStartedFlag);
+                this->selectedUserInputProcessor->mouseLeftRelease(mouseEvent);
+            }
         }
         
         /*
@@ -1029,29 +1069,30 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
          */
         BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
                                                                                    this->mousePressY);
-        
-        if ((absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)
-            && (absDY <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
-            MouseEvent mouseEvent(viewportContent,
-                                  this,
-                                  this->windowIndex,
-                                  mouseX,
-                                  mouseY,
-                                  dx,
-                                  dy,
-                                  this->mousePressX,
-                                  this->mousePressY,
-                                  this->mouseNewDraggingStartedFlag);
-            
-            if (keyModifiers == Qt::NoModifier) {
-                this->selectedUserInputProcessor->mouseLeftClick(mouseEvent);
-            }
-            else if (keyModifiers == Qt::ShiftModifier) {
-                this->selectedUserInputProcessor->mouseLeftClickWithShift(mouseEvent);
-            }
-            else if (keyModifiers == (Qt::ShiftModifier
-                                      | Qt::ControlModifier)) {
-                this->selectedUserInputProcessor->mouseLeftClickWithCtrlShift(mouseEvent);
+        if (viewportContent != NULL) {
+            if ((absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)
+                && (absDY <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
+                MouseEvent mouseEvent(viewportContent,
+                                      this,
+                                      this->windowIndex,
+                                      mouseX,
+                                      mouseY,
+                                      dx,
+                                      dy,
+                                      this->mousePressX,
+                                      this->mousePressY,
+                                      this->mouseNewDraggingStartedFlag);
+                
+                if (keyModifiers == Qt::NoModifier) {
+                    this->selectedUserInputProcessor->mouseLeftClick(mouseEvent);
+                }
+                else if (keyModifiers == Qt::ShiftModifier) {
+                    this->selectedUserInputProcessor->mouseLeftClickWithShift(mouseEvent);
+                }
+                else if (keyModifiers == (Qt::ShiftModifier
+                                          | Qt::ControlModifier)) {
+                    this->selectedUserInputProcessor->mouseLeftClickWithCtrlShift(mouseEvent);
+                }
             }
         }
     }
@@ -1093,19 +1134,20 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
              */
             BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                        mouseY);
-            
-            MouseEvent mouseEvent(viewportContent,
-                                  this,
-                                  this->windowIndex,
-                                  mouseX,
-                                  mouseY,
-                                  0,
-                                  0,
-                                  this->mousePressX,
-                                  this->mousePressY,
-                                  this->mouseNewDraggingStartedFlag);
-            
-            this->selectedUserInputProcessor->mouseLeftDoubleClick(mouseEvent);
+            if (viewportContent != NULL) {
+                MouseEvent mouseEvent(viewportContent,
+                                      this,
+                                      this->windowIndex,
+                                      mouseX,
+                                      mouseY,
+                                      0,
+                                      0,
+                                      this->mousePressX,
+                                      this->mousePressY,
+                                      this->mouseNewDraggingStartedFlag);
+                
+                this->selectedUserInputProcessor->mouseLeftDoubleClick(mouseEvent);
+            }
         }
     }
     
@@ -1129,7 +1171,7 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
     const int32_t num = static_cast<int32_t>(this->drawingViewportContents.size());
     for (int32_t i = 0; i < num; i++) {
         int viewport[4];
-        this->drawingViewportContents[i]->getModelViewport(viewport);
+        //this->drawingViewportContents[i]->getModelViewport(viewport);
         this->drawingViewportContents[i]->getTabViewport(viewport);
         if ((x >= viewport[0])
             && (x < (viewport[0] + viewport[2]))
@@ -1356,36 +1398,37 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                  */
                 BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
                                                                                            this->mousePressY);
-                
-                MouseEvent mouseEvent(viewportContent,
-                                      this,
-                                      this->windowIndex,
-                                      mouseX,
-                                      mouseY,
-                                      dx,
-                                      dy,
-                                      this->mousePressX,
-                                      this->mousePressY,
-                                      this->mouseNewDraggingStartedFlag);
-
-                if (keyModifiers == Qt::NoModifier) {
-                    this->selectedUserInputProcessor->mouseLeftDrag(mouseEvent);
+                if (viewportContent != NULL) {
+                    MouseEvent mouseEvent(viewportContent,
+                                          this,
+                                          this->windowIndex,
+                                          mouseX,
+                                          mouseY,
+                                          dx,
+                                          dy,
+                                          this->mousePressX,
+                                          this->mousePressY,
+                                          this->mouseNewDraggingStartedFlag);
+                    
+                    if (keyModifiers == Qt::NoModifier) {
+                        this->selectedUserInputProcessor->mouseLeftDrag(mouseEvent);
+                    }
+                    else if (keyModifiers == Qt::ControlModifier) {
+                        this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
+                    }
+                    else if (keyModifiers == Qt::ShiftModifier) {
+                        this->selectedUserInputProcessor->mouseLeftDragWithShift(mouseEvent);
+                    }
+                    else if (keyModifiers == Qt::AltModifier) {
+                        this->selectedUserInputProcessor->mouseLeftDragWithAlt(mouseEvent);
+                    }
+                    else if (keyModifiers == (Qt::ShiftModifier
+                                              | Qt::ControlModifier)) {
+                        this->selectedUserInputProcessor->mouseLeftDragWithCtrlShift(mouseEvent);
+                    }
+                    
+                    this->mouseNewDraggingStartedFlag = false;
                 }
-                else if (keyModifiers == Qt::ControlModifier) {
-                    this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
-                }
-                else if (keyModifiers == Qt::ShiftModifier) {
-                    this->selectedUserInputProcessor->mouseLeftDragWithShift(mouseEvent);
-                }
-                else if (keyModifiers == Qt::AltModifier) {
-                    this->selectedUserInputProcessor->mouseLeftDragWithAlt(mouseEvent);
-                }
-                else if (keyModifiers == (Qt::ShiftModifier
-                                          | Qt::ControlModifier)) {
-                    this->selectedUserInputProcessor->mouseLeftDragWithCtrlShift(mouseEvent);
-                }
-                
-                this->mouseNewDraggingStartedFlag = false;
             }
             
             this->lastMouseX = mouseX;
@@ -1394,24 +1437,26 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
         else if (mouseButtons == Qt::NoButton) {
             BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                        mouseY);
-            
-            MouseEvent mouseEvent(viewportContent,
-                                  this,
-                                  this->windowIndex,
-                                  mouseX,
-                                  mouseY,
-                                  0,
-                                  0,
-                                  this->mousePressX,
-                                  this->mousePressY,
-                                  this->mouseNewDraggingStartedFlag);
-            
-            if (keyModifiers == Qt::NoModifier) {
-                this->selectedUserInputProcessor->mouseMove(mouseEvent);
+            if (viewportContent != NULL) {
+                MouseEvent mouseEvent(viewportContent,
+                                      this,
+                                      this->windowIndex,
+                                      mouseX,
+                                      mouseY,
+                                      0,
+                                      0,
+                                      this->mousePressX,
+                                      this->mousePressY,
+                                      this->mouseNewDraggingStartedFlag);
+                
+                if (keyModifiers == Qt::NoModifier) {
+                    this->selectedUserInputProcessor->mouseMove(mouseEvent);
+                }
+                else if (keyModifiers == Qt::ShiftModifier) {
+                    this->selectedUserInputProcessor->mouseMoveWithShift(mouseEvent);
+                }
             }
-            else if (keyModifiers == Qt::ShiftModifier) {
-                this->selectedUserInputProcessor->mouseMoveWithShift(mouseEvent);
-            }
+            
         }
     }
     

@@ -88,7 +88,9 @@ namespace caret {
         
         QString getOpenGLInformation();
 
-        void getViewPortSize(int &w, int &h);
+//        void getViewPortSize(int &w, int &h);
+        
+        float getAspectRatioForTabIndex(const int32_t tabIndex) const;
         
         void updateCursor();
         

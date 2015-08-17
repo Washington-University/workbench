@@ -31,6 +31,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EnumComboBoxTemplate.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
@@ -155,7 +156,14 @@ BrainBrowserWindowToolBarTab::tabAspectRatioCheckBoxClicked(bool checked)
     if (checked) {
         BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
         CaretAssert(bbw);
-        browserTabContent->setAspectRatio(bbw->getOpenGLWidgetAspectRatio());
+        const float aspectRatio = bbw->getOpenGLWidgetAspectRatioForTabIndex(browserTabContent->getTabNumber());
+        if (aspectRatio > 0.0) {
+            browserTabContent->setAspectRatio(aspectRatio);
+        }
+        else {
+            CaretLogWarning("Invalid aspect ratio for tab " + AString::number(browserTabContent->getTabNumber() + 1));
+            browserTabContent->setAspectRatioLocked(false);
+        }
     }
     
     this->updateGraphicsWindow();

@@ -105,7 +105,7 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
-        void getViewportSize(int &w, int &h);
+//        void getViewportSize(int &w, int &h);
         
         TileTabsConfiguration* getSelectedTileTabsConfiguration();
         
@@ -126,6 +126,8 @@ namespace caret {
         static int32_t loadRecentSpecFileMenu(QMenu* recentSpecFileMenu);
         
         float getOpenGLWidgetAspectRatio() const;
+        
+        float getOpenGLWidgetAspectRatioForTabIndex(const int32_t tabIndex) const;
         
         bool isAspectRatioLocked() const;
         

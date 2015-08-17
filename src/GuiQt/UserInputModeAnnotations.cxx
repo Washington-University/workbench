@@ -971,8 +971,10 @@ UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* open
     
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
-    coordInfoOut.m_windowXYZ[0] = windowViewport[0] + windowX;
-    coordInfoOut.m_windowXYZ[1] = windowViewport[1] + windowY;
+//    coordInfoOut.m_windowXYZ[0] = windowViewport[0] + windowX;
+//    coordInfoOut.m_windowXYZ[1] = windowViewport[1] + windowY;
+    coordInfoOut.m_windowXYZ[0] = windowX - windowViewport[0];
+    coordInfoOut.m_windowXYZ[1] = windowY - windowViewport[1];
     coordInfoOut.m_windowXYZ[2] = 0.0;
     coordInfoOut.m_windowIndex  = viewportContent->getWindowIndex();
     coordInfoOut.m_windowWidth  = windowViewport[2];
@@ -1202,9 +1204,13 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
         CaretLogSevere("Viewport content is invalid.");
         return;
     }
+    int32_t windowViewport[4];
+    vpContent->getWindowViewport(windowViewport);
+    m_windowOriginX = windowViewport[0];
+    m_windowOriginY = windowViewport[1];
     
-    m_mousePressWindowX = mouseEvent.getX();
-    m_mousePressWindowY = mouseEvent.getY();
+    m_mousePressWindowX = mouseEvent.getX() - m_windowOriginX;
+    m_mousePressWindowY = mouseEvent.getY() - m_windowOriginY;
     
     int viewport[4];
     vpContent->getWindowViewport(viewport);
@@ -1257,9 +1263,12 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::~NewMouseDragCreateAnnot
  *     Mouse window Y-coordinate
  */
 void
-UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const int32_t mouseWindowX,
-                                                               const int32_t mouseWindowY)
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const int32_t mouseWindowXIn,
+                                                               const int32_t mouseWindowYIn)
 {
+    int32_t mouseWindowX = mouseWindowXIn - m_windowOriginX;
+    int32_t mouseWindowY = mouseWindowYIn - m_windowOriginY;
+    
     AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
     AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
     
