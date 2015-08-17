@@ -224,7 +224,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     /*
      * Set the viewport
      */
-    const int viewport[4] = { 0, 0, imageWidth, imageHeight };
+    const int imageViewport[4] = { 0, 0, imageWidth, imageHeight };
 
     /**
      * Enable voxel coloring since it is defaulted off for commands
@@ -291,6 +291,21 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                          false);
             const int32_t windowIndex = browserClass->getIntegerValue("m_browserWindowIndex", 0);
             
+            int windowViewport[4] = {
+                imageViewport[0], imageViewport[1], imageViewport[2], imageViewport[3]
+            };
+            const bool windowAspectRatioLocked = browserClass->getBooleanValue("m_aspectRatioLockedStatus");
+            if (windowAspectRatioLocked) {
+                const float aspectRatio = browserClass->getFloatValue("m_aspectRatio", -1.0);
+                if (aspectRatio > 0.0) {
+                    BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
+                                                                             aspectRatio);
+                }
+            }
+            
+            const int windowWidth  = windowViewport[2];
+            const int windowHeight = windowViewport[3];
+            
             /*
              * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
              */
@@ -334,8 +349,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                         }
                         std::vector<int32_t> rowHeights;
                         std::vector<int32_t> columnWidths;
-                        if ( ! tileTabsConfiguration.getRowHeightsAndColumnWidthsForWindowSize(imageWidth,
-                                                                                               imageHeight,
+                        if ( ! tileTabsConfiguration.getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                                                               windowHeight,
                                                                                                numTabContent,
                                                                                                rowHeights,
                                                                                                columnWidths)) {
@@ -346,7 +361,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                         std::vector<BrainOpenGLViewportContent*> viewports = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabContent,
                                                                                                                                           windowIndex,
                                                                                                                                           //brain,
-                                                                                                                                          viewport,
+                                                                                                                                          windowViewport,
                                                                                                                                           rowHeights,
                                                                                                                                           columnWidths,
                                                                                                                                           tabIndexToHighlight);
@@ -397,8 +412,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                  + AString::number(i + 1));
                     }
                     
-                    BrainOpenGLViewportContent content(viewport,
-                                                       viewport,
+                    BrainOpenGLViewportContent content(windowViewport,
+                                                       windowViewport,
                                                        windowIndex,
                                                        false, // highlight the tab
                                                        tabContent);
