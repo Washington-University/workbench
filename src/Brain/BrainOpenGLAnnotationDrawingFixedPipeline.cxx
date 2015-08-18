@@ -169,11 +169,31 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                         modelXYZ[1] = nodeXYZ[1];
                         modelXYZ[2] = nodeXYZ[2];
                         
-                        const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
                         
-                        modelXYZ[0] += (normalVector[0] * annotationOffsetLength);
-                        modelXYZ[1] += (normalVector[1] * annotationOffsetLength);
-                        modelXYZ[2] += (normalVector[2] * annotationOffsetLength);
+                        
+                        float offsetUnitVector[3] = { 0.0, 0.0, 0.0 };
+                        const bool useNormalVectorForOffsetFlag = false;
+                        if (useNormalVectorForOffsetFlag) {
+                            const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
+                            offsetUnitVector[0] = normalVector[0];
+                            offsetUnitVector[1] = normalVector[1];
+                            offsetUnitVector[2] = normalVector[2];
+                        }
+                        else {
+                            BoundingBox boundingBox;
+                            surfaceDisplayed->getBounds(boundingBox);
+                            float surfaceCenter[3] = { 0.0, 0.0, 0.0 };
+                            boundingBox.getCenter(surfaceCenter);
+                            
+                            MathFunctions::subtractVectors(nodeXYZ,
+                                                           surfaceCenter,
+                                                           offsetUnitVector);
+                            MathFunctions::normalizeVector(offsetUnitVector);
+                        }
+                        
+                        modelXYZ[0] += (offsetUnitVector[0] * annotationOffsetLength);
+                        modelXYZ[1] += (offsetUnitVector[1] * annotationOffsetLength);
+                        modelXYZ[2] += (offsetUnitVector[2] * annotationOffsetLength);
                         modelXYZValid = true;
                     }
                 }
@@ -1262,11 +1282,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::createLineCoordinates(const float lin
 {
     coordinatesOut.clear();
     
-    /*
-     * Length of arrow's line
-     */
-    const float lineLength = MathFunctions::distance3D(lineHeadXYZ,
-                                                       lineTailXYZ);
+//    /*
+//     * Length of arrow's line
+//     */
+//    const float lineLength = MathFunctions::distance3D(lineHeadXYZ,
+//                                                       lineTailXYZ);
     
 //    /*
 //     * Length of arrow's right and left pointer tips
