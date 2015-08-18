@@ -168,6 +168,7 @@ namespace caret {
         
         void createLineCoordinates(const float lineHeadXYZ[3],
                                    const float lineTailXYZ[3],
+                                   const float lineThickness,
                                    const bool validStartArrow,
                                    const bool validEndArrow,
                                    std::vector<float>& coordinatesOut) const;

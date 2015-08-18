@@ -473,7 +473,7 @@ AnnotationText::isUnderlineEnabled() const
 bool
 AnnotationText::isForegroundLineWidthSupported() const
 {
-    return false;
+    return true;
 }
 
 

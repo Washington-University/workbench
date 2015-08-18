@@ -1038,6 +1038,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getTextLineToBrainordinateLineCoordin
                         
                         createLineCoordinates(windowXYZ,
                                               brainordinateXYZ,
+                                              text->getForegroundLineWidth(),
                                               false,
                                               showArrowFlag,
                                               lineCoordinatesOut);
@@ -1134,7 +1135,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             if ( ! connectLineCoordinates.empty()) {
                 BrainOpenGLPrimitiveDrawing::drawLines(connectLineCoordinates,
                                                        foregroundRGBA,
-                                                       2.0);
+                                                       text->getForegroundLineWidth()); // 2.0);
             }
             
             if (drawBackgroundFlag) {
@@ -1242,6 +1243,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* /*annotatio
  *     Start of the line
  * @param lineTailXYZ
  *     End of the line
+ * @param lineThickness
+ *     Thickness of the line that affects size of the optional arrow heads.
  * @param validStartArrow
  *     Add an arrow at the start of the line
  * @param validEndArrow
@@ -1252,6 +1255,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* /*annotatio
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::createLineCoordinates(const float lineHeadXYZ[3],
                                                                  const float lineTailXYZ[3],
+                                                                 const float lineThickness,
                                                                  const bool validStartArrow,
                                                                  const bool validEndArrow,
                                                                  std::vector<float>& coordinatesOut) const
@@ -1264,11 +1268,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::createLineCoordinates(const float lin
     const float lineLength = MathFunctions::distance3D(lineHeadXYZ,
                                                        lineTailXYZ);
     
+//    /*
+//     * Length of arrow's right and left pointer tips
+//     */
+//    const float pointerPercent = 0.2;
+//    const float tipLength = lineLength * pointerPercent;
+    
     /*
-     * Length of arrow's right and left pointer tips
+     * Length of arrow's tips is function of line thickness
      */
-    const float pointerPercent = 0.2;
-    const float tipLength = lineLength * pointerPercent;
+    const float tipScale = 3.0;
+    const float tipLength = lineThickness * tipScale;
     
     /*
      * Point on arrow's line that is between the arrow's left and right arrow tips
@@ -1405,6 +1415,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     std::vector<float> coords;
     createLineCoordinates(lineHeadXYZ,
                           lineTailXYZ,
+                          line->getForegroundLineWidth(),
                           line->isDisplayStartArrow(),
                           line->isDisplayEndArrow(),
                           coords);
