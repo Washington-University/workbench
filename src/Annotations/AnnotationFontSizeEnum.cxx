@@ -196,6 +196,17 @@ AnnotationFontSizeEnum::initialize()
                                               "SIZE72", 
                                               "72",
                                               72));
+    
+    for (std::vector<AnnotationFontSizeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        if (minimumNumericSize < 0) {
+            minimumNumericSize = iter->sizeNumeric;
+        }
+        else if (iter->sizeNumeric < minimumNumericSize) {
+            minimumNumericSize = iter->sizeNumeric;
+        }
+    }
 }
 
 /**
@@ -392,6 +403,17 @@ AnnotationFontSizeEnum::toSizeNumeric(Enum enumValue)
     if (initializedFlag == false) initialize();
     const AnnotationFontSizeEnum* enumInstance = findData(enumValue);
     return enumInstance->sizeNumeric;
+}
+
+/**
+ * @return The minimum font size numeric value.
+ */
+int32_t
+AnnotationFontSizeEnum::getMinimumSizeNumeric()
+{
+    if (initializedFlag == false) initialize();
+    
+    return minimumNumericSize;
 }
 
 

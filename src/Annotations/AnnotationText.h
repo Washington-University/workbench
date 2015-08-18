@@ -44,7 +44,7 @@ namespace caret {
 
         AnnotationText& operator=(const AnnotationText& obj);
         
-        AString getFontRenderingEncodedName() const;
+        AString getFontRenderingEncodedName(const float drawingViewportHeight) const;
         
         AString getText() const;
         
@@ -65,6 +65,8 @@ namespace caret {
         AnnotationTextOrientationEnum::Enum getOrientation() const;
         
         void setOrientation(const AnnotationTextOrientationEnum::Enum orientation);
+        
+        int32_t getFontSizeForDrawing(const int32_t drawingViewportHeight) const;
         
         AnnotationFontSizeEnum::Enum getFontSize() const;
         
@@ -89,6 +91,10 @@ namespace caret {
         bool isConnectToBrainordinateValid() const;
         
         virtual bool isForegroundLineWidthSupported() const;
+        
+        float getViewportHeightWhenCreated() const;
+        
+        void setViewportHeightWhenCreated(const float viewportHeight);
         
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                               const float viewportWidth,
@@ -134,6 +140,8 @@ namespace caret {
         AnnotationFontSizeEnum::Enum m_fontSize;
         
         AnnotationTextConnectTypeEnum::Enum m_connectToBrainordinate;
+        
+        float m_viewportHeightWhenCreated;
         
         bool m_boldEnabled;
         

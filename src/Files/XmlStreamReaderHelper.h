@@ -51,6 +51,11 @@ namespace caret {
                                                 const QString& elementName,
                                                 const QString& attributeName);
         
+        float getOptionalAttributeFloatValue(const QXmlStreamAttributes& attributes,
+                                            const QString& elementName,
+                                            const QString& attributeName,
+                                            const float defaultValue);
+        
         float getRequiredAttributeFloatValue(const QXmlStreamAttributes& attributes,
                                                     const QString& elementName,
                                                     const QString& attributeName);

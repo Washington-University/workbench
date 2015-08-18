@@ -199,6 +199,7 @@ AnnotationCreateDialog::AnnotationCreateDialog(const Mode mode,
 : WuQDialogModal("Create Annotation",
                  parent),
 m_mode(mode),
+m_mouseEvent(mouseEvent),
 m_annotationToPastesFile(annotationFile),
 m_annotationToPaste(annotation),
 m_annotationType(annotationType)
@@ -581,6 +582,34 @@ AnnotationCreateDialog::okButtonClicked()
                                                                       errorMessage)) {
         WuQMessageBox::errorOk(this, errorMessage);
         return;
+    }
+    
+    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+        AnnotationText* annText = dynamic_cast<AnnotationText*>(annotation.getPointer());
+        
+        if (annText != NULL) {
+            BrainOpenGLViewportContent* viewportContent = m_mouseEvent.getViewportContent();
+            CaretAssert(viewportContent);
+            int viewport[4] = { -1, -1, -1, -1 };
+            switch (annotation->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::MODEL:
+                    viewportContent->getModelViewport(viewport);
+                    break;
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    viewportContent->getModelViewport(viewport);
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    viewportContent->getModelViewport(viewport);
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    viewportContent->getWindowViewport(viewport);
+                    break;
+            }
+            const float viewportHeight = viewport[3];
+            annText->setViewportHeightWhenCreated(viewportHeight);
+        }
     }
     
     /*

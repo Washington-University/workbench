@@ -292,6 +292,8 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
                               AnnotationTextOrientationEnum::toName(text->getOrientation()));
     textDataAttributes.append(ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT,
                               AnnotationTextAlignVerticalEnum::toName(text->getVerticalAlignment()));
+    textDataAttributes.append(ATTRIBUTE_TEXT_VIEWPORT_HEIGHT,
+                              AString::number(text->getViewportHeightWhenCreated()));
     textDataAttributes.append(ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE,
                               AnnotationTextConnectTypeEnum::toName(text->getConnectToBrainordinate()));
     

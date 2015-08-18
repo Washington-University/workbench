@@ -716,6 +716,12 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
         }
     }
     
+    textAnnotation->setViewportHeightWhenCreated(m_streamHelper->getOptionalAttributeFloatValue(attributes,
+                                                                                               ELEMENT_TEXT_DATA,
+                                                                                               ATTRIBUTE_TEXT_VIEWPORT_HEIGHT,
+                                                                                                -1.0));
+                                                 
+    
     /*
      * Read the annotation's text which will also finish reading through
      * the closing element.

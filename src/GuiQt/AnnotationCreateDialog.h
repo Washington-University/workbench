@@ -111,6 +111,8 @@ namespace caret {
         
         const Mode m_mode;
         
+        const MouseEvent& m_mouseEvent;
+        
         const AnnotationFile* m_annotationToPastesFile;
         
         const Annotation* m_annotationToPaste;

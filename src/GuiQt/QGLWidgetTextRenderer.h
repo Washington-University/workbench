@@ -123,6 +123,8 @@ namespace caret {
         void applyBackgroundColoring(const AnnotationText& annotationText,
                                      const double textBoundsBox[4]);
         
+        void setViewportHeight();
+        
         QGLWidget* m_glWidget;
         
         /**
@@ -151,6 +153,9 @@ namespace caret {
          * printing an error message more than once.
          */
         std::set<AString> m_failedFontNames;
+        
+        /** Height of the viewport */
+        int32_t m_viewportHeight;
         
         // ADD_NEW_MEMBERS_HERE
 

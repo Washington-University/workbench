@@ -94,6 +94,8 @@ public:
 
     static int32_t toSizeNumeric(Enum enumValue);
     
+    static int32_t getMinimumSizeNumeric();
+    
 private:
     AnnotationFontSizeEnum(const Enum enumValue, 
                            const AString& name,
@@ -114,6 +116,8 @@ private:
     /** Auto generated integer codes */
     static int32_t integerCodeCounter;
     
+    static int32_t minimumNumericSize;
+    
     /** The enumerated type value for an instance */
     Enum enumValue;
 
@@ -131,9 +135,10 @@ private:
 };
 
 #ifdef __ANNOTATION_FONT_SIZE_ENUM_DECLARE__
-std::vector<AnnotationFontSizeEnum> AnnotationFontSizeEnum::enumData;
-bool AnnotationFontSizeEnum::initializedFlag = false;
-int32_t AnnotationFontSizeEnum::integerCodeCounter = 0; 
+    std::vector<AnnotationFontSizeEnum> AnnotationFontSizeEnum::enumData;
+    bool AnnotationFontSizeEnum::initializedFlag = false;
+    int32_t AnnotationFontSizeEnum::integerCodeCounter = 0;
+    int32_t AnnotationFontSizeEnum::minimumNumericSize = -1;
 #endif // __ANNOTATION_FONT_SIZE_ENUM_DECLARE__
 
 } // namespace

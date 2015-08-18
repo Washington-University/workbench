@@ -98,6 +98,7 @@ AnnotationText::initializeAnnotationTextMembers()
     m_italicEnabled = false;
     m_underlineEnabled = false;
     m_connectToBrainordinate = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
+    m_viewportHeightWhenCreated = -1.0;
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_text",
@@ -120,23 +121,53 @@ AnnotationText::initializeAnnotationTextMembers()
                           &m_italicEnabled);
     m_sceneAssistant->add("m_underlineEnabled",
                           &m_underlineEnabled);
+    m_sceneAssistant->add("m_viewportHeightWhenCreated",
+                          &m_viewportHeightWhenCreated);
 }
 
 /**
- * @return An encoded name that contains the
+ * Get an encoded name that contains the
  * name of the font, the font height, and the
  * font style used by font rendering to provide
  * a name for cached fonts.
+ *
+ * The text annotation contains the height of the viewport
+ * when the annotation was created.  When it is valid (
+ * greater than zero), and the drawing viewport height
+ * is also valid (greater than zero), a scaling value
+ * (equal to drawing viewport height divided by creation
+ * viewport height) is applied to the font size so that
+ * the font can scale as the viewport change in size.
+ * Thus, if the viewport becomes larger (smaller), the
+ * text will become larger (smaller).  While one could
+ * scale while drawing the text (using glScale()), the
+ * quality is poor.
+ *
+ * @param drawingViewportHeight
+ *      Height of the viewport that may be used to scale the font height.
+ * @return
+ *      Encoded name for font.
  */
 AString
-AnnotationText::getFontRenderingEncodedName() const
+AnnotationText::getFontRenderingEncodedName(const float drawingViewportHeight) const
 {
+    AString fontSizeID = AnnotationFontSizeEnum::toName(m_fontSize);
+    
+    if (m_viewportHeightWhenCreated > 0.0) {
+        if (drawingViewportHeight> 0.0) {
+            const int32_t fontSizeInt = getFontSizeForDrawing(drawingViewportHeight);
+            if (fontSizeInt > 0) {
+                fontSizeID = "SIZE" + AString::number(fontSizeInt);
+            }
+        }
+    }
+    
     AString encodedName;
     encodedName.reserve(50);
     
     encodedName.append(AnnotationFontNameEnum::toName(m_font));
     
-    encodedName.append("_" + AnnotationFontSizeEnum::toName(m_fontSize));
+    encodedName.append("_" + fontSizeID);
     
     if (m_boldEnabled) {
         encodedName.append("_B");
@@ -282,6 +313,47 @@ AnnotationText::setFont(const AnnotationFontNameEnum::Enum font)
         m_font = font;
         setModified();
     }
+}
+
+/**
+ * Get the font size for drawing.  The font size may
+ * be scaled to "best fit" the viewport.
+ *
+ * The text annotation contains the height of the viewport
+ * when the annotation was created.  When it is valid (
+ * greater than zero), and the drawing viewport height
+ * is also valid (greater than zero), a scaling value
+ * (equal to drawing viewport height divided by creation
+ * viewport height) is applied to the font size so that
+ * the font can scale as the viewport change in size.
+ * Thus, if the viewport becomes larger (smaller), the
+ * text will become larger (smaller).  While one could
+ * scale while drawing the text (using glScale()), the
+ * quality is poor.
+ *
+ * @param drawingViewportHeight
+ *      Height of the viewport that may be used to scale the font height.
+ * @return
+ *      Encoded name for font.
+ */
+int32_t
+AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportHeight) const
+{
+    int32_t fontSizeNumeric = AnnotationFontSizeEnum::toSizeNumeric(m_fontSize);
+    
+    if (m_viewportHeightWhenCreated > 0.0) {
+        if (drawingViewportHeight> 0.0) {
+            const float scale = drawingViewportHeight / m_viewportHeightWhenCreated;
+            const int32_t fontSizeInt = static_cast<int32_t>(static_cast<float>(fontSizeNumeric) * scale);
+            fontSizeNumeric = fontSizeInt;
+        }
+    }
+    
+    if (fontSizeNumeric < AnnotationFontSizeEnum::getMinimumSizeNumeric()) {
+        fontSizeNumeric = AnnotationFontSizeEnum::getMinimumSizeNumeric();
+    }
+    
+    return fontSizeNumeric;
 }
 
 /**
@@ -438,6 +510,7 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
     m_italicEnabled    = obj.m_italicEnabled;
     m_underlineEnabled = obj.m_underlineEnabled;
     m_connectToBrainordinate = obj.m_connectToBrainordinate;
+    m_viewportHeightWhenCreated = obj.m_viewportHeightWhenCreated;
 }
 
 /**
@@ -453,6 +526,39 @@ AnnotationText::applyCoordinatesSizeAndRotationFromOther(const Annotation* other
     AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(otherAnnotation);
 }
 
+/**
+ * @return Viewport height when annotation was created.  If the value is
+ * negative, the original viewport height is unknown and no scaling 
+ * should be performed.
+ *
+ * When text is drawn, it size should scale with the size of the viewport.
+ * Thus, the scale is (current viewport height) divided by (origin
+ * viewport height).
+ */
+float
+AnnotationText::getViewportHeightWhenCreated() const
+{
+    return m_viewportHeightWhenCreated;
+}
+
+/**
+ * Set the viewport height when annotation was created.
+ *
+ * When text is drawn, it size should scale with the size of the viewport.
+ * Thus, the scale is (current viewport height) divided by (origin
+ * viewport height).
+ *
+ * @param viewportHeight
+ *    Height of viewport in which the text annotation was created.
+ */
+void
+AnnotationText::setViewportHeightWhenCreated(const float viewportHeight)
+{
+    if (viewportHeight != m_viewportHeightWhenCreated) {
+        m_viewportHeightWhenCreated = viewportHeight;
+        setModified();
+    }
+}
 
 /**
  * Apply a move or resize operation received from the GUI.

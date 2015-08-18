@@ -105,6 +105,8 @@ QGLWidgetTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                                const double viewportY,
                                                const AnnotationText& annotationText)
 {
+    setViewportHeight();
+    
     drawTextAtViewportCoords(viewportX,
                              viewportY,
                              0.0,
@@ -132,6 +134,8 @@ QGLWidgetTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                                const double /*viewportZ */,
                                                const AnnotationText& annotationText)
 {
+    setViewportHeight();
+    
     GLdouble modelMatrix[16];
     GLdouble projectionMatrix[16];
     GLint viewport[4];
@@ -212,6 +216,8 @@ QGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
                                           const double modelZ,
                                           const AnnotationText& annotationText)
 {
+    setViewportHeight();
+    
     GLdouble modelMatrix[16];
     GLdouble projectionMatrix[16];
     GLint viewport[4];
@@ -676,6 +682,8 @@ QGLWidgetTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotati
                                                  double& widthOut,
                                                  double& heightOut)
 {
+    setViewportHeight();
+    
     double xMin = 0.0;
     double xMax = 0.0;
     double yMin = 0.0;
@@ -728,6 +736,8 @@ QGLWidgetTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& an
                                                        double topRightOut[3],
                                                        double topLeftOut[3])
 {
+    setViewportHeight();
+    
     QFont* font = findFont(annotationText,
                            false);
     if (font == NULL) {
@@ -909,6 +919,20 @@ QGLWidgetTextRenderer::getVerticalTextCharInfo(const AnnotationText& annotationT
 }
 
 /**
+ * Set the height of the viewport.  This method must be called
+ * at the beginning of all public methods.
+ */
+void
+QGLWidgetTextRenderer::setViewportHeight()
+{
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    
+    m_viewportHeight = viewport[3];
+}
+
+/**
  * Find a font with the given name, height, and style.
  * Once a font is created it is cached so that it can be
  * used again and avoids font creation which may be
@@ -921,7 +945,7 @@ QGLWidgetTextRenderer::findFont(const AnnotationText& annotationText,
                                         const bool creatingDefaultFontFlag)
 
 {
-    const AString fontName = annotationText.getFontRenderingEncodedName();
+    const AString fontName = annotationText.getFontRenderingEncodedName(m_viewportHeight);
     
     /*
      * Has the font already has been created?

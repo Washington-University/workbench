@@ -261,6 +261,42 @@ XmlStreamReaderHelper::getRequiredAttributeIntValue(const QXmlStreamAttributes& 
 }
 
 /**
+ * Get the float value for the given attribute name from the
+ * given attributes.  If the attribute is missing or if the
+ * attributes value is empty text, the defaultValue is
+ * returned.  This method WILL NOT throw an exception.
+ *
+ * @param attributes
+ *     The XML attributes.
+ * @param elementName
+ *     Name of element containing the attributes.
+ * @param attributeName
+ *     Name of the attribute.
+ * @param defaultValue
+ *     Value that is returned if the attribute is missing.
+ * @return
+ *     float value for the attribute.
+ * @throw
+ *     DataFileException if attribute is missing or value is
+ *     an empty string.
+ */
+float
+XmlStreamReaderHelper::getOptionalAttributeFloatValue(const QXmlStreamAttributes& attributes,
+                                                     const QString& elementName,
+                                                     const QString& attributeName,
+                                                     const float defaultValue)
+{
+    const AString stringValue = getOptionalAttributeStringValue(attributes,
+                                                                elementName,
+                                                                attributeName,
+                                                                AString::number(defaultValue));
+    
+    const float value = stringValue.toFloat();
+    
+    return value;
+}
+
+/**
  * Get the int value for the given attribute name from the
  * given attributes.  If the attribute name is not found or
  * its value is an empty string, a DataFileException is thrown.

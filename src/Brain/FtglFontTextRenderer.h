@@ -93,7 +93,8 @@ namespace caret {
         public:
             FontData();
             
-            FontData(const AnnotationText&  annotationText);
+            FontData(const AnnotationText&  annotationText,
+                     const int32_t viewportHeight);
             
             ~FontData();
             
@@ -181,7 +182,7 @@ namespace caret {
         };
         
         void assignTextRowColumnLocations(const AnnotationText& annotationText,
-                                       TextDrawInfo& textDrawInfoOut);
+                                          TextDrawInfo& textDrawInfoOut);
         
         void setTextViewportCoordinates(const double viewportX,
                                         const double viewportY,
@@ -195,6 +196,8 @@ namespace caret {
         void applyForegroundColoring(const AnnotationText& annotationText);
         
         void applyBackgroundColoring(const TextDrawInfo& textDrawInfo);
+        
+        void setViewportHeight();
         
         void saveStateOfOpenGL();
         
@@ -229,6 +232,9 @@ namespace caret {
         
         /** Depth testing enabled status */
         DepthTestEnum m_depthTestingStatus;
+        
+        /** Height of the viewport */
+        int32_t m_viewportHeight;
         
         static const double s_textMarginSize;
     };

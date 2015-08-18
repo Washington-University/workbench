@@ -177,7 +177,7 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
                               const bool creatingDefaultFontFlag)
 {
 #ifdef HAVE_FREETYPE
-    const AString fontName = annotationText.getFontRenderingEncodedName();
+    const AString fontName = annotationText.getFontRenderingEncodedName(m_viewportHeight);
     
     /*
      * Has the font already has been created?
@@ -192,7 +192,8 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
     /*
      * Create and save the font
      */
-    FontData* fontData = new FontData(annotationText);
+    FontData* fontData = new FontData(annotationText,
+                                      m_viewportHeight);
     if (fontData->m_valid) {
         /*
          * Request font is valid.
@@ -255,7 +256,7 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
  */
 void
 FtglFontTextRenderer::assignTextRowColumnLocations(const AnnotationText& annotationText,
-                                                TextDrawInfo& textDrawInfoOut)
+                                                   TextDrawInfo& textDrawInfoOut)
 {
 #ifdef HAVE_FREETYPE
     FTFont* font = getFont(annotationText,
@@ -288,6 +289,20 @@ FtglFontTextRenderer::assignTextRowColumnLocations(const AnnotationText& annotat
                                                      bounds.Upper().X(),
                                                      bounds.Lower().Y(),
                                                      bounds.Upper().Y()));
+//                const AString msg("Drawing: "
+//                                  + annotationText.getText()
+//                                  + " size="
+//                                  + annotationText.getFontRenderingEncodedName(m_viewportHeight)
+//                                  + " bound=("
+//                                  + AString::number(bounds.Lower().X())
+//                                  + ", "
+//                                  + AString::number(bounds.Lower().Y())
+//                                  + ", "
+//                                  + AString::number(bounds.Upper().X())
+//                                  + ", "
+//                                  + AString::number(bounds.Upper().Y())
+//                                  + ")");
+//                std::cout << qPrintable(msg) << std::endl;
                 
                 rowIndex++;
             }
@@ -548,6 +563,16 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
         return;
     }
     
+//    float fontScaling = 0.0;
+//    const float textCreateViewportHeight = annotationText.getViewportHeightWhenCreated();
+//    if (textCreateViewportHeight > 0.0) {
+//        GLint viewport[4];
+//        glGetIntegerv(GL_VIEWPORT, viewport);
+//        if (viewport[3] > 0.0) {
+//            fontScaling = viewport[3] / textCreateViewportHeight;
+//        }
+//    }
+    
     saveStateOfOpenGL();
     
     /*
@@ -733,6 +758,8 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                                const double viewportY,
                                                const AnnotationText& annotationText)
 {
+    setViewportHeight();
+    
     drawTextAtViewportCoordsInternal(DEPTH_TEST_NO,
                                      viewportX,
                                      viewportY,
@@ -761,6 +788,8 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                                const double viewportZ,
                                                const AnnotationText& annotationText)
 {
+    setViewportHeight();
+    
     drawTextAtViewportCoordsInternal(DEPTH_TEST_YES,
                                      viewportX,
                                      viewportY,
@@ -863,6 +892,8 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                                        double topRightOut[3],
                                                        double topLeftOut[3])
 {
+    setViewportHeight();
+    
     TextDrawInfo textDrawInfo(annotationText,
                               viewportX,
                               viewportY,
@@ -944,6 +975,20 @@ FtglFontTextRenderer::applyForegroundColoring(const AnnotationText& annotationTe
 }
 
 /**
+ * Set the height of the viewport.  This method must be called
+ * at the beginning of all public methods.
+ */
+void
+FtglFontTextRenderer::setViewportHeight()
+{
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    
+    m_viewportHeight = viewport[3];
+}
+
+/**
  * Get the estimated width and height of text (in pixels) using the given text
  * attributes.
  *
@@ -961,6 +1006,8 @@ FtglFontTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotatio
                                                  double& widthOut,
                                                  double& heightOut)
 {
+    setViewportHeight();
+    
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
     getBoundsForTextAtViewportCoords(annotationText, 0.0, 0.0, 0.0, bottomLeft, bottomRight, topRight, topLeft);
     
@@ -989,6 +1036,8 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                           const double modelZ,
                                           const AnnotationText& annotationText)
 {
+    setViewportHeight();
+    
     m_depthTestingStatus = DEPTH_TEST_YES;
 
     GLdouble modelMatrix[16];
@@ -1094,8 +1143,11 @@ FtglFontTextRenderer::FontData::FontData()
  *
  * @param annotationText
  *   Annotation Text that is to be drawn.
+ * @param viewportHeight
+ *    Height of the viewport in which text is drawn.
  */
-FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText)
+FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
+                                         const int32_t viewportHeight)
 {
     m_valid    = false;
     m_font     = NULL;
@@ -1145,10 +1197,16 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText)
                 /*
                  * Font size successful ?
                  */
-                const AnnotationFontSizeEnum::Enum fontSizeEnum = annotationText.getFontSize();
-                const int32_t fontSizeInt = AnnotationFontSizeEnum::toSizeNumeric(fontSizeEnum);
+                const int32_t fontSizeInt = annotationText.getFontSizeForDrawing(viewportHeight);
                 if (m_font->FaceSize(fontSizeInt)) {
                     m_valid = true;
+                    
+                    CaretLogFine("Created font size="
+                                 + AnnotationFontSizeEnum::toName(annotationText.getFontSize())
+                                 + " scaled-size="
+                                 + AString::number(fontSizeInt)
+                                 + " from font file "
+                                 + file.fileName());
                 }
                 else {
                     CaretLogSevere("Error creating font size "

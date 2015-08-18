@@ -102,6 +102,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT;
         
+        static const QString ATTRIBUTE_TEXT_VIEWPORT_HEIGHT;
+        
         static const QString ATTRIBUTE_VERSION;
         
         static const QString ATTRIBUTE_WIDTH;
@@ -189,6 +191,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_ORIENTATION = "orientation";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT = "verticalAlignment";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_VIEWPORT_HEIGHT = "viewportHeight";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_VERSION = "version";
     
