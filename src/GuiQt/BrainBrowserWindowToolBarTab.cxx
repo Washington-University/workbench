@@ -72,6 +72,11 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_tabAspectRatioLockedCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(tabAspectRatioCheckBoxClicked(bool)));
     
+    /*
+     * HIDE the TAB LOCK ASPECT CHECKBOX
+     */
+    m_tabAspectRatioLockedCheckBox->setHidden(true);
+    
     m_windowAspectRatioLockedCheckBox = new QCheckBox("Window");
     QObject::connect(m_windowAspectRatioLockedCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(windowAspectRatioCheckBoxClicked(bool)));
