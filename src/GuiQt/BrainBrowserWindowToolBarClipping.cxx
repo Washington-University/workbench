@@ -83,30 +83,47 @@ m_parentToolBar(parentToolBar)
     QObject::connect(setupToolButton, SIGNAL(clicked()),
                      this, SLOT(setupClippingPushButtonClicked()));
     
-    /*
-     * Layout:
-     *   Column 1: Clipping X, Y, Z
-     *   Column 2: Nothing but used as space
-     *   Column 3: Type of data clipped.
-     */
-    QGridLayout* checkboxGridLayout = new QGridLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(checkboxGridLayout, 4, 0);
-    checkboxGridLayout->setColumnMinimumWidth(1, 15);
-    checkboxGridLayout->setColumnStretch(0, 0);
-    checkboxGridLayout->setColumnStretch(0, 1);
-    checkboxGridLayout->setColumnStretch(0, 2);
-    checkboxGridLayout->addWidget(m_xClippingEnabledCheckBox, 0, 0);
-    checkboxGridLayout->addWidget(m_yClippingEnabledCheckBox, 1, 0);
-    checkboxGridLayout->addWidget(m_zClippingEnabledCheckBox, 2, 0);
-    checkboxGridLayout->addWidget(m_surfaceClippingEnabledCheckBox, 0, 2);
-    checkboxGridLayout->addWidget(m_volumeClippingEnabledCheckBox, 1, 2);
-    checkboxGridLayout->addWidget(m_featuresClippingEnabledCheckBox, 2, 2);
+    QGridLayout* gridLayout = new QGridLayout(this);
+    gridLayout->setHorizontalSpacing(6);
+    gridLayout->setVerticalSpacing(8);
+    gridLayout->setContentsMargins(0, 0, 0, 0);
+    int32_t rowIndex = gridLayout->rowCount();
+    gridLayout->addWidget(m_xClippingEnabledCheckBox, rowIndex, 0);
+    gridLayout->addWidget(m_yClippingEnabledCheckBox, rowIndex, 1);
+    gridLayout->addWidget(m_zClippingEnabledCheckBox, rowIndex, 2);
+    rowIndex++;
+    gridLayout->addWidget(m_featuresClippingEnabledCheckBox, rowIndex, 0, 1, 3);
+    rowIndex++;
+    gridLayout->addWidget(m_surfaceClippingEnabledCheckBox, rowIndex, 0, 1, 3);
+    rowIndex++;
+    gridLayout->addWidget(m_volumeClippingEnabledCheckBox, rowIndex, 0, 1, 3);
+    rowIndex++;
+    gridLayout->addWidget(setupToolButton, rowIndex, 0, 1, 3, Qt::AlignHCenter);
     
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addLayout(checkboxGridLayout);
-    layout->addWidget(setupToolButton, 0, Qt::AlignHCenter);
-    layout->addStretch();
+//    /*
+//     * Layout:
+//     *   Column 1: Clipping X, Y, Z
+//     *   Column 2: Nothing but used as space
+//     *   Column 3: Type of data clipped.
+//     */
+//    QGridLayout* checkboxGridLayout = new QGridLayout();
+//    WuQtUtilities::setLayoutSpacingAndMargins(checkboxGridLayout, 4, 0);
+//    checkboxGridLayout->setColumnMinimumWidth(1, 15);
+//    checkboxGridLayout->setColumnStretch(0, 0);
+//    checkboxGridLayout->setColumnStretch(0, 1);
+//    checkboxGridLayout->setColumnStretch(0, 2);
+//    checkboxGridLayout->addWidget(m_xClippingEnabledCheckBox, 0, 0);
+//    checkboxGridLayout->addWidget(m_yClippingEnabledCheckBox, 1, 0);
+//    checkboxGridLayout->addWidget(m_zClippingEnabledCheckBox, 2, 0);
+//    checkboxGridLayout->addWidget(m_surfaceClippingEnabledCheckBox, 0, 2);
+//    checkboxGridLayout->addWidget(m_volumeClippingEnabledCheckBox, 1, 2);
+//    checkboxGridLayout->addWidget(m_featuresClippingEnabledCheckBox, 2, 2);
+//    
+//    QVBoxLayout* layout = new QVBoxLayout(this);
+//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+//    layout->addLayout(checkboxGridLayout);
+//    layout->addWidget(setupToolButton, 0, Qt::AlignHCenter);
+//    layout->addStretch();
 }
 
 /**
