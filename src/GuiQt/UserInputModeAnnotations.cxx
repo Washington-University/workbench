@@ -335,7 +335,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
         case Qt::Key_Up:
         {
             if (m_annotationBeingEdited != NULL) {
-                bool changeCoordFlag = false;
+                bool changeCoordFlag  = false;
+                bool moveOnePixelFlag = false;
                 switch (m_annotationBeingEdited->getCoordinateSpace()) {
                     case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         changeCoordFlag = true;
@@ -345,29 +346,44 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     case AnnotationCoordinateSpaceEnum::SURFACE:
                         break;
                     case AnnotationCoordinateSpaceEnum::TAB:
-                        changeCoordFlag = true;
+                        changeCoordFlag  = true;
+                        moveOnePixelFlag = true;
                         break;
                     case AnnotationCoordinateSpaceEnum::WINDOW:
-                        changeCoordFlag = true;
+                        changeCoordFlag  = true;
+                        moveOnePixelFlag = true;
                         break;
                 }
                 
                 if (changeCoordFlag) {
-                    const float distance = 0.01;
+                    float distanceX = 1.0;
+                    float distanceY = 1.0;
+                    if (moveOnePixelFlag) {
+                        const float pixelHeight = keyEvent.getOpenGLWidget()->height();
+                        const float pixelWidth  = keyEvent.getOpenGLWidget()->width();
+                        distanceX = 1.0 / pixelWidth;
+                        distanceY = 1.0 / pixelHeight;
+                    }
+                    if (keyEvent.isShiftKeyDownFlag()) {
+                        const float multiplier = 10;
+                        distanceX *= multiplier;
+                        distanceY *= multiplier;
+                    }
+                    
                     float dx = 0.0;
                     float dy = 0.0;
                     switch (keyCode) {
                         case Qt::Key_Down:
-                            dy = -distance;
+                            dy = -distanceY;
                             break;
                         case Qt::Key_Left:
-                            dx = -distance;
+                            dx = -distanceX;
                             break;
                         case Qt::Key_Right:
-                            dx = distance;
+                            dx = distanceX;
                             break;
                         case Qt::Key_Up:
-                            dy = distance;
+                            dy = distanceY;
                             break;
                         default:
                             CaretAssert(0);

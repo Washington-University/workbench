@@ -899,10 +899,14 @@ BrainOpenGLWidget::checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
 void
 BrainOpenGLWidget::keyPressEvent(QKeyEvent* e)
 {
+    Qt::KeyboardModifiers keyModifiers = e->modifiers();
+    const bool shiftKeyDownFlag = ((keyModifiers & Qt::ShiftModifier) != 0);
+    
     KeyEvent keyEvent(this,
                       this->windowIndex,
                       e->key(),
-                      m_newKeyPressStartedFlag);
+                      m_newKeyPressStartedFlag,
+                      shiftKeyDownFlag);
     
     this->selectedUserInputProcessor->keyPressEvent(keyEvent);
     

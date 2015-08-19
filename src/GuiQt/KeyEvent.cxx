@@ -39,16 +39,22 @@ using namespace caret;
  *    Index of the browser winddow in which key activity took place.
  * @param keyCode
  *    The key that was pressed.  See Qt::Key for list of codes.
+ * @param firstKeyPressFlag
+ *    True if this is the first key press when key is held down for a period of time
+ * @param shiftKeyDownFlag
+ *    True if the shift key is down
  */
 KeyEvent::KeyEvent(BrainOpenGLWidget* openGLWidget,
                    const int32_t browserWindowIndex,
                    const int32_t keyCode,
-                   const bool firstKeyPressFlag)
+                   const bool firstKeyPressFlag,
+                   const bool shiftKeyDownFlag)
 : CaretObject(),
 m_openGLWidget(openGLWidget),
 m_browserWindowIndex(browserWindowIndex),
 m_keyCode(keyCode),
-m_firstKeyPressFlag(firstKeyPressFlag)
+m_firstKeyPressFlag(firstKeyPressFlag),
+m_shiftKeyDownFlag(shiftKeyDownFlag)
 {
 }
 
@@ -121,4 +127,14 @@ KeyEvent::isFirstKeyPressFlag() const
 {
     return m_firstKeyPressFlag;
 }
+/**
+ * @return Is this the SHIFT key down?
+ *
+ */
+bool
+KeyEvent::isShiftKeyDownFlag() const
+{
+    return m_shiftKeyDownFlag;
+}
+
 
