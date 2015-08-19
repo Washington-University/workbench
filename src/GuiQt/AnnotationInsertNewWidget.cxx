@@ -71,23 +71,46 @@ m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* insertLabel = new QLabel("Insert");
     QLabel* deleteLabel = new QLabel("Delete");
-    QWidget* shapeToolButton = createShapeToolButton();
+    
+    QWidget* shapeBoxToolButton   = createShapeToolButton(AnnotationTypeEnum::BOX);
+    QWidget* shapeImageToolButton = createShapeToolButton(AnnotationTypeEnum::IMAGE);
+    QWidget* shapeLineToolButton  = createShapeToolButton(AnnotationTypeEnum::LINE);
+    QWidget* shapeOvalToolButton  = createShapeToolButton(AnnotationTypeEnum::OVAL);
+    QWidget* shapeTextToolButton  = createShapeToolButton(AnnotationTypeEnum::TEXT);
+    
+    /*
+     * Disable IMAGE button
+     */
+    shapeImageToolButton->setEnabled(false);
+    
     m_deleteToolButton = createDeleteToolButton();
     
-    WuQtUtilities::matchWidgetHeights(shapeToolButton,
-                                      m_deleteToolButton);
-    
+    QSpacerItem* spaceItem = new QSpacerItem(5, 10,
+                                             QSizePolicy::Fixed,
+                                             QSizePolicy::Fixed);
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     gridLayout->addWidget(insertLabel,
-                          0, 0, 1, 2, Qt::AlignHCenter);
-    gridLayout->addWidget(shapeToolButton,
-                          1, 0,
-                          1, 2, Qt::AlignHCenter);
+                          0, 0, 1, 3, Qt::AlignHCenter);
+    gridLayout->addWidget(shapeBoxToolButton,
+                          1, 0);
+    gridLayout->addWidget(shapeImageToolButton,
+                          1, 1);
+    gridLayout->addWidget(shapeLineToolButton,
+                          1, 2);
+    gridLayout->addWidget(shapeOvalToolButton,
+                          2, 0);
+    gridLayout->addWidget(shapeTextToolButton,
+                          2, 1);
+    
+    gridLayout->addItem(spaceItem,
+                        0, 3);
+    
     gridLayout->addWidget(deleteLabel,
-                          0, 2, Qt::AlignHCenter);
+                          0, 4, Qt::AlignHCenter);
     gridLayout->addWidget(m_deleteToolButton,
-                          1, 2, Qt::AlignHCenter);
+                          1, 4, 2, 1, (Qt::AlignHCenter
+                                       | Qt::AlignTop));
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -109,89 +132,48 @@ AnnotationInsertNewWidget::updateContent()
 }
 
 /**
- * @return Create the shape tool button.
+ * @return Create the shape tool button for the given annotation type.
+ * 
+ * @param annotationType
+ *     The annotation type.
  */
 QWidget*
-AnnotationInsertNewWidget::createShapeToolButton()
+AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum annotationType)
 {
-    QMenu* shapeMenu = new QMenu();
-    QObject::connect(shapeMenu, SIGNAL(triggered(QAction*)),
-                     this, SLOT(shapeMenuActionTriggered(QAction*)));
-    
-    std::vector<AnnotationTypeEnum::Enum> allTypes;
-    AnnotationTypeEnum::getAllEnums(allTypes);
-    
-    QAction* boxAction = NULL;
-    QAction* textAction = NULL;
-    for (std::vector<AnnotationTypeEnum::Enum>::iterator iter = allTypes.begin();
-         iter != allTypes.end();
-         iter++) {
-        const AnnotationTypeEnum::Enum annType = *iter;
-        
-        bool useTypeFlag = false;
-        switch (annType) {
-            case AnnotationTypeEnum::BOX:
-                useTypeFlag = true;
-                break;
-            case AnnotationTypeEnum::IMAGE:
-                useTypeFlag = true;
-                break;
-            case AnnotationTypeEnum::LINE:
-                useTypeFlag = true;
-                break;
-            case AnnotationTypeEnum::OVAL:
-                useTypeFlag = true;
-                break;
-            case AnnotationTypeEnum::TEXT:
-                useTypeFlag = true;
-                break;
-        }
-        
-        if (useTypeFlag) {
-            QAction* typeAction = shapeMenu->addAction(AnnotationTypeEnum::toGuiName(annType));
-            typeAction->setIcon(createShapePixmap(shapeMenu,
-                                                  annType));
-            typeAction->setData((int)AnnotationTypeEnum::toIntegerCode(annType));
-            
-            if (annType == AnnotationTypeEnum::BOX) {
-                boxAction = typeAction;
-            }
-            else if (annType == AnnotationTypeEnum::TEXT) {
-                textAction = typeAction;
-            }
-            
-            if (annType == AnnotationTypeEnum::IMAGE) {
-                typeAction->setDisabled(true);
-            }
-        }
-    }
-    
-    QAction* selectedAction = ((textAction != NULL)
-                               ? textAction
-                               : boxAction);
-    
-    m_shapeToolButtonAction = WuQtUtilities::createAction("Shape",
-                                                          "Create the selected shape annotation\n"
-                                                          "Click right side of button to change shape.",
-                                                          this,
-                                                          this,
-                                                          SLOT(shapeActionTriggered()));
-    m_shapeToolButtonAction->setData((int)-1);
-    m_shapeToolButtonAction->setMenu(shapeMenu);
-    
+    const QString typeGuiName = AnnotationTypeEnum::toGuiName(annotationType);
     QToolButton* toolButton = new QToolButton();
-    toolButton->setDefaultAction(m_shapeToolButtonAction);
+    QAction* action = new QAction(createShapePixmap(toolButton,
+                                                    annotationType),
+                                  typeGuiName,
+                                  this);
+    action->setToolTip("Create a "
+                       + typeGuiName
+                       + " annotation");
 
-    /*
-     * Initialize the shape tool button action to the BOX action.
-     */
-    if (selectedAction != NULL) {
-        m_shapeToolButtonAction->blockSignals(true);
-        m_shapeToolButtonAction->setIcon(selectedAction->icon());
-        m_shapeToolButtonAction->setData(selectedAction->data());
-        m_shapeToolButtonAction->setText("");
-        m_shapeToolButtonAction->blockSignals(false);
+    switch (annotationType) {
+        case AnnotationTypeEnum::BOX:
+            QObject::connect(action, SIGNAL(triggered(bool)),
+                             this, SLOT(shapeBoxActionTriggered()));
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            QObject::connect(action, SIGNAL(triggered(bool)),
+                             this, SLOT(shapeImageActionTriggered()));
+            break;
+        case AnnotationTypeEnum::LINE:
+            QObject::connect(action, SIGNAL(triggered(bool)),
+                             this, SLOT(shapeLineActionTriggered()));
+            break;
+        case AnnotationTypeEnum::OVAL:
+            QObject::connect(action, SIGNAL(triggered(bool)),
+                             this, SLOT(shapeOvalActionTriggered()));
+            break;
+        case AnnotationTypeEnum::TEXT:
+            QObject::connect(action, SIGNAL(triggered(bool)),
+                             this, SLOT(shapeTextActionTriggered()));
+            break;
     }
+    
+    toolButton->setDefaultAction(action);
     
     return toolButton;
 }
@@ -294,43 +276,49 @@ AnnotationInsertNewWidget::createAnnotationWithType(const AnnotationTypeEnum::En
 }
 
 /**
- * Gets called when the shape tool button's action is triggered.
- *
- * @param action
- *     The selected action.
+ * Gets called when box action is triggered.
  */
 void
-AnnotationInsertNewWidget::shapeActionTriggered()
+AnnotationInsertNewWidget::shapeBoxActionTriggered()
 {
-    const int32_t shapeID = m_shapeToolButtonAction->data().toInt();
-    if (shapeID >= 0) {
-        const AnnotationTypeEnum::Enum annType = AnnotationTypeEnum::fromIntegerCode(shapeID, NULL);
-        createAnnotationWithType(annType);
-    }
+    createAnnotationWithType(AnnotationTypeEnum::BOX);
 }
 
 /**
- * Gets called when an item is selected from the shape tool
- * button's menu.
- *
- * @param action
- *     The selected action.
+ * Gets called when line action is triggered.
  */
 void
-AnnotationInsertNewWidget::shapeMenuActionTriggered(QAction* action)
+AnnotationInsertNewWidget::shapeLineActionTriggered()
 {
-    CaretAssert(action);
-    
-    const int32_t typeID = action->data().toInt();
-    const AnnotationTypeEnum::Enum annType = AnnotationTypeEnum::fromIntegerCode(typeID, NULL);
-    
-    m_shapeToolButtonAction->setIcon(action->icon());
-    m_shapeToolButtonAction->setData(action->data());
-    m_shapeToolButtonAction->setText("");
-    
-    createAnnotationWithType(annType);
+    createAnnotationWithType(AnnotationTypeEnum::LINE);
 }
 
+/**
+ * Gets called when image action is triggered.
+ */
+void
+AnnotationInsertNewWidget::shapeImageActionTriggered()
+{
+    createAnnotationWithType(AnnotationTypeEnum::IMAGE);
+}
+
+/**
+ * Gets called when text action is triggered.
+ */
+void
+AnnotationInsertNewWidget::shapeTextActionTriggered()
+{
+    createAnnotationWithType(AnnotationTypeEnum::TEXT);
+}
+
+/**
+ * Gets called when oval action is triggered.
+ */
+void
+AnnotationInsertNewWidget::shapeOvalActionTriggered()
+{
+    createAnnotationWithType(AnnotationTypeEnum::OVAL);
+}
 
 /**
  * Create a pixmap for the given annotation shape type.

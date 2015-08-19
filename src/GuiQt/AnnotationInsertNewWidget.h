@@ -46,17 +46,23 @@ namespace caret {
         
     private slots:
         void deleteActionTriggered();
+
+        void shapeBoxActionTriggered();
         
-        void shapeActionTriggered();
+        void shapeLineActionTriggered();
         
-        void shapeMenuActionTriggered(QAction* action);
+        void shapeImageActionTriggered();
+        
+        void shapeTextActionTriggered();
+        
+        void shapeOvalActionTriggered();
         
     private:
         AnnotationInsertNewWidget(const AnnotationInsertNewWidget&);
 
         AnnotationInsertNewWidget& operator=(const AnnotationInsertNewWidget&);
         
-        QWidget* createShapeToolButton();
+        QWidget* createShapeToolButton(const AnnotationTypeEnum::Enum annotationType);
         
         QToolButton* createDeleteToolButton();
         
@@ -66,8 +72,6 @@ namespace caret {
         void createAnnotationWithType(const AnnotationTypeEnum::Enum annotationType);
         
         const int32_t m_browserWindowIndex;
-        
-        QAction* m_shapeToolButtonAction;
         
         QToolButton* m_deleteToolButton;
         
