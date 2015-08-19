@@ -115,7 +115,7 @@ AnnotationChangeCoordinateDialog::createCurrentCoordinateWidget()
 
     bool useXyzFlag = true;
     switch (m_annotation->getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
             break;

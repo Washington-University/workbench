@@ -789,7 +789,7 @@ Annotation::isMovableOrResizableFromGUI() const
 {
     bool resizableSpaceFlag = false;
     switch (getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
             break;

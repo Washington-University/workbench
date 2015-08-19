@@ -1486,7 +1486,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                  m_tabViewport,
                                                  surface);
             if (drawAnnotationsInModelSpaceFlag) {
-                m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      m_tabViewport,
                                                   NULL);
             }
@@ -1523,7 +1523,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                  m_tabViewport,
                                               surface);
             if (drawAnnotationsInModelSpaceFlag) {
-                m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::MODEL,
+                m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      m_tabViewport,
                                                   NULL);
             }

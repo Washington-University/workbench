@@ -337,7 +337,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
             if (m_annotationBeingEdited != NULL) {
                 bool changeCoordFlag = false;
                 switch (m_annotationBeingEdited->getCoordinateSpace()) {
-                    case AnnotationCoordinateSpaceEnum::MODEL:
+                    case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         changeCoordFlag = true;
                         break;
                     case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -380,7 +380,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     {
                             bool surfaceFlag = false;
                             switch (m_annotationBeingEdited->getCoordinateSpace()) {
-                                case AnnotationCoordinateSpaceEnum::MODEL:
+                                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::PIXELS:
                                     break;
@@ -525,7 +525,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             
             bool draggableCoordSpaceFlag = false;
             switch (draggingCoordinateSpace) {
-                case AnnotationCoordinateSpaceEnum::MODEL:
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
                 case AnnotationCoordinateSpaceEnum::PIXELS:
                     break;

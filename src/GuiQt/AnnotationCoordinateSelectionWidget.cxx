@@ -182,9 +182,9 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
         }
     }
     if (enableModelSpaceFlag) {
-        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::MODEL);
+        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
         m_spaceButtonGroup->addButton(rb,
-                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::MODEL));
+                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::STEREOTAXIC));
         
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
@@ -343,7 +343,7 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
      */
     const AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::TAB;
     switch (space) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::PIXELS:
         case AnnotationCoordinateSpaceEnum::SURFACE:
         case AnnotationCoordinateSpaceEnum::TAB:
@@ -498,7 +498,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         otherCoordinate->getXYZ(otherXyz);
         
         switch (oldSpace) {
-            case AnnotationCoordinateSpaceEnum::MODEL:
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;
             case AnnotationCoordinateSpaceEnum::PIXELS:
                 CaretAssert(0);
@@ -522,10 +522,10 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
     
     bool setOtherCoordinateFlag = false;
     switch (newSpace) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (m_coordInfo.m_modelXYZValid) {
                 coordinate->setXYZ(m_coordInfo.m_modelXYZ);
-                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
+                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
             }
             break;
         case AnnotationCoordinateSpaceEnum::PIXELS:
@@ -692,10 +692,10 @@ AnnotationCoordinateSelectionWidget::setOneDimAnnotationCoordinates(AnnotationOn
     }
     
     switch (coordSpace) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (m_coordInfo.m_modelXYZValid) {
                 startCoordinate->setXYZ(m_coordInfo.m_modelXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
                 
                 if (m_optionalSecondCoordInfo != NULL) {
                     if (m_optionalSecondCoordInfo->m_modelXYZValid) {
@@ -812,10 +812,10 @@ AnnotationCoordinateSelectionWidget::setTwoDimAnnotationCoordinates(AnnotationTw
     
     AnnotationCoordinate* coordinate = annotation->getCoordinate();
     switch (coordSpace) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (m_coordInfo.m_modelXYZValid) {
                 coordinate->setXYZ(m_coordInfo.m_modelXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
                 
                 if (m_optionalSecondCoordInfo != NULL) {
                     if (m_optionalSecondCoordInfo->m_modelXYZValid) {
@@ -993,7 +993,7 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
     CaretAssert(annotation);
     
     switch (annotation->getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::MODEL:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (m_coordInfo.m_tabIndex >= 0) {
                 dpa->setDisplayModelAnnotations(m_coordInfo.m_tabIndex,
                                                 true);

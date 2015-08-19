@@ -35,10 +35,10 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Annotation in model 3D space */
-        MODEL,
         /** Annotation in pixels (origin is bottom, left corner). */
         PIXELS,
+        /** Annotation in stereotaxic (3D) space */
+        STEREOTAXIC,
         /** Annotation on surface node */
         SURFACE,
         /** Annotation in tab space */

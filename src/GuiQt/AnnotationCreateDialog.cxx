@@ -592,7 +592,7 @@ AnnotationCreateDialog::okButtonClicked()
             CaretAssert(viewportContent);
             int viewport[4] = { -1, -1, -1, -1 };
             switch (annotation->getCoordinateSpace()) {
-                case AnnotationCoordinateSpaceEnum::MODEL:
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     viewportContent->getModelViewport(viewport);
                     break;
                 case AnnotationCoordinateSpaceEnum::PIXELS:

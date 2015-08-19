@@ -108,13 +108,13 @@ AnnotationCoordinateSpaceEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationCoordinateSpaceEnum(MODEL,
-                                                     "MODEL",
-                                                     "Model"));
-    
     enumData.push_back(AnnotationCoordinateSpaceEnum(PIXELS,
                                                      "PIXELS",
                                                      "Pixels"));
+    
+    enumData.push_back(AnnotationCoordinateSpaceEnum(STEREOTAXIC,
+                                                     "STEREOTAXIC",
+                                                     "Stereotaxic"));
     
     enumData.push_back(AnnotationCoordinateSpaceEnum(SURFACE,
                                                      "SURFACE",
@@ -169,7 +169,7 @@ AnnotationCoordinateSpaceEnum::toName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its name.
- * @param name 
+ * @param name In
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -178,9 +178,14 @@ AnnotationCoordinateSpaceEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 AnnotationCoordinateSpaceEnum::Enum 
-AnnotationCoordinateSpaceEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationCoordinateSpaceEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    
+    AString name = nameIn;
+    if (name == "MODEL") {
+        name = "STEREOTAXIC";
+    }
     
     bool validFlag = false;
     Enum enumValue = AnnotationCoordinateSpaceEnum::enumData[0].enumValue;
@@ -222,7 +227,7 @@ AnnotationCoordinateSpaceEnum::toGuiName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its GUI name.
- * @param s 
+ * @param guiNameIn
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -231,9 +236,14 @@ AnnotationCoordinateSpaceEnum::toGuiName(Enum enumValue) {
  *     Enumerated value.
  */
 AnnotationCoordinateSpaceEnum::Enum 
-AnnotationCoordinateSpaceEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+AnnotationCoordinateSpaceEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+ 
+    AString guiName = guiNameIn;
+    if (guiName == "Model") {
+        guiName = "Stereotaxic";
+    }
     
     bool validFlag = false;
     Enum enumValue = AnnotationCoordinateSpaceEnum::enumData[0].enumValue;

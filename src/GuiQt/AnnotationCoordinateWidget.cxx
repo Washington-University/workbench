@@ -222,7 +222,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         double zMax  =  1.0;
         double xyzStep = 0.01;
         switch (m_annotation->getCoordinateSpace()) {
-            case AnnotationCoordinateSpaceEnum::MODEL:
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 xyMax = 10000.0;
                 xyMin = -xyMax;
                 zMin = xyMin;
@@ -302,7 +302,7 @@ AnnotationCoordinateWidget::valueChanged()
     if (coordinate != NULL) {
         bool surfaceFlag = false;
         switch (m_annotation->getCoordinateSpace()) {
-            case AnnotationCoordinateSpaceEnum::MODEL:
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;
             case AnnotationCoordinateSpaceEnum::PIXELS:
                 break;

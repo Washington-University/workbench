@@ -116,14 +116,14 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
         }
         else {
             switch (space) {
-                case AnnotationCoordinateSpaceEnum::MODEL:
-                    text = "M";
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    text = "S";
                     break;
                 case AnnotationCoordinateSpaceEnum::PIXELS:
                     text = "P";
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
-                    text = "S";
+                    text = "";
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 {
