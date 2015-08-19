@@ -705,6 +705,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
     /*
      * Check for a 'selection' type mode
      */
+    bool drawVolumeSlicesFlag = true;
     m_identificationModeFlag = false;
     switch (m_fixedPipelineDrawing->mode) {
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
@@ -716,7 +717,10 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
             else {
-                return;
+                /* 
+                 * Don't return.  Allow other items (such as annotations) to be drawn. 
+                 */
+                drawVolumeSlicesFlag = false;
             }
             break;
         case BrainOpenGLFixedPipeline::MODE_PROJECTION:
@@ -726,54 +730,57 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
     
     resetIdentification();
     
-    /*
-     * Disable culling so that both sides of the triangles/quads are drawn.
-     */
     GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
-    glDisable(GL_CULL_FACE);
-    
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            if (m_modelVolume != NULL) {
-                const bool cullingFlag = true;
-                if (cullingFlag) {
-                    drawOrthogonalSliceWithCulling(sliceViewPlane,
-                                                   sliceCoordinates,
-                                                   slicePlane);
+
+    if (drawVolumeSlicesFlag) {
+        /*
+         * Disable culling so that both sides of the triangles/quads are drawn.
+         */
+        glDisable(GL_CULL_FACE);
+        
+        switch (sliceProjectionType) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                if (m_modelVolume != NULL) {
+                    const bool cullingFlag = true;
+                    if (cullingFlag) {
+                        drawOrthogonalSliceWithCulling(sliceViewPlane,
+                                                       sliceCoordinates,
+                                                       slicePlane);
+                    }
+                    else {
+                        drawOrthogonalSlice(sliceViewPlane,
+                                            sliceCoordinates,
+                                            slicePlane);
+                    }
                 }
-                else {
+                else if (m_modelWholeBrain != NULL) {
                     drawOrthogonalSlice(sliceViewPlane,
                                         sliceCoordinates,
                                         slicePlane);
                 }
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            {
+                /*
+                 * Create the oblique slice transformation matrix
+                 */
+                Matrix4x4 obliqueTransformationMatrix;
+                createObliqueTransformationMatrix(sliceCoordinates,
+                                                  obliqueTransformationMatrix);
+                
+                drawObliqueSlice(sliceViewPlane,
+                                 obliqueTransformationMatrix,
+                                 slicePlane);
             }
-            else if (m_modelWholeBrain != NULL) {
-                drawOrthogonalSlice(sliceViewPlane,
-                                sliceCoordinates,
-                                slicePlane);
-            }
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-        {
-            /*
-             * Create the oblique slice transformation matrix
-             */
-            Matrix4x4 obliqueTransformationMatrix;
-            createObliqueTransformationMatrix(sliceCoordinates,
-                                              obliqueTransformationMatrix);
-            
-            drawObliqueSlice(sliceViewPlane,
-                             obliqueTransformationMatrix,
-                             slicePlane);
+                break;
         }
-            break;
-    }
-    
-    /*
-     * Process selection
-     */
-    if (m_identificationModeFlag) {
-        processIdentification();
+        
+        /*
+         * Process selection
+         */
+        if (m_identificationModeFlag) {
+            processIdentification();
+        }
     }
     
     drawIdentificationSymbols(slicePlane);
@@ -3888,7 +3895,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setFontSize(AnnotationFontSizeEnum::SIZE14);
-        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::MODEL);
+        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         
         if (drawLabelsFlag) {
