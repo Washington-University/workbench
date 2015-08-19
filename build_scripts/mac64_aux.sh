@@ -62,20 +62,20 @@ git pull -u
 #CXX_COMPILER=/usr/local/clang-llvm/clang+llvm-3.2-x86_64-apple-darwin11/bin/clang++
 #CC_COMPILER=/usr/bin/gcc
 #CXX_COMPILER=/usr/bin/g++
-#CC_COMPILER=/usr/local/gcc-4.9.0/bin/gcc
-#CXX_COMPILER=/usr/local/gcc-4.9.0/bin/g++
+CC_COMPILER=/usr/local/gcc-4.9.3/bin/gcc
+CXX_COMPILER=/usr/local/gcc-4.9.3/bin/g++
 
 #
 # Clang compiler with OpenMP
 #
-CC_COMPILER=/usr/local/clang-openmp-opt/llvm/build/Release/bin/clang2
-CXX_COMPILER=/usr/local/clang-openmp-opt/llvm/build/Release/bin/clang2++
-OPENMP_COMPILE_OPTION=-fopenmp
-export OPENMP_COMPILE_OPTION
-OPENMP_HEADER_DIR=/usr/local/clang-openmp-opt/llvm/build/Release/include
-export OPENMP_HEADER_DIR
-OPENMP_LIB_DIR=/usr/local/clang-openmp-opt/llvm/build/Release/lib
-export OPENMP_LIB_DIR
+#CC_COMPILER=/usr/local/clang-openmp-opt/llvm/build/Release/bin/clang2
+#CXX_COMPILER=/usr/local/clang-openmp-opt/llvm/build/Release/bin/clang2++
+#OPENMP_COMPILE_OPTION=-fopenmp
+#export OPENMP_COMPILE_OPTION
+#OPENMP_HEADER_DIR=/usr/local/clang-openmp-opt/llvm/build/Release/include
+#export OPENMP_HEADER_DIR
+#OPENMP_LIB_DIR=/usr/local/clang-openmp-opt/llvm/build/Release/lib
+#export OPENMP_LIB_DIR
 
 
 echo "BUILDING SOURCE"
