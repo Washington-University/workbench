@@ -2183,8 +2183,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     /*
      * Annotations
      */
-    this->modeInputModeAnnotationsAction = WuQtUtilities::createAction("Annotations",
-                                                                      "Perform annotations operations with mouse",
+    this->modeInputModeAnnotationsAction = WuQtUtilities::createAction("Annotate",
+                                                                      "Perform annotate operations with mouse",
                                                                       this);
     this->modeInputModeAnnotationsAction->setCheckable(true);
     QToolButton* inputModeAnnotationsToolButton = new QToolButton();
