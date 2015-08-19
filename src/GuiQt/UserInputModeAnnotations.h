@@ -215,6 +215,10 @@ namespace caret {
         
         void userDrawingAnnotationFromMouseDrag(const MouseEvent& mouseEvent);
         
+        void selecteAnnotation(Annotation* annotation);
+        
+        void resetAnnotationUnderMouse();
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;

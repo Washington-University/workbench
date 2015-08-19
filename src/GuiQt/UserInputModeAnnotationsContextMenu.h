@@ -48,6 +48,7 @@ namespace caret {
         
         virtual ~UserInputModeAnnotationsContextMenu();
         
+        Annotation* getNewAnnotationCreatedByContextMenu();
 
         // ADD_NEW_METHODS_HERE
 
@@ -81,6 +82,8 @@ namespace caret {
         Annotation* m_annotation;
         
         AnnotationText* m_textAnnotation;
+        
+        Annotation* m_newAnnotationCreatedByContextMenu;
         
         // ADD_NEW_MEMBERS_HERE
 

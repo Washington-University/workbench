@@ -202,7 +202,8 @@ m_mode(mode),
 m_mouseEvent(mouseEvent),
 m_annotationToPastesFile(annotationFile),
 m_annotationToPaste(annotation),
-m_annotationType(annotationType)
+m_annotationType(annotationType),
+m_annotationThatWasCreated(NULL)
 {
     m_textEdit = NULL;
     
@@ -352,6 +353,15 @@ m_annotationType(annotationType)
 AnnotationCreateDialog::~AnnotationCreateDialog()
 {
     delete m_annotationFileSelectionModel;
+}
+
+/**
+ * @return Annotation that was created by dialog (NULL if annotation NOT created).
+ */
+Annotation*
+AnnotationCreateDialog::getAnnotationThatWasCreated()
+{
+    return m_annotationThatWasCreated;
 }
 
 /**
@@ -626,6 +636,8 @@ AnnotationCreateDialog::okButtonClicked()
                                         annotationPointer);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    
+    m_annotationThatWasCreated = annotationPointer;
     
     WuQDialog::okButtonClicked();
 }

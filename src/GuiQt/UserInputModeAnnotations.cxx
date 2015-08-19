@@ -117,6 +117,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
         
         annotationManager->deselectAllAnnotations();
+        resetAnnotationUnderMouse();
         
         m_modeNewAnnotationType = annotationEvent->getAnnotationType();
         setMode(MODE_NEW_WITH_CLICK);
@@ -133,11 +134,7 @@ void
 UserInputModeAnnotations::initialize()
 {
     m_mode = MODE_SELECT;
-    m_annotationBeingEdited = NULL;
-    m_annotationUnderMouse  = NULL;
-    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
-    m_annotationBeingDragged = NULL;
-    m_annotationBeingDraggedHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+    resetAnnotationUnderMouse();
 }
 
 /**
@@ -148,6 +145,12 @@ void
 UserInputModeAnnotations::finish()
 {
     m_mode = MODE_SELECT;
+    resetAnnotationUnderMouse();
+}
+
+void
+UserInputModeAnnotations::resetAnnotationUnderMouse()
+{
     m_annotationBeingEdited = NULL;
     m_annotationUnderMouse  = NULL;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
@@ -809,7 +812,11 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
                                                                                                                   m_newAnnotationCreatingWithMouseDrag->getAnnotation()->getType(),
                                                                                                                   mouseEvent.getOpenGLWidget()));
         if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
-            
+            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+            const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations();
+            if (allSelectedAnnotations.size() == 1) {
+                selecteAnnotation(allSelectedAnnotations[0]);
+            }
         }
         
         m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
@@ -1085,16 +1092,38 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
 void
 UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEvent)
 {
+    resetAnnotationUnderMouse();
+    
     CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newAnnotationType(mouseEvent,
                                                                                                     m_modeNewAnnotationType,
                                                                                                     mouseEvent.getOpenGLWidget()));
     if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
-        
+        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+        const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations();
+        if (allSelectedAnnotations.size() == 1) {
+            selecteAnnotation(allSelectedAnnotations[0]);
+        }
     }
 
     setMode(MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+}
+
+/**
+ * Select the given annotation (typically when a new annontation is created).
+ *
+ * @param annotation
+ *    Annotation that is selected.
+ */
+void
+UserInputModeAnnotations::selecteAnnotation(Annotation* annotation)
+{
+    resetAnnotationUnderMouse();
+    
+    m_annotationBeingEdited  = annotation;
+    m_annotationBeingDragged = annotation;
+    m_annotationUnderMouse   = annotation;
 }
 
 
@@ -1190,6 +1219,14 @@ UserInputModeAnnotations::showContextMenu(const MouseEvent& mouseEvent,
                                                     openGLWidget);
     if (contextMenu.actions().size() > 0) {
         contextMenu.exec(menuPosition);
+        
+        Annotation* newAnnotation = contextMenu.getNewAnnotationCreatedByContextMenu();
+        if (newAnnotation != NULL) {
+            selecteAnnotation(newAnnotation);
+
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        }
     }
 }
 

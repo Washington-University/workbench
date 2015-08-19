@@ -64,6 +64,8 @@ namespace caret {
 
         virtual void okButtonClicked();
         
+        Annotation* getAnnotationThatWasCreated();
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:
@@ -118,6 +120,8 @@ namespace caret {
         const Annotation* m_annotationToPaste;
         
         const AnnotationTypeEnum::Enum m_annotationType;
+        
+        Annotation* m_annotationThatWasCreated;
         
         CaretDataFileSelectionModel* m_annotationFileSelectionModel;
         

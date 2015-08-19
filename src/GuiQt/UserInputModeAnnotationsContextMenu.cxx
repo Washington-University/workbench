@@ -75,7 +75,8 @@ UserInputModeAnnotationsContextMenu::UserInputModeAnnotationsContextMenu(const M
 m_mouseEvent(mouseEvent),
 m_selectionManager(selectionManager),
 m_browserTabContent(browserTabContent),
-m_parentOpenGLWidget(parentOpenGLWidget)
+m_parentOpenGLWidget(parentOpenGLWidget),
+m_newAnnotationCreatedByContextMenu(NULL)
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
 
@@ -114,6 +115,12 @@ m_parentOpenGLWidget(parentOpenGLWidget)
  */
 UserInputModeAnnotationsContextMenu::~UserInputModeAnnotationsContextMenu()
 {
+}
+
+Annotation*
+UserInputModeAnnotationsContextMenu::getNewAnnotationCreatedByContextMenu()
+{
+    return m_newAnnotationCreatedByContextMenu;
 }
 
 /**
@@ -166,7 +173,7 @@ UserInputModeAnnotationsContextMenu::pasteAnnotationFromAnnotationClipboard()
                                                                                                          annotation,
                                                                                                          m_parentOpenGLWidget));
         if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
-            
+            m_newAnnotationCreatedByContextMenu = annotationDialog->getAnnotationThatWasCreated();
         }
 
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
