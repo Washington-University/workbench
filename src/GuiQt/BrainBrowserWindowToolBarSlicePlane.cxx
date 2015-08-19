@@ -134,27 +134,28 @@ m_parentToolBar(parentToolBar)
                                       volumePlaneCoronalToolButton,
                                       volumePlaneAxialToolButton,
                                       volumePlaneAllToolButton);
+    WuQtUtilities::matchWidgetWidths(volumePlaneParasagittalToolButton,
+                                     volumePlaneCoronalToolButton,
+                                     volumePlaneAxialToolButton,
+                                     volumePlaneAllToolButton);
     
     QToolButton* slicePlaneCustomToolButton = new QToolButton();
     slicePlaneCustomToolButton->setDefaultAction(m_parentToolBar->customViewAction);
     slicePlaneCustomToolButton->setSizePolicy(QSizePolicy::Minimum,
                                               QSizePolicy::Fixed);
     
-    
-    QHBoxLayout* planeLayout1 = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(planeLayout1, 0, 0);
-    planeLayout1->addStretch();
-    planeLayout1->addWidget(volumePlaneParasagittalToolButton);
-    planeLayout1->addWidget(volumePlaneCoronalToolButton);
-    planeLayout1->addWidget(volumePlaneAxialToolButton);
-    planeLayout1->addWidget(volumePlaneAllToolButton);
-    planeLayout1->addStretch();
-    
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addLayout(planeLayout1);
-    layout->addWidget(volumePlaneResetToolButton, 0, Qt::AlignHCenter);
-    layout->addWidget(slicePlaneCustomToolButton, 0, Qt::AlignHCenter);
+    QGridLayout* gridLayout = new QGridLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
+    int32_t rowIndex = gridLayout->rowCount();
+    gridLayout->addWidget(volumePlaneParasagittalToolButton, rowIndex, 0);
+    gridLayout->addWidget(volumePlaneCoronalToolButton,      rowIndex, 1);
+    rowIndex++;
+    gridLayout->addWidget(volumePlaneAxialToolButton, rowIndex, 0);
+    gridLayout->addWidget(volumePlaneAllToolButton,   rowIndex, 1);
+    rowIndex++;
+    gridLayout->addWidget(volumePlaneResetToolButton, rowIndex, 0, 1, 2, Qt::AlignHCenter);
+    rowIndex++;
+    gridLayout->addWidget(slicePlaneCustomToolButton, rowIndex, 0, 1, 2, Qt::AlignHCenter);
     
     m_volumePlaneWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumePlaneWidgetGroup->add(m_volumePlaneActionGroup);
