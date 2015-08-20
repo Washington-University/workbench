@@ -131,7 +131,7 @@ namespace caret {
         
         bool isAspectRatioLocked() const;
         
-        void setAspectRatioLocked(const float aspectRatio);
+        void setAspectRatioLocked(const bool aspectRatioLocked);
         
         float getAspectRatio() const;
         

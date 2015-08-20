@@ -321,13 +321,13 @@ BrainBrowserWindow::isAspectRatioLocked() const
 /**
  * Set the aspect ratio locked status.
  *
- * @param aspectRatio
+ * @param aspectRatioLocked
  *     New value for aspect ratio locked status.
  */
 void
-BrainBrowserWindow::setAspectRatioLocked(const float aspectRatio)
+BrainBrowserWindow::setAspectRatioLocked(const bool aspectRatioLocked)
 {
-    m_aspectRatioLockedStatus = aspectRatio;
+    m_aspectRatioLockedStatus = aspectRatioLocked;
 }
 
 /**
