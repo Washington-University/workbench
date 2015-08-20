@@ -81,7 +81,7 @@ CXX_COMPILER=/usr/local/gcc-4.9.3/bin/g++
 echo "BUILDING SOURCE"
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
-cmake \
+/usr/local/cmake-3.3.1/bin/cmake \
    -DCMAKE_BUILD_TYPE=Release \
    -DCMAKE_C_COMPILER=${CC_COMPILER} \
    -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
