@@ -29,6 +29,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "Margin.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -242,7 +243,7 @@ BrainOpenGLViewportContent::adjustViewportForAspectRatio(int viewport[4],
     float widthFloat  = viewport[2];
     float heightFloat = viewport[3];
     
-    float preferredHeightFloat = std::round(widthFloat * aspectRatio);
+    float preferredHeightFloat = MathFunctions::round(widthFloat * aspectRatio);
     const int32_t preferredHeightInt = static_cast<int32_t>(preferredHeightFloat);
     if (heightInt == preferredHeightInt) {
         /*
