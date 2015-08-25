@@ -127,6 +127,9 @@ namespace caret {
             double m_boundsMinY;
             double m_boundsMaxY;
             
+            double m_centerX;
+            double m_centerY;
+            
             double m_width;
             double m_height;
             
