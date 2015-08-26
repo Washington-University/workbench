@@ -117,6 +117,7 @@ namespace caret {
                      const double boundsMinY,
                      const double boundsMaxY);
             
+            void print() const;
             
             QString m_text;
             int32_t m_row;
@@ -138,13 +139,20 @@ namespace caret {
             double m_viewportZ;
         };
         
-        class TextDrawInfo {
+        class TextMatrix {
         public:
-            TextDrawInfo(const AnnotationText& annotationText,
+            TextMatrix(const AnnotationText& annotationText,
+                       FTFont* font,
                          const double viewportX,
                          const double viewportY,
                          const double viewportZ,
                          const double rotationAngle);
+            
+            void splitTextIntoCells();
+            
+            void setRowWidthsAndColumnHeights();
+            
+            void positionHorizontalOrientText();
             
             void addTextCell(const TextCell& textCell);
             
@@ -165,7 +173,11 @@ namespace caret {
                            double topLeftOut[3],
                            double rotationPointXYZOut[3]) const;
 
+            void print() const;
+            
             const AnnotationText& m_annotationText;
+            
+            FTFont* m_font;
             
             const double m_viewportX;
             const double m_viewportY;
@@ -173,8 +185,17 @@ namespace caret {
             
             const double m_rotationAngle;
             
+            std::vector<double> m_stackedOrientColumnHeights;
+            std::vector<double> m_stackedOrientColumnWidths;
+            double m_stackedOrientMaximumColumnHeight;
+
+            std::vector<double> m_horizontalOrientRowHeights;
+            std::vector<double> m_horizontalOrientRowWidths;
+            double m_horizontalOrientMaximumRowWidth;
+            
             int32_t m_numRows;
             int32_t m_numColumns;
+            
             
             double m_minX;
             double m_maxX;
@@ -184,21 +205,21 @@ namespace caret {
             std::vector<TextCell> m_textCells;
         };
         
-        void assignTextRowColumnLocations(const AnnotationText& annotationText,
-                                          TextDrawInfo& textDrawInfoOut);
-        
-        void setTextViewportCoordinates(const double viewportX,
-                                        const double viewportY,
-                                        const double viewportZ,
-                                        const AnnotationText& annotationText,
-                                        TextDrawInfo& textDrawInfo);
+//        void splitTextIntoRowsAndColumns(const AnnotationText& annotationText,
+//                                          TextMatrix& textMatrixOut);
+//        
+//        void setTextViewportCoordinates(const double viewportX,
+//                                        const double viewportY,
+//                                        const double viewportZ,
+//                                        const AnnotationText& annotationText,
+//                                        TextMatrix& textMatrix);
         
         void drawTextAtViewportCoordinatesInternal(const AnnotationText& annotationText,
-                                           const TextDrawInfo& textDrawInfo);
+                                           const TextMatrix& textMatrix);
         
         void applyForegroundColoring(const AnnotationText& annotationText);
         
-        void applyBackgroundColoring(const TextDrawInfo& textDrawInfo);
+        void applyBackgroundColoring(const TextMatrix& textMatrix);
         
         void setViewportHeight();
         
