@@ -1729,7 +1729,7 @@ m_viewportY(viewportY),
 m_viewportZ(viewportZ),
 m_rotationAngle(rotationAngle),
 m_stackedOrientMaximumColumnHeight(0.0),
-m_horizontalOrientMaximumRowWidth(0.0),
+//m_horizontalOrientMaximumRowWidth(0.0),
 m_numRows(0),
 m_numColumns(0),
 m_viewportMinX(0.0),
@@ -1745,9 +1745,12 @@ m_viewportMaxY(0.0)
     
     switch (m_annotationText.getOrientation()) {
         case AnnotationTextOrientationEnum::HORIZONTAL:
-            positionHorizontalOrientText();
+            positionTextInColumn(0,
+                                 m_annotationText.getHorizontalAlignment(),
+                                 0.0);
             break;
         case AnnotationTextOrientationEnum::STACKED:
+            positionStackedText();
             break;
     }
     
@@ -1859,7 +1862,7 @@ FtglFontTextRenderer::TextMatrix::setRowWidthsAndColumnHeights()
          */
         m_horizontalOrientRowHeights.resize(m_numRows, 0);
         m_horizontalOrientRowWidths.resize(m_numRows, 0);
-        m_horizontalOrientMaximumRowWidth = 0.0;
+//        m_horizontalOrientMaximumRowWidth = 0.0;
         for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
             double maxHeightInRow = 0.0;
             double totalRowWidth  = 0.0;
@@ -1877,8 +1880,8 @@ FtglFontTextRenderer::TextMatrix::setRowWidthsAndColumnHeights()
             CaretAssertVectorIndex(m_horizontalOrientRowWidths, iRow);
             m_horizontalOrientRowWidths[iRow] = totalRowWidth;
             
-            m_horizontalOrientMaximumRowWidth = std::max(totalRowWidth,
-                                                         m_horizontalOrientMaximumRowWidth);
+//            m_horizontalOrientMaximumRowWidth = std::max(totalRowWidth,
+//                                                         m_horizontalOrientMaximumRowWidth);
         }
         
         /*
@@ -1911,13 +1914,29 @@ FtglFontTextRenderer::TextMatrix::setRowWidthsAndColumnHeights()
     }
 }
 
+/**
+ * Position text for all rows in the given column.
+ *
+ * @param columnIndex
+ *     Index of the column.
+ * @param horizontalAlignment
+ *     Alignment of text within the column.
+ * @param viewportOffsetX
+ *     Offset of viewport coordinate when positioning text.
+ */
 void
-FtglFontTextRenderer::TextMatrix::positionHorizontalOrientText()
+FtglFontTextRenderer::TextMatrix::positionTextInColumn(const int32_t columnIndex,
+                                                       const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment,
+                                                       const float viewportOffsetX)
 {
-    CaretAssert(m_numColumns == 1);
-    const int32_t columnIndex = 0;
+    CaretAssertVectorIndex(m_stackedOrientColumnWidths, columnIndex);
+    CaretAssertVectorIndex(m_stackedOrientColumnHeights, columnIndex);
+    CaretAssert((columnIndex >= 0) && (columnIndex < m_numColumns));
     
     std::vector<double> rowOffsetX(m_numRows, 0);
+    
+//    const double columnMaximumWidth = m_horizontalOrientMaximumRowWidth;
+    const double columnMaximumWidth = m_stackedOrientColumnWidths[columnIndex];
     
     for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
         TextCell* tc = getCellAtRowColumn(iRow, columnIndex);
@@ -1929,17 +1948,17 @@ FtglFontTextRenderer::TextMatrix::positionHorizontalOrientText()
              */
             rowOffsetX[iRow] = -tc->m_glyphMinX;
             
-            const double extraSpace = m_horizontalOrientMaximumRowWidth - tc->m_width;
+            const double extraSpace = columnMaximumWidth - tc->m_width;
             const double halfExtraSpace = extraSpace / 2.0;
             
-            switch (m_annotationText.getHorizontalAlignment()) {
+            switch (horizontalAlignment) {
                 case AnnotationTextAlignHorizontalEnum::CENTER:
-                    rowOffsetX[iRow] -= ((m_horizontalOrientMaximumRowWidth / 2.0) - halfExtraSpace);
+                    rowOffsetX[iRow] -= ((columnMaximumWidth / 2.0) - halfExtraSpace);
                     break;
                 case AnnotationTextAlignHorizontalEnum::LEFT:
                     break;
                 case AnnotationTextAlignHorizontalEnum::RIGHT:
-                    rowOffsetX[iRow] -= (m_horizontalOrientMaximumRowWidth - extraSpace);
+                    rowOffsetX[iRow] -= (columnMaximumWidth - extraSpace);
                     break;
             }
         }
@@ -2029,17 +2048,69 @@ FtglFontTextRenderer::TextMatrix::positionHorizontalOrientText()
     for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
         TextCell* tc = getCellAtRowColumn(iRow, columnIndex);
         if (tc != NULL) {
-            tc->m_viewportX = m_viewportX + rowOffsetX[iRow];
+            tc->m_viewportX = m_viewportX + rowOffsetX[iRow] + viewportOffsetX;
             tc->m_viewportY = m_viewportY + rowOffsetY[iRow];
             tc->m_viewportZ = m_viewportZ;
         }
     }
+}
+
+void
+FtglFontTextRenderer::TextMatrix::positionStackedText()
+{
+    /*
+     * Position text in each row
+     */
+    double columnOffsetX = 0.0;
+    for (int32_t jCol = 0; jCol < m_numColumns; jCol++) {
+        positionTextInColumn(jCol,
+                             AnnotationTextAlignHorizontalEnum::CENTER,
+                             columnOffsetX);
+        CaretAssertVectorIndex(m_stackedOrientColumnWidths, jCol);
+        columnOffsetX += m_stackedOrientColumnWidths[jCol];
+        columnOffsetX += s_textMarginSize;
+    }
     
+    /*
+     * Set the viewport bounds of the text so that we know
+     * the bounds of the text.  This method will also be
+     * called when this method returns to the constructor.
+     */
+    setViewportBoundingBox();
+
+    /*
+     * Default offset so left edge of text is at viewport X
+     * and then adjust for each horizontal orientation.
+     */
+    double viewportOffsetX = m_viewportX - m_viewportMinX;
+    switch (m_annotationText.getHorizontalAlignment()) {
+        case AnnotationTextAlignHorizontalEnum::CENTER:
+            viewportOffsetX += -(m_viewportMaxX - m_viewportMinX) / 2.0;
+            break;
+        case AnnotationTextAlignHorizontalEnum::LEFT:
+            break;
+        case AnnotationTextAlignHorizontalEnum::RIGHT:
+            viewportOffsetX += -(m_viewportMaxX - m_viewportMinX);
+            break;
+    }
     
-    {
+    /*
+     * Adjust the viewport position of each text cell 
+     * using the offset
+     */
+    for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
+        for (int32_t jCol = 0; jCol < m_numColumns; jCol++) {
+            TextCell* tc = getCellAtRowColumn(iRow, jCol);
+            if (tc != NULL) {
+                tc->m_viewportX += viewportOffsetX;
+            }
+        }
     }
 }
 
+/**
+ * Set the bounds of the viewport surrounding the text.
+ */
 void
 FtglFontTextRenderer::TextMatrix::setViewportBoundingBox()
 {

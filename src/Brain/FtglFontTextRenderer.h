@@ -24,6 +24,7 @@
 #include <map>
 #include <set>
 
+#include "AnnotationTextAlignHorizontalEnum.h"
 #include "BrainOpenGLTextRenderInterface.h"
 
 class FTFont;
@@ -162,7 +163,11 @@ namespace caret {
             
             void setRowWidthsAndColumnHeights();
             
-            void positionHorizontalOrientText();
+            void positionTextInColumn(const int32_t columnIndex,
+                                      const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment,
+                                      const float viewportOffsetX);
+            
+            void positionStackedText();
             
             void setViewportBoundingBox();
             
@@ -205,7 +210,7 @@ namespace caret {
 
             std::vector<double> m_horizontalOrientRowHeights;
             std::vector<double> m_horizontalOrientRowWidths;
-            double m_horizontalOrientMaximumRowWidth;
+//            double m_horizontalOrientMaximumRowWidth;
             
             int32_t m_numRows;
             int32_t m_numColumns;
