@@ -934,7 +934,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     }
     
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
-    textMatrix.getBounds(bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
+    textMatrix.getBounds(s_textMarginSize,
+                         bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
     
     glPushMatrix();
     glLoadIdentity();
@@ -1209,7 +1210,8 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
 //                               textMatrix);
     
     double rotationPointXYZ[3];
-    textMatrix.getBounds(bottomLeftOut,
+    textMatrix.getBounds(s_textMarginSize,
+                         bottomLeftOut,
                            bottomRightOut,
                            topRightOut,
                            topLeftOut,
@@ -1241,7 +1243,7 @@ FtglFontTextRenderer::applyBackgroundColoring(const TextMatrix& textMatrix)
 {
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
 ;
-    textMatrix.getBounds(bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
+    textMatrix.getBounds(s_textMarginSize, bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
     
     float backgroundColor[4];
     textMatrix.m_annotationText.getBackgroundColorRGBA(backgroundColor);
@@ -1608,16 +1610,20 @@ FtglFontTextRenderer::TextCell::TextCell(const QString& text,
 : m_text(text),
 m_row(row),
 m_column(column),
-m_boundsMinX(boundsMinX),
-m_boundsMaxX(boundsMaxX),
-m_boundsMinY(boundsMinY),
-m_boundsMaxY(boundsMaxY)
+m_glyphMinX(boundsMinX),
+m_glyphMaxX(boundsMaxX),
+m_glyphMinY(boundsMinY),
+m_glyphMaxY(boundsMaxY),
+m_width(m_glyphMaxX - m_glyphMinX),
+m_height(m_glyphMaxY - m_glyphMinY),
+m_centerX((m_glyphMaxX + m_glyphMinX) / 2.0),
+m_centerY((m_glyphMaxY + m_glyphMinY) / 2.0)
 {
-    m_width  = m_boundsMaxX - m_boundsMinX;
-    m_height = m_boundsMaxY - m_boundsMinY;
-    
-    m_centerX = (m_boundsMaxX + m_boundsMinX) / 2.0;
-    m_centerY = (m_boundsMaxY + m_boundsMinY) / 2.0;
+//    m_width  = m_boundsMaxX - m_boundsMinX;
+//    m_height = m_boundsMaxY - m_boundsMinY;
+//    
+//    m_centerX = (m_boundsMaxX + m_boundsMinX) / 2.0;
+//    m_centerY = (m_boundsMaxY + m_boundsMinY) / 2.0;
     
     m_viewportX = 0.0;
     m_viewportY = 0.0;
@@ -1626,13 +1632,13 @@ m_boundsMaxY(boundsMaxY)
     std::cout << qPrintable("Text Cell: "
                             + text
                             + "\n     minX="
-                            + QString::number(m_boundsMinX)
+                            + QString::number(m_glyphMinX)
                             + " maxX="
-                            + QString::number(m_boundsMaxX)
+                            + QString::number(m_glyphMaxX)
                             + " minY="
-                            + QString::number(m_boundsMinY)
+                            + QString::number(m_glyphMinY)
                             + " maxY="
-                            + QString::number(m_boundsMaxY)
+                            + QString::number(m_glyphMaxY)
                             + "\n     width="
                             + QString::number(m_width)
                             + " height="
@@ -1642,6 +1648,32 @@ m_boundsMaxY(boundsMaxY)
                             + " centerY="
                             + QString::number(m_centerY)) << std::endl << std::endl;
 }
+
+/**
+ * Get a bounding box for the text after it has been positioned in
+ * the viewport.
+ *
+ * @param minXOut
+ *     Output with minimum x viewport coordinate.
+ * @param maxXOut
+ *     Output with minimum x viewport coordinate.
+ * @param minYOut
+ *     Output with minimum y viewport coordinate.
+ * @param maxYOut
+ *     Output with minimum y viewport coordinate.
+ */
+void
+FtglFontTextRenderer::TextCell::getViewportBoundingBox(double& minXOut,
+                                                       double& maxXOut,
+                                                       double& minYOut,
+                                                       double& maxYOut) const
+{
+    minXOut = m_glyphMinX + m_viewportX;
+    maxXOut = m_glyphMaxX + m_viewportX;
+    minYOut = m_glyphMinY + m_viewportY;
+    maxYOut = m_glyphMaxY + m_viewportY;
+}
+
 
 void
 FtglFontTextRenderer::TextCell::print() const
@@ -1700,10 +1732,10 @@ m_stackedOrientMaximumColumnHeight(0.0),
 m_horizontalOrientMaximumRowWidth(0.0),
 m_numRows(0),
 m_numColumns(0),
-m_minX(0.0),
-m_maxX(0.0),
-m_minY(0.0),
-m_maxY(0.0)
+m_viewportMinX(0.0),
+m_viewportMaxX(0.0),
+m_viewportMinY(0.0),
+m_viewportMaxY(0.0)
 {
     CaretAssert(font);
     
@@ -1718,6 +1750,8 @@ m_maxY(0.0)
         case AnnotationTextOrientationEnum::STACKED:
             break;
     }
+    
+    setViewportBoundingBox();
     
     print();
 }
@@ -1893,7 +1927,7 @@ FtglFontTextRenderer::TextMatrix::positionHorizontalOrientText()
             /* 
              * Default to left alignment (translates left edge of text to x=0
              */
-            rowOffsetX[iRow] = -tc->m_boundsMinX;
+            rowOffsetX[iRow] = -tc->m_glyphMinX;
             
             const double extraSpace = m_horizontalOrientMaximumRowWidth - tc->m_width;
             const double halfExtraSpace = extraSpace / 2.0;
@@ -1911,21 +1945,21 @@ FtglFontTextRenderer::TextMatrix::positionHorizontalOrientText()
         }
     }
     
-    /*
-     * Bounds minimum and maximum X
-     */
-    m_minX = m_viewportX;
-    switch (m_annotationText.getHorizontalAlignment()) {
-        case AnnotationTextAlignHorizontalEnum::CENTER:
-            m_minX -= m_horizontalOrientMaximumRowWidth / 2.0;
-            break;
-        case AnnotationTextAlignHorizontalEnum::LEFT:
-            break;
-        case AnnotationTextAlignHorizontalEnum::RIGHT:
-            m_minX -= m_horizontalOrientMaximumRowWidth;
-            break;
-    }
-    m_maxX = m_minX + m_horizontalOrientMaximumRowWidth;
+//    /*
+//     * Bounds minimum and maximum X
+//     */
+//    m_minX = m_viewportX;
+//    switch (m_annotationText.getHorizontalAlignment()) {
+//        case AnnotationTextAlignHorizontalEnum::CENTER:
+//            m_minX -= m_horizontalOrientMaximumRowWidth / 2.0;
+//            break;
+//        case AnnotationTextAlignHorizontalEnum::LEFT:
+//            break;
+//        case AnnotationTextAlignHorizontalEnum::RIGHT:
+//            m_minX -= m_horizontalOrientMaximumRowWidth;
+//            break;
+//    }
+//    m_maxX = m_minX + m_horizontalOrientMaximumRowWidth;
     
     /*
      * Compute total height of the rows
@@ -1958,11 +1992,11 @@ FtglFontTextRenderer::TextMatrix::positionHorizontalOrientText()
             break;
     }
     
-    /*
-     * Bounds minimum and maximum Y
-     */
-    m_maxY = m_viewportY + offsetFromZeroY;
-    m_minY = m_maxY - totalHeight;
+//    /*
+//     * Bounds minimum and maximum Y
+//     */
+//    m_maxY = m_viewportY + offsetFromZeroY;
+//    m_minY = m_maxY - totalHeight;
     
     /*
      * Set the Y-offset for each row
@@ -1974,7 +2008,7 @@ FtglFontTextRenderer::TextMatrix::positionHorizontalOrientText()
             /*
              * Translate text cell so top of text is at local zero
              */
-            rowOffsetY[iRow] = -tc->m_boundsMaxY;
+            rowOffsetY[iRow] = -tc->m_glyphMaxY;
             
             /*
              * Offset to put text on next row
@@ -1999,6 +2033,46 @@ FtglFontTextRenderer::TextMatrix::positionHorizontalOrientText()
             tc->m_viewportY = m_viewportY + rowOffsetY[iRow];
             tc->m_viewportZ = m_viewportZ;
         }
+    }
+    
+    
+    {
+    }
+}
+
+void
+FtglFontTextRenderer::TextMatrix::setViewportBoundingBox()
+{
+    m_viewportMinX =  std::numeric_limits<float>::max();
+    m_viewportMaxX = -std::numeric_limits<float>::max();
+    m_viewportMinY =  std::numeric_limits<float>::max();
+    m_viewportMaxY = -std::numeric_limits<float>::max();
+    
+    for (std::vector<TextCell>::const_iterator iter = m_textCells.begin();
+         iter != m_textCells.end();
+         iter++) {
+        const TextCell& tc = *iter;
+        
+        double tcMinX = 0.0, tcMaxX = 0.0, tcMinY = 0.0, tcMaxY = 0.0;
+        tc.getViewportBoundingBox(tcMinX, tcMaxX, tcMinY, tcMaxY);
+        
+        m_viewportMinX = std::min(m_viewportMinX, tcMinX);
+        m_viewportMaxX = std::max(m_viewportMaxX, tcMaxX);
+        m_viewportMinY = std::min(m_viewportMinY, tcMinY);
+        m_viewportMaxY = std::max(m_viewportMaxY, tcMaxY);
+    }
+    
+    std::cout << "Bounds: " << m_viewportMinX << ", " << m_viewportMaxX << ", " << m_viewportMinY << ", " << m_viewportMaxY << std::endl;
+    
+    /*
+     * Failed to set bounds???
+     */
+    if ((m_viewportMinX > m_viewportMaxX)
+        || (m_viewportMinY > m_viewportMaxY)) {
+        m_viewportMinX = 0.0;
+        m_viewportMaxX = 0.0;
+        m_viewportMinY = 0.0;
+        m_viewportMaxY = 0.0;
     }
 }
 
@@ -2073,35 +2147,37 @@ FtglFontTextRenderer::TextMatrix::getCellAtRowColumn(const int32_t row,
     return NULL;
 }
 
-/**
- * Set the bounds of the all text that is drawn.  The
- * bounds is used for selection and the background color.
- *
- * @param minX
- *     Bounds minimum X.
- * @param maxX
- *     Bounds maximum X.
- * @param minY
- *     Bounds minimum Y.
- * @param maxY
- *     Bounds maximum Y.
- */
-void
-FtglFontTextRenderer::TextMatrix::setBounds(const double minX,
-                                              const double maxX,
-                                              const double minY,
-                                              const double maxY)
-{
-    m_minX = minX;
-    m_maxX = maxX;
-    m_minY = minY;
-    m_maxY = maxY;
-}
+///**
+// * Set the bounds of the all text that is drawn.  The
+// * bounds is used for selection and the background color.
+// *
+// * @param minX
+// *     Bounds minimum X.
+// * @param maxX
+// *     Bounds maximum X.
+// * @param minY
+// *     Bounds minimum Y.
+// * @param maxY
+// *     Bounds maximum Y.
+// */
+//void
+//FtglFontTextRenderer::TextMatrix::setBounds(const double minX,
+//                                              const double maxX,
+//                                              const double minY,
+//                                              const double maxY)
+//{
+//    m_minX = minX;
+//    m_maxX = maxX;
+//    m_minY = minY;
+//    m_maxY = maxY;
+//}
 
 /**
  * Get the bounds of the all text that is drawn.  The
  * bounds is used for selection and the background color.
  *
+ * @param margin
+ *     Margin added around sides
  * @param minX
  *     Bounds minimum X.
  * @param maxX
@@ -2114,27 +2190,28 @@ FtglFontTextRenderer::TextMatrix::setBounds(const double minX,
  *     Output containing rotation point for bounds.
  */
 void
-FtglFontTextRenderer::TextMatrix::getBounds(double bottomLeftOut[3],
+FtglFontTextRenderer::TextMatrix::getBounds(const double margin,
+                                            double bottomLeftOut[3],
                                               double bottomRightOut[3],
                                               double topRightOut[3],
                                               double topLeftOut[3],
                                               double rotationPointXYZOut[3]) const
 {
-    bottomLeftOut[0]  = m_minX;
-    bottomLeftOut[1]  = m_minY;
+    bottomLeftOut[0]  = m_viewportMinX - margin;
+    bottomLeftOut[1]  = m_viewportMinY - margin;
     bottomLeftOut[2]  = m_viewportZ;
-    bottomRightOut[0] = m_maxX;
-    bottomRightOut[1] = m_minY;
+    bottomRightOut[0] = m_viewportMaxX + margin;
+    bottomRightOut[1] = m_viewportMinY - margin;
     bottomRightOut[2] = m_viewportZ;
-    topRightOut[0]    = m_maxX;
-    topRightOut[1]    = m_maxY;
+    topRightOut[0]    = m_viewportMaxX + margin;
+    topRightOut[1]    = m_viewportMaxY + margin;
     topRightOut[2]    = m_viewportZ;
-    topLeftOut[0]     = m_minX;
-    topLeftOut[1]     = m_maxY;
+    topLeftOut[0]     = m_viewportMinX - margin;
+    topLeftOut[1]     = m_viewportMaxY + margin;
     topLeftOut[2]     = m_viewportZ;
     
-    double rotationX = m_minX;
-    double rotationY = m_minY;
+    double rotationX = m_viewportMinX;
+    double rotationY = m_viewportMinY;
     
     if (m_rotationAngle != 0.0) {
         

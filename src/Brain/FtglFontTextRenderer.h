@@ -117,22 +117,31 @@ namespace caret {
                      const double boundsMinY,
                      const double boundsMaxY);
             
+            void getViewportBoundingBox(double& minXOut,
+                                        double& maxXOut,
+                                        double& minYOut,
+                                        double& maxYOut) const;
+            
             void print() const;
             
-            QString m_text;
-            int32_t m_row;
-            int32_t m_column;
+            const QString m_text;
+            const int32_t m_row;
+            const int32_t m_column;
             
-            double m_boundsMinX;
-            double m_boundsMaxX;
-            double m_boundsMinY;
-            double m_boundsMaxY;
+            /*
+             * Bounding box that encloses text with 0.0 at the "pen"
+             * http://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html
+             */
+            const double m_glyphMinX;
+            const double m_glyphMaxX;
+            const double m_glyphMinY;
+            const double m_glyphMaxY;
             
-            double m_centerX;
-            double m_centerY;
+            const double m_width;
+            const double m_height;
             
-            double m_width;
-            double m_height;
+            const double m_centerX;
+            const double m_centerY;
             
             double m_viewportX;
             double m_viewportY;
@@ -148,26 +157,31 @@ namespace caret {
                          const double viewportZ,
                          const double rotationAngle);
             
+        private:
             void splitTextIntoCells();
             
             void setRowWidthsAndColumnHeights();
             
             void positionHorizontalOrientText();
             
+            void setViewportBoundingBox();
+            
             void addTextCell(const TextCell& textCell);
             
+        public:
             TextCell* getCellAtRowColumn(const int32_t row,
                                          const int32_t column);
             
             const TextCell* getCellAtRowColumn(const int32_t row,
                                          const int32_t column) const;
             
-            void setBounds(const double minX,
-                           const double maxX,
-                           const double minY,
-                           const double maxY);
+//            void setBounds(const double minX,
+//                           const double maxX,
+//                           const double minY,
+//                           const double maxY);
             
-            void getBounds(double bottomLeftOut[3],
+            void getBounds(const double margin,
+                           double bottomLeftOut[3],
                            double bottomRightOut[3],
                            double topRightOut[3],
                            double topLeftOut[3],
@@ -197,10 +211,10 @@ namespace caret {
             int32_t m_numColumns;
             
             
-            double m_minX;
-            double m_maxX;
-            double m_minY;
-            double m_maxY;
+            double m_viewportMinX;
+            double m_viewportMaxX;
+            double m_viewportMinY;
+            double m_viewportMaxY;
             
             std::vector<TextCell> m_textCells;
         };
