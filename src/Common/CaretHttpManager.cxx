@@ -59,6 +59,79 @@ QNetworkAccessManager* CaretHttpManager::getQNetManager()
     return &(getHttpManager()->m_netMgr);
 }
 
+static QString
+caretHttpRequestToName(const CaretHttpRequest &caretHttpRequest)
+{
+    QString name("Unknown");
+    
+    switch (caretHttpRequest.m_method) {
+        case CaretHttpManager::GET:
+            name = "GET";
+            break;
+        case CaretHttpManager::HEAD:
+            name = "HEAD";
+            break;
+        case CaretHttpManager::POST:
+            name = "POST";
+            break;
+    }
+    return name;
+}
+
+static void
+logHeadersFromRequest(const QNetworkRequest& request,
+                      const CaretHttpRequest &caretHttpRequest)
+{
+    AString infoText;
+    infoText.appendWithNewLine("Request " + caretHttpRequestToName(caretHttpRequest) + ": " + request.url().toString());
+    infoText.appendWithNewLine("    Headers: ");
+
+    QList<QByteArray> readHeaderList = request.rawHeaderList();
+    const int numItems = readHeaderList.size();
+    if (numItems > 0) {
+        for (int32_t i = 0; i < numItems; i++) {
+            const QByteArray headerName = readHeaderList.at(i);
+            if ( ! headerName.isEmpty()) {
+                const QByteArray headerValue = request.rawHeader(headerName);
+                infoText.appendWithNewLine("        Name: " + QString(headerName));
+                infoText.appendWithNewLine("        Value: " + QString(headerValue));
+            }
+        }
+    }
+    else {
+        infoText.appendWithNewLine("        Contains no headers");
+    }
+    
+    CaretLogWarning(infoText);
+}
+
+static void
+logHeadersFromReply(const QNetworkReply& reply,
+                    const CaretHttpRequest &caretHttpRequest,
+                    const int responseCode)
+{
+    AString infoText;
+    infoText.appendWithNewLine("Reply " + caretHttpRequestToName(caretHttpRequest) + " URL (" + QString::number(responseCode) + ") Header: ");
+    
+    QList<QByteArray> readHeaderList = reply.rawHeaderList();
+    const int numItems = readHeaderList.size();
+    if (numItems > 0) {
+        for (int32_t i = 0; i < numItems; i++) {
+            const QByteArray headerName = readHeaderList.at(i);
+            if ( ! headerName.isEmpty()) {
+                const QByteArray headerValue = reply.rawHeader(headerName);
+                infoText.appendWithNewLine("      Name: " + QString(headerName));
+                infoText.appendWithNewLine("      Value: " + QString(headerValue));
+            }
+        }
+    }
+    else {
+        infoText.appendWithNewLine("    Contains no headers");
+    }
+    
+    CaretLogWarning(infoText);
+}
+
 void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpResponse &response)
 {
     QEventLoop myLoop;
@@ -108,26 +181,6 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             }
             myRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
             myRequest.setUrl(myUrl);
-            
-            const bool showHeaderValues = false;
-            if (showHeaderValues) {
-                AString requestInfo;
-                QList<QByteArray> readHeaderList = myRequest.rawHeaderList();
-                const int numItems = readHeaderList.size();
-                if (numItems > 0) {
-                    requestInfo.appendWithNewLine("Post URL Header: ");
-                    for (int32_t i = 0; i < numItems; i++) {
-                        const QByteArray headerName = readHeaderList.at(i);
-                        if ( ! headerName.isEmpty()) {
-                            const QByteArray headerValue = myRequest.rawHeader(headerName);
-                            requestInfo.appendWithNewLine("      Name: " + QString(headerName));
-                            requestInfo.appendWithNewLine("      Value: " + QString(headerValue));
-                        }
-                    }
-                    CaretLogInfo(requestInfo);
-                }
-            }
-            
             myReply = myQNetMgr->post(myRequest, postData);
             CaretLogInfo("POST URL: " + myUrl.toString());
         }
@@ -169,6 +222,17 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
     {
         response.m_ok = true;
     }
+    
+    const bool showHeaderValues = false;
+    if (showHeaderValues
+        || (response.m_responseCode != 200)) {
+        logHeadersFromRequest(myRequest,
+                              request);
+        logHeadersFromReply(*myReply,
+                            request,
+                            response.m_responseCode);
+    }
+    
     QByteArray myBody = myReply->readAll();
     int64_t mySize = myBody.size();
     response.m_body.reserve(mySize + 1);//make room for the null terminator that will sometimes be added to the end
