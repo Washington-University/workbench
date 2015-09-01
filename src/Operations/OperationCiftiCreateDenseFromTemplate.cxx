@@ -386,7 +386,7 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
         {
             throw OperationException("-volume option specified for structure " + structString + ", but template cifti file does not contain this volume structure");
         }
-        int outIndex = (int)(iter - surfStructures.begin());
+        int outIndex = (int)(iter - volStructures.begin());
         bool isLabel = (thisVol->getType() == SubvolumeAttributes::LABEL);
         if (labelMode == -1)
         {
