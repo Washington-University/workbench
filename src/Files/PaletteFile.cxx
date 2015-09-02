@@ -468,7 +468,7 @@ PaletteFile::addDefaultPalettes()
         this->addColor("_RGB_60_0_0",  60, 0, 0 ); //#3c0000
         this->addColor("_RGB_0_0_80",  0, 0, 80 ); //#000050
         this->addColor("_RGB_0_0_170",  0, 0, 170 ); //#0000aa
-        this->addColor("_RGB_75_0_150",  75, 0, 125 ); //#4b007d
+        this->addColor("_RGB_75_0_125",  75, 0, 125 ); //#4b007d
         this->addColor("_RGB_125_0_160",  125, 0, 160 ); //#7d00a0
         this->addColor("_RGB_75_125_0",  75, 125, 0 ); //#4b7d00
         this->addColor("_RGB_0_200_0",  0, 200, 0 ); //#00c800
@@ -489,7 +489,7 @@ PaletteFile::addDefaultPalettes()
         royBig.addScalarAndColor(0.000f, "none");
         royBig.addScalarAndColor(-0.125f, "_RGB_0_0_80");
         royBig.addScalarAndColor(-0.250f, "_RGB_0_0_170");
-        royBig.addScalarAndColor(-0.375f, "_RGB_75_0_150");
+        royBig.addScalarAndColor(-0.375f, "_RGB_75_0_125");
         royBig.addScalarAndColor(-0.500f, "_RGB_125_0_160");
         royBig.addScalarAndColor(-0.625f, "_RGB_75_125_0");
         royBig.addScalarAndColor(-0.750f, "_RGB_0_200_0");
@@ -514,7 +514,7 @@ PaletteFile::addDefaultPalettes()
         royBigBL.addScalarAndColor(0.000f, "_black");
         royBigBL.addScalarAndColor(-0.125f, "_RGB_0_0_80");
         royBigBL.addScalarAndColor(-0.250f, "_RGB_0_0_170");
-        royBigBL.addScalarAndColor(-0.375f, "_RGB_75_0_150");
+        royBigBL.addScalarAndColor(-0.375f, "_RGB_75_0_125");
         royBigBL.addScalarAndColor(-0.500f, "_RGB_125_0_160");
         royBigBL.addScalarAndColor(-0.625f, "_RGB_75_125_0");
         royBigBL.addScalarAndColor(-0.750f, "_RGB_0_200_0");
