@@ -1741,23 +1741,144 @@ m_viewportMaxY(0.0)
     
     splitTextIntoCells();
     
-    setRowWidthsAndColumnHeights();
+    positionTextStartingAtOrigin();
     
-    switch (m_annotationText.getOrientation()) {
-        case AnnotationTextOrientationEnum::HORIZONTAL:
-            positionTextInColumn(0,
-                                 m_annotationText.getHorizontalAlignment(),
-                                 0.0);
-            break;
-        case AnnotationTextOrientationEnum::STACKED:
-            positionStackedText();
-            break;
-    }
+    adjustTextPositionsForOrientations();
+
+    
+//    setRowWidthsAndColumnHeights();
+//    
+//    switch (m_annotationText.getOrientation()) {
+//        case AnnotationTextOrientationEnum::HORIZONTAL:
+//            positionTextInColumn(0,
+//                                 m_annotationText.getHorizontalAlignment(),
+//                                 0.0);
+//            break;
+//        case AnnotationTextOrientationEnum::STACKED:
+//            positionStackedText();
+//            break;
+//    }
     
     setViewportBoundingBox();
     
     print();
 }
+
+/**
+ * Position text so that the first character in the first cell
+ * is at the origin (0, 0)
+ */
+void
+FtglFontTextRenderer::TextMatrix::positionTextStartingAtOrigin()
+{
+    if ((m_numRows <= 0)
+        || (m_numColumns <=0)) {
+        return;
+    }
+    
+    const float verticalSpacing = s_textMarginSize * 2.0;
+    
+    std::vector<double> columnMinX(m_numColumns, 0.0);
+    std::vector<double> columnMaxX(m_numColumns, 0.0);
+    
+    for (int32_t jCol = 0; jCol < m_numColumns; jCol++) {
+        double minX =  std::numeric_limits<float>::max();
+        double maxX = -std::numeric_limits<float>::max();
+        
+        bool haveCellsInColumnFlag = false;
+        for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
+            TextCell* cell = getCellAtRowColumn(iRow, jCol);
+            if (cell != NULL) {
+                minX = std::min(minX, cell->m_glyphMinX);
+                maxX = std::max(maxX, cell->m_glyphMaxX);
+                haveCellsInColumnFlag = true;
+            }
+        }
+        if (haveCellsInColumnFlag) {
+            CaretAssertVectorIndex(columnMinX, jCol);
+            CaretAssertVectorIndex(columnMaxX, jCol);
+            
+            columnMinX[jCol] = minX;
+            columnMaxX[jCol] = maxX;
+            std::cout << "Column " << jCol << ": minX=" << minX << ", maxX=" << maxX << std::endl;
+        }
+    }
+    
+    double xOffset = 0.0;
+    for (int32_t jCol = 0; jCol < m_numColumns; jCol++) {
+        if (jCol >= 1) {
+            CaretAssertVectorIndex(columnMaxX, jCol - 1);
+            xOffset += columnMaxX[jCol - 1];
+            xOffset += s_textMarginSize;
+            CaretAssertVectorIndex(columnMinX, jCol);
+            xOffset += columnMinX[jCol];
+        }
+        
+        double yOffset = 0.0;
+        
+        for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
+            TextCell* cell = getCellAtRowColumn(iRow, jCol);
+            if (cell != NULL) {
+                if (iRow >= 1) {
+                    TextCell* previousCell = getCellAtRowColumn(iRow - 1,
+                                                                jCol);
+                    if (previousCell != NULL) {
+                        yOffset += previousCell->m_glyphMinY;
+                    }
+                    yOffset -= verticalSpacing;
+                    yOffset -= cell->m_glyphMaxY;
+                }
+                
+                cell->m_viewportX = m_viewportX + xOffset;
+                cell->m_viewportY = m_viewportY + yOffset;
+            }
+        }
+    }
+}
+
+void FtglFontTextRenderer::TextMatrix::adjustTextPositionsForOrientations()
+{
+    setViewportBoundingBox();
+    
+    float xOffset = 0.0;
+    
+    switch (m_annotationText.getHorizontalAlignment()) {
+        case AnnotationTextAlignHorizontalEnum::LEFT:
+            xOffset = m_viewportX - m_viewportMinX;
+            break;
+        case AnnotationTextAlignHorizontalEnum::CENTER:
+            xOffset = m_viewportX - ((m_viewportMinX + m_viewportMaxX) / 2.0);
+            break;
+        case AnnotationTextAlignHorizontalEnum::RIGHT:
+            xOffset = m_viewportX - m_viewportMaxX;
+            break;
+    }
+    
+    float yOffset = 0.0;
+    switch (m_annotationText.getVerticalAlignment()) {
+        case AnnotationTextAlignVerticalEnum::BOTTOM:
+            yOffset = m_viewportY - m_viewportMinY;
+            break;
+        case AnnotationTextAlignVerticalEnum::MIDDLE:
+            yOffset = m_viewportY - ((m_viewportMinY + m_viewportMaxY) / 2.0);
+            break;
+        case AnnotationTextAlignVerticalEnum::TOP:
+            yOffset = m_viewportY - m_viewportMaxY;
+            break;
+    }
+    
+    for (int32_t jCol = 0; jCol < m_numColumns; jCol++) {
+        for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
+            TextCell* cell = getCellAtRowColumn(iRow, jCol);
+            if (cell != NULL) {
+                cell->m_viewportX += xOffset;
+                cell->m_viewportY += yOffset;
+            }
+        }
+    }
+}
+
+
 
 /* Replaces FtglFontTextRenderer::splitTextIntoRowsAndColumns */
 /**
@@ -1791,12 +1912,12 @@ FtglFontTextRenderer::TextMatrix::splitTextIntoCells()
                  */
                 const FTBBox bounds = m_font->BBox(textChars.toAscii().constData());
                 addTextCell(TextCell(textChars,
-                                                   rowIndex,
-                                                   columnIndex,
-                                                   bounds.Lower().X(),
-                                                   bounds.Upper().X(),
-                                                   bounds.Lower().Y(),
-                                                   bounds.Upper().Y()));
+                                     rowIndex,
+                                     columnIndex,
+                                     bounds.Lower().X(),
+                                     bounds.Upper().X(),
+                                     bounds.Lower().Y(),
+                                     bounds.Upper().Y()));
                 //                const AString msg("Drawing: "
                 //                                  + annotationText.getText()
                 //                                  + " size="
@@ -1818,8 +1939,9 @@ FtglFontTextRenderer::TextMatrix::splitTextIntoCells()
             case AnnotationTextOrientationEnum::STACKED:
             {
                 /*
-                 * For vertically oriented text, each cell may contain only one
-                 * character.  If there are new lines, there will be multiple columns.
+                 * For vertically oriented text, each cell contains one and only one character
+                 * as FTGL does not support vertically oriented text.  Columns are separated
+                 * by a newline character.
                  */
                 QString s = textRowsColumns[itrs];
                 const int32_t numChars = s.size();
@@ -1827,12 +1949,12 @@ FtglFontTextRenderer::TextMatrix::splitTextIntoCells()
                     const QString oneChar(s.at(ic));
                     const FTBBox bounds = m_font->BBox(oneChar.toAscii().constData());
                     addTextCell(TextCell(oneChar,
-                                                       rowIndex,
-                                                       columnIndex,
-                                                       bounds.Lower().X(),
-                                                       bounds.Upper().X(),
-                                                       bounds.Lower().Y(),
-                                                       bounds.Upper().Y()));
+                                         rowIndex,
+                                         columnIndex,
+                                         bounds.Lower().X(),
+                                         bounds.Upper().X(),
+                                         bounds.Lower().Y(),
+                                         bounds.Upper().Y()));
                     
                     rowIndex++;
                 }
@@ -2384,6 +2506,7 @@ FtglFontTextRenderer::TextMatrix::getBounds(const double margin,
 void
 FtglFontTextRenderer::TextMatrix::print() const
 {
+    std::cout << "Line Height/Ascender/Descender: " << m_font->LineHeight() << ", " << m_font->Ascender() << ", " << m_font->Descender() << std::endl;
     for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
         for (int32_t iCol = 0; iCol < m_numColumns; iCol++) {
             const TextCell* tc = getCellAtRowColumn(iRow, iCol);
