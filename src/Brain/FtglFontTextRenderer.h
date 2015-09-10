@@ -163,9 +163,14 @@ namespace caret {
             
             void setRowWidthsAndColumnHeights();
             
-            void adjustTextPositionsForOrientations();
+            void applyAlignmentsToTextCoordinates();
             
-            void positionTextStartingAtOrigin();
+            float getStackedTextCenterOffset(const int32_t rowIndex,
+                                             const int32_t columnIndex,
+                                             const float columnMinimumX,
+                                             const float columnMaximumX);
+            
+            void positionTextStartingAtViewportCoordinates();
             
             void positionTextInColumn(const int32_t columnIndex,
                                       const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment,

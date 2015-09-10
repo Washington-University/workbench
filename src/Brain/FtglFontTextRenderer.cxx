@@ -1741,11 +1741,10 @@ m_viewportMaxY(0.0)
     
     splitTextIntoCells();
     
-    positionTextStartingAtOrigin();
+    positionTextStartingAtViewportCoordinates();
     
-    adjustTextPositionsForOrientations();
+    applyAlignmentsToTextCoordinates();
 
-    
 //    setRowWidthsAndColumnHeights();
 //    
 //    switch (m_annotationText.getOrientation()) {
@@ -1765,15 +1764,24 @@ m_viewportMaxY(0.0)
 }
 
 /**
- * Position text so that the first character in the first cell
- * is at the origin (0, 0)
+ * Position text so that the first character's origin is at
+ * the viewport coordiantes
  */
 void
-FtglFontTextRenderer::TextMatrix::positionTextStartingAtOrigin()
+FtglFontTextRenderer::TextMatrix::positionTextStartingAtViewportCoordinates()
 {
     if ((m_numRows <= 0)
         || (m_numColumns <=0)) {
         return;
+    }
+    
+    bool stackedTextFlag = false;
+    switch (m_annotationText.getOrientation()) {
+        case AnnotationTextOrientationEnum::HORIZONTAL:
+            break;
+        case AnnotationTextOrientationEnum::STACKED:
+            stackedTextFlag = true;
+            break;
     }
     
     const float verticalSpacing = s_textMarginSize * 2.0;
@@ -1781,6 +1789,9 @@ FtglFontTextRenderer::TextMatrix::positionTextStartingAtOrigin()
     std::vector<double> columnMinX(m_numColumns, 0.0);
     std::vector<double> columnMaxX(m_numColumns, 0.0);
     
+    /*
+     * Find the minimum and maximum X-values for each column
+     */
     for (int32_t jCol = 0; jCol < m_numColumns; jCol++) {
         double minX =  std::numeric_limits<float>::max();
         double maxX = -std::numeric_limits<float>::max();
@@ -1804,66 +1815,167 @@ FtglFontTextRenderer::TextMatrix::positionTextStartingAtOrigin()
         }
     }
     
-    double xOffset = 0.0;
+    
+    /*
+     * Offset columns of text so that each column is
+     * "to the right" of the previous column
+     */
+    double columnOffset = 0.0;
+    
     for (int32_t jCol = 0; jCol < m_numColumns; jCol++) {
         if (jCol >= 1) {
+            /*
+             * When more than one column,
+             * the additional columns need to be offset
+             * from the previous column
+             */
             CaretAssertVectorIndex(columnMaxX, jCol - 1);
-            xOffset += columnMaxX[jCol - 1];
-            xOffset += s_textMarginSize;
+            columnOffset += columnMaxX[jCol - 1];
+            columnOffset += s_textMarginSize;
             CaretAssertVectorIndex(columnMinX, jCol);
-            xOffset += columnMinX[jCol];
+            columnOffset += columnMinX[jCol];
         }
         
-        double yOffset = 0.0;
-        
+        /*
+         * Offset each cell in the column so that
+         * each successive cell is "under" the
+         * previous cell.
+         */
+        double verticalOffset = 0.0;
         for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
             TextCell* cell = getCellAtRowColumn(iRow, jCol);
             if (cell != NULL) {
                 if (iRow >= 1) {
+                    /*
+                     * When more than one row,
+                     * the additional rows need to be offset
+                     * from the previous row
+                     */
                     TextCell* previousCell = getCellAtRowColumn(iRow - 1,
                                                                 jCol);
                     if (previousCell != NULL) {
-                        yOffset += previousCell->m_glyphMinY;
+                        verticalOffset += previousCell->m_glyphMinY;
                     }
-                    yOffset -= verticalSpacing;
-                    yOffset -= cell->m_glyphMaxY;
+                    verticalOffset -= verticalSpacing;
+                    verticalOffset -= cell->m_glyphMaxY;
                 }
                 
-                cell->m_viewportX = m_viewportX + xOffset;
-                cell->m_viewportY = m_viewportY + yOffset;
+                float stackedOffset = 0.0;
+                if (stackedTextFlag) {
+                    CaretAssertVectorIndex(columnMinX, jCol);
+                    CaretAssertVectorIndex(columnMaxX, jCol);
+                    stackedOffset = getStackedTextCenterOffset(iRow,
+                                                               jCol,
+                                                               columnMinX[jCol],
+                                                               columnMaxX[jCol]);
+                }
+                
+                /*
+                 * Set the position for the text to the 
+                 * viewport coordinates plus offsets
+                 * for the row and column.
+                 */
+                cell->m_viewportX = m_viewportX + columnOffset + stackedOffset;
+                cell->m_viewportY = m_viewportY + verticalOffset;
             }
         }
     }
 }
 
-void FtglFontTextRenderer::TextMatrix::adjustTextPositionsForOrientations()
+/**
+ * When the text is stacked (vertially oriented), the positions of the
+ * characters need to be adjusted horizontally so that they are properly
+ * aligned.
+ *
+ *
+ * @param rowIndex
+ *     Index of the row.
+ * @param columnIndex
+ *     Index of the column.
+ * @param columnMinimumX
+ *     Minimum X of the column.
+ * @param columnMaximumX
+ *     Maximum X of the column.
+ * @return
+ *     Offset for the cell's text due.
+ */
+float
+FtglFontTextRenderer::TextMatrix::getStackedTextCenterOffset(const int32_t rowIndex,
+                                                             const int32_t columnIndex,
+                                                             const float columnMinimumX,
+                                                             const float columnMaximumX)
 {
+    float offset = 0.0;
+    
+    
+    TextCell* tc = getCellAtRowColumn(rowIndex, columnIndex);
+    if (tc != NULL) {
+//        const float columnHalfWidth = (columnMaximumX - columnMinimumX) / 2.0;
+//        const float textHalfWidth = (tc->m_glyphMaxX - tc->m_glyphMinX) / 2.0;
+//        offset = columnHalfWidth - textHalfWidth;
+        
+//        const float columnMiddleX = (columnMinimumX + columnMaximumX) / 2.0;
+//        const float columnMiddleOffset = columnMiddleX - columnMinimumX;
+//        
+//        const float textMiddleX = (tc->m_glyphMinX + tc->m_glyphMaxX) / 2.0;
+//        const float textMiddleOffset = textMiddleX - tc->m_glyphMinX;
+//        
+//        offset = columnMiddleOffset - textMiddleOffset;
+        
+        const float columnWidth = columnMaximumX - columnMinimumX;
+        const float leftAndRightPadding = columnWidth - tc->m_width;
+        const float leftPadding = leftAndRightPadding / 2.0;
+        offset = leftPadding - tc->m_glyphMinX;
+    }
+    
+    return offset;
+}
+
+/**
+ * All the text has been positioned but the first character's
+ * origin is at the viewport coordinate.  Now, adjust the
+ * position of the text using the horizontal and vertical
+ * alignments.
+ */
+void
+FtglFontTextRenderer::TextMatrix::applyAlignmentsToTextCoordinates()
+{
+    /*
+     * Sets the bounds for all of the text in the viewport.
+     * Using these bounds, we determine the translations
+     * that are appled to the text.
+     */
     setViewportBoundingBox();
     
-    float xOffset = 0.0;
-    
+    /*
+     * Translation from horizontal alignment
+     */
+    float translateX = 0.0;
     switch (m_annotationText.getHorizontalAlignment()) {
         case AnnotationTextAlignHorizontalEnum::LEFT:
-            xOffset = m_viewportX - m_viewportMinX;
+            translateX = m_viewportX - m_viewportMinX;
             break;
         case AnnotationTextAlignHorizontalEnum::CENTER:
-            xOffset = m_viewportX - ((m_viewportMinX + m_viewportMaxX) / 2.0);
+            translateX = m_viewportX - ((m_viewportMinX + m_viewportMaxX) / 2.0);
             break;
         case AnnotationTextAlignHorizontalEnum::RIGHT:
-            xOffset = m_viewportX - m_viewportMaxX;
+            translateX = m_viewportX - m_viewportMaxX;
             break;
     }
     
-    float yOffset = 0.0;
+    /*
+     * Translation from vertical alignment
+     */
+    float translateY = 0.0;
     switch (m_annotationText.getVerticalAlignment()) {
         case AnnotationTextAlignVerticalEnum::BOTTOM:
-            yOffset = m_viewportY - m_viewportMinY;
+            translateY = m_viewportY - m_viewportMinY;
             break;
         case AnnotationTextAlignVerticalEnum::MIDDLE:
-            yOffset = m_viewportY - ((m_viewportMinY + m_viewportMaxY) / 2.0);
+            translateY = m_viewportY - ((m_viewportMinY + m_viewportMaxY) / 2.0);
             break;
         case AnnotationTextAlignVerticalEnum::TOP:
-            yOffset = m_viewportY - m_viewportMaxY;
+            translateY = m_viewportY - m_viewportMaxY;
             break;
     }
     
@@ -1871,8 +1983,8 @@ void FtglFontTextRenderer::TextMatrix::adjustTextPositionsForOrientations()
         for (int32_t iRow = 0; iRow < m_numRows; iRow++) {
             TextCell* cell = getCellAtRowColumn(iRow, jCol);
             if (cell != NULL) {
-                cell->m_viewportX += xOffset;
-                cell->m_viewportY += yOffset;
+                cell->m_viewportX += translateX;
+                cell->m_viewportY += translateY;
             }
         }
     }
@@ -1882,8 +1994,19 @@ void FtglFontTextRenderer::TextMatrix::adjustTextPositionsForOrientations()
 
 /* Replaces FtglFontTextRenderer::splitTextIntoRowsAndColumns */
 /**
- * Split up the text into matrix cells by finding newline
- * characters in the text and also using the text orientation.
+ * Note that FTGL only draws text in a horizontal orientation.
+ * FTGL does NOT wrap text when it encounters a newline.
+ * FTGL does NOT draw stacked (vertically oriented) text.
+ *
+ * This methods splits up the text into a "matrix" of text 
+ * cells.  When the text is in a vertical orientation, each
+ * individual character is in its own cell.  When the text
+ * is in a horizontal orientation, a cell may contain any
+ * number of characters.
+ * 
+ * When a newline is found, a new row is created for 
+ * horizontally oriented text and a new column is created
+ * for stacked (vertical) text.
  */
 void
 FtglFontTextRenderer::TextMatrix::splitTextIntoCells()
@@ -1918,21 +2041,6 @@ FtglFontTextRenderer::TextMatrix::splitTextIntoCells()
                                      bounds.Upper().X(),
                                      bounds.Lower().Y(),
                                      bounds.Upper().Y()));
-                //                const AString msg("Drawing: "
-                //                                  + annotationText.getText()
-                //                                  + " size="
-                //                                  + annotationText.getFontRenderingEncodedName(m_viewportHeight)
-                //                                  + " bound=("
-                //                                  + AString::number(bounds.Lower().X())
-                //                                  + ", "
-                //                                  + AString::number(bounds.Lower().Y())
-                //                                  + ", "
-                //                                  + AString::number(bounds.Upper().X())
-                //                                  + ", "
-                //                                  + AString::number(bounds.Upper().Y())
-                //                                  + ")");
-                //                std::cout << qPrintable(msg) << std::endl;
-                
                 rowIndex++;
             }
                 break;
