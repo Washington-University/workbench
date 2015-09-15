@@ -942,6 +942,23 @@ FtglFontTextRenderer::getName() const
 
 
 /* ================================================================================== */
+
+/**
+ * Constructor.
+ * 
+ * @param character
+ *    The character for this instance.
+ * @param horizontalAdvance
+ *    The advance used when drawing the string in a horizontal orientation.
+ * @param glyphMinX
+ *    Minimum X relative to the character's origin form FTGL/Freetype.
+ * @param glyphMaxX
+ *    Maximum X relative to the character's origin form FTGL/Freetype.
+ * @param glyphMinY
+ *    Minimum Y relative to the character's origin form FTGL/Freetype.
+ * @param glyphMaxY
+ *    Maximum Y relative to the character's origin form FTGL/Freetype.
+ */
 FtglFontTextRenderer::TextCharacter::TextCharacter(const wchar_t& character,
                                                    const double horizontalAdvance,
                                                    const double glyphMinX,
@@ -962,11 +979,20 @@ m_offsetZ(0.0)
 }
 
 
+/**
+ * Destructor.
+ */
 FtglFontTextRenderer::TextCharacter::~TextCharacter()
 {
     
 }
 
+/**
+ * Print information about this string using the given offset.
+ *
+ * @param offsetString
+ *     Offset prepended to each line that is printed.
+ */
 void
 FtglFontTextRenderer::TextCharacter::print(const AString& offsetString)
 {
@@ -998,6 +1024,17 @@ FtglFontTextRenderer::TextCharacter::print(const AString& offsetString)
 
 
 /* ================================================================================== */
+
+/**
+ * Constructor
+ * 
+ * @param textString
+ *     The text string.
+ * @parm orientation
+ *     Orientation of the text string.
+ * @param font
+ *     Font for drawing the text string.
+ */
 FtglFontTextRenderer::TextString::TextString(const QString& textString,
                                              const AnnotationTextOrientationEnum::Enum orientation,
                                              FTFont* font)
@@ -1009,6 +1046,9 @@ m_stringGlyphsMaxX(0.0),
 m_stringGlyphsMinY(0.0),
 m_stringGlyphsMaxY(0.0)
 {
+    /*
+     * Split the string into individual characters.
+     */
     const int32_t numChars = textString.length();
     for (int32_t i = 0; i < numChars; i++) {
         const std::wstring theWideCharStr = textString.mid(i, 1).toStdWString();
@@ -1052,9 +1092,15 @@ m_stringGlyphsMaxY(0.0)
      */
     initializeTextCharacterOffsets(orientation);
     
+    /*
+     * Set the bounds of the characters in this string.
+     */
     setGlyphBounds();
 }
 
+/**
+ * Destructor.
+ */
 FtglFontTextRenderer::TextString::~TextString()
 {
     for (std::vector<TextCharacter*>::iterator iter = m_characters.begin();
@@ -1065,6 +1111,13 @@ FtglFontTextRenderer::TextString::~TextString()
     m_characters.clear();
 }
 
+/**
+ * Initialize the offset of each character from 
+ * its preceding character.
+ *
+ * @param orientation
+ *     Orientation of the text string.
+ */
 void
 FtglFontTextRenderer::TextString::initializeTextCharacterOffsets(const AnnotationTextOrientationEnum::Enum orientation)
 {
@@ -1193,7 +1246,12 @@ FtglFontTextRenderer::TextString::initializeTextCharacterOffsets(const Annotatio
     }
 }
 
-
+/**
+ * Print information about this string using the given offset.
+ *
+ * @param offsetString
+ *     Offset prepended to each line that is printed.
+ */
 void
 FtglFontTextRenderer::TextString::print(const AString& offsetString)
 {
@@ -1215,6 +1273,10 @@ FtglFontTextRenderer::TextString::print(const AString& offsetString)
     }
 }
 
+/**
+ * Set the bounds of the glyphs for the text string.
+ * The origin is at the first character.
+ */
 void
 FtglFontTextRenderer::TextString::setGlyphBounds()
 {
@@ -1249,6 +1311,18 @@ FtglFontTextRenderer::TextString::setGlyphBounds()
     }
 }
 
+/**
+ * Get the bounds of the text string in viewport coordinates.
+ *
+ * @param viewportMinX
+ *     Viewport minimum X.
+ * @param viewportMaxX
+ *     Viewport maximum X.
+ * @param viewportMinY
+ *     Viewport minimum Y.
+ * @param viewportMaxY
+ *     Viewport minimum Y.
+ */
 void
 FtglFontTextRenderer::TextString::getTextBoundsInViewportCoordinates(double& viewportMinX,
                                                                      double& viewportMaxX,
@@ -1263,6 +1337,23 @@ FtglFontTextRenderer::TextString::getTextBoundsInViewportCoordinates(double& vie
 
 
 /* ================================================================================== */
+
+/**
+ * Constructor for a text string group.
+ *
+ * @param annotationText
+ *    The text annotation.
+ * @param font
+ *    Font used for drawing the annotation.
+ * @param viewportX
+ *    X-coordinate in the viewport.
+ * @param viewportY
+ *    Y-coordinate in the viewport.
+ * @param viewportZ
+ *    Z-coordinate in the viewport.
+ * @param rotationAngle
+ *    Rotation angle for the text.
+ */
 FtglFontTextRenderer::TextStringGroup::TextStringGroup(const AnnotationText& annotationText,
                                                        FTFont* font,
                                                        const double viewportX,
@@ -1309,6 +1400,9 @@ m_viewportBoundsMaxY(0.0)
     updateTextBounds();
 }
 
+/**
+ * Destructor.
+ */
 FtglFontTextRenderer::TextStringGroup::~TextStringGroup()
 {
     for (std::vector<TextString*>::iterator iter = m_textStrings.begin();
@@ -1325,14 +1419,14 @@ FtglFontTextRenderer::TextStringGroup::~TextStringGroup()
  *
  * @param margin
  *     Margin added around sides
- * @param minX
- *     Bounds minimum X.
- * @param maxX
- *     Bounds maximum X.
- * @param minY
- *     Bounds minimum Y.
- * @param maxY
- *     Bounds maximum Y.
+ * @param bottomLeftOut
+ *     Coordinate of bottom left.
+ * @param bottomRightOut
+ *     Coordinate of bottom right.
+ * @param topRightOut
+ *     Coordinate of top right.
+ * @param topLeftOut
+ *     Coordinate of top left.
  * @param rotationPointXYZOut
  *     Output containing rotation point for bounds.
  */
@@ -1497,7 +1591,9 @@ FtglFontTextRenderer::TextStringGroup::initializeTextPositions()
     }
 }
 
-
+/**
+ * Print info about the text.
+ */
 void
 FtglFontTextRenderer::TextStringGroup::print()
 {
@@ -1514,6 +1610,9 @@ FtglFontTextRenderer::TextStringGroup::print()
     std::cout << std::endl;
 }
 
+/**
+ * Update the bounds (extent) of the text.
+ */
 void
 FtglFontTextRenderer::TextStringGroup::updateTextBounds()
 {
@@ -1555,8 +1654,10 @@ FtglFontTextRenderer::TextStringGroup::updateTextBounds()
     }
 }
 
-/*
- * Moves individual text strings so that they align
+/**
+ * Adjust the positions of the horizontal text strings so
+ * they are aligned properly for both horizontal and
+ * vertical alignment.
  */
 void
 FtglFontTextRenderer::TextStringGroup::applyAlignmentsToHorizontalTextStrings()
@@ -1600,6 +1701,11 @@ FtglFontTextRenderer::TextStringGroup::applyAlignmentsToHorizontalTextStrings()
     }
 }
 
+/**
+ * Adjust the positions of the stacked text strings so
+ * they are aligned properly for both horizontal and
+ * vertical alignment.
+ */
 void
 FtglFontTextRenderer::TextStringGroup::applyAlignmentsToStackedTextStrings()
 {
@@ -1642,6 +1748,10 @@ FtglFontTextRenderer::TextStringGroup::applyAlignmentsToStackedTextStrings()
     }
 }
 
+/**
+ * Adjust the positions of the text strings so
+ * they are aligned properly.
+ */
 void
 FtglFontTextRenderer::TextStringGroup::applyAlignmentsToTextStrings()
 {
