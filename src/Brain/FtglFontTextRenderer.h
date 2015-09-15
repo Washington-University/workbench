@@ -25,6 +25,7 @@
 #include <set>
 
 #include "AnnotationTextAlignHorizontalEnum.h"
+#include "AnnotationTextOrientationEnum.h"
 #include "BrainOpenGLTextRenderInterface.h"
 
 class FTFont;
@@ -107,6 +108,150 @@ namespace caret {
             
             bool m_valid;
         };
+        
+        
+        
+        /**
+         * A text character
+         */
+        class TextCharacter {
+        public:
+            TextCharacter(const QString& character,
+                          const double horizontalAdvance,
+                          const double glyphMinX,
+                          const double glyphMaxX,
+                          const double glyphMinY,
+                          const double glyphMaxY);
+            
+            ~TextCharacter();
+            
+            void print(const AString& offsetString);
+            
+            const QString m_character;
+            
+            const double m_horizontalAdvance;
+            
+            /*
+             * Bounding box that encloses text with 0.0 at the "pen"
+             * http://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html
+             */
+            const double m_glyphMinX;
+            const double m_glyphMaxX;
+            const double m_glyphMinY;
+            const double m_glyphMaxY;
+            
+            /*
+             * Offset from previous character
+             */
+            double m_offsetX;
+            double m_offsetY;
+            double m_offsetZ;
+        };
+        
+        /**
+         * A string of text
+         */
+        class TextString {
+        public:
+            TextString(const QString& textString,
+                       const AnnotationTextOrientationEnum::Enum orientation,
+                       FTFont* font);
+            
+            ~TextString();
+            
+            void print(const AString& offsetString);
+            
+            void setGlyphBounds();
+            
+            void getTextBoundsInViewportCoordinates(double& viewportMinX,
+                                                    double& viewportMaxX,
+                                                    double& viewportMinY,
+                                                    double& viewportMaxY) const;
+            
+            std::vector<TextCharacter*> m_characters;
+            
+            double m_viewportX;
+            double m_viewportY;
+            double m_viewportZ;
+            
+            /*
+             * Bounds relative to origin of first character
+             */
+            double m_stringGlyphsMinX;
+            double m_stringGlyphsMaxX;
+            double m_stringGlyphsMinY;
+            double m_stringGlyphsMaxY;
+            
+        private:
+            void initializeTextCharacterOffsets(const AnnotationTextOrientationEnum::Enum orientation);
+            
+        };
+        
+        /**
+         * The "high level" text object containing strings of text
+         */
+        class TextStringGroup {
+        public:
+            TextStringGroup(const AnnotationText& annotationText,
+                          FTFont* font,
+                          const double viewportX,
+                          const double viewportY,
+                          const double viewportZ,
+                          const double rotationAngle);
+            
+            ~TextStringGroup();
+            
+            void getViewportBounds(const double margin,
+                           double bottomLeftOut[3],
+                           double bottomRightOut[3],
+                           double topRightOut[3],
+                           double topLeftOut[3],
+                           double rotationPointXYZOut[3]) const;
+            
+            void print();
+            
+            std::vector<TextString*> m_textStrings;
+            
+            const AnnotationText& m_annotationText;
+            
+            FTFont* m_font;
+            
+            const double m_viewportX;
+            
+            const double m_viewportY;
+            
+            const double m_viewportZ;
+            
+            const double m_rotationAngle;
+            
+            /*
+             * Bounds relative to origin of first character
+             */
+            double m_viewportBoundsMinX;
+            double m_viewportBoundsMaxX;
+            double m_viewportBoundsMinY;
+            double m_viewportBoundsMaxY;
+            
+        private:
+            void applyAlignmentsToHorizontalTextStrings();
+            void applyAlignmentsToStackedTextStrings();
+            void applyAlignmentsToTextStrings();
+            void initializeTextPositions();
+            void updateTextBounds();
+            void splitTextIntoLines();
+        };
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         class TextCell {
         public:
@@ -245,9 +390,14 @@ namespace caret {
         void drawTextAtViewportCoordinatesInternal(const AnnotationText& annotationText,
                                            const TextMatrix& textMatrix);
         
+        void drawTextAtViewportCoordinatesInternal(const AnnotationText& annotationText,
+                                                   const TextStringGroup& textStringGroup);
+        
         void applyForegroundColoring(const AnnotationText& annotationText);
         
         void applyBackgroundColoring(const TextMatrix& textMatrix);
+        
+        void applyBackgroundColoring(const TextStringGroup& textStringGroup);
         
         void setViewportHeight();
         
