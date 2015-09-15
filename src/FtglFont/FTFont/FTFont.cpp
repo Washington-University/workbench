@@ -188,8 +188,8 @@ float FTFont::Advance(const wchar_t * string, const int len, FTPoint spacing)
 }
 
 float
-FTFont::Advance(const char theChar,
-                const char theNextChar)
+FTFont::Advance(const wchar_t theChar,
+                const wchar_t theNextChar)
 {
     return impl->glyphList->Advance(theChar, theNextChar);
 }

@@ -300,8 +300,8 @@ class FTGL_EXPORT FTFont
          * @param theNextChar  next 'C' char
          * @return The char's advance width.
          */
-        float Advance(const char theChar,
-                      const char theNextChar);
+        float Advance(const wchar_t theChar,
+                      const wchar_t theNextChar);
     
         /**
          * Get the advance for a string.

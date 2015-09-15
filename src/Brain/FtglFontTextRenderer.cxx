@@ -380,7 +380,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
                 glTranslated(offsetX,
                              offsetY,
                              offsetZ);
-                font->Render(tc->m_character.toAscii().constData());
+                font->Render(&tc->m_character,
+                             1);
                 glPopMatrix();
             }
         }
@@ -405,7 +406,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
                 glTranslated(tc->m_offsetX,
                              tc->m_offsetY,
                              tc->m_offsetZ);
-                font->Render(tc->m_character.toAscii().constData());
+                font->Render(&tc->m_character,
+                             1);
             }
             
             glPopMatrix();
@@ -940,7 +942,7 @@ FtglFontTextRenderer::getName() const
 
 
 /* ================================================================================== */
-FtglFontTextRenderer::TextCharacter::TextCharacter(const QString& character,
+FtglFontTextRenderer::TextCharacter::TextCharacter(const wchar_t& character,
                                                    const double horizontalAdvance,
                                                    const double glyphMinX,
                                                    const double glyphMaxX,
@@ -970,7 +972,8 @@ FtglFontTextRenderer::TextCharacter::print(const AString& offsetString)
 {
     const QString msg(offsetString
                       + "Char: "
-                      + m_character
+                      + QString::fromWCharArray(&m_character,
+                                                1)
                       + " horizAdvance="
                       + AString::number(m_horizontalAdvance)
                       + " minX="
@@ -1008,29 +1011,34 @@ m_stringGlyphsMaxY(0.0)
 {
     const int32_t numChars = textString.length();
     for (int32_t i = 0; i < numChars; i++) {
-        const QString theCharStr(textString.at(i));
-        const char theChar = textString.at(i).toAscii();
-        FTBBox bbox = font->BBox(theCharStr.toAscii().constData());
+        const std::wstring theWideCharStr = textString.mid(i, 1).toStdWString();
+        const wchar_t theWideChar = theWideCharStr.at(0);
+        FTBBox bbox = font->BBox(theWideCharStr.c_str(),
+                                 theWideCharStr.length());
         
         /*
          * A space character has a valid horizontal advance.
          * BUT, the bounds of the space character are all zero and since
          * the bounds are used for stacked text vertical advance we need
          * some value so use the bounds for a lowercase 'o'.
+         *
+         * The L indicates a wide character (wchar_t)
          */
-        if ((theChar == ' ')
+        if ((theWideChar == L' ')
             && (orientation == AnnotationTextOrientationEnum::STACKED)) {
             bbox = font->BBox("o");
         }
 
         double advanceValue = 0.0;
         if (i < (numChars - 1)) {
-            const char nextChar = textString.at(i + 1).toAscii();
-            advanceValue = font->Advance(theChar, nextChar);
+            const std::wstring nextWideCharStr = textString.mid(i + 1, 1).toStdWString();
+            const wchar_t nextWideChar = nextWideCharStr.at(0);
+            advanceValue = font->Advance(theWideChar,
+                                         nextWideChar);
         }
         
-        TextCharacter* tc = new TextCharacter(QString(theChar),
-                                              font->Advance(theCharStr.toAscii().constData()),
+        TextCharacter* tc = new TextCharacter(theWideChar,
+                                              advanceValue,
                                               bbox.Lower().Xf(),
                                               bbox.Upper().Xf(),
                                               bbox.Lower().Yf(),
@@ -1155,7 +1163,8 @@ FtglFontTextRenderer::TextString::initializeTextCharacterOffsets(const Annotatio
                     }
                     else {
                         CaretLogSevere("Text Character ("
-                                       + tc->m_character
+                                       + QString::fromWCharArray(&tc->m_character,
+                                                                 1)
                                        + ") has invalid left padding="
                                        + QString::number(leftPadding));
                     }

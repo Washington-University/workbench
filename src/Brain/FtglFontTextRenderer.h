@@ -116,7 +116,7 @@ namespace caret {
          */
         class TextCharacter {
         public:
-            TextCharacter(const QString& character,
+            TextCharacter(const wchar_t& character,
                           const double horizontalAdvance,
                           const double glyphMinX,
                           const double glyphMaxX,
@@ -127,7 +127,7 @@ namespace caret {
             
             void print(const AString& offsetString);
             
-            const QString m_character;
+            const wchar_t m_character;
             
             const double m_horizontalAdvance;
             
