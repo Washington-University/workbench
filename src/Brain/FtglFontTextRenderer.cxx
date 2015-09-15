@@ -1010,7 +1010,18 @@ m_stringGlyphsMaxY(0.0)
     for (int32_t i = 0; i < numChars; i++) {
         const QString theCharStr(textString.at(i));
         const char theChar = textString.at(i).toAscii();
-        const FTBBox bbox = font->BBox(theCharStr.toAscii().constData());
+        FTBBox bbox = font->BBox(theCharStr.toAscii().constData());
+        
+        /*
+         * A space character has a valid horizontal advance.
+         * BUT, the bounds of the space character are all zero and since
+         * the bounds are used for stacked text vertical advance we need
+         * some value so use the bounds for a lowercase 'o'.
+         */
+        if ((theChar == ' ')
+            && (orientation == AnnotationTextOrientationEnum::STACKED)) {
+            bbox = font->BBox("o");
+        }
 
         double advanceValue = 0.0;
         if (i < (numChars - 1)) {
@@ -1024,6 +1035,7 @@ m_stringGlyphsMaxY(0.0)
                                               bbox.Upper().Xf(),
                                               bbox.Lower().Yf(),
                                               bbox.Upper().Yf());
+        
         m_characters.push_back(tc);
     }
     
