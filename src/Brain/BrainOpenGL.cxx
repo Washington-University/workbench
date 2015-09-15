@@ -695,6 +695,12 @@ BrainOpenGL::getOpenGLInformation()
     lineInfo += ("\nVertex Buffers Supported: "
                  + AString::fromBool(s_supportsVertexBuffers));
     
+    lineInfo += "\n";
+    lineInfo += "\n";
+    lineInfo += "Note that State of OpenGL may be different when drawing objects.\n";
+    lineInfo += getStateOfOpenGL();
+    lineInfo += "\n";
+    
     lineInfo += m_openGLExtensionsInformation;
     
     

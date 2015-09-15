@@ -6408,6 +6408,7 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
     s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LINE_SMOOTH", GL_LINE_SMOOTH));
     s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_NORMALIZE", GL_NORMALIZE));
     s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_POLYGON_OFFSET_FILL", GL_POLYGON_OFFSET_FILL));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_POLYGON_SMOOTH", GL_POLYGON_SMOOTH));
     
     GLint frontFace;
     glGetIntegerv(GL_FRONT_FACE, &frontFace);

@@ -555,7 +555,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     glLoadIdentity();
     
     /*
-     * Enable anti-aliasing for lines
+     * Enable anti-aliasing for lines and polygons
      */
     m_brainOpenGLFixedPipeline->enableLineAntiAliasing();
     
