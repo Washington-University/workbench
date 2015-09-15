@@ -292,6 +292,18 @@ class FTGL_EXPORT FTFont
         }
 
         /**
+         * Get the advance from one character to the next.
+         *
+         * Method added by HCP (John Harwell).
+         *
+         * @param theChar 'C' char
+         * @param theNextChar  next 'C' char
+         * @return The char's advance width.
+         */
+        float Advance(const char theChar,
+                      const char theNextChar);
+    
+        /**
          * Get the advance for a string.
          *
          * @param string  'C' style string to be checked.

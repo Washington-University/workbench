@@ -187,6 +187,14 @@ float FTFont::Advance(const wchar_t * string, const int len, FTPoint spacing)
     return impl->Advance(string, len, spacing);
 }
 
+float
+FTFont::Advance(const char theChar,
+                const char theNextChar)
+{
+    return impl->glyphList->Advance(theChar, theNextChar);
+}
+
+
 
 FTBBox FTFont::BBox(const char *string, const int len,
                     FTPoint position, FTPoint spacing)
@@ -434,7 +442,6 @@ FTBBox FTFontImpl::BBox(const wchar_t *string, const int len,
 {
     return BBoxI(string, len, position, spacing);
 }
-
 
 template <typename T>
 inline float FTFontImpl::AdvanceI(const T* string, const int len,
