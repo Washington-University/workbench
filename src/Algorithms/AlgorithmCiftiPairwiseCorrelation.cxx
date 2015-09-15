@@ -53,6 +53,8 @@ OperationParameters* AlgorithmCiftiPairwiseCorrelation::getParameters()
     
     ret->createOptionalParameter(4, "-fisher-z", "apply fisher small z transform (ie, artanh) to correlation");
     
+    ret->createOptionalParameter(5, "-override-mapping-check", "don't check the mappings for compatibility, only check length");
+    
     ret->setHelpText(
         AString("For each row in <cifti-a>, correlate it with the same row in <cifti-b>, and put the result in the same row of <cifti-out>, which has only one column.")
     );
@@ -65,15 +67,22 @@ void AlgorithmCiftiPairwiseCorrelation::useParameters(OperationParameters* myPar
     CiftiFile* myCiftiB = myParams->getCifti(2);
     CiftiFile* myCiftiOut = myParams->getOutputCifti(3);
     bool fisherZ = myParams->getOptionalParameter(4)->m_present;
-    AlgorithmCiftiPairwiseCorrelation(myProgObj, myCiftiA, myCiftiB, myCiftiOut, fisherZ);
+    bool overrideMappingCheck = myParams->getOptionalParameter(5)->m_present;
+    AlgorithmCiftiPairwiseCorrelation(myProgObj, myCiftiA, myCiftiB, myCiftiOut, fisherZ, overrideMappingCheck);
 }
 
-AlgorithmCiftiPairwiseCorrelation::AlgorithmCiftiPairwiseCorrelation(ProgressObject* myProgObj, const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, CiftiFile* myCiftiOut, const bool& fisherZ) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiPairwiseCorrelation::AlgorithmCiftiPairwiseCorrelation(ProgressObject* myProgObj, const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, CiftiFile* myCiftiOut,
+                                                                     const bool& fisherZ, const bool& overrideMappingCheck) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CiftiXMLOld outXML = myCiftiA->getCiftiXMLOld();
     int64_t numRows = myCiftiA->getNumberOfRows(), rowLength = myCiftiA->getNumberOfColumns();
-    if (!outXML.matchesForColumns(myCiftiB->getCiftiXMLOld())) throw AlgorithmException("mapping along columns must match between the input files");
+    if (overrideMappingCheck)
+    {
+        if (numRows != myCiftiB->getNumberOfRows()) throw AlgorithmException("column length must match between the input files");
+    } else {
+        if (!outXML.matchesForColumns(myCiftiB->getCiftiXMLOld())) throw AlgorithmException("mapping along columns must match between the input files");
+    }
     if (rowLength != myCiftiB->getNumberOfColumns()) throw AlgorithmException("row length must match between the input files");
     outXML.resetRowsToScalars(1);
     outXML.setMapNameForRowIndex(0, "pairwise correlation");
