@@ -1133,6 +1133,7 @@ m_stringGlyphsMaxX(0.0),
 m_stringGlyphsMinY(0.0),
 m_stringGlyphsMaxY(0.0)
 {
+#ifdef HAVE_FREETYPE
     /*
      * Split the string into individual characters.
      */
@@ -1183,6 +1184,7 @@ m_stringGlyphsMaxY(0.0)
      * Set the bounds of the characters in this string.
      */
     setGlyphBounds();
+#endif HAVE_FREETYPE
 }
 
 /**
@@ -1459,6 +1461,7 @@ m_viewportBoundsMaxX(0.0),
 m_viewportBoundsMinY(0.0),
 m_viewportBoundsMaxY(0.0)
 {
+#ifdef HAVE_FREETYPE
     CaretAssert(font);
     
     /*
@@ -1498,6 +1501,7 @@ m_viewportBoundsMaxY(0.0)
      * Alignment moves text so bounds need to be updated
      */
     updateTextBounds();
+#endif HAVE_FREETYPE
 }
 
 /**
