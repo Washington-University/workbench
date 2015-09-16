@@ -75,6 +75,7 @@
 #include <QStringList>
 
 #include "AnnotationText.h"
+#include "BrainOpenGLPrimitiveDrawing.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
@@ -341,6 +342,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
         glColor3f(savedRGBA[0], savedRGBA[1], savedRGBA[2]);
     }
     
+    const double underlineOffsetY = (textStringGroup.m_underlineWidth / 2.0);
+    
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
     textStringGroup.getViewportBounds(s_textMarginSize,
                          bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
@@ -351,7 +354,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     applyForegroundColoring(annotationText);
     
     const float rotationAngle = annotationText.getRotationAngle();
-    if (rotationAngle != 0.0){
+//    if (rotationAngle != 0.0){
         glTranslated(rotationPointXYZ[0], rotationPointXYZ[1], rotationPointXYZ[2]);
         glRotated(rotationAngle, 0.0, 0.0, -1.0);
         
@@ -384,35 +387,83 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
                              1);
                 glPopMatrix();
             }
-        }
-    }
-    else {
-        for (std::vector<TextString*>::const_iterator iter = textStringGroup.m_textStrings.begin();
-             iter != textStringGroup.m_textStrings.end();
-             iter++) {
-            const TextString* ts = *iter;
-            glPushMatrix();
-            glLoadIdentity();
             
-            glTranslated(ts->m_viewportX,
-                         ts->m_viewportY,
-                         ts->m_viewportZ);
-            
-            for (std::vector<TextCharacter*>::const_iterator charIter = ts->m_characters.begin();
-                 charIter != ts->m_characters.end();
-                 charIter++) {
-                const TextCharacter* tc = *charIter;
-                
-                glTranslated(tc->m_offsetX,
-                             tc->m_offsetY,
-                             tc->m_offsetZ);
-                font->Render(&tc->m_character,
-                             1);
+            if (ts->m_underlineWidth > 0.0) {
+                    glPushMatrix();
+                    glTranslated(ts->m_viewportX - rotationPointXYZ[0], ts->m_viewportY - rotationPointXYZ[1], 0.0);
+                    
+                    const double underlineY = ts->m_stringGlyphsMinY + underlineOffsetY;
+                    uint8_t foregroundRgba[4];
+                    annotationText.getForegroundColorRGBA(foregroundRgba);
+                    drawUnderline(ts->m_stringGlyphsMinX,
+                                  ts->m_stringGlyphsMaxX,
+                                  underlineY,
+                                  0.0,  // Z
+                                  textStringGroup.m_underlineWidth,
+                                  foregroundRgba);
+
+                    glPopMatrix();
             }
-            
-            glPopMatrix();
         }
-    }
+//    }
+//    else {
+//        for (std::vector<TextString*>::const_iterator iter = textStringGroup.m_textStrings.begin();
+//             iter != textStringGroup.m_textStrings.end();
+//             iter++) {
+//            const TextString* ts = *iter;
+//            glPushMatrix();
+//            glLoadIdentity();
+//            glPushMatrix();
+//            
+//            glTranslated(ts->m_viewportX,
+//                         ts->m_viewportY,
+//                         ts->m_viewportZ);
+//            
+//            for (std::vector<TextCharacter*>::const_iterator charIter = ts->m_characters.begin();
+//                 charIter != ts->m_characters.end();
+//                 charIter++) {
+//                const TextCharacter* tc = *charIter;
+//                
+//                glTranslated(tc->m_offsetX,
+//                             tc->m_offsetY,
+//                             tc->m_offsetZ);
+//                font->Render(&tc->m_character,
+//                             1);
+//            }
+//            glPopMatrix();
+//            
+//            if (ts->m_underlineWidth > 0.0) {
+//                    const float lineStartX = ts->m_viewportX + ts->m_stringGlyphsMinX;
+//                    const float lineEndX   = ts->m_viewportX + ts->m_stringGlyphsMaxX;
+//                    const float lineY      = ts->m_viewportY + ts->m_stringGlyphsMinY + underlineOffsetY;
+//                
+//                    uint8_t foregroundRgba[4];
+//                    annotationText.getForegroundColorRGBA(foregroundRgba);
+//                    drawUnderline(lineStartX,
+//                                  lineEndX,
+//                                  lineY,
+//                                  ts->m_viewportZ,
+//                                  textStringGroup.m_underlineWidth,
+//                                  foregroundRgba);
+//
+////                    std::vector<float> underlineCoords;
+////                    underlineCoords.insert(underlineCoords.end(), lineStartX);
+////                    underlineCoords.insert(underlineCoords.end(), lineY);
+////                    underlineCoords.insert(underlineCoords.end(), ts->m_viewportZ);
+////                    underlineCoords.insert(underlineCoords.end(), lineEndX);
+////                    underlineCoords.insert(underlineCoords.end(), lineY);
+////                    underlineCoords.insert(underlineCoords.end(), ts->m_viewportZ);
+////                    
+////                    uint8_t foregroundRgba[4];
+////                    annotationText.getForegroundColorRGBA(foregroundRgba);
+////                    BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
+////                                                           foregroundRgba,
+////                                                           1.0);
+//            }
+//            
+//            glPopMatrix();
+//        }
+//    }
     
     glPopMatrix();
     
@@ -420,6 +471,38 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
 #else // HAVE_FREETYPE
     CaretLogSevere("Trying to use FTGL Font rendering but it cannot be used due to FreeType not found.");
 #endif // HAVE_FREETYPE
+}
+
+void
+FtglFontTextRenderer::drawUnderline(const double lineStartX,
+                                    const double lineEndX,
+                                    const double lineY,
+                                    const double lineZ,
+                                    const double underlineWidth,
+                                    uint8_t foregroundRgba[4])
+{
+    /*
+     * Need to enable anti-aliasing for smooth lines
+     */
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    
+    std::vector<float> underlineCoords;
+    underlineCoords.insert(underlineCoords.end(), lineStartX);
+    underlineCoords.insert(underlineCoords.end(), lineY);
+    underlineCoords.insert(underlineCoords.end(), lineZ);
+    underlineCoords.insert(underlineCoords.end(), lineEndX);
+    underlineCoords.insert(underlineCoords.end(), lineY);
+    underlineCoords.insert(underlineCoords.end(), lineZ);
+    
+    BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
+                                           foregroundRgba,
+                                           underlineWidth);
+    
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_BLEND);
 }
 
 /**
@@ -1032,13 +1115,17 @@ FtglFontTextRenderer::TextCharacter::print(const AString& offsetString)
  *     The text string.
  * @parm orientation
  *     Orientation of the text string.
+ * @param underlineWidth
+ *     Width of underline for the text.
  * @param font
  *     Font for drawing the text string.
  */
 FtglFontTextRenderer::TextString::TextString(const QString& textString,
                                              const AnnotationTextOrientationEnum::Enum orientation,
+                                             const double underlineWidth,
                                              FTFont* font)
-: m_viewportX(0.0),
+: m_underlineWidth(underlineWidth),
+m_viewportX(0.0),
 m_viewportY(0.0),
 m_viewportZ(0.0),
 m_stringGlyphsMinX(0.0),
@@ -1297,7 +1384,7 @@ FtglFontTextRenderer::TextString::setGlyphBounds()
         
         const double left   = x + tc->m_glyphMinX;
         const double right  = x + tc->m_glyphMaxX;
-        const double bottom = y + tc->m_glyphMinY;
+        const double bottom = y + tc->m_glyphMinY - m_underlineWidth;
         const double top    = y + tc->m_glyphMaxY;
         
         m_stringGlyphsMinX = std::min(m_stringGlyphsMinX,
@@ -1366,12 +1453,24 @@ m_viewportX(viewportX),
 m_viewportY(viewportY),
 m_viewportZ(viewportZ),
 m_rotationAngle(rotationAngle),
+m_underlineWidth(0.0),
 m_viewportBoundsMinX(0.0),
 m_viewportBoundsMaxX(0.0),
 m_viewportBoundsMinY(0.0),
 m_viewportBoundsMaxY(0.0)
 {
     CaretAssert(font);
+    
+    /*
+     * The underline for text is scaled with the size of the font
+     * Underline is drawn anytime it is greater than zero
+     */
+    if (annotationText.isUnderlineEnabled()) {
+        if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
+            m_underlineWidth = std::max((font->FaceSize() / 14.0),
+                                        1.0);
+        }
+    }
     
     /*
      * Each row (horizontal text) or column (vertical text) is
@@ -1384,6 +1483,7 @@ m_viewportBoundsMaxY(0.0)
     for (int32_t i = 0; i < textListSize; i++) {
         TextString* ts = new TextString(textList.at(i),
                                         annotationText.getOrientation(),
+                                        m_underlineWidth,
                                         font);
         m_textStrings.push_back(ts);
     }
@@ -1563,7 +1663,8 @@ FtglFontTextRenderer::TextStringGroup::initializeTextPositions()
                     const double offsetY1 = prevTextString->m_stringGlyphsMinY;
                     const double offsetY2 = -(s_textMarginSize * 2.0);
                     const double offsetY3 = -textString->m_stringGlyphsMaxY;
-                    const double offsetY  = (offsetY1 + offsetY2 + offsetY3);
+                    const double offsetY4 = 0.0; //-m_underlineWidth;
+                    const double offsetY  = (offsetY1 + offsetY2 + offsetY3 + offsetY4);
                     
                     y += offsetY;
                 }

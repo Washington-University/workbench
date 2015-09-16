@@ -90,6 +90,12 @@ namespace caret {
         FTFont* getFont(const AnnotationText& annotationText,
                         const bool creatingDefaultFontFlag);
         
+        void drawUnderline(const double lineStartX,
+                           const double lineEndX,
+                           const double lineY,
+                           const double lineZ,
+                           const double fontSize,
+                           uint8_t foregroundRgba[4]);
         
         class FontData {
         public:
@@ -155,6 +161,7 @@ namespace caret {
         public:
             TextString(const QString& textString,
                        const AnnotationTextOrientationEnum::Enum orientation,
+                       const double underlineWidth,
                        FTFont* font);
             
             ~TextString();
@@ -167,6 +174,8 @@ namespace caret {
                                                     double& viewportMaxX,
                                                     double& viewportMinY,
                                                     double& viewportMaxY) const;
+            
+            const double m_underlineWidth;
             
             std::vector<TextCharacter*> m_characters;
             
@@ -223,6 +232,8 @@ namespace caret {
             const double m_viewportZ;
             
             const double m_rotationAngle;
+            
+            double m_underlineWidth;
             
             /*
              * Bounds relative to origin of first character

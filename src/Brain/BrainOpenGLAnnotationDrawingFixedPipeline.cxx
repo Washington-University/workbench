@@ -1205,17 +1205,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                 
                 setDepthTestingStatus(depthTestFlag);
                 
-                if (text->isUnderlineEnabled()) {
-                    if (text->getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
-                        std::vector<float> underlineCoords;
-                        underlineCoords.insert(underlineCoords.end(), bottomLeft,  bottomLeft + 3);
-                        underlineCoords.insert(underlineCoords.end(), bottomRight, bottomRight + 3);
-                        
-                        BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
-                                                               foregroundRGBA,
-                                                               2.0);
-                    }
-                }
+//                if (text->isUnderlineEnabled()) {
+//                    if (text->getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
+//                        std::vector<float> underlineCoords;
+//                        underlineCoords.insert(underlineCoords.end(), bottomLeft,  bottomLeft + 3);
+//                        underlineCoords.insert(underlineCoords.end(), bottomRight, bottomRight + 3);
+//                        
+//                        BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
+//                                                               foregroundRGBA,
+//                                                               2.0);
+//                    }
+//                }
             }
         }
         
