@@ -103,11 +103,6 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
                            + AString::number(bottom) + ","
                            + AString::number(top));
         }
-        
-        if (browserTabContent->isAspectRatioLocked()) {
-            adjustViewportForAspectRatio(m_modelViewport,
-                                         browserTabContent->getAspectRatio());
-        }
     }
     
     /*

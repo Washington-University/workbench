@@ -80,6 +80,7 @@ namespace caret {
                                   BrowserTabContent* initialBrowserTabContent,
                                   QAction* overlayToolBoxAction,
                                   QAction* layersToolBoxAction,
+                                  QAction* windowAspectRatioLockedAction,
                                   BrainBrowserWindow* parentBrainBrowserWindow);
         
         ~BrainBrowserWindowToolBar();
@@ -134,7 +135,7 @@ namespace caret {
         QWidget* createWholeBrainSurfaceOptionsWidget();
         QWidget* createVolumeIndicesWidget();
         QWidget* createModeWidget();
-        QWidget* createTabOptionsWidget();
+        QWidget* createTabOptionsWidget(QAction* windowAspectRatioLockedAction);
         QWidget* createChartAxesWidget();
         QWidget* createChartAttributesWidget();
         QWidget* createChartTypeWidget();

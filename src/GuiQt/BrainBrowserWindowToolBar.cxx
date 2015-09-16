@@ -131,6 +131,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                      BrowserTabContent* initialBrowserTabContent,
                                                      QAction* overlayToolBoxAction,
                                                      QAction* layersToolBoxAction,
+                                                     QAction* windowAspectRatioLockedAction,
                                                      BrainBrowserWindow* parentBrainBrowserWindow)
 : QToolBar(parentBrainBrowserWindow)
 {
@@ -299,7 +300,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->modeWidget = this->createModeWidget();
-    this->windowWidget = this->createTabOptionsWidget();
+    this->windowWidget = this->createTabOptionsWidget(windowAspectRatioLockedAction);
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     m_clippingOptionsWidget = createClippingOptionsWidget();
@@ -2457,9 +2458,10 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
  * @return  The tab options widget.
  */
 QWidget* 
-BrainBrowserWindowToolBar::createTabOptionsWidget()
+BrainBrowserWindowToolBar::createTabOptionsWidget(QAction* windowAspectRatioLockedAction)
 {
     m_tabOptionsComponent = new BrainBrowserWindowToolBarTab(this->browserWindowIndex,
+                                                             windowAspectRatioLockedAction,
                                                              this);
     
     QWidget* w = this->createToolWidget("Tab",

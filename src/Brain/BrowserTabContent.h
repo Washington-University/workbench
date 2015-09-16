@@ -353,14 +353,6 @@ namespace caret {
         
         void setWholeBrainCerebellumSeparation(const float separation);
         
-        bool isAspectRatioLocked() const;
-        
-        void setAspectRatioLocked(const float aspectRatio);
-        
-        float getAspectRatio() const;
-        
-        void setAspectRatio(const float aspectRatio);
-        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -465,16 +457,6 @@ namespace caret {
          * True if constructing an instance
          */
         bool isExecutingConstructor;
-        
-        /**
-         * Aspect ratio is locked to a fixed value
-         */
-        bool m_aspectRatioLockedStatus;
-        
-        /**
-         * The aspect ratio
-         */
-        float m_aspectRatio;
         
         /** Contains all active browser tab content instances */
         static std::set<BrowserTabContent*> s_allBrowserTabContent;

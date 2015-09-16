@@ -123,7 +123,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
     m_viewTileTabsSelected = false;
     
-    m_aspectRatioLockedStatus = false;
     m_aspectRatio = 1.0;
     
     m_sceneTileTabsConfigurationText = "From Scene: ";
@@ -205,9 +204,10 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     m_featuresToolBoxAction->blockSignals(false);
     
     m_toolbar = new BrainBrowserWindowToolBar(m_browserWindowIndex,
-                                                  browserTabContent,
-                                                  m_overlayToolBoxAction,
-                                                  m_featuresToolBoxAction,
+                                              browserTabContent,
+                                              m_overlayToolBoxAction,
+                                              m_featuresToolBoxAction,
+                                              m_windowAspectRatioLockedAction,
                                                   this);
     m_showToolBarAction = m_toolbar->toolBarToolButtonAction;
     addToolBar(m_toolbar);
@@ -228,8 +228,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_aspectRatioLockedStatus",
-                          &m_aspectRatioLockedStatus);
     m_sceneAssistant->add("m_aspectRatio",
                           &m_aspectRatio);
     
@@ -315,19 +313,8 @@ BrainBrowserWindow::isTileTabsSelected() const
 bool
 BrainBrowserWindow::isAspectRatioLocked() const
 {
-    return m_aspectRatioLockedStatus;
-}
-
-/**
- * Set the aspect ratio locked status.
- *
- * @param aspectRatioLocked
- *     New value for aspect ratio locked status.
- */
-void
-BrainBrowserWindow::setAspectRatioLocked(const bool aspectRatioLocked)
-{
-    m_aspectRatioLockedStatus = aspectRatioLocked;
+    CaretAssert(m_windowAspectRatioLockedAction);
+    return m_windowAspectRatioLockedAction->isChecked();
 }
 
 /**
@@ -473,7 +460,26 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     }
     else {
         m_featuresToolBoxAction->setIconText("LT");
-    }    
+    }
+    
+    m_windowAspectRatioLockedAction = new QAction(this);
+    m_windowAspectRatioLockedAction->setCheckable(true);
+    m_windowAspectRatioLockedAction->setText("Lock Aspect");
+    m_windowAspectRatioLockedAction->setChecked(isAspectRatioLocked());
+    QObject::connect(m_windowAspectRatioLockedAction, SIGNAL(toggled(bool)),
+                     this, SLOT(processWindowAspectRatioLockedToggled(bool)));
+}
+
+/**
+ * Called when the window aspect ratio action it toggled.
+ */
+void
+BrainBrowserWindow::processWindowAspectRatioLockedToggled(bool checked)
+{
+    if (checked) {
+        setAspectRatio(getOpenGLWidgetAspectRatio());
+    }
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
 }
 
 /**
@@ -1626,6 +1632,9 @@ BrainBrowserWindow::createMenuWindow()
                      this, SLOT(processMoveSelectedTabToWindowMenuSelection(QAction*)));
     
     QMenu* menu = new QMenu("Window", this);
+    
+    menu->addAction(m_windowAspectRatioLockedAction);
+    menu->addSeparator();
     
     menu->addAction(m_nextTabAction);
     menu->addAction(m_previousTabAction);
@@ -3139,6 +3148,8 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
 
     sceneClass->addInteger("m_browserWindowIndex",
                            m_browserWindowIndex);
+    sceneClass->addBoolean("m_aspectRatioLockedStatus",
+                           m_windowAspectRatioLockedAction->isChecked());
 
     /*
      * Save the selected tile tabs configuration as the scene configuration
@@ -3262,6 +3273,12 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
+    
+    const bool aspectLockedStatus = sceneClass->getBooleanValue("m_aspectRatioLockedStatus",
+                                                                false);
+    m_windowAspectRatioLockedAction->blockSignals(true);
+    m_windowAspectRatioLockedAction->setChecked(aspectLockedStatus);
+    m_windowAspectRatioLockedAction->blockSignals(false);
     
     /*
      * Restore Unique ID of selected tile tabs configuration.

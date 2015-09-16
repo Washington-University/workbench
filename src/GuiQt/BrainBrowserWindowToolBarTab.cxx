@@ -25,6 +25,7 @@
 
 #include <QLabel>
 #include <QCheckBox>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "BrainBrowserWindow.h"
@@ -50,6 +51,7 @@ using namespace caret;
  * Constructor.
  */
 BrainBrowserWindowToolBarTab::BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
+                                                           QAction* windowAspectRatioLockedAction,
                                                            BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_browserWindowIndex(browserWindowIndex),
@@ -67,19 +69,10 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
-    QLabel* lockAspectLabel = new QLabel("Lock Aspect:");
-    m_tabAspectRatioLockedCheckBox = new QCheckBox("Tab");
-    QObject::connect(m_tabAspectRatioLockedCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(tabAspectRatioCheckBoxClicked(bool)));
+    QLabel* lockAspectLabel = new QLabel("Window:");
     
-    /*
-     * HIDE the TAB LOCK ASPECT CHECKBOX
-     */
-    m_tabAspectRatioLockedCheckBox->setHidden(true);
-    
-    m_windowAspectRatioLockedCheckBox = new QCheckBox("Window");
-    QObject::connect(m_windowAspectRatioLockedCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(windowAspectRatioCheckBoxClicked(bool)));
+    m_windowAspectRatioLockedToolButton = new QToolButton();
+    m_windowAspectRatioLockedToolButton->setDefaultAction(windowAspectRatioLockedAction);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
@@ -87,13 +80,11 @@ m_parentToolBar(parentToolBar)
     layout->addWidget(m_yokingGroupComboBox->getWidget());
     layout->addSpacing(15);
     layout->addWidget(lockAspectLabel);
-    layout->addWidget(m_tabAspectRatioLockedCheckBox);
-    layout->addWidget(m_windowAspectRatioLockedCheckBox);
+    layout->addWidget(m_windowAspectRatioLockedToolButton);
     
     addToWidgetGroup(yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
-    addToWidgetGroup(m_tabAspectRatioLockedCheckBox);
-    addToWidgetGroup(m_windowAspectRatioLockedCheckBox);
+    addToWidgetGroup(m_windowAspectRatioLockedToolButton);
 }
 
 /**
@@ -115,12 +106,7 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     blockAllSignals(true);
     
     m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getYokingGroup());
-    m_tabAspectRatioLockedCheckBox->setChecked(browserTabContent->isAspectRatioLocked());
     
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
-    CaretAssert(bbw);
-    m_windowAspectRatioLockedCheckBox->setChecked(bbw->isAspectRatioLocked());
-
     blockAllSignals(false);
 }
 
@@ -142,54 +128,3 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
 
     this->updateGraphicsWindow();
 }
-
-/**
- * Called when tab lock aspect ratio button is toggled
- *
- * @param checked
- *     New check status of lock tab aspect ratio.
- */
-void
-BrainBrowserWindowToolBarTab::tabAspectRatioCheckBoxClicked(bool checked)
-{
-    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
-    if (browserTabContent == NULL) {
-        return;
-    }
-    
-    browserTabContent->setAspectRatioLocked(checked);
-    if (checked) {
-        BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
-        CaretAssert(bbw);
-        const float aspectRatio = bbw->getOpenGLWidgetAspectRatioForTabIndex(browserTabContent->getTabNumber());
-        if (aspectRatio > 0.0) {
-            browserTabContent->setAspectRatio(aspectRatio);
-        }
-        else {
-            CaretLogWarning("Invalid aspect ratio for tab " + AString::number(browserTabContent->getTabNumber() + 1));
-            browserTabContent->setAspectRatioLocked(false);
-        }
-    }
-    
-    this->updateGraphicsWindow();
-}
-
-/**
- * Called when window lock aspect ratio button is toggled
- *
- * @param checked
- *     New check status of lock window aspect ratio.
- */
-void
-BrainBrowserWindowToolBarTab::windowAspectRatioCheckBoxClicked(bool checked)
-{
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
-    CaretAssert(bbw);
-    bbw->setAspectRatioLocked(checked);
-    if (checked) {
-        bbw->setAspectRatio(bbw->getOpenGLWidgetAspectRatio());
-    }
-    
-    this->updateGraphicsWindow();
-}
-

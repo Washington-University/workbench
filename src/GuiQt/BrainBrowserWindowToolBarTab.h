@@ -25,7 +25,7 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
-class QCheckBox;
+class QToolButton;
 
 namespace caret {
     class BrainBrowserWindowToolBar;
@@ -36,6 +36,7 @@ namespace caret {
         
     public:
         BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
+                                     QAction* windowAspectRatioLockedAction,
                                      BrainBrowserWindowToolBar* parentToolBar);
         
         virtual ~BrainBrowserWindowToolBarTab();
@@ -48,10 +49,6 @@ namespace caret {
     private slots:
         void yokeToGroupComboBoxIndexChanged();
         
-        void tabAspectRatioCheckBoxClicked(bool);
-        
-        void windowAspectRatioCheckBoxClicked(bool);
-        
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
@@ -63,9 +60,7 @@ namespace caret {
         
         BrainBrowserWindowToolBar* m_parentToolBar;
         
-        QCheckBox* m_tabAspectRatioLockedCheckBox;
-        
-        QCheckBox* m_windowAspectRatioLockedCheckBox;
+        QToolButton* m_windowAspectRatioLockedToolButton;
         
         // ADD_NEW_MEMBERS_HERE
 

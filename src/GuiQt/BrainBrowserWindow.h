@@ -131,11 +131,7 @@ namespace caret {
         
         bool isAspectRatioLocked() const;
         
-        void setAspectRatioLocked(const bool aspectRatioLocked);
-        
         float getAspectRatio() const;
-        
-        void setAspectRatio(const float aspectRatio);
         
     protected:
         void closeEvent(QCloseEvent* event);
@@ -211,7 +207,7 @@ namespace caret {
         
         void processProjectFoci();
         void processSplitBorderFiles();
-        
+        void processWindowAspectRatioLockedToggled(bool checked);
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -265,6 +261,8 @@ namespace caret {
         
         void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
         void saveWindowComponentStatus(WindowComponentStatus& wcs);
+        
+        void setAspectRatio(const float aspectRatio);
         
         void openSpecFile(const AString& specFileName);
         
@@ -356,6 +354,8 @@ namespace caret {
         
         QAction* m_overlayToolBoxAction;
         
+        QAction* m_windowAspectRatioLockedAction;
+        
         QAction* m_featuresToolBoxAction;
         
         QAction* m_dataFociProjectAction;
@@ -368,12 +368,8 @@ namespace caret {
         AString m_recentSpecFileMenuLoadNoConfirmTitle;
         
         /**
-         * Aspect ratio is locked to a fixed value
-         */
-        bool m_aspectRatioLockedStatus;
-        
-        /**
-         * The aspect ratio
+         * The aspect ratio value.
+         * The action handles enabled/disabled.
          */
         float m_aspectRatio;
         
