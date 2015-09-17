@@ -578,5 +578,8 @@ VolumeFileVoxelColorizer::clearVoxelColoringForMap(const int64_t mapIndex)
     for (int64_t i = 0; i < m_mapRGBACount; i++) {
         mapRGBA[i] = 0.0;
     }
+    
+    CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
+    m_mapColoringValid[mapIndex] = false;
 }
 

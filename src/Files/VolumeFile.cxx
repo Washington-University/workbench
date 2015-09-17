@@ -31,6 +31,8 @@
 #include "ChartDataSource.h"
 #include "DataFileContentInformation.h"
 #include "ElapsedTimer.h"
+#include "EventManager.h"
+#include "EventPaletteGetByName.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
@@ -1250,9 +1252,20 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
     const AString paletteName = (usesPalette
                                  ? pcm->getSelectedPaletteName()
                                  : "");
-    const Palette* palette = (usesPalette
-                              ? paletteFile->getPaletteByName(paletteName)
-                              : NULL);
+    Palette* palette = NULL;
+    
+    if (usesPalette) {
+        if (paletteFile != NULL) {
+            palette = paletteFile->getPaletteByName(paletteName);
+        }
+        
+        if (palette == NULL) {
+            EventPaletteGetByName getPaletteEvent(paletteName);
+            EventManager::get()->sendEvent(getPaletteEvent.getPointer());
+            palette = getPaletteEvent.getPalette();
+        }
+    }
+    
     if (usesPalette
         && (palette == NULL)) {
         CaretLogSevere("No palette named \""

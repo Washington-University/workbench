@@ -39,6 +39,7 @@
 #include "SceneClassArray.h"
 #include "SceneAttributes.h"
 #include "StringTableModel.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -470,6 +471,16 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                          * mark it as modified.
                          */
                         pcmMap->setModified();
+                        
+                        /*
+                         * Volume file needs it's map coloring updated since
+                         * palette has changed.
+                         */
+                        VolumeFile* volumeFile = dynamic_cast<VolumeFile*>(this);
+                        if (volumeFile != NULL) {
+                            volumeFile->updateScalarColoringForMap(restoreMapIndex,
+                                                                   NULL);
+                        }
                     }
                     catch (const XmlException& e) {
                         sceneAttributes->addToErrorMessage("Failed to decode palette color mapping for file: "
