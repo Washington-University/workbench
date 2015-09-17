@@ -28,6 +28,7 @@ OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
 OperationCiftiCopyMapping.h
 OperationCiftiCreateDenseFromTemplate.h
+OperationCiftiCreateParcellatedFromTemplate.h
 OperationCiftiCreateScalarSeries.h
 OperationCiftiEstimateFWHM.h
 OperationCiftiExportDenseMapping.h
@@ -109,6 +110,7 @@ OperationCiftiConvert.cxx
 OperationCiftiConvertToScalar.cxx
 OperationCiftiCopyMapping.cxx
 OperationCiftiCreateDenseFromTemplate.cxx
+OperationCiftiCreateParcellatedFromTemplate.cxx
 OperationCiftiCreateScalarSeries.cxx
 OperationCiftiEstimateFWHM.cxx
 OperationCiftiExportDenseMapping.cxx
