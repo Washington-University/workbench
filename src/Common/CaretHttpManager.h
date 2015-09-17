@@ -45,6 +45,7 @@ namespace caret {
         static CaretHttpManager* m_singleton;
         std::vector<AuthEntry> m_authList;
         static AString getServerString(const AString& url);        
+        static void httpRequestPrivate(const CaretHttpRequest& request, CaretHttpResponse& response);
     public:
         enum Method
         {
@@ -68,6 +69,9 @@ namespace caret {
         std::vector<char> m_body;
         bool m_ok;
         int32_t m_responseCode;
+        bool m_responseCodeValid;
+        QUrl m_redirectionUrl;
+        bool m_redirectionUrlValid;
     };
 
     struct CaretHttpRequest

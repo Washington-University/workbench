@@ -4782,6 +4782,7 @@ Brain::processReloadDataFileEvent(EventDataFileReload* reloadDataFileEvent)
     updateAfterFilesAddedOrRemoved();
 }
 
+#include "CaretHttpManager.h"
 
 /**
  * Process a read data file event.
@@ -4791,8 +4792,10 @@ Brain::processReloadDataFileEvent(EventDataFileReload* reloadDataFileEvent)
 void 
 Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
 {
-    CaretDataFile::setFileReadingUsernameAndPassword(readDataFileEvent->getUsername(),
-                                                     readDataFileEvent->getPassword());
+    const QString username = readDataFileEvent->getUsername();
+    const QString password = readDataFileEvent->getPassword();
+    CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                     password);
     
     const int32_t numberOfFilesToRead = readDataFileEvent->getNumberOfDataFilesToRead();
     EventProgressUpdate progressEvent(0,
@@ -4818,6 +4821,13 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
         }
         
         try {
+            if (DataFile::isFileOnNetwork(filename)
+                && ( ! username.isEmpty())
+                && ( ! password.isEmpty())) {
+                CaretHttpManager::setAuthentication(filename,
+                                                    username,
+                                                    password);
+            }
             CaretDataFile* fileRead = readDataFile(dataFileType,
                          structure,
                          filename,

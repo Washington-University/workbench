@@ -108,11 +108,18 @@ logHeadersFromRequest(const QNetworkRequest& request,
 static void
 logHeadersFromReply(const QNetworkReply& reply,
                     const CaretHttpRequest &caretHttpRequest,
-                    const int responseCode)
+                    const CaretHttpResponse &caretHttpResponse)
 {
     AString infoText;
-    infoText.appendWithNewLine("Reply " + caretHttpRequestToName(caretHttpRequest) + " URL (" + QString::number(responseCode) + ") Header: ");
-    
+    infoText.appendWithNewLine("Reply " + caretHttpRequestToName(caretHttpRequest) + " URL (" + QString::number(caretHttpResponse.m_responseCode) + ") Header: ");
+    if ( ! caretHttpResponse.m_responseCodeValid) {
+        infoText.appendWithNewLine("RESPONSE CODE IS NOT VALID.");
+    }
+    const QNetworkReply::NetworkError networkErrorCode = reply.error();
+    if (networkErrorCode != QNetworkReply::NoError) {
+        infoText.appendWithNewLine("Network Error Code (See QNetworkReply::NetworkError for description): "
+                                   + QString::number(static_cast<int>(networkErrorCode)));
+    }
     QList<QByteArray> readHeaderList = reply.rawHeaderList();
     const int numItems = readHeaderList.size();
     if (numItems > 0) {
@@ -133,6 +140,36 @@ logHeadersFromReply(const QNetworkReply& reply,
 }
 
 void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpResponse &response)
+{
+    /*
+     * Code for redirection is from the Qt HTTP example httpwindow.cpp. 
+     */
+    httpRequestPrivate(request,
+                       response);
+    if (response.m_responseCode == 302) {
+        if (response.m_redirectionUrlValid) {
+            CaretHttpRequest redirectedRequest = request;
+            redirectedRequest.m_url = response.m_redirectionUrl.toString();
+
+            CaretLogSevere("Received and processing redirection request from "
+                           + request.m_url
+                           + " to "
+                           + redirectedRequest.m_url);
+            
+            CaretHttpResponse redirectedResponse;
+            httpRequestPrivate(redirectedRequest,
+                               redirectedResponse);
+            response = redirectedResponse;
+            if (redirectedResponse.m_body.size() > 0) {
+                redirectedResponse.m_body.push_back(0);
+                QString str(&redirectedResponse.m_body[0]);
+                std::cout << "Redirected response content: " << qPrintable(str) << std::endl;
+            }
+        }
+    }
+}
+
+void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, CaretHttpResponse &response)
 {
     QEventLoop myLoop;
     QNetworkRequest myRequest;
@@ -216,11 +253,26 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
     myLoop.exec();//so, they can only be delivered after myLoop.exec() starts
     response.m_method = request.m_method;
     response.m_ok = false;
+    response.m_redirectionUrlValid = false;
     response.m_responseCode = -1;
-    response.m_responseCode = myReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    response.m_responseCodeValid = false;
+    const QVariant responseCodeVariant = myReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    if ( ! responseCodeVariant.isNull()) {
+        response.m_responseCode = myReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.m_responseCodeValid = true;
+    }
     if (response.m_responseCode == 200)
     {
         response.m_ok = true;
+    }
+    else {
+        QVariant redirectionTarget = myReply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+        if ( ! redirectionTarget.isNull()) {
+            response.m_redirectionUrl = myUrl.resolved(redirectionTarget.toUrl());
+            if (response.m_redirectionUrl.isValid()) {
+                response.m_redirectionUrlValid = true;
+            }
+        }
     }
     
     const bool showHeaderValues = false;
@@ -230,7 +282,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
                               request);
         logHeadersFromReply(*myReply,
                             request,
-                            response.m_responseCode);
+                            response);
     }
     
     QByteArray myBody = myReply->readAll();

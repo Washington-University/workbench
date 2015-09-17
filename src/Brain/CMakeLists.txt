@@ -14,6 +14,11 @@ SET(QT_DONT_USE_QTGUI)
 #SET(QT_USE_QTOPENGL TRUE)
 
 #
+# Need network
+#
+SET(QT_USE_QTNETWORK TRUE)
+
+#
 # Add QT for includes
 #
 INCLUDE (${QT_USE_FILE})
