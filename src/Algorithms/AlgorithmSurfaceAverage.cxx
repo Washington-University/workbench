@@ -21,6 +21,7 @@
 #include "AlgorithmSurfaceAverage.h"
 #include "AlgorithmException.h"
 
+#include "CaretAssert.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "Vector3D.h"
@@ -48,6 +49,8 @@ OperationParameters* AlgorithmSurfaceAverage::getParameters()
     
     ParameterComponent* surfOpt = ret->createRepeatableParameter(2, "-surf", "specify a surface to include in the average");
     surfOpt->addSurfaceParameter(1, "surface", "a surface file to average");
+    OptionalParameter* surfWeightOpt = surfOpt->createOptionalParameter(2, "-weight", "specify a weighted average");
+    surfWeightOpt->addDoubleParameter(1, "weight", "the weight to use (default 1)");
     
     OptionalParameter* stdevOpt = ret->createOptionalParameter(3, "-stddev", "compute 3D sample standard deviation");
     stdevOpt->addMetricOutputParameter(1, "stddev-metric-out", "the output metric for 3D sample standard deviation");
@@ -57,7 +60,8 @@ OperationParameters* AlgorithmSurfaceAverage::getParameters()
     
     ret->setHelpText(
         AString("The 3D sample standard deviation is computed as 'sqrt(sum(squaredlength(xyz - mean(xyz)))/(n - 1))'.\n\n") +
-        "Uncertainty is a legacy measure used in caret5, and is computed as 'sum(length(xyz - mean(xyz)))/n'."
+        "Uncertainty is a legacy measure used in caret5, and is computed as 'sum(length(xyz - mean(xyz)))/n'.\n\n" +
+        "When weights are used, the 3D sample standard deviation treats them as reliability weights."
     );
     return ret;
 }
@@ -68,9 +72,25 @@ void AlgorithmSurfaceAverage::useParameters(OperationParameters* myParams, Progr
     vector<const SurfaceFile*> inputSurfs;
     const vector<ParameterComponent*>& surfOpts = *(myParams->getRepeatableParameterInstances(2));
     int numSurfs = (int)surfOpts.size();
+    vector<float> surfWeights, *surfWeightPtr = NULL;
     for (int i = 0; i < numSurfs; ++i)
     {
         inputSurfs.push_back(surfOpts[i]->getSurface(1));
+        OptionalParameter* surfWeightOpt = surfOpts[i]->getOptionalParameter(2);
+        if (surfWeightOpt->m_present)
+        {
+            if (surfWeightPtr == NULL)
+            {
+                surfWeights.resize(i, 1.0f);
+                surfWeightPtr = &surfWeights;
+            }
+            surfWeights.push_back((float)surfWeightOpt->getDouble(1));
+        } else {
+            if (surfWeightPtr != NULL)
+            {
+                surfWeights.push_back(1.0f);
+            }
+        }
     }
     MetricFile* stdevOut = NULL;
     OptionalParameter* stdevOpt = myParams->getOptionalParameter(3);
@@ -84,14 +104,19 @@ void AlgorithmSurfaceAverage::useParameters(OperationParameters* myParams, Progr
     {
         uncertOut = uncertaintyOpt->getOutputMetric(1);
     }
-    AlgorithmSurfaceAverage(myProgObj, myAvgOut, inputSurfs, stdevOut, uncertOut);
+    AlgorithmSurfaceAverage(myProgObj, myAvgOut, inputSurfs, stdevOut, uncertOut, surfWeightPtr);
 }
 
-AlgorithmSurfaceAverage::AlgorithmSurfaceAverage(ProgressObject* myProgObj, SurfaceFile* myAvgOut, const vector<const SurfaceFile*>& inputSurfs, MetricFile* stdevOut, MetricFile* uncertOut) : AbstractAlgorithm(myProgObj)
+AlgorithmSurfaceAverage::AlgorithmSurfaceAverage(ProgressObject* myProgObj, SurfaceFile* myAvgOut, const vector<const SurfaceFile*>& inputSurfs,
+                                                 MetricFile* stdevOut, MetricFile* uncertOut, const vector<float>* surfWeightPtr) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numSurfs = (int)inputSurfs.size();
     if (numSurfs == 0) throw AlgorithmException("no input surfaces specified in AlgorithmSurfaceAverage");
+    if (surfWeightPtr != NULL)
+    {
+        CaretAssert((int)surfWeightPtr->size() == numSurfs);
+    }
     int numNodes = inputSurfs[0]->getNumberOfNodes();
     for (int i = 1; i < numSurfs; ++i)
     {
@@ -115,17 +140,34 @@ AlgorithmSurfaceAverage::AlgorithmSurfaceAverage(ProgressObject* myProgObj, Surf
     for (int i = 0; i < numNodes; ++i)
     {
         double accumpoint[3] = {0.0, 0.0, 0.0};
-        for (int j = 0; j < numSurfs; ++j)
-        {
-            Vector3D inpoint = inputSurfs[j]->getCoordinate(i);
-            accumpoint[0] += inpoint[0];
-            accumpoint[1] += inpoint[1];
-            accumpoint[2] += inpoint[2];
-        }
         Vector3D avgpoint;
-        avgpoint[0] = accumpoint[0] / numSurfs;
-        avgpoint[1] = accumpoint[1] / numSurfs;
-        avgpoint[2] = accumpoint[2] / numSurfs;
+        if (surfWeightPtr == NULL)
+        {
+            for (int j = 0; j < numSurfs; ++j)
+            {
+                Vector3D inpoint = inputSurfs[j]->getCoordinate(i);
+                accumpoint[0] += inpoint[0];
+                accumpoint[1] += inpoint[1];
+                accumpoint[2] += inpoint[2];
+            }
+            avgpoint[0] = accumpoint[0] / numSurfs;
+            avgpoint[1] = accumpoint[1] / numSurfs;
+            avgpoint[2] = accumpoint[2] / numSurfs;
+        } else {
+            double weightsum = 0.0;
+            for (int j = 0; j < numSurfs; ++j)
+            {
+                Vector3D inpoint = inputSurfs[j]->getCoordinate(i);
+                float thisweight = (*surfWeightPtr)[j];
+                weightsum += thisweight;
+                accumpoint[0] += inpoint[0] * thisweight;
+                accumpoint[1] += inpoint[1] * thisweight;
+                accumpoint[2] += inpoint[2] * thisweight;
+            }
+            avgpoint[0] = accumpoint[0] / weightsum;
+            avgpoint[1] = accumpoint[1] / weightsum;
+            avgpoint[2] = accumpoint[2] / weightsum;
+        }
         myAvgOut->setCoordinate(i, avgpoint);
         if (uncertOut != NULL || stdevOut != NULL)
         {
@@ -142,20 +184,43 @@ AlgorithmSurfaceAverage::AlgorithmSurfaceAverage(ProgressObject* myProgObj, Surf
             } else {
                 double distAccum = 0.0;//for caret5 uncertainty
                 double dist2Accum = 0.0;//for sample stdev
-                for (int j = 0; j < numSurfs; ++j)
+                if (surfWeightPtr == NULL)
                 {
-                    Vector3D inpoint = inputSurfs[j]->getCoordinate(i);
-                    float dist2 = (avgpoint - inpoint).lengthsquared();
-                    dist2Accum += dist2;
-                    distAccum += sqrt(dist2);
-                }
-                if (uncertOut != NULL)
-                {
-                    uncertOut->setValue(i, 0, distAccum / numSurfs);
-                }
-                if (stdevOut != NULL)
-                {
-                    stdevOut->setValue(i, 0, sqrt(dist2Accum / (numSurfs - 1)));
+                    for (int j = 0; j < numSurfs; ++j)
+                    {
+                        Vector3D inpoint = inputSurfs[j]->getCoordinate(i);
+                        float dist2 = (avgpoint - inpoint).lengthsquared();
+                        dist2Accum += dist2;
+                        distAccum += sqrt(dist2);
+                    }
+                    if (uncertOut != NULL)
+                    {
+                        uncertOut->setValue(i, 0, distAccum / numSurfs);
+                    }
+                    if (stdevOut != NULL)
+                    {
+                        stdevOut->setValue(i, 0, sqrt(dist2Accum / (numSurfs - 1)));
+                    }
+                } else {
+                    double weightsum = 0.0, weight2sum = 0.0;
+                    for (int j = 0; j < numSurfs; ++j)
+                    {
+                        Vector3D inpoint = inputSurfs[j]->getCoordinate(i);
+                        float thisweight = (*surfWeightPtr)[j];
+                        weightsum += thisweight;
+                        weight2sum += thisweight * thisweight;
+                        float dist2 = (avgpoint - inpoint).lengthsquared();
+                        dist2Accum += dist2 * thisweight;
+                        distAccum += sqrt(dist2) * thisweight;
+                    }
+                    if (uncertOut != NULL)
+                    {
+                        uncertOut->setValue(i, 0, distAccum / weightsum);
+                    }
+                    if (stdevOut != NULL)
+                    {
+                        stdevOut->setValue(i, 0, sqrt(dist2Accum / (weightsum - weight2sum / weightsum)));//https://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_variance
+                    }
                 }
             }
         }

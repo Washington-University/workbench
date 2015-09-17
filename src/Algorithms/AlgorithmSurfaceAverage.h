@@ -34,7 +34,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmSurfaceAverage(ProgressObject* myProgObj, SurfaceFile* myAvgOut, const std::vector<const SurfaceFile*>& inputSurfs, MetricFile* stdevOut = NULL, MetricFile* uncertOut = NULL);
+        AlgorithmSurfaceAverage(ProgressObject* myProgObj, SurfaceFile* myAvgOut, const std::vector<const SurfaceFile*>& inputSurfs,
+                                MetricFile* stdevOut = NULL, MetricFile* uncertOut = NULL, const std::vector<float>* surfWeightPtr = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
