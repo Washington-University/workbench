@@ -127,8 +127,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
         return;
     }
     
-    saveStateOfOpenGL();
-    
     SelectionItemChartDataSeries* chartDataSeriesID = m_brain->getSelectionManager()->getChartDataSeriesIdentification();
     SelectionItemChartFrequencySeries* chartFrequencySeriesID = m_brain->getSelectionManager()->getChartFrequencySeriesIdentification();
     SelectionItemChartTimeSeries* chartTimeSeriesID = m_brain->getSelectionManager()->getChartTimeSeriesIdentification();
@@ -155,6 +153,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
             return;
             break;
     }
+    
+    saveStateOfOpenGL();
     
     resetIdentification();
     
@@ -298,8 +298,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
     
     CaretAssert(chartMatrixInterface);
     
-    saveStateOfOpenGL();
-    
     SelectionItemChartMatrix* chartMatrixID = m_brain->getSelectionManager()->getChartMatrixIdentification();
     
     /*
@@ -322,6 +320,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
             return;
             break;
     }
+    
+    saveStateOfOpenGL();
     
     resetIdentification();
 
@@ -1053,7 +1053,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
         const float yMin = -margin;
         const float yMax = graphicsHeight + margin;
         
-
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(xMin, xMax,
