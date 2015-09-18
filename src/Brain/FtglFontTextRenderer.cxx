@@ -91,6 +91,7 @@ using namespace FTGL;
 using namespace caret;
 
 static const bool debugPrintFlag =  false;
+static const bool drawCrosshairsAtFontStartingCoordinate = false;
 
 
 /**
@@ -322,7 +323,6 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    const bool drawCrosshairsAtFontStartingCoordinate = false;
     if (debugPrintFlag
         || drawCrosshairsAtFontStartingCoordinate) {
         GLfloat savedRGBA[4];
@@ -1498,87 +1498,84 @@ FtglFontTextRenderer::TextStringGroup::getViewportBounds(const double margin,
     double rotationX = m_viewportBoundsMinX;
     double rotationY = m_viewportBoundsMinY;
     
-    if (m_rotationAngle != 0.0) {
-        
-        switch (m_annotationText.getVerticalAlignment()) {
-            case AnnotationTextAlignVerticalEnum::BOTTOM:
-                switch (m_annotationText.getHorizontalAlignment()) {
-                    case AnnotationTextAlignHorizontalEnum::CENTER:
-                        rotationX = (bottomLeftOut[0] + bottomRightOut[0]) / 2.0;
-                        rotationY = (bottomLeftOut[1] + bottomRightOut[1]) / 2.0;
-                        break;
-                    case AnnotationTextAlignHorizontalEnum::LEFT:
-                        rotationX = bottomLeftOut[0];
-                        rotationY = bottomLeftOut[1];
-                        break;
-                    case AnnotationTextAlignHorizontalEnum::RIGHT:
-                        rotationX = bottomRightOut[0];
-                        rotationY = bottomRightOut[1];
-                        break;
-                }
-                break;
-            case AnnotationTextAlignVerticalEnum::MIDDLE:
-                switch (m_annotationText.getHorizontalAlignment()) {
-                    case AnnotationTextAlignHorizontalEnum::CENTER:
-                        rotationX = (bottomLeftOut[0] + bottomRightOut[0] + topLeftOut[0] + topRightOut[0]) / 4.0;
-                        rotationY = (bottomLeftOut[1] + bottomRightOut[1] + topLeftOut[1] + topRightOut[1]) / 4.0;
-                        break;
-                    case AnnotationTextAlignHorizontalEnum::LEFT:
-                        rotationX = (bottomLeftOut[0] + topLeftOut[0]) / 2.0;
-                        rotationY = (bottomLeftOut[1] + topLeftOut[1]) / 2.0;
-                        break;
-                    case AnnotationTextAlignHorizontalEnum::RIGHT:
-                        rotationX = (topRightOut[0] + bottomRightOut[0]) / 2.0;
-                        rotationY = (topRightOut[1] + bottomRightOut[1]) / 2.0;
-                        break;
-                }
-                break;
-            case AnnotationTextAlignVerticalEnum::TOP:
-                switch (m_annotationText.getHorizontalAlignment()) {
-                    case AnnotationTextAlignHorizontalEnum::CENTER:
-                        rotationX = (topLeftOut[0] + topRightOut[0]) / 2.0;
-                        rotationY = (topLeftOut[1] + topRightOut[1]) / 2.0;
-                        break;
-                    case AnnotationTextAlignHorizontalEnum::LEFT:
-                        rotationX = topLeftOut[0];
-                        rotationY = topLeftOut[1];
-                        break;
-                    case AnnotationTextAlignHorizontalEnum::RIGHT:
-                        rotationX = topRightOut[0];
-                        rotationY = topRightOut[1];
-                        break;
-                }
-                break;
-        }
-        
-        rotationPointXYZOut[0] = rotationX;
-        rotationPointXYZOut[1] = rotationY;
-        rotationPointXYZOut[2] = 0.0;
-        
-        Matrix4x4 matrix;
-        matrix.translate(-rotationX, -rotationY, 0.0);
-        matrix.rotateZ(-m_rotationAngle);
-        matrix.translate(rotationX, rotationY, 0.0);
-        
-        /*
-         * Add margin to the viewport bounds.
-         * Margin is NOT included when rotation point is computed
-         * as it will move the rotation point to the wrong position.
-         */
-        bottomLeftOut[0]  -= margin;
-        bottomLeftOut[1]  -= margin;
-        bottomRightOut[0] += margin;
-        bottomRightOut[1] -= margin;
-        topRightOut[0]    += margin;
-        topRightOut[1]    += margin;
-        topLeftOut[0]     -= margin;
-        topLeftOut[1]     += margin;
-        
-        matrix.multiplyPoint3(bottomLeftOut);
-        matrix.multiplyPoint3(bottomRightOut);
-        matrix.multiplyPoint3(topRightOut);
-        matrix.multiplyPoint3(topLeftOut);
+    switch (m_annotationText.getVerticalAlignment()) {
+        case AnnotationTextAlignVerticalEnum::BOTTOM:
+            switch (m_annotationText.getHorizontalAlignment()) {
+                case AnnotationTextAlignHorizontalEnum::CENTER:
+                    rotationX = (bottomLeftOut[0] + bottomRightOut[0]) / 2.0;
+                    rotationY = (bottomLeftOut[1] + bottomRightOut[1]) / 2.0;
+                    break;
+                case AnnotationTextAlignHorizontalEnum::LEFT:
+                    rotationX = bottomLeftOut[0];
+                    rotationY = bottomLeftOut[1];
+                    break;
+                case AnnotationTextAlignHorizontalEnum::RIGHT:
+                    rotationX = bottomRightOut[0];
+                    rotationY = bottomRightOut[1];
+                    break;
+            }
+            break;
+        case AnnotationTextAlignVerticalEnum::MIDDLE:
+            switch (m_annotationText.getHorizontalAlignment()) {
+                case AnnotationTextAlignHorizontalEnum::CENTER:
+                    rotationX = (bottomLeftOut[0] + bottomRightOut[0] + topLeftOut[0] + topRightOut[0]) / 4.0;
+                    rotationY = (bottomLeftOut[1] + bottomRightOut[1] + topLeftOut[1] + topRightOut[1]) / 4.0;
+                    break;
+                case AnnotationTextAlignHorizontalEnum::LEFT:
+                    rotationX = (bottomLeftOut[0] + topLeftOut[0]) / 2.0;
+                    rotationY = (bottomLeftOut[1] + topLeftOut[1]) / 2.0;
+                    break;
+                case AnnotationTextAlignHorizontalEnum::RIGHT:
+                    rotationX = (topRightOut[0] + bottomRightOut[0]) / 2.0;
+                    rotationY = (topRightOut[1] + bottomRightOut[1]) / 2.0;
+                    break;
+            }
+            break;
+        case AnnotationTextAlignVerticalEnum::TOP:
+            switch (m_annotationText.getHorizontalAlignment()) {
+                case AnnotationTextAlignHorizontalEnum::CENTER:
+                    rotationX = (topLeftOut[0] + topRightOut[0]) / 2.0;
+                    rotationY = (topLeftOut[1] + topRightOut[1]) / 2.0;
+                    break;
+                case AnnotationTextAlignHorizontalEnum::LEFT:
+                    rotationX = topLeftOut[0];
+                    rotationY = topLeftOut[1];
+                    break;
+                case AnnotationTextAlignHorizontalEnum::RIGHT:
+                    rotationX = topRightOut[0];
+                    rotationY = topRightOut[1];
+                    break;
+            }
+            break;
     }
+    
+    rotationPointXYZOut[0] = rotationX;
+    rotationPointXYZOut[1] = rotationY;
+    rotationPointXYZOut[2] = 0.0;
+    
+    Matrix4x4 matrix;
+    matrix.translate(-rotationX, -rotationY, 0.0);
+    matrix.rotateZ(-m_rotationAngle);
+    matrix.translate(rotationX, rotationY, 0.0);
+    
+    /*
+     * Add margin to the viewport bounds.
+     * Margin is NOT included when rotation point is computed
+     * as it will move the rotation point to the wrong position.
+     */
+    bottomLeftOut[0]  -= margin;
+    bottomLeftOut[1]  -= margin;
+    bottomRightOut[0] += margin;
+    bottomRightOut[1] -= margin;
+    topRightOut[0]    += margin;
+    topRightOut[1]    += margin;
+    topLeftOut[0]     -= margin;
+    topLeftOut[1]     += margin;
+    
+    matrix.multiplyPoint3(bottomLeftOut);
+    matrix.multiplyPoint3(bottomRightOut);
+    matrix.multiplyPoint3(topRightOut);
+    matrix.multiplyPoint3(topLeftOut);
 }
 
 /**

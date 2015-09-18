@@ -3494,13 +3494,13 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
     
     if (drawCrosshairLabelsFlag) {
         const AnnotationFontSizeEnum::Enum fontSize = AnnotationFontSizeEnum::SIZE18;
-        const int32_t fontSizeInt = AnnotationFontSizeEnum::toSizeNumeric(fontSize);
-        
-        const int textCenter[2] = {
-            textLeftWindowXY[0],
-            textLeftWindowXY[1]
-        };
-        const int halfFontSize = fontSizeInt / 2;
+//        const int32_t fontSizeInt = AnnotationFontSizeEnum::toSizeNumeric(fontSize);
+//        
+//        const int textCenter[2] = {
+//            textLeftWindowXY[0],
+//            textLeftWindowXY[1]
+//        };
+//        const int halfFontSize = fontSizeInt / 2;
         
         uint8_t backgroundRGBA[4] = {
             m_fixedPipelineDrawing->m_backgroundColorByte[0],
@@ -3509,101 +3509,101 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
             m_fixedPipelineDrawing->m_backgroundColorByte[3]
         };
         
-        GLint savedViewport[4];
-        glGetIntegerv(GL_VIEWPORT, savedViewport);
+//        GLint savedViewport[4];
+//        glGetIntegerv(GL_VIEWPORT, savedViewport);
+//        
+//        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
+//        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
+//        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
+//        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
+//        MathFunctions::limitRange(vpLeftX,
+//                                  savedViewport[0],
+//                                  savedViewport[0] + savedViewport[2]);
+//        MathFunctions::limitRange(vpRightX,
+//                                  savedViewport[0],
+//                                  savedViewport[0] + savedViewport[2]);
+//        MathFunctions::limitRange(vpBottomY,
+//                                  savedViewport[1],
+//                                  savedViewport[1] + savedViewport[3]);
+//        MathFunctions::limitRange(vpTopY,
+//                                  savedViewport[1],
+//                                  savedViewport[1] + savedViewport[3]);
+//        
+//        const int vpSizeX = vpRightX - vpLeftX;
+//        const int vpSizeY = vpTopY - vpBottomY;
+//        glViewport(vpLeftX, vpBottomY, vpSizeX, vpSizeY);
         
-        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
-        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
-        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
-        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
-        MathFunctions::limitRange(vpLeftX,
-                                  savedViewport[0],
-                                  savedViewport[0] + savedViewport[2]);
-        MathFunctions::limitRange(vpRightX,
-                                  savedViewport[0],
-                                  savedViewport[0] + savedViewport[2]);
-        MathFunctions::limitRange(vpBottomY,
-                                  savedViewport[1],
-                                  savedViewport[1] + savedViewport[3]);
-        MathFunctions::limitRange(vpTopY,
-                                  savedViewport[1],
-                                  savedViewport[1] + savedViewport[3]);
+//        glMatrixMode(GL_PROJECTION);
+//        glPushMatrix();
+//        glLoadIdentity();
+//        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+//        
+//        glMatrixMode(GL_MODELVIEW);
+//        glPushMatrix();
+//        glLoadIdentity();
         
-        const int vpSizeX = vpRightX - vpLeftX;
-        const int vpSizeY = vpTopY - vpBottomY;
-        glViewport(vpLeftX, vpBottomY, vpSizeX, vpSizeY);
+//        std::vector<uint8_t> rgba;
+//        std::vector<float> coords, normals;
+//        
+//        coords.push_back(-1.0);
+//        coords.push_back(-1.0);
+//        coords.push_back( 0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(1.0);
+//        rgba.push_back(backgroundRGBA[0]);
+//        rgba.push_back(backgroundRGBA[1]);
+//        rgba.push_back(backgroundRGBA[2]);
+//        rgba.push_back(backgroundRGBA[3]);
+//        
+//        coords.push_back( 1.0);
+//        coords.push_back(-1.0);
+//        coords.push_back( 0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(1.0);
+//        rgba.push_back(backgroundRGBA[0]);
+//        rgba.push_back(backgroundRGBA[1]);
+//        rgba.push_back(backgroundRGBA[2]);
+//        rgba.push_back(backgroundRGBA[3]);
+//        
+//        coords.push_back( 1.0);
+//        coords.push_back( 1.0);
+//        coords.push_back( 0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(1.0);
+//        rgba.push_back(backgroundRGBA[0]);
+//        rgba.push_back(backgroundRGBA[1]);
+//        rgba.push_back(backgroundRGBA[2]);
+//        rgba.push_back(backgroundRGBA[3]);
+//        
+//        coords.push_back(-1.0);
+//        coords.push_back( 1.0);
+//        coords.push_back( 0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(1.0);
+//        rgba.push_back(backgroundRGBA[0]);
+//        rgba.push_back(backgroundRGBA[1]);
+//        rgba.push_back(backgroundRGBA[2]);
+//        rgba.push_back(backgroundRGBA[3]);
+       
         
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+//        BrainOpenGLPrimitiveDrawing::drawQuads(coords,
+//                                               normals,
+//                                               rgba);
         
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
+//        glPopMatrix();
+//        
+//        glMatrixMode(GL_PROJECTION);
+//        glPopMatrix();
+//        glMatrixMode(GL_MODELVIEW);
         
-        std::vector<uint8_t> rgba;
-        std::vector<float> coords, normals;
-        
-        coords.push_back(-1.0);
-        coords.push_back(-1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
-        
-        coords.push_back( 1.0);
-        coords.push_back(-1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
-        
-        coords.push_back( 1.0);
-        coords.push_back( 1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
-        
-        coords.push_back(-1.0);
-        coords.push_back( 1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
-        
-        
-        BrainOpenGLPrimitiveDrawing::drawQuads(coords,
-                                               normals,
-                                               rgba);
-        
-        glPopMatrix();
-        
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        
-        glViewport(savedViewport[0],
-                   savedViewport[1],
-                   savedViewport[2],
-                   savedViewport[3]);
+//        glViewport(savedViewport[0],
+//                   savedViewport[1],
+//                   savedViewport[2],
+//                   savedViewport[3]);
         
         AnnotationText annotationText;
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
