@@ -5070,6 +5070,15 @@ BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* model,
             msg += ("While drawing brain model " + model->getNameForGUI(true) + "\n");
         }
         msg += ("In tab number " + AString::number(this->windowTabIndex) + "\n");
+        
+        GLint maxNameStackDepth, maxModelStackDepth, maxProjStackDepth;
+        glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH,
+                      &maxProjStackDepth);
+        glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH,
+                      &maxModelStackDepth);
+        glGetIntegerv(GL_MAX_NAME_STACK_DEPTH,
+                      &maxNameStackDepth);
+        
         GLint nameStackDepth, modelStackDepth, projStackDepth;
         glGetIntegerv(GL_PROJECTION_STACK_DEPTH,
                       &projStackDepth);
@@ -5077,9 +5086,22 @@ BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* model,
                       &modelStackDepth);
         glGetIntegerv(GL_NAME_STACK_DEPTH,
                       &nameStackDepth);
-        msg += ("Projection Matrix Stack Depth " + AString::number(projStackDepth) + "\n");
-        msg += ("Model Matrix Stack Depth " + AString::number(modelStackDepth) + "\n");
-        msg += ("Name Matrix Stack Depth " + AString::number(nameStackDepth) + "\n");
+        
+        msg += ("Projection Matrix Stack Depth "
+                + AString::number(projStackDepth)
+                + "  Max Depth "
+                + AString::number(maxProjStackDepth)
+                + "\n");
+        msg += ("Model Matrix Stack Depth "
+                + AString::number(modelStackDepth)
+                + "  Max Depth "
+                + AString::number(maxModelStackDepth)
+                + "\n");
+        msg += ("Name Matrix Stack Depth "
+                + AString::number(nameStackDepth)
+                + "  Max Depth "
+                + AString::number(maxNameStackDepth)
+                + "\n");
         SystemBacktrace myBacktrace;
         SystemUtilities::getBackTrace(myBacktrace);
         msg += ("Backtrace:\n"
