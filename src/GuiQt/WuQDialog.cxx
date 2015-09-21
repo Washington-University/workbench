@@ -866,7 +866,8 @@ WuQDialog::clicked(QAbstractButton* button)
         this->helpButtonClicked();
     }
     else {
-        QPushButton* pushButton = dynamic_cast<QPushButton*>(button);
+        //QPushButton* pushButton = dynamic_cast<QPushButton*>(button);
+        QPushButton* pushButton = qobject_cast<QPushButton*>(button);
         CaretAssert(pushButton);
         const DialogUserButtonResult result = this->userButtonPressed(pushButton);
         switch (result) {
