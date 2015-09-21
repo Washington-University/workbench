@@ -71,9 +71,9 @@ namespace caret {
         
         QRadioButton* createRadioButtonForSpace(const AnnotationCoordinateSpaceEnum::Enum space);
 
-        void setOneDimAnnotationCoordinates(AnnotationOneDimensionalShape* annotation);
-        
-        void setTwoDimAnnotationCoordinates(AnnotationTwoDimensionalShape* annotation);
+//        void setOneDimAnnotationCoordinates(AnnotationOneDimensionalShape* annotation);
+//        
+//        void setTwoDimAnnotationCoordinates(AnnotationTwoDimensionalShape* annotation);
         
         QButtonGroup* m_spaceButtonGroup;
         

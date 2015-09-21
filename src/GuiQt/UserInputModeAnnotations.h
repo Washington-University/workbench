@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSizingHandleTypeEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "CaretPointer.h"
@@ -32,6 +33,8 @@ namespace caret {
 
     class Annotation;
     class AnnotationCoordinate;
+    class AnnotationOneDimensionalShape;
+    class AnnotationTwoDimensionalShape;
     class KeyEvent;
     class MouseEvent;
     class SelectionItemAnnotation;
@@ -160,6 +163,11 @@ namespace caret {
                                                    const int32_t windowY,
                                                    CoordinateInformation& coordInfoOut);
         
+        static bool setAnnotationCoordinatesForSpace(Annotation* annotation,
+                                                     const AnnotationCoordinateSpaceEnum::Enum space,
+                                                     const CoordinateInformation* coordInfoOne,
+                                                     const CoordinateInformation* coordInfoTwo);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -218,6 +226,16 @@ namespace caret {
         void selecteAnnotation(Annotation* annotation);
         
         void resetAnnotationUnderMouse();
+        
+        static bool setOneDimAnnotationCoordinatesForSpace(AnnotationOneDimensionalShape* annotation,
+                                                     const AnnotationCoordinateSpaceEnum::Enum space,
+                                                     const CoordinateInformation* coordInfoOne,
+                                                     const CoordinateInformation* coordInfoTwo);
+        
+        static bool setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDimensionalShape* annotation,
+                                                           const AnnotationCoordinateSpaceEnum::Enum space,
+                                                           const CoordinateInformation* coordInfoOne,
+                                                           const CoordinateInformation* coordInfoTwo);
         
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         

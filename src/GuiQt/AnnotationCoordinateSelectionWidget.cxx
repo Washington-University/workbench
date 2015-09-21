@@ -642,7 +642,7 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
     errorMessageOut.clear();
     
     bool valid = false;
-    getSelectedCoordinateSpace(valid);
+    const AnnotationCoordinateSpaceEnum::Enum coordinateSpace = getSelectedCoordinateSpace(valid);
     if ( ! valid) {
         errorMessageOut = ("A coordinate space has not been selected.");
         return false;
@@ -651,11 +651,21 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
     AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
     AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
     
+    bool validCoordsFlag = false;
+    
     if (oneDimAnn != NULL) {
-        setOneDimAnnotationCoordinates(oneDimAnn);
+        validCoordsFlag = UserInputModeAnnotations::setAnnotationCoordinatesForSpace(oneDimAnn,
+                                                                   coordinateSpace,
+                                                                   &m_coordInfo,
+                                                                   m_optionalSecondCoordInfo);
+//        setOneDimAnnotationCoordinates(oneDimAnn);
     }
     else if (twoDimAnn != NULL) {
-        setTwoDimAnnotationCoordinates(twoDimAnn);
+        validCoordsFlag = UserInputModeAnnotations::setAnnotationCoordinatesForSpace(twoDimAnn,
+                                                                   coordinateSpace,
+                                                                   &m_coordInfo,
+                                                                   m_optionalSecondCoordInfo);
+//        setTwoDimAnnotationCoordinates(twoDimAnn);
     }
     else {
         const QString msg("PROGRAM ERROR: Annotation is neither one nor two dimensional");
@@ -665,313 +675,316 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
         return false;
     }
     
+    if ( ! validCoordsFlag) {
+        errorMessageOut = "Failed to set coordinates for annotatin.";
+    }
     
     updateAnnotationDisplayProperties(annotation);
     
-    return true;
+    return validCoordsFlag;
 }
 
-/**
- * Set coordinates for a one-dimensional annotation.
- *
- * @param annotation
- *    The one dimensional annotation.
- */
-void
-AnnotationCoordinateSelectionWidget::setOneDimAnnotationCoordinates(AnnotationOneDimensionalShape* annotation)
-{
-    AnnotationCoordinate* startCoordinate = annotation->getStartCoordinate();
-    CaretAssert(startCoordinate);
-    AnnotationCoordinate* endCoordinate   = annotation->getEndCoordinate();
-    CaretAssert(endCoordinate);
-    
-    bool valid = false;
-    const AnnotationCoordinateSpaceEnum::Enum coordSpace = getSelectedCoordinateSpace(valid);
-    if (! valid) {
-        return;
-    }
-    
-    switch (coordSpace) {
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            if (m_coordInfo.m_modelXYZValid) {
-                startCoordinate->setXYZ(m_coordInfo.m_modelXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
-                
-                if (m_optionalSecondCoordInfo != NULL) {
-                    if (m_optionalSecondCoordInfo->m_modelXYZValid) {
-                        if (endCoordinate != NULL) {
-                            endCoordinate->setXYZ(m_optionalSecondCoordInfo->m_modelXYZ);
-                        }
-                    }
-                }
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssert(0);
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            if (m_coordInfo.m_surfaceNodeValid) {
-                startCoordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
-                                                 m_coordInfo.m_surfaceNumberOfNodes,
-                                                 m_coordInfo.m_surfaceNodeIndex,
-                                                 m_coordInfo.m_surfaceNodeOffset);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-                
-                if (m_optionalSecondCoordInfo != NULL) {
-                    if (m_optionalSecondCoordInfo->m_surfaceNodeValid) {
-                        if (endCoordinate != NULL) {
-                            endCoordinate->setSurfaceSpace(m_optionalSecondCoordInfo->m_surfaceStructure,
-                                                           m_optionalSecondCoordInfo->m_surfaceNumberOfNodes,
-                                                           m_optionalSecondCoordInfo->m_surfaceNodeIndex,
-                                                           m_optionalSecondCoordInfo->m_surfaceNodeOffset);
-                        }
-                    }
-                }
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            if (m_coordInfo.m_tabIndex >= 0) {
-                startCoordinate->setXYZ(m_coordInfo.m_tabXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-                annotation->setTabIndex(m_coordInfo.m_tabIndex);
-                
-                
-                if (m_optionalSecondCoordInfo != NULL) {
-                    if (m_optionalSecondCoordInfo->m_tabIndex >= 0) {
-                        if (endCoordinate != NULL) {
-                            endCoordinate->setXYZ(m_optionalSecondCoordInfo->m_tabXYZ);
-                        }
-                    }
-                }
-                else if (endCoordinate != NULL) {
-                    double xyz[3] = {
-                        m_coordInfo.m_tabXYZ[0],
-                        m_coordInfo.m_tabXYZ[1],
-                        m_coordInfo.m_tabXYZ[2]
-                    };
-                    if (xyz[1] > 0.5) {
-                        xyz[1] -= 0.25;
-                    }
-                    else {
-                        xyz[1] += 0.25;
-                    }
-                    endCoordinate->setXYZ(xyz);
-                }
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            if (m_coordInfo.m_windowIndex >= 0) {
-                startCoordinate->setXYZ(m_coordInfo.m_windowXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-                annotation->setWindowIndex(m_coordInfo.m_windowIndex);
-                
-                if (m_optionalSecondCoordInfo != NULL) {
-                    if (m_optionalSecondCoordInfo->m_windowIndex >= 0) {
-                        if (endCoordinate != NULL) {
-                            endCoordinate->setXYZ(m_optionalSecondCoordInfo->m_windowXYZ);
-                        }
-                    }
-                }
-                else if (endCoordinate != NULL) {
-                    double xyz[3] = {
-                        m_coordInfo.m_windowXYZ[0],
-                        m_coordInfo.m_windowXYZ[1],
-                        m_coordInfo.m_windowXYZ[2]
-                    };
-                    if (xyz[1] > 0.5) {
-                        xyz[1] -= 0.25;
-                    }
-                    else {
-                        xyz[1] += 0.25;
-                    }
-                    endCoordinate->setXYZ(xyz);
-                }
-            }
-            break;
-    }
-}
-
-/**
- * Set coordinates for a two-dimensional annotation.
- *
- * @param annotation
- *    The two dimensional annotation.
- */
-void
-AnnotationCoordinateSelectionWidget::setTwoDimAnnotationCoordinates(AnnotationTwoDimensionalShape* annotation)
-{
-    bool valid = false;
-    const AnnotationCoordinateSpaceEnum::Enum coordSpace = getSelectedCoordinateSpace(valid);
-    if (! valid) {
-        return;
-    }
-    
-    
-    bool setWidthHeightWithTabCoordsFlag    = false;
-    bool setWidthHeightWithWindowCoordsFlag = false;
-    
-    AnnotationCoordinate* coordinate = annotation->getCoordinate();
-    switch (coordSpace) {
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            if (m_coordInfo.m_modelXYZValid) {
-                coordinate->setXYZ(m_coordInfo.m_modelXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
-                
-                if (m_optionalSecondCoordInfo != NULL) {
-                    if (m_optionalSecondCoordInfo->m_modelXYZValid) {
-                        float centerXYZ[3] = {
-                            (m_coordInfo.m_modelXYZ[0] + m_optionalSecondCoordInfo->m_modelXYZ[0]) / 2.0,
-                            (m_coordInfo.m_modelXYZ[1] + m_optionalSecondCoordInfo->m_modelXYZ[1]) / 2.0,
-                            (m_coordInfo.m_modelXYZ[2] + m_optionalSecondCoordInfo->m_modelXYZ[2]) / 2.0
-                        };
-                        coordinate->setXYZ(centerXYZ);
-                        setWidthHeightWithTabCoordsFlag = true;
-                    }
-                }
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            CaretAssert(0);
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            if (m_coordInfo.m_surfaceNodeValid) {
-                coordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
-                                            m_coordInfo.m_surfaceNumberOfNodes,
-                                            m_coordInfo.m_surfaceNodeIndex,
-                                            m_coordInfo.m_surfaceNodeOffset);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-                
-                if (m_optionalSecondCoordInfo != NULL) {
-                    if ((m_optionalSecondCoordInfo->m_surfaceNodeValid)
-                        && (m_optionalSecondCoordInfo->m_surfaceStructure == m_coordInfo.m_surfaceStructure)) {
-                        if ((m_optionalSecondCoordInfo->m_windowIndex == m_coordInfo.m_windowIndex)
-                            && (m_coordInfo.m_windowIndex >= 0)) {
-                            const float windowWidth  = m_coordInfo.m_windowWidth;
-                            const float windowHeight = m_coordInfo.m_windowHeight;
-                            const float x1 = m_coordInfo.m_windowXYZ[0] * windowWidth;
-                            const float y1 = m_coordInfo.m_windowXYZ[1] * windowHeight;
-                            const float x2 = m_optionalSecondCoordInfo->m_windowXYZ[0] * windowWidth;
-                            const float y2 = m_optionalSecondCoordInfo->m_windowXYZ[1] * windowHeight;
-                            const int32_t windowX = static_cast<int32_t>((x1 + x2)) / 2.0;
-                            const int32_t windowY = static_cast<int32_t>((y1 + y2)) / 2.0;
-                            
-                            EventIdentificationRequest idRequest(m_coordInfo.m_windowIndex,
-                                                                 static_cast<int32_t>(windowX),
-                                                                 static_cast<int32_t>(windowY));
-                            EventManager::get()->sendEvent(idRequest.getPointer());
-                            SelectionManager* sm = idRequest.getSelectionManager();
-                            if (sm != NULL) {
-                                const SelectionItemSurfaceNode* nodeID = sm->getSurfaceNodeIdentification();
-                                CaretAssert(nodeID);
-                                if (nodeID->isValid()) {
-                                    if (nodeID->getSurface()->getStructure() == m_coordInfo.m_surfaceStructure) {
-                                        coordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
-                                                                    m_coordInfo.m_surfaceNumberOfNodes,
-                                                                    nodeID->getNodeNumber(),
-                                                                    0.0);
-                                        setWidthHeightWithTabCoordsFlag = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            if (m_coordInfo.m_tabIndex >= 0) {
-                coordinate->setXYZ(m_coordInfo.m_tabXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-                annotation->setTabIndex(m_coordInfo.m_tabIndex);
-                
-                
-                if (m_optionalSecondCoordInfo != NULL) {
-                    if (m_optionalSecondCoordInfo->m_tabIndex == m_coordInfo.m_tabIndex) {
-                        float centerXYZ[3] = {
-                            (m_coordInfo.m_tabXYZ[0] + m_optionalSecondCoordInfo->m_tabXYZ[0]) / 2.0,
-                            (m_coordInfo.m_tabXYZ[1] + m_optionalSecondCoordInfo->m_tabXYZ[1]) / 2.0,
-                            (m_coordInfo.m_tabXYZ[2] + m_optionalSecondCoordInfo->m_tabXYZ[2]) / 2.0
-                        };
-                        coordinate->setXYZ(centerXYZ);
-                        setWidthHeightWithTabCoordsFlag = true;
-                    }
-                }
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            if (m_coordInfo.m_windowIndex >= 0) {
-                coordinate->setXYZ(m_coordInfo.m_windowXYZ);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
-                annotation->setWindowIndex(m_coordInfo.m_windowIndex);
-                
-                if (m_optionalSecondCoordInfo != NULL) {
-                    if (m_optionalSecondCoordInfo->m_windowIndex == m_coordInfo.m_windowIndex) {
-                        float centerXYZ[3] = {
-                            (m_coordInfo.m_windowXYZ[0] + m_optionalSecondCoordInfo->m_windowXYZ[0]) / 2.0,
-                            (m_coordInfo.m_windowXYZ[1] + m_optionalSecondCoordInfo->m_windowXYZ[1]) / 2.0,
-                            (m_coordInfo.m_windowXYZ[2] + m_optionalSecondCoordInfo->m_windowXYZ[2]) / 2.0
-                        };
-                        coordinate->setXYZ(centerXYZ);
-                        setWidthHeightWithWindowCoordsFlag = true;
-                    }
-                }
-            }
-            break;
-    }
-    
-    if (setWidthHeightWithTabCoordsFlag) {
-        if (m_coordInfo.m_tabIndex >= 0) {
-            if (m_optionalSecondCoordInfo != NULL) {
-                if (m_coordInfo.m_tabIndex == m_optionalSecondCoordInfo->m_tabIndex) {
-                    const float tabWidth  = m_coordInfo.m_tabWidth;
-                    const float tabHeight = m_coordInfo.m_tabHeight;
-                    
-                    const float oneXYZ[3] = {
-                        m_coordInfo.m_tabXYZ[0] * tabWidth,
-                        m_coordInfo.m_tabXYZ[1] * tabHeight,
-                        m_coordInfo.m_tabXYZ[2]
-                    };
-                    const float twoXYZ[3] = {
-                        m_optionalSecondCoordInfo->m_tabXYZ[0] * tabWidth,
-                        m_optionalSecondCoordInfo->m_tabXYZ[1] * tabHeight,
-                        m_optionalSecondCoordInfo->m_tabXYZ[2]
-                    };
-                    
-                    annotation->setWidthAndHeightFromBounds(oneXYZ,
-                                                           twoXYZ,
-                                                           tabWidth,
-                                                           tabHeight);
-                }
-            }
-        }
-    }
-    else if (setWidthHeightWithWindowCoordsFlag) {
-        if (m_coordInfo.m_windowIndex >= 0) {
-            if (m_optionalSecondCoordInfo != NULL) {
-                if (m_coordInfo.m_windowIndex == m_optionalSecondCoordInfo->m_windowIndex) {
-                    const float windowWidth  = m_coordInfo.m_windowWidth;
-                    const float windowHeight = m_coordInfo.m_windowHeight;
-                    
-                    const float oneXYZ[3] = {
-                        m_coordInfo.m_windowXYZ[0] * windowWidth,
-                        m_coordInfo.m_windowXYZ[1] * windowHeight,
-                        m_coordInfo.m_windowXYZ[2]
-                    };
-                    const float twoXYZ[3] = {
-                        m_optionalSecondCoordInfo->m_windowXYZ[0] * windowWidth,
-                        m_optionalSecondCoordInfo->m_windowXYZ[1] * windowHeight,
-                        m_optionalSecondCoordInfo->m_windowXYZ[2]
-                    };
-                    
-                    annotation->setWidthAndHeightFromBounds(oneXYZ,
-                                                           twoXYZ,
-                                                           windowWidth,
-                                                           windowHeight);
-                }
-            }
-        }
-    }
-}
+///**
+// * Set coordinates for a one-dimensional annotation.
+// *
+// * @param annotation
+// *    The one dimensional annotation.
+// */
+//void
+//AnnotationCoordinateSelectionWidget::setOneDimAnnotationCoordinates(AnnotationOneDimensionalShape* annotation)
+//{
+//    AnnotationCoordinate* startCoordinate = annotation->getStartCoordinate();
+//    CaretAssert(startCoordinate);
+//    AnnotationCoordinate* endCoordinate   = annotation->getEndCoordinate();
+//    CaretAssert(endCoordinate);
+//    
+//    bool valid = false;
+//    const AnnotationCoordinateSpaceEnum::Enum coordSpace = getSelectedCoordinateSpace(valid);
+//    if (! valid) {
+//        return;
+//    }
+//    
+//    switch (coordSpace) {
+//        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//            if (m_coordInfo.m_modelXYZValid) {
+//                startCoordinate->setXYZ(m_coordInfo.m_modelXYZ);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+//                
+//                if (m_optionalSecondCoordInfo != NULL) {
+//                    if (m_optionalSecondCoordInfo->m_modelXYZValid) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setXYZ(m_optionalSecondCoordInfo->m_modelXYZ);
+//                        }
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::PIXELS:
+//            CaretAssert(0);
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//            if (m_coordInfo.m_surfaceNodeValid) {
+//                startCoordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
+//                                                 m_coordInfo.m_surfaceNumberOfNodes,
+//                                                 m_coordInfo.m_surfaceNodeIndex,
+//                                                 m_coordInfo.m_surfaceNodeOffset);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+//                
+//                if (m_optionalSecondCoordInfo != NULL) {
+//                    if (m_optionalSecondCoordInfo->m_surfaceNodeValid) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setSurfaceSpace(m_optionalSecondCoordInfo->m_surfaceStructure,
+//                                                           m_optionalSecondCoordInfo->m_surfaceNumberOfNodes,
+//                                                           m_optionalSecondCoordInfo->m_surfaceNodeIndex,
+//                                                           m_optionalSecondCoordInfo->m_surfaceNodeOffset);
+//                        }
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//            if (m_coordInfo.m_tabIndex >= 0) {
+//                startCoordinate->setXYZ(m_coordInfo.m_tabXYZ);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+//                annotation->setTabIndex(m_coordInfo.m_tabIndex);
+//                
+//                
+//                if (m_optionalSecondCoordInfo != NULL) {
+//                    if (m_optionalSecondCoordInfo->m_tabIndex >= 0) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setXYZ(m_optionalSecondCoordInfo->m_tabXYZ);
+//                        }
+//                    }
+//                }
+//                else if (endCoordinate != NULL) {
+//                    double xyz[3] = {
+//                        m_coordInfo.m_tabXYZ[0],
+//                        m_coordInfo.m_tabXYZ[1],
+//                        m_coordInfo.m_tabXYZ[2]
+//                    };
+//                    if (xyz[1] > 0.5) {
+//                        xyz[1] -= 0.25;
+//                    }
+//                    else {
+//                        xyz[1] += 0.25;
+//                    }
+//                    endCoordinate->setXYZ(xyz);
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            if (m_coordInfo.m_windowIndex >= 0) {
+//                startCoordinate->setXYZ(m_coordInfo.m_windowXYZ);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+//                annotation->setWindowIndex(m_coordInfo.m_windowIndex);
+//                
+//                if (m_optionalSecondCoordInfo != NULL) {
+//                    if (m_optionalSecondCoordInfo->m_windowIndex >= 0) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setXYZ(m_optionalSecondCoordInfo->m_windowXYZ);
+//                        }
+//                    }
+//                }
+//                else if (endCoordinate != NULL) {
+//                    double xyz[3] = {
+//                        m_coordInfo.m_windowXYZ[0],
+//                        m_coordInfo.m_windowXYZ[1],
+//                        m_coordInfo.m_windowXYZ[2]
+//                    };
+//                    if (xyz[1] > 0.5) {
+//                        xyz[1] -= 0.25;
+//                    }
+//                    else {
+//                        xyz[1] += 0.25;
+//                    }
+//                    endCoordinate->setXYZ(xyz);
+//                }
+//            }
+//            break;
+//    }
+//}
+//
+///**
+// * Set coordinates for a two-dimensional annotation.
+// *
+// * @param annotation
+// *    The two dimensional annotation.
+// */
+//void
+//AnnotationCoordinateSelectionWidget::setTwoDimAnnotationCoordinates(AnnotationTwoDimensionalShape* annotation)
+//{
+//    bool valid = false;
+//    const AnnotationCoordinateSpaceEnum::Enum coordSpace = getSelectedCoordinateSpace(valid);
+//    if (! valid) {
+//        return;
+//    }
+//    
+//    
+//    bool setWidthHeightWithTabCoordsFlag    = false;
+//    bool setWidthHeightWithWindowCoordsFlag = false;
+//    
+//    AnnotationCoordinate* coordinate = annotation->getCoordinate();
+//    switch (coordSpace) {
+//        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//            if (m_coordInfo.m_modelXYZValid) {
+//                coordinate->setXYZ(m_coordInfo.m_modelXYZ);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+//                
+//                if (m_optionalSecondCoordInfo != NULL) {
+//                    if (m_optionalSecondCoordInfo->m_modelXYZValid) {
+//                        float centerXYZ[3] = {
+//                            (m_coordInfo.m_modelXYZ[0] + m_optionalSecondCoordInfo->m_modelXYZ[0]) / 2.0,
+//                            (m_coordInfo.m_modelXYZ[1] + m_optionalSecondCoordInfo->m_modelXYZ[1]) / 2.0,
+//                            (m_coordInfo.m_modelXYZ[2] + m_optionalSecondCoordInfo->m_modelXYZ[2]) / 2.0
+//                        };
+//                        coordinate->setXYZ(centerXYZ);
+//                        setWidthHeightWithTabCoordsFlag = true;
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::PIXELS:
+//            CaretAssert(0);
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//            if (m_coordInfo.m_surfaceNodeValid) {
+//                coordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
+//                                            m_coordInfo.m_surfaceNumberOfNodes,
+//                                            m_coordInfo.m_surfaceNodeIndex,
+//                                            m_coordInfo.m_surfaceNodeOffset);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+//                
+//                if (m_optionalSecondCoordInfo != NULL) {
+//                    if ((m_optionalSecondCoordInfo->m_surfaceNodeValid)
+//                        && (m_optionalSecondCoordInfo->m_surfaceStructure == m_coordInfo.m_surfaceStructure)) {
+//                        if ((m_optionalSecondCoordInfo->m_windowIndex == m_coordInfo.m_windowIndex)
+//                            && (m_coordInfo.m_windowIndex >= 0)) {
+//                            const float windowWidth  = m_coordInfo.m_windowWidth;
+//                            const float windowHeight = m_coordInfo.m_windowHeight;
+//                            const float x1 = m_coordInfo.m_windowXYZ[0] * windowWidth;
+//                            const float y1 = m_coordInfo.m_windowXYZ[1] * windowHeight;
+//                            const float x2 = m_optionalSecondCoordInfo->m_windowXYZ[0] * windowWidth;
+//                            const float y2 = m_optionalSecondCoordInfo->m_windowXYZ[1] * windowHeight;
+//                            const int32_t windowX = static_cast<int32_t>((x1 + x2)) / 2.0;
+//                            const int32_t windowY = static_cast<int32_t>((y1 + y2)) / 2.0;
+//                            
+//                            EventIdentificationRequest idRequest(m_coordInfo.m_windowIndex,
+//                                                                 static_cast<int32_t>(windowX),
+//                                                                 static_cast<int32_t>(windowY));
+//                            EventManager::get()->sendEvent(idRequest.getPointer());
+//                            SelectionManager* sm = idRequest.getSelectionManager();
+//                            if (sm != NULL) {
+//                                const SelectionItemSurfaceNode* nodeID = sm->getSurfaceNodeIdentification();
+//                                CaretAssert(nodeID);
+//                                if (nodeID->isValid()) {
+//                                    if (nodeID->getSurface()->getStructure() == m_coordInfo.m_surfaceStructure) {
+//                                        coordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
+//                                                                    m_coordInfo.m_surfaceNumberOfNodes,
+//                                                                    nodeID->getNodeNumber(),
+//                                                                    0.0);
+//                                        setWidthHeightWithTabCoordsFlag = true;
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//            if (m_coordInfo.m_tabIndex >= 0) {
+//                coordinate->setXYZ(m_coordInfo.m_tabXYZ);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+//                annotation->setTabIndex(m_coordInfo.m_tabIndex);
+//                
+//                
+//                if (m_optionalSecondCoordInfo != NULL) {
+//                    if (m_optionalSecondCoordInfo->m_tabIndex == m_coordInfo.m_tabIndex) {
+//                        float centerXYZ[3] = {
+//                            (m_coordInfo.m_tabXYZ[0] + m_optionalSecondCoordInfo->m_tabXYZ[0]) / 2.0,
+//                            (m_coordInfo.m_tabXYZ[1] + m_optionalSecondCoordInfo->m_tabXYZ[1]) / 2.0,
+//                            (m_coordInfo.m_tabXYZ[2] + m_optionalSecondCoordInfo->m_tabXYZ[2]) / 2.0
+//                        };
+//                        coordinate->setXYZ(centerXYZ);
+//                        setWidthHeightWithTabCoordsFlag = true;
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            if (m_coordInfo.m_windowIndex >= 0) {
+//                coordinate->setXYZ(m_coordInfo.m_windowXYZ);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+//                annotation->setWindowIndex(m_coordInfo.m_windowIndex);
+//                
+//                if (m_optionalSecondCoordInfo != NULL) {
+//                    if (m_optionalSecondCoordInfo->m_windowIndex == m_coordInfo.m_windowIndex) {
+//                        float centerXYZ[3] = {
+//                            (m_coordInfo.m_windowXYZ[0] + m_optionalSecondCoordInfo->m_windowXYZ[0]) / 2.0,
+//                            (m_coordInfo.m_windowXYZ[1] + m_optionalSecondCoordInfo->m_windowXYZ[1]) / 2.0,
+//                            (m_coordInfo.m_windowXYZ[2] + m_optionalSecondCoordInfo->m_windowXYZ[2]) / 2.0
+//                        };
+//                        coordinate->setXYZ(centerXYZ);
+//                        setWidthHeightWithWindowCoordsFlag = true;
+//                    }
+//                }
+//            }
+//            break;
+//    }
+//    
+//    if (setWidthHeightWithTabCoordsFlag) {
+//        if (m_coordInfo.m_tabIndex >= 0) {
+//            if (m_optionalSecondCoordInfo != NULL) {
+//                if (m_coordInfo.m_tabIndex == m_optionalSecondCoordInfo->m_tabIndex) {
+//                    const float tabWidth  = m_coordInfo.m_tabWidth;
+//                    const float tabHeight = m_coordInfo.m_tabHeight;
+//                    
+//                    const float oneXYZ[3] = {
+//                        m_coordInfo.m_tabXYZ[0] * tabWidth,
+//                        m_coordInfo.m_tabXYZ[1] * tabHeight,
+//                        m_coordInfo.m_tabXYZ[2]
+//                    };
+//                    const float twoXYZ[3] = {
+//                        m_optionalSecondCoordInfo->m_tabXYZ[0] * tabWidth,
+//                        m_optionalSecondCoordInfo->m_tabXYZ[1] * tabHeight,
+//                        m_optionalSecondCoordInfo->m_tabXYZ[2]
+//                    };
+//                    
+//                    annotation->setWidthAndHeightFromBounds(oneXYZ,
+//                                                           twoXYZ,
+//                                                           tabWidth,
+//                                                           tabHeight);
+//                }
+//            }
+//        }
+//    }
+//    else if (setWidthHeightWithWindowCoordsFlag) {
+//        if (m_coordInfo.m_windowIndex >= 0) {
+//            if (m_optionalSecondCoordInfo != NULL) {
+//                if (m_coordInfo.m_windowIndex == m_optionalSecondCoordInfo->m_windowIndex) {
+//                    const float windowWidth  = m_coordInfo.m_windowWidth;
+//                    const float windowHeight = m_coordInfo.m_windowHeight;
+//                    
+//                    const float oneXYZ[3] = {
+//                        m_coordInfo.m_windowXYZ[0] * windowWidth,
+//                        m_coordInfo.m_windowXYZ[1] * windowHeight,
+//                        m_coordInfo.m_windowXYZ[2]
+//                    };
+//                    const float twoXYZ[3] = {
+//                        m_optionalSecondCoordInfo->m_windowXYZ[0] * windowWidth,
+//                        m_optionalSecondCoordInfo->m_windowXYZ[1] * windowHeight,
+//                        m_optionalSecondCoordInfo->m_windowXYZ[2]
+//                    };
+//                    
+//                    annotation->setWidthAndHeightFromBounds(oneXYZ,
+//                                                           twoXYZ,
+//                                                           windowWidth,
+//                                                           windowHeight);
+//                }
+//            }
+//        }
+//    }
+//}
 
 
 

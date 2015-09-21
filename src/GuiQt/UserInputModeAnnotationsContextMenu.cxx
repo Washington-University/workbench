@@ -27,6 +27,7 @@
 
 #include "AnnotationCoordinate.h"
 #include "AnnotationCreateDialog.h"
+#include "AnnotationFile.h"
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoCommand.h"
@@ -165,15 +166,37 @@ UserInputModeAnnotationsContextMenu::pasteAnnotationFromAnnotationClipboard()
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     if (annotationManager->isAnnotationOnClipboardValid()) {
         AnnotationFile* annotationFile = annotationManager->getAnnotationFileOnClipboard();
-        const Annotation* annotation = annotationManager->getAnnotationOnClipboard();
+        Annotation* annotation = annotationManager->getAnnotationOnClipboard()->clone();
         
+        BrainOpenGLViewportContent* viewportContent = m_mouseEvent.getViewportContent();
+        UserInputModeAnnotations::CoordinateInformation coordInfo;
+        UserInputModeAnnotations::getValidCoordinateSpacesFromXY(m_parentOpenGLWidget,
+                                                                 viewportContent,
+                                                                 m_mouseEvent.getX(),
+                                                                 m_mouseEvent.getY(),
+                                                                 coordInfo);
         
-        CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newPasteAnnotation(m_mouseEvent,
-                                                                                                         annotationFile,
-                                                                                                         annotation,
-                                                                                                         m_parentOpenGLWidget));
-        if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
-            m_newAnnotationCreatedByContextMenu = annotationDialog->getAnnotationThatWasCreated();
+        const bool validCoordsFlag = UserInputModeAnnotations::setAnnotationCoordinatesForSpace(annotation,
+                                                                   annotation->getCoordinateSpace(),
+                                                                   &coordInfo,
+                                                                   NULL);
+        if (validCoordsFlag) {
+            annotationFile->addAnnotation(annotation);
+        }
+        else {
+            /*
+             * Pasting annotation in its coordinate failed (user may have tried to paste
+             * an annotation in surface space where there is no surface).
+             */
+            delete annotation;
+
+            CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newPasteAnnotation(m_mouseEvent,
+                                                                                                             annotationFile,
+                                                                                                             annotationManager->getAnnotationOnClipboard(),
+                                                                                                             m_parentOpenGLWidget));
+            if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
+                m_newAnnotationCreatedByContextMenu = annotationDialog->getAnnotationThatWasCreated();
+            }
         }
 
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
