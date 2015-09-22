@@ -282,7 +282,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                     Vector3D myCoord = myCoords + i3;
                     float nodeValue = myMetricColumn[i];
                     somevec[2] = 0.0;
-                    if (myNormal[0] > myNormal[1])
+                    if (abs(myNormal[0]) > abs(myNormal[1]))
                     {//generate a vector not parallel to normal
                         somevec[0] = 0.0;
                         somevec[1] = 1.0;

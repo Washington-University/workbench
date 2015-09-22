@@ -92,6 +92,7 @@
 #include "AlgorithmSurfaceAverage.h"
 #include "AlgorithmSurfaceCortexLayer.h"
 #include "AlgorithmSurfaceCreateSphere.h"
+#include "AlgorithmSurfaceCurvature.h"
 #include "AlgorithmSurfaceDistortion.h"
 #include "AlgorithmSurfaceFlipLR.h"
 #include "AlgorithmSurfaceGenerateInflated.h"
@@ -331,6 +332,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCortexLayer()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCreateSphere()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCurvature()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceDistortion()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceFlipLR()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceGenerateInflated()));

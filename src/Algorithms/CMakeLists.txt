@@ -88,6 +88,7 @@ AlgorithmSurfaceApplyWarpfield.h
 AlgorithmSurfaceAverage.h
 AlgorithmSurfaceCortexLayer.h
 AlgorithmSurfaceCreateSphere.h
+AlgorithmSurfaceCurvature.h
 AlgorithmSurfaceDistortion.h
 AlgorithmSurfaceFlipLR.h
 AlgorithmSurfaceGenerateInflated.h
@@ -193,6 +194,7 @@ AlgorithmSurfaceApplyWarpfield.cxx
 AlgorithmSurfaceAverage.cxx
 AlgorithmSurfaceCortexLayer.cxx
 AlgorithmSurfaceCreateSphere.cxx
+AlgorithmSurfaceCurvature.cxx
 AlgorithmSurfaceDistortion.cxx
 AlgorithmSurfaceFlipLR.cxx
 AlgorithmSurfaceGenerateInflated.cxx
