@@ -95,6 +95,8 @@ namespace caret {
 
         Annotation* m_annotation;
         
+        AString m_plusButtonToolTipText;
+        
     };
     
 #ifdef __ANNOTATION_COORDINATE_WIDGET_DECLARE__

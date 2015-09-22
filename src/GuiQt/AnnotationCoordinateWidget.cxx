@@ -28,6 +28,7 @@
 #include <QHBoxLayout>
 #include <QSpinBox>
 #include <QToolButton>
+#include <QToolTip>
 
 #include "AnnotationManager.h"
 #include "AnnotationCoordinate.h"
@@ -124,8 +125,12 @@ m_browserWindowIndex(browserWindowIndex)
                                          "       1.0 => Away from viewer\n");
     
 
+    m_plusButtonToolTipText = ("Click the mouse to set the new location for the coordinate.\n"
+                               "After clicking the mouse, a dialog allows selection of the\n"
+                               "coordinate space.");
     QAction* setCoordinateAction = WuQtUtilities::createAction("+",
-                                                               "Set coordinate with mouse",
+                                                               ("After pressing this button: \n"
+                                                                + m_plusButtonToolTipText),
                                                                this,
                                                                this,
                                                                SLOT(setCoordinateActionTriggered()));
@@ -367,5 +372,11 @@ AnnotationCoordinateWidget::valueChanged()
 void
 AnnotationCoordinateWidget::setCoordinateActionTriggered()
 {
+    QPoint middlePos(width() / 2,
+                     height() / 2);
+    QToolTip::showText(mapToGlobal(middlePos),
+                       m_plusButtonToolTipText,
+                       this);
+    
     signalSelectCoordinateWithMouse();
 }
