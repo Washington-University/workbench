@@ -21,6 +21,8 @@
 
 #include <cmath>
 
+#include <QColor>
+
 #define __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #undef __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
@@ -38,6 +40,7 @@
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
+#include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
@@ -71,6 +74,11 @@ m_brainOpenGLFixedPipeline(brainOpenGLFixedPipeline),
 m_volumeSpacePlaneValid(false)
 {
     CaretAssert(brainOpenGLFixedPipeline);
+    
+    m_rotationHandleCircle = new BrainOpenGLShapeRing(20,
+                                                      0.7,
+                                                      1.0);
+
 }
 
 /**
@@ -78,6 +86,8 @@ m_volumeSpacePlaneValid(false)
  */
 BrainOpenGLAnnotationDrawingFixedPipeline::~BrainOpenGLAnnotationDrawingFixedPipeline()
 {
+    delete m_rotationHandleCircle;
+    m_rotationHandleCircle = NULL;
 }
 
 /**
@@ -423,6 +433,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     if (m_brainOpenGLFixedPipeline->m_brain == NULL) {
         return;
     }
+    
+    setSelectionBoxColor();
     
     m_tabViewport[0] = tabViewport[0];
     m_tabViewport[1] = tabViewport[1];
@@ -1525,6 +1537,48 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
     
     std::vector<float> dummyNormals;
     
+    bool drawFilledCircleFlag  = false;
+    bool drawOutlineCircleFlag = false;
+    bool drawSquareFlag        = false;
+    
+    switch (handleType) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            drawSquareFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            drawFilledCircleFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            drawFilledCircleFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            drawSquareFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            drawSquareFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            drawSquareFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            drawFilledCircleFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            drawFilledCircleFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            drawFilledCircleFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            drawFilledCircleFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            drawOutlineCircleFlag = true;
+            break;
+    }
+    
     if (m_selectionModeFlag) {
         uint8_t identificationRGBA[4];
         getIdentificationColor(identificationRGBA);
@@ -1537,14 +1591,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
                                                 xyz));
     }
     else {
-        if (handleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION) {
-            m_brainOpenGLFixedPipeline->drawCircleFilled(m_brainOpenGLFixedPipeline->m_foregroundColorByte,
+        if (drawFilledCircleFlag) {
+            m_brainOpenGLFixedPipeline->drawCircleFilled(m_selectionBoxRGBA,
                                                          halfWidthHeight);
         }
-        else {
+        else if (drawSquareFlag) {
             BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
                                                      dummyNormals,
-                                                     m_brainOpenGLFixedPipeline->m_foregroundColorByte);
+                                                     m_selectionBoxRGBA);
+        }
+        else if (drawOutlineCircleFlag) {
+            const float diameter = halfWidthHeight;
+            glPushMatrix();
+            glScaled(diameter, diameter, 1.0);
+            m_rotationHandleCircle->draw(m_selectionBoxRGBA);
+            glPopMatrix();
+//            m_brainOpenGLFixedPipeline->drawCircleOutline(m_selectionBoxRGBA,
+//                                                          halfWidthHeight * 2.0);
         }
     }
 
@@ -1699,7 +1762,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
         coords.insert(coords.end(), handleTopLeft,     handleTopLeft + 3);
         
         BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                  m_brainOpenGLFixedPipeline->m_foregroundColorByte,
+                                                  m_selectionBoxRGBA,
                                                   2.0);
     }
     
@@ -1734,6 +1797,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
         handleTop[0] + (rotationOffset * heightVector[0]),
         handleTop[1] + (rotationOffset * heightVector[1]),
         handleTop[2] + (rotationOffset * heightVector[2])
+    };
+    
+    const float handleRotationLineEnd[3] = {
+        handleTop[0] + (rotationOffset * 0.75 * heightVector[0] ),
+        handleTop[1] + (rotationOffset * 0.75 * heightVector[1]),
+        handleTop[2] + (rotationOffset * 0.75 * heightVector[2])
     };
     
     /*
@@ -1799,10 +1868,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
          * Rotation handle and line connecting rotation handle to selection box
          */
         std::vector<float> coords;
-        coords.insert(coords.end(), handleRotation, handleRotation + 3);
+        coords.insert(coords.end(), handleRotationLineEnd, handleRotationLineEnd + 3);
         coords.insert(coords.end(), handleTop, handleTop + 3);
         BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                               m_brainOpenGLFixedPipeline->m_foregroundColorByte,
+                                               m_selectionBoxRGBA,
                                                2.0);
         
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
@@ -1813,6 +1882,46 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                          rotationAngle);
     }
 }
+
+/**
+ * Set the color for drawing the selection box and handles.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor()
+{
+    /*
+     * Use the foreground color but reduce the intensity and saturation.
+     */
+    m_selectionBoxRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[0];
+    m_selectionBoxRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[1];
+    m_selectionBoxRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[2];
+    m_selectionBoxRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[3];
+    
+    QColor color(m_selectionBoxRGBA[0],
+                 m_selectionBoxRGBA[1],
+                 m_selectionBoxRGBA[2],
+                 m_selectionBoxRGBA[3]);
+    
+    qreal hue = 0.0;
+    qreal saturation = 0.0;
+    qreal value = 0.0;
+    
+    color.getHsvF(&hue,
+                  &saturation,
+                  &value);
+    
+    saturation *= 0.8;
+    value      *= 0.8;
+    
+    color.setHsvF(hue,
+                  saturation,
+                  value);
+    
+    m_selectionBoxRGBA[0] = static_cast<uint8_t>(color.red());
+    m_selectionBoxRGBA[1] = static_cast<uint8_t>(color.green());
+    m_selectionBoxRGBA[2] = static_cast<uint8_t>(color.blue());
+}
+
 
 /**
  * Is the annotation drawn with depth testing enabled (based upon coordinate space)?

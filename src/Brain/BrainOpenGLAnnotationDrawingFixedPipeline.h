@@ -42,6 +42,7 @@ namespace caret {
     class AnnotationOval;
     class AnnotationText;
     class BrainOpenGLFixedPipeline;
+    class BrainOpenGLShapeRing;
     class Surface;
     
     class BrainOpenGLAnnotationDrawingFixedPipeline : public CaretObject {
@@ -177,6 +178,8 @@ namespace caret {
                                                        const Surface* surfaceDisplayed,
                                                        std::vector<float>& lineCoordinatesOut) const;
         
+        void setSelectionBoxColor();
+        
         /** Tracks items drawn for selection */
         std::vector<SelectionInfo> m_selectionInfo;
         
@@ -199,6 +202,12 @@ namespace caret {
         Plane m_volumeSpacePlane;
         
         bool m_volumeSpacePlaneValid;
+        
+        /** Color for selection box and sizing handles */
+        uint8_t m_selectionBoxRGBA[4];
+        
+        /** Used for rotation hanlde circle */
+        BrainOpenGLShapeRing* m_rotationHandleCircle;
         
         // ADD_NEW_MEMBERS_HERE
 
