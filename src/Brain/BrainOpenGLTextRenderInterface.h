@@ -27,20 +27,13 @@
 namespace caret {
     class AnnotationText;
 
-    /// An interface for a system that renders text in OpenGL commands
     class BrainOpenGLTextRenderInterface : public CaretObject {
         
     protected:
-        /**
-         * Constructor.
-         */
-        BrainOpenGLTextRenderInterface() { }
+        BrainOpenGLTextRenderInterface();
         
     public:
-        /**
-         * Destructor.
-         */
-        virtual ~BrainOpenGLTextRenderInterface() { }
+        virtual ~BrainOpenGLTextRenderInterface();
         
         /**
          * Draw annnotation text at the given viewport coordinates using
@@ -210,29 +203,17 @@ namespace caret {
                                               float bottomLeftOut[3],
                                               float bottomRightOut[3],
                                               float topRightOut[3],
-                                              float topLeftOut[3]) {
-            double bottomLeft[3];
-            double bottomRight[3];
-            double topRight[3];
-            double topLeft[3];
-            
-            getBoundsForTextAtViewportCoords(annotationText,
-                                             viewportX,
-                                             viewportY,
-                                             viewportZ,
-                                             bottomLeft,
-                                             bottomRight,
-                                             topRight,
-                                             topLeft);
-            
-            for (int32_t i = 0; i < 3; i++) {
-                bottomLeftOut[i]  = bottomLeft[i];
-                bottomRightOut[i] = bottomRight[i];
-                topRightOut[i]    = topRight[i];
-                topLeftOut[i]     = topLeft[i];
-            }
-        }
-       /**
+                                              float topLeftOut[3]);
+        
+        static float pointSizeToPixels(const float pointSize);
+        
+        static float pixelsToPointSize(const float pixels);
+        
+        static float getPixelsPerInch();
+        
+        static void setPixelsPerInch(const float pixelsPerInch);
+
+        /**
          * @return The font system is valid.
          */
         virtual bool isValid() const = 0;
@@ -248,10 +229,11 @@ namespace caret {
         BrainOpenGLTextRenderInterface& operator=(const BrainOpenGLTextRenderInterface&);
         
     private:
+        static float s_pixelsPerInch;
     };
     
 #ifdef __BRAIN_OPEN_G_L_TEXT_RENDER_INTERFACE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    float BrainOpenGLTextRenderInterface::s_pixelsPerInch = 72.0;
 #endif // __BRAIN_OPEN_G_L_TEXT_RENDER_INTERFACE_DECLARE__
 
 } // namespace

@@ -195,6 +195,7 @@ BrainOpenGLShapeCylinder.cxx
 BrainOpenGLShapeRing.cxx
 BrainOpenGLShapeRingOutline.cxx
 BrainOpenGLShapeSphere.cxx
+BrainOpenGLTextRenderInterface.cxx
 BrainOpenGLViewportContent.cxx
 BrainOpenGLVolumeObliqueSliceDrawing.cxx
 BrainOpenGLVolumeSliceDrawing.cxx
