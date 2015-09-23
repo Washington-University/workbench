@@ -531,38 +531,50 @@ main(int argc, char* argv[])
             const int y = rect.y();
             const int w = rect.width();
             const int h = rect.height();
-            screenSizeText += ("(index="
-                               + AString::number(i)
-                               + ", x="
-                               + AString::number(x)
-                               + ", y="
-                               + AString::number(y)
-                               + ", w="
-                               + AString::number(w)
-                               + ", h="
-                               + AString::number(h)
-                               + ")  ");
+            screenSizeText.appendWithNewLine("Screen index="
+                                             + AString::number(i)
+                                             + ", x="
+                                             + AString::number(x)
+                                             + ", y="
+                                             + AString::number(y)
+                                             + ", w="
+                                             + AString::number(w)
+                                             + ", h="
+                                             + AString::number(h));
         }
-        screenSizeText += ("(Primary Screen="
-                           + AString::number(dw->primaryScreen())
-                           + ")   ");
+        screenSizeText.appendWithNewLine("Primary Screen="
+                                         + AString::number(dw->primaryScreen()));
         if (dw->isVirtualDesktop()) {
-            screenSizeText += ("(Virtual Desktop=YES)   ");
+            screenSizeText.appendWithNewLine("Virtual Desktop=YES");
         }
         else {
-            screenSizeText += ("(Virtual Desktop=NO)   ");
+            screenSizeText.appendWithNewLine("Virtual Desktop=NO");
         }
         QWidget* screenWidget = dw->screen();
         QRect screenWidgetRect = screenWidget->geometry();
-        screenSizeText += ("(Desktop: x="
-                           + AString::number(screenWidgetRect.x())
-                           + ", y="
-                           + AString::number(screenWidgetRect.y())
-                           + ", w="
-                           + AString::number(screenWidgetRect.width())
-                           + ", h="
-                           + AString::number(screenWidgetRect.height())
-                           + ")   ");
+        screenSizeText.appendWithNewLine("Desktop: x="
+                                         + AString::number(screenWidgetRect.x())
+                                         + ", y="
+                                         + AString::number(screenWidgetRect.y())
+                                         + ", w="
+                                         + AString::number(screenWidgetRect.width())
+                                         + ", h="
+                                         + AString::number(screenWidgetRect.height()));
+        
+        screenSizeText.appendWithNewLine("Logical DPI: x="
+                                         + AString::number(dw->logicalDpiX())
+                                         + ", y="
+                                         + AString::number(dw->logicalDpiY()));
+        
+        screenSizeText.appendWithNewLine("Physical DPI: x="
+                                         + AString::number(dw->physicalDpiX())
+                                         + ", y="
+                                         + AString::number(dw->physicalDpiY()));
+        
+        screenSizeText.appendWithNewLine("Width/height (mm): x="
+                                         + AString::number(dw->widthMM())
+                                         + ", y="
+                                         + AString::number(dw->heightMM()));
         
         CaretLogConfig(screenSizeText);
         
@@ -595,6 +607,7 @@ main(int argc, char* argv[])
         
         CaretHttpManager::deleteHttpManager();
     }
+    
     /*
      * See if any objects were not deleted.
      */
