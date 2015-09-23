@@ -140,6 +140,8 @@ namespace caret {
         
         CaretPointer<const CaretPointLocator> getPointLocator() const;
         
+        void clearCachedHelpers() const;
+        
         const BoundingBox* getBoundingBox() const;
         
         void matchSurfaceBoundingBox(const SurfaceFile* surfaceFile);

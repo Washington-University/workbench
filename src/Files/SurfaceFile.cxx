@@ -1212,6 +1212,32 @@ CaretPointer<const CaretPointLocator> SurfaceFile::getPointLocator() const
     return m_locator;
 }
 
+void SurfaceFile::clearCachedHelpers() const
+{
+    {
+        CaretMutexLocker locked(&m_topoHelperMutex);
+        m_topoHelperIndex = 0;
+        m_topoHelpers.clear();
+        m_topoBase.grabNew(NULL);
+    }
+    {
+        CaretMutexLocker locked(&m_geoHelperMutex);
+        m_geoHelperIndex = 0;
+        m_geoHelpers.clear();
+        m_geoBase.grabNew(NULL);
+    }
+    {
+        CaretMutexLocker locked(&m_distHelperMutex);
+        m_distHelperIndex = 0;
+        m_distHelpers.clear();
+        m_distBase.grabNew(NULL);
+    }
+    {
+        CaretMutexLocker locked(&m_locatorMutex);
+        m_locator.grabNew(NULL);
+    }
+}
+
 /**
  * @return Information about the surface.
  */

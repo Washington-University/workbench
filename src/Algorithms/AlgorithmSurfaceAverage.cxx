@@ -122,6 +122,7 @@ AlgorithmSurfaceAverage::AlgorithmSurfaceAverage(ProgressObject* myProgObj, Surf
     {
         if (!inputSurfs[i]->hasNodeCorrespondence(*(inputSurfs[0]))) throw AlgorithmException("surface '" + inputSurfs[i]->getFileName() +
                                                                                       "' does not have node correspondence to surface '" + inputSurfs[0]->getFileName() + "'");
+        inputSurfs[i]->clearCachedHelpers();
     }
     *myAvgOut = *(inputSurfs[0]);
     if (uncertOut != NULL)
