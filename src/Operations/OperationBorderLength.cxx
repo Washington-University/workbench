@@ -59,7 +59,9 @@ OperationParameters* OperationBorderLength::getParameters()
 
     ret->setHelpText(
         AString("For each border, print its length along the surface, in mm.  ") +
-        "If a border has multiple parts, their lengths are summed before printing, unless -separate-pieces is specified."
+        "If a border has multiple parts, their lengths are summed before printing, unless -separate-pieces is specified.\n\n" +
+        "The -corrected-areas option is intended for when the length is not meaningfully measurable on individual surfaces, " +
+        "it is only an approximate correction for the reduction in structure of a group average surface."
     );
     return ret;
 }
