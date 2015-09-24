@@ -246,20 +246,6 @@ SurfaceFile::validateDataArraysAfterReading()
     
     this->computeNormals();
 
-    const uint64_t numColorComponents = numNodes * 4;
-    
-    if (numColorComponents != this->nodeColoring.size()) {
-        this->nodeColoring.resize(numColorComponents);
-        
-        for (int32_t i = 0; i < numNodes; i++) {
-            const int64_t i4 = i * 4;
-            this->nodeColoring[i4]   = 0.75f;
-            this->nodeColoring[i4+1] = 0.75f;
-            this->nodeColoring[i4+2] = 0.75f;
-            this->nodeColoring[i4+3] = 1.0f;
-        }
-    }
-    
     /*
      * Apply the first transformation matrix that transforms to 
      * Talairach space.
@@ -687,26 +673,6 @@ SurfaceFile::getTriangleNormalVector(const int32_t triangleIndex,
                                 &this->coordinatePointer[c2],
                                 &this->coordinatePointer[c3],
                                 normalOut);
-}
-
-
-/**
- * Get the coloring for a node.
- *
- * @param nodeIndex
- *    Index of node for color components.
- * @return
- *    A pointer to 4 elements that are the 
- *    red, green, blue, and alpha components
- *    each of which ranges zero to one.
- */
-const float* 
-SurfaceFile::getNodeColor(int32_t nodeIndex) const
-{
-    CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()),
-                       "Invalid index for vertex coloring.");
-    
-    return &this->nodeColoring[nodeIndex * 4];
 }
 
 /**
