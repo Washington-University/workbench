@@ -131,6 +131,7 @@
 #include "OperationBackendAverageROICorrelation.h"
 #include "OperationBorderExportColorTable.h"
 #include "OperationBorderFileExportToCaret5.h"
+#include "OperationBorderLength.h"
 #include "OperationBorderMerge.h"
 #include "OperationCiftiChangeTimestep.h"
 #include "OperationCiftiConvert.h"
@@ -371,6 +372,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationBackendAverageROICorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBorderExportColorTable()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBorderFileExportToCaret5()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationBorderLength()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBorderMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiChangeTimestep()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvert()));

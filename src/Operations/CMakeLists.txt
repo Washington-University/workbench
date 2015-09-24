@@ -22,6 +22,7 @@ OperationBackendAverageDenseROI.h
 OperationBackendAverageROICorrelation.h
 OperationBorderExportColorTable.h
 OperationBorderFileExportToCaret5.h
+OperationBorderLength.h
 OperationBorderMerge.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
@@ -104,6 +105,7 @@ OperationBackendAverageDenseROI.cxx
 OperationBackendAverageROICorrelation.cxx
 OperationBorderExportColorTable.cxx
 OperationBorderFileExportToCaret5.cxx
+OperationBorderLength.cxx
 OperationBorderMerge.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx

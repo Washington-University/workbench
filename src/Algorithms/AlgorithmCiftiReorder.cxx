@@ -44,7 +44,7 @@ AString AlgorithmCiftiReorder::getShortDescription()
 OperationParameters* AlgorithmCiftiReorder::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addCiftiParameter(1, "cifti-in", "input parcellated cifti file");
+    ret->addCiftiParameter(1, "cifti-in", "input cifti file");
     
     ret->addStringParameter(2, "direction", "which dimension to reorder along, ROW or COLUMN");
     

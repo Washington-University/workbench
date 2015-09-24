@@ -26,6 +26,7 @@ AnnotationFileXmlWriter.h
 Border.h
 BorderException.h
 BorderFile.h
+BorderLengthHelper.h
 BorderPointFromSearch.h
 BorderTracingHelper.h
 BrainordinateRegionOfInterest.h
@@ -146,6 +147,7 @@ AnnotationFileXmlWriter.cxx
 Border.cxx
 BorderException.cxx
 BorderFile.cxx
+BorderLengthHelper.cxx
 BorderTracingHelper.cxx
 BrainordinateRegionOfInterest.cxx
 CaretDataFile.cxx
