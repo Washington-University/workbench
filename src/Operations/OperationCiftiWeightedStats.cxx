@@ -53,11 +53,11 @@ OperationParameters* OperationCiftiWeightedStats::getParameters()
     
     OptionalParameter* spatialWeightOpt = ret->createOptionalParameter(2, "-spatial-weights", "use vertex area and voxel volume as weights");
     OptionalParameter* leftAreaSurfOpt = spatialWeightOpt->createOptionalParameter(1, "-left-area-surf", "use a surface for left vertex areas");
-    leftAreaSurfOpt->addSurfaceParameter(1, "left-surf", "the left surface to use");
+    leftAreaSurfOpt->addSurfaceParameter(1, "left-surf", "the left surface to use, areas are in mm^2");
     OptionalParameter* rightAreaSurfOpt = spatialWeightOpt->createOptionalParameter(2, "-right-area-surf", "use a surface for right vertex areas");
-    rightAreaSurfOpt->addSurfaceParameter(1, "right-surf", "the right surface to use");
+    rightAreaSurfOpt->addSurfaceParameter(1, "right-surf", "the right surface to use, areas are in mm^2");
     OptionalParameter* cerebAreaSurfOpt = spatialWeightOpt->createOptionalParameter(3, "-cerebellum-area-surf", "use a surface for cerebellum vertex areas");
-    cerebAreaSurfOpt->addSurfaceParameter(1, "cerebellum-surf", "the cerebellum surface to use");
+    cerebAreaSurfOpt->addSurfaceParameter(1, "cerebellum-surf", "the cerebellum surface to use, areas are in mm^2");
     OptionalParameter* leftAreaMetricOpt = spatialWeightOpt->createOptionalParameter(4, "-left-area-metric", "use a metric file for left vertex areas");
     leftAreaMetricOpt->addMetricParameter(1, "left-metric", "metric file containing left vertex areas");
     OptionalParameter* rightAreaMetricOpt = spatialWeightOpt->createOptionalParameter(5, "-right-area-metric", "use a metric file for right vertex areas");
@@ -94,7 +94,8 @@ OperationParameters* OperationCiftiWeightedStats::getParameters()
         "Use -column to only give output for a single column.  " +
         "Use -roi to consider only the data within a region.  " +
         "Exactly one of -mean, -stdev, -percentile or -sum must be specified.\n\n" +
-        "Using -sum with -spatial-weights (or with -cifti-weights and a cifti containing weights of similar meaning) is equivalent to integrating with respect to area and volume."
+        "Using -sum with -spatial-weights (or with -cifti-weights and a cifti containing weights of similar meaning) is equivalent to integrating with respect to area and volume.  " +
+        "When the input is binary ROIs, this will therefore output the area or volume of each ROI."
     );
     return ret;
 }

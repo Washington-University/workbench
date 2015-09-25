@@ -51,8 +51,9 @@ OperationParameters* AlgorithmCiftiAllLabelsToROIs::getParameters()
     ret->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
         
     ret->setHelpText(
-        AString("The output cifti file has a column for each label in the specified input map, other than the ??? label, ") +
-        "each of which contains an ROI of all brainordinates that are set to the corresponding label."
+        AString("The output cifti file is a dscalar file with a column (map) for each label in the specified input map, other than the ??? label, ") +
+        "each of which contains a binary ROI of all brainordinates that are set to the corresponding label.\n\n" +
+        "Most of the time, specifying '1' for the <map> argument will do what is desired."
     );
     return ret;
 }

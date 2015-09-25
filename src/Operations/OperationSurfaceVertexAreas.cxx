@@ -44,7 +44,8 @@ OperationParameters* OperationSurfaceVertexAreas::getParameters()
     ret->addSurfaceParameter(1, "surface", "the surface to measure");
     ret->addMetricOutputParameter(2, "metric", "the output metric");
     ret->setHelpText(
-        AString("Each vertex gets one third of the area of each triangle it is a part of.")
+        AString("Each vertex gets one third of the area of each triangle it is a part of.  ") +
+        "Units are mm^2."
     );
     return ret;
 }
