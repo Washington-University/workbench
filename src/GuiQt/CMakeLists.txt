@@ -160,6 +160,7 @@ WuQImageLabel.h
 WuQListWidget.h
 WuQMessageBox.h
 WuQwtPlot.h
+WuQSpecialIncrementDoubleSpinBox.h
 WuQSpinBoxGroup.h
 WuQSpinBoxOddValue.h
 WuQTabWidget.h
@@ -350,6 +351,7 @@ WuQImageLabel.h
 WuQListWidget.h
 WuQMessageBox.h
 WuQwtPlot.h
+WuQSpecialIncrementDoubleSpinBox.h
 WuQSpinBoxGroup.h
 WuQSpinBoxOddValue.h
 WuQTabWidget.h
@@ -531,6 +533,7 @@ WuQImageLabel.cxx
 WuQListWidget.cxx
 WuQMessageBox.cxx
 WuQwtPlot.cxx
+WuQSpecialIncrementDoubleSpinBox.cxx
 WuQSpinBoxGroup.cxx
 WuQSpinBoxOddValue.cxx
 WuQTabWidget.cxx

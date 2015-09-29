@@ -65,11 +65,7 @@ namespace caret {
         
         void setOrientation(const AnnotationTextOrientationEnum::Enum orientation);
         
-        float getFontSizeForDrawing(const int32_t drawingViewportHeight) const;
-        
-        AnnotationTextFontPointSizeEnum::Enum getFontPointSize() const;
-        
-        void setFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize);
+        int32_t getFontSizeForDrawing(const int32_t drawingViewportHeight) const;
         
         AnnotationTextFontSizeTypeEnum::Enum getFontSizeType() const;
         
@@ -92,10 +88,6 @@ namespace caret {
         bool isConnectToBrainordinateValid() const;
         
         virtual bool isForegroundLineWidthSupported() const;
-        
-        float getFontPercentViewportSize() const;
-        
-        void setFontPercentViewportSize(const float fontPercentViewportHeight);
         
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                               const float viewportWidth,
@@ -123,6 +115,14 @@ namespace caret {
         virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                   const SceneClass* sceneClass);
 
+        AnnotationTextFontPointSizeEnum::Enum getFontPointSizeProtected() const;
+        
+        void setFontPointSizeProtected(const AnnotationTextFontPointSizeEnum::Enum fontPointSize);
+        
+        float getFontPercentViewportSizeProtected() const;
+        
+        void setFontPercentViewportSizeProtected(const float fontPercentViewportHeight);
+        
     private:
         /* Not implemented */
         AnnotationText();
@@ -160,6 +160,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class AnnotationFileXmlReader;
+        friend class AnnotationFileXmlWriter;
     };
     
 #ifdef __ANNOTATION_TEXT_DECLARE__

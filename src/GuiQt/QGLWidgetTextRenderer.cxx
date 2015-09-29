@@ -960,7 +960,8 @@ QGLWidgetTextRenderer::findFont(const AnnotationText& annotationText,
     /*
      * Create and save the font
      */
-    FontData* fontData = new FontData(annotationText);
+    FontData* fontData = new FontData(annotationText,
+                                      m_viewportHeight);
     if (fontData->m_valid) {
         /*
          * Request font is valid.
@@ -1039,8 +1040,11 @@ QGLWidgetTextRenderer::FontData::FontData()
  *
  * @param annotationText
  *   Annotation Text that is to be drawn.
+ * @param viewportHeight
+ *   Height of viewport.
  */
-QGLWidgetTextRenderer::FontData::FontData(const AnnotationText&  annotationText)
+QGLWidgetTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
+                                          const int32_t viewportHeight)
 {
     m_valid    = false;
     m_font     = NULL;
@@ -1076,10 +1080,9 @@ QGLWidgetTextRenderer::FontData::FontData(const AnnotationText&  annotationText)
     m_font = new QFont(fontName);
     CaretAssert(m_font);
     
-    const AnnotationTextFontPointSizeEnum::Enum fontSizeEnum = annotationText.getFontPointSize();
-    const int32_t fontSizeInt = AnnotationTextFontPointSizeEnum::toSizeNumeric(fontSizeEnum);
+    const int32_t fontSizePoints = annotationText.getFontSizeForDrawing(viewportHeight);
     
-    m_font->setPointSize(fontSizeInt);
+    m_font->setPointSize(fontSizePoints);
     m_font->setBold(annotationText.isBoldEnabled());
     m_font->setItalic(annotationText.isItalicEnabled());
     m_font->setUnderline(annotationText.isUnderlineEnabled());

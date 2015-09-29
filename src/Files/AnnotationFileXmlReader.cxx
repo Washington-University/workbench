@@ -668,7 +668,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
         AnnotationTextFontPointSizeEnum::Enum fontPointSize = AnnotationTextFontPointSizeEnum::fromName(valueString,
                                                                                  &valid);
         if (valid) {
-            textAnnotation->setFontPointSize(fontPointSize);
+            textAnnotation->setFontPointSizeProtected(fontPointSize);
         }
         else {
             m_streamHelper->throwDataFileException("Invalid value "
@@ -733,12 +733,12 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
     }
     
     if (annotationTextElementName == ELEMENT_PERCENT_SIZE_TEXT) {
-        textAnnotation->setFontPercentViewportSize(m_streamHelper->getRequiredAttributeFloatValue(attributes,
+        textAnnotation->setFontPercentViewportSizeProtected(m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                                                                   ELEMENT_TEXT_DATA,
                                                                                                   ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE));
     }
     else {
-        textAnnotation->setFontPercentViewportSize(m_streamHelper->getOptionalAttributeFloatValue(attributes,
+        textAnnotation->setFontPercentViewportSizeProtected(m_streamHelper->getOptionalAttributeFloatValue(attributes,
                                                                                                   ELEMENT_TEXT_DATA,
                                                                                                   ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE,
                                                                                                   0.05));
@@ -751,7 +751,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
         /*
          * Will cause warning or assertion failure if invalid value
          */
-        textAnnotation->setFontPercentViewportSize(textAnnotation->getFontPercentViewportSize());
+        textAnnotation->setFontPercentViewportSizeProtected(textAnnotation->getFontPercentViewportSizeProtected());
     }
     else if (annotationTextElementName == ELEMENT_POINT_SIZE_TEXT) {
         

@@ -283,7 +283,7 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_NAME,
                               AnnotationTextFontNameEnum::toName(text->getFont()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_POINT_SIZE,
-                              AnnotationTextFontPointSizeEnum::toName(text->getFontPointSize()));
+                              AnnotationTextFontPointSizeEnum::toName(text->getFontPointSizeProtected()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_UNDERLINE,
                               AString::fromBool(text->isUnderlineEnabled()));
     textDataAttributes.append(ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT,
@@ -293,7 +293,7 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     textDataAttributes.append(ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT,
                               AnnotationTextAlignVerticalEnum::toName(text->getVerticalAlignment()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE,
-                              AString::number(text->getFontPercentViewportSize()));
+                              AString::number(text->getFontPercentViewportSizeProtected()));
     textDataAttributes.append(ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE,
                               AnnotationTextConnectTypeEnum::toName(text->getConnectToBrainordinate()));
     

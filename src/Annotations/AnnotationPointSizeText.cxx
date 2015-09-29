@@ -84,8 +84,30 @@ AnnotationPointSizeText::operator=(const AnnotationPointSizeText& obj)
  *    Object that is copied.
  */
 void 
-AnnotationPointSizeText::copyHelperAnnotationPointSizeText(const AnnotationPointSizeText& obj)
+AnnotationPointSizeText::copyHelperAnnotationPointSizeText(const AnnotationPointSizeText& /*obj*/)
 {
     
 }
+
+/**
+ * @return The font point size.
+ */
+AnnotationTextFontPointSizeEnum::Enum
+AnnotationPointSizeText::getFontPointSize() const
+{
+    return getFontPointSizeProtected();
+}
+
+/**
+ * Set the font point size.
+ *
+ * @param fontPointSize
+ *     New font point size.
+ */
+void
+AnnotationPointSizeText::setFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize)
+{
+    setFontPointSizeProtected(fontPointSize);
+}
+
 

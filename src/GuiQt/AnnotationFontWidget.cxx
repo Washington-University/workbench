@@ -20,7 +20,6 @@
 /*LICENSE_END*/
 
 #include <QAction>
-#include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QToolButton>
@@ -34,13 +33,14 @@
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationTextFontNameEnum.h"
 #include "AnnotationTextFontPointSizeEnum.h"
-#include "AnnotationText.h"
+#include "AnnotationPercentSizeText.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "WuQSpecialIncrementDoubleSpinBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -52,6 +52,20 @@ using namespace caret;
  * \brief Widget for annotation font selection
  * \ingroup GuiQt
  */
+
+/**
+ * Processes increment and decrements for double spin box.
+ */
+class FontSizeFunctionObject : public WuQSpecialIncrementDoubleSpinBox::StepFunctionObject {
+public:
+    double getNewValue(const double currentValue,
+                       const int steps) const {
+        // const double stepAmount = 0.01;
+        const double stepAmount = currentValue * 0.10;
+        const double outputValue = currentValue + (stepAmount * steps);
+        return outputValue;
+    }
+};
 
 /**
  * Constructor.
@@ -84,14 +98,14 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Combo box for font size
      */
-    m_fontSizeSpinBox = new QDoubleSpinBox();
+    m_fontSizeSpinBox = new WuQSpecialIncrementDoubleSpinBox(new FontSizeFunctionObject);
     m_fontSizeSpinBox->setRange(0.0, 1.0);
     m_fontSizeSpinBox->setDecimals(3);
     m_fontSizeSpinBox->setSingleStep(0.01);
     QObject::connect(m_fontSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(fontSizeChanged()));
     WuQtUtilities::setToolTipAndStatusTip(m_fontSizeSpinBox,
-                                          "Change font size (height) as percentage of viewport height.\n");
+                                          "Change font size (height) as percentage of viewport height");
     
     /*
      * Bold Font
@@ -200,8 +214,9 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationText
         for (int32_t i = 0; i < numAnn; i++) {
             CaretAssertVectorIndex(annotationTexts, i);
             const AnnotationText* annText = annotationTexts[i];
+            const AnnotationPercentSizeText* annPercentText = dynamic_cast<const AnnotationPercentSizeText*>(annText);
             
-            const float sizeValue = annText->getFontPercentViewportSize();
+            const float sizeValue = annPercentText->getFontPercentViewportSize();
             if (i == 0) {
                 fontName = annText->getFont();
                 fontSizeValue = sizeValue;

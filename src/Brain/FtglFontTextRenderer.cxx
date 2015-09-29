@@ -887,20 +887,18 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
                 /*
                  * Font size successful ?
                  */
-                const int32_t fontSizeInt = annotationText.getFontSizeForDrawing(viewportHeight);
-                if (m_font->FaceSize(fontSizeInt)) {
+                const int32_t fontSizePoints = annotationText.getFontSizeForDrawing(viewportHeight);
+                if (m_font->FaceSize(fontSizePoints)) {
                     m_valid = true;
                     
                     CaretLogFine("Created font size="
-                                 + AnnotationTextFontPointSizeEnum::toName(annotationText.getFontPointSize())
-                                 + " scaled-size="
-                                 + AString::number(fontSizeInt)
+                                 + AString::number(fontSizePoints)
                                  + " from font file "
                                  + file.fileName());
                 }
                 else {
                     CaretLogSevere("Error creating font size "
-                                   + AString::number(fontSizeInt)
+                                   + AString::number(fontSizePoints)
                                    + " from font file "
                                    + file.fileName());
                 }

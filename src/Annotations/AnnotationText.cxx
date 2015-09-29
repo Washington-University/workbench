@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -335,24 +336,19 @@ AnnotationText::setFont(const AnnotationTextFontNameEnum::Enum font)
  * Get the font size for drawing.  The font size may
  * be scaled to "best fit" the viewport.
  *
- * The text annotation contains the height of the viewport
- * when the annotation was created.  When it is valid (
- * greater than zero), and the drawing viewport height
- * is also valid (greater than zero), a scaling value
- * (equal to drawing viewport height divided by creation
- * viewport height) is applied to the font size so that
- * the font can scale as the viewport change in size.
- * Thus, if the viewport becomes larger (smaller), the
- * text will become larger (smaller).  While one could
- * scale while drawing the text (using glScale()), the
- * quality is poor.
+ * For a Point Size Text Annotation, the size returned is the text annotation's
+ * point size.
+ * 
+ * For a Percentage Size Text Annotation, the size returned will be 
+ * "percent size" of the viewport height in a range from zero to 
+ * one where one equivalent to the viewport's height.
  *
  * @param drawingViewportHeight
  *      Height of the viewport that may be used to scale the font height.
  * @return
- *      Encoded name for font.
+ *     Size of the font.
  */
-float
+int32_t
 AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportHeight) const
 {
     float sizeForDrawing = AnnotationTextFontPointSizeEnum::toSizeNumeric(AnnotationTextFontPointSizeEnum::SIZE14);
@@ -376,14 +372,15 @@ AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportHeight) const
         sizeForDrawing = AnnotationTextFontPointSizeEnum::getMinimumSizeNumeric();
     }
     
-    return sizeForDrawing;
+    const int32_t sizeInt = static_cast<int32_t>(MathFunctions::round(sizeForDrawing));
+    return sizeInt;
 }
 
 /**
  * @return The font point size.
  */
 AnnotationTextFontPointSizeEnum::Enum
-AnnotationText::getFontPointSize() const
+AnnotationText::getFontPointSizeProtected() const
 {
     return m_fontPointSize;
 }
@@ -395,7 +392,7 @@ AnnotationText::getFontPointSize() const
  *     New font point size.
  */
 void
-AnnotationText::setFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize)
+AnnotationText::setFontPointSizeProtected(const AnnotationTextFontPointSizeEnum::Enum fontPointSize)
 {
     if (fontPointSize != m_fontPointSize) {
         m_fontPointSize = fontPointSize;
@@ -564,7 +561,7 @@ AnnotationText::applyCoordinatesSizeAndRotationFromOther(const Annotation* other
  * Range is zero to one.
  */
 float
-AnnotationText::getFontPercentViewportSize() const
+AnnotationText::getFontPercentViewportSizeProtected() const
 {
     return m_fontPercentViewportSize;
 }
@@ -577,7 +574,7 @@ AnnotationText::getFontPercentViewportSize() const
  *    Range is zero to one.
  */
 void
-AnnotationText::setFontPercentViewportSize(const float fontPercentViewportHeight)
+AnnotationText::setFontPercentViewportSizeProtected(const float fontPercentViewportHeight)
 {
     if ((fontPercentViewportHeight < 0.0)
         || (fontPercentViewportHeight > 1.0)) {

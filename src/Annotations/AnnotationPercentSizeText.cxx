@@ -84,8 +84,33 @@ AnnotationPercentSizeText::operator=(const AnnotationPercentSizeText& obj)
  *    Object that is copied.
  */
 void 
-AnnotationPercentSizeText::copyHelperAnnotationPercentSizeText(const AnnotationPercentSizeText& obj)
+AnnotationPercentSizeText::copyHelperAnnotationPercentSizeText(const AnnotationPercentSizeText& /* obj */)
 {
     
 }
+
+/**
+ * @return Size of font as a percentage of the viewport height.
+ *
+ * Range is zero to one.
+ */
+float
+AnnotationPercentSizeText::getFontPercentViewportSize() const
+{
+    return getFontPercentViewportSizeProtected();
+}
+
+/**
+ * Set the size of the font as a percentage of the viewport height.
+ *
+ * @param fontPercentViewportHeight
+ *    New value for percentage of viewport height.
+ *    Range is zero to one.
+ */
+void
+AnnotationPercentSizeText::setFontPercentViewportSize(const float fontPercentViewportHeight)
+{
+    setFontPercentViewportSizeProtected(fontPercentViewportHeight);
+}
+
 

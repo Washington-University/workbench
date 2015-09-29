@@ -76,7 +76,8 @@ namespace caret {
         public:
             FontData();
             
-            FontData(const AnnotationText&  annotationText);
+            FontData(const AnnotationText&  annotationText,
+                     const int32_t viewportHeight);
             
             ~FontData();
             

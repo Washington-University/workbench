@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_PERCENT_SIZE_TEXT_H__
-#define __ANNOTATION_PERCENT_SIZE_TEXT_H__
+#ifndef __WU_Q_SPECIAL_INCREMENT_DOUBLE_SPIN_BOX_H__
+#define __WU_Q_SPECIAL_INCREMENT_DOUBLE_SPIN_BOX_H__
 
 /*LICENSE_START*/
 /*
@@ -22,40 +22,45 @@
 /*LICENSE_END*/
 
 
-#include "AnnotationText.h"
+#include <QDoubleSpinBox>
 
 
 
 namespace caret {
 
-    class AnnotationPercentSizeText : public AnnotationText {
+    class WuQSpecialIncrementDoubleSpinBox : public QDoubleSpinBox {
         
+        Q_OBJECT
+
     public:
-        AnnotationPercentSizeText();
+        class StepFunctionObject {
+        public:
+            virtual double getNewValue(const double currentValue,
+                                       const int steps) const = 0;
+        };
         
-        virtual ~AnnotationPercentSizeText();
+        WuQSpecialIncrementDoubleSpinBox(StepFunctionObject* stepFunctionObject);
         
-        AnnotationPercentSizeText(const AnnotationPercentSizeText& obj);
-
-        AnnotationPercentSizeText& operator=(const AnnotationPercentSizeText& obj);
+        virtual ~WuQSpecialIncrementDoubleSpinBox();
         
-        float getFontPercentViewportSize() const;
+        virtual void stepBy(int steps);
         
-        void setFontPercentViewportSize(const float fontPercentViewportHeight);
-        
-
         // ADD_NEW_METHODS_HERE
 
     private:
-        void copyHelperAnnotationPercentSizeText(const AnnotationPercentSizeText& obj);
+        WuQSpecialIncrementDoubleSpinBox(const WuQSpecialIncrementDoubleSpinBox&);
 
+        WuQSpecialIncrementDoubleSpinBox& operator=(const WuQSpecialIncrementDoubleSpinBox&);
+        
+        StepFunctionObject* m_stepFunctionObject;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __ANNOTATION_PERCENT_SIZE_TEXT_DECLARE__
+#ifdef __WU_Q_SPECIAL_INCREMENT_DOUBLE_SPIN_BOX_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_PERCENT_SIZE_TEXT_DECLARE__
+#endif // __WU_Q_SPECIAL_INCREMENT_DOUBLE_SPIN_BOX_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_PERCENT_SIZE_TEXT_H__
+#endif  //__WU_Q_SPECIAL_INCREMENT_DOUBLE_SPIN_BOX_H__

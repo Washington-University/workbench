@@ -39,6 +39,10 @@ namespace caret {
 
         AnnotationPointSizeText& operator=(const AnnotationPointSizeText& obj);
         
+        AnnotationTextFontPointSizeEnum::Enum getFontPointSize() const;
+        
+        void setFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize);
+        
 
         // ADD_NEW_METHODS_HERE
 

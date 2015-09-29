@@ -24,7 +24,8 @@
 #undef __ANNOTATION_UNDO_COMMAND_DECLARE__
 
 #include "AnnotationLine.h"
-#include "AnnotationText.h"
+#include "AnnotationPercentSizeText.h"
+#include "AnnotationPointSizeText.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "EventAnnotationDeleteUndeleteFromFile.h"
 #include "EventManager.h"
@@ -303,8 +304,8 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_PERCENT_SIZE:
         {
-            AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
-            const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
+            AnnotationPercentSizeText* textAnn = dynamic_cast<AnnotationPercentSizeText*>(annotation);
+            const AnnotationPercentSizeText* textAnnValue = dynamic_cast<const AnnotationPercentSizeText*>(annotationValue);
             if ((textAnn != NULL)
                 && (textAnnValue != NULL)) {
                 textAnn->setFontPercentViewportSize(textAnnValue->getFontPercentViewportSize());
@@ -316,8 +317,8 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_POINT_SIZE:
         {
-            AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
-            const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
+            AnnotationPointSizeText* textAnn = dynamic_cast<AnnotationPointSizeText*>(annotation);
+            const AnnotationPointSizeText* textAnnValue = dynamic_cast<const AnnotationPointSizeText*>(annotationValue);
             if ((textAnn != NULL)
                 && (textAnnValue != NULL)) {
                 textAnn->setFontPointSize(textAnnValue->getFontPointSize());
@@ -1190,7 +1191,7 @@ AnnotationRedoUndoCommand::setModeTextFontPointSize(const AnnotationTextFontPoin
         CaretAssert(annotation);
         
         if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
+            AnnotationPointSizeText* redoAnnotation = dynamic_cast<AnnotationPointSizeText*>(annotation->clone());
             CaretAssert(redoAnnotation);
             redoAnnotation->setFontPointSize(newFontPointSize);
             
@@ -1225,7 +1226,7 @@ AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercent
         CaretAssert(annotation);
         
         if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
+            AnnotationPercentSizeText* redoAnnotation = dynamic_cast<AnnotationPercentSizeText*>(annotation->clone());
             CaretAssert(redoAnnotation);
             redoAnnotation->setFontPercentViewportSize(newFontPercentSize);
             

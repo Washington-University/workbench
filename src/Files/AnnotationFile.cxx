@@ -63,7 +63,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
     const bool addExampleDataFlag = false;
     if (addExampleDataFlag) {
         {
-            AnnotationText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
             at->setTabIndex(3);
@@ -76,7 +76,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         {
-            AnnotationText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -85,14 +85,14 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
             coord->setXYZ(0.5, 0.9, 0);
             at->setForegroundColor(CaretColorEnum::BLUE);
             at->setBackgroundColor(CaretColorEnum::GRAY);
-            at->setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE20);
+            at->setFontPercentViewportSize(0.10);
             at->setBoldEnabled(true);
             at->setText("WINDOW-CENTER-MIDDLE,0.5,0.9");
             addAnnotation(at);
         }
         
         {
-            AnnotationText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -102,14 +102,14 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
             at->setRotationAngle(30.0);
             at->setForegroundColor(CaretColorEnum::FUCHSIA);
             at->setBackgroundColor(CaretColorEnum::WHITE);
-            at->setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE16);
+            at->setFontPercentViewportSize(0.08);
             at->setBoldEnabled(true);
             at->setText("Rotated");
             addAnnotation(at);
         }
         
         {
-            AnnotationText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -119,14 +119,14 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
             coord->setXYZ(0.9, 0.5, 0);
             at->setForegroundColor(CaretColorEnum::PURPLE);
             at->setBackgroundColor(CaretColorEnum::WHITE);
-            at->setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE24);
+            at->setFontPercentViewportSize(0.15);
             at->setBoldEnabled(false);
             at->setText("STACKED-VERT-0.9-0.5");
             addAnnotation(at);
         }
         
         {
-            AnnotationText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -136,7 +136,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
             coord->setXYZ(0.7, 0.7, 0);
             at->setForegroundColor(CaretColorEnum::TEAL);
             at->setBackgroundColor(CaretColorEnum::SILVER);
-            at->setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE24);
+            at->setFontPercentViewportSize(0.15);
             at->setBoldEnabled(false);
             at->setText("STACK-ROT");
             at->setRotationAngle(-90.0);
@@ -184,7 +184,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         {
-            AnnotationText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
             coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 7883, 20);
@@ -194,7 +194,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         for (int32_t iTab = 0; iTab < 10; iTab++) {
-            AnnotationText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
             at->setTabIndex(iTab);
@@ -204,7 +204,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
             coord->setXYZ(0.95, 0.05, 0);
             at->setForegroundColor(CaretColorEnum::TEAL);
             at->setBackgroundColor(CaretColorEnum::WHITE);
-            at->setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE18);
+            at->setFontPercentViewportSize(0.12);
             at->setBoldEnabled(true);
             at->setText(AString::number(iTab + 1));
             addAnnotation(at);

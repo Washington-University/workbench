@@ -594,33 +594,33 @@ AnnotationCreateDialog::okButtonClicked()
         return;
     }
     
-    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-        AnnotationText* annText = dynamic_cast<AnnotationText*>(annotation.getPointer());
-        
-        if (annText != NULL) {
-            BrainOpenGLViewportContent* viewportContent = m_mouseEvent.getViewportContent();
-            CaretAssert(viewportContent);
-            int viewport[4] = { -1, -1, -1, -1 };
-            switch (annotation->getCoordinateSpace()) {
-                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                    viewportContent->getModelViewport(viewport);
-                    break;
-                case AnnotationCoordinateSpaceEnum::PIXELS:
-                    break;
-                case AnnotationCoordinateSpaceEnum::SURFACE:
-                    viewportContent->getModelViewport(viewport);
-                    break;
-                case AnnotationCoordinateSpaceEnum::TAB:
-                    viewportContent->getModelViewport(viewport);
-                    break;
-                case AnnotationCoordinateSpaceEnum::WINDOW:
-                    viewportContent->getWindowViewport(viewport);
-                    break;
-            }
-            const float viewportHeight = viewport[3];
-            annText->setFontPercentViewportSize(viewportHeight);
-        }
-    }
+//    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+//        AnnotationPercentSizeText* annText = dynamic_cast<AnnotationPercentSizeText*>(annotation.getPointer());
+//        
+//        if (annText != NULL) {
+//            BrainOpenGLViewportContent* viewportContent = m_mouseEvent.getViewportContent();
+//            CaretAssert(viewportContent);
+//            int viewport[4] = { -1, -1, -1, -1 };
+//            switch (annotation->getCoordinateSpace()) {
+//                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//                    viewportContent->getModelViewport(viewport);
+//                    break;
+//                case AnnotationCoordinateSpaceEnum::PIXELS:
+//                    break;
+//                case AnnotationCoordinateSpaceEnum::SURFACE:
+//                    viewportContent->getModelViewport(viewport);
+//                    break;
+//                case AnnotationCoordinateSpaceEnum::TAB:
+//                    viewportContent->getModelViewport(viewport);
+//                    break;
+//                case AnnotationCoordinateSpaceEnum::WINDOW:
+//                    viewportContent->getWindowViewport(viewport);
+//                    break;
+//            }
+//            const float viewportHeight = viewport[3];
+//            annText->setFontPercentViewportSize(viewportHeight);
+//        }
+//    }
     
     /*
      * Need to release annotation from its CaretPointer since the
