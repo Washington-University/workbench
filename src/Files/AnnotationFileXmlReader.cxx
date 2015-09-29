@@ -33,7 +33,8 @@
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
-#include "AnnotationText.h"
+#include "AnnotationPercentSizeText.h"
+#include "AnnotationPointSizeText.h"
 #include "CaretAssert.h"
 #include "DataFileException.h"
 #include "GiftiXmlElements.h"
@@ -233,9 +234,21 @@ AnnotationFileXmlReader::readVersionOne(AnnotationFile* annotationFile)
                                          annotation);
             annotationFile->addAnnotation(annotation.releasePointer());
         }
-        else if (elementName == ELEMENT_TEXT) {
-            CaretPointer<AnnotationText> annotation(new AnnotationText());
-            readTwoDimensionalAnnotation(ELEMENT_TEXT,
+        else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
+            CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText());
+            readTwoDimensionalAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
+                                         annotation);
+            annotationFile->addAnnotation(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_POINT_SIZE_TEXT) {
+            CaretPointer<AnnotationText> annotation(new AnnotationPointSizeText());
+            readTwoDimensionalAnnotation(ELEMENT_POINT_SIZE_TEXT,
+                                         annotation);
+            annotationFile->addAnnotation(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_TEXT_OBSOLETE) {
+            CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText());
+            readTwoDimensionalAnnotation(ELEMENT_TEXT_OBSOLETE,
                                          annotation);
             annotationFile->addAnnotation(annotation.releasePointer());
         }
@@ -559,11 +572,10 @@ AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationE
     /*
      * Is this a text annotation?
      */
-    if (annotationElementName == ELEMENT_TEXT) {
-        AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
-        readTextDataElement(textAnn);
-        CaretAssert(textAnn);
-        
+    AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
+    if (textAnn != NULL) {
+        readTextDataElement(textAnn,
+                            annotationElementName);
     }
 }
 
@@ -573,11 +585,14 @@ AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationE
  *
  * @param annotation
  *     One-dimensional annotation that has its data read.
+ * @param annotationTextElementName
+ *     Name of the annotation element.
  * @throw
  *     DataFileException
  */
 void
-AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
+AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
+                                             const QString& annotationTextElementName)
 {
     CaretAssert(textAnnotation);
     
@@ -631,7 +646,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
                                                                                     ELEMENT_TEXT_DATA,
                                                                                     ATTRIBUTE_TEXT_FONT_NAME);
         bool valid = false;
-        AnnotationFontNameEnum::Enum fontName = AnnotationFontNameEnum::fromName(valueString,
+        AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::fromName(valueString,
                                                                                  &valid);
         if (valid) {
             textAnnotation->setFont(fontName);
@@ -644,21 +659,22 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
         }
     }
     
-    {
+    if (annotationTextElementName != ELEMENT_PERCENT_SIZE_TEXT) {
         const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
-                                                                    ELEMENT_TEXT_DATA,
-                                                                    ATTRIBUTE_TEXT_FONT_SIZE);
+                                                                                    ELEMENT_TEXT_DATA,
+                                                                                    ATTRIBUTE_TEXT_FONT_POINT_SIZE,
+                                                                                    "fontSize");
         bool valid = false;
-        AnnotationFontSizeEnum::Enum fontSize = AnnotationFontSizeEnum::fromName(valueString,
+        AnnotationTextFontPointSizeEnum::Enum fontPointSize = AnnotationTextFontPointSizeEnum::fromName(valueString,
                                                                                  &valid);
         if (valid) {
-            textAnnotation->setFontSize(fontSize);
+            textAnnotation->setFontPointSize(fontPointSize);
         }
         else {
             m_streamHelper->throwDataFileException("Invalid value "
                                    + valueString
                                    + " for attribute "
-                                   + ATTRIBUTE_TEXT_FONT_SIZE);
+                                   + ATTRIBUTE_TEXT_FONT_POINT_SIZE);
         }
     }
 
@@ -716,11 +732,38 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation)
         }
     }
     
-    textAnnotation->setViewportHeightWhenCreated(m_streamHelper->getOptionalAttributeFloatValue(attributes,
-                                                                                               ELEMENT_TEXT_DATA,
-                                                                                               ATTRIBUTE_TEXT_VIEWPORT_HEIGHT,
-                                                                                                -1.0));
-                                                 
+    if (annotationTextElementName == ELEMENT_PERCENT_SIZE_TEXT) {
+        textAnnotation->setFontPercentViewportSize(m_streamHelper->getRequiredAttributeFloatValue(attributes,
+                                                                                                  ELEMENT_TEXT_DATA,
+                                                                                                  ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE));
+    }
+    else {
+        textAnnotation->setFontPercentViewportSize(m_streamHelper->getOptionalAttributeFloatValue(attributes,
+                                                                                                  ELEMENT_TEXT_DATA,
+                                                                                                  ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE,
+                                                                                                  0.05));
+    }
+    
+    
+    if (annotationTextElementName == ELEMENT_TEXT_OBSOLETE) {
+    }
+    else if (annotationTextElementName == ELEMENT_PERCENT_SIZE_TEXT) {
+        /*
+         * Will cause warning or assertion failure if invalid value
+         */
+        textAnnotation->setFontPercentViewportSize(textAnnotation->getFontPercentViewportSize());
+    }
+    else if (annotationTextElementName == ELEMENT_POINT_SIZE_TEXT) {
+        
+    }
+    else {
+        m_streamHelper->throwDataFileException("Unrecognized text element name \""
+                                               + annotationTextElementName
+                                               + "\" expected "
+                                               + ELEMENT_PERCENT_SIZE_TEXT
+                                               + " or "
+                                               + ELEMENT_POINT_SIZE_TEXT);
+    }
     
     /*
      * Read the annotation's text which will also finish reading through

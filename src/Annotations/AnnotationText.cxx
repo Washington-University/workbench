@@ -24,6 +24,7 @@
 #undef __ANNOTATION_TEXT_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -37,11 +38,25 @@ using namespace caret;
  * \ingroup Annotations
  */
 
+///**
+// * Constructor for a text annotation.
+// */
+//AnnotationText::AnnotationText()
+//: AnnotationTwoDimensionalShape(AnnotationTypeEnum::TEXT),
+//m_fontSizeType(AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT)
+//{
+//    initializeAnnotationTextMembers();
+//}
+
 /**
- * Constructor for a text annotation.
+ * Constructor for subclass.
+ *
+ * @param fontSizeType
+ *    Type of font sizing.
  */
-AnnotationText::AnnotationText()
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::TEXT)
+AnnotationText::AnnotationText(const AnnotationTextFontSizeTypeEnum::Enum fontSizeType)
+: AnnotationTwoDimensionalShape(AnnotationTypeEnum::TEXT),
+m_fontSizeType(fontSizeType)
 {
     initializeAnnotationTextMembers();
 }
@@ -59,7 +74,8 @@ AnnotationText::~AnnotationText()
  *    Object that is copied.
  */
 AnnotationText::AnnotationText(const AnnotationText& obj)
-: AnnotationTwoDimensionalShape(obj)
+: AnnotationTwoDimensionalShape(obj),
+m_fontSizeType(obj.m_fontSizeType)
 {
     initializeAnnotationTextMembers();
     this->copyHelperAnnotationText(obj);
@@ -91,14 +107,14 @@ AnnotationText::initializeAnnotationTextMembers()
     m_text = "";
     m_alignmentHorizontal = AnnotationTextAlignHorizontalEnum::CENTER;
     m_alignmentVertical   = AnnotationTextAlignVerticalEnum::MIDDLE;
-    m_font = AnnotationFontNameEnum::VERA;
-    m_fontSize = AnnotationFontSizeEnum::SIZE14;
+    m_font = AnnotationTextFontNameEnum::VERA;
+    m_fontPointSize = AnnotationTextFontPointSizeEnum::SIZE14;
     m_orientation = AnnotationTextOrientationEnum::HORIZONTAL;
     m_boldEnabled = false;
     m_italicEnabled = false;
     m_underlineEnabled = false;
     m_connectToBrainordinate = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
-    m_viewportHeightWhenCreated = -1.0;
+    m_fontPercentViewportSize = 0.05;
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_text",
@@ -107,10 +123,10 @@ AnnotationText::initializeAnnotationTextMembers()
                                                              &m_alignmentHorizontal);
     m_sceneAssistant->add<AnnotationTextAlignVerticalEnum>("m_alignmentVertical",
                                                            &m_alignmentVertical);
-    m_sceneAssistant->add<AnnotationFontNameEnum>("m_font",
+    m_sceneAssistant->add<AnnotationTextFontNameEnum>("m_font",
                                                   &m_font);
-    m_sceneAssistant->add<AnnotationFontSizeEnum>("m_fontSize",
-                                                  &m_fontSize);
+    m_sceneAssistant->add<AnnotationTextFontPointSizeEnum>("m_fontPointSize",
+                                                  &m_fontPointSize);
     m_sceneAssistant->add<AnnotationTextOrientationEnum>("m_orientation",
                                                          &m_orientation);
     m_sceneAssistant->add<AnnotationTextConnectTypeEnum>("m_connectToBrainordinate",
@@ -121,8 +137,8 @@ AnnotationText::initializeAnnotationTextMembers()
                           &m_italicEnabled);
     m_sceneAssistant->add("m_underlineEnabled",
                           &m_underlineEnabled);
-    m_sceneAssistant->add("m_viewportHeightWhenCreated",
-                          &m_viewportHeightWhenCreated);
+    m_sceneAssistant->add("m_fontPercentViewportSize",
+                          &m_fontPercentViewportSize);
 }
 
 /**
@@ -151,9 +167,9 @@ AnnotationText::initializeAnnotationTextMembers()
 AString
 AnnotationText::getFontRenderingEncodedName(const float drawingViewportHeight) const
 {
-    AString fontSizeID = AnnotationFontSizeEnum::toName(m_fontSize);
+    AString fontSizeID = AnnotationTextFontPointSizeEnum::toName(m_fontPointSize);
     
-    if (m_viewportHeightWhenCreated > 0.0) {
+    if (m_fontPercentViewportSize > 0.0) {
         if (drawingViewportHeight> 0.0) {
             const int32_t fontSizeInt = getFontSizeForDrawing(drawingViewportHeight);
             if (fontSizeInt > 0) {
@@ -165,7 +181,7 @@ AnnotationText::getFontRenderingEncodedName(const float drawingViewportHeight) c
     AString encodedName;
     encodedName.reserve(50);
     
-    encodedName.append(AnnotationFontNameEnum::toName(m_font));
+    encodedName.append(AnnotationTextFontNameEnum::toName(m_font));
     
     encodedName.append("_" + fontSizeID);
     
@@ -294,7 +310,7 @@ AnnotationText::isConnectToBrainordinateValid() const
 /**
  * @return The font.
  */
-AnnotationFontNameEnum::Enum
+AnnotationTextFontNameEnum::Enum
 AnnotationText::getFont() const
 {
     return m_font;
@@ -307,7 +323,7 @@ AnnotationText::getFont() const
  *    Font for the annotation.
  */
 void
-AnnotationText::setFont(const AnnotationFontNameEnum::Enum font)
+AnnotationText::setFont(const AnnotationTextFontNameEnum::Enum font)
 {
     if (font != m_font) {
         m_font = font;
@@ -336,48 +352,64 @@ AnnotationText::setFont(const AnnotationFontNameEnum::Enum font)
  * @return
  *      Encoded name for font.
  */
-int32_t
+float
 AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportHeight) const
 {
-    int32_t fontSizeNumeric = AnnotationFontSizeEnum::toSizeNumeric(m_fontSize);
+    float sizeForDrawing = AnnotationTextFontPointSizeEnum::toSizeNumeric(AnnotationTextFontPointSizeEnum::SIZE14);
     
-    if (m_viewportHeightWhenCreated > 0.0) {
-        if (drawingViewportHeight> 0.0) {
-            const float scale = drawingViewportHeight / m_viewportHeightWhenCreated;
-            const int32_t fontSizeInt = static_cast<int32_t>(static_cast<float>(fontSizeNumeric) * scale);
-            fontSizeNumeric = fontSizeInt;
+    switch (m_fontSizeType) {
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
+        {
+            /*
+             * May need pixel to points conversion if not 72 DPI
+             */
+            const float pixelSize = drawingViewportHeight * m_fontPercentViewportSize;
+            sizeForDrawing = pixelSize;
         }
+            break;
+        case AnnotationTextFontSizeTypeEnum::POINTS:
+            sizeForDrawing = AnnotationTextFontPointSizeEnum::toSizeNumeric(m_fontPointSize);
+            break;
     }
     
-    if (fontSizeNumeric < AnnotationFontSizeEnum::getMinimumSizeNumeric()) {
-        fontSizeNumeric = AnnotationFontSizeEnum::getMinimumSizeNumeric();
+    if (sizeForDrawing < AnnotationTextFontPointSizeEnum::getMinimumSizeNumeric()) {
+        sizeForDrawing = AnnotationTextFontPointSizeEnum::getMinimumSizeNumeric();
     }
     
-    return fontSizeNumeric;
+    return sizeForDrawing;
 }
 
 /**
- * @return The font size.
+ * @return The font point size.
  */
-AnnotationFontSizeEnum::Enum
-AnnotationText::getFontSize() const
+AnnotationTextFontPointSizeEnum::Enum
+AnnotationText::getFontPointSize() const
 {
-    return m_fontSize;
+    return m_fontPointSize;
 }
 
 /**
- * Set the font size.
+ * Set the font point size.
  *
- * @param fontSize
- *     New font size.
+ * @param fontPointSize
+ *     New font point size.
  */
 void
-AnnotationText::setFontSize(const AnnotationFontSizeEnum::Enum fontSize)
+AnnotationText::setFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize)
 {
-    if (fontSize != m_fontSize) {
-        m_fontSize = fontSize;
+    if (fontPointSize != m_fontPointSize) {
+        m_fontPointSize = fontPointSize;
         setModified();
     }
+}
+
+/**
+ * @param The font size type.
+ */
+AnnotationTextFontSizeTypeEnum::Enum
+AnnotationText::getFontSizeType() const
+{
+    return m_fontSizeType;
 }
 
 /**
@@ -500,17 +532,17 @@ AnnotationText::setUnderlineEnabled(const bool enabled)
 void 
 AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
 {
-    m_text             = obj.m_text;
+    m_text                = obj.m_text;
     m_alignmentHorizontal = obj.m_alignmentHorizontal;
     m_alignmentVertical   = obj.m_alignmentVertical;
-    m_font             = obj.m_font;
-    m_fontSize         = obj.m_fontSize;
-    m_orientation      = obj.m_orientation;
-    m_boldEnabled      = obj.m_boldEnabled;
-    m_italicEnabled    = obj.m_italicEnabled;
-    m_underlineEnabled = obj.m_underlineEnabled;
+    m_font                = obj.m_font;
+    m_fontPointSize       = obj.m_fontPointSize;
+    m_orientation         = obj.m_orientation;
+    m_boldEnabled         = obj.m_boldEnabled;
+    m_italicEnabled       = obj.m_italicEnabled;
+    m_underlineEnabled    = obj.m_underlineEnabled;
     m_connectToBrainordinate = obj.m_connectToBrainordinate;
-    m_viewportHeightWhenCreated = obj.m_viewportHeightWhenCreated;
+    m_fontPercentViewportSize = obj.m_fontPercentViewportSize;
 }
 
 /**
@@ -527,35 +559,36 @@ AnnotationText::applyCoordinatesSizeAndRotationFromOther(const Annotation* other
 }
 
 /**
- * @return Viewport height when annotation was created.  If the value is
- * negative, the original viewport height is unknown and no scaling 
- * should be performed.
+ * @return Size of font as a percentage of the viewport height.
  *
- * When text is drawn, it size should scale with the size of the viewport.
- * Thus, the scale is (current viewport height) divided by (origin
- * viewport height).
+ * Range is zero to one.
  */
 float
-AnnotationText::getViewportHeightWhenCreated() const
+AnnotationText::getFontPercentViewportSize() const
 {
-    return m_viewportHeightWhenCreated;
+    return m_fontPercentViewportSize;
 }
 
 /**
- * Set the viewport height when annotation was created.
+ * Set the size of the font as a percentage of the viewport height.
  *
- * When text is drawn, it size should scale with the size of the viewport.
- * Thus, the scale is (current viewport height) divided by (origin
- * viewport height).
- *
- * @param viewportHeight
- *    Height of viewport in which the text annotation was created.
+ * @param fontPercentViewportHeight
+ *    New value for percentage of viewport height.
+ *    Range is zero to one.
  */
 void
-AnnotationText::setViewportHeightWhenCreated(const float viewportHeight)
+AnnotationText::setFontPercentViewportSize(const float fontPercentViewportHeight)
 {
-    if (viewportHeight != m_viewportHeightWhenCreated) {
-        m_viewportHeightWhenCreated = viewportHeight;
+    if ((fontPercentViewportHeight < 0.0)
+        || (fontPercentViewportHeight > 1.0)) {
+        const QString msg("Percent viewport height should range [0.0, 1.0] but value is "
+                          + QString::number(fontPercentViewportHeight));
+        CaretLogWarning(msg);
+        CaretAssertMessage(0, msg);
+    }
+    
+    if (fontPercentViewportHeight != m_fontPercentViewportSize) {
+        m_fontPercentViewportSize = fontPercentViewportHeight;
         setModified();
     }
 }

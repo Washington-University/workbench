@@ -101,11 +101,14 @@ namespace caret {
         void setModeTextFontItalic(const bool newStatus,
                                    const std::vector<Annotation*>& annotations);
         
-        void setModeTextFontName(const AnnotationFontNameEnum::Enum newFontName,
+        void setModeTextFontName(const AnnotationTextFontNameEnum::Enum newFontName,
                                    const std::vector<Annotation*>& annotations);
         
-        void setModeTextFontSize(const AnnotationFontSizeEnum::Enum newFontSize,
+        void setModeTextFontPointSize(const AnnotationTextFontPointSizeEnum::Enum newFontPointSize,
                                    const std::vector<Annotation*>& annotations);
+        
+        void setModeTextFontPercentSize(const float newFontPercentSize,
+                                        const std::vector<Annotation*>& annotations);
         
         void setModeTextFontUnderline(const bool newStatus,
                                       const std::vector<Annotation*>& annotations);

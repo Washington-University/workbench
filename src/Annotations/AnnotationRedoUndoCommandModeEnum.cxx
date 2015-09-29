@@ -178,9 +178,13 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                      "TEXT_FONT_NAME",
                                                      "Text Font Name"));
     
-    enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_FONT_SIZE,
-                                                     "TEXT_FONT_SIZE",
-                                                     "Text Font Size"));
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_FONT_PERCENT_SIZE,
+                                                     "TEXT_FONT_PERCENT_SIZE",
+                                                     "Text Font Percent Size"));
+    
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_FONT_POINT_SIZE,
+                                                         "TEXT_FONT_POINT_SIZE",
+                                                         "Text Font Point Size"));
     
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_FONT_UNDERLINE,
                                                      "TEXT_FONT_UNDERLINE",

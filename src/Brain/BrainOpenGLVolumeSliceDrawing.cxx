@@ -26,7 +26,7 @@
 #undef __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
 
 #include "AnnotationCoordinate.h"
-#include "AnnotationText.h"
+#include "AnnotationPointSizeText.h"
 #include "BoundingBox.h"
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
@@ -591,10 +591,10 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                                                    + AString::number(sliceCoord, 'f', montageCoordPrecision)
                                                    + "mm");
                         
-                        AnnotationText annotationText;
+                        AnnotationPointSizeText annotationText;
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+                        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
                         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
                         annotationText.setCustomForegroundColor(foregroundRGBA);
                         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
@@ -3493,8 +3493,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
     }
     
     if (drawCrosshairLabelsFlag) {
-        const AnnotationFontSizeEnum::Enum fontSize = AnnotationFontSizeEnum::SIZE18;
-//        const int32_t fontSizeInt = AnnotationFontSizeEnum::toSizeNumeric(fontSize);
+        const AnnotationTextFontPointSizeEnum::Enum fontSize = AnnotationTextFontPointSizeEnum::SIZE18;
+//        const int32_t fontSizeInt = AnnotationTextFontPointSizeEnum::toSizeNumeric(fontSize);
 //        
 //        const int textCenter[2] = {
 //            textLeftWindowXY[0],
@@ -3605,11 +3605,11 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
 //                   savedViewport[2],
 //                   savedViewport[3]);
         
-        AnnotationText annotationText;
+        AnnotationPointSizeText annotationText;
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setBoldEnabled(true);
-        annotationText.setFontSize(fontSize);
+        annotationText.setFontPointSize(fontSize);
         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(horizontalAxisRGBA);
@@ -3891,10 +3891,10 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
                                                  axesCrosshairRadius);
         }
         
-        AnnotationText annotationText;
+        AnnotationPointSizeText annotationText;
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE14);
+        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         

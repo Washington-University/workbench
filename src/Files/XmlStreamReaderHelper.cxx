@@ -121,6 +121,10 @@ XmlStreamReaderHelper::getOptionalAttributeStringValue(const QXmlStreamAttribute
  *     Name of element containing the attributes.
  * @param attributeName
  *     Name of the attribute.
+ * @param alternateAttributeNameOne
+ *     Use if attributeName is not found.
+ * @param alternateAttributeNameTwo
+ *     Use if neither attributeName nor alternateAttributeNameOne is not found.
  * @return
  *     String value for the attribute.
  * @throw
@@ -129,16 +133,32 @@ XmlStreamReaderHelper::getOptionalAttributeStringValue(const QXmlStreamAttribute
  */
 QString
 XmlStreamReaderHelper::getRequiredAttributeStringValue(const QXmlStreamAttributes& attributes,
-                                                         const QString& elementName,
-                                                         const QString& attributeName)
+                                                       const QString& elementName,
+                                                       const QString& attributeName,
+                                                       const QString& alternateAttributeNameOne,
+                                                       const QString& alternateAttributeNameTwo)
 {
     QString valueString;
     
+    QString foundAttributeName;
+    
     if (attributes.hasAttribute(attributeName)) {
-        valueString = attributes.value(attributeName).toString();
+        foundAttributeName = attributeName;
+    }
+    else if (( ! alternateAttributeNameOne.isEmpty())
+             && attributes.hasAttribute(alternateAttributeNameOne)) {
+        foundAttributeName = alternateAttributeNameOne;
+    }
+    else if (( ! alternateAttributeNameTwo.isEmpty())
+             && attributes.hasAttribute(alternateAttributeNameTwo)) {
+        foundAttributeName = alternateAttributeNameTwo;
+    }
+    
+    if ( ! foundAttributeName.isEmpty()) {
+        valueString = attributes.value(foundAttributeName).toString();
         if (valueString.isEmpty()) {
             throwDataFileException("Value for attribute "
-                                   + attributeName
+                                   + foundAttributeName
                                    + " in element "
                                    + elementName
                                    + " is empty");

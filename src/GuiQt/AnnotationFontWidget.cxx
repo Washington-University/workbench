@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <QAction>
+#include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QToolButton>
@@ -31,8 +32,8 @@
 
 #include "AnnotationManager.h"
 #include "AnnotationRedoUndoCommand.h"
-#include "AnnotationFontNameEnum.h"
-#include "AnnotationFontSizeEnum.h"
+#include "AnnotationTextFontNameEnum.h"
+#include "AnnotationTextFontPointSizeEnum.h"
 #include "AnnotationText.h"
 #include "Brain.h"
 #include "CaretAssert.h"
@@ -74,7 +75,7 @@ m_browserWindowIndex(browserWindowIndex)
      * Combo box for font name selection
      */
     m_fontNameComboBox = new EnumComboBoxTemplate(this);
-    m_fontNameComboBox->setup<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>();
+    m_fontNameComboBox->setup<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>();
     QObject::connect(m_fontNameComboBox, SIGNAL(itemActivated()),
                      this, SLOT(fontNameChanged()));
     WuQtUtilities::setToolTipAndStatusTip(m_fontNameComboBox->getWidget(),
@@ -83,12 +84,14 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Combo box for font size
      */
-    m_fontSizeComboBox = new EnumComboBoxTemplate(this);
-    m_fontSizeComboBox->setup<AnnotationFontSizeEnum,AnnotationFontSizeEnum::Enum>();
-    QObject::connect(m_fontSizeComboBox, SIGNAL(itemActivated()),
+    m_fontSizeSpinBox = new QDoubleSpinBox();
+    m_fontSizeSpinBox->setRange(0.0, 1.0);
+    m_fontSizeSpinBox->setDecimals(3);
+    m_fontSizeSpinBox->setSingleStep(0.01);
+    QObject::connect(m_fontSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(fontSizeChanged()));
-    WuQtUtilities::setToolTipAndStatusTip(m_fontSizeComboBox->getWidget(),
-                                          "Change font size (height)");
+    WuQtUtilities::setToolTipAndStatusTip(m_fontSizeSpinBox,
+                                          "Change font size (height) as percentage of viewport height.\n");
     
     /*
      * Bold Font
@@ -155,7 +158,7 @@ m_browserWindowIndex(browserWindowIndex)
     bottomRowLayout->addWidget(italicFontToolButton);
     bottomRowLayout->addWidget(underlineFontToolButton);
     bottomRowLayout->addStretch();
-    bottomRowLayout->addWidget(m_fontSizeComboBox->getWidget());
+    bottomRowLayout->addWidget(m_fontSizeSpinBox);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
@@ -188,9 +191,9 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationText
         bool italicOnFlag    = true;
         bool underlineOnFlag = true;
         
-        AnnotationFontNameEnum::Enum fontName = AnnotationFontNameEnum::VERA;
-        int32_t fontSizeIntegerCode = 100000;
+        AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::VERA;
         bool fontNameValid = true;
+        float fontSizeValue = 0.05;
         bool haveMultipleFontSizeValues = false;
         
         const int32_t numAnn = static_cast<int32_t>(annotationTexts.size());
@@ -198,20 +201,19 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationText
             CaretAssertVectorIndex(annotationTexts, i);
             const AnnotationText* annText = annotationTexts[i];
             
-            const AnnotationFontSizeEnum::Enum fontSize = annText->getFontSize();
-            const int32_t fontIntCode = AnnotationFontSizeEnum::toIntegerCode(fontSize);
+            const float sizeValue = annText->getFontPercentViewportSize();
             if (i == 0) {
                 fontName = annText->getFont();
-                fontSizeIntegerCode = fontIntCode;
+                fontSizeValue = sizeValue;
             }
             else {
                 if (annText->getFont() != fontName) {
                     fontNameValid = false;
                 }
-                if (fontSizeIntegerCode != fontIntCode) {
+                if (fontSizeValue != sizeValue) {
                     haveMultipleFontSizeValues = true;
-                    fontSizeIntegerCode = std::min(fontSizeIntegerCode,
-                                                   fontIntCode);
+                    fontSizeValue = std::min(fontSizeValue,
+                                             sizeValue);
                 }
             }
             
@@ -226,17 +228,16 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationText
             }
         }
         
-        m_fontNameComboBox->setSelectedItem<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>(fontName);
+        m_fontNameComboBox->setSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>(fontName);
         
-        bool validFontSizeFlag = false;
-        const AnnotationFontSizeEnum::Enum fontSize = AnnotationFontSizeEnum::fromIntegerCode(fontSizeIntegerCode,
-                                                                                              &validFontSizeFlag);
-        if (validFontSizeFlag) {
-            m_fontSizeComboBox->setSelectedItem<AnnotationFontSizeEnum,AnnotationFontSizeEnum::Enum>(fontSize);
-            if (haveMultipleFontSizeValues) {
-                //m_fontSizeComboBox->setSuffix("+");
-            }
+        m_fontSizeSpinBox->blockSignals(true);
+        m_fontSizeSpinBox->setValue(fontSizeValue);
+        m_fontSizeSpinBox->blockSignals(false);
+        QString fontSizeSuffix;
+        if (haveMultipleFontSizeValues) {
+            fontSizeSuffix = "+";
         }
+        m_fontSizeSpinBox->setSuffix(fontSizeSuffix);
         
         /*
          * Font styles are ON only if all selected
@@ -288,7 +289,7 @@ AnnotationFontWidget::fontItalicChanged()
 void
 AnnotationFontWidget::fontNameChanged()
 {
-    const AnnotationFontNameEnum::Enum fontName = m_fontNameComboBox->getSelectedItem<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>();
+    const AnnotationTextFontNameEnum::Enum fontName = m_fontNameComboBox->getSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>();
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontName(fontName,
@@ -305,11 +306,11 @@ AnnotationFontWidget::fontNameChanged()
 void
 AnnotationFontWidget::fontSizeChanged()
 {
-    const AnnotationFontSizeEnum::Enum fontSize = m_fontSizeComboBox->getSelectedItem<AnnotationFontSizeEnum, AnnotationFontSizeEnum::Enum>();
+    const float fontPercentSize = m_fontSizeSpinBox->value();
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
-    command->setModeTextFontSize(fontSize,
-                                 annMan->getSelectedAnnotations());
+    command->setModeTextFontPercentSize(fontPercentSize,
+                                        annMan->getSelectedAnnotations());
     annMan->applyCommand(command);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

@@ -92,7 +92,9 @@ namespace caret {
         
         static const QString ATTRIBUTE_TEXT_FONT_NAME;
         
-        static const QString ATTRIBUTE_TEXT_FONT_SIZE;
+        static const QString ATTRIBUTE_TEXT_FONT_POINT_SIZE;
+        
+        static const QString ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE;
         
         static const QString ATTRIBUTE_TEXT_FONT_UNDERLINE;
         
@@ -101,8 +103,6 @@ namespace caret {
         static const QString ATTRIBUTE_TEXT_ORIENTATION;
         
         static const QString ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT;
-        
-        static const QString ATTRIBUTE_TEXT_VIEWPORT_HEIGHT;
         
         static const QString ATTRIBUTE_VERSION;
         
@@ -126,7 +126,11 @@ namespace caret {
         
         static const QString ELEMENT_OVAL;
         
-        static const QString ELEMENT_TEXT;
+        static const QString ELEMENT_PERCENT_SIZE_TEXT;
+        
+        static const QString ELEMENT_POINT_SIZE_TEXT;
+        
+        static const QString ELEMENT_TEXT_OBSOLETE;
         
         static const QString ELEMENT_TEXT_DATA;
         
@@ -182,7 +186,9 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_NAME = "fontName";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_SIZE = "fontSize";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_POINT_SIZE = "fontPointSize";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE = "fontPercentViewportSize";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_UNDERLINE = "fontUnderline";
     
@@ -191,8 +197,6 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_ORIENTATION = "orientation";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT = "verticalAlignment";
-    
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_VIEWPORT_HEIGHT = "viewportHeight";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_VERSION = "version";
     
@@ -216,7 +220,11 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_OVAL = "oval";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_TEXT = "text";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_PERCENT_SIZE_TEXT = "percentSizeText";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_POINT_SIZE_TEXT = "pointSizeText";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_TEXT_OBSOLETE = "text";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_TEXT_DATA = "textData";
     

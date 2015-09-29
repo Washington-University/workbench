@@ -26,7 +26,7 @@
 #undef __BRAIN_OPEN_GL_VOLUME_OBLIQUE_SLICE_DRAWING_DECLARE__
 
 #include "AnnotationCoordinate.h"
-#include "AnnotationText.h"
+#include "AnnotationPointSizeText.h"
 #include "BoundingBox.h"
 #include "Brain.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
@@ -586,10 +586,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
                                                    + AString::number(sliceCoord, 'f', montageCoordPrecision)
                                                    + "mm");
                         
-                        AnnotationText annotationText;
+                        AnnotationPointSizeText annotationText;
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+                        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
                         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
                         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
                         annotationText.setCustomForegroundColor(foregroundRGBA);
@@ -3190,13 +3190,13 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
     }
     
     if (drawCrosshairLabelsFlag) {
-        const AnnotationFontSizeEnum::Enum fontSize = AnnotationFontSizeEnum::SIZE18;
+        const AnnotationTextFontPointSizeEnum::Enum fontSize = AnnotationTextFontPointSizeEnum::SIZE18;
         
         const int textCenter[2] = {
             textLeftWindowXY[0],
             textLeftWindowXY[1]
         };
-        const int halfFontSize = AnnotationFontSizeEnum::toSizeNumeric(fontSize) / 2;
+        const int halfFontSize = AnnotationTextFontPointSizeEnum::toSizeNumeric(fontSize) / 2;
         
         uint8_t backgroundRGBA[4] = {
             m_fixedPipelineDrawing->m_backgroundColorByte[0],
@@ -3301,11 +3301,11 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
                    savedViewport[2],
                    savedViewport[3]);
         
-        AnnotationText annotationText;
+        AnnotationPointSizeText annotationText;
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setBoldEnabled(true);
-        annotationText.setFontSize(fontSize);
+        annotationText.setFontPointSize(fontSize);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(horizontalAxisRGBA);
@@ -3589,10 +3589,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
                                                  axesCrosshairRadius);
         }
         
-        AnnotationText annotationText;
+        AnnotationPointSizeText annotationText;
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE14);
+        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         

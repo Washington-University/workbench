@@ -281,9 +281,9 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_ITALIC,
                               AString::fromBool(text->isItalicEnabled()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_NAME,
-                              AnnotationFontNameEnum::toName(text->getFont()));
-    textDataAttributes.append(ATTRIBUTE_TEXT_FONT_SIZE,
-                              AnnotationFontSizeEnum::toName(text->getFontSize()));
+                              AnnotationTextFontNameEnum::toName(text->getFont()));
+    textDataAttributes.append(ATTRIBUTE_TEXT_FONT_POINT_SIZE,
+                              AnnotationTextFontPointSizeEnum::toName(text->getFontPointSize()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_UNDERLINE,
                               AString::fromBool(text->isUnderlineEnabled()));
     textDataAttributes.append(ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT,
@@ -292,13 +292,23 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
                               AnnotationTextOrientationEnum::toName(text->getOrientation()));
     textDataAttributes.append(ATTRIBUTE_TEXT_VERTICAL_ALIGNMENT,
                               AnnotationTextAlignVerticalEnum::toName(text->getVerticalAlignment()));
-    textDataAttributes.append(ATTRIBUTE_TEXT_VIEWPORT_HEIGHT,
-                              AString::number(text->getViewportHeightWhenCreated()));
+    textDataAttributes.append(ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE,
+                              AString::number(text->getFontPercentViewportSize()));
     textDataAttributes.append(ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE,
                               AnnotationTextConnectTypeEnum::toName(text->getConnectToBrainordinate()));
     
+    QString annotationElementName;
+    switch (text->getFontSizeType()) {
+        case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
+            annotationElementName = ELEMENT_PERCENT_SIZE_TEXT;
+            break;
+        case AnnotationTextFontSizeTypeEnum::POINTS:
+            annotationElementName = ELEMENT_POINT_SIZE_TEXT;
+            break;
+    }
+    CaretAssert( ! annotationElementName.isEmpty());
     
-    m_stream->writeStartElement(ELEMENT_TEXT);
+    m_stream->writeStartElement(annotationElementName);
 
     m_stream->writeAttributes(attributes);
     

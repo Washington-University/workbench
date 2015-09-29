@@ -25,7 +25,7 @@
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #undef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
 
-#include "AnnotationText.h"
+#include "AnnotationPointSizeText.h"
 #include "CaretOpenGLInclude.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLTextRenderInterface.h"
@@ -472,7 +472,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                                 labelTexts);
     
     const int32_t numLabelsToDraw = static_cast<int32_t>(labelTexts.size());
-    AnnotationText annotationText;
+    AnnotationPointSizeText annotationText;
     if (numLabelsToDraw > 0) {
         float labelX = 0.0;
         float labelY = 0.0;
@@ -598,7 +598,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
         
         const AString axisText = axis->getText();
         if ( ! axisText.isEmpty()) {
-            AnnotationText annotationText;
+            AnnotationPointSizeText annotationText;
             annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
             annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
             
@@ -694,7 +694,7 @@ BrainOpenGLChartDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeig
          iter++) {
         const AString text = *iter;
         if ( ! text.isEmpty()) {
-            AnnotationText annotationText;
+            AnnotationPointSizeText annotationText;
             annotationText.setText(text);
             double textWidth = 0.0;
             double textHeight = 0.0;

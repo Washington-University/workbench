@@ -301,13 +301,26 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             }
         }
             break;
-        case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_SIZE:
+        case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_PERCENT_SIZE:
         {
             AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
             const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
             if ((textAnn != NULL)
                 && (textAnnValue != NULL)) {
-                textAnn->setFontSize(textAnnValue->getFontSize());
+                textAnn->setFontPercentViewportSize(textAnnValue->getFontPercentViewportSize());
+            }
+            else {
+                CaretAssert(0);
+            }
+        }
+            break;
+        case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_POINT_SIZE:
+        {
+            AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
+            const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
+            if ((textAnn != NULL)
+                && (textAnnValue != NULL)) {
+                textAnn->setFontPointSize(textAnnValue->getFontPointSize());
             }
             else {
                 CaretAssert(0);
@@ -1129,7 +1142,7 @@ AnnotationRedoUndoCommand::setModeTextFontItalic(const bool newStatus,
  *     Annotation that receive this font name
  */
 void
-AnnotationRedoUndoCommand::setModeTextFontName(const AnnotationFontNameEnum::Enum newFontName,
+AnnotationRedoUndoCommand::setModeTextFontName(const AnnotationTextFontNameEnum::Enum newFontName,
                                                const std::vector<Annotation*>& annotations)
 {
     m_mode        = AnnotationRedoUndoCommandModeEnum::TEXT_FONT_NAME;
@@ -1158,17 +1171,17 @@ AnnotationRedoUndoCommand::setModeTextFontName(const AnnotationFontNameEnum::Enu
 /**
  * Set the mode to font size and create the undo/redo instances.
  *
- * @param newFontSize
- *     New font size
+ * @param newFontPointSize
+ *     New font point size
  * @param annotations
  *     Annotation that receive this font size
  */
 void
-AnnotationRedoUndoCommand::setModeTextFontSize(const AnnotationFontSizeEnum::Enum newFontSize,
-                                               const std::vector<Annotation*>& annotations)
+AnnotationRedoUndoCommand::setModeTextFontPointSize(const AnnotationTextFontPointSizeEnum::Enum newFontPointSize,
+                                                    const std::vector<Annotation*>& annotations)
 {
-    m_mode        = AnnotationRedoUndoCommandModeEnum::TEXT_FONT_SIZE;
-    setDescription("Text Font Size");
+    m_mode        = AnnotationRedoUndoCommandModeEnum::TEXT_FONT_POINT_SIZE;
+    setDescription("Text Font Point Size");
     
     for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
          iter != annotations.end();
@@ -1179,7 +1192,7 @@ AnnotationRedoUndoCommand::setModeTextFontSize(const AnnotationFontSizeEnum::Enu
         if (annotation->getType() == AnnotationTypeEnum::TEXT) {
             AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
             CaretAssert(redoAnnotation);
-            redoAnnotation->setFontSize(newFontSize);
+            redoAnnotation->setFontPointSize(newFontPointSize);
             
             Annotation* undoAnnotation = annotation->clone();
             AnnotationMemento* am = new AnnotationMemento(annotation,
@@ -1190,6 +1203,40 @@ AnnotationRedoUndoCommand::setModeTextFontSize(const AnnotationFontSizeEnum::Enu
     }
 }
 
+/**
+ * Set the mode to font percent size and create the undo/redo instances.
+ *
+ * @param newFontPercentSize
+ *     New font percentage size
+ * @param annotations
+ *     Annotation that receive this font size
+ */
+void
+AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercentSize,
+                                                    const std::vector<Annotation*>& annotations)
+{
+    m_mode        = AnnotationRedoUndoCommandModeEnum::TEXT_FONT_PERCENT_SIZE;
+    setDescription("Text Font Percent Size");
+    
+    for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
+         iter != annotations.end();
+         iter++) {
+        Annotation* annotation = *iter;
+        CaretAssert(annotation);
+        
+        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
+            CaretAssert(redoAnnotation);
+            redoAnnotation->setFontPercentViewportSize(newFontPercentSize);
+            
+            Annotation* undoAnnotation = annotation->clone();
+            AnnotationMemento* am = new AnnotationMemento(annotation,
+                                                          redoAnnotation,
+                                                          undoAnnotation);
+            m_annotationMementos.push_back(am);
+        }
+    }
+}
 
 /**
  * Set the mode to text font underline and create the undo/redo instances.

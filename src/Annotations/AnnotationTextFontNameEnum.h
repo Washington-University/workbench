@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_FONT_NAME_ENUM_H__
-#define __ANNOTATION_FONT_NAME_ENUM_H__
+#ifndef __ANNOTATION_TEXT_FONT_NAME_ENUM_H__
+#define __ANNOTATION_TEXT_FONT_NAME_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class AnnotationFontNameEnum {
+class AnnotationTextFontNameEnum {
 
 public:
     /**
@@ -42,7 +42,7 @@ public:
     };
 
 
-    ~AnnotationFontNameEnum();
+    ~AnnotationTextFontNameEnum();
 
     static AString toName(Enum enumValue);
     
@@ -71,7 +71,7 @@ public:
     static AString getResourceItalicFontFileName(Enum enumValue);
     
 private:
-    AnnotationFontNameEnum(const Enum enumValue, 
+    AnnotationTextFontNameEnum(const Enum enumValue, 
                            const AString& name,
                            const AString& guiName,
                            const AString& fontFileName,
@@ -79,10 +79,10 @@ private:
                            const AString& boldItalicFontFileName,
                            const AString& italicFontFileName);
 
-    static const AnnotationFontNameEnum* findData(const Enum enumValue);
+    static const AnnotationTextFontNameEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationFontNameEnum> enumData;
+    static std::vector<AnnotationTextFontNameEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -118,11 +118,11 @@ private:
     AString resourceItalicFontFileName;
 };
 
-#ifdef __ANNOTATION_FONT_NAME_ENUM_DECLARE__
-std::vector<AnnotationFontNameEnum> AnnotationFontNameEnum::enumData;
-bool AnnotationFontNameEnum::initializedFlag = false;
-int32_t AnnotationFontNameEnum::integerCodeCounter = 0; 
-#endif // __ANNOTATION_FONT_NAME_ENUM_DECLARE__
+#ifdef __ANNOTATION_TEXT_FONT_NAME_ENUM_DECLARE__
+std::vector<AnnotationTextFontNameEnum> AnnotationTextFontNameEnum::enumData;
+bool AnnotationTextFontNameEnum::initializedFlag = false;
+int32_t AnnotationTextFontNameEnum::integerCodeCounter = 0; 
+#endif // __ANNOTATION_TEXT_FONT_NAME_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_FONT_NAME_ENUM_H__
+#endif  //__ANNOTATION_TEXT_FONT_NAME_ENUM_H__

@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __ANNOTATION_FONT_NAME_ENUM_DECLARE__
-#include "AnnotationFontNameEnum.h"
-#undef __ANNOTATION_FONT_NAME_ENUM_DECLARE__
+#define __ANNOTATION_TEXT_FONT_NAME_ENUM_DECLARE__
+#include "AnnotationTextFontNameEnum.h"
+#undef __ANNOTATION_TEXT_FONT_NAME_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,10 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationFontNameEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \class caret::AnnotationTextFontNameEnum 
+ * \brief Names of annotation fonts
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -51,21 +49,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "AnnotationFontNameEnum.h"
+ *         #include "AnnotationTextFontNameEnum.h"
  * 
  *     Instatiate:
  *         m_annotationFontNameEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_annotationFontNameEnumComboBox->setup<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>();
+ *         m_annotationFontNameEnumComboBox->setup<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_annotationFontNameEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(annotationFontNameEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_annotationFontNameEnumComboBox->setSelectedItem<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>(NEW_VALUE);
+ *         m_annotationFontNameEnumComboBox->setSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const AnnotationFontNameEnum::Enum VARIABLE = m_annotationFontNameEnumComboBox->getSelectedItem<AnnotationFontNameEnum,AnnotationFontNameEnum::Enum>();
+ *         const AnnotationTextFontNameEnum::Enum VARIABLE = m_annotationFontNameEnumComboBox->getSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>();
  * 
  */
 
@@ -80,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-AnnotationFontNameEnum::AnnotationFontNameEnum(const Enum enumValue,
+AnnotationTextFontNameEnum::AnnotationTextFontNameEnum(const Enum enumValue,
                                                const AString& name,
                                                const AString& guiName,
                                                const AString& fontFileName,
@@ -101,7 +99,7 @@ AnnotationFontNameEnum::AnnotationFontNameEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-AnnotationFontNameEnum::~AnnotationFontNameEnum()
+AnnotationTextFontNameEnum::~AnnotationTextFontNameEnum()
 {
 }
 
@@ -109,14 +107,14 @@ AnnotationFontNameEnum::~AnnotationFontNameEnum()
  * Initialize the enumerated metadata.
  */
 void
-AnnotationFontNameEnum::initialize()
+AnnotationTextFontNameEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationFontNameEnum(VERA,
+    enumData.push_back(AnnotationTextFontNameEnum(VERA,
                                               "VERA",
                                               "Vera",
                                               ":/Fonts/VeraFonts/Vera.ttf",
@@ -124,7 +122,7 @@ AnnotationFontNameEnum::initialize()
                                               ":/Fonts/VeraFonts/VeraBI.ttf",
                                               ":/Fonts/VeraFonts/VeraIt.ttf"));
     
-    enumData.push_back(AnnotationFontNameEnum(VERA_MONOSPACE,
+    enumData.push_back(AnnotationTextFontNameEnum(VERA_MONOSPACE,
                                               "VERA_MONOSPACE",
                                               "Vera Mono",
                                               ":/Fonts/VeraFonts/VeraMono.ttf",
@@ -140,14 +138,14 @@ AnnotationFontNameEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const AnnotationFontNameEnum*
-AnnotationFontNameEnum::findData(const Enum enumValue)
+const AnnotationTextFontNameEnum*
+AnnotationTextFontNameEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const AnnotationFontNameEnum* d = &enumData[i];
+        const AnnotationTextFontNameEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -164,10 +162,10 @@ AnnotationFontNameEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-AnnotationFontNameEnum::toName(Enum enumValue) {
+AnnotationTextFontNameEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationFontNameEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontNameEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -181,18 +179,18 @@ AnnotationFontNameEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationFontNameEnum::Enum 
-AnnotationFontNameEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationTextFontNameEnum::Enum 
+AnnotationTextFontNameEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationFontNameEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextFontNameEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationFontNameEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontNameEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationFontNameEnum& d = *iter;
+        const AnnotationTextFontNameEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -204,7 +202,7 @@ AnnotationFontNameEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationFontNameEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationTextFontNameEnum"));
     }
     return enumValue;
 }
@@ -217,10 +215,10 @@ AnnotationFontNameEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-AnnotationFontNameEnum::toGuiName(Enum enumValue) {
+AnnotationTextFontNameEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationFontNameEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontNameEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -234,18 +232,18 @@ AnnotationFontNameEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationFontNameEnum::Enum 
-AnnotationFontNameEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+AnnotationTextFontNameEnum::Enum 
+AnnotationTextFontNameEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationFontNameEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextFontNameEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationFontNameEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontNameEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationFontNameEnum& d = *iter;
+        const AnnotationTextFontNameEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -257,7 +255,7 @@ AnnotationFontNameEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationFontNameEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationTextFontNameEnum"));
     }
     return enumValue;
 }
@@ -269,10 +267,10 @@ AnnotationFontNameEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-AnnotationFontNameEnum::toIntegerCode(Enum enumValue)
+AnnotationTextFontNameEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationFontNameEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontNameEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -287,18 +285,18 @@ AnnotationFontNameEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-AnnotationFontNameEnum::Enum
-AnnotationFontNameEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+AnnotationTextFontNameEnum::Enum
+AnnotationTextFontNameEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationFontNameEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextFontNameEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationFontNameEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontNameEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationFontNameEnum& enumInstance = *iter;
+        const AnnotationTextFontNameEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -310,7 +308,7 @@ AnnotationFontNameEnum::fromIntegerCode(const int32_t integerCode, bool* isValid
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationFontNameEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationTextFontNameEnum"));
     }
     return enumValue;
 }
@@ -323,13 +321,13 @@ AnnotationFontNameEnum::fromIntegerCode(const int32_t integerCode, bool* isValid
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-AnnotationFontNameEnum::getAllEnums(std::vector<AnnotationFontNameEnum::Enum>& allEnums)
+AnnotationTextFontNameEnum::getAllEnums(std::vector<AnnotationTextFontNameEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<AnnotationFontNameEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontNameEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -345,16 +343,16 @@ AnnotationFontNameEnum::getAllEnums(std::vector<AnnotationFontNameEnum::Enum>& a
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationFontNameEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+AnnotationTextFontNameEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<AnnotationFontNameEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontNameEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(AnnotationFontNameEnum::toName(iter->enumValue));
+        allNames.push_back(AnnotationTextFontNameEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -371,16 +369,16 @@ AnnotationFontNameEnum::getAllNames(std::vector<AString>& allNames, const bool i
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationFontNameEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+AnnotationTextFontNameEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<AnnotationFontNameEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontNameEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(AnnotationFontNameEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(AnnotationTextFontNameEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -397,10 +395,10 @@ AnnotationFontNameEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const 
  *     String containing name of font file in resources.
  */
 AString
-AnnotationFontNameEnum::getResourceFontFileName(Enum enumValue)
+AnnotationTextFontNameEnum::getResourceFontFileName(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationFontNameEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontNameEnum* enumInstance = findData(enumValue);
     return enumInstance->resourceFontFileName;
 }
 
@@ -413,10 +411,10 @@ AnnotationFontNameEnum::getResourceFontFileName(Enum enumValue)
  *     String containing name of font file in resources.
  */
 AString
-AnnotationFontNameEnum::getResourceBoldFontFileName(Enum enumValue)
+AnnotationTextFontNameEnum::getResourceBoldFontFileName(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationFontNameEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontNameEnum* enumInstance = findData(enumValue);
     return enumInstance->resourceBoldFontFileName;
 }
 
@@ -429,10 +427,10 @@ AnnotationFontNameEnum::getResourceBoldFontFileName(Enum enumValue)
  *     String containing name of font file in resources.
  */
 AString
-AnnotationFontNameEnum::getResourceBoldItalicFontFileName(Enum enumValue)
+AnnotationTextFontNameEnum::getResourceBoldItalicFontFileName(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationFontNameEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontNameEnum* enumInstance = findData(enumValue);
     return enumInstance->resourceBoldItalicFontFileName;
 }
 
@@ -445,10 +443,10 @@ AnnotationFontNameEnum::getResourceBoldItalicFontFileName(Enum enumValue)
  *     String containing name of font file in resources.
  */
 AString
-AnnotationFontNameEnum::getResourceItalicFontFileName(Enum enumValue)
+AnnotationTextFontNameEnum::getResourceItalicFontFileName(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationFontNameEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontNameEnum* enumInstance = findData(enumValue);
     return enumInstance->resourceItalicFontFileName;
 }
 

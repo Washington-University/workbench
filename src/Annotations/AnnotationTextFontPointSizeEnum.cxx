@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __ANNOTATION_FONT_SIZE_ENUM_DECLARE__
-#include "AnnotationFontSizeEnum.h"
-#undef __ANNOTATION_FONT_SIZE_ENUM_DECLARE__
+#define __ANNOTATION_TEXT_FONT_POINT_SIZE_ENUM_DECLARE__
+#include "AnnotationTextFontPointSizeEnum.h"
+#undef __ANNOTATION_TEXT_FONT_POINT_SIZE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationFontSizeEnum 
+ * \class caret::AnnotationTextFontPointSizeEnum 
  * \brief Enumerated type for font size.
  *
  * <REPLACE-WITH-THOROUGH DESCRIPTION>
@@ -51,21 +51,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "AnnotationFontSizeEnum.h"
+ *         #include "AnnotationTextFontPointSizeEnum.h"
  * 
  *     Instatiate:
  *         m_annotationFontSizeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_annotationFontSizeEnumComboBox->setup<AnnotationFontSizeEnum,AnnotationFontSizeEnum::Enum>();
+ *         m_annotationFontSizeEnumComboBox->setup<AnnotationTextFontPointSizeEnum,AnnotationTextFontPointSizeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_annotationFontSizeEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(annotationFontSizeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_annotationFontSizeEnumComboBox->setSelectedItem<AnnotationFontSizeEnum,AnnotationFontSizeEnum::Enum>(NEW_VALUE);
+ *         m_annotationFontSizeEnumComboBox->setSelectedItem<AnnotationTextFontPointSizeEnum,AnnotationTextFontPointSizeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const AnnotationFontSizeEnum::Enum VARIABLE = m_annotationFontSizeEnumComboBox->getSelectedItem<AnnotationFontSizeEnum,AnnotationFontSizeEnum::Enum>();
+ *         const AnnotationTextFontPointSizeEnum::Enum VARIABLE = m_annotationFontSizeEnumComboBox->getSelectedItem<AnnotationTextFontPointSizeEnum,AnnotationTextFontPointSizeEnum::Enum>();
  * 
  */
 
@@ -82,7 +82,7 @@ using namespace caret;
  * @param sizeNumeric
  *    Numerical size of font.
  */
-AnnotationFontSizeEnum::AnnotationFontSizeEnum(const Enum enumValue,
+AnnotationTextFontPointSizeEnum::AnnotationTextFontPointSizeEnum(const Enum enumValue,
                            const AString& name,
                                                const AString& guiName,
                                                const int32_t sizeNumeric)
@@ -97,7 +97,7 @@ AnnotationFontSizeEnum::AnnotationFontSizeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-AnnotationFontSizeEnum::~AnnotationFontSizeEnum()
+AnnotationTextFontPointSizeEnum::~AnnotationTextFontPointSizeEnum()
 {
 }
 
@@ -105,99 +105,99 @@ AnnotationFontSizeEnum::~AnnotationFontSizeEnum()
  * Initialize the enumerated metadata.
  */
 void
-AnnotationFontSizeEnum::initialize()
+AnnotationTextFontPointSizeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationFontSizeEnum(SIZE10,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE10,
                                               "SIZE10",
                                               "10",
                                               10));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE12,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE12,
                                               "SIZE12",
                                               "12",
                                               12));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE14,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE14,
                                               "SIZE14",
                                               "14",
                                               14));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE16,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE16,
                                               "SIZE16",
                                               "16",
                                               16));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE18,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE18,
                                               "SIZE18",
                                               "18",
                                               18));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE20,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE20,
                                               "SIZE20",
                                               "20",
                                               20));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE24,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE24,
                                               "SIZE24",
                                               "24",
                                               24));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE28,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE28,
                                               "SIZE28",
                                               "28",
                                               28));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE32,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE32,
                                               "SIZE32",
                                               "32",
                                               32));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE36,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE36,
                                               "SIZE36",
                                               "36",
                                               36));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE40,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE40,
                                               "SIZE40",
                                               "40",
                                               40));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE44,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE44,
                                               "SIZE44",
                                               "44",
                                               44));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE48,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE48,
                                               "SIZE48",
                                               "48",
                                               48));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE54,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE54,
                                               "SIZE54",
                                               "54",
                                               54));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE60,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE60,
                                               "SIZE60",
                                               "60",
                                               60));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE66,
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE66,
                                               "SIZE66",
                                               "66",
                                               66));
     
-    enumData.push_back(AnnotationFontSizeEnum(SIZE72, 
+    enumData.push_back(AnnotationTextFontPointSizeEnum(SIZE72, 
                                               "SIZE72", 
                                               "72",
                                               72));
     
-    for (std::vector<AnnotationFontSizeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontPointSizeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         if (minimumNumericSize < 0) {
@@ -216,14 +216,14 @@ AnnotationFontSizeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const AnnotationFontSizeEnum*
-AnnotationFontSizeEnum::findData(const Enum enumValue)
+const AnnotationTextFontPointSizeEnum*
+AnnotationTextFontPointSizeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const AnnotationFontSizeEnum* d = &enumData[i];
+        const AnnotationTextFontPointSizeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -240,10 +240,10 @@ AnnotationFontSizeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-AnnotationFontSizeEnum::toName(Enum enumValue) {
+AnnotationTextFontPointSizeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationFontSizeEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontPointSizeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -257,18 +257,18 @@ AnnotationFontSizeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationFontSizeEnum::Enum 
-AnnotationFontSizeEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationTextFontPointSizeEnum::Enum 
+AnnotationTextFontPointSizeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationFontSizeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextFontPointSizeEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationFontSizeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontPointSizeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationFontSizeEnum& d = *iter;
+        const AnnotationTextFontPointSizeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -280,7 +280,7 @@ AnnotationFontSizeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationFontSizeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationTextFontPointSizeEnum"));
     }
     return enumValue;
 }
@@ -293,10 +293,10 @@ AnnotationFontSizeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-AnnotationFontSizeEnum::toGuiName(Enum enumValue) {
+AnnotationTextFontPointSizeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationFontSizeEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontPointSizeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -310,18 +310,18 @@ AnnotationFontSizeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationFontSizeEnum::Enum 
-AnnotationFontSizeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+AnnotationTextFontPointSizeEnum::Enum 
+AnnotationTextFontPointSizeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationFontSizeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextFontPointSizeEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationFontSizeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontPointSizeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationFontSizeEnum& d = *iter;
+        const AnnotationTextFontPointSizeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -333,7 +333,7 @@ AnnotationFontSizeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationFontSizeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationTextFontPointSizeEnum"));
     }
     return enumValue;
 }
@@ -345,10 +345,10 @@ AnnotationFontSizeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-AnnotationFontSizeEnum::toIntegerCode(Enum enumValue)
+AnnotationTextFontPointSizeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationFontSizeEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontPointSizeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -363,18 +363,18 @@ AnnotationFontSizeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-AnnotationFontSizeEnum::Enum
-AnnotationFontSizeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+AnnotationTextFontPointSizeEnum::Enum
+AnnotationTextFontPointSizeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationFontSizeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationTextFontPointSizeEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationFontSizeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontPointSizeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationFontSizeEnum& enumInstance = *iter;
+        const AnnotationTextFontPointSizeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -386,7 +386,7 @@ AnnotationFontSizeEnum::fromIntegerCode(const int32_t integerCode, bool* isValid
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationFontSizeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationTextFontPointSizeEnum"));
     }
     return enumValue;
 }
@@ -398,10 +398,10 @@ AnnotationFontSizeEnum::fromIntegerCode(const int32_t integerCode, bool* isValid
  *    Integer size for data type.
  */
 int32_t
-AnnotationFontSizeEnum::toSizeNumeric(Enum enumValue)
+AnnotationTextFontPointSizeEnum::toSizeNumeric(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationFontSizeEnum* enumInstance = findData(enumValue);
+    const AnnotationTextFontPointSizeEnum* enumInstance = findData(enumValue);
     return enumInstance->sizeNumeric;
 }
 
@@ -409,7 +409,7 @@ AnnotationFontSizeEnum::toSizeNumeric(Enum enumValue)
  * @return The minimum font size numeric value.
  */
 int32_t
-AnnotationFontSizeEnum::getMinimumSizeNumeric()
+AnnotationTextFontPointSizeEnum::getMinimumSizeNumeric()
 {
     if (initializedFlag == false) initialize();
     
@@ -425,13 +425,13 @@ AnnotationFontSizeEnum::getMinimumSizeNumeric()
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-AnnotationFontSizeEnum::getAllEnums(std::vector<AnnotationFontSizeEnum::Enum>& allEnums)
+AnnotationTextFontPointSizeEnum::getAllEnums(std::vector<AnnotationTextFontPointSizeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<AnnotationFontSizeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontPointSizeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -447,16 +447,16 @@ AnnotationFontSizeEnum::getAllEnums(std::vector<AnnotationFontSizeEnum::Enum>& a
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationFontSizeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+AnnotationTextFontPointSizeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<AnnotationFontSizeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontPointSizeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(AnnotationFontSizeEnum::toName(iter->enumValue));
+        allNames.push_back(AnnotationTextFontPointSizeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -473,16 +473,16 @@ AnnotationFontSizeEnum::getAllNames(std::vector<AString>& allNames, const bool i
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationFontSizeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+AnnotationTextFontPointSizeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<AnnotationFontSizeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationTextFontPointSizeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(AnnotationFontSizeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(AnnotationTextFontPointSizeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

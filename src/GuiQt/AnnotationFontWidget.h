@@ -26,6 +26,8 @@
 #include <vector>
 #include <QWidget>
 
+class QDoubleSpinBox;
+
 namespace caret {
 
     class AnnotationText;
@@ -65,7 +67,7 @@ namespace caret {
         
         EnumComboBoxTemplate* m_fontNameComboBox;
 
-        EnumComboBoxTemplate* m_fontSizeComboBox;
+        QDoubleSpinBox* m_fontSizeSpinBox;
         
         QAction* m_boldFontAction;
         

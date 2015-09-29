@@ -76,7 +76,8 @@ namespace caret {
                                       const QString& annotationElementName,
                                       const QXmlStreamAttributes& attributes);
         
-        void readTextDataElement(AnnotationText* textAnnotation);
+        void readTextDataElement(AnnotationText* textAnnotation,
+                                 const QString& annotationTextElementName);
         
         CaretPointer<QXmlStreamReader> m_stream;
         

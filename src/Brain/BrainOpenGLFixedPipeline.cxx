@@ -35,7 +35,7 @@
 #include <QStringList>
 #include <QImage>
 
-#include "AnnotationText.h"
+#include "AnnotationPointSizeText.h"
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
@@ -6344,10 +6344,10 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     
     const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
     if (isNegativeDisplayed) {
-        AnnotationText annotationText;
+        AnnotationPointSizeText annotationText;
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textLeft);
@@ -6360,7 +6360,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         || isZeroDisplayed
         || isPositiveDisplayed) {
 
-        AnnotationText annotationText;
+        AnnotationPointSizeText annotationText;
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         if (isNegativeOnly) {
             annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
@@ -6369,7 +6369,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
             annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
         }
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textCenter);
@@ -6379,10 +6379,10 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     }
     
     if (isPositiveDisplayed) {
-        AnnotationText annotationText;
+        AnnotationPointSizeText annotationText;
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        annotationText.setFontSize(AnnotationFontSizeEnum::SIZE12);
+        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(m_foregroundColorFloat);
         annotationText.setText(textRight);

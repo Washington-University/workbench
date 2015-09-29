@@ -44,8 +44,10 @@ namespace caret {
                                                 const QString& defaultValue);
         
         QString getRequiredAttributeStringValue(const QXmlStreamAttributes& attributes,
-                                                       const QString& elementName,
-                                                       const QString& attributeName);
+                                                const QString& elementName,
+                                                const QString& attributeName,
+                                                const QString& alternateAttributeNameOne = "",
+                                                const QString& alternateAttributeNameTwo = "");
         
         int getRequiredAttributeIntValue(const QXmlStreamAttributes& attributes,
                                                 const QString& elementName,

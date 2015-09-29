@@ -22,10 +22,11 @@
 /*LICENSE_END*/
 
 
-#include "AnnotationFontNameEnum.h"
-#include "AnnotationFontSizeEnum.h"
+#include "AnnotationTextFontPointSizeEnum.h"
 #include "AnnotationTextAlignHorizontalEnum.h"
 #include "AnnotationTextAlignVerticalEnum.h"
+#include "AnnotationTextFontNameEnum.h"
+#include "AnnotationTextFontSizeTypeEnum.h"
 #include "AnnotationTextConnectTypeEnum.h"
 #include "AnnotationTextOrientationEnum.h"
 #include "AnnotationTwoDimensionalShape.h"
@@ -36,8 +37,6 @@ namespace caret {
     class AnnotationText : public AnnotationTwoDimensionalShape {
         
     public:
-        AnnotationText();
-        
         virtual ~AnnotationText();
         
         AnnotationText(const AnnotationText& obj);
@@ -58,19 +57,21 @@ namespace caret {
         
         void setVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment);
         
-        AnnotationFontNameEnum::Enum getFont() const;
+        AnnotationTextFontNameEnum::Enum getFont() const;
         
-        void setFont(const AnnotationFontNameEnum::Enum font);
+        void setFont(const AnnotationTextFontNameEnum::Enum font);
         
         AnnotationTextOrientationEnum::Enum getOrientation() const;
         
         void setOrientation(const AnnotationTextOrientationEnum::Enum orientation);
         
-        int32_t getFontSizeForDrawing(const int32_t drawingViewportHeight) const;
+        float getFontSizeForDrawing(const int32_t drawingViewportHeight) const;
         
-        AnnotationFontSizeEnum::Enum getFontSize() const;
+        AnnotationTextFontPointSizeEnum::Enum getFontPointSize() const;
         
-        void setFontSize(const AnnotationFontSizeEnum::Enum fontSize);
+        void setFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize);
+        
+        AnnotationTextFontSizeTypeEnum::Enum getFontSizeType() const;
         
         bool isBoldEnabled() const;
         
@@ -92,9 +93,9 @@ namespace caret {
         
         virtual bool isForegroundLineWidthSupported() const;
         
-        float getViewportHeightWhenCreated() const;
+        float getFontPercentViewportSize() const;
         
-        void setViewportHeightWhenCreated(const float viewportHeight);
+        void setFontPercentViewportSize(const float fontPercentViewportHeight);
         
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                               const float viewportWidth,
@@ -114,6 +115,8 @@ namespace caret {
           
           
     protected: 
+        AnnotationText(const AnnotationTextFontSizeTypeEnum::Enum fontSizeType);
+        
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
 
@@ -121,9 +124,15 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
+        /* Not implemented */
+        AnnotationText();
+        
         void copyHelperAnnotationText(const AnnotationText& obj);
 
         void initializeAnnotationTextMembers();
+        
+        /* Not saved to scene since it is set by sub-class constructor. */
+        const AnnotationTextFontSizeTypeEnum::Enum m_fontSizeType;
         
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
@@ -133,15 +142,15 @@ namespace caret {
         
         AnnotationTextAlignVerticalEnum::Enum  m_alignmentVertical;
         
-        AnnotationFontNameEnum::Enum m_font;
+        AnnotationTextFontNameEnum::Enum m_font;
         
         AnnotationTextOrientationEnum::Enum m_orientation;
         
-        AnnotationFontSizeEnum::Enum m_fontSize;
+        AnnotationTextFontPointSizeEnum::Enum m_fontPointSize;
         
         AnnotationTextConnectTypeEnum::Enum m_connectToBrainordinate;
         
-        float m_viewportHeightWhenCreated;
+        float m_fontPercentViewportSize;
         
         bool m_boldEnabled;
         

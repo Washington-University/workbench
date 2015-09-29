@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_FONT_SIZE_ENUM_H__
-#define __ANNOTATION_FONT_SIZE_ENUM_H__
+#ifndef __ANNOTATION_TEXT_FONT_POINT_SIZE_ENUM_H__
+#define __ANNOTATION_TEXT_FONT_POINT_SIZE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class AnnotationFontSizeEnum {
+class AnnotationTextFontPointSizeEnum {
 
 public:
     /**
@@ -72,7 +72,7 @@ public:
     };
 
 
-    ~AnnotationFontSizeEnum();
+    ~AnnotationTextFontPointSizeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -97,15 +97,15 @@ public:
     static int32_t getMinimumSizeNumeric();
     
 private:
-    AnnotationFontSizeEnum(const Enum enumValue, 
+    AnnotationTextFontPointSizeEnum(const Enum enumValue, 
                            const AString& name,
                            const AString& guiName,
                            const int32_t sizeNumeric);
 
-    static const AnnotationFontSizeEnum* findData(const Enum enumValue);
+    static const AnnotationTextFontPointSizeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationFontSizeEnum> enumData;
+    static std::vector<AnnotationTextFontPointSizeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -134,12 +134,12 @@ private:
     int32_t sizeNumeric;
 };
 
-#ifdef __ANNOTATION_FONT_SIZE_ENUM_DECLARE__
-    std::vector<AnnotationFontSizeEnum> AnnotationFontSizeEnum::enumData;
-    bool AnnotationFontSizeEnum::initializedFlag = false;
-    int32_t AnnotationFontSizeEnum::integerCodeCounter = 0;
-    int32_t AnnotationFontSizeEnum::minimumNumericSize = -1;
-#endif // __ANNOTATION_FONT_SIZE_ENUM_DECLARE__
+#ifdef __ANNOTATION_TEXT_FONT_POINT_SIZE_ENUM_DECLARE__
+    std::vector<AnnotationTextFontPointSizeEnum> AnnotationTextFontPointSizeEnum::enumData;
+    bool AnnotationTextFontPointSizeEnum::initializedFlag = false;
+    int32_t AnnotationTextFontPointSizeEnum::integerCodeCounter = 0;
+    int32_t AnnotationTextFontPointSizeEnum::minimumNumericSize = -1;
+#endif // __ANNOTATION_TEXT_FONT_POINT_SIZE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_FONT_SIZE_ENUM_H__
+#endif  //__ANNOTATION_TEXT_FONT_POINT_SIZE_ENUM_H__

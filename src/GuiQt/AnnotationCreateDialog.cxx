@@ -39,7 +39,7 @@
 #include "AnnotationLine.h"
 #include "AnnotationManager.h"
 #include "AnnotationOval.h"
-#include "AnnotationText.h"
+#include "AnnotationPercentSizeText.h"
 #include "AnnotationFile.h"
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
@@ -571,7 +571,7 @@ AnnotationCreateDialog::okButtonClicked()
         case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
             annotation.grabNew(Annotation::newAnnotationOfType(m_annotationType));
             if (m_annotationType == AnnotationTypeEnum::TEXT) {
-                AnnotationText* text = new AnnotationText();
+                AnnotationText* text = new AnnotationPercentSizeText();
                 text->setText(userText);
                 annotation.grabNew(text);
             }
@@ -618,7 +618,7 @@ AnnotationCreateDialog::okButtonClicked()
                     break;
             }
             const float viewportHeight = viewport[3];
-            annText->setViewportHeightWhenCreated(viewportHeight);
+            annText->setFontPercentViewportSize(viewportHeight);
         }
     }
     

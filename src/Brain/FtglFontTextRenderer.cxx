@@ -74,7 +74,7 @@
 #include <QFile>
 #include <QStringList>
 
-#include "AnnotationText.h"
+#include "AnnotationPointSizeText.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -120,9 +120,9 @@ FtglFontTextRenderer::FtglFontTextRenderer()
 {
     m_defaultFont = NULL;
 #ifdef HAVE_FREETYPE
-    AnnotationText defaultAnnotationText;
-    defaultAnnotationText.setFontSize(AnnotationFontSizeEnum::SIZE14);
-    defaultAnnotationText.setFont(AnnotationFontNameEnum::VERA);
+    AnnotationPointSizeText defaultAnnotationText;
+    defaultAnnotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
+    defaultAnnotationText.setFont(AnnotationTextFontNameEnum::VERA);
     defaultAnnotationText.setItalicEnabled(false);
     defaultAnnotationText.setBoldEnabled(false);
     defaultAnnotationText.setUnderlineEnabled(false);
@@ -843,19 +843,19 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
     m_font     = NULL;
     
 #ifdef HAVE_FREETYPE
-    const AnnotationFontNameEnum::Enum fontName = annotationText.getFont();
+    const AnnotationTextFontNameEnum::Enum fontName = annotationText.getFont();
     
-    AString fontFileName = AnnotationFontNameEnum::getResourceFontFileName(fontName);
+    AString fontFileName = AnnotationTextFontNameEnum::getResourceFontFileName(fontName);
     if (annotationText.isBoldEnabled()
         && annotationText.isItalicEnabled()) {
-        fontFileName = AnnotationFontNameEnum::getResourceBoldItalicFontFileName(fontName);
+        fontFileName = AnnotationTextFontNameEnum::getResourceBoldItalicFontFileName(fontName);
     }
     else if (annotationText.isBoldEnabled()) {
-        fontFileName = AnnotationFontNameEnum::getResourceBoldFontFileName(fontName);
+        fontFileName = AnnotationTextFontNameEnum::getResourceBoldFontFileName(fontName);
         
     }
     else if (annotationText.isItalicEnabled()) {
-        fontFileName = AnnotationFontNameEnum::getResourceItalicFontFileName(fontName);
+        fontFileName = AnnotationTextFontNameEnum::getResourceItalicFontFileName(fontName);
     }
     
     CaretAssert( ! fontFileName.isEmpty());
@@ -892,7 +892,7 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
                     m_valid = true;
                     
                     CaretLogFine("Created font size="
-                                 + AnnotationFontSizeEnum::toName(annotationText.getFontSize())
+                                 + AnnotationTextFontPointSizeEnum::toName(annotationText.getFontPointSize())
                                  + " scaled-size="
                                  + AString::number(fontSizeInt)
                                  + " from font file "

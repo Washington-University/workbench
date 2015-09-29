@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_UNDO_COMMAND_MODE_ENUM_H__
-#define __ANNOTATION_UNDO_COMMAND_MODE_ENUM_H__
+#ifndef __ANNOTATION_TEXT_FONT_SIZE_TYPE_ENUM_H__
+#define __ANNOTATION_TEXT_FONT_SIZE_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,67 +28,21 @@
 
 namespace caret {
 
-class AnnotationRedoUndoCommandModeEnum {
+class AnnotationTextFontSizeTypeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Invalid mode */
-        INVALID,
-        /** Color - Background */
-        COLOR_BACKGROUND,
-        /** Color - Foreground */
-        COLOR_FOREGROUND,
-        /** Coordinate One */
-        COORDINATE_ONE,
-        /** Coordinate One And Two */
-        COORDINATE_ONE_AND_TWO,
-        /** Coordinate Two */
-        COORDINATE_TWO,
-        /** Delete Annotations */
-        DELETE_ANNOTATIONS,
-        /** Line Arrow Start */
-        LINE_ARROW_START,
-        /** Line Arrow End */
-        LINE_ARROW_END,
-        /** Line Width of Foreground */
-        LINE_WIDTH_FOREGROUND,
-        /** Location and size of annotations (coords, size, space, window, tab) */
-        LOCATION_AND_SIZE,
-        /** Rotation Angle */
-        ROTATION_ANGLE,
-        /** Text Alignment Horizontal */
-        TEXT_ALIGNMENT_HORIZONTAL,
-        /** Text Alignment Vertical */
-        TEXT_ALIGNMENT_VERTICAL,
-        /** Text Characters */
-        TEXT_CHARACTERS,
-        /** Text Connect to Brainordinate */
-        TEXT_CONNECT_TO_BRAINORDINATE,
-        /** Text Font Bold */
-        TEXT_FONT_BOLD,
-        /** Text Font Italic */
-        TEXT_FONT_ITALIC,
-        /** Text Font Name */
-        TEXT_FONT_NAME,
-        /** Text Font Percent Size */
-        TEXT_FONT_PERCENT_SIZE,
-        /** Text Font Point Size */
-        TEXT_FONT_POINT_SIZE,
-        /** Text Font Undeline */
-        TEXT_FONT_UNDERLINE,
-        /** Text Orientation */
-        TEXT_ORIENTATION,
-        /** Two dimensional (box, oval) height */
-        TWO_DIM_HEIGHT,
-        /** Two dimensional (box, oval) width */
-        TWO_DIM_WIDTH
+        /** */
+        POINTS,
+        /** */
+        PERCENTAGE_OF_VIEWPORT_HEIGHT
     };
 
 
-    ~AnnotationRedoUndoCommandModeEnum();
+    ~AnnotationTextFontSizeTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -109,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    AnnotationRedoUndoCommandModeEnum(const Enum enumValue, 
+    AnnotationTextFontSizeTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const AnnotationRedoUndoCommandModeEnum* findData(const Enum enumValue);
+    static const AnnotationTextFontSizeTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationRedoUndoCommandModeEnum> enumData;
+    static std::vector<AnnotationTextFontSizeTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -140,11 +94,11 @@ private:
     AString guiName;
 };
 
-#ifdef __ANNOTATION_UNDO_COMMAND_MODE_ENUM_DECLARE__
-std::vector<AnnotationRedoUndoCommandModeEnum> AnnotationRedoUndoCommandModeEnum::enumData;
-bool AnnotationRedoUndoCommandModeEnum::initializedFlag = false;
-int32_t AnnotationRedoUndoCommandModeEnum::integerCodeCounter = 0; 
-#endif // __ANNOTATION_UNDO_COMMAND_MODE_ENUM_DECLARE__
+#ifdef __ANNOTATION_TEXT_FONT_SIZE_TYPE_ENUM_DECLARE__
+std::vector<AnnotationTextFontSizeTypeEnum> AnnotationTextFontSizeTypeEnum::enumData;
+bool AnnotationTextFontSizeTypeEnum::initializedFlag = false;
+int32_t AnnotationTextFontSizeTypeEnum::integerCodeCounter = 0; 
+#endif // __ANNOTATION_TEXT_FONT_SIZE_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_UNDO_COMMAND_MODE_ENUM_H__
+#endif  //__ANNOTATION_TEXT_FONT_SIZE_TYPE_ENUM_H__

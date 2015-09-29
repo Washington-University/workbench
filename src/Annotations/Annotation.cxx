@@ -27,7 +27,8 @@
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
-#include "AnnotationText.h"
+#include "AnnotationPercentSizeText.h"
+#include "AnnotationPointSizeText.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "SceneClass.h"
@@ -171,7 +172,22 @@ Annotation::clone() const
         {
             const AnnotationText* text = dynamic_cast<const AnnotationText*>(this);
             CaretAssert(text);
-            myClone = new AnnotationText(*text);
+            
+            switch (text->getFontSizeType()) {
+                case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
+                {
+                    const AnnotationPercentSizeText* pctText = dynamic_cast<const AnnotationPercentSizeText*>(text);
+                    CaretAssert(pctText);
+                    myClone = new AnnotationPercentSizeText(*pctText);
+                }
+                    break;
+                case AnnotationTextFontSizeTypeEnum::POINTS:
+                {
+                    const AnnotationPointSizeText* pointText = dynamic_cast<const AnnotationPointSizeText*>(text);
+                    CaretAssert(pointText);
+                    myClone = new AnnotationPointSizeText(*pointText);
+                }
+            }
         }
             break;
     }
@@ -234,7 +250,7 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType)
             annotation = new AnnotationOval();
             break;
         case AnnotationTypeEnum::TEXT:
-            annotation = new AnnotationText();
+            annotation = new AnnotationPercentSizeText();
             break;
     }
     

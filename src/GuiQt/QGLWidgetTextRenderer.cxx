@@ -31,7 +31,7 @@
 #include <QFontMetrics>
 #include <QGLWidget>
 
-#include "AnnotationText.h"
+#include "AnnotationPointSizeText.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
@@ -56,9 +56,9 @@ m_glWidget(glWidget)
 {
     m_defaultFont = NULL;
 
-    AnnotationText defaultAnnotationText;
-    defaultAnnotationText.setFontSize(AnnotationFontSizeEnum::SIZE14);
-    defaultAnnotationText.setFont(AnnotationFontNameEnum::VERA);
+    AnnotationPointSizeText defaultAnnotationText;
+    defaultAnnotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
+    defaultAnnotationText.setFont(AnnotationTextFontNameEnum::VERA);
     defaultAnnotationText.setItalicEnabled(false);
     defaultAnnotationText.setBoldEnabled(false);
     defaultAnnotationText.setUnderlineEnabled(false);
@@ -1045,39 +1045,39 @@ QGLWidgetTextRenderer::FontData::FontData(const AnnotationText&  annotationText)
     m_valid    = false;
     m_font     = NULL;
     
-    const AnnotationFontNameEnum::Enum fontEnumName = annotationText.getFont();
+    const AnnotationTextFontNameEnum::Enum fontEnumName = annotationText.getFont();
     
-    AString fontFileName = AnnotationFontNameEnum::getResourceFontFileName(fontEnumName);
+    AString fontFileName = AnnotationTextFontNameEnum::getResourceFontFileName(fontEnumName);
     if (annotationText.isBoldEnabled()
         && annotationText.isItalicEnabled()) {
-        fontFileName = AnnotationFontNameEnum::getResourceBoldItalicFontFileName(fontEnumName);
+        fontFileName = AnnotationTextFontNameEnum::getResourceBoldItalicFontFileName(fontEnumName);
     }
     else if (annotationText.isBoldEnabled()) {
-        fontFileName = AnnotationFontNameEnum::getResourceBoldFontFileName(fontEnumName);
+        fontFileName = AnnotationTextFontNameEnum::getResourceBoldFontFileName(fontEnumName);
         
     }
     else if (annotationText.isItalicEnabled()) {
-        fontFileName = AnnotationFontNameEnum::getResourceItalicFontFileName(fontEnumName);
+        fontFileName = AnnotationTextFontNameEnum::getResourceItalicFontFileName(fontEnumName);
     }
     
     switch (fontEnumName) {
-        case AnnotationFontNameEnum::VERA:
+        case AnnotationTextFontNameEnum::VERA:
             fontFileName = "Helvetica";
             break;
-        case AnnotationFontNameEnum::VERA_MONOSPACE:
+        case AnnotationTextFontNameEnum::VERA_MONOSPACE:
             fontFileName = "Monaco";
             break;
     }
     
     CaretAssert( ! fontFileName.isEmpty());
     
-    const QString fontName = AnnotationFontNameEnum::toGuiName(fontEnumName);
+    const QString fontName = AnnotationTextFontNameEnum::toGuiName(fontEnumName);
     
     m_font = new QFont(fontName);
     CaretAssert(m_font);
     
-    const AnnotationFontSizeEnum::Enum fontSizeEnum = annotationText.getFontSize();
-    const int32_t fontSizeInt = AnnotationFontSizeEnum::toSizeNumeric(fontSizeEnum);
+    const AnnotationTextFontPointSizeEnum::Enum fontSizeEnum = annotationText.getFontPointSize();
+    const int32_t fontSizeInt = AnnotationTextFontPointSizeEnum::toSizeNumeric(fontSizeEnum);
     
     m_font->setPointSize(fontSizeInt);
     m_font->setBold(annotationText.isBoldEnabled());
