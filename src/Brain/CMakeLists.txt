@@ -119,6 +119,7 @@ FiberOrientationSamplesVector.h
 FiberOrientationSymbolTypeEnum.h
 FociDrawingTypeEnum.h
 FtglFontTextRenderer.h
+GapsAndMargins.h
 IdentificationManager.h
 IdentificationStringBuilder.h
 IdentificationTextGenerator.h
@@ -126,7 +127,6 @@ IdentificationWithColor.h
 IdentifiedItem.h
 IdentifiedItemNode.h
 IdentifiedItemVoxel.h
-Margin.h
 Model.h
 ModelChart.h
 ModelSurface.h
@@ -244,6 +244,7 @@ FiberOrientationSamplesLoader.cxx
 FiberOrientationSymbolTypeEnum.cxx
 FociDrawingTypeEnum.cxx
 FtglFontTextRenderer.cxx
+GapsAndMargins.cxx
 IdentificationManager.cxx
 IdentificationStringBuilder.cxx
 IdentificationTextGenerator.cxx
@@ -251,7 +252,6 @@ IdentificationWithColor.cxx
 IdentifiedItem.cxx
 IdentifiedItemNode.cxx
 IdentifiedItemVoxel.cxx
-Margin.cxx
 Model.cxx
 ModelChart.cxx
 ModelSurface.cxx

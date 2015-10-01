@@ -42,6 +42,7 @@
 #include "ElapsedTimer.h"
 #include "FociFile.h"
 #include "Focus.h"
+#include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
@@ -449,12 +450,15 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
     CaretAssert(numCols > 0);
     
     const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
-    const int32_t montageMargin = caretPreferences->getVolumeMontageGap();
     const int32_t montageCoordPrecision = caretPreferences->getVolumeMontageCoordinatePrecision();
     
-    const int32_t totalGapX = montageMargin * (numCols - 1);
+    const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
+    const int32_t horizontalMargin = static_cast<int32_t>(viewport[2] * gapsAndMargins->getVolumeMontageHorizontalGap());
+    const int32_t verticalMargin   = static_cast<int32_t>(viewport[3] * gapsAndMargins->getVolumeMontageVerticalGap());
+    
+    const int32_t totalGapX = horizontalMargin * (numCols - 1);
     const int32_t vpSizeX = (viewport[2] - totalGapX) / numCols;
-    const int32_t totalGapY = montageMargin * (numRows - 1);
+    const int32_t totalGapY = verticalMargin * (numRows - 1);
     const int32_t vpSizeY = (viewport[3] - totalGapY) / numRows;
     
     /*
@@ -544,8 +548,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
             for (int32_t j = 0; j < numCols; j++) {
                 if ((sliceIndex >= 0)
                     && (sliceIndex < maximumSliceIndex)) {
-                    const int32_t vpX = (j * (vpSizeX + montageMargin));
-                    const int32_t vpY = ((numRows - i - 1) * (vpSizeY + montageMargin));
+                    const int32_t vpX = (j * (vpSizeX + horizontalMargin));
+                    const int32_t vpY = ((numRows - i - 1) * (vpSizeY + verticalMargin));
                     int32_t vp[4] = {
                         viewport[0] + vpX,
                         viewport[1] + vpY,

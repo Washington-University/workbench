@@ -1,5 +1,5 @@
-#ifndef __TAB_MARGINS_DIALOG_H__
-#define __TAB_MARGINS_DIALOG_H__
+#ifndef __GAPS_AND_MARGINS_DIALOG_H__
+#define __GAPS_AND_MARGINS_DIALOG_H__
 
 /*LICENSE_START*/
 /*
@@ -26,22 +26,23 @@
 #include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
+class QCheckBox;
 class QLabel;
 class QSignalMapper;
-class QSpinBox;
+class QDoubleSpinBox;
 
 namespace caret {
 
     class WuQGridLayoutGroup;
     
-    class TabMarginsDialog : public WuQDialogNonModal, public EventListenerInterface {
+    class GapsAndMarginsDialog : public WuQDialogNonModal, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        TabMarginsDialog(QWidget* parent = 0);
+        GapsAndMarginsDialog(QWidget* parent = 0);
         
-        virtual ~TabMarginsDialog();
+        virtual ~GapsAndMarginsDialog();
         
         virtual void updateDialog();
 
@@ -52,22 +53,50 @@ namespace caret {
     private slots:
         void tabMarginChanged(int tabIndex);
         
+        void surfaceMontageGapChanged();
+        
+        void volumeMontageGapChanged();
+        
+        void tabMarginCheckBoxClicked();
+        
     private:
-        TabMarginsDialog(const TabMarginsDialog&);
+        GapsAndMarginsDialog(const GapsAndMarginsDialog&);
 
-        TabMarginsDialog& operator=(const TabMarginsDialog&);
+        GapsAndMarginsDialog& operator=(const GapsAndMarginsDialog&);
+        
+        QWidget* createGapsWidget();
+        
+        QWidget* createMarginsWidget();
+        
+        QDoubleSpinBox* createPercentageSpinBox();
         
         WuQGridLayoutGroup* m_gridLayoutGroup;
         
         std::vector<QLabel*> m_tabNumberLabels;
         
-        std::vector<QSpinBox*> m_leftMarginSpinBoxes;
+        std::vector<QDoubleSpinBox*> m_leftMarginSpinBoxes;
         
-        std::vector<QSpinBox*> m_rightMarginSpinBoxes;
+        std::vector<QDoubleSpinBox*> m_rightMarginSpinBoxes;
         
-        std::vector<QSpinBox*> m_bottomMarginSpinBoxes;
+        std::vector<QDoubleSpinBox*> m_bottomMarginSpinBoxes;
         
-        std::vector<QSpinBox*> m_topMarginSpinBoxes;
+        std::vector<QDoubleSpinBox*> m_topMarginSpinBoxes;
+        
+        QCheckBox* m_leftMarginCheckBox;
+        
+        QCheckBox* m_rightMarginCheckBox;
+        
+        QCheckBox* m_bottomMarginCheckBox;
+        
+        QCheckBox* m_topMarginCheckBox;
+        
+        QDoubleSpinBox* m_surfaceMontageHorizontalGapSpinBox;
+        
+        QDoubleSpinBox* m_surfaceMontageVerticalGapSpinBox;
+        
+        QDoubleSpinBox* m_volumeMontageHorizontalGapSpinBox;
+        
+        QDoubleSpinBox* m_volumeMontageVerticalGapSpinBox;
         
         QSignalMapper* m_tabIndexSignalMapper;
         
@@ -75,9 +104,9 @@ namespace caret {
 
     };
     
-#ifdef __TAB_MARGINS_DIALOG_DECLARE__
+#ifdef __GAPS_AND_MARGINS_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __TAB_MARGINS_DIALOG_DECLARE__
+#endif // __GAPS_AND_MARGINS_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__TAB_MARGINS_DIALOG_H__
+#endif  //__GAPS_AND_MARGINS_DIALOG_H__

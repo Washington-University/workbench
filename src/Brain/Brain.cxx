@@ -79,6 +79,7 @@
 #include "FiberOrientationSamplesLoader.h"
 #include "FileInformation.h"
 #include "FociFile.h"
+#include "GapsAndMargins.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
 #include "ImageFile.h"
@@ -184,6 +185,8 @@ Brain::Brain()
     
     m_isSpecFileBeingRead = false;
     
+    m_gapsAndMargins = new GapsAndMargins();
+    
     m_sceneAssistant = new SceneClassAssistant();
     
     m_sceneAssistant->add("m_sceneAnnotationFile",
@@ -221,6 +224,9 @@ Brain::Brain()
     m_sceneAssistant->add("displayPropertiesVolume",
                           "DisplayPropertiesVolume", 
                           m_displayPropertiesVolume);
+    m_sceneAssistant->add("m_gapsAndMargins",
+                          "GapsAndMargins",
+                          m_gapsAndMargins);
     
     m_selectionManager = new SelectionManager();
 
@@ -271,6 +277,7 @@ Brain::~Brain()
     delete m_selectionManager;
     delete m_identificationManager;
     delete m_brainordinateHighlightRegionOfInterest;
+    delete m_gapsAndMargins;
 }
 
 /**
@@ -648,6 +655,8 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     if (m_modelChart != NULL) {
         m_modelChart->reset();
     }
+    
+    m_gapsAndMargins->reset();
     
     updateAfterFilesAddedOrRemoved();
     
@@ -7012,6 +7021,25 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAnnotationFile->clearModified();
 }
+
+/**
+ * @return The gaps and margins.
+ */
+GapsAndMargins*
+Brain::getGapsAndMargins()
+{
+    return m_gapsAndMargins;
+}
+
+/**
+ * @return the gaps and margins.
+ */
+const GapsAndMargins*
+Brain::getGapsAndMargins() const
+{
+    return m_gapsAndMargins;
+}
+
 
 /**
  * @return The selection manager.

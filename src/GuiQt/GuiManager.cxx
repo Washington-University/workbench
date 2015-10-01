@@ -73,6 +73,7 @@
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
+#include "GapsAndMarginsDialog.h"
 #include "HelpViewerDialog.h"
 #include "IdentifiedItemNode.h"
 #include "IdentifiedItemVoxel.h"
@@ -104,7 +105,6 @@
 #include "SpecFileManagementDialog.h"
 #include "SurfacePropertiesEditorDialog.h"
 #include "Surface.h"
-#include "TabMarginsDialog.h"
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
 #include "WuQMessageBox.h"
@@ -138,7 +138,7 @@ GuiManager::GuiManager(QObject* parent)
     m_bugReportDialog = NULL;
     m_clippingPlanesDialog = NULL;
     m_customViewDialog = NULL;
-    m_tabMarginsDialog = NULL;
+    m_gapsAndMarginsDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->movieDialog = NULL;
     m_informationDisplayDialog = NULL;
@@ -1864,22 +1864,22 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
 }
 
 /**
- * Show the image capture window.
+ * Show the gaps and margins window.
  * @param browserWindow
  *    Window on which dialog was requested.
  */
 void
-GuiManager::processShowTabMarginsDialog(BrainBrowserWindow* browserWindow)
+GuiManager::processShowGapsAndMarginsDialog(BrainBrowserWindow* browserWindow)
 {
-    if (m_tabMarginsDialog == NULL) {
-        m_tabMarginsDialog = new TabMarginsDialog(browserWindow);
-        this->addNonModalDialog(m_tabMarginsDialog);
+    if (m_gapsAndMarginsDialog == NULL) {
+        m_gapsAndMarginsDialog = new GapsAndMarginsDialog(browserWindow);
+        this->addNonModalDialog(m_gapsAndMarginsDialog);
     }
-    m_tabMarginsDialog->updateDialog();
+    m_gapsAndMarginsDialog->updateDialog();
     //m_tabMarginsDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
-    m_tabMarginsDialog->setVisible(true);
-    m_tabMarginsDialog->show();
-    m_tabMarginsDialog->activateWindow();
+    m_gapsAndMarginsDialog->setVisible(true);
+    m_gapsAndMarginsDialog->show();
+    m_gapsAndMarginsDialog->activateWindow();
 }
 
 /**

@@ -77,6 +77,7 @@ namespace caret {
     class EventDataFileRead;
     class EventDataFileReload;
     class EventSpecFileReadDataFiles;
+    class GapsAndMargins;
     class IdentificationManager;
     class ImageFile;
     class LabelFile;
@@ -409,6 +410,10 @@ namespace caret {
         void getCiftiShapeMap(CiftiBrainordinateScalarFile* &ciftiScalarShapeFileOut,
                               int32_t& ciftiScalarhapeFileMapIndexOut,
                               std::vector<CiftiBrainordinateScalarFile*>& ciftiScalarNotShapeFilesOut) const;
+        
+        GapsAndMargins* getGapsAndMargins();
+        
+        const GapsAndMargins* getGapsAndMargins() const;
         
     private:
         /**
@@ -820,6 +825,8 @@ namespace caret {
         BrainordinateRegionOfInterest* m_brainordinateHighlightRegionOfInterest;
         
         std::map<DataFileTypeEnum::Enum, int32_t> m_duplicateFileNameCounter;
+        
+        GapsAndMargins* m_gapsAndMargins;
     };
 
 } // namespace

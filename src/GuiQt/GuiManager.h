@@ -47,6 +47,7 @@ namespace caret {
     class ClippingPlanesDialog;
     class CursorManager;
     class CustomViewDialog;
+    class GapsAndMarginsDialog;
     class HelpViewerDialog;
     class IdentifyBrainordinateDialog;
     class ImageFile;
@@ -62,7 +63,6 @@ namespace caret {
     class SelectionManager;
     class SpecFile;
     class SurfacePropertiesEditorDialog;
-    class TabMarginsDialog;
     class TileTabsConfigurationDialog;
     
     /**
@@ -131,7 +131,7 @@ namespace caret {
                                         const AString& openGLInformation);
         void processShowClippingPlanesDialog(BrainBrowserWindow* browserWindow);
         void processShowCustomViewDialog(BrainBrowserWindow* browserWindow);
-        void processShowTabMarginsDialog(BrainBrowserWindow* browserWindow);
+        void processShowGapsAndMarginsDialog(BrainBrowserWindow* browserWindow);
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowMovieDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
@@ -245,7 +245,7 @@ namespace caret {
         
         ImageCaptureDialog* imageCaptureDialog;
 
-        TabMarginsDialog* m_tabMarginsDialog;
+        GapsAndMarginsDialog* m_gapsAndMarginsDialog;
         
         MovieDialog* movieDialog;
         

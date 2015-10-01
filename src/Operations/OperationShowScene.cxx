@@ -249,6 +249,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     }
     Brain* brain = SessionManager::get()->getBrain(0);
     
+    const GapsAndMargins* gapsAndMargins = brain->getGapsAndMargins();
+    
     /*
      * The OpenGL rendering takes ownership of the text renderer
      * and will delete the text renderer when OpenGL itself
@@ -364,7 +366,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                                                                                           windowViewport,
                                                                                                                                           rowHeights,
                                                                                                                                           columnWidths,
-                                                                                                                                          tabIndexToHighlight);
+                                                                                                                                          tabIndexToHighlight,
+                                                                                                                                          gapsAndMargins);
                         
                         brainOpenGL->drawModels(brain,
                                                 viewports);
@@ -416,6 +419,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                        windowViewport,
                                                        windowIndex,
                                                        false, // highlight the tab
+                                                       gapsAndMargins,
                                                        tabContent);
                     std::vector<BrainOpenGLViewportContent*> viewportContents;
                     viewportContents.push_back(&content);

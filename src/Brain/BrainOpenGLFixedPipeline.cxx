@@ -89,6 +89,7 @@
 #include "FiberTrajectoryMapProperties.h"
 #include "FociFile.h"
 #include "Focus.h"
+#include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
@@ -4511,9 +4512,16 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                                                       numberOfRows,
                                                       numberOfColumns);
     
-    const int32_t vpSizeX = viewport[2] / numberOfColumns;
-    const int32_t vpSizeY = viewport[3] / numberOfRows;
+    const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
+    const int32_t horizontalMargin = static_cast<int32_t>(MathFunctions::round(viewport[2] * gapsAndMargins->getSurfaceMontageHorizontalGap()));
+    const int32_t verticalMargin   = static_cast<int32_t>(MathFunctions::round(viewport[3] * gapsAndMargins->getSurfaceMontageVerticalGap()));
     
+    const int32_t totalGapX = (horizontalMargin * (numberOfColumns - 1));
+    const int32_t vpSizeX   = std::floor(viewport[2] - totalGapX) / numberOfColumns;
+    const int32_t totalGapY = (verticalMargin * (numberOfRows - 1));
+    const int32_t vpSizeY   = std::floor(viewport[3] - totalGapY) / numberOfRows;
+
+    std::cout << "Horiz margin pixels: " << horizontalMargin << " VP Size X: " << vpSizeX << " full viewport X: " << viewport[3] << std::endl;
     const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
     for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
         SurfaceMontageViewport* mvp = montageViewports[ivp];
@@ -4528,13 +4536,17 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         const int32_t column = mvp->getColumn();
         
         const int32_t surfaceViewport[4] = {
-            (viewport[0] + (column * vpSizeX)),
-            (viewport[1] + (rowFromBottom * vpSizeY)),
+            (viewport[0] + (column * (vpSizeX + horizontalMargin))),
+            (viewport[1] + (rowFromBottom * (vpSizeY + verticalMargin))),
             vpSizeX,
             vpSizeY
         };
         mvp->setViewport(surfaceViewport);
         
+        if ((rowFromBottom == 1)
+            && (column == 1)) {
+            std::cout << "Viewport (1, 1): " << qPrintable(AString::fromNumbers(surfaceViewport, 4, ",")) << std::endl;
+        }
         this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
                                                                  mvp->getProjectionViewType(),
                                                                  mvp->getSurface());

@@ -649,12 +649,12 @@ BrainBrowserWindow::createActions()
                                                                 Qt::CTRL + Qt::SHIFT + Qt::Key_M,
                                                                 this);
 
-    m_tabMarginsAction =
-    WuQtUtilities::createAction("Tab Margins...",
-                                "Adjust the tab margins",
+    m_gapsAndMarginsAction =
+    WuQtUtilities::createAction("Gaps and Margins...",
+                                "Adjust the gaps and margins",
                                 this,
                                 this,
-                                SLOT(processTabMargins()));
+                                SLOT(processGapsAndMargins()));
     
     m_nextTabAction =
     WuQtUtilities::createAction("Next Tab",
@@ -1245,7 +1245,7 @@ BrainBrowserWindow::createMenuView()
     menu->addAction(m_viewFullScreenAction);
     menu->addAction(m_viewTileTabsAction);
     menu->addSeparator();
-    menu->addAction(m_tabMarginsAction);
+    menu->addAction(m_gapsAndMarginsAction);
     menu->addMenu(m_tileTabsMenu);
     
     return menu;
@@ -1861,9 +1861,9 @@ BrainBrowserWindow::processCaptureImage()
  * Called when capture image is selected.
  */
 void
-BrainBrowserWindow::processTabMargins()
+BrainBrowserWindow::processGapsAndMargins()
 {
-    GuiManager::get()->processShowTabMarginsDialog(this);
+    GuiManager::get()->processShowGapsAndMarginsDialog(this);
 }
 
 /**

@@ -671,12 +671,15 @@ BrainOpenGLWidget::paintGL()
         this->openGL->setDrawHighlightedEndPoints(this->userInputBordersModeProcessor->isHighlightBorderEndPoints());
     }
     
+    const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    
     const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
     if (numToDraw == 1) {
         BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(windowViewport,
                                                                         windowViewport,
                                                                         this->windowIndex,
                                                                         false,
+                                                                        gapsAndMargins,
                                                                         getModelEvent.getTabContentToDraw(0));
         this->drawingViewportContents.push_back(vc);
     }
@@ -717,7 +720,8 @@ BrainOpenGLWidget::paintGL()
                                                                                                      windowViewport,
                                                                                                      rowHeights,
                                                                                                      columnsWidths,
-                                                                                                     getModelEvent.getTabIndexForTileTabsHighlighting());
+                                                                                                     getModelEvent.getTabIndexForTileTabsHighlighting(),
+                                                                                                     gapsAndMargins);
     }
     
     if (this->selectedUserInputProcessor == userInputBordersModeProcessor) {

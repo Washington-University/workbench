@@ -53,7 +53,6 @@
 #include "FociFile.h"
 #include "IdentificationManager.h"
 #include "LabelFile.h"
-#include "Margin.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "ModelChart.h"
@@ -113,8 +112,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
     
-    m_margin = new Margin();
-    
     m_cerebellumViewingTransformation  = new ViewingTransformationsCerebellum();
     m_flatSurfaceViewingTransformation = new ViewingTransformations();
     m_viewingTransformation            = new ViewingTransformations();
@@ -135,9 +132,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                &m_tabNumber);
     m_sceneClassAssistant->add("m_userName",
                                &m_userName);
-    m_sceneClassAssistant->add("m_margin",
-                               "Margin",
-                               m_margin);
     m_sceneClassAssistant->add<ModelTypeEnum, ModelTypeEnum::Enum>("m_selectedModelType",
                                                                    &m_selectedModelType);
     m_sceneClassAssistant->add("m_surfaceModelSelector",
@@ -209,8 +203,6 @@ BrowserTabContent::~BrowserTabContent()
     delete m_viewingTransformation;
     delete m_volumeSliceViewingTransformation;
     delete m_obliqueVolumeRotationMatrix;
-    
-    delete m_margin;
     
     delete m_surfaceModelSelector;
     m_surfaceModelSelector = NULL;
@@ -782,25 +774,6 @@ BrowserTabContent::getSurfaceModelSelector()
 {
     return m_surfaceModelSelector;
 }
-
-/**
- * @return The tab's margins.
- */
-Margin*
-BrowserTabContent::getMargin()
-{
-    return m_margin;
-}
-
-/**
- * @return The tab's margins.
- */
-const Margin*
-BrowserTabContent::getMargin() const
-{
-    return m_margin;
-}
-
 
 /**
  * Get the overlay assignments for this tab.
@@ -2707,8 +2680,6 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
-    
-    m_margin->reset();
     
     m_sceneClassAssistant->restoreMembers(sceneAttributes, 
                                           sceneClass);

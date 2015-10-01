@@ -583,15 +583,15 @@ PreferencesDialog::createVolumeWidget()
                      this, SLOT(volumeAxesMontageCoordinatesComboBoxToggled(bool)));
     m_allWidgets->add(m_volumeAxesMontageCoordinatesComboBox);
     
-    /*
-     * Montage Slice Gap
-     */
-    m_volumeMontageGapSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(0,
-                                                                                  100000,
-                                                                                  1,
-                                                                                  this,
-                                                                                  SLOT(volumeMontageGapValueChanged(int)));
-    m_allWidgets->add(m_volumeMontageGapSpinBox);
+//    /*
+//     * Montage Slice Gap
+//     */
+//    m_volumeMontageGapSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(0,
+//                                                                                  100000,
+//                                                                                  1,
+//                                                                                  this,
+//                                                                                  SLOT(volumeMontageGapValueChanged(int)));
+//    m_allWidgets->add(m_volumeMontageGapSpinBox);
     
     /*
      * Montage Slice Coordinate Precision
@@ -606,7 +606,7 @@ PreferencesDialog::createVolumeWidget()
     m_allWidgets->add(m_volumeAxesCrosshairsComboBox);
     m_allWidgets->add(m_volumeAxesLabelsComboBox);
     m_allWidgets->add(m_volumeAxesMontageCoordinatesComboBox);
-    m_allWidgets->add(m_volumeMontageGapSpinBox);
+//    m_allWidgets->add(m_volumeMontageGapSpinBox);
     m_allWidgets->add(m_volumeMontageCoordinatePrecisionSpinBox);
     
     QGridLayout* gridLayout = new QGridLayout();
@@ -623,9 +623,9 @@ PreferencesDialog::createVolumeWidget()
     addWidgetToLayout(gridLayout,
                       "Volume Montage Slice Coord: ",
                       m_volumeAxesMontageCoordinatesComboBox->getWidget());
-    addWidgetToLayout(gridLayout,
-                      "Volume Montage Gap: ",
-                      m_volumeMontageGapSpinBox);
+//    addWidgetToLayout(gridLayout,
+//                      "Volume Montage Gap: ",
+//                      m_volumeMontageGapSpinBox);
     addWidgetToLayout(gridLayout,
                       "Volume Montage Precision: ",
                       m_volumeMontageCoordinatePrecisionSpinBox);
@@ -650,7 +650,7 @@ PreferencesDialog::updateVolumeWidget(CaretPreferences* prefs)
     m_volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
     m_volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
     m_volumeIdentificationComboBox->setStatus(prefs->isVolumeIdentificationDefaultedOn());
-    m_volumeMontageGapSpinBox->setValue(prefs->getVolumeMontageGap());
+//    m_volumeMontageGapSpinBox->setValue(prefs->getVolumeMontageGap());
     m_volumeMontageCoordinatePrecisionSpinBox->setValue(prefs->getVolumeMontageCoordinatePrecision());
 }
 
@@ -921,16 +921,16 @@ PreferencesDialog::volumeAxesMontageCoordinatesComboBoxToggled(bool value)
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
-/**
- * Called when volume montage gap value is changed.
- */
-void
-PreferencesDialog::volumeMontageGapValueChanged(int value)
-{
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->setVolumeMontageGap(value);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
+///**
+// * Called when volume montage gap value is changed.
+// */
+//void
+//PreferencesDialog::volumeMontageGapValueChanged(int value)
+//{
+//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+//    prefs->setVolumeMontageGap(value);
+//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//}
 
 /**
  * Called when volume montage coordinate precision value is changed.

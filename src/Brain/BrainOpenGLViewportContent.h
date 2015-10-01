@@ -27,6 +27,7 @@
 namespace caret {
 
     class BrowserTabContent;
+    class GapsAndMargins;
     
     class BrainOpenGLViewportContent : public CaretObject {
         
@@ -35,6 +36,7 @@ namespace caret {
                                    const int modelViewport[4],
                                    const int windowIndex,
                                    const bool highlightTabFlag,
+                                   const GapsAndMargins* gapsAndMargins,
                                    BrowserTabContent* browserTabContent);
         
         ~BrainOpenGLViewportContent();
@@ -63,7 +65,8 @@ namespace caret {
                                                                                          const int32_t windowViewport[4],
                                                                                          const std::vector<int32_t>& rowHeights,
                                                                                          const std::vector<int32_t>& columnWidths,
-                                                                                         const int32_t highlightTabIndex);
+                                                                                         const int32_t highlightTabIndex,
+                                                                                         const GapsAndMargins* gapsAndMargins);
         
     private:
         void initializeMembersBrainOpenGLViewportContent();

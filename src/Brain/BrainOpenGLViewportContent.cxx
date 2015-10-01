@@ -28,7 +28,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "Margin.h"
+#include "GapsAndMargins.h"
 #include "MathFunctions.h"
 
 using namespace caret;
@@ -60,9 +60,12 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
                                                        const int modelViewport[4],
                                                        const int32_t windowIndex,
                                                        const bool highlightTabFlag,
+                                                       const GapsAndMargins* gapsAndMargins,
                                                        BrowserTabContent* browserTabContent)
 : CaretObject()
 {
+    CaretAssert(gapsAndMargins);
+    
     initializeMembersBrainOpenGLViewportContent();
     
     m_windowViewport[0] = windowViewport[0];
@@ -81,16 +84,33 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
     m_modelViewport[3] = modelViewport[3];
     
     if (browserTabContent != NULL) {
-        int32_t left = 0, right = 0, bottom = 0, top = 0;
-        browserTabContent->getMargin()->getMargins(left, right, bottom, top);
-        const int32_t marginHorizSize = (left + right);
-        const int32_t marginVertSize  = (bottom + top);
+        /*
+         * An "ALL" selection applies first tab margin to ALL tabs
+         */
+        const int32_t tabIndex = browserTabContent->getTabNumber();
+        const int32_t leftMargin   = modelViewport[2] * (gapsAndMargins->isTabMarginLeftAllSelected()
+                                                         ? gapsAndMargins->getTabMarginLeft(0)
+                                                         : gapsAndMargins->getTabMarginLeft(tabIndex));
+        const int32_t rightMargin  = modelViewport[2] * (gapsAndMargins->isTabMarginRightAllSelected()
+                                                         ? gapsAndMargins->getTabMarginRight(0)
+                                                         : gapsAndMargins->getTabMarginRight(tabIndex));
+        const int32_t bottomMargin = modelViewport[3] * (gapsAndMargins->isTabMarginBottomAllSelected()
+                                                         ? gapsAndMargins->getTabMarginBottom(0)
+                                                         : gapsAndMargins->getTabMarginBottom(tabIndex));
+        const int32_t topMargin    = modelViewport[3] * (gapsAndMargins->isTabMarginTopAllSelected()
+                                                         ? gapsAndMargins->getTabMarginTop(0)
+                                                         : gapsAndMargins->getTabMarginTop(tabIndex));
+        
+        const int32_t marginHorizSize = (leftMargin + rightMargin);
+        const int32_t marginVertSize  = (bottomMargin + topMargin);
         if ((marginHorizSize < modelViewport[2])
             && (marginVertSize < modelViewport[3])) {
-            m_modelViewport[0] = modelViewport[0] + left;
-            m_modelViewport[1] = modelViewport[1] + bottom;
+            m_modelViewport[0] = modelViewport[0] + leftMargin;
+            m_modelViewport[1] = modelViewport[1] + bottomMargin;
             m_modelViewport[2] = modelViewport[2] - marginHorizSize;
             m_modelViewport[3] = modelViewport[3] - marginVertSize;
+            
+            std::cout << "Tab " << tabIndex << " viewport: " << qPrintable(AString::fromNumbers(m_modelViewport, 4, ",")) << " orig-width: " << modelViewport[2] << std::endl;
         }
         else {
             CaretLogSevere("Margins are too big for tab "
@@ -98,16 +118,17 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
                            + " viewport.  Viewport (x,y,w,h)="
                            + AString::fromNumbers(modelViewport, 4, ",")
                            + " margin (l,r,b,t)="
-                           + AString::number(left) + ","
-                           + AString::number(right) + ","
-                           + AString::number(bottom) + ","
-                           + AString::number(top));
+                           + AString::number(leftMargin) + ","
+                           + AString::number(rightMargin) + ","
+                           + AString::number(bottomMargin) + ","
+                           + AString::number(topMargin));
         }
     }
     
     /*
      * If margins are too big, they could make the viewport invalid
      * so test for it and if the viewport is invalid,
+     * override with original viewport.
      */
     bool validViewportFlag = true;
     for (int32_t i = 0; i < 4; i++) {
@@ -380,7 +401,8 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                                                              const int32_t windowViewport[4],
                                                              const std::vector<int32_t>& rowHeights,
                                                              const std::vector<int32_t>& columnWidths,
-                                                             const int32_t highlightTabIndex)
+                                                             const int32_t highlightTabIndex,
+                                                             const GapsAndMargins* gapsAndMargins)
 {
     const int32_t numRows = static_cast<int32_t>(rowHeights.size());
     const int32_t numCols = static_cast<int32_t>(columnWidths.size());
@@ -417,6 +439,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                                                modelViewport,
                                                windowIndex,
                                                highlightTab,
+                                               gapsAndMargins,
                                                tabContent);
                 viewportContentsOut.push_back(vc);
             }

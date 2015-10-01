@@ -93,6 +93,7 @@ FiberSamplesOpenGLWidget.h
 FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
+GapsAndMarginsDialog.h
 GiftiLabelTableEditor.h
 GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyViewController.h
@@ -134,7 +135,6 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
-TabMarginsDialog.h
 TileTabsConfigurationDialog.h
 UserInputModeAnnotationsContextMenu.h
 UserInputModeAnnotationsWidget.h
@@ -271,6 +271,7 @@ FiberSamplesOpenGLWidget.h
 FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
+GapsAndMarginsDialog.h
 GiftiLabelTableEditor.h
 GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyTreeWidgetItem.h
@@ -317,7 +318,6 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
-TabMarginsDialog.h
 TileTabsConfigurationDialog.h
 UserInputModeAbstract.h
 UserInputModeAnnotations.h
@@ -453,6 +453,7 @@ FiberSamplesOpenGLWidget.cxx
 FociProjectionDialog.cxx
 FociPropertiesEditorDialog.cxx
 FociSelectionViewController.cxx
+GapsAndMarginsDialog.cxx
 GiftiLabelTableEditor.cxx
 GiftiLabelTableSelectionComboBox.cxx
 GroupAndNameHierarchyTreeWidgetItem.cxx
@@ -499,7 +500,6 @@ StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
-TabMarginsDialog.cxx
 TileTabsConfigurationDialog.cxx
 UserInputModeAbstract.cxx
 UserInputModeAnnotations.cxx
