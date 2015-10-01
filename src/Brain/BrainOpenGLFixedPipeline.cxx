@@ -4517,9 +4517,9 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     const int32_t verticalMargin   = static_cast<int32_t>(MathFunctions::round(static_cast<double>(viewport[3] * gapsAndMargins->getSurfaceMontageVerticalGap())));
     
     const int32_t totalGapX = (horizontalMargin * (numberOfColumns - 1));
-    const int32_t vpSizeX   = std::floor(viewport[2] - totalGapX) / numberOfColumns;
+    const int32_t vpSizeX   = std::floor(static_cast<double>(viewport[2] - totalGapX) / numberOfColumns);
     const int32_t totalGapY = (verticalMargin * (numberOfRows - 1));
-    const int32_t vpSizeY   = std::floor(viewport[3] - totalGapY) / numberOfRows;
+    const int32_t vpSizeY   = std::floor(static_cast<double>(viewport[3] - totalGapY) / numberOfRows);
 
 //    std::cout << "Horiz margin pixels: " << horizontalMargin << " VP Size X: " << vpSizeX << " full viewport X: " << viewport[3] << std::endl;
     const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
