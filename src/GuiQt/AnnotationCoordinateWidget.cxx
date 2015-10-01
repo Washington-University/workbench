@@ -94,8 +94,9 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_surfaceOffsetLengthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(valueChanged()));
     
+    const int digitsRightOfDecimal = 3;
     QLabel* xCoordLabel = new QLabel(" X:");
-    m_xCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, 2,
+    m_xCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_xCoordSpinBox,
                                          "X-coordinate of annotation\n"
@@ -105,7 +106,7 @@ m_browserWindowIndex(browserWindowIndex)
                                          "      1.0 => Right side of tab/window\n");
     
     QLabel* yCoordLabel = new QLabel(" Y:");
-    m_yCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, 2,
+    m_yCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_yCoordSpinBox,
                                          "Y-coordinate of annotation\n"
@@ -115,7 +116,7 @@ m_browserWindowIndex(browserWindowIndex)
                                          "      1.0 => Top of tab/window\n");
     
     QLabel* zCoordLabel = new QLabel(" Z:");
-    m_zCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1.0, 1.0, 0.01, 2,
+    m_zCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1.0, 1.0, 0.01, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_zCoordSpinBox,
                                          "Z-coordinate of annotation\n"
