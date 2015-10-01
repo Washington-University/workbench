@@ -158,42 +158,52 @@ GapsAndMarginsDialog::createMarginsWidget()
                      this, SLOT(tabMarginChanged(int)));
     
     int32_t columnCounter = 0;
-    const int32_t COLUMN_LABEL = columnCounter++;
+    const int32_t COLUMN_LABEL  = columnCounter++;
     const int32_t COLUMN_LEFT   = columnCounter++;
     const int32_t COLUMN_RIGHT  = columnCounter++;
     const int32_t COLUMN_BOTTOM = columnCounter++;
     const int32_t COLUMN_TOP    = columnCounter++;
     
-    m_leftMarginCheckBox = new QCheckBox("Left");
+    m_leftMarginCheckBox = new QCheckBox(" "); //"Left");
     QObject::connect(m_leftMarginCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(tabMarginCheckBoxClicked()));
     m_leftMarginCheckBox->setToolTip("When checked, tab 1 left margin is applied to ALL tabs");
     
-    m_rightMarginCheckBox = new QCheckBox("Right");
+    m_rightMarginCheckBox = new QCheckBox(" "); //"Right");
     QObject::connect(m_rightMarginCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(tabMarginCheckBoxClicked()));
     m_rightMarginCheckBox->setToolTip("When checked, tab 1 right margin is applied to ALL tabs");
     
-    m_bottomMarginCheckBox = new QCheckBox("Bottom");
+    m_bottomMarginCheckBox = new QCheckBox(" "); //"Bottom");
     QObject::connect(m_bottomMarginCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(tabMarginCheckBoxClicked()));
     m_bottomMarginCheckBox->setToolTip("When checked, tab 1 bottom margin applied to ALL tabs");
     
-    m_topMarginCheckBox = new QCheckBox("Top");
+    m_topMarginCheckBox = new QCheckBox(" "); //"Top");
     QObject::connect(m_topMarginCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(tabMarginCheckBoxClicked()));
     m_topMarginCheckBox->setToolTip("When checked, tab 1 top margin is applied to ALL tabs");
     
     QWidget* tabsWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(tabsWidget);
-    gridLayout->addWidget(new QLabel("Tab"),      0, COLUMN_LABEL,  Qt::AlignLeft);
-    gridLayout->addWidget(m_leftMarginCheckBox,   0, COLUMN_LEFT,   Qt::AlignHCenter);
-    gridLayout->addWidget(m_rightMarginCheckBox,  0, COLUMN_RIGHT,  Qt::AlignHCenter);
-    gridLayout->addWidget(m_bottomMarginCheckBox, 0, COLUMN_BOTTOM, Qt::AlignHCenter);
-    gridLayout->addWidget(m_topMarginCheckBox,    0, COLUMN_TOP,    Qt::AlignHCenter);
+    
+    const int32_t titlesRow = gridLayout->rowCount();
+    //gridLayout->addWidget(new QLabel("Tab"), titlesRow, COLUMN_LABEL,  Qt::AlignHCenter);
+    gridLayout->addWidget(new QLabel("Left"), titlesRow, COLUMN_LEFT,  Qt::AlignHCenter);
+    gridLayout->addWidget(new QLabel("Right"), titlesRow, COLUMN_RIGHT,  Qt::AlignHCenter);
+    gridLayout->addWidget(new QLabel("Bottom"), titlesRow, COLUMN_BOTTOM,  Qt::AlignHCenter);
+    gridLayout->addWidget(new QLabel("Top"), titlesRow, COLUMN_TOP,  Qt::AlignHCenter);
+    
+    const int32_t applyToAllRow = gridLayout->rowCount();
+    gridLayout->addWidget(new QLabel("Apply tab 1\nto all tabs"), applyToAllRow, COLUMN_LABEL, Qt::AlignRight | Qt::AlignVCenter);
+    gridLayout->addWidget(m_leftMarginCheckBox,   applyToAllRow, COLUMN_LEFT,   Qt::AlignHCenter);
+    gridLayout->addWidget(m_rightMarginCheckBox,  applyToAllRow, COLUMN_RIGHT,  Qt::AlignHCenter);
+    gridLayout->addWidget(m_bottomMarginCheckBox, applyToAllRow, COLUMN_BOTTOM, Qt::AlignHCenter);
+    gridLayout->addWidget(m_topMarginCheckBox,    applyToAllRow, COLUMN_TOP,    Qt::AlignHCenter);
     
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
-        QLabel* tabLabel = new QLabel(QString::number(iTab + 1));
+        QLabel* tabLabel = new QLabel("Tab "
+                                      + QString::number(iTab + 1));
         m_tabNumberLabels.push_back(tabLabel);
         
         QDoubleSpinBox* leftMarginSpinBox = createPercentageSpinBox();
@@ -220,7 +230,7 @@ GapsAndMarginsDialog::createMarginsWidget()
                          m_tabIndexSignalMapper, SLOT(map()));
         m_tabIndexSignalMapper->setMapping(topMarginSpinBox, iTab);
         
-        const int32_t gridRow = iTab + 1;
+        const int32_t gridRow = gridLayout->rowCount();
         gridLayout->addWidget(tabLabel,            gridRow, COLUMN_LABEL, Qt::AlignRight);
         gridLayout->addWidget(leftMarginSpinBox,   gridRow, COLUMN_LEFT);
         gridLayout->addWidget(rightMarginSpinBox,  gridRow, COLUMN_RIGHT);
@@ -230,6 +240,8 @@ GapsAndMarginsDialog::createMarginsWidget()
     
     QScrollArea* scrollArea = new QScrollArea();
     scrollArea->setWidget(tabsWidget);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     
     QWidget* widget = new QGroupBox("Tab Margins");
     QVBoxLayout* layout = new QVBoxLayout(widget);
