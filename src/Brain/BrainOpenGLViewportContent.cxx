@@ -110,7 +110,7 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
             m_modelViewport[2] = modelViewport[2] - marginHorizSize;
             m_modelViewport[3] = modelViewport[3] - marginVertSize;
             
-            std::cout << "Tab " << tabIndex << " viewport: " << qPrintable(AString::fromNumbers(m_modelViewport, 4, ",")) << " orig-width: " << modelViewport[2] << std::endl;
+//            std::cout << "Tab " << tabIndex << " viewport: " << qPrintable(AString::fromNumbers(m_modelViewport, 4, ",")) << " orig-width: " << modelViewport[2] << std::endl;
         }
         else {
             CaretLogSevere("Margins are too big for tab "

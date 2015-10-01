@@ -4521,7 +4521,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     const int32_t totalGapY = (verticalMargin * (numberOfRows - 1));
     const int32_t vpSizeY   = std::floor(viewport[3] - totalGapY) / numberOfRows;
 
-    std::cout << "Horiz margin pixels: " << horizontalMargin << " VP Size X: " << vpSizeX << " full viewport X: " << viewport[3] << std::endl;
+//    std::cout << "Horiz margin pixels: " << horizontalMargin << " VP Size X: " << vpSizeX << " full viewport X: " << viewport[3] << std::endl;
     const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
     for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
         SurfaceMontageViewport* mvp = montageViewports[ivp];
@@ -4543,10 +4543,10 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         };
         mvp->setViewport(surfaceViewport);
         
-        if ((rowFromBottom == 1)
-            && (column == 1)) {
-            std::cout << "Viewport (1, 1): " << qPrintable(AString::fromNumbers(surfaceViewport, 4, ",")) << std::endl;
-        }
+//        if ((rowFromBottom == 1)
+//            && (column == 1)) {
+//            std::cout << "Viewport (1, 1): " << qPrintable(AString::fromNumbers(surfaceViewport, 4, ",")) << std::endl;
+//        }
         this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
                                                                  mvp->getProjectionViewType(),
                                                                  mvp->getSurface());
@@ -4968,6 +4968,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
     float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
                                               boundingBox->getDifferenceY()),
                                               boundingBox->getDifferenceZ()) / 2.0;
+    float modelHalfWidth = modelHalfHeight;
     
     /*
      * The default view was changed to a lateral view and the above
@@ -4992,17 +4993,26 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
                                                / static_cast<float>(viewport[2]));
             
             if (viewportAspectRatio > surfaceAspectRatio) {
-                const float modelHalfWidth = yDiff / 2.0;
+                modelHalfWidth = yDiff / 2.0;
                 modelHalfHeight = modelHalfWidth * viewportAspectRatio;
             }
         }
     }
     
     const float orthoHeight = modelHalfHeight * 1.02;
+    const float orthoWidth  = modelHalfWidth  * 1.02;
     
-    setOrthographicProjectionWithHeight(viewport,
-                                        projectionType,
-                                        orthoHeight);
+    const bool setWidthFromHeightFlag = true;
+    if (setWidthFromHeightFlag) {
+        setOrthographicProjectionWithHeight(viewport,
+                                            projectionType,
+                                            orthoHeight);
+    }
+    else {
+        setOrthographicProjectionWithWidth(viewport,
+                                           projectionType,
+                                           orthoWidth);
+    }
 }
 
 /**
@@ -5061,6 +5071,61 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
     }
 }
 
+/**
+ * Setup the orthographic projection with the given window width.
+ *
+ * @param viewport
+ *    The viewport (x, y, width, height)
+ * @param projectionType
+ *    Type of view projection.
+ * @param halfWindowWidth
+ *    Half of window width for model.
+ */
+void
+BrainOpenGLFixedPipeline::setOrthographicProjectionWithWidth(const int32_t viewport[4],
+                                                              const ProjectionViewTypeEnum::Enum projectionType,
+                                                              const float halfWindowWidth)
+{
+    double width = viewport[2];
+    double height = viewport[3];
+    double aspectRatio = (width / height);
+    this->orthographicRight  =    halfWindowWidth;  //  halfWindowHeight * aspectRatio;
+    this->orthographicLeft   =   -halfWindowWidth;  // -halfWindowHeight * aspectRatio;
+    this->orthographicTop    =    halfWindowWidth / aspectRatio;  // halfWindowHeight;
+    this->orthographicBottom =   -halfWindowWidth / aspectRatio;  //-halfWindowHeight;
+    this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
+    this->orthographicFar    =  1000.0; //500.0; // 10000.0;
+    
+    switch (projectionType) {
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+            glOrtho(this->orthographicLeft, this->orthographicRight,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicNear, this->orthographicFar);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+            glOrtho(this->orthographicLeft, this->orthographicRight,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicNear, this->orthographicFar);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+            glOrtho(this->orthographicLeft, this->orthographicRight,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicNear, this->orthographicFar);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+            glOrtho(this->orthographicRight, this->orthographicLeft,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicFar, this->orthographicNear);
+            break;
+    }
+}
 
 /**
  * check for an OpenGL Error.

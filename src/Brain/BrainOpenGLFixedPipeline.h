@@ -308,6 +308,10 @@ namespace caret {
                                                  const ProjectionViewTypeEnum::Enum projectionType,
                                                  const float halfWindowHeight);
         
+        void setOrthographicProjectionWithWidth(const int32_t viewport[4],
+                                                 const ProjectionViewTypeEnum::Enum projectionType,
+                                                 const float halfWindowWidgth);
+        
         void checkForOpenGLError(const Model* modelModel,
                                  const AString& msg);
         
