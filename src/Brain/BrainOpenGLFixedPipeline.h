@@ -124,6 +124,12 @@ namespace caret {
         
         virtual AString getStateOfOpenGL() const;
         
+        static void createSubViewportSizeAndGaps(const int32_t viewportSize,
+                                                 const float gapPercentage,
+                                                 const int32_t numberOfSubViewports,
+                                                 int32_t& subViewportSizeOut,
+                                                 int32_t& gapOut);
+        
     private:
         class VolumeDrawInfo {
         public:

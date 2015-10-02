@@ -453,14 +453,28 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
     const int32_t montageCoordPrecision = caretPreferences->getVolumeMontageCoordinatePrecision();
     
     const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
-    const int32_t horizontalMargin = static_cast<int32_t>(viewport[2] * gapsAndMargins->getVolumeMontageHorizontalGap());
-    const int32_t verticalMargin   = static_cast<int32_t>(viewport[3] * gapsAndMargins->getVolumeMontageVerticalGap());
+//    const int32_t horizontalMargin = static_cast<int32_t>(viewport[2] * gapsAndMargins->getVolumeMontageHorizontalGap());
+//    const int32_t verticalMargin   = static_cast<int32_t>(viewport[3] * gapsAndMargins->getVolumeMontageVerticalGap());
+//    
+//    const int32_t totalGapX = horizontalMargin * (numCols - 1);
+//    const int32_t vpSizeX = (viewport[2] - totalGapX) / numCols;
+//    const int32_t totalGapY = verticalMargin * (numRows - 1);
+//    const int32_t vpSizeY = (viewport[3] - totalGapY) / numRows;
     
-    const int32_t totalGapX = horizontalMargin * (numCols - 1);
-    const int32_t vpSizeX = (viewport[2] - totalGapX) / numCols;
-    const int32_t totalGapY = verticalMargin * (numRows - 1);
-    const int32_t vpSizeY = (viewport[3] - totalGapY) / numRows;
-    
+    int32_t vpSizeX          = 0;
+    int32_t horizontalMargin = 0;
+    BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport[2],
+                                                           gapsAndMargins->getVolumeMontageHorizontalGap(),
+                                                           numCols,
+                                                           vpSizeX,
+                                                           horizontalMargin);
+    int32_t vpSizeY        = 0;
+    int32_t verticalMargin = 0;
+    BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport[3],
+                                                           gapsAndMargins->getVolumeMontageVerticalGap(),
+                                                           numRows,
+                                                           vpSizeY,
+                                                           verticalMargin);
     /*
      * Voxel sizes for underlay volume
      */
