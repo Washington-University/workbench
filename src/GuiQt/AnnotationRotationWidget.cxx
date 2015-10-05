@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
+
 #define __ANNOTATION_ROTATION_WIDGET_DECLARE__
 #include "AnnotationRotationWidget.h"
 #undef __ANNOTATION_ROTATION_WIDGET_DECLARE__
@@ -95,17 +97,42 @@ void
 AnnotationRotationWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
 {
     if ( ! annotations2D.empty()) {
-        double rotation = annotations2D[0]->getRotationAngle();
-        if (rotation < 0.0) {
-            rotation += 360.0;
+        float rotationAngle = 0.0;
+        bool haveMultipleRotationAnglesFlag = false;
+        
+        const int32_t numAnns = static_cast<int32_t>(annotations2D.size());
+        for (int32_t i = 0; i < numAnns; i++) {
+            CaretAssertVectorIndex(annotations2D, i);
+            float angle = annotations2D[i]->getRotationAngle();
+            if (angle < 0.0) {
+                angle += 360.0;
+            }
+            
+            if (i == 0) {
+                rotationAngle = angle;
+            }
+            else {
+                if (rotationAngle != angle) {
+                    haveMultipleRotationAnglesFlag = true;
+                }
+                rotationAngle = std::min(rotationAngle,
+                                         angle);
+            }
         }
+        
         m_rotationSpinBox->blockSignals(true);
-        m_rotationSpinBox->setValue(rotation);
+        m_rotationSpinBox->setValue(rotationAngle);
+        if (haveMultipleRotationAnglesFlag) {
+            m_rotationSpinBox->setSuffix("+");
+        }
+        else {
+            m_rotationSpinBox->setSuffix("");
+        }
         m_rotationSpinBox->blockSignals(false);
         
         setEnabled(true);
         
-        AnnotationTwoDimensionalShape::setDefaultRotationAngle(rotation);
+        AnnotationTwoDimensionalShape::setDefaultRotationAngle(rotationAngle);
     }
     else {
         setEnabled(false);

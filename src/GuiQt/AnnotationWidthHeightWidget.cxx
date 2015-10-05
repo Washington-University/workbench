@@ -102,18 +102,72 @@ void
 AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
 {
     if ( ! annotations2D.empty()) {
-        AnnotationTwoDimensionalShape* twoDimAnn = annotations2D[0];
-        if (twoDimAnn->getType() != AnnotationTypeEnum::TEXT) {
-            m_widthSpinBox->blockSignals(true);
-            m_widthSpinBox->setValue(twoDimAnn->getWidth());
-            m_widthSpinBox->blockSignals(false);
-            m_heightSpinBox->blockSignals(true);
-            m_heightSpinBox->setValue(twoDimAnn->getHeight());
-            m_heightSpinBox->blockSignals(false);
-            setEnabled(true);
+        float widthValue = 0.0;
+        bool haveMultipleWidthValuesFlag = false;
+        
+        float heightValue = 0.0;
+        bool haveMultipleHeightValuesFlag = false;
+        
+        bool firstFlag = true;
+        bool haveValuesFlag = false;
+        
+        const int32_t numAnns = static_cast<int32_t>(annotations2D.size());
+        for (int32_t i = 0; i < numAnns; i++) {
+            CaretAssertVectorIndex(annotations2D, i);
+            if (annotations2D[i]->getType() == AnnotationTypeEnum::TEXT) {
+                continue;
+            }
             
-            AnnotationTwoDimensionalShape::setDefaultWidth(twoDimAnn->getWidth());
-            AnnotationTwoDimensionalShape::setDefaultHeight(twoDimAnn->getHeight());
+            haveValuesFlag = true;
+            
+            const float width  = annotations2D[i]->getWidth();
+            const float height = annotations2D[i]->getHeight();
+            
+            if (firstFlag) {
+                widthValue  = width;
+                heightValue = height;
+                firstFlag = false;
+            }
+            else {
+                if (width != widthValue) {
+                    haveMultipleWidthValuesFlag = true;
+                }
+                if (height != heightValue) {
+                    haveMultipleHeightValuesFlag = true;
+                }
+                
+                widthValue = std::min(widthValue,
+                                      width);
+                heightValue = std::min(heightValue,
+                                       height);
+            }
+        }
+        
+        if (haveValuesFlag) {
+            m_widthSpinBox->blockSignals(true);
+            m_widthSpinBox->setValue(widthValue);
+            if (haveMultipleWidthValuesFlag) {
+                m_widthSpinBox->setSuffix("+");
+            }
+            else {
+                m_widthSpinBox->setSuffix("");
+            }
+            m_widthSpinBox->blockSignals(false);
+            
+            m_heightSpinBox->blockSignals(true);
+            m_heightSpinBox->setValue(heightValue);
+            if (haveMultipleHeightValuesFlag) {
+                m_heightSpinBox->setSuffix("+");
+            }
+            else {
+                m_heightSpinBox->setSuffix("");
+            }
+            m_heightSpinBox->blockSignals(false);
+            
+            AnnotationTwoDimensionalShape::setDefaultWidth(widthValue);
+            AnnotationTwoDimensionalShape::setDefaultHeight(heightValue);
+            
+            setEnabled(true);
         }
         else {
             setEnabled(false);
