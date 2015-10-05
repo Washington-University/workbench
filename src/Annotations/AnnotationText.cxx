@@ -105,17 +105,17 @@ AnnotationText::operator=(const AnnotationText& obj)
 void
 AnnotationText::initializeAnnotationTextMembers()
 {
-    m_text = "";
-    m_alignmentHorizontal = AnnotationTextAlignHorizontalEnum::CENTER;
-    m_alignmentVertical   = AnnotationTextAlignVerticalEnum::MIDDLE;
-    m_font = AnnotationTextFontNameEnum::VERA;
-    m_fontPointSize = AnnotationTextFontPointSizeEnum::SIZE14;
-    m_orientation = AnnotationTextOrientationEnum::HORIZONTAL;
-    m_boldEnabled = false;
-    m_italicEnabled = false;
-    m_underlineEnabled = false;
-    m_connectToBrainordinate = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
-    m_fontPercentViewportSize = 0.05;
+    m_text                    = "";
+    m_alignmentHorizontal     = s_defaultAlignmentHorizontal;
+    m_alignmentVertical       = s_defaultAlignmentVertical;
+    m_font                    = s_defaultFont;
+    m_fontPointSize           = s_defaultPointSize;
+    m_orientation             = s_defaultOrientation;
+    m_boldEnabled             = s_defaultBoldEnabled;
+    m_italicEnabled           = s_defaultItalicEnabled;
+    m_underlineEnabled        = s_defaultUnderlineEnabled;
+    m_connectToBrainordinate  = s_defaultConnectToBrainordinate;
+    m_fontPercentViewportSize = s_defaultFontPercentViewportSize;
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_text",
@@ -706,3 +706,112 @@ AnnotationText::restoreSubClassDataFromScene(const SceneAttributes* sceneAttribu
                                      sceneClass);
 }
 
+/**
+ * Set the default value for horizontal alignment.
+ *
+ * @param alignment
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment)
+{
+    s_defaultAlignmentHorizontal = alignment;
+}
+
+/**
+ * Set the default value for vertical alignment.
+ *
+ * @param alignment
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment)
+{
+    s_defaultAlignmentVertical = alignment;
+}
+
+/**
+ * Set the default value for the font name.
+ *
+ * @param font
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultFont(const AnnotationTextFontNameEnum::Enum font)
+{
+    s_defaultFont = font;
+}
+
+/**
+ * Set the default value for the text orientation.
+ *
+ * @param orientation
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultOrientation(const AnnotationTextOrientationEnum::Enum orientation)
+{
+    s_defaultOrientation = orientation;
+}
+
+/**
+ * Set the default value for font point size.
+ *
+ * @param fontPointSize
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize)
+{
+    s_defaultPointSize = fontPointSize;
+}
+
+/**
+ * Set the default value for font percent viewport height.
+ *
+ * @param fontPercentViewportHeight
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultFontPercentViewportSize(const float fontPercentViewportHeight)
+{
+    s_defaultFontPercentViewportSize = fontPercentViewportHeight;
+}
+
+/**
+ * Set the default value for bold enabled.
+ *
+ * @param enabled
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultBoldEnabled(const bool enabled)
+{
+    s_defaultBoldEnabled = enabled;
+}
+
+/**
+ * Set the default value for italic enabled.
+ *
+ * @param enabled
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultItalicEnabled(const bool enabled)
+{
+    s_defaultItalicEnabled = enabled;
+}
+
+/**
+ * Set the default value for underline enabled.
+ *
+ * @param enabled
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultUnderlineEnabled(const bool enabled)
+{
+    s_defaultUnderlineEnabled = enabled;
+}
+
+/**
+ * Set the default value for connect to brainordinate.
+ *
+ * @param connectToBrainordinate
+ *     Default for newly created text annotations.
+ */
+void AnnotationText::setDefaultConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate)
+{
+    s_defaultConnectToBrainordinate = connectToBrainordinate;
+}

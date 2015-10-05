@@ -48,7 +48,12 @@ namespace caret {
         
         virtual bool isBackgroundColorSupported() const;
         
-        // ADD_NEW_METHODS_HERE
+        
+        static void setDefaultDisplayStartArrow(const bool displayArrow);
+        
+        static void setDefaultDisplayEndArrow(const bool displayArrow);
+        
+       // ADD_NEW_METHODS_HERE
 
           
           
@@ -73,12 +78,19 @@ namespace caret {
         
         bool m_displayEndArrow;
         
+        // defaults
+        static bool s_defaultDisplayStartArrow;
+        
+        static bool s_defaultDisplayEndArrow;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_LINE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    bool AnnotationLine::s_defaultDisplayStartArrow = false;
+    
+    bool AnnotationLine::s_defaultDisplayEndArrow = false;
 #endif // __ANNOTATION_LINE_DECLARE__
 
 } // namespace

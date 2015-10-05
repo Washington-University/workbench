@@ -109,10 +109,10 @@ void
 AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
 {
     m_coordinate.grabNew(new AnnotationCoordinate());
-    m_width  = 0.25;
-    m_height = 0.25;
-    
-    m_rotationAngle = 0.0;
+
+    m_width  = s_defaultWidth;
+    m_height = s_defaultHeight;
+    m_rotationAngle = s_defaultRotationAngle;
     
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
@@ -880,4 +880,41 @@ AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(const SceneAttribute
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }
+
+/**
+ * Set the default value for height
+ *
+ * @param height
+ *     Default for newly created text annotations.
+ */
+void
+AnnotationTwoDimensionalShape::setDefaultHeight(const float height)
+{
+    s_defaultHeight = height;
+}
+
+/**
+ * Set the default value for width
+ *
+ * @param width
+ *     Default for newly created annotations.
+ */
+void
+AnnotationTwoDimensionalShape::setDefaultWidth(const float width)
+{
+    s_defaultWidth = width;
+}
+
+/**
+ * Set the default value for rotation angle
+ *
+ * @param rotation
+ *     Default for newly created annotations.
+ */
+void
+AnnotationTwoDimensionalShape::setDefaultRotationAngle(const float rotationAngle)
+{
+    s_defaultRotationAngle = rotationAngle;
+}
+
 

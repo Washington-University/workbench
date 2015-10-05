@@ -91,7 +91,14 @@ namespace caret {
                                          const float xyzTwo[3],
                                          const float spaceWidth,
                                          const float spaceHeight);
-        // ADD_NEW_METHODS_HERE
+        
+        static void setDefaultHeight(const float height);
+        
+        static void setDefaultWidth(const float width);
+        
+        static void setDefaultRotationAngle(const float rotationAngle);
+        
+       // ADD_NEW_METHODS_HERE
 
         
         
@@ -124,12 +131,22 @@ namespace caret {
         
         float m_height;
         
+        static float s_defaultRotationAngle;
+        
+        static float s_defaultWidth;
+        
+        static float s_defaultHeight;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    float AnnotationTwoDimensionalShape::s_defaultRotationAngle = 0.0;
+    
+    float AnnotationTwoDimensionalShape::s_defaultWidth = 0.25;
+    
+    float AnnotationTwoDimensionalShape::s_defaultHeight = 0.25;
 #endif // __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
 
 } // namespace

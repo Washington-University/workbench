@@ -148,6 +148,10 @@ AnnotationTextOrientationWidget::updateContent(std::vector<AnnotationText*>& ann
             action->setChecked(actionChecked);
         }
         
+        if (orientationValid) {
+            AnnotationText::setDefaultOrientation(orientation);
+        }
+        
         m_orientationActionGroup->blockSignals(false);
     }
     
@@ -217,6 +221,8 @@ AnnotationTextOrientationWidget::orientationActionSelected(QAction* action)
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        
+        AnnotationText::setDefaultOrientation(actionOrientation);
     }
 }
 

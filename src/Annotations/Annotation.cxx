@@ -270,20 +270,56 @@ Annotation::initializeAnnotationMembers()
     m_tabIndex    = -1;
     m_windowIndex = -1;
     
-    m_foregroundLineWidth = 3.0;
+    m_foregroundLineWidth = s_defaultForegroundLineWidth;
     
-    m_colorBackground = CaretColorEnum::NONE;
-    m_colorForeground = CaretColorEnum::WHITE;
+    m_colorBackground = s_defaultColorBackground;
+    m_colorForeground = s_defaultColorForeground;
     
-    m_customColorBackground[0]  = 0.0;
-    m_customColorBackground[1]  = 0.0;
-    m_customColorBackground[2]  = 0.0;
-    m_customColorBackground[3]  = 1.0;
+    m_customColorBackground[0]  = s_defaultCustomColorBackground[0];
+    m_customColorBackground[1]  = s_defaultCustomColorBackground[1];
+    m_customColorBackground[2]  = s_defaultCustomColorBackground[2];
+    m_customColorBackground[3]  = s_defaultCustomColorBackground[3];
     
-    m_customColorForeground[0]  = 1.0;
-    m_customColorForeground[1]  = 1.0;
-    m_customColorForeground[2]  = 1.0;
-    m_customColorForeground[3]  = 1.0;
+    m_customColorForeground[0]  = s_defaultCustomColorForeground[0];
+    m_customColorForeground[1]  = s_defaultCustomColorForeground[1];
+    m_customColorForeground[2]  = s_defaultCustomColorForeground[2];
+    m_customColorForeground[3]  = s_defaultCustomColorForeground[3];
+    
+    /*
+     * May need to override colors if both are none
+     */
+    if ((m_colorBackground == CaretColorEnum::NONE)
+        && (m_colorForeground == CaretColorEnum::NONE)) {
+        m_colorForeground = CaretColorEnum::WHITE;
+    }
+    
+    /*
+     * Don't allow a foregound color of NONE for text or line
+     */
+    bool disallowForegroundNoneFlag = false;
+    switch (m_type) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            disallowForegroundNoneFlag = true;
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            disallowForegroundNoneFlag = true;
+            break;
+    }
+    if (disallowForegroundNoneFlag) {
+        if (m_colorForeground == CaretColorEnum::NONE) {
+            m_colorForeground = CaretColorEnum::WHITE;
+            
+            if (m_colorBackground == CaretColorEnum::WHITE) {
+                m_colorBackground = CaretColorEnum::NONE;
+            }
+        }
+    }
     
     /*
      * Note: The 'const' members are not saved to the scene as they 
@@ -876,3 +912,68 @@ Annotation::restoreFromScene(const SceneAttributes* sceneAttributes,
     
 }
 
+/**
+ * Set the default value for foreground color
+ *
+ * @param color
+ *     Default for newly created annotations.
+ */
+void
+Annotation::setDefaultForegroundColor(const CaretColorEnum::Enum color)
+{
+    s_defaultColorForeground = color;
+}
+
+/**
+ * Set the default value for background color
+ *
+ * @param color
+ *     Default for newly created annotations.
+ */
+void
+Annotation::setDefaultBackgroundColor(const CaretColorEnum::Enum color)
+{
+    s_defaultColorBackground = color;
+}
+
+/**
+ * Set the default value for custom foreground color
+ *
+ * @param rgba
+ *     Default for newly created annotations.
+ */
+void
+Annotation::setDefaultCustomForegroundColor(const float rgba[4])
+{
+    s_defaultCustomColorForeground[0] = rgba[0];
+    s_defaultCustomColorForeground[1] = rgba[1];
+    s_defaultCustomColorForeground[2] = rgba[2];
+    s_defaultCustomColorForeground[3] = rgba[3];
+}
+
+/**
+ * Set the default value for custom background color
+ *
+ * @param rgba
+ *     Default for newly created annotations.
+ */
+void
+Annotation::setDefaultCustomBackgroundColor(const float rgba[4])
+{
+    s_defaultCustomColorBackground[0] = rgba[0];
+    s_defaultCustomColorBackground[1] = rgba[1];
+    s_defaultCustomColorBackground[2] = rgba[2];
+    s_defaultCustomColorBackground[3] = rgba[3];
+}
+
+/**
+ * Set the default value for foreground line width
+ *
+ * @param lineWidth
+ *     Default for newly created annotations.
+ */
+void
+Annotation::setDefaultForegroundLineWidth(const float lineWidth)
+{
+    s_defaultForegroundLineWidth = lineWidth;
+}

@@ -100,8 +100,8 @@ AnnotationLine::copyHelperAnnotationLine(const AnnotationLine& obj)
 void
 AnnotationLine::initializeMembersAnnotationLine()
 {
-    m_displayStartArrow = false;
-    m_displayEndArrow = false;
+    m_displayStartArrow = s_defaultDisplayStartArrow;
+    m_displayEndArrow   = s_defaultDisplayEndArrow;
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_displayStartArrow",
@@ -208,4 +208,28 @@ AnnotationLine::restoreSubClassDataFromScene(const SceneAttributes* sceneAttribu
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }
+
+/**
+ * Set the default value for start arrow enabled.
+ *
+ * @param displayArrow
+ *     Default for newly created line annotations.
+ */
+void AnnotationLine::setDefaultDisplayStartArrow(const bool displayArrow)
+{
+    s_defaultDisplayStartArrow = displayArrow;
+}
+
+/**
+ * Set the default value for end arrow enabled.
+ *
+ * @param displayArrow
+ *     Default for newly created line annotations.
+ */
+void AnnotationLine::setDefaultDisplayEndArrow(const bool displayArrow)
+{
+    s_defaultDisplayEndArrow = displayArrow;
+}
+
+
 

@@ -208,6 +208,9 @@ AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annot
             action->setChecked(actionChecked);
         }
         
+        if (alignmentValid) {
+            AnnotationText::setDefaultHorizontalAlignment(alignment);
+        }
         m_horizontalAlignActionGroup->blockSignals(false);
     }
     
@@ -261,6 +264,10 @@ AnnotationTextAlignmentWidget::updateContent(std::vector<AnnotationText*>& annot
             action->setChecked(actionChecked);
         }
         
+        if (alignmentValid) {
+            AnnotationText::setDefaultVerticalAlignment(alignment);
+        }
+        
         m_verticalAlignActionGroup->blockSignals(false);
     }
     
@@ -290,6 +297,8 @@ AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        
+        AnnotationText::setDefaultHorizontalAlignment(actionAlign);
     }
 }
 
@@ -316,7 +325,9 @@ AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }    
+        
+        AnnotationText::setDefaultVerticalAlignment(actionAlign);
+    }
 }
 
 /**

@@ -107,6 +107,15 @@ namespace caret {
         
         bool isSelected() const;
         
+        static void setDefaultForegroundColor(const CaretColorEnum::Enum color);
+        
+        static void setDefaultBackgroundColor(const CaretColorEnum::Enum color);
+        
+        static void setDefaultCustomForegroundColor(const float rgba[4]);
+        
+        static void setDefaultCustomBackgroundColor(const float rgba[4]);
+        
+        static void setDefaultForegroundLineWidth(const float lineWidth);
         /**
          * Apply a move or resize operation received from the GUI.
          *
@@ -190,6 +199,17 @@ namespace caret {
 
         mutable bool m_selectedFlag;
         
+        // defaults
+        static CaretColorEnum::Enum s_defaultColorForeground;
+        
+        static CaretColorEnum::Enum s_defaultColorBackground;
+        
+        static float s_defaultCustomColorForeground[4];
+        
+        static float s_defaultCustomColorBackground[4];
+        
+        static float s_defaultForegroundLineWidth;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class AnnotationFile;
@@ -197,7 +217,15 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    CaretColorEnum::Enum Annotation::s_defaultColorForeground = CaretColorEnum::WHITE;
+    
+    CaretColorEnum::Enum Annotation::s_defaultColorBackground = CaretColorEnum::NONE;
+    
+    float Annotation::s_defaultCustomColorForeground[4] = { 1.0, 1.0, 1.0, 1.0 };
+    
+    float Annotation::s_defaultCustomColorBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
+    
+    float Annotation::s_defaultForegroundLineWidth = 3.0;
 #endif // __ANNOTATION_DECLARE__
 
 } // namespace

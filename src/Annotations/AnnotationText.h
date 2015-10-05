@@ -99,6 +99,27 @@ namespace caret {
 
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
 
+
+        static void setDefaultHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment);
+        
+        static void setDefaultVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment);
+        
+        static void setDefaultFont(const AnnotationTextFontNameEnum::Enum font);
+        
+        static void setDefaultOrientation(const AnnotationTextOrientationEnum::Enum orientation);
+        
+        static void setDefaultFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize);
+        
+        static void setDefaultFontPercentViewportSize(const float fontPercentViewportHeight);
+        
+        static void setDefaultBoldEnabled(const bool enabled);
+        
+        static void setDefaultItalicEnabled(const bool enabled);
+        
+        static void setDefaultUnderlineEnabled(const bool enabled);
+        
+        static void setDefaultConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate);
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -158,6 +179,27 @@ namespace caret {
         
         bool m_underlineEnabled;
         
+        // Defaults
+        static AnnotationTextAlignHorizontalEnum::Enum  s_defaultAlignmentHorizontal;
+        
+        static AnnotationTextAlignVerticalEnum::Enum  s_defaultAlignmentVertical;
+        
+        static AnnotationTextFontNameEnum::Enum s_defaultFont;
+        
+        static AnnotationTextOrientationEnum::Enum s_defaultOrientation;
+        
+        static AnnotationTextFontPointSizeEnum::Enum s_defaultPointSize;
+        
+        static AnnotationTextConnectTypeEnum::Enum s_defaultConnectToBrainordinate;
+        
+        static float s_defaultFontPercentViewportSize;
+        
+        static bool s_defaultBoldEnabled;
+        
+        static bool s_defaultItalicEnabled;
+        
+        static bool s_defaultUnderlineEnabled;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class AnnotationFileXmlReader;
@@ -165,7 +207,26 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_TEXT_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    AnnotationTextAlignHorizontalEnum::Enum  AnnotationText::s_defaultAlignmentHorizontal = AnnotationTextAlignHorizontalEnum::CENTER;
+    
+    AnnotationTextAlignVerticalEnum::Enum  AnnotationText::s_defaultAlignmentVertical = AnnotationTextAlignVerticalEnum::MIDDLE;
+    
+    AnnotationTextFontNameEnum::Enum AnnotationText::s_defaultFont = AnnotationTextFontNameEnum::VERA;
+    
+    AnnotationTextOrientationEnum::Enum AnnotationText::s_defaultOrientation = AnnotationTextOrientationEnum::HORIZONTAL;
+    
+    AnnotationTextFontPointSizeEnum::Enum AnnotationText::s_defaultPointSize = AnnotationTextFontPointSizeEnum::SIZE14;
+    
+    AnnotationTextConnectTypeEnum::Enum AnnotationText::s_defaultConnectToBrainordinate = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
+    
+    float AnnotationText::s_defaultFontPercentViewportSize = 0.05;
+    
+    bool AnnotationText::s_defaultBoldEnabled = false;
+    
+    bool AnnotationText::s_defaultItalicEnabled = false;
+    
+    bool AnnotationText::s_defaultUnderlineEnabled = false;
+    
 #endif // __ANNOTATION_TEXT_DECLARE__
 
 } // namespace
