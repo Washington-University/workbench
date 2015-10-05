@@ -69,9 +69,11 @@ SceneAttributes::getSceneType() const
  *    Indices of tabs that are saved to the scene.
  */
 void 
-SceneAttributes::setIndicesOfTabsForSavingToScene(const std::vector<int32_t>& tabIndices)
+SceneAttributes::setIndicesOfTabsAndWindowsForSavingToScene(const std::vector<int32_t>& tabIndices,
+                                                  const std::vector<int32_t>& windowIndices)
 {
-    m_indicesOfTabsForSavingToScene = tabIndices;
+    m_indicesOfTabsForSavingToScene    = tabIndices;
+    m_indicesOfWindowsForSavingToScene = windowIndices;
 }
 
 /**
@@ -81,6 +83,15 @@ std::vector<int32_t>
 SceneAttributes::getIndicesOfTabsForSavingToScene() const
 {
     return m_indicesOfTabsForSavingToScene;
+}
+
+/**
+ * @return Indices of tabs for saving to the scene.
+ */
+std::vector<int32_t>
+SceneAttributes::getIndicesOfWindowsForSavingToScene() const
+{
+    return m_indicesOfWindowsForSavingToScene;
 }
 
 /**
@@ -97,6 +108,26 @@ SceneAttributes::isTabIndexSavedToScene(const int32_t tabIndex) const
     if (std::find(m_indicesOfTabsForSavingToScene.begin(),
                   m_indicesOfTabsForSavingToScene.end(),
                   tabIndex) != m_indicesOfTabsForSavingToScene.end()) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Is the given window index for saving to the scene?
+ *
+ * @param windowIndex
+ *    The window index.
+ * @return
+ *    True if saved to scene, else false.
+ */
+bool
+SceneAttributes::isWindowIndexSavedToScene(const int32_t windowIndex) const
+{
+    if (std::find(m_indicesOfWindowsForSavingToScene.begin(),
+                  m_indicesOfWindowsForSavingToScene.end(),
+                  windowIndex) != m_indicesOfWindowsForSavingToScene.end()) {
         return true;
     }
     

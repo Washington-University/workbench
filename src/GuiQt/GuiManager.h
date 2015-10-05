@@ -89,6 +89,8 @@ namespace caret {
         
         std::vector<BrainBrowserWindow*> getAllOpenBrainBrowserWindows() const;
         
+        std::vector<int32_t> getAllOpenBrainBrowserWindowIndices() const;
+        
         BrainBrowserWindow* getBrowserWindowByWindowIndex(const int32_t browserWindowIndex);
         
         bool allowBrainBrowserWindowToClose(BrainBrowserWindow* bbw,

@@ -466,6 +466,27 @@ GuiManager::getAllOpenBrainBrowserWindows() const
 }
 
 /**
+ * Get all of the brain browser window indices
+ *
+ * @return
+ *   Vector containing all open brain browser window indices.
+ */
+std::vector<int32_t>
+GuiManager::getAllOpenBrainBrowserWindowIndices() const
+{
+    std::vector<int32_t> windowIndices;
+    
+    int32_t numWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
+    for (int32_t i = 0; i < numWindows; i++) {
+        if (m_brainBrowserWindows[i] != NULL) {
+            windowIndices.push_back(i);
+        }
+    }
+    
+    return windowIndices;
+}
+
+/**
  * @return Return the active browser window.  If no browser window is active,
  * the browser window with the lowest index is returned.  If no browser
  * window is open (which likely should never occur), NULL is returned.

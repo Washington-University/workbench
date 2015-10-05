@@ -30,6 +30,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretUndoStack.h"
+#include "DisplayPropertiesAnnotation.h"
+#include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -529,6 +531,26 @@ AnnotationManager::setAnnotationBeingDrawnInWindow(const int32_t windowIndex,
     if (annotation != NULL) {
         m_annotationBeingDrawnInWindow[windowIndex] = annotation->clone();
     }
+}
+
+/**
+ * Find annotation files that are displayed.
+ *
+ * @param displayedFilesEvent
+ *     Event that queries for displayed data files.
+ * @param displayedAnnotationFilesOut
+ *     Output that contains annotation files that are displayed.
+ */
+void
+AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displayedFilesEvent,
+                                               std::vector<AnnotationFile*>& displayedAnnotationFilesOut) const
+{
+    displayedAnnotationFilesOut.clear();
+    
+    std::vector<AnnotationFile*> files;
+    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(files);
+
+    const DisplayPropertiesAnnotation* annProps = m_brain->getDisplayPropertiesAnnotation();
 }
 
 /**

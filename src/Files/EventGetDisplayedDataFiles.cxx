@@ -39,27 +39,19 @@ using namespace caret;
  */
 
 /**
- * Constructor for finding data files displayed in all tabs.
- */
-EventGetDisplayedDataFiles::EventGetDisplayedDataFiles()
-: Event(EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES)
-{
-    m_allTabsMode = true;
-}
-
-/**
  * Constructor for finding data files displayed in the given tab indices.
  *
  * param tabIndices
  *     Indices of tabs for displayed data files. 
  */
-EventGetDisplayedDataFiles::EventGetDisplayedDataFiles(const std::vector<int32_t>& tabIndices)
+EventGetDisplayedDataFiles::EventGetDisplayedDataFiles(const std::vector<int32_t>& windowIndices,
+                                                       const std::vector<int32_t>& tabIndices)
 : Event(EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES)
 {
-    m_allTabsMode = false;
-    
     m_tabIndices.insert(tabIndices.begin(),
                         tabIndices.end());
+    m_windowIndices.insert(windowIndices.begin(),
+                           windowIndices.end());
 }
 
 /**
@@ -80,11 +72,25 @@ EventGetDisplayedDataFiles::~EventGetDisplayedDataFiles()
 bool
 EventGetDisplayedDataFiles::isTestForDisplayedDataFileInTabIndex(const int32_t tabIndex) const
 {
-    if (m_allTabsMode) {
+    if (m_tabIndices.find(tabIndex) != m_tabIndices.end()) {
         return true;
     }
     
-    if (m_tabIndices.find(tabIndex) != m_tabIndices.end()) {
+    return false;
+}
+
+/**
+ * Is the window index one for determining displayed data files.
+ *
+ * @param windowIndex
+ *    Index for displayed data files.
+ * @return
+ *    True if the window is one determining displayed data files.
+ */
+bool
+EventGetDisplayedDataFiles::isTestForDisplayedDataFileInWindowIndex(const int32_t windowIndex) const
+{
+    if (m_windowIndices.find(windowIndex) != m_windowIndices.end()) {
         return true;
     }
     

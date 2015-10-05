@@ -35,6 +35,7 @@ namespace caret {
     class AnnotationRedoUndoCommand;
     class Brain;
     class CaretUndoStack;
+    class EventGetDisplayedDataFiles;
     class SceneClassAssistant;
 
     class AnnotationManager : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -99,6 +100,9 @@ namespace caret {
                                              const Annotation* annotation);
         
         CaretUndoStack* getCommandRedoUndoStack();
+        
+        void getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displayedFilesEvent,
+                                         std::vector<AnnotationFile*>& displayedAnnotationFilesOut) const;
         
         // ADD_NEW_METHODS_HERE
 

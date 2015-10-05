@@ -495,6 +495,8 @@ SceneCreateReplaceDialog::okButtonClicked()
     Scene::setSceneBeingCreated(newScene);
     newScene->setName(newSceneName);
     newScene->setDescription(m_descriptionTextEdit->toPlainText());
+
+    const std::vector<int32_t> windowIndices = GuiManager::get()->getAllOpenBrainBrowserWindowIndices();
     
     /*
      * Get all browser tabs and only save transformations for tabs
@@ -517,7 +519,8 @@ SceneCreateReplaceDialog::okButtonClicked()
     SceneAttributes* sceneAttributes = newScene->getAttributes();
     sceneAttributes->setSceneFileName(m_sceneFile->getFileName());
     sceneAttributes->setSceneName(newSceneName);
-    sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
+    sceneAttributes->setIndicesOfTabsAndWindowsForSavingToScene(tabIndices,
+                                                                windowIndices);
     sceneAttributes->setSpecFileNameSavedToScene(m_addSpecFileNameToSceneCheckBox->isChecked());
     sceneAttributes->setAllLoadedFilesSavedToScene(m_addAllLoadedFilesCheckBox->isChecked());
     sceneAttributes->setModifiedPaletteSettingsSavedToScene(m_addModifiedPaletteSettingsCheckBox->isChecked());

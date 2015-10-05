@@ -5796,6 +5796,17 @@ Brain::receiveEvent(Event* event)
              iter++) {
             displayedFilesEvent->addDisplayedDataFile(*iter);
         }
+
+        /*
+         * Annotation files
+         */
+        std::vector<AnnotationFile*> annotationFiles;
+        m_annotationManager->getDisplayedAnnotationFiles(displayedFilesEvent,
+                                                         annotationFiles);
+        if ( ! annotationFiles.empty()) {
+            dataFilesDisplayedInTabs.insert(annotationFiles.begin(),
+                                            annotationFiles.end());
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_GET_BY_NAME) {
         EventPaletteGetByName* paletteGetByName = dynamic_cast<EventPaletteGetByName*>(event);

@@ -1370,7 +1370,9 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
     std::set<const CaretDataFile*> displayedDataFiles;
     if ( ! allLoadedFilesFlag) {
         const std::vector<int32_t> tabIndicesForScene = sceneAttributes->getIndicesOfTabsForSavingToScene();
-        EventGetDisplayedDataFiles displayedFilesEvent(tabIndicesForScene);
+        const std::vector<int32_t> windowIndicesForScene = sceneAttributes->getIndicesOfWindowsForSavingToScene();
+        EventGetDisplayedDataFiles displayedFilesEvent(windowIndicesForScene,
+                                                       tabIndicesForScene);
         EventManager::get()->sendEvent(displayedFilesEvent.getPointer());
         displayedDataFiles = displayedFilesEvent.getDisplayedDataFiles();        
     }

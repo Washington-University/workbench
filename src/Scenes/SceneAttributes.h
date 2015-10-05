@@ -42,11 +42,16 @@ namespace caret {
         
         SceneTypeEnum::Enum getSceneType() const;
         
-        void setIndicesOfTabsForSavingToScene(const std::vector<int32_t>& tabIndices);
+        void setIndicesOfTabsAndWindowsForSavingToScene(const std::vector<int32_t>& tabIndices,
+                                                        const std::vector<int32_t>& windowIndices);
         
         std::vector<int32_t> getIndicesOfTabsForSavingToScene() const;
         
+        std::vector<int32_t> getIndicesOfWindowsForSavingToScene() const;
+        
         bool isTabIndexSavedToScene(const int32_t tabIndex) const;
+        
+        bool isWindowIndexSavedToScene(const int32_t tabIndex) const;
         
         AString getSceneFileName() const;
         
@@ -92,6 +97,8 @@ namespace caret {
         const SceneTypeEnum::Enum m_sceneType;
         
         std::vector<int32_t> m_indicesOfTabsForSavingToScene;
+        
+        std::vector<int32_t> m_indicesOfWindowsForSavingToScene;
         
         AString m_sceneFileName;
         

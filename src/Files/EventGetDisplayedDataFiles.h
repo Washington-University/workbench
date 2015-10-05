@@ -34,13 +34,14 @@ namespace caret {
     class EventGetDisplayedDataFiles : public Event {
         
     public:
-        EventGetDisplayedDataFiles();
-        
-        EventGetDisplayedDataFiles(const std::vector<int32_t>& tabIndices);
+        EventGetDisplayedDataFiles(const std::vector<int32_t>& windowIndices,
+                                   const std::vector<int32_t>& tabIndices);
         
         virtual ~EventGetDisplayedDataFiles();
         
         bool isTestForDisplayedDataFileInTabIndex(const int32_t tabIndex) const;
+        
+        bool isTestForDisplayedDataFileInWindowIndex(const int32_t windowIndex) const;
         
         void addDisplayedDataFile(const CaretDataFile* caretDataFile);
         
@@ -60,7 +61,7 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
 
-        bool m_allTabsMode;
+        std::set<int32_t> m_windowIndices;
         
         std::set<int32_t> m_tabIndices;
         

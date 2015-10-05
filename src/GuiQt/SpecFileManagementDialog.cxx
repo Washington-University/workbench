@@ -52,6 +52,7 @@
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "DataFileException.h"
+#include "EventBrowserTabGetAllViewed.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -307,7 +308,21 @@ m_specFile(specFile)
     }
     
     if (testForDisplayedDataFiles) {
-        EventGetDisplayedDataFiles displayedFilesEvent;
+        const std::vector<int32_t> windowIndices = GuiManager::get()->getAllOpenBrainBrowserWindowIndices();
+        
+        /*
+         * Get all browser tabs and only save transformations for tabs
+         * that are valid.
+         */
+        std::vector<int32_t> tabIndices;
+        EventBrowserTabGetAllViewed getViewedTabs;
+        EventManager::get()->sendEvent(getViewedTabs.getPointer());
+        tabIndices = getViewedTabs.getViewdedBrowserTabIndices();
+        std::sort(tabIndices.begin(),
+                  tabIndices.end());
+        
+        EventGetDisplayedDataFiles displayedFilesEvent(windowIndices,
+                                                       tabIndices);
         EventManager::get()->sendEvent(displayedFilesEvent.getPointer());
         m_displayedDataFiles = displayedFilesEvent.getDisplayedDataFiles();
     }
