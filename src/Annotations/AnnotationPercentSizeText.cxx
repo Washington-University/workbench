@@ -96,7 +96,7 @@ AnnotationPercentSizeText::copyHelperAnnotationPercentSizeText(const AnnotationP
 /**
  * @return Size of font as a percentage of the viewport height.
  *
- * Range is zero to one.
+ * Range is zero to one hundred.
  */
 float
 AnnotationPercentSizeText::getFontPercentViewportSize() const
@@ -109,7 +109,7 @@ AnnotationPercentSizeText::getFontPercentViewportSize() const
  *
  * @param fontPercentViewportHeight
  *    New value for percentage of viewport height.
- *    Range is zero to one.
+ *    Range is zero to one hundred.
  */
 void
 AnnotationPercentSizeText::setFontPercentViewportSize(const float fontPercentViewportHeight)

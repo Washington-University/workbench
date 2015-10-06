@@ -163,7 +163,7 @@ AnnotationTwoDimensionalShape::getCoordinate() const
 }
 
 /**
- * @return Height for "two-dimensional" annotations in pixels.
+ * @return Height for "two-dimensional" annotations in percentage zero to one-hundred.
  */
 float
 AnnotationTwoDimensionalShape::getHeight() const
@@ -172,7 +172,7 @@ AnnotationTwoDimensionalShape::getHeight() const
 }
 
 /**
- * Set the height for "two-dimensional" annotations in pixels.
+ * Set the height for "two-dimensional" annotations in percentage zero to one-hundred.
  *
  * @param height
  *    New value for height of the annotation.
@@ -187,7 +187,7 @@ AnnotationTwoDimensionalShape::setHeight(const float height)
 }
 
 /**
- * @return Width for "two-dimensional" annotations in pixels.
+ * @return Width for "two-dimensional" annotations in percentage zero to one-hundred.
  */
 float
 AnnotationTwoDimensionalShape::getWidth() const
@@ -196,7 +196,7 @@ AnnotationTwoDimensionalShape::getWidth() const
 }
 
 /**
- * Set the width for "two-dimensional" annotations in pixels.
+ * Set the width for "two-dimensional" annotations in percentage zero to one-hundred.
  *
  * @param width
  *    New value for width of the annotation.
@@ -789,10 +789,11 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
                                               float topLeftOut[3]) const
 {
     /*
-     * NOTE: Annotation's height and width are 'relative' ([0.0, 1.0] percentage) of window size.
+     * NOTE: Annotation's height and width are 'relative' ([0.0, 100.0] percentage) of window size.
+     * So want HALF of width/height
      */
-    const float halfWidth  = (getWidth()  / 2.0) * viewportWidth;
-    const float halfHeight = (getHeight() / 2.0) * viewportHeight;
+    const float halfWidth  = (getWidth()  / 200.0) * viewportWidth;
+    const float halfHeight = (getHeight() / 200.0) * viewportHeight;
     
     bottomLeftOut[0]  = viewportXYZ[0] - halfWidth;
     bottomLeftOut[1]  = viewportXYZ[1] - halfHeight;

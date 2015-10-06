@@ -214,8 +214,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
             GLint viewport[4];
             glGetIntegerv(GL_VIEWPORT,
                           viewport);
-            windowXYZ[0] = viewport[2] * annotationXYZ[0];
-            windowXYZ[1] = viewport[3] * annotationXYZ[1];
+            windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
+            windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
             windowXYZ[2] = 0.0;
             windowXYZValid = true;
         }
@@ -225,8 +225,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
             GLint viewport[4];
             glGetIntegerv(GL_VIEWPORT,
                           viewport);
-            windowXYZ[0] = viewport[2] * annotationXYZ[0];
-            windowXYZ[1] = viewport[3] * annotationXYZ[1];
+            windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
+            windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
             windowXYZ[2] = 0.0;
             windowXYZValid = true;
         }
@@ -927,8 +927,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
         return;
     }
     
-    const float majorAxis     = (oval->getWidth()  * m_modelSpaceViewport[2]) / 2.0;
-    const float minorAxis     = (oval->getHeight() * m_modelSpaceViewport[3]) / 2.0;
+    const float majorAxis     = ((oval->getWidth()  / 100.0) * (m_modelSpaceViewport[2] / 2.0));
+    const float minorAxis     = ((oval->getHeight() / 100.0) * (m_modelSpaceViewport[3] / 2.0));
     const float rotationAngle = oval->getRotationAngle();
     const float outlineWidth  = oval->getForegroundLineWidth();
     

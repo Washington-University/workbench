@@ -220,7 +220,7 @@ namespace caret {
     
     AnnotationTextConnectTypeEnum::Enum AnnotationText::s_userDefaultConnectToBrainordinate = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
     
-    float AnnotationText::s_userDefaultFontPercentViewportSize = 0.05;
+    float AnnotationText::s_userDefaultFontPercentViewportSize = 5.0;
     
     bool AnnotationText::s_userDefaultBoldEnabled = false;
     

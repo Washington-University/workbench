@@ -94,36 +94,36 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_surfaceOffsetLengthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(valueChanged()));
     
-    const int digitsRightOfDecimal = 3;
+    const int digitsRightOfDecimal = 1;
     QLabel* xCoordLabel = new QLabel(" X:");
-    m_xCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, digitsRightOfDecimal,
+    m_xCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 0.1, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_xCoordSpinBox,
                                          "X-coordinate of annotation\n"
                                          "   MODEL: Stereotaxic Coordinate\n"
-                                         "   TAB and WINDOW X-Range: [0.0, 1.0]\n"
+                                         "   TAB and WINDOW X-Range: [0.0, 100.0]\n"
                                          "      0.0 => Left side of tab/window\n"
-                                         "      1.0 => Right side of tab/window\n");
+                                         "      100.0 => Right side of tab/window\n");
     
     QLabel* yCoordLabel = new QLabel(" Y:");
-    m_yCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, digitsRightOfDecimal,
+    m_yCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 0.1, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_yCoordSpinBox,
                                          "Y-coordinate of annotation\n"
                                          "   MODEL: Stereotaxic Coordinate\n"
-                                         "   TAB and WINDOW Y-Range: [0.0, 1.0]\n"
+                                         "   TAB and WINDOW Y-Range: [0.0, 100.0]\n"
                                          "      0.0 => Bottom of tab/window\n"
-                                         "      1.0 => Top of tab/window\n");
+                                         "      100.0 => Top of tab/window\n");
     
     QLabel* zCoordLabel = new QLabel(" Z:");
-    m_zCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1.0, 1.0, 0.01, digitsRightOfDecimal,
+    m_zCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-100.0, 100.0, 0.1, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_zCoordSpinBox,
                                          "Z-coordinate of annotation\n"
                                          "   MODEL: Stereotaxic Coordinate\n"
-                                         "   TAB and WINDOW DEPTH Range: [-1.0, 1.0]\n"
-                                         "      -1.0 => Toward's viewer\n"
-                                         "       1.0 => Away from viewer\n");
+                                         "   TAB and WINDOW DEPTH Range: [-100.0, 100.0]\n"
+                                         "      -100.0 => Toward's viewer\n"
+                                         "       100.0 => Away from viewer\n");
     
 
     m_plusButtonToolTipText = ("Click the mouse to set the new location for the coordinate.\n"
@@ -223,10 +223,10 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
     
     if (coordinate != NULL) {
         double xyMin =  0.0;
-        double xyMax =  1.0;
-        double zMin  = -1.0;
-        double zMax  =  1.0;
-        double xyzStep = 0.01;
+        double xyMax =  100.0;
+        double zMin  = -100.0;
+        double zMax  =  100.0;
+        double xyzStep = 0.1;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 xyMax = 10000.0;

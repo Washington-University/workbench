@@ -4491,7 +4491,7 @@ BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(const int32_t viewportSiz
     
     if (numberOfSubViewports > 1) {
         subViewportSizeOut = viewportSize / numberOfSubViewports;
-        gapOut = static_cast<int32_t>(std::floor(static_cast<double>(viewportSize * gapPercentage)));
+        gapOut = static_cast<int32_t>(std::floor(static_cast<double>(viewportSize * (gapPercentage / 100.0))));
         const double gapSum = gapOut * (numberOfSubViewports - 1);
         const int32_t subtractFromViewport = std::ceil(gapSum / numberOfSubViewports);
         subViewportSizeOut -= subtractFromViewport;
@@ -4621,8 +4621,8 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         }
     }
     else {
-        const int32_t horizontalMargin = static_cast<int32_t>(MathFunctions::round(static_cast<double>(viewport[2] * gapsAndMargins->getSurfaceMontageHorizontalGap())));
-        const int32_t verticalMargin   = static_cast<int32_t>(MathFunctions::round(static_cast<double>(viewport[3] * gapsAndMargins->getSurfaceMontageVerticalGap())));
+        const int32_t horizontalMargin = static_cast<int32_t>(MathFunctions::round(static_cast<double>(viewport[2] * (gapsAndMargins->getSurfaceMontageHorizontalGap() / 1.0))));
+        const int32_t verticalMargin   = static_cast<int32_t>(MathFunctions::round(static_cast<double>(viewport[3] * (gapsAndMargins->getSurfaceMontageVerticalGap() / 1.0))));
         
         const int32_t totalGapX = (horizontalMargin * (numberOfColumns - 1));
         const int32_t vpSizeX   = std::floor(static_cast<double>(viewport[2] - totalGapX) / numberOfColumns);

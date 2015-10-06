@@ -60,8 +60,8 @@ class FontSizeFunctionObject : public WuQSpecialIncrementDoubleSpinBox::StepFunc
 public:
     double getNewValue(const double currentValue,
                        const int steps) const {
-        // const double stepAmount = 0.01;
-        const double stepAmount = currentValue * 0.10;
+        const double stepAmount = 0.1;
+        //const double stepAmount = currentValue * 0.10;
         const double outputValue = currentValue + (stepAmount * steps);
         return outputValue;
     }
@@ -99,13 +99,13 @@ m_browserWindowIndex(browserWindowIndex)
      * Combo box for font size
      */
     m_fontSizeSpinBox = new WuQSpecialIncrementDoubleSpinBox(new FontSizeFunctionObject);
-    m_fontSizeSpinBox->setRange(0.0, 1.0);
-    m_fontSizeSpinBox->setDecimals(3);
-    m_fontSizeSpinBox->setSingleStep(0.01);
+    m_fontSizeSpinBox->setRange(0.0, 100.0);
+    m_fontSizeSpinBox->setDecimals(1);
+    m_fontSizeSpinBox->setSingleStep(0.1);
     QObject::connect(m_fontSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(fontSizeChanged()));
     WuQtUtilities::setToolTipAndStatusTip(m_fontSizeSpinBox,
-                                          "Change font size (height) as percentage of viewport height");
+                                          "Change font size (height) as percentage, zero to one-hundred, of viewport height");
     
     /*
      * Bold Font
@@ -207,7 +207,7 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationText
         
         AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::VERA;
         bool fontNameValid = true;
-        float fontSizeValue = 0.05;
+        float fontSizeValue = 5.0;
         bool haveMultipleFontSizeValues = false;
         
         const int32_t numAnn = static_cast<int32_t>(annotationTexts.size());

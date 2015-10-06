@@ -257,9 +257,9 @@ QDoubleSpinBox*
 GapsAndMarginsDialog::createPercentageSpinBox()
 {
     const double minValue   = 0.0;
-    const double maxValue   = 1.0;
-    const int decimals      = 3;
-    const double singleStep = 0.001;
+    const double maxValue   = 100.0;
+    const int decimals      = 1;
+    const double singleStep = 0.1;
     
     QDoubleSpinBox* doubleSpinBox = new QDoubleSpinBox();
     doubleSpinBox->setMinimum(minValue);

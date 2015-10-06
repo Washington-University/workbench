@@ -741,7 +741,7 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
         textAnnotation->setFontPercentViewportSizeProtected(m_streamHelper->getOptionalAttributeFloatValue(attributes,
                                                                                                   ELEMENT_TEXT_DATA,
                                                                                                   ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE,
-                                                                                                  0.05));
+                                                                                                  5.0));
     }
     
     

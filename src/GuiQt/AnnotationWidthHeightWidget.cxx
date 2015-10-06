@@ -63,16 +63,16 @@ AnnotationWidthHeightWidget::AnnotationWidthHeightWidget(const int32_t browserWi
 m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* widthLabel = new QLabel(" W:");
-    m_widthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, 3,
+    m_widthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 1.0, 1,
                                                                                     this, SLOT(widthValueChanged(double)));
     WuQtUtilities::setWordWrappedToolTip(m_widthSpinBox,
-                                         "Width of 2D Shapes (Box, Image, Oval)");
+                                         "Percentage width of 2D Shapes (Box, Image, Oval)");
 
     QLabel* heightLabel = new QLabel(" H:");
-    m_heightSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 1.0, 0.01, 2,
+    m_heightSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 1.0, 1,
                                                                                     this, SLOT(heightValueChanged(double)));
     WuQtUtilities::setWordWrappedToolTip(m_heightSpinBox,
-                                         "Height of 2D Shapes (Box, Image, Oval)");
+                                         "Percentage height of 2D Shapes (Box, Image, Oval)");
 
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);

@@ -120,7 +120,7 @@ AnnotationText::initializeAnnotationTextMembers()
             m_italicEnabled           = false;
             m_underlineEnabled        = false;
             m_connectToBrainordinate  = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
-            m_fontPercentViewportSize = 0.05;
+            m_fontPercentViewportSize = 5.0;
             break;
         case AnnotationAttributesDefaultTypeEnum::USER:
             m_alignmentHorizontal     = s_userDefaultAlignmentHorizontal;
@@ -380,7 +380,7 @@ AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportHeight) const
             /*
              * May need pixel to points conversion if not 72 DPI
              */
-            const float pixelSize = drawingViewportHeight * m_fontPercentViewportSize;
+            const float pixelSize = drawingViewportHeight * (m_fontPercentViewportSize / 100.0);
             sizeForDrawing = pixelSize;
         }
             break;
@@ -579,7 +579,7 @@ AnnotationText::applyCoordinatesSizeAndRotationFromOther(const Annotation* other
 /**
  * @return Size of font as a percentage of the viewport height.
  *
- * Range is zero to one.
+ * Range is zero to one-hundred.
  */
 float
 AnnotationText::getFontPercentViewportSizeProtected() const
@@ -592,14 +592,14 @@ AnnotationText::getFontPercentViewportSizeProtected() const
  *
  * @param fontPercentViewportHeight
  *    New value for percentage of viewport height.
- *    Range is zero to one.
+ *    Range is zero to one-hundred.
  */
 void
 AnnotationText::setFontPercentViewportSizeProtected(const float fontPercentViewportHeight)
 {
     if ((fontPercentViewportHeight < 0.0)
-        || (fontPercentViewportHeight > 1.0)) {
-        const QString msg("Percent viewport height should range [0.0, 1.0] but value is "
+        || (fontPercentViewportHeight > 100.0)) {
+        const QString msg("Percent viewport height should range [0.0, 100.0] but value is "
                           + QString::number(fontPercentViewportHeight));
         CaretLogWarning(msg);
         CaretAssertMessage(0, msg);
