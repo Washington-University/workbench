@@ -34,7 +34,8 @@ namespace caret {
     class AnnotationOneDimensionalShape : public Annotation {
         
     public:
-        AnnotationOneDimensionalShape(const AnnotationTypeEnum::Enum type);
+        AnnotationOneDimensionalShape(const AnnotationTypeEnum::Enum type,
+                                      const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationOneDimensionalShape();
         

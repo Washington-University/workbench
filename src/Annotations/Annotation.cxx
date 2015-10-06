@@ -49,12 +49,14 @@ using namespace caret;
  * 
  * @param drawingType
  *    Type of annotation for drawing.
- * @param shapeDimension
- *    Dimension of the annotation's shape.
+ * @param attributeDefaultType
+ *    Default type for annotation attributes.
  */
-Annotation::Annotation(const AnnotationTypeEnum::Enum type)
+Annotation::Annotation(const AnnotationTypeEnum::Enum type,
+                       const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
 : CaretObjectTracksModification(),
-m_type(type)
+m_type(type),
+m_attributeDefaultType(attributeDefaultType)
 {
     initializeAnnotationMembers();
 }
@@ -77,7 +79,8 @@ Annotation::~Annotation()
 Annotation::Annotation(const Annotation& obj)
 : CaretObjectTracksModification(obj),
 SceneableInterface(obj),
-m_type(obj.m_type)
+m_type(obj.m_type),
+m_attributeDefaultType(obj.m_attributeDefaultType)
 {
     initializeAnnotationMembers();
     this->copyHelperAnnotation(obj);
@@ -228,29 +231,32 @@ Annotation::replaceWithCopyOfAnnotation(const Annotation* annotation)
  *
  * @param annotationType
  *     Type of annotation that will be created.
+ * @param attributeDefaultType
+ *    Default type for annotation attributes.
  * @return
  *     New annotation of the given type.
  */
 Annotation*
-Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType)
+Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
+                                const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
 {
     Annotation* annotation = NULL;
     
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
-            annotation = new AnnotationBox();
+            annotation = new AnnotationBox(attributeDefaultType);
             break;
         case AnnotationTypeEnum::IMAGE:
-            annotation = new AnnotationImage();
+            annotation = new AnnotationImage(attributeDefaultType);
             break;
         case AnnotationTypeEnum::LINE:
-            annotation = new AnnotationLine();
+            annotation = new AnnotationLine(attributeDefaultType);
             break;
         case AnnotationTypeEnum::OVAL:
-            annotation = new AnnotationOval();
+            annotation = new AnnotationOval(attributeDefaultType);
             break;
         case AnnotationTypeEnum::TEXT:
-            annotation = new AnnotationPercentSizeText();
+            annotation = new AnnotationPercentSizeText(attributeDefaultType);
             break;
     }
     
@@ -270,20 +276,41 @@ Annotation::initializeAnnotationMembers()
     m_tabIndex    = -1;
     m_windowIndex = -1;
     
-    m_foregroundLineWidth = s_defaultForegroundLineWidth;
+    switch (m_attributeDefaultType) {
+        case AnnotationAttributesDefaultTypeEnum::NORMAL:
+            m_foregroundLineWidth = 3.0;
+            
+            m_colorBackground = CaretColorEnum::NONE;
+            m_colorForeground = CaretColorEnum::WHITE;
+            
+            m_customColorBackground[0]  = 0.0;
+            m_customColorBackground[1]  = 0.0;
+            m_customColorBackground[2]  = 0.0;
+            m_customColorBackground[3]  = 1.0;
+            
+            m_customColorForeground[0]  = 1.0;
+            m_customColorForeground[1]  = 1.0;
+            m_customColorForeground[2]  = 1.0;
+            m_customColorForeground[3]  = 1.0;
+            break;
+        case AnnotationAttributesDefaultTypeEnum::USER:
+            m_foregroundLineWidth = s_userDefaultForegroundLineWidth;
+            
+            m_colorBackground = s_userDefaultColorBackground;
+            m_colorForeground = s_userDefaultColorForeground;
+            
+            m_customColorBackground[0]  = s_userDefaultCustomColorBackground[0];
+            m_customColorBackground[1]  = s_userDefaultCustomColorBackground[1];
+            m_customColorBackground[2]  = s_userDefaultCustomColorBackground[2];
+            m_customColorBackground[3]  = s_userDefaultCustomColorBackground[3];
+            
+            m_customColorForeground[0]  = s_userDefaultCustomColorForeground[0];
+            m_customColorForeground[1]  = s_userDefaultCustomColorForeground[1];
+            m_customColorForeground[2]  = s_userDefaultCustomColorForeground[2];
+            m_customColorForeground[3]  = s_userDefaultCustomColorForeground[3];
+            break;
+    }
     
-    m_colorBackground = s_defaultColorBackground;
-    m_colorForeground = s_defaultColorForeground;
-    
-    m_customColorBackground[0]  = s_defaultCustomColorBackground[0];
-    m_customColorBackground[1]  = s_defaultCustomColorBackground[1];
-    m_customColorBackground[2]  = s_defaultCustomColorBackground[2];
-    m_customColorBackground[3]  = s_defaultCustomColorBackground[3];
-    
-    m_customColorForeground[0]  = s_defaultCustomColorForeground[0];
-    m_customColorForeground[1]  = s_defaultCustomColorForeground[1];
-    m_customColorForeground[2]  = s_defaultCustomColorForeground[2];
-    m_customColorForeground[3]  = s_defaultCustomColorForeground[3];
     
     /*
      * May need to override colors if both are none
@@ -919,9 +946,9 @@ Annotation::restoreFromScene(const SceneAttributes* sceneAttributes,
  *     Default for newly created annotations.
  */
 void
-Annotation::setDefaultForegroundColor(const CaretColorEnum::Enum color)
+Annotation::setUserDefaultForegroundColor(const CaretColorEnum::Enum color)
 {
-    s_defaultColorForeground = color;
+    s_userDefaultColorForeground = color;
 }
 
 /**
@@ -931,9 +958,9 @@ Annotation::setDefaultForegroundColor(const CaretColorEnum::Enum color)
  *     Default for newly created annotations.
  */
 void
-Annotation::setDefaultBackgroundColor(const CaretColorEnum::Enum color)
+Annotation::setUserDefaultBackgroundColor(const CaretColorEnum::Enum color)
 {
-    s_defaultColorBackground = color;
+    s_userDefaultColorBackground = color;
 }
 
 /**
@@ -943,12 +970,12 @@ Annotation::setDefaultBackgroundColor(const CaretColorEnum::Enum color)
  *     Default for newly created annotations.
  */
 void
-Annotation::setDefaultCustomForegroundColor(const float rgba[4])
+Annotation::setUserDefaultCustomForegroundColor(const float rgba[4])
 {
-    s_defaultCustomColorForeground[0] = rgba[0];
-    s_defaultCustomColorForeground[1] = rgba[1];
-    s_defaultCustomColorForeground[2] = rgba[2];
-    s_defaultCustomColorForeground[3] = rgba[3];
+    s_userDefaultCustomColorForeground[0] = rgba[0];
+    s_userDefaultCustomColorForeground[1] = rgba[1];
+    s_userDefaultCustomColorForeground[2] = rgba[2];
+    s_userDefaultCustomColorForeground[3] = rgba[3];
 }
 
 /**
@@ -958,12 +985,12 @@ Annotation::setDefaultCustomForegroundColor(const float rgba[4])
  *     Default for newly created annotations.
  */
 void
-Annotation::setDefaultCustomBackgroundColor(const float rgba[4])
+Annotation::setUserDefaultCustomBackgroundColor(const float rgba[4])
 {
-    s_defaultCustomColorBackground[0] = rgba[0];
-    s_defaultCustomColorBackground[1] = rgba[1];
-    s_defaultCustomColorBackground[2] = rgba[2];
-    s_defaultCustomColorBackground[3] = rgba[3];
+    s_userDefaultCustomColorBackground[0] = rgba[0];
+    s_userDefaultCustomColorBackground[1] = rgba[1];
+    s_userDefaultCustomColorBackground[2] = rgba[2];
+    s_userDefaultCustomColorBackground[3] = rgba[3];
 }
 
 /**
@@ -973,7 +1000,7 @@ Annotation::setDefaultCustomBackgroundColor(const float rgba[4])
  *     Default for newly created annotations.
  */
 void
-Annotation::setDefaultForegroundLineWidth(const float lineWidth)
+Annotation::setUserDefaultForegroundLineWidth(const float lineWidth)
 {
-    s_defaultForegroundLineWidth = lineWidth;
+    s_userDefaultForegroundLineWidth = lineWidth;
 }

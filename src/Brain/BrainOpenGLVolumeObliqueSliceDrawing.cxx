@@ -604,7 +604,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
                                                    + AString::number(sliceCoord, 'f', montageCoordPrecision)
                                                    + "mm");
                         
-                        AnnotationPointSizeText annotationText;
+                        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
                         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
@@ -3319,7 +3319,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
                    savedViewport[2],
                    savedViewport[3]);
         
-        AnnotationPointSizeText annotationText;
+        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setBoldEnabled(true);
@@ -3607,7 +3607,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
                                                  axesCrosshairRadius);
         }
         
-        AnnotationPointSizeText annotationText;
+        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);

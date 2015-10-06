@@ -63,7 +63,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
     const bool addExampleDataFlag = false;
     if (addExampleDataFlag) {
         {
-            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
             at->setTabIndex(3);
@@ -76,7 +76,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         {
-            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -92,7 +92,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         {
-            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -109,7 +109,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         {
-            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -126,7 +126,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         {
-            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -143,7 +143,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
             addAnnotation(at);
         }
         {
-            AnnotationBox* at = new AnnotationBox();
+            AnnotationBox* at = new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -157,7 +157,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
             addAnnotation(at);
         }
         {
-            AnnotationLine* at = new AnnotationLine();
+            AnnotationLine* at = new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* startCoord = at->getStartCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -170,7 +170,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         {
-            AnnotationOval* at = new AnnotationOval();
+            AnnotationOval* at = new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
             at->setWindowIndex(0);
@@ -184,7 +184,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         {
-            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
             coord->setSurfaceSpace(StructureEnum::CORTEX_RIGHT, 32492, 7883, 20);
@@ -194,7 +194,7 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
         }
         
         for (int32_t iTab = 0; iTab < 10; iTab++) {
-            AnnotationPercentSizeText* at = new AnnotationPercentSizeText();
+            AnnotationPercentSizeText* at = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
             AnnotationCoordinate* coord = at->getCoordinate();
             at->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
             at->setTabIndex(iTab);

@@ -31,7 +31,7 @@ namespace caret {
     class AnnotationBox : public AnnotationTwoDimensionalShape {
         
     public:
-        AnnotationBox();
+        AnnotationBox(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationBox();
         

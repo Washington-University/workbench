@@ -472,7 +472,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                                 labelTexts);
     
     const int32_t numLabelsToDraw = static_cast<int32_t>(labelTexts.size());
-    AnnotationPointSizeText annotationText;
+    AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
     if (numLabelsToDraw > 0) {
         float labelX = 0.0;
         float labelY = 0.0;
@@ -598,7 +598,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
         
         const AString axisText = axis->getText();
         if ( ! axisText.isEmpty()) {
-            AnnotationPointSizeText annotationText;
+            AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
             annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
             annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
             
@@ -694,7 +694,7 @@ BrainOpenGLChartDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeig
          iter++) {
         const AString text = *iter;
         if ( ! text.isEmpty()) {
-            AnnotationPointSizeText annotationText;
+            AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
             annotationText.setText(text);
             double textWidth = 0.0;
             double textHeight = 0.0;

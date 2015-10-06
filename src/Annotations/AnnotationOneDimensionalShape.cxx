@@ -40,9 +40,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param type
+ *    Type of annotation.
+ * @param attributeDefaultType
+ *    Type for attribute defaults
  */
-AnnotationOneDimensionalShape::AnnotationOneDimensionalShape(const AnnotationTypeEnum::Enum type)
-: Annotation(type)
+AnnotationOneDimensionalShape::AnnotationOneDimensionalShape(const AnnotationTypeEnum::Enum type,
+                                                             const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: Annotation(type,
+             attributeDefaultType)
 {
     initializeMembersAnnotationOneDimensionalShape();
 }

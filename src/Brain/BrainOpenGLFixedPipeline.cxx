@@ -6530,7 +6530,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     
     const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
     if (isNegativeDisplayed) {
-        AnnotationPointSizeText annotationText;
+        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
@@ -6546,7 +6546,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         || isZeroDisplayed
         || isPositiveDisplayed) {
 
-        AnnotationPointSizeText annotationText;
+        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         if (isNegativeOnly) {
             annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
@@ -6565,7 +6565,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     }
     
     if (isPositiveDisplayed) {
-        AnnotationPointSizeText annotationText;
+        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);

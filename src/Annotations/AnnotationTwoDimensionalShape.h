@@ -33,7 +33,8 @@ namespace caret {
     class AnnotationTwoDimensionalShape : public Annotation {
         
     public:
-        AnnotationTwoDimensionalShape(const AnnotationTypeEnum::Enum type);
+        AnnotationTwoDimensionalShape(const AnnotationTypeEnum::Enum type,
+                                      const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationTwoDimensionalShape();
         
@@ -92,11 +93,11 @@ namespace caret {
                                          const float spaceWidth,
                                          const float spaceHeight);
         
-        static void setDefaultHeight(const float height);
+        static void setUserDefaultHeight(const float height);
         
-        static void setDefaultWidth(const float width);
+        static void setUserDefaultWidth(const float width);
         
-        static void setDefaultRotationAngle(const float rotationAngle);
+        static void setUserDefaultRotationAngle(const float rotationAngle);
         
        // ADD_NEW_METHODS_HERE
 
@@ -131,22 +132,22 @@ namespace caret {
         
         float m_height;
         
-        static float s_defaultRotationAngle;
+        static float s_userDefaultRotationAngle;
         
-        static float s_defaultWidth;
+        static float s_userDefaultWidth;
         
-        static float s_defaultHeight;
+        static float s_userDefaultHeight;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
-    float AnnotationTwoDimensionalShape::s_defaultRotationAngle = 0.0;
+    float AnnotationTwoDimensionalShape::s_userDefaultRotationAngle = 0.0;
     
-    float AnnotationTwoDimensionalShape::s_defaultWidth = 0.25;
+    float AnnotationTwoDimensionalShape::s_userDefaultWidth = 0.25;
     
-    float AnnotationTwoDimensionalShape::s_defaultHeight = 0.25;
+    float AnnotationTwoDimensionalShape::s_userDefaultHeight = 0.25;
 #endif // __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
 
 } // namespace

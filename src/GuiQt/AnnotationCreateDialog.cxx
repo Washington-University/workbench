@@ -569,9 +569,10 @@ AnnotationCreateDialog::okButtonClicked()
             break;
         case MODE_NEW_ANNOTATION_TYPE_CLICK:
         case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
-            annotation.grabNew(Annotation::newAnnotationOfType(m_annotationType));
+            annotation.grabNew(Annotation::newAnnotationOfType(m_annotationType,
+                                                               AnnotationAttributesDefaultTypeEnum::USER));
             if (m_annotationType == AnnotationTypeEnum::TEXT) {
-                AnnotationText* text = new AnnotationPercentSizeText();
+                AnnotationText* text = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::USER);
                 text->setText(userText);
                 annotation.grabNew(text);
             }

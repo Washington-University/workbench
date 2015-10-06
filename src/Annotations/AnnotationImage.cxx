@@ -39,9 +39,13 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param attributeDefaultType
+ *    Type for attribute defaults
  */
-AnnotationImage::AnnotationImage()
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::IMAGE)
+AnnotationImage::AnnotationImage(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: AnnotationTwoDimensionalShape(AnnotationTypeEnum::IMAGE,
+                                attributeDefaultType)
 {
     initializeMembersAnnotationImage();
     
@@ -101,6 +105,13 @@ AnnotationImage::copyHelperAnnotationImage(const AnnotationImage& /*obj*/)
 void
 AnnotationImage::initializeMembersAnnotationImage()
 {
+    switch (m_attributeDefaultType) {
+        case AnnotationAttributesDefaultTypeEnum::NORMAL:
+            break;
+        case AnnotationAttributesDefaultTypeEnum::USER:
+            break;
+    }
+    
     m_sceneAssistant = new SceneClassAssistant();
 }
 

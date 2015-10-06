@@ -19,6 +19,7 @@ SET(QT_DONT_USE_QTGUI TRUE)
 ADD_LIBRARY(Annotations
 Annotation.h
 AnnotationAlignmentEnum.h
+AnnotationAttributesDefaultTypeEnum.h
 AnnotationBox.h
 AnnotationCoordinate.h
 AnnotationCoordinateSpaceEnum.h
@@ -45,6 +46,7 @@ EventAnnotationDeleteUndeleteFromFile.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
+AnnotationAttributesDefaultTypeEnum.cxx
 AnnotationBox.cxx
 AnnotationCoordinate.cxx
 AnnotationCoordinateSpaceEnum.cxx

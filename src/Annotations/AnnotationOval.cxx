@@ -39,9 +39,13 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param attributeDefaultType
+ *    Type for attribute defaults
  */
-AnnotationOval::AnnotationOval()
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::OVAL)
+AnnotationOval::AnnotationOval(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: AnnotationTwoDimensionalShape(AnnotationTypeEnum::OVAL,
+                                attributeDefaultType)
 {
     initializeMembersAnnotationOval();
 }

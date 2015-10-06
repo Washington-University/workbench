@@ -100,25 +100,25 @@ namespace caret {
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
 
 
-        static void setDefaultHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment);
+        static void setUserDefaultHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment);
         
-        static void setDefaultVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment);
+        static void setUserDefaultVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment);
         
-        static void setDefaultFont(const AnnotationTextFontNameEnum::Enum font);
+        static void setUserDefaultFont(const AnnotationTextFontNameEnum::Enum font);
         
-        static void setDefaultOrientation(const AnnotationTextOrientationEnum::Enum orientation);
+        static void setUserDefaultOrientation(const AnnotationTextOrientationEnum::Enum orientation);
         
-        static void setDefaultFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize);
+        static void setUserDefaultFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize);
         
-        static void setDefaultFontPercentViewportSize(const float fontPercentViewportHeight);
+        static void setUserDefaultFontPercentViewportSize(const float fontPercentViewportHeight);
         
-        static void setDefaultBoldEnabled(const bool enabled);
+        static void setUserDefaultBoldEnabled(const bool enabled);
         
-        static void setDefaultItalicEnabled(const bool enabled);
+        static void setUserDefaultItalicEnabled(const bool enabled);
         
-        static void setDefaultUnderlineEnabled(const bool enabled);
+        static void setUserDefaultUnderlineEnabled(const bool enabled);
         
-        static void setDefaultConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate);
+        static void setUserDefaultConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate);
         
         // ADD_NEW_METHODS_HERE
 
@@ -128,7 +128,8 @@ namespace caret {
           
           
     protected: 
-        AnnotationText(const AnnotationTextFontSizeTypeEnum::Enum fontSizeType);
+        AnnotationText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+                       const AnnotationTextFontSizeTypeEnum::Enum fontSizeType);
         
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
@@ -180,25 +181,25 @@ namespace caret {
         bool m_underlineEnabled;
         
         // Defaults
-        static AnnotationTextAlignHorizontalEnum::Enum  s_defaultAlignmentHorizontal;
+        static AnnotationTextAlignHorizontalEnum::Enum  s_userDefaultAlignmentHorizontal;
         
-        static AnnotationTextAlignVerticalEnum::Enum  s_defaultAlignmentVertical;
+        static AnnotationTextAlignVerticalEnum::Enum  s_userDefaultAlignmentVertical;
         
-        static AnnotationTextFontNameEnum::Enum s_defaultFont;
+        static AnnotationTextFontNameEnum::Enum s_userDefaultFont;
         
-        static AnnotationTextOrientationEnum::Enum s_defaultOrientation;
+        static AnnotationTextOrientationEnum::Enum s_userDefaultOrientation;
         
-        static AnnotationTextFontPointSizeEnum::Enum s_defaultPointSize;
+        static AnnotationTextFontPointSizeEnum::Enum s_userDefaultPointSize;
         
-        static AnnotationTextConnectTypeEnum::Enum s_defaultConnectToBrainordinate;
+        static AnnotationTextConnectTypeEnum::Enum s_userDefaultConnectToBrainordinate;
         
-        static float s_defaultFontPercentViewportSize;
+        static float s_userDefaultFontPercentViewportSize;
         
-        static bool s_defaultBoldEnabled;
+        static bool s_userDefaultBoldEnabled;
         
-        static bool s_defaultItalicEnabled;
+        static bool s_userDefaultItalicEnabled;
         
-        static bool s_defaultUnderlineEnabled;
+        static bool s_userDefaultUnderlineEnabled;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -207,25 +208,25 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_TEXT_DECLARE__
-    AnnotationTextAlignHorizontalEnum::Enum  AnnotationText::s_defaultAlignmentHorizontal = AnnotationTextAlignHorizontalEnum::CENTER;
+    AnnotationTextAlignHorizontalEnum::Enum  AnnotationText::s_userDefaultAlignmentHorizontal = AnnotationTextAlignHorizontalEnum::CENTER;
     
-    AnnotationTextAlignVerticalEnum::Enum  AnnotationText::s_defaultAlignmentVertical = AnnotationTextAlignVerticalEnum::MIDDLE;
+    AnnotationTextAlignVerticalEnum::Enum  AnnotationText::s_userDefaultAlignmentVertical = AnnotationTextAlignVerticalEnum::MIDDLE;
     
-    AnnotationTextFontNameEnum::Enum AnnotationText::s_defaultFont = AnnotationTextFontNameEnum::VERA;
+    AnnotationTextFontNameEnum::Enum AnnotationText::s_userDefaultFont = AnnotationTextFontNameEnum::VERA;
     
-    AnnotationTextOrientationEnum::Enum AnnotationText::s_defaultOrientation = AnnotationTextOrientationEnum::HORIZONTAL;
+    AnnotationTextOrientationEnum::Enum AnnotationText::s_userDefaultOrientation = AnnotationTextOrientationEnum::HORIZONTAL;
     
-    AnnotationTextFontPointSizeEnum::Enum AnnotationText::s_defaultPointSize = AnnotationTextFontPointSizeEnum::SIZE14;
+    AnnotationTextFontPointSizeEnum::Enum AnnotationText::s_userDefaultPointSize = AnnotationTextFontPointSizeEnum::SIZE14;
     
-    AnnotationTextConnectTypeEnum::Enum AnnotationText::s_defaultConnectToBrainordinate = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
+    AnnotationTextConnectTypeEnum::Enum AnnotationText::s_userDefaultConnectToBrainordinate = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
     
-    float AnnotationText::s_defaultFontPercentViewportSize = 0.05;
+    float AnnotationText::s_userDefaultFontPercentViewportSize = 0.05;
     
-    bool AnnotationText::s_defaultBoldEnabled = false;
+    bool AnnotationText::s_userDefaultBoldEnabled = false;
     
-    bool AnnotationText::s_defaultItalicEnabled = false;
+    bool AnnotationText::s_userDefaultItalicEnabled = false;
     
-    bool AnnotationText::s_defaultUnderlineEnabled = false;
+    bool AnnotationText::s_userDefaultUnderlineEnabled = false;
     
 #endif // __ANNOTATION_TEXT_DECLARE__
 

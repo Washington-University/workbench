@@ -1655,7 +1655,8 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     
     
     
-    m_annotation = Annotation::newAnnotationOfType(annotationType);
+    m_annotation = Annotation::newAnnotationOfType(annotationType,
+                                                   AnnotationAttributesDefaultTypeEnum::USER);
     m_annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
     CaretAssert(m_annotation);
 

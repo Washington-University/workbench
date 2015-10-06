@@ -39,9 +39,13 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param attributeDefaultType
+ *    Type for attribute defaults
  */
-AnnotationBox::AnnotationBox()
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::BOX)
+AnnotationBox::AnnotationBox(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: AnnotationTwoDimensionalShape(AnnotationTypeEnum::BOX,
+                                attributeDefaultType)
 {
     initializeMembersAnnotationBox();
 }

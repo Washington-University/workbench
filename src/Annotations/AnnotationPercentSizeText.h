@@ -31,7 +31,7 @@ namespace caret {
     class AnnotationPercentSizeText : public AnnotationText {
         
     public:
-        AnnotationPercentSizeText();
+        AnnotationPercentSizeText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationPercentSizeText();
         

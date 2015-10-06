@@ -164,8 +164,8 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalS
             }
             m_heightSpinBox->blockSignals(false);
             
-            AnnotationTwoDimensionalShape::setDefaultWidth(widthValue);
-            AnnotationTwoDimensionalShape::setDefaultHeight(heightValue);
+            AnnotationTwoDimensionalShape::setUserDefaultWidth(widthValue);
+            AnnotationTwoDimensionalShape::setUserDefaultHeight(heightValue);
             
             setEnabled(true);
         }
@@ -196,7 +196,7 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationTwoDimensionalShape::setDefaultHeight(value);
+    AnnotationTwoDimensionalShape::setUserDefaultHeight(value);
 }
 
 /**
@@ -217,6 +217,6 @@ AnnotationWidthHeightWidget::widthValueChanged(double value)
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationTwoDimensionalShape::setDefaultWidth(value);
+    AnnotationTwoDimensionalShape::setUserDefaultWidth(value);
 }
 

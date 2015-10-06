@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "AnnotationAttributesDefaultTypeEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSizingHandleTypeEnum.h"
 #include "AnnotationTypeEnum.h"
@@ -35,7 +36,8 @@ namespace caret {
     class Annotation : public CaretObjectTracksModification, public SceneableInterface {
         
     public:
-        Annotation(const AnnotationTypeEnum::Enum type);
+        Annotation(const AnnotationTypeEnum::Enum type,
+                   const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~Annotation();
         
@@ -43,7 +45,8 @@ namespace caret {
 
         Annotation& operator=(const Annotation& obj);
        
-        static Annotation* newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType);
+        static Annotation* newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
+                                               const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         Annotation* clone() const;
         
@@ -107,15 +110,15 @@ namespace caret {
         
         bool isSelected() const;
         
-        static void setDefaultForegroundColor(const CaretColorEnum::Enum color);
+        static void setUserDefaultForegroundColor(const CaretColorEnum::Enum color);
         
-        static void setDefaultBackgroundColor(const CaretColorEnum::Enum color);
+        static void setUserDefaultBackgroundColor(const CaretColorEnum::Enum color);
         
-        static void setDefaultCustomForegroundColor(const float rgba[4]);
+        static void setUserDefaultCustomForegroundColor(const float rgba[4]);
         
-        static void setDefaultCustomBackgroundColor(const float rgba[4]);
+        static void setUserDefaultCustomBackgroundColor(const float rgba[4]);
         
-        static void setDefaultForegroundLineWidth(const float lineWidth);
+        static void setUserDefaultForegroundLineWidth(const float lineWidth);
         /**
          * Apply a move or resize operation received from the GUI.
          *
@@ -177,9 +180,13 @@ namespace caret {
         // public access to this method could cause improper selection status
         void setSelected(const bool selectedStatus) const;
         
-        SceneClassAssistant* m_sceneAssistant;
-        
         const AnnotationTypeEnum::Enum m_type;
+        
+    protected:
+        const AnnotationAttributesDefaultTypeEnum::Enum m_attributeDefaultType;
+        
+    private:
+        SceneClassAssistant* m_sceneAssistant;
         
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
         
@@ -200,15 +207,15 @@ namespace caret {
         mutable bool m_selectedFlag;
         
         // defaults
-        static CaretColorEnum::Enum s_defaultColorForeground;
+        static CaretColorEnum::Enum s_userDefaultColorForeground;
         
-        static CaretColorEnum::Enum s_defaultColorBackground;
+        static CaretColorEnum::Enum s_userDefaultColorBackground;
         
-        static float s_defaultCustomColorForeground[4];
+        static float s_userDefaultCustomColorForeground[4];
         
-        static float s_defaultCustomColorBackground[4];
+        static float s_userDefaultCustomColorBackground[4];
         
-        static float s_defaultForegroundLineWidth;
+        static float s_userDefaultForegroundLineWidth;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -217,15 +224,15 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_DECLARE__
-    CaretColorEnum::Enum Annotation::s_defaultColorForeground = CaretColorEnum::WHITE;
+    CaretColorEnum::Enum Annotation::s_userDefaultColorForeground = CaretColorEnum::WHITE;
     
-    CaretColorEnum::Enum Annotation::s_defaultColorBackground = CaretColorEnum::NONE;
+    CaretColorEnum::Enum Annotation::s_userDefaultColorBackground = CaretColorEnum::NONE;
     
-    float Annotation::s_defaultCustomColorForeground[4] = { 1.0, 1.0, 1.0, 1.0 };
+    float Annotation::s_userDefaultCustomColorForeground[4] = { 1.0, 1.0, 1.0, 1.0 };
     
-    float Annotation::s_defaultCustomColorBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
+    float Annotation::s_userDefaultCustomColorBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
     
-    float Annotation::s_defaultForegroundLineWidth = 3.0;
+    float Annotation::s_userDefaultForegroundLineWidth = 3.0;
 #endif // __ANNOTATION_DECLARE__
 
 } // namespace

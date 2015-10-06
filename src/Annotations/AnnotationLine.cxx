@@ -39,9 +39,13 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param attributeDefaultType
+ *    Type for attribute defaults
  */
-AnnotationLine::AnnotationLine()
-: AnnotationOneDimensionalShape(AnnotationTypeEnum::LINE)
+AnnotationLine::AnnotationLine(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: AnnotationOneDimensionalShape(AnnotationTypeEnum::LINE,
+                                attributeDefaultType)
 {
     initializeMembersAnnotationLine();
 }
@@ -100,8 +104,17 @@ AnnotationLine::copyHelperAnnotationLine(const AnnotationLine& obj)
 void
 AnnotationLine::initializeMembersAnnotationLine()
 {
-    m_displayStartArrow = s_defaultDisplayStartArrow;
-    m_displayEndArrow   = s_defaultDisplayEndArrow;
+    switch (m_attributeDefaultType) {
+        case AnnotationAttributesDefaultTypeEnum::NORMAL:
+            m_displayStartArrow = false;
+            m_displayEndArrow   = false;
+            break;
+        case AnnotationAttributesDefaultTypeEnum::USER:
+            m_displayStartArrow = s_userDefaultDisplayStartArrow;
+            m_displayEndArrow   = s_userDefaultDisplayEndArrow;
+            break;
+    }
+    
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_displayStartArrow",
@@ -215,9 +228,9 @@ AnnotationLine::restoreSubClassDataFromScene(const SceneAttributes* sceneAttribu
  * @param displayArrow
  *     Default for newly created line annotations.
  */
-void AnnotationLine::setDefaultDisplayStartArrow(const bool displayArrow)
+void AnnotationLine::setUserDefaultDisplayStartArrow(const bool displayArrow)
 {
-    s_defaultDisplayStartArrow = displayArrow;
+    s_userDefaultDisplayStartArrow = displayArrow;
 }
 
 /**
@@ -226,9 +239,9 @@ void AnnotationLine::setDefaultDisplayStartArrow(const bool displayArrow)
  * @param displayArrow
  *     Default for newly created line annotations.
  */
-void AnnotationLine::setDefaultDisplayEndArrow(const bool displayArrow)
+void AnnotationLine::setUserDefaultDisplayEndArrow(const bool displayArrow)
 {
-    s_defaultDisplayEndArrow = displayArrow;
+    s_userDefaultDisplayEndArrow = displayArrow;
 }
 
 

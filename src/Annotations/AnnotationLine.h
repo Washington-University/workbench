@@ -30,7 +30,7 @@ namespace caret {
     class AnnotationLine : public AnnotationOneDimensionalShape {
         
     public:
-        AnnotationLine();
+        AnnotationLine(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationLine();
         
@@ -49,9 +49,9 @@ namespace caret {
         virtual bool isBackgroundColorSupported() const;
         
         
-        static void setDefaultDisplayStartArrow(const bool displayArrow);
+        static void setUserDefaultDisplayStartArrow(const bool displayArrow);
         
-        static void setDefaultDisplayEndArrow(const bool displayArrow);
+        static void setUserDefaultDisplayEndArrow(const bool displayArrow);
         
        // ADD_NEW_METHODS_HERE
 
@@ -79,18 +79,18 @@ namespace caret {
         bool m_displayEndArrow;
         
         // defaults
-        static bool s_defaultDisplayStartArrow;
+        static bool s_userDefaultDisplayStartArrow;
         
-        static bool s_defaultDisplayEndArrow;
+        static bool s_userDefaultDisplayEndArrow;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_LINE_DECLARE__
-    bool AnnotationLine::s_defaultDisplayStartArrow = false;
+    bool AnnotationLine::s_userDefaultDisplayStartArrow = false;
     
-    bool AnnotationLine::s_defaultDisplayEndArrow = false;
+    bool AnnotationLine::s_userDefaultDisplayEndArrow = false;
 #endif // __ANNOTATION_LINE_DECLARE__
 
 } // namespace

@@ -120,7 +120,7 @@ FtglFontTextRenderer::FtglFontTextRenderer()
 {
     m_defaultFont = NULL;
 #ifdef HAVE_FREETYPE
-    AnnotationPointSizeText defaultAnnotationText;
+    AnnotationPointSizeText defaultAnnotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
     defaultAnnotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
     defaultAnnotationText.setFont(AnnotationTextFontNameEnum::VERA);
     defaultAnnotationText.setItalicEnabled(false);

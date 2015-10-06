@@ -132,7 +132,7 @@ AnnotationRotationWidget::updateContent(std::vector<AnnotationTwoDimensionalShap
         
         setEnabled(true);
         
-        AnnotationTwoDimensionalShape::setDefaultRotationAngle(rotationAngle);
+        AnnotationTwoDimensionalShape::setUserDefaultRotationAngle(rotationAngle);
     }
     else {
         setEnabled(false);
@@ -157,5 +157,5 @@ AnnotationRotationWidget::rotationValueChanged(double value)
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationTwoDimensionalShape::setDefaultRotationAngle(value);
+    AnnotationTwoDimensionalShape::setUserDefaultRotationAngle(value);
 }

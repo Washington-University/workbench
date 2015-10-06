@@ -36,9 +36,13 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param attributeDefaultType
+ *    Type for attribute defaults
  */
-AnnotationPercentSizeText::AnnotationPercentSizeText()
-: AnnotationText(AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT)
+AnnotationPercentSizeText::AnnotationPercentSizeText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: AnnotationText(attributeDefaultType,
+                 AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT)
 {
     
 }

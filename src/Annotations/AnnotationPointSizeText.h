@@ -31,7 +31,7 @@ namespace caret {
     class AnnotationPointSizeText : public AnnotationText {
         
     public:
-        AnnotationPointSizeText();
+        AnnotationPointSizeText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationPointSizeText();
         

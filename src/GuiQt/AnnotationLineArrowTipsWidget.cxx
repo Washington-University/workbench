@@ -116,8 +116,8 @@ AnnotationLineArrowTipsWidget::updateContent(std::vector<AnnotationLine*>& annot
         m_endArrowToolButton->setChecked(line->isDisplayEndArrow());
         setEnabled(true);
         
-        AnnotationLine::setDefaultDisplayStartArrow(m_startArrowToolButton->isChecked());
-        AnnotationLine::setDefaultDisplayEndArrow(m_endArrowToolButton->isChecked());
+        AnnotationLine::setUserDefaultDisplayStartArrow(m_startArrowToolButton->isChecked());
+        AnnotationLine::setUserDefaultDisplayEndArrow(m_endArrowToolButton->isChecked());
     }
     else {
         setEnabled(false);
@@ -142,7 +142,7 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-        AnnotationLine::setDefaultDisplayStartArrow(m_startArrowToolButton->isChecked());
+        AnnotationLine::setUserDefaultDisplayStartArrow(m_startArrowToolButton->isChecked());
 //    }
 }
 
@@ -162,6 +162,6 @@ AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-        AnnotationLine::setDefaultDisplayEndArrow(m_endArrowToolButton->isChecked());
+        AnnotationLine::setUserDefaultDisplayEndArrow(m_endArrowToolButton->isChecked());
 //    }
 }

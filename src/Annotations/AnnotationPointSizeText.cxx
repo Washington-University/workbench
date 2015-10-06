@@ -36,9 +36,13 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param attributeDefaultType
+ *    Type for attribute defaults
  */
-AnnotationPointSizeText::AnnotationPointSizeText()
-: AnnotationText(AnnotationTextFontSizeTypeEnum::POINTS)
+AnnotationPointSizeText::AnnotationPointSizeText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: AnnotationText(attributeDefaultType,
+                 AnnotationTextFontSizeTypeEnum::POINTS)
 {
     
 }

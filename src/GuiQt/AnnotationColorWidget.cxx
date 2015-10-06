@@ -230,7 +230,7 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
                 rgba[2] = newColor.blueF();
                 //m_annotation->setCustomBackgroundColor(rgba);
                 
-                Annotation::setDefaultCustomBackgroundColor(rgba);
+                Annotation::setUserDefaultCustomBackgroundColor(rgba);
             }
         }
         
@@ -241,7 +241,7 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
                                            annMan->getSelectedAnnotations());
         annMan->applyCommand(undoCommand);
         
-        Annotation::setDefaultBackgroundColor(caretColor);
+        Annotation::setUserDefaultBackgroundColor(caretColor);
     }
 
     updateBackgroundColorButton();
@@ -298,8 +298,8 @@ AnnotationColorWidget::updateBackgroundColorButton()
             m_annotations[0]->getCustomBackgroundColor(customRGBA);
             m_backgroundColorMenu->setCustomIconColor(customRGBA);
             
-            Annotation::setDefaultBackgroundColor(colorEnum);
-            Annotation::setDefaultCustomBackgroundColor(customRGBA);
+            Annotation::setUserDefaultBackgroundColor(colorEnum);
+            Annotation::setUserDefaultCustomBackgroundColor(customRGBA);
         }
         
         
@@ -381,8 +381,8 @@ AnnotationColorWidget::updateForegroundColorButton()
             m_annotations[0]->getCustomForegroundColor(customRGBA);
             m_foregroundColorMenu->setCustomIconColor(customRGBA);
 
-            Annotation::setDefaultForegroundColor(colorEnum);
-            Annotation::setDefaultCustomForegroundColor(customRGBA);
+            Annotation::setUserDefaultForegroundColor(colorEnum);
+            Annotation::setUserDefaultCustomForegroundColor(customRGBA);
         }
         
         
@@ -422,7 +422,7 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
                 rgba[2] = newColor.blueF();
                 //m_annotation->setCustomForegroundColor(rgba);
                 
-                Annotation::setDefaultCustomForegroundColor(rgba);
+                Annotation::setUserDefaultCustomForegroundColor(rgba);
             }
         }
         
@@ -433,7 +433,7 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
                                             annMan->getSelectedAnnotations());
         annMan->applyCommand(undoCommand);
         
-        Annotation::setDefaultForegroundColor(caretColor);
+        Annotation::setUserDefaultForegroundColor(caretColor);
     }
     updateForegroundColorButton();
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -470,7 +470,7 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    Annotation::setDefaultForegroundLineWidth(value);
+    Annotation::setUserDefaultForegroundLineWidth(value);
 }
 
 /**
@@ -503,7 +503,7 @@ AnnotationColorWidget::updateForegroundThicknessSpinBox()
         }
         
         if (lineWidthValid) {
-            Annotation::setDefaultForegroundLineWidth(lineWidthValue);
+            Annotation::setUserDefaultForegroundLineWidth(lineWidthValue);
         }
     }
     

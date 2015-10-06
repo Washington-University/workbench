@@ -262,11 +262,11 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationText
         m_italicFontAction->setChecked(italicOnFlag);
         m_underlineFontAction->setChecked(underlineOnFlag);
         
-        AnnotationText::setDefaultFont(fontName);
-        AnnotationText::setDefaultFontPercentViewportSize(fontSizeValue);
-        AnnotationText::setDefaultBoldEnabled(boldOnFlag);
-        AnnotationText::setDefaultItalicEnabled(italicOnFlag);
-        AnnotationText::setDefaultUnderlineEnabled(underlineOnFlag);
+        AnnotationText::setUserDefaultFont(fontName);
+        AnnotationText::setUserDefaultFontPercentViewportSize(fontSizeValue);
+        AnnotationText::setUserDefaultBoldEnabled(boldOnFlag);
+        AnnotationText::setUserDefaultItalicEnabled(italicOnFlag);
+        AnnotationText::setUserDefaultUnderlineEnabled(underlineOnFlag);
     }
     
     setEnabled( ! annotationTexts.empty());
@@ -287,7 +287,7 @@ AnnotationFontWidget::fontBoldChanged()
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationText::setDefaultBoldEnabled(m_boldFontAction->isChecked());
+    AnnotationText::setUserDefaultBoldEnabled(m_boldFontAction->isChecked());
 }
 
 /**
@@ -305,7 +305,7 @@ AnnotationFontWidget::fontItalicChanged()
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationText::setDefaultItalicEnabled(m_italicFontAction->isChecked());
+    AnnotationText::setUserDefaultItalicEnabled(m_italicFontAction->isChecked());
 }
 
 /**
@@ -324,7 +324,7 @@ AnnotationFontWidget::fontNameChanged()
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationText::setDefaultFont(fontName);
+    AnnotationText::setUserDefaultFont(fontName);
 }
 
 /**
@@ -343,7 +343,7 @@ AnnotationFontWidget::fontSizeChanged()
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationText::setDefaultFontPercentViewportSize(fontPercentSize);
+    AnnotationText::setUserDefaultFontPercentViewportSize(fontPercentSize);
 }
 
 /**
@@ -361,5 +361,5 @@ AnnotationFontWidget::fontUnderlineChanged()
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationText::setDefaultUnderlineEnabled(m_underlineFontAction->isChecked());
+    AnnotationText::setUserDefaultUnderlineEnabled(m_underlineFontAction->isChecked());
 }

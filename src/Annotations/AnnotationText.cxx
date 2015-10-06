@@ -52,11 +52,15 @@ using namespace caret;
 /**
  * Constructor for subclass.
  *
+ * @param attributeDefaultType
+ *    Type for attribute defaults
  * @param fontSizeType
  *    Type of font sizing.
  */
-AnnotationText::AnnotationText(const AnnotationTextFontSizeTypeEnum::Enum fontSizeType)
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::TEXT),
+AnnotationText::AnnotationText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
+                               const AnnotationTextFontSizeTypeEnum::Enum fontSizeType)
+: AnnotationTwoDimensionalShape(AnnotationTypeEnum::TEXT,
+                                attributeDefaultType),
 m_fontSizeType(fontSizeType)
 {
     initializeAnnotationTextMembers();
@@ -105,17 +109,34 @@ AnnotationText::operator=(const AnnotationText& obj)
 void
 AnnotationText::initializeAnnotationTextMembers()
 {
-    m_text                    = "";
-    m_alignmentHorizontal     = s_defaultAlignmentHorizontal;
-    m_alignmentVertical       = s_defaultAlignmentVertical;
-    m_font                    = s_defaultFont;
-    m_fontPointSize           = s_defaultPointSize;
-    m_orientation             = s_defaultOrientation;
-    m_boldEnabled             = s_defaultBoldEnabled;
-    m_italicEnabled           = s_defaultItalicEnabled;
-    m_underlineEnabled        = s_defaultUnderlineEnabled;
-    m_connectToBrainordinate  = s_defaultConnectToBrainordinate;
-    m_fontPercentViewportSize = s_defaultFontPercentViewportSize;
+    switch (m_attributeDefaultType) {
+        case AnnotationAttributesDefaultTypeEnum::NORMAL:
+            m_alignmentHorizontal     = AnnotationTextAlignHorizontalEnum::CENTER;
+            m_alignmentVertical       = AnnotationTextAlignVerticalEnum::MIDDLE;
+            m_font                    = AnnotationTextFontNameEnum::VERA;
+            m_fontPointSize           = AnnotationTextFontPointSizeEnum::SIZE14;
+            m_orientation             = AnnotationTextOrientationEnum::HORIZONTAL;
+            m_boldEnabled             = false;
+            m_italicEnabled           = false;
+            m_underlineEnabled        = false;
+            m_connectToBrainordinate  = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
+            m_fontPercentViewportSize = 0.05;
+            break;
+        case AnnotationAttributesDefaultTypeEnum::USER:
+            m_alignmentHorizontal     = s_userDefaultAlignmentHorizontal;
+            m_alignmentVertical       = s_userDefaultAlignmentVertical;
+            m_font                    = s_userDefaultFont;
+            m_fontPointSize           = s_userDefaultPointSize;
+            m_orientation             = s_userDefaultOrientation;
+            m_boldEnabled             = s_userDefaultBoldEnabled;
+            m_italicEnabled           = s_userDefaultItalicEnabled;
+            m_underlineEnabled        = s_userDefaultUnderlineEnabled;
+            m_connectToBrainordinate  = s_userDefaultConnectToBrainordinate;
+            m_fontPercentViewportSize = s_userDefaultFontPercentViewportSize;
+            break;
+    }
+    
+    m_text = "";
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_text",
@@ -712,9 +733,9 @@ AnnotationText::restoreSubClassDataFromScene(const SceneAttributes* sceneAttribu
  * @param alignment
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment)
+void AnnotationText::setUserDefaultHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment)
 {
-    s_defaultAlignmentHorizontal = alignment;
+    s_userDefaultAlignmentHorizontal = alignment;
 }
 
 /**
@@ -723,9 +744,9 @@ void AnnotationText::setDefaultHorizontalAlignment(const AnnotationTextAlignHori
  * @param alignment
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment)
+void AnnotationText::setUserDefaultVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment)
 {
-    s_defaultAlignmentVertical = alignment;
+    s_userDefaultAlignmentVertical = alignment;
 }
 
 /**
@@ -734,9 +755,9 @@ void AnnotationText::setDefaultVerticalAlignment(const AnnotationTextAlignVertic
  * @param font
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultFont(const AnnotationTextFontNameEnum::Enum font)
+void AnnotationText::setUserDefaultFont(const AnnotationTextFontNameEnum::Enum font)
 {
-    s_defaultFont = font;
+    s_userDefaultFont = font;
 }
 
 /**
@@ -745,9 +766,9 @@ void AnnotationText::setDefaultFont(const AnnotationTextFontNameEnum::Enum font)
  * @param orientation
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultOrientation(const AnnotationTextOrientationEnum::Enum orientation)
+void AnnotationText::setUserDefaultOrientation(const AnnotationTextOrientationEnum::Enum orientation)
 {
-    s_defaultOrientation = orientation;
+    s_userDefaultOrientation = orientation;
 }
 
 /**
@@ -756,9 +777,9 @@ void AnnotationText::setDefaultOrientation(const AnnotationTextOrientationEnum::
  * @param fontPointSize
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize)
+void AnnotationText::setUserDefaultFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize)
 {
-    s_defaultPointSize = fontPointSize;
+    s_userDefaultPointSize = fontPointSize;
 }
 
 /**
@@ -767,9 +788,9 @@ void AnnotationText::setDefaultFontPointSize(const AnnotationTextFontPointSizeEn
  * @param fontPercentViewportHeight
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultFontPercentViewportSize(const float fontPercentViewportHeight)
+void AnnotationText::setUserDefaultFontPercentViewportSize(const float fontPercentViewportHeight)
 {
-    s_defaultFontPercentViewportSize = fontPercentViewportHeight;
+    s_userDefaultFontPercentViewportSize = fontPercentViewportHeight;
 }
 
 /**
@@ -778,9 +799,9 @@ void AnnotationText::setDefaultFontPercentViewportSize(const float fontPercentVi
  * @param enabled
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultBoldEnabled(const bool enabled)
+void AnnotationText::setUserDefaultBoldEnabled(const bool enabled)
 {
-    s_defaultBoldEnabled = enabled;
+    s_userDefaultBoldEnabled = enabled;
 }
 
 /**
@@ -789,9 +810,9 @@ void AnnotationText::setDefaultBoldEnabled(const bool enabled)
  * @param enabled
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultItalicEnabled(const bool enabled)
+void AnnotationText::setUserDefaultItalicEnabled(const bool enabled)
 {
-    s_defaultItalicEnabled = enabled;
+    s_userDefaultItalicEnabled = enabled;
 }
 
 /**
@@ -800,9 +821,9 @@ void AnnotationText::setDefaultItalicEnabled(const bool enabled)
  * @param enabled
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultUnderlineEnabled(const bool enabled)
+void AnnotationText::setUserDefaultUnderlineEnabled(const bool enabled)
 {
-    s_defaultUnderlineEnabled = enabled;
+    s_userDefaultUnderlineEnabled = enabled;
 }
 
 /**
@@ -811,7 +832,7 @@ void AnnotationText::setDefaultUnderlineEnabled(const bool enabled)
  * @param connectToBrainordinate
  *     Default for newly created text annotations.
  */
-void AnnotationText::setDefaultConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate)
+void AnnotationText::setUserDefaultConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum connectToBrainordinate)
 {
-    s_defaultConnectToBrainordinate = connectToBrainordinate;
+    s_userDefaultConnectToBrainordinate = connectToBrainordinate;
 }

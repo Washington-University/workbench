@@ -56,7 +56,7 @@ m_glWidget(glWidget)
 {
     m_defaultFont = NULL;
 
-    AnnotationPointSizeText defaultAnnotationText;
+    AnnotationPointSizeText defaultAnnotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
     defaultAnnotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
     defaultAnnotationText.setFont(AnnotationTextFontNameEnum::VERA);
     defaultAnnotationText.setItalicEnabled(false);

@@ -45,9 +45,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param type
+ *    Type of annotation
+ * @param attributeDefaultType
+ *    Type for attribute defaults
  */
-AnnotationTwoDimensionalShape::AnnotationTwoDimensionalShape(const AnnotationTypeEnum::Enum type)
-: Annotation(type)
+AnnotationTwoDimensionalShape::AnnotationTwoDimensionalShape(const AnnotationTypeEnum::Enum type,
+                                                             const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: Annotation(type,
+             attributeDefaultType)
 {
     initializeMembersAnnotationTwoDimensionalShape();
 }
@@ -110,9 +117,19 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
 {
     m_coordinate.grabNew(new AnnotationCoordinate());
 
-    m_width  = s_defaultWidth;
-    m_height = s_defaultHeight;
-    m_rotationAngle = s_defaultRotationAngle;
+    switch (m_attributeDefaultType) {
+        case AnnotationAttributesDefaultTypeEnum::NORMAL:
+            m_width  = 0.25;
+            m_height = 0.25;
+            m_rotationAngle = 0.0;
+            break;
+        case AnnotationAttributesDefaultTypeEnum::USER:
+            m_width  = s_userDefaultWidth;
+            m_height = s_userDefaultHeight;
+            m_rotationAngle = s_userDefaultRotationAngle;
+            break;
+    }
+    
     
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
@@ -888,9 +905,9 @@ AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(const SceneAttribute
  *     Default for newly created text annotations.
  */
 void
-AnnotationTwoDimensionalShape::setDefaultHeight(const float height)
+AnnotationTwoDimensionalShape::setUserDefaultHeight(const float height)
 {
-    s_defaultHeight = height;
+    s_userDefaultHeight = height;
 }
 
 /**
@@ -900,9 +917,9 @@ AnnotationTwoDimensionalShape::setDefaultHeight(const float height)
  *     Default for newly created annotations.
  */
 void
-AnnotationTwoDimensionalShape::setDefaultWidth(const float width)
+AnnotationTwoDimensionalShape::setUserDefaultWidth(const float width)
 {
-    s_defaultWidth = width;
+    s_userDefaultWidth = width;
 }
 
 /**
@@ -912,9 +929,9 @@ AnnotationTwoDimensionalShape::setDefaultWidth(const float width)
  *     Default for newly created annotations.
  */
 void
-AnnotationTwoDimensionalShape::setDefaultRotationAngle(const float rotationAngle)
+AnnotationTwoDimensionalShape::setUserDefaultRotationAngle(const float rotationAngle)
 {
-    s_defaultRotationAngle = rotationAngle;
+    s_userDefaultRotationAngle = rotationAngle;
 }
 
 
