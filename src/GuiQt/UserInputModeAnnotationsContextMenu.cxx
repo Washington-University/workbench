@@ -182,6 +182,11 @@ UserInputModeAnnotationsContextMenu::pasteAnnotationFromAnnotationClipboard()
                                                                    NULL);
         if (validCoordsFlag) {
             annotationFile->addAnnotation(annotation);
+            m_newAnnotationCreatedByContextMenu = annotation;
+            
+            annotationManager->selectAnnotation(AnnotationManager::SELECTION_MODE_SINGLE,
+                                                false,
+                                                annotation);
         }
         else {
             /*
