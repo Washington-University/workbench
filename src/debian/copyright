@@ -6,8 +6,8 @@ Files: *
 Copyright: 2014-2015 Washington University School of Medicine
 License: GPL-2+
 
-Files: src/Files/SurfaceResamplingHelper.cxx
-Copyright: 2014 Washington University School of Medicine
+Files: src/Files/SurfaceResamplingHelper.cxx src/Cifti/examples/*
+Copyright: 2014-2015 Washington University School of Medicine
 License: Expat
 
 Files: src/Quazip/*

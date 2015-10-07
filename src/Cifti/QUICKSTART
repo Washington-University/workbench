@@ -1,25 +1,33 @@
 The entry point for reading and writing Cifti data is the object CiftiFile.  To get a handle to a Cifti File, use the following syntax:
-CiftiFile *cf = new CiftiFile("testciftifile.dtseries.nii");
+CiftiFile cf("testciftifile.dtseries.nii"), cf2;//starts on-disk reading, and makes an uninitialized second object
+cf2.setWritingFile(testoutcifti.dtseries.nii");//prepare on-disk writing mode
+//cf.convertToInMemory();//if you want to read entire file into memory now
 
-The Cifti 1.0 API breaks the file up into three logical sections, the Nifti 2 Header, the Cifti XML meta data, and the Cifti Matrix data.  To access the data use the following functions:
+CiftiFile gives access to the file in two parts, the Cifti XML, and the Cifti Matrix data.  To access the data use the following functions:
 
-//read/write nifti header
-Nifti2Header header;
-cf->setHeader(*header);
-cf->getHeader(*header);
+//get the CiftiXML object, containing mapping info for each dimension
+const CiftiXML& xml = cf->getCiftiXML();
+cf2->setCiftiXML(xml);//setting xml is required before writing rows of data, as the xml controls the dimensions and mapping info
 
-//read/write Cifti 1.0 XML extension "header"
-CiftiXML xml;
-cf->setCiftiXML(xml);
-cf->getCiftiXML(xml);
+//read/write Cifti rows
+vector<float> scratchRow(cf.getDimensions()[0]);
+//simplified functions for 2D only
+cf.getRow(scratchRow.data(), 0);
+cf2.setRow(scratchRow.data(), 0);
+//example specifically for 3D cifti
+vector<int64_t> indices(2, 0);//[0 0]
+cf.getRow(scratchRow.data(), indices);
+cf2.setRow(scratchRow.data(), indices);
 
-//read/write Cifti matrix
-CiftiMatrix *matrix = new CiftiMatrix();
-cf->setCiftiMatrix(*matrix);
-matrix = cf->getCiftiMatrix();
+//write current state to a new Cifti File, without changing what file subsequent setRow calls set data in (if any)
+cf.writeFile("outputfile.dtseries.nii");
 
-//writing to a new Cifti File
-cf->writeFile("outputfile.dtseries.nii");
+For more detailed information on how to manipulate Cifti data, look at the source files in the examples directory
 
-For more detailed information on how to manipulated Cifti data, look at the doxygen documentation, located in the doc sub-directory, and the Cifti 1.0 specification, located at the following URL:
-http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
+Other references:
+
+nitrc page:
+http://www.nitrc.org/projects/cifti/
+
+effectively same library, available under BSD 2-clause, and adapted to work with either libxml++ or qt:
+https://github.com/Washington-University/CiftiLib
