@@ -166,22 +166,22 @@ GapsAndMarginsDialog::createMarginsWidget()
     
     m_leftMarginCheckBox = new QCheckBox(" "); //"Left");
     QObject::connect(m_leftMarginCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(tabMarginCheckBoxClicked()));
+                     this, SLOT(leftTabMarginCheckBoxClicked()));
     m_leftMarginCheckBox->setToolTip("When checked, tab 1 left margin is applied to ALL tabs");
     
     m_rightMarginCheckBox = new QCheckBox(" "); //"Right");
     QObject::connect(m_rightMarginCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(tabMarginCheckBoxClicked()));
+                     this, SLOT(rightTabMarginCheckBoxClicked()));
     m_rightMarginCheckBox->setToolTip("When checked, tab 1 right margin is applied to ALL tabs");
     
     m_bottomMarginCheckBox = new QCheckBox(" "); //"Bottom");
     QObject::connect(m_bottomMarginCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(tabMarginCheckBoxClicked()));
+                     this, SLOT(bottomTabMarginCheckBoxClicked()));
     m_bottomMarginCheckBox->setToolTip("When checked, tab 1 bottom margin applied to ALL tabs");
     
     m_topMarginCheckBox = new QCheckBox(" "); //"Top");
     QObject::connect(m_topMarginCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(tabMarginCheckBoxClicked()));
+                     this, SLOT(topTabMarginCheckBoxClicked()));
     m_topMarginCheckBox->setToolTip("When checked, tab 1 top margin is applied to ALL tabs");
     
     QWidget* tabsWidget = new QWidget();
@@ -419,17 +419,66 @@ GapsAndMarginsDialog::tabMarginChanged(int tabIndex)
 }
 
 /**
- * Gets called when a surface montage gap is changed.
+ * Gets called when right tab margin is changed.
  */
 void
-GapsAndMarginsDialog::tabMarginCheckBoxClicked()
+GapsAndMarginsDialog::rightTabMarginCheckBoxClicked()
+{
+    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    gapsAndMargins->setTabMarginRightAllSelected(m_rightMarginCheckBox->isChecked());
+    
+    /*
+     * Update dialog since "select all" will change all margins to the first margin value
+     */
+    updateDialog();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Gets called when left tab margin is changed.
+ */
+void
+GapsAndMarginsDialog::leftTabMarginCheckBoxClicked()
 {
     GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
     gapsAndMargins->setTabMarginLeftAllSelected(m_leftMarginCheckBox->isChecked());
-    gapsAndMargins->setTabMarginRightAllSelected(m_rightMarginCheckBox->isChecked());
+    
+    /*
+     * Update dialog since "select all" will change all margins to the first margin value
+     */
+    updateDialog();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Gets called when bottom tab margin is changed.
+ */
+void
+GapsAndMarginsDialog::bottomTabMarginCheckBoxClicked()
+{
+    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
     gapsAndMargins->setTabMarginBottomAllSelected(m_bottomMarginCheckBox->isChecked());
+    
+    /*
+     * Update dialog since "select all" will change all margins to the first margin value
+     */
+    updateDialog();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Gets called when top tab margin is changed.
+ */
+void
+GapsAndMarginsDialog::topTabMarginCheckBoxClicked()
+{
+    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
     gapsAndMargins->setTabMarginTopAllSelected(m_topMarginCheckBox->isChecked());
     
+    /*
+     * Update dialog since "select all" will change all margins to the first margin value
+     */
+    updateDialog();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

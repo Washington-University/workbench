@@ -57,7 +57,13 @@ namespace caret {
         
         void volumeMontageGapChanged();
         
-        void tabMarginCheckBoxClicked();
+        void rightTabMarginCheckBoxClicked();
+        
+        void leftTabMarginCheckBoxClicked();
+        
+        void bottomTabMarginCheckBoxClicked();
+        
+        void topTabMarginCheckBoxClicked();
         
     private:
         GapsAndMarginsDialog(const GapsAndMarginsDialog&);

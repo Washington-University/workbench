@@ -369,7 +369,8 @@ GapsAndMargins::isTabMarginTopAllSelected() const
 }
 
 /**
- * Set tab margin left all selected (applies the tab 1 margin to all tabs)
+ * Set tab margin left all selected and sets the left margin
+ * for every tab with the tab zero's current value.
  *
  * @param status
  *     New status for tab margin left all.
@@ -378,10 +379,17 @@ void
 GapsAndMargins::setTabMarginLeftAllSelected(const bool status)
 {
     m_tabMarginLeftAllSelected = status;
+    
+    if (m_tabMarginLeftAllSelected) {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_tabMarginsLeft[i] = m_tabMarginsLeft[0];
+        }
+    }
 }
 
 /**
- * Set tab margin right all selected (applies the tab 1 margin to all tabs)
+ * Set tab margin right all selected and sets the right margin
+ * for every tab with the tab zero's current value.
  *
  * @param status
  *     New status for tab margin right all.
@@ -390,10 +398,17 @@ void
 GapsAndMargins::setTabMarginRightAllSelected(const bool status)
 {
     m_tabMarginRightAllSelected = status;
+    
+    if (m_tabMarginRightAllSelected) {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_tabMarginsRight[i] = m_tabMarginsRight[0];
+        }
+    }
 }
 
 /**
- * Set tab margin bottom all selected (applies the tab 1 margin to all tabs)
+ * Set tab margin bottom all selected and sets the bottom margin
+ * for every tab with the tab zero's current value.
  *
  * @param status
  *     New status for tab margin bottom all.
@@ -402,10 +417,17 @@ void
 GapsAndMargins::setTabMarginBottomAllSelected(const bool status)
 {
     m_tabMarginBottomAllSelected = status;
+    
+    if (m_tabMarginBottomAllSelected) {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_tabMarginsBottom[i] = m_tabMarginsBottom[0];
+        }
+    }
 }
 
 /**
- * Set tab margin top all selected (applies the tab 1 margin to all tabs)
+ * Set tab margin top all selected and sets the top margin
+ * for every tab with the tab zero's current value.
  *
  * @param status
  *     New status for tab margin top all.
@@ -414,6 +436,12 @@ void
 GapsAndMargins::setTabMarginTopAllSelected(const bool status)
 {
     m_tabMarginTopAllSelected = status;
+    
+    if (m_tabMarginTopAllSelected) {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_tabMarginsTop[i] = m_tabMarginsTop[0];
+        }
+    }
 }
 
 /**
