@@ -466,6 +466,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     m_windowAspectRatioLockedAction->setCheckable(true);
     m_windowAspectRatioLockedAction->setText("Lock Aspect");
     m_windowAspectRatioLockedAction->setChecked(isAspectRatioLocked());
+    m_windowAspectRatioLockedAction->setShortcut(Qt::CTRL+Qt::Key_K);
     QObject::connect(m_windowAspectRatioLockedAction, SIGNAL(toggled(bool)),
                      this, SLOT(processWindowAspectRatioLockedToggled(bool)));
 }
