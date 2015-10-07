@@ -1593,8 +1593,8 @@ bool SurfaceFile::matchesTopology(const SurfaceFile& rhs) const
     for (int i = 0; i < numTriangles; ++i)
     {
         int i3 = i * 3;
-        if (trianglePointer[i3] != rhs.trianglePointer[i3]) return false;//naively assume exactly same order of triangles and nodes, for strictest topology equivalence
-        if (trianglePointer[i3 + 1] != rhs.trianglePointer[i3 + 1]) return false;
+        if (trianglePointer[i3] != rhs.trianglePointer[i3]) return false;//exactly same order of triangles and nodes, for strictest topology equivalence
+        if (trianglePointer[i3 + 1] != rhs.trianglePointer[i3 + 1]) return false;//also, is a faster test
         if (trianglePointer[i3 + 2] != rhs.trianglePointer[i3 + 2]) return false;
     }
     return true;
@@ -1605,6 +1605,7 @@ bool SurfaceFile::hasNodeCorrespondence(const SurfaceFile& rhs) const
     int numNodes = getNumberOfNodes();
     if (numNodes != rhs.getNumberOfNodes()) return false;
     if (getNumberOfTriangles() != rhs.getNumberOfTriangles()) return false;
+    if (matchesTopology(rhs)) return true;//short circuit the common, faster to check case, should fail very early if it fails at all
     CaretPointer<TopologyHelper> myHelp = getTopologyHelper(), rightHelp = rhs.getTopologyHelper();
     for (int i = 0; i < numNodes; ++i)
     {
