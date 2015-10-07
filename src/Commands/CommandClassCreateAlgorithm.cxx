@@ -346,7 +346,7 @@ CommandClassCreateAlgorithm::createImplementationFile(const AString& outputFileN
     t += ("    /*\n");
     t += ("     * Constructs and executes the algorithm \n");
     t += ("     */\n");
-    t += ("    " + algorithmClassName + "(myProgObj /* INSERT PARAMTERS HERE */);\n");
+    t += ("    " + algorithmClassName + "(myProgObj /* INSERT PARAMETERS HERE */);\n");
     t += ("    \n");
     t += ("}\n");
     t += ("\n");
@@ -359,7 +359,7 @@ CommandClassCreateAlgorithm::createImplementationFile(const AString& outputFileN
     t += (" * @param myProgObj\n");
     t += (" *     Parameters for algorithm\n");
     t += (" */\n");
-    t += (algorithmClassName + "::" + algorithmClassName + "(ProgressObject* myProgObj /* INSERT PARAMTERS HERE - may get compilation error if no parameters added */)\n");
+    t += (algorithmClassName + "::" + algorithmClassName + "(ProgressObject* myProgObj /* INSERT PARAMETERS HERE - may get compilation error if no parameters added */)\n");
     t += ("   : AbstractAlgorithm(myProgObj)\n");
     t += ("{\n");
     t += ("    /*\n");

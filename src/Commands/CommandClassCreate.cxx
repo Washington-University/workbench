@@ -374,7 +374,7 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
         if (hasSceneInterface) {
             t += ("// If there will be sub-classes of this class that need to save\n");
             t += ("// and restore data from scenes, these pure virtual methods can\n");
-            t += ("// be uncommented to force their implemetation by sub-classes.\n");
+            t += ("// be uncommented to force their implementation by sub-classes.\n");
         }
         t += (comment + "    protected: \n");
         t += (comment + "        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,\n");
