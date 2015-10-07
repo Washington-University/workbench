@@ -111,8 +111,8 @@ AnnotationText::initializeAnnotationTextMembers()
 {
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
-            m_alignmentHorizontal     = AnnotationTextAlignHorizontalEnum::CENTER;
-            m_alignmentVertical       = AnnotationTextAlignVerticalEnum::MIDDLE;
+            m_alignmentHorizontal     = AnnotationTextAlignHorizontalEnum::LEFT;
+            m_alignmentVertical       = AnnotationTextAlignVerticalEnum::TOP;
             m_font                    = AnnotationTextFontNameEnum::VERA;
             m_fontPointSize           = AnnotationTextFontPointSizeEnum::SIZE14;
             m_orientation             = AnnotationTextOrientationEnum::HORIZONTAL;

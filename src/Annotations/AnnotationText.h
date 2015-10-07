@@ -208,9 +208,9 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_TEXT_DECLARE__
-    AnnotationTextAlignHorizontalEnum::Enum  AnnotationText::s_userDefaultAlignmentHorizontal = AnnotationTextAlignHorizontalEnum::CENTER;
+    AnnotationTextAlignHorizontalEnum::Enum  AnnotationText::s_userDefaultAlignmentHorizontal = AnnotationTextAlignHorizontalEnum::LEFT;
     
-    AnnotationTextAlignVerticalEnum::Enum  AnnotationText::s_userDefaultAlignmentVertical = AnnotationTextAlignVerticalEnum::MIDDLE;
+    AnnotationTextAlignVerticalEnum::Enum  AnnotationText::s_userDefaultAlignmentVertical = AnnotationTextAlignVerticalEnum::TOP;
     
     AnnotationTextFontNameEnum::Enum AnnotationText::s_userDefaultFont = AnnotationTextFontNameEnum::VERA;
     
