@@ -267,6 +267,7 @@ GapsAndMarginsDialog::createPercentageSpinBox()
     doubleSpinBox->setSingleStep(singleStep);
     doubleSpinBox->setDecimals(decimals);
     doubleSpinBox->setKeyboardTracking(false);
+    doubleSpinBox->setSuffix("%");
     
     return doubleSpinBox;
 }

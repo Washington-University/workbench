@@ -978,12 +978,12 @@ UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* open
     if (tabContent != NULL) {
         int tabViewport[4];
         viewportContent->getModelViewport(tabViewport);
-        const float tabX = (windowX - tabViewport[0]) / static_cast<float>(tabViewport[2]);
-        const float tabY = (windowY - tabViewport[1]) / static_cast<float>(tabViewport[3]);
+        const float tabX = 100.0 * (windowX - tabViewport[0]) / static_cast<float>(tabViewport[2]);
+        const float tabY = 100.0 * (windowY - tabViewport[1]) / static_cast<float>(tabViewport[3]);
         if ((tabX >= 0.0)
-            && (tabX < 1.0)
+            && (tabX < 100.0)
             && (tabY >= 0.0)
-            && (tabY <= 1.0)) {
+            && (tabY <= 100.0)) {
             coordInfoOut.m_tabXYZ[0] = tabX;
             coordInfoOut.m_tabXYZ[1] = tabY;
             coordInfoOut.m_tabXYZ[2] = 0.0;
@@ -1005,10 +1005,10 @@ UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* open
     coordInfoOut.m_windowHeight = windowViewport[3];
     
     /*
-     * Normalize window coordinates (width and height range [0, 1]
+     * Normalize window coordinates (width and height range [0, 100]
      */
-    coordInfoOut.m_windowXYZ[0] /= windowViewport[2];
-    coordInfoOut.m_windowXYZ[1] /= windowViewport[3];
+    coordInfoOut.m_windowXYZ[0] = 100.0 * (coordInfoOut.m_windowXYZ[0] / windowViewport[2]);
+    coordInfoOut.m_windowXYZ[1] = 100.0 * (coordInfoOut.m_windowXYZ[1] / windowViewport[3]);
 }
 
 /**
@@ -1144,11 +1144,11 @@ UserInputModeAnnotations::setOneDimAnnotationCoordinatesForSpace(AnnotationOneDi
                         coordInfoOne->m_tabXYZ[1],
                         coordInfoOne->m_tabXYZ[2]
                     };
-                    if (xyz[1] > 0.5) {
-                        xyz[1] -= 0.25;
+                    if (xyz[1] > 50.0) {
+                        xyz[1] -= 25.0;
                     }
                     else {
-                        xyz[1] += 0.25;
+                        xyz[1] += 25.0;
                     }
                     endCoordinate->setXYZ(xyz);
                 }
@@ -1175,11 +1175,11 @@ UserInputModeAnnotations::setOneDimAnnotationCoordinatesForSpace(AnnotationOneDi
                         coordInfoOne->m_windowXYZ[1],
                         coordInfoOne->m_windowXYZ[2]
                     };
-                    if (xyz[1] > 0.5) {
-                        xyz[1] -= 0.25;
+                    if (xyz[1] > 50.0) {
+                        xyz[1] -= 25.0;
                     }
                     else {
-                        xyz[1] += 0.25;
+                        xyz[1] += 25.0;
                     }
                     endCoordinate->setXYZ(xyz);
                 }
@@ -1344,13 +1344,13 @@ UserInputModeAnnotations::setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDi
                     const float tabHeight = coordInfoOne->m_tabHeight;
                     
                     const float oneXYZ[3] = {
-                        coordInfoOne->m_tabXYZ[0] * tabWidth,
-                        coordInfoOne->m_tabXYZ[1] * tabHeight,
+                        coordInfoOne->m_tabXYZ[0],
+                        coordInfoOne->m_tabXYZ[1],
                         coordInfoOne->m_tabXYZ[2]
                     };
                     const float twoXYZ[3] = {
-                        optionalCoordInfoTwo->m_tabXYZ[0] * tabWidth,
-                        optionalCoordInfoTwo->m_tabXYZ[1] * tabHeight,
+                        optionalCoordInfoTwo->m_tabXYZ[0],
+                        optionalCoordInfoTwo->m_tabXYZ[1],
                         optionalCoordInfoTwo->m_tabXYZ[2]
                     };
                     
@@ -1370,13 +1370,13 @@ UserInputModeAnnotations::setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDi
                     const float windowHeight = coordInfoOne->m_windowHeight;
                     
                     const float oneXYZ[3] = {
-                        coordInfoOne->m_windowXYZ[0] * windowWidth,
-                        coordInfoOne->m_windowXYZ[1] * windowHeight,
+                        coordInfoOne->m_windowXYZ[0],
+                        coordInfoOne->m_windowXYZ[1],
                         coordInfoOne->m_windowXYZ[2]
                     };
                     const float twoXYZ[3] = {
-                        optionalCoordInfoTwo->m_windowXYZ[0] * windowWidth,
-                        optionalCoordInfoTwo->m_windowXYZ[1] * windowHeight,
+                        optionalCoordInfoTwo->m_windowXYZ[0],
+                        optionalCoordInfoTwo->m_windowXYZ[1],
                         optionalCoordInfoTwo->m_windowXYZ[2]
                     };
                     
@@ -1675,8 +1675,8 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
         setCoordinate(twoDimShape->getCoordinate(),
                       m_mousePressWindowX,
                       m_mousePressWindowY);
-        twoDimShape->setWidth(0.01);
-        twoDimShape->setHeight(0.01);
+        twoDimShape->setWidth(1.0);
+        twoDimShape->setHeight(1.0);
     }
     else {
         CaretAssert(0);
@@ -1731,12 +1731,12 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const int32_t mou
         const float width  = maxX - minX;
         const float height = maxY - minY;
         
-        const float relativeWidth = ((m_windowWidth > 0.0)
-                                     ? (width / static_cast<float>(m_windowWidth))
-                                     : 0.01);
-        const float relativeHeight = ((m_windowHeight > 0.0)
-                                     ? (height / static_cast<float>(m_windowHeight))
-                                     : 0.01);
+        const float relativeWidth = 100.0 * ((m_windowWidth > 0.0)
+                                             ? (width / static_cast<float>(m_windowWidth))
+                                             : 0.01);
+        const float relativeHeight = 100.0 * ((m_windowHeight > 0.0)
+                                              ? (height / static_cast<float>(m_windowHeight))
+                                              : 0.01);
         
         AnnotationCoordinate* coord = twoDimShape->getCoordinate();
         setCoordinate(coord, x, y);
@@ -1763,12 +1763,12 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::setCoordinate(Annotation
                                                                       const int32_t x,
                                                                       const int32_t y)
 {
-    const float relativeX = ((m_windowWidth > 0.0)
-                             ? (x / m_windowWidth)
-                             : 0.01);
-    const float relativeY = ((m_windowHeight > 0.0)
-                             ? (y / m_windowHeight)
-                             : 0.01);
+    const float relativeX = 100.0 * ((m_windowWidth > 0.0)
+                                     ? (x / m_windowWidth)
+                                     : 0.01);
+    const float relativeY = 100.0 * ((m_windowHeight > 0.0)
+                                     ? (y / m_windowHeight)
+                                     : 0.01);
     
     coordinate->setXYZ(relativeX,
                        relativeY,

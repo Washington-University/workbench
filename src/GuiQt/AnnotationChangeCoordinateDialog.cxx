@@ -166,13 +166,13 @@ AnnotationChangeCoordinateDialog::createCurrentCoordinateWidget()
         row++;
         gridLayout->addWidget(new QLabel(spaceText),
                               row, 0);
-        gridLayout->addWidget(new QLabel(QString::number(xyz[0], 'f', 3)),
+        gridLayout->addWidget(new QLabel(QString::number(xyz[0], 'f', 1)),
                               row, 1,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(QString::number(xyz[1], 'f', 3)),
+        gridLayout->addWidget(new QLabel(QString::number(xyz[1], 'f', 1)),
                               row, 2,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(QString::number(xyz[2], 'f', 3)),
+        gridLayout->addWidget(new QLabel(QString::number(xyz[2], 'f', 1)),
                               row, 3,
                               Qt::AlignRight);
     }

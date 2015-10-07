@@ -102,6 +102,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_fontSizeSpinBox->setRange(0.0, 100.0);
     m_fontSizeSpinBox->setDecimals(1);
     m_fontSizeSpinBox->setSingleStep(0.1);
+    m_fontSizeSpinBox->setSuffix("%");
     QObject::connect(m_fontSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(fontSizeChanged()));
     WuQtUtilities::setToolTipAndStatusTip(m_fontSizeSpinBox,
@@ -248,9 +249,9 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationText
         m_fontSizeSpinBox->blockSignals(true);
         m_fontSizeSpinBox->setValue(fontSizeValue);
         m_fontSizeSpinBox->blockSignals(false);
-        QString fontSizeSuffix;
+        QString fontSizeSuffix("%");
         if (haveMultipleFontSizeValues) {
-            fontSizeSuffix = "+";
+            fontSizeSuffix = "%+";
         }
         m_fontSizeSpinBox->setSuffix(fontSizeSuffix);
         

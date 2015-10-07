@@ -258,12 +258,12 @@ AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     float newX2 = xyz2[0];
     float newY2 = xyz2[1];
 
-    const float spaceDX = ((viewportWidth != 0.0)
-                           ? (mouseDX / viewportWidth)
-                           : 0.0);
-    const float spaceDY = ((viewportHeight != 0.0)
-                           ? (mouseDY / viewportHeight)
-                           : 0.0);
+    const float spaceDX = 100.0 * ((viewportWidth != 0.0)
+                                   ? (mouseDX / viewportWidth)
+                                   : 0.0);
+    const float spaceDY = 100.0 * ((viewportHeight != 0.0)
+                                   ? (mouseDY / viewportHeight)
+                                   : 0.0);
     
     switch (handleSelected) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
@@ -301,13 +301,13 @@ AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     }
     
     if ((newX1 >= 0.0)
-        && (newX1 <= 1.0)
+        && (newX1 <= 100.0)
         && (newY1 >= 0.0)
-        && (newY1 <= 1.0)
+        && (newY1 <= 100.0)
         && (newX2 >= 0.0)
-        && (newX2 <= 1.0)
+        && (newX2 <= 100.0)
         && (newY2 >= 0.0)
-        && (newY2 <= 1.0)) {
+        && (newY2 <= 100.0)) {
         xyz1[0] = newX1;
         xyz1[1] = newY1;
         m_startCoordinate->setXYZ(xyz1);

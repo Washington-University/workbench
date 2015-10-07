@@ -145,9 +145,9 @@ namespace caret {
 #ifdef __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
     float AnnotationTwoDimensionalShape::s_userDefaultRotationAngle = 0.0;
     
-    float AnnotationTwoDimensionalShape::s_userDefaultWidth = 0.25;
+    float AnnotationTwoDimensionalShape::s_userDefaultWidth = 25.0;
     
-    float AnnotationTwoDimensionalShape::s_userDefaultHeight = 0.25;
+    float AnnotationTwoDimensionalShape::s_userDefaultHeight = 25.0;
 #endif // __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
 
 } // namespace

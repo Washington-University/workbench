@@ -65,12 +65,14 @@ m_browserWindowIndex(browserWindowIndex)
     QLabel* widthLabel = new QLabel(" W:");
     m_widthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 1.0, 1,
                                                                                     this, SLOT(widthValueChanged(double)));
+    m_widthSpinBox->setSuffix("%");
     WuQtUtilities::setWordWrappedToolTip(m_widthSpinBox,
                                          "Percentage width of 2D Shapes (Box, Image, Oval)");
 
     QLabel* heightLabel = new QLabel(" H:");
     m_heightSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 1.0, 1,
                                                                                     this, SLOT(heightValueChanged(double)));
+    m_heightSpinBox->setSuffix("%");
     WuQtUtilities::setWordWrappedToolTip(m_heightSpinBox,
                                          "Percentage height of 2D Shapes (Box, Image, Oval)");
 
@@ -147,20 +149,20 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalS
             m_widthSpinBox->blockSignals(true);
             m_widthSpinBox->setValue(widthValue);
             if (haveMultipleWidthValuesFlag) {
-                m_widthSpinBox->setSuffix("+");
+                m_widthSpinBox->setSuffix("%+");
             }
             else {
-                m_widthSpinBox->setSuffix("");
+                m_widthSpinBox->setSuffix("%");
             }
             m_widthSpinBox->blockSignals(false);
             
             m_heightSpinBox->blockSignals(true);
             m_heightSpinBox->setValue(heightValue);
             if (haveMultipleHeightValuesFlag) {
-                m_heightSpinBox->setSuffix("+");
+                m_heightSpinBox->setSuffix("%+");
             }
             else {
-                m_heightSpinBox->setSuffix("");
+                m_heightSpinBox->setSuffix("%");
             }
             m_heightSpinBox->blockSignals(false);
             

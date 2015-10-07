@@ -119,8 +119,8 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
 
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
-            m_width  = 0.25;
-            m_height = 0.25;
+            m_width  = 25.0;
+            m_height = 25.0;
             m_rotationAngle = 0.0;
             break;
         case AnnotationAttributesDefaultTypeEnum::USER:
@@ -322,9 +322,9 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     m_coordinate->getXYZ(xyz);
     
     float viewportXYZ[3] = {
-        xyz[0] * viewportWidth,
-        xyz[1] * viewportHeight,
-        xyz[2]
+        (xyz[0] / 100.0) * viewportWidth,
+        (xyz[1] / 100.0) * viewportHeight,
+         xyz[2]
     };
     
     float bottomLeftXYZ[3];
@@ -599,27 +599,27 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
      */
     float newViewportXYZ[3];
     MathFunctions::averageOfFourCoordinates(bottomLeftXYZ, bottomRightXYZ, topRightXYZ, topLeftXYZ, newViewportXYZ);
-    const float newX = newViewportXYZ[0] / viewportWidth;
-    const float newY = newViewportXYZ[1] / viewportHeight;
+    const float newX = 100.0 * (newViewportXYZ[0] / viewportWidth);
+    const float newY = 100.0 * (newViewportXYZ[1] / viewportHeight);
     const float newShapeViewportWidth = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
-    const float newWidth = newShapeViewportWidth / viewportWidth;
+    const float newWidth = 100.0 * (newShapeViewportWidth / viewportWidth);
     const float newShapeViewportHeight = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
-    const float newHeight = newShapeViewportHeight / viewportHeight;
+    const float newHeight = 100.0 * (newShapeViewportHeight / viewportHeight);
     
     /*
      * Note:
-     *    Coordinates are relative (range 0 to 1)
-     *    Width is relative (range 0 to 1)
+     *    Coordinates are relative (range 0 to 100)
+     *    Width is relative (range 0 to 100)
      *    Aspect ratio must only be greater than zero (when < 1, horizontal rectangle, when > 1 vertical rectangle)
      */
     if ((newX >= 0.0)
-        && (newX <= 1.0)
+        && (newX <= 100.0)
         && (newY >= 0.0)
-        && (newY <= 1.0)
+        && (newY <= 100.0)
         && (newWidth > 0.01)
-        && (newWidth <= 1.0)
+        && (newWidth <= 100.0)
         && (newHeight > 0.01)
-        && (newHeight <= 1.0)) {
+        && (newHeight <= 100.0)) {
         xyz[0] = newX;
         xyz[1] = newY;
         m_coordinate->setXYZ(xyz);
@@ -836,8 +836,8 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
 void
 AnnotationTwoDimensionalShape::setWidthAndHeightFromBounds(const float xyzOne[3],
                                                            const float xyzTwo[3],
-                                                           const float spaceWidth,
-                                                           const float spaceHeight)
+                                                           const float /*spaceWidth*/,
+                                                           const float /*spaceHeight*/)
 {
     const float minX = std::min(xyzOne[0],
                                 xyzTwo[0]);
@@ -851,12 +851,15 @@ AnnotationTwoDimensionalShape::setWidthAndHeightFromBounds(const float xyzOne[3]
     
     const float width  = maxX - minX;
     const float height = maxY - minY;
+
+    setWidth(width);
+    setHeight(height);
     
-    const float relativeWidth  = (width  / static_cast<float>(spaceWidth));
-    const float relativeHeight = (height / static_cast<float>(spaceHeight));
-    
-    setWidth(relativeWidth);
-    setHeight(relativeHeight);
+//    const float relativeWidth  = 100.0 * (width  / static_cast<float>(spaceWidth));
+//    const float relativeHeight = 100.0 * (height / static_cast<float>(spaceHeight));
+//    
+//    setWidth(relativeWidth);
+//    setHeight(relativeHeight);
 }
 
 /**

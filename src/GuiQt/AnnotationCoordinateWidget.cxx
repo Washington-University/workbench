@@ -227,6 +227,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         double zMin  = -100.0;
         double zMax  =  100.0;
         double xyzStep = 0.1;
+        QString suffix("%");
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 xyMax = 10000.0;
@@ -234,6 +235,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 zMin = xyMin;
                 zMax = xyMax;
                 xyzStep = 1.0;
+                suffix.clear();
                 break;
             case AnnotationCoordinateSpaceEnum::PIXELS:
                 break;
@@ -253,6 +255,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_xCoordSpinBox->setRange(xyMin,
                                   xyMax);
         m_xCoordSpinBox->setSingleStep(xyzStep);
+        m_xCoordSpinBox->setSuffix(suffix);
         m_xCoordSpinBox->setValue(xyz[0]);
         m_xCoordSpinBox->blockSignals(false);
         
@@ -260,6 +263,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_yCoordSpinBox->setRange(xyMin,
                                   xyMax);
         m_yCoordSpinBox->setSingleStep(xyzStep);
+        m_yCoordSpinBox->setSuffix(suffix);
         m_yCoordSpinBox->setValue(xyz[1]);
         m_yCoordSpinBox->blockSignals(false);
         
@@ -267,6 +271,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_zCoordSpinBox->setRange(zMin,
                                   zMax);
         m_zCoordSpinBox->setSingleStep(xyzStep);
+        m_zCoordSpinBox->setSuffix(suffix);
         m_zCoordSpinBox->setValue(xyz[2]);
         m_zCoordSpinBox->blockSignals(false);
         
