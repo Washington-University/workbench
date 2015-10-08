@@ -98,6 +98,8 @@ GapsAndMarginsDialog::createGapsWidget()
     QLabel* volumeLabel     = new QLabel("Volume");
     QLabel* horizontalLabel = new QLabel("Horizontal");
     QLabel* verticalLabel   = new QLabel("Vertical");
+    QLabel* scaleProportionatelyLabel = new QLabel("Scale\nProportionately");
+    scaleProportionatelyLabel->setAlignment(Qt::AlignCenter);
     
     m_surfaceMontageHorizontalGapSpinBox = createPercentageSpinBox();
     QObject::connect(m_surfaceMontageHorizontalGapSpinBox, SIGNAL(valueChanged(double)),
@@ -107,6 +109,10 @@ GapsAndMarginsDialog::createGapsWidget()
     QObject::connect(m_surfaceMontageVerticalGapSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(surfaceMontageGapChanged()));
     
+    m_surfaceMontageScaleProportionatelyCheckBox = new QCheckBox("");
+    QObject::connect(m_surfaceMontageScaleProportionatelyCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(surfaceMontageScaleProportionatelyCheckBoxClicked()));
+    
     m_volumeMontageHorizontalGapSpinBox = createPercentageSpinBox();
     QObject::connect(m_volumeMontageHorizontalGapSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeMontageGapChanged()));
@@ -115,16 +121,23 @@ GapsAndMarginsDialog::createGapsWidget()
     QObject::connect(m_volumeMontageVerticalGapSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeMontageGapChanged()));
     
+    m_volumeMontageScaleProportionatelyCheckBox = new QCheckBox("");
+    QObject::connect(m_volumeMontageScaleProportionatelyCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(volumeMontageScaleProportionatelyCheckBoxClicked()));
+    
     const int COLUMN_LABEL      = 0;
     const int COLUMN_HORIZONTAL = 1;
     const int COLUMN_VERTICAL   = 2;
+    const int COLUMN_SCALE      = 3;
     QWidget* widget = new QGroupBox("Montage Gaps");
     QGridLayout* gridLayout = new QGridLayout(widget);
     int row = gridLayout->rowCount();
     gridLayout->addWidget(horizontalLabel,
-                          row, 1, Qt::AlignHCenter);
+                          row, COLUMN_HORIZONTAL, Qt::AlignHCenter);
     gridLayout->addWidget(verticalLabel,
-                          row, 2, Qt::AlignHCenter);
+                          row, COLUMN_VERTICAL, Qt::AlignHCenter);
+    gridLayout->addWidget(scaleProportionatelyLabel,
+                          row, COLUMN_SCALE, Qt::AlignHCenter);
     row++;
     gridLayout->addWidget(surfaceLabel,
                           row, COLUMN_LABEL);
@@ -132,6 +145,8 @@ GapsAndMarginsDialog::createGapsWidget()
                           row, COLUMN_HORIZONTAL);
     gridLayout->addWidget(m_surfaceMontageVerticalGapSpinBox,
                           row, COLUMN_VERTICAL);
+    gridLayout->addWidget(m_surfaceMontageScaleProportionatelyCheckBox,
+                          row, COLUMN_SCALE, Qt::AlignHCenter);
     row++;
     gridLayout->addWidget(volumeLabel,
                           row, COLUMN_LABEL);
@@ -139,6 +154,8 @@ GapsAndMarginsDialog::createGapsWidget()
                           row, COLUMN_HORIZONTAL);
     gridLayout->addWidget(m_volumeMontageVerticalGapSpinBox,
                           row, COLUMN_VERTICAL);
+    gridLayout->addWidget(m_volumeMontageScaleProportionatelyCheckBox,
+                          row, COLUMN_SCALE, Qt::AlignHCenter);
     row++;
     
     widget->setSizePolicy(QSizePolicy::Fixed,
@@ -363,7 +380,27 @@ GapsAndMarginsDialog::updateDialog()
     m_volumeMontageVerticalGapSpinBox->blockSignals(true);
     m_volumeMontageVerticalGapSpinBox->setValue(gapsAndMargins->getVolumeMontageVerticalGap());
     m_volumeMontageVerticalGapSpinBox->blockSignals(false);
+    
+    m_surfaceMontageScaleProportionatelyCheckBox->setChecked(gapsAndMargins->isSurfaceMontageScaleProportionatelySelected());
+    m_volumeMontageScaleProportionatelyCheckBox->setChecked(gapsAndMargins->isVolumeMontageScaleProportionatelySelected());
+    
+    enableDisableHorizontalMontageSpinBoxes();
 }
+
+/**
+ * Enable/disable the horizontal montage spin boxes
+ */
+void
+GapsAndMarginsDialog::enableDisableHorizontalMontageSpinBoxes()
+{
+    /*
+     * A horizontal gap spin box is disabled when scale proportionately is checked.
+     */
+    const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    m_surfaceMontageHorizontalGapSpinBox->setEnabled( ! gapsAndMargins->isSurfaceMontageScaleProportionatelySelected());
+    m_volumeMontageHorizontalGapSpinBox->setEnabled( ! gapsAndMargins->isVolumeMontageScaleProportionatelySelected());
+}
+
 
 /**
  * Receive an event.
@@ -507,6 +544,33 @@ GapsAndMarginsDialog::volumeMontageGapChanged()
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
+/**
+ * Gets called when the surface montage scaled proportionately check box is clicked.
+ */
+void
+GapsAndMarginsDialog::surfaceMontageScaleProportionatelyCheckBoxClicked()
+{
+    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    gapsAndMargins->setSurfaceMontageScaleProportionatelySelected(m_surfaceMontageScaleProportionatelyCheckBox->isChecked());
+    
+    enableDisableHorizontalMontageSpinBoxes();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Gets called when the volume montage scaled proportionately check box is clicked.
+ */
+void
+GapsAndMarginsDialog::volumeMontageScaleProportionatelyCheckBoxClicked()
+{
+    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    gapsAndMargins->setVolumeMontageScaleProportionatelySelected(m_volumeMontageScaleProportionatelyCheckBox->isChecked());
+    
+    enableDisableHorizontalMontageSpinBoxes();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 
 
 

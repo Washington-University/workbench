@@ -126,6 +126,7 @@ namespace caret {
         
         static void createSubViewportSizeAndGaps(const int32_t viewportSize,
                                                  const float gapPercentage,
+                                                 const int32_t gapOverride,
                                                  const int32_t numberOfSubViewports,
                                                  int32_t& subViewportSizeOut,
                                                  int32_t& gapOut);

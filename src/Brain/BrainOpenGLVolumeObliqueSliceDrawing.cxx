@@ -461,20 +461,27 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
 //    const int32_t totalGapY = verticalMargin * (numRows - 1);
 //    const int32_t vpSizeY = (viewport[3] - totalGapY) / numRows;
     
-    int32_t vpSizeX          = 0;
-    int32_t horizontalMargin = 0;
-    BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport[2],
-                                                           gapsAndMargins->getVolumeMontageHorizontalGap(),
-                                                           numCols,
-                                                           vpSizeX,
-                                                           horizontalMargin);
     int32_t vpSizeY        = 0;
     int32_t verticalMargin = 0;
     BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport[3],
                                                            gapsAndMargins->getVolumeMontageVerticalGap(),
+                                                           -1,
                                                            numRows,
                                                            vpSizeY,
                                                            verticalMargin);
+    
+    const int32_t overrideHorizontalMargin = (gapsAndMargins->isVolumeMontageScaleProportionatelySelected()
+                                              ? verticalMargin:
+                                              -1);
+    int32_t vpSizeX          = 0;
+    int32_t horizontalMargin = 0;
+    BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport[2],
+                                                           gapsAndMargins->getVolumeMontageHorizontalGap(),
+                                                           overrideHorizontalMargin,
+                                                           numCols,
+                                                           vpSizeX,
+                                                           horizontalMargin);
+    
     /*
      * Voxel sizes for underlay volume
      */

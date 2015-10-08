@@ -65,6 +65,10 @@ namespace caret {
         
         void topTabMarginCheckBoxClicked();
         
+        void surfaceMontageScaleProportionatelyCheckBoxClicked();
+        
+        void volumeMontageScaleProportionatelyCheckBoxClicked();
+        
     private:
         GapsAndMarginsDialog(const GapsAndMarginsDialog&);
 
@@ -75,6 +79,8 @@ namespace caret {
         QWidget* createMarginsWidget();
         
         QDoubleSpinBox* createPercentageSpinBox();
+        
+        void enableDisableHorizontalMontageSpinBoxes();
         
         WuQGridLayoutGroup* m_gridLayoutGroup;
         
@@ -103,6 +109,10 @@ namespace caret {
         QDoubleSpinBox* m_volumeMontageHorizontalGapSpinBox;
         
         QDoubleSpinBox* m_volumeMontageVerticalGapSpinBox;
+        
+        QCheckBox* m_surfaceMontageScaleProportionatelyCheckBox;
+        
+        QCheckBox* m_volumeMontageScaleProportionatelyCheckBox;
         
         QSignalMapper* m_tabIndexSignalMapper;
         

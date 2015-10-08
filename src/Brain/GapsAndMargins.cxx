@@ -83,6 +83,11 @@ GapsAndMargins::GapsAndMargins()
                                m_volumeMontageGaps,
                                2,
                                0.0);
+    
+    m_sceneAssistant->add("m_surfaceMontageScaleProportionatelySelected",
+                          &m_surfaceMontageScaleProportionatelySelected);
+    m_sceneAssistant->add("m_volumeMontageScaleProportionatelySelected",
+                          &m_volumeMontageScaleProportionatelySelected);
 }
 
 /**
@@ -122,6 +127,9 @@ GapsAndMargins::reset()
         m_surfaceMontageGaps[i] = 0.0;
         m_volumeMontageGaps[i]  = 0.0;
     }
+    
+    m_surfaceMontageScaleProportionatelySelected = false;
+    m_volumeMontageScaleProportionatelySelected  = false;
 }
 
 /**
@@ -442,6 +450,48 @@ GapsAndMargins::setTabMarginTopAllSelected(const bool status)
             m_tabMarginsTop[i] = m_tabMarginsTop[0];
         }
     }
+}
+
+/**
+ * @return Is surface montage scale proportionately selected ?
+ */
+bool
+GapsAndMargins::isSurfaceMontageScaleProportionatelySelected() const
+{
+    return m_surfaceMontageScaleProportionatelySelected;
+}
+
+/**
+ * @return Is volume montage scale proportionately selected ?
+ */
+bool
+GapsAndMargins::isVolumeMontageScaleProportionatelySelected() const
+{
+    return m_volumeMontageScaleProportionatelySelected;
+}
+
+/**
+ * Set surface montage scale proportionately selected.
+ *
+ * @param selected
+ *    New selection status.
+ */
+void
+GapsAndMargins::setSurfaceMontageScaleProportionatelySelected(const bool selected)
+{
+    m_surfaceMontageScaleProportionatelySelected = selected;
+}
+
+/**
+ * Set volume montage scale proportionately selected.
+ *
+ * @param selected
+ *    New selection status.
+ */
+void
+GapsAndMargins::setVolumeMontageScaleProportionatelySelected(const bool selected)
+{
+    m_volumeMontageScaleProportionatelySelected = selected;
 }
 
 /**

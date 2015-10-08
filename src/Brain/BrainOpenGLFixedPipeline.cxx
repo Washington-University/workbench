@@ -4472,6 +4472,8 @@ BrainOpenGLFixedPipeline::drawCylinder(const float rgba[4],
  *     Full size of the viewport.
  * @param gapPercentage
  *     Percentage of viewport used for gap between adjacent subviewports
+ * @param gapOverride
+ *     If greater than zero, use this value as the gap and ignore the gap percentage.
  * @param numberOfSubViewports
  *     Number of subviewports
  * @param subViewportSizeOut
@@ -4482,6 +4484,7 @@ BrainOpenGLFixedPipeline::drawCylinder(const float rgba[4],
 void
 BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(const int32_t viewportSize,
                                                        const float gapPercentage,
+                                                       const int32_t gapOverride,
                                                        const int32_t numberOfSubViewports,
                                                        int32_t& subViewportSizeOut,
                                                        int32_t& gapOut)
@@ -4492,6 +4495,9 @@ BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(const int32_t viewportSiz
     if (numberOfSubViewports > 1) {
         subViewportSizeOut = viewportSize / numberOfSubViewports;
         gapOut = static_cast<int32_t>(std::floor(static_cast<double>(viewportSize * (gapPercentage / 100.0))));
+        if (gapOverride > 0) {
+            gapOut = gapOverride;
+        }
         const double gapSum = gapOut * (numberOfSubViewports - 1);
         const int32_t subtractFromViewport = std::ceil(gapSum / numberOfSubViewports);
         subViewportSizeOut -= subtractFromViewport;
@@ -4499,20 +4505,41 @@ BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(const int32_t viewportSiz
         int32_t checkValue = (subViewportSizeOut * numberOfSubViewports) + (gapOut * (numberOfSubViewports - 1));
         
         if (checkValue < viewportSize) {
-            /*
-             * Since viewports are integer values, may be able to add more to gaps
-             */
-            const int32_t gapPlusOne = gapOut + 1;
-            const int32_t checkValueOne = (subViewportSizeOut * numberOfSubViewports) + (gapPlusOne * (numberOfSubViewports - 1));
-            if (checkValueOne <= viewportSize) {
-                gapOut = gapPlusOne;
-                checkValue = checkValueOne;
-
-                const int32_t gapPlusTwo = gapOut + 1;
-                const int32_t checkValueTwo = (subViewportSizeOut * numberOfSubViewports) + (gapPlusTwo * (numberOfSubViewports - 1));
-                if (checkValueTwo <= viewportSize) {
-                    gapOut = gapPlusTwo;
-                    checkValue = checkValueTwo;
+            const bool makeViewportsLargerFlag = true;
+            if (makeViewportsLargerFlag) {
+                /*
+                 * Since viewports are integer values, may be able to add more to gaps
+                 */
+                const int32_t subViewportSizePlusOne = subViewportSizeOut + 1;
+                const int32_t checkValueOne = (subViewportSizePlusOne * numberOfSubViewports) + (gapOut * (numberOfSubViewports - 1));
+                if (checkValueOne <= viewportSize) {
+                    subViewportSizeOut = subViewportSizePlusOne;
+                    checkValue = checkValueOne;
+                    
+                    const int32_t subViewportSizePlusTwo = subViewportSizeOut + 1;
+                    const int32_t checkValueTwo = (subViewportSizePlusTwo * numberOfSubViewports) + (gapOut * (numberOfSubViewports - 1));
+                    if (checkValueTwo <= viewportSize) {
+                        subViewportSizeOut = subViewportSizePlusTwo;
+                        checkValue = checkValueTwo;
+                    }
+                }
+            }
+            else {
+                /*
+                 * Since viewports are integer values, may be able to add more to gaps
+                 */
+                const int32_t gapPlusOne = gapOut + 1;
+                const int32_t checkValueOne = (subViewportSizeOut * numberOfSubViewports) + (gapPlusOne * (numberOfSubViewports - 1));
+                if (checkValueOne <= viewportSize) {
+                    gapOut = gapPlusOne;
+                    checkValue = checkValueOne;
+                    
+                    const int32_t gapPlusTwo = gapOut + 1;
+                    const int32_t checkValueTwo = (subViewportSizeOut * numberOfSubViewports) + (gapPlusTwo * (numberOfSubViewports - 1));
+                    if (checkValueTwo <= viewportSize) {
+                        gapOut = gapPlusTwo;
+                        checkValue = checkValueTwo;
+                    }
                 }
             }
         }
@@ -4561,7 +4588,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     glGetIntegerv(GL_VIEWPORT,
                   savedVP);
     
-    
     int32_t numberOfRows = 0;
     int32_t numberOfColumns = 0;
     SurfaceMontageViewport::getNumberOfRowsAndColumns(montageViewports,
@@ -4570,108 +4596,64 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     
     const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
     
-    const bool newGapComputationFlag = true;
-    if (newGapComputationFlag) {
-        int32_t subViewportWidth = 0;
-        int32_t horizontalGap    = 0;
-        createSubViewportSizeAndGaps(viewport[2],
-                                     gapsAndMargins->getSurfaceMontageHorizontalGap(),
-                                     numberOfColumns,
-                                     subViewportWidth,
-                                     horizontalGap);
-        int32_t subViewportHeight = 0;
-        int32_t verticalGap       = 0;
-        createSubViewportSizeAndGaps(viewport[3],
-                                     gapsAndMargins->getSurfaceMontageVerticalGap(),
-                                     numberOfRows,
-                                     subViewportHeight,
-                                     verticalGap);
+    int32_t subViewportHeight = 0;
+    int32_t verticalGap       = 0;
+    createSubViewportSizeAndGaps(viewport[3],
+                                 gapsAndMargins->getSurfaceMontageVerticalGap(),
+                                 -1,
+                                 numberOfRows,
+                                 subViewportHeight,
+                                 verticalGap);
+    
+    const int32_t overrideHorizontalGap = (gapsAndMargins->isSurfaceMontageScaleProportionatelySelected()
+                                           ? verticalGap:
+                                           -1);
+    
+    int32_t subViewportWidth = 0;
+    int32_t horizontalGap    = 0;
+    createSubViewportSizeAndGaps(viewport[2],
+                                 gapsAndMargins->getSurfaceMontageHorizontalGap(),
+                                 overrideHorizontalGap,
+                                 numberOfColumns,
+                                 subViewportWidth,
+                                 horizontalGap);
+    
+    const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
+    for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
+        SurfaceMontageViewport* mvp = montageViewports[ivp];
+        const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel,
+                                                                                     mvp->getSurface(),
+                                                                                     this->windowTabIndex);
+        float center[3];
+        mvp->getSurface()->getBoundingBox()->getCenter(center);
         
-        const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
-        for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
-            SurfaceMontageViewport* mvp = montageViewports[ivp];
-            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel,
-                                                                                         mvp->getSurface(),
-                                                                                         this->windowTabIndex);
-            float center[3];
-            mvp->getSurface()->getBoundingBox()->getCenter(center);
-            
-            const int32_t rowFromTop    = mvp->getRow();
-            const int32_t rowFromBottom = (numberOfRows - rowFromTop - 1);
-            const int32_t column = mvp->getColumn();
-            
-            const int32_t surfaceViewport[4] = {
-                (viewport[0] + (column * (subViewportWidth + horizontalGap))),
-                (viewport[1] + (rowFromBottom * (subViewportHeight + verticalGap))),
-                subViewportWidth,
-                subViewportHeight
-            };
-            mvp->setViewport(surfaceViewport);
-            
-            this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
-                                                                     mvp->getProjectionViewType(),
-                                                                     mvp->getSurface());
-            
-            this->applyViewingTransformations(center,
-                                              mvp->getProjectionViewType());
-            
-            this->drawSurface(mvp->getSurface(),
-                              nodeColoringRGBA,
-                              true);
-        }
-    }
-    else {
-        const int32_t horizontalMargin = static_cast<int32_t>(MathFunctions::round(static_cast<double>(viewport[2] * (gapsAndMargins->getSurfaceMontageHorizontalGap() / 1.0))));
-        const int32_t verticalMargin   = static_cast<int32_t>(MathFunctions::round(static_cast<double>(viewport[3] * (gapsAndMargins->getSurfaceMontageVerticalGap() / 1.0))));
+        const int32_t rowFromTop    = mvp->getRow();
+        const int32_t rowFromBottom = (numberOfRows - rowFromTop - 1);
+        const int32_t column = mvp->getColumn();
         
-        const int32_t totalGapX = (horizontalMargin * (numberOfColumns - 1));
-        const int32_t vpSizeX   = std::floor(static_cast<double>(viewport[2] - totalGapX) / numberOfColumns);
-        const int32_t totalGapY = (verticalMargin * (numberOfRows - 1));
-        const int32_t vpSizeY   = std::floor(static_cast<double>(viewport[3] - totalGapY) / numberOfRows);
+        const int32_t surfaceViewport[4] = {
+            (viewport[0] + (column * (subViewportWidth + horizontalGap))),
+            (viewport[1] + (rowFromBottom * (subViewportHeight + verticalGap))),
+            subViewportWidth,
+            subViewportHeight
+        };
+        mvp->setViewport(surfaceViewport);
         
-        //    std::cout << "Horiz margin pixels: " << horizontalMargin << " VP Size X: " << vpSizeX << " full viewport X: " << viewport[3] << std::endl;
-        const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
-        for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
-            SurfaceMontageViewport* mvp = montageViewports[ivp];
-            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel,
-                                                                                         mvp->getSurface(),
-                                                                                         this->windowTabIndex);
-            float center[3];
-            mvp->getSurface()->getBoundingBox()->getCenter(center);
-            
-            const int32_t rowFromTop    = mvp->getRow();
-            const int32_t rowFromBottom = (numberOfRows - rowFromTop - 1);
-            const int32_t column = mvp->getColumn();
-            
-            const int32_t surfaceViewport[4] = {
-                (viewport[0] + (column * (vpSizeX + horizontalMargin))),
-                (viewport[1] + (rowFromBottom * (vpSizeY + verticalMargin))),
-                vpSizeX,
-                vpSizeY
-            };
-            mvp->setViewport(surfaceViewport);
-            
-            //        if ((rowFromBottom == 1)
-            //            && (column == 1)) {
-            //            std::cout << "Viewport (1, 1): " << qPrintable(AString::fromNumbers(surfaceViewport, 4, ",")) << std::endl;
-            //        }
-            this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
-                                                                     mvp->getProjectionViewType(),
-                                                                     mvp->getSurface());
-            
-            this->applyViewingTransformations(center,
-                                              mvp->getProjectionViewType());
-            
-            this->drawSurface(mvp->getSurface(),
-                              nodeColoringRGBA,
-                              true);
-            
-        }
+        this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
+                                                                 mvp->getProjectionViewType(),
+                                                                 mvp->getSurface());
+        
+        this->applyViewingTransformations(center,
+                                          mvp->getProjectionViewType());
+        
+        this->drawSurface(mvp->getSurface(),
+                          nodeColoringRGBA,
+                          true);
     }
     
-    glViewport(savedVP[0], 
-               savedVP[1], 
-               savedVP[2], 
+    glViewport(savedVP[0],
+               savedVP[1],
+               savedVP[2],
                savedVP[3]);
 }
 

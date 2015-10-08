@@ -71,6 +71,14 @@ namespace caret {
         
         void setVolumeMontageVerticalGap(const float gap);
         
+        bool isSurfaceMontageScaleProportionatelySelected() const;
+        
+        bool isVolumeMontageScaleProportionatelySelected() const;
+        
+        void setSurfaceMontageScaleProportionatelySelected(const bool selected);
+        
+        void setVolumeMontageScaleProportionatelySelected(const bool selected);
+        
         bool isTabMarginLeftAllSelected() const;
         
         bool isTabMarginRightAllSelected() const;
@@ -129,10 +137,6 @@ namespace caret {
         
         float m_tabMarginsTop[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        float m_surfaceMontageGaps[2];
-        
-        float m_volumeMontageGaps[2];
-        
         bool m_tabMarginLeftAllSelected;
         
         bool m_tabMarginRightAllSelected;
@@ -140,6 +144,14 @@ namespace caret {
         bool m_tabMarginBottomAllSelected;
         
         bool m_tabMarginTopAllSelected;
+        
+        float m_surfaceMontageGaps[2];
+        
+        float m_volumeMontageGaps[2];
+        
+        bool m_surfaceMontageScaleProportionatelySelected;
+        
+        bool m_volumeMontageScaleProportionatelySelected;
         
         // ADD_NEW_MEMBERS_HERE
 
