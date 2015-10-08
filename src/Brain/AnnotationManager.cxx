@@ -542,15 +542,16 @@ AnnotationManager::setAnnotationBeingDrawnInWindow(const int32_t windowIndex,
  *     Output that contains annotation files that are displayed.
  */
 void
-AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displayedFilesEvent,
+AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* /*displayedFilesEvent*/,
                                                std::vector<AnnotationFile*>& displayedAnnotationFilesOut) const
 {
     displayedAnnotationFilesOut.clear();
     
-    std::vector<AnnotationFile*> files;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(files);
+    // implementation put on hold
+    //std::vector<AnnotationFile*> files;
+    //m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(files);
 
-    const DisplayPropertiesAnnotation* annProps = m_brain->getDisplayPropertiesAnnotation();
+    //const DisplayPropertiesAnnotation* annProps = m_brain->getDisplayPropertiesAnnotation();
 }
 
 /**
