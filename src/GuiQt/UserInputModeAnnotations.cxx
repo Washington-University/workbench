@@ -554,6 +554,10 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
         bool draggableCoordSpaceFlag = false;
         switch (draggingCoordinateSpace) {
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                if ((coordInfo.m_modelXYZValid)
+                    && (numSelectedAnnotations == 1)) {
+                    draggableCoordSpaceFlag = true;
+                }
                 break;
             case AnnotationCoordinateSpaceEnum::PIXELS:
                 break;
@@ -569,8 +573,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 vpContent->getTabViewport(viewport);
                 spaceOriginX = viewport[0];
                 spaceOriginY = viewport[1];
-                spaceWidth  = viewport[2];
-                spaceHeight = viewport[3];
+                spaceWidth   = viewport[2];
+                spaceHeight  = viewport[3];
                 draggableCoordSpaceFlag = true;
             }
                 break;
@@ -580,8 +584,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 vpContent->getWindowViewport(viewport);
                 spaceOriginX = viewport[0];
                 spaceOriginY = viewport[1];
-                spaceWidth  = viewport[2];
-                spaceHeight = viewport[3];
+                spaceWidth   = viewport[2];
+                spaceHeight  = viewport[3];
                 draggableCoordSpaceFlag = true;
             }
                 break;
@@ -608,6 +612,13 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                coordInfo.m_surfaceNumberOfNodes,
                                                coordInfo.m_surfaceNodeIndex,
                                                coord->getSurfaceOffsetLength());
+                    }
+                }
+                else if (draggingCoordinateSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
+                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
+                    if (twoDimAnn != NULL) {
+                        AnnotationCoordinate* coord = twoDimAnn->getCoordinate();
+                        coord->setXYZ(coordInfo.m_modelXYZ);
                     }
                 }
                 else {
