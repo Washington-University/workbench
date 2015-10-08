@@ -110,6 +110,7 @@ GapsAndMarginsDialog::createGapsWidget()
                      this, SLOT(surfaceMontageGapChanged()));
     
     m_surfaceMontageScaleProportionatelyCheckBox = new QCheckBox("");
+    m_surfaceMontageScaleProportionatelyCheckBox->setToolTip("When checked, horizontal gap will be same size as vertical gap in graphics region");
     QObject::connect(m_surfaceMontageScaleProportionatelyCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(surfaceMontageScaleProportionatelyCheckBoxClicked()));
     
@@ -122,6 +123,7 @@ GapsAndMarginsDialog::createGapsWidget()
                      this, SLOT(volumeMontageGapChanged()));
     
     m_volumeMontageScaleProportionatelyCheckBox = new QCheckBox("");
+    m_volumeMontageScaleProportionatelyCheckBox->setToolTip("When checked, horizontal gap will be same size as vertical gap in graphics region");
     QObject::connect(m_volumeMontageScaleProportionatelyCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(volumeMontageScaleProportionatelyCheckBoxClicked()));
     
@@ -296,70 +298,76 @@ GapsAndMarginsDialog::createPercentageSpinBox()
 void
 GapsAndMarginsDialog::updateDialog()
 {
-    EventBrowserTabGetAll allTabsEvent;
-    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+//    EventBrowserTabGetAll allTabsEvent;
+//    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+//    
+//    const std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
+//    
+//    BrowserTabContent* nullValue = NULL;
+//    std::vector<BrowserTabContent*> allTabsContent(100,
+//                                                   nullValue);  // error on linux32    NULL);
+//    const int32_t numValidTabs = allTabsEvent.getNumberOfBrowserTabs();
+//    for (int32_t iValid = 0; iValid < numValidTabs; iValid++) {
+//        BrowserTabContent* tabContent = allTabsEvent.getBrowserTab(iValid);
+//        CaretAssert(tabContent);
+//        
+//        const int32_t tabIndex = tabContent->getTabNumber();
+//        CaretAssertVectorIndex(allTabsContent, tabIndex);
+//        allTabsContent[tabIndex] = tabContent;
+//    }
     
-    const std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
-    
-    BrowserTabContent* nullValue = NULL;
-    std::vector<BrowserTabContent*> allTabsContent(100,
-                                                   nullValue);  // error on linux32    NULL);
-    const int32_t numValidTabs = allTabsEvent.getNumberOfBrowserTabs();
-    for (int32_t iValid = 0; iValid < numValidTabs; iValid++) {
-        BrowserTabContent* tabContent = allTabsEvent.getBrowserTab(iValid);
-        CaretAssert(tabContent);
-        
-        const int32_t tabIndex = tabContent->getTabNumber();
-        CaretAssertVectorIndex(allTabsContent, tabIndex);
-        allTabsContent[tabIndex] = tabContent;
-    }
+//    const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+//    const bool leftAllFlag   = gapsAndMargins->isTabMarginLeftAllSelected();
+//    const bool rightAllFlag  = gapsAndMargins->isTabMarginRightAllSelected();
+//    const bool bottomAllFlag = gapsAndMargins->isTabMarginBottomAllSelected();
+//    const bool topAllFlag    = gapsAndMargins->isTabMarginTopAllSelected();
+//    
+//    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+//        CaretAssertVectorIndex(allTabsContent, iTab);
+//        BrowserTabContent* tabContent = allTabsContent[iTab];
+//        const bool valid = (tabContent != NULL);
+//        
+//        CaretAssertVectorIndex(m_tabNumberLabels, iTab);
+//        m_tabNumberLabels[iTab]->setEnabled(valid);
+//        
+//        CaretAssertVectorIndex(m_leftMarginSpinBoxes, iTab);
+//        m_leftMarginSpinBoxes[iTab]->setEnabled(valid);
+//        
+//        CaretAssertVectorIndex(m_rightMarginSpinBoxes, iTab);
+//        m_rightMarginSpinBoxes[iTab]->setEnabled(valid);
+//        
+//        CaretAssertVectorIndex(m_bottomMarginSpinBoxes, iTab);
+//        m_bottomMarginSpinBoxes[iTab]->setEnabled(valid);
+//        
+//        CaretAssertVectorIndex(m_topMarginSpinBoxes, iTab);
+//        m_topMarginSpinBoxes[iTab]->setEnabled(valid);
+//        
+////        if (iTab <= maximumValidTabIndex) {
+//            const float leftMargin   = gapsAndMargins->getTabMarginLeft(iTab);
+//            const float rightMargin  = gapsAndMargins->getTabMarginRight(iTab);
+//            const float bottomMargin = gapsAndMargins->getTabMarginBottom(iTab);
+//            const float topMargin    = gapsAndMargins->getTabMarginTop(iTab);
+//
+//            m_leftMarginSpinBoxes[iTab]->blockSignals(true);
+//            m_leftMarginSpinBoxes[iTab]->setValue(leftMargin);
+//            m_leftMarginSpinBoxes[iTab]->blockSignals(false);
+//            
+//            m_rightMarginSpinBoxes[iTab]->blockSignals(true);
+//            m_rightMarginSpinBoxes[iTab]->setValue(rightMargin);
+//            m_rightMarginSpinBoxes[iTab]->blockSignals(false);
+//            
+//            m_bottomMarginSpinBoxes[iTab]->blockSignals(true);
+//            m_bottomMarginSpinBoxes[iTab]->setValue(bottomMargin);
+//            m_bottomMarginSpinBoxes[iTab]->blockSignals(false);
+//            
+//            m_topMarginSpinBoxes[iTab]->blockSignals(true);
+//            m_topMarginSpinBoxes[iTab]->setValue(topMargin);
+//            m_topMarginSpinBoxes[iTab]->blockSignals(false);
+////        }
+//    }
     
     const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    
-    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
-        CaretAssertVectorIndex(allTabsContent, iTab);
-        BrowserTabContent* tabContent = allTabsContent[iTab];
-        const bool valid = (tabContent != NULL);
-        
-        CaretAssertVectorIndex(m_tabNumberLabels, iTab);
-        m_tabNumberLabels[iTab]->setEnabled(valid);
-        
-        CaretAssertVectorIndex(m_leftMarginSpinBoxes, iTab);
-        m_leftMarginSpinBoxes[iTab]->setEnabled(valid);
-        
-        CaretAssertVectorIndex(m_rightMarginSpinBoxes, iTab);
-        m_rightMarginSpinBoxes[iTab]->setEnabled(valid);
-        
-        CaretAssertVectorIndex(m_bottomMarginSpinBoxes, iTab);
-        m_bottomMarginSpinBoxes[iTab]->setEnabled(valid);
-        
-        CaretAssertVectorIndex(m_topMarginSpinBoxes, iTab);
-        m_topMarginSpinBoxes[iTab]->setEnabled(valid);
-        
-//        if (iTab <= maximumValidTabIndex) {
-            const float leftMargin   = gapsAndMargins->getTabMarginLeft(iTab);
-            const float rightMargin  = gapsAndMargins->getTabMarginRight(iTab);
-            const float bottomMargin = gapsAndMargins->getTabMarginBottom(iTab);
-            const float topMargin    = gapsAndMargins->getTabMarginTop(iTab);
 
-            m_leftMarginSpinBoxes[iTab]->blockSignals(true);
-            m_leftMarginSpinBoxes[iTab]->setValue(leftMargin);
-            m_leftMarginSpinBoxes[iTab]->blockSignals(false);
-            
-            m_rightMarginSpinBoxes[iTab]->blockSignals(true);
-            m_rightMarginSpinBoxes[iTab]->setValue(rightMargin);
-            m_rightMarginSpinBoxes[iTab]->blockSignals(false);
-            
-            m_bottomMarginSpinBoxes[iTab]->blockSignals(true);
-            m_bottomMarginSpinBoxes[iTab]->setValue(bottomMargin);
-            m_bottomMarginSpinBoxes[iTab]->blockSignals(false);
-            
-            m_topMarginSpinBoxes[iTab]->blockSignals(true);
-            m_topMarginSpinBoxes[iTab]->setValue(topMargin);
-            m_topMarginSpinBoxes[iTab]->blockSignals(false);
-//        }
-    }
-    
     m_leftMarginCheckBox->setChecked(gapsAndMargins->isTabMarginLeftAllSelected());
     m_rightMarginCheckBox->setChecked(gapsAndMargins->isTabMarginRightAllSelected());
     m_bottomMarginCheckBox->setChecked(gapsAndMargins->isTabMarginBottomAllSelected());
@@ -384,8 +392,111 @@ GapsAndMarginsDialog::updateDialog()
     m_surfaceMontageScaleProportionatelyCheckBox->setChecked(gapsAndMargins->isSurfaceMontageScaleProportionatelySelected());
     m_volumeMontageScaleProportionatelyCheckBox->setChecked(gapsAndMargins->isVolumeMontageScaleProportionatelySelected());
     
+    updateMarginSpinBoxes();
+    
     enableDisableHorizontalMontageSpinBoxes();
 }
+
+/**
+ * Update the margin spin boxes.
+ */
+void
+GapsAndMarginsDialog::updateMarginSpinBoxes()
+{
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    
+    const std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
+    
+    BrowserTabContent* nullValue = NULL;
+    std::vector<BrowserTabContent*> allTabsContent(100,
+                                                   nullValue);  // error on linux32    NULL);
+    const int32_t numValidTabs = allTabsEvent.getNumberOfBrowserTabs();
+    for (int32_t iValid = 0; iValid < numValidTabs; iValid++) {
+        BrowserTabContent* tabContent = allTabsEvent.getBrowserTab(iValid);
+        CaretAssert(tabContent);
+        
+        const int32_t tabIndex = tabContent->getTabNumber();
+        CaretAssertVectorIndex(allTabsContent, tabIndex);
+        allTabsContent[tabIndex] = tabContent;
+    }
+    const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    const bool leftAllFlag   = gapsAndMargins->isTabMarginLeftAllSelected();
+    const bool rightAllFlag  = gapsAndMargins->isTabMarginRightAllSelected();
+    const bool bottomAllFlag = gapsAndMargins->isTabMarginBottomAllSelected();
+    const bool topAllFlag    = gapsAndMargins->isTabMarginTopAllSelected();
+    
+    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+//        CaretAssertVectorIndex(allTabsContent, iTab);
+//        BrowserTabContent* tabContent = allTabsContent[iTab];
+//        const bool valid = (tabContent != NULL);
+        
+        bool leftValid = true;
+        if (leftAllFlag) {
+            if (iTab > 0) {
+                leftValid = false;
+            }
+        }
+        
+        bool rightValid = true;
+        if (rightAllFlag) {
+            if (iTab > 0) {
+                rightValid = false;
+            }
+        }
+        
+        bool bottomValid = true;
+        if (bottomAllFlag) {
+            if (iTab > 0) {
+                bottomValid = false;
+            }
+        }
+        
+        bool topValid = true;
+        if (topAllFlag) {
+            if (iTab > 0) {
+                topValid = false;
+            }
+        }
+        
+        CaretAssertVectorIndex(m_tabNumberLabels, iTab);
+        m_tabNumberLabels[iTab]->setEnabled(true);
+        
+        CaretAssertVectorIndex(m_leftMarginSpinBoxes, iTab);
+        m_leftMarginSpinBoxes[iTab]->setEnabled(leftValid);
+        
+        CaretAssertVectorIndex(m_rightMarginSpinBoxes, iTab);
+        m_rightMarginSpinBoxes[iTab]->setEnabled(rightValid);
+        
+        CaretAssertVectorIndex(m_bottomMarginSpinBoxes, iTab);
+        m_bottomMarginSpinBoxes[iTab]->setEnabled(bottomValid);
+        
+        CaretAssertVectorIndex(m_topMarginSpinBoxes, iTab);
+        m_topMarginSpinBoxes[iTab]->setEnabled(topValid);
+        
+        const float leftMargin   = gapsAndMargins->getTabMarginLeft(iTab);
+        const float rightMargin  = gapsAndMargins->getTabMarginRight(iTab);
+        const float bottomMargin = gapsAndMargins->getTabMarginBottom(iTab);
+        const float topMargin    = gapsAndMargins->getTabMarginTop(iTab);
+        
+        m_leftMarginSpinBoxes[iTab]->blockSignals(true);
+        m_leftMarginSpinBoxes[iTab]->setValue(leftMargin);
+        m_leftMarginSpinBoxes[iTab]->blockSignals(false);
+        
+        m_rightMarginSpinBoxes[iTab]->blockSignals(true);
+        m_rightMarginSpinBoxes[iTab]->setValue(rightMargin);
+        m_rightMarginSpinBoxes[iTab]->blockSignals(false);
+        
+        m_bottomMarginSpinBoxes[iTab]->blockSignals(true);
+        m_bottomMarginSpinBoxes[iTab]->setValue(bottomMargin);
+        m_bottomMarginSpinBoxes[iTab]->blockSignals(false);
+        
+        m_topMarginSpinBoxes[iTab]->blockSignals(true);
+        m_topMarginSpinBoxes[iTab]->setValue(topMargin);
+        m_topMarginSpinBoxes[iTab]->blockSignals(false);
+    }
+}
+
 
 /**
  * Enable/disable the horizontal montage spin boxes
@@ -450,6 +561,11 @@ GapsAndMarginsDialog::tabMarginChanged(int tabIndex)
                                          m_bottomMarginSpinBoxes[tabIndex]->value());
         gapsAndMargins->setTabMarginTop(tabIndex,
                                          m_topMarginSpinBoxes[tabIndex]->value());
+
+        /*
+         * May need to update due to apply one to all or scale proportionately
+         */
+        updateMarginSpinBoxes();
         
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }

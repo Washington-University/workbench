@@ -82,6 +82,8 @@ namespace caret {
         
         void enableDisableHorizontalMontageSpinBoxes();
         
+        void updateMarginSpinBoxes();
+        
         WuQGridLayoutGroup* m_gridLayoutGroup;
         
         std::vector<QLabel*> m_tabNumberLabels;

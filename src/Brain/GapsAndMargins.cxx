@@ -206,6 +206,10 @@ GapsAndMargins::setTabMarginLeft(const int32_t tabIndex,
 {
     CaretAssertArrayIndex(m_tabMarginsLeft, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     m_tabMarginsLeft[tabIndex] = margin;
+    
+    if (tabIndex == 0) {
+        copyTabOneLeftMarginToAllLeftMargins();
+    }
 }
 
 /**
@@ -222,6 +226,10 @@ GapsAndMargins::setTabMarginRight(const int32_t tabIndex,
 {
     CaretAssertArrayIndex(m_tabMarginsRight, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     m_tabMarginsRight[tabIndex] = margin;
+    
+    if (tabIndex == 0) {
+        copyTabOneRightMarginToAllRightMargins();
+    }
 }
 
 /**
@@ -238,6 +246,10 @@ GapsAndMargins::setTabMarginBottom(const int32_t tabIndex,
 {
     CaretAssertArrayIndex(m_tabMarginsBottom, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     m_tabMarginsBottom[tabIndex] = margin;
+    
+    if (tabIndex == 0) {
+        copyTabOneBottomMarginToAllBottomMargins();
+    }
 }
 
 /**
@@ -254,6 +266,10 @@ GapsAndMargins::setTabMarginTop(const int32_t tabIndex,
 {
     CaretAssertArrayIndex(m_tabMarginsTop, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     m_tabMarginsTop[tabIndex] = margin;
+    
+    if (tabIndex == 0) {
+        copyTabOneTopMarginToAllTopMargins();
+    }
 }
 
 /**
@@ -387,12 +403,8 @@ void
 GapsAndMargins::setTabMarginLeftAllSelected(const bool status)
 {
     m_tabMarginLeftAllSelected = status;
-    
-    if (m_tabMarginLeftAllSelected) {
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            m_tabMarginsLeft[i] = m_tabMarginsLeft[0];
-        }
-    }
+
+    copyTabOneLeftMarginToAllLeftMargins();
 }
 
 /**
@@ -407,11 +419,7 @@ GapsAndMargins::setTabMarginRightAllSelected(const bool status)
 {
     m_tabMarginRightAllSelected = status;
     
-    if (m_tabMarginRightAllSelected) {
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            m_tabMarginsRight[i] = m_tabMarginsRight[0];
-        }
-    }
+    copyTabOneRightMarginToAllRightMargins();
 }
 
 /**
@@ -426,11 +434,7 @@ GapsAndMargins::setTabMarginBottomAllSelected(const bool status)
 {
     m_tabMarginBottomAllSelected = status;
     
-    if (m_tabMarginBottomAllSelected) {
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            m_tabMarginsBottom[i] = m_tabMarginsBottom[0];
-        }
-    }
+    copyTabOneBottomMarginToAllBottomMargins();
 }
 
 /**
@@ -445,6 +449,54 @@ GapsAndMargins::setTabMarginTopAllSelected(const bool status)
 {
     m_tabMarginTopAllSelected = status;
     
+    copyTabOneTopMarginToAllTopMargins();
+}
+
+/**
+ * Copy tab one left margin to all left margins.
+ */
+void
+GapsAndMargins::copyTabOneLeftMarginToAllLeftMargins()
+{
+    if (m_tabMarginLeftAllSelected) {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_tabMarginsLeft[i] = m_tabMarginsLeft[0];
+        }
+    }
+}
+
+/**
+ * Copy tab one right margin to all right margins.
+ */
+void
+GapsAndMargins::copyTabOneRightMarginToAllRightMargins()
+{
+    if (m_tabMarginRightAllSelected) {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_tabMarginsRight[i] = m_tabMarginsRight[0];
+        }
+    }
+}
+
+/**
+ * Copy tab one bottom margin to all bottom margins.
+ */
+void
+GapsAndMargins::copyTabOneBottomMarginToAllBottomMargins()
+{
+    if (m_tabMarginBottomAllSelected) {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_tabMarginsBottom[i] = m_tabMarginsBottom[0];
+        }
+    }
+}
+
+/**
+ * Copy tab one top margin to all top margins.
+ */
+void
+GapsAndMargins::copyTabOneTopMarginToAllTopMargins()
+{
     if (m_tabMarginTopAllSelected) {
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             m_tabMarginsTop[i] = m_tabMarginsTop[0];

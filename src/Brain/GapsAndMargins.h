@@ -127,6 +127,14 @@ namespace caret {
 
         GapsAndMargins& operator=(const GapsAndMargins&);
         
+        void copyTabOneLeftMarginToAllLeftMargins();
+        
+        void copyTabOneRightMarginToAllRightMargins();
+        
+        void copyTabOneBottomMarginToAllBottomMargins();
+        
+        void copyTabOneTopMarginToAllTopMargins();
+        
         SceneClassAssistant* m_sceneAssistant;
 
         float m_tabMarginsLeft[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
