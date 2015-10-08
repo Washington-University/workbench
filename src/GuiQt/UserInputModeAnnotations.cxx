@@ -538,61 +538,79 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             return;
         }
         
+        
+        CoordinateInformation coordInfo;
+        UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+                                                                 mouseEvent.getViewportContent(),
+                                                                 mouseEvent.getX(),
+                                                                 mouseEvent.getY(),
+                                                                 coordInfo);
+
         float spaceOriginX = 0.0;
         float spaceOriginY = 0.0;
-            float spaceWidth  = 0.0;
-            float spaceHeight = 0.0;
-            
-            bool draggableCoordSpaceFlag = false;
-            switch (draggingCoordinateSpace) {
-                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                    break;
-                case AnnotationCoordinateSpaceEnum::PIXELS:
-                    break;
-                case AnnotationCoordinateSpaceEnum::SURFACE:
-                    break;
-                case AnnotationCoordinateSpaceEnum::TAB:
-                {
-                    int viewport[4];
-                    vpContent->getTabViewport(viewport);
-                    spaceOriginX = viewport[0];
-                    spaceOriginY = viewport[1];
-                    spaceWidth  = viewport[2];
-                    spaceHeight = viewport[3];
+        float spaceWidth  = 0.0;
+        float spaceHeight = 0.0;
+        
+        bool draggableCoordSpaceFlag = false;
+        switch (draggingCoordinateSpace) {
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                break;
+            case AnnotationCoordinateSpaceEnum::PIXELS:
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                if ((coordInfo.m_surfaceNodeValid)
+                    && (numSelectedAnnotations == 1)) {
                     draggableCoordSpaceFlag = true;
                 }
-                    break;
-                case AnnotationCoordinateSpaceEnum::WINDOW:
-                {
-                    int viewport[4];
-                    vpContent->getWindowViewport(viewport);
-                    spaceOriginX = viewport[0];
-                    spaceOriginY = viewport[1];
-                    spaceWidth  = viewport[2];
-                    spaceHeight = viewport[3];
-                    draggableCoordSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+            {
+                int viewport[4];
+                vpContent->getTabViewport(viewport);
+                spaceOriginX = viewport[0];
+                spaceOriginY = viewport[1];
+                spaceWidth  = viewport[2];
+                spaceHeight = viewport[3];
+                draggableCoordSpaceFlag = true;
+            }
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+            {
+                int viewport[4];
+                vpContent->getWindowViewport(viewport);
+                spaceOriginX = viewport[0];
+                spaceOriginY = viewport[1];
+                spaceWidth  = viewport[2];
+                spaceHeight = viewport[3];
+                draggableCoordSpaceFlag = true;
+            }
+                break;
+        }
+        
+        if (draggableCoordSpaceFlag) {
+            const float dx = mouseEvent.getDx();
+            const float dy = mouseEvent.getDy();
+            
+            const float mouseViewportX = mouseEvent.getX() - spaceOriginX;
+            const float mouseViewportY = mouseEvent.getY() - spaceOriginY;
+            
+            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+            std::vector<Annotation*> annotationsBeforeMoveAndResize;
+            std::vector<Annotation*> annotationsAfterMoveAndResize;
+            
+            for (int32_t i = 0; i < numSelectedAnnotations; i++) {
+                Annotation* annotationModified(selectedAnnotations[i]->clone());
+                if (draggingCoordinateSpace == AnnotationCoordinateSpaceEnum::SURFACE) {
+                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
+                    if (twoDimAnn != NULL) {
+                        AnnotationCoordinate* coord = twoDimAnn->getCoordinate();
+                        coord->setSurfaceSpace(coordInfo.m_surfaceStructure,
+                                               coordInfo.m_surfaceNumberOfNodes,
+                                               coordInfo.m_surfaceNodeIndex,
+                                               coord->getSurfaceOffsetLength());
+                    }
                 }
-                    break;
-            }
-            
-            if ((spaceWidth <= 0.0)
-                || (spaceHeight <= 0.0)) {
-                draggableCoordSpaceFlag = false;
-            }
-            
-            if (draggableCoordSpaceFlag) {
-                const float dx = mouseEvent.getDx();
-                const float dy = mouseEvent.getDy();
-                
-                const float mouseViewportX = mouseEvent.getX() - spaceOriginX;
-                const float mouseViewportY = mouseEvent.getY() - spaceOriginY;
-                
-                AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
-                std::vector<Annotation*> annotationsBeforeMoveAndResize;
-                std::vector<Annotation*> annotationsAfterMoveAndResize;
-
-                for (int32_t i = 0; i < numSelectedAnnotations; i++) {
-                    Annotation* annotationModified(selectedAnnotations[i]->clone());
+                else {
                     annotationModified->applyMoveOrResizeFromGUI(m_annotationBeingDraggedHandleType,
                                                                  spaceWidth,
                                                                  spaceHeight,
@@ -600,30 +618,31 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                                  mouseViewportY,
                                                                  dx,
                                                                  dy);
-                    
-                    annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
-                    annotationsAfterMoveAndResize.push_back(annotationModified);
                 }
                 
-                command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
-                                                annotationsAfterMoveAndResize);
-                
-                if ( ! mouseEvent.isFirstDragging()) {
-                    command->setMergeEnabled(true);
-                }
-                annotationManager->applyCommand(command);
-                
-                for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
-                     iter != annotationsAfterMoveAndResize.end();
-                     iter++) {
-                    delete *iter;
-                }
-                annotationsAfterMoveAndResize.clear();
-                
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                m_annotationToolsWidget->updateWidget();
+                annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
+                annotationsAfterMoveAndResize.push_back(annotationModified);
             }
+            
+            command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
+                                            annotationsAfterMoveAndResize);
+            
+            if ( ! mouseEvent.isFirstDragging()) {
+                command->setMergeEnabled(true);
+            }
+            annotationManager->applyCommand(command);
+            
+            for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
+                 iter != annotationsAfterMoveAndResize.end();
+                 iter++) {
+                delete *iter;
+            }
+            annotationsAfterMoveAndResize.clear();
+            
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            m_annotationToolsWidget->updateWidget();
         }
+    }
 }
 
 /**

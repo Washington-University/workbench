@@ -282,6 +282,14 @@ AnnotationCoordinate::getDefaultSurfaceOffsetLength()
     return 10.0;
 }
 
+/**
+ * @return The surface offset length.
+ */
+float
+AnnotationCoordinate::getSurfaceOffsetLength() const
+{
+    return m_surfaceOffsetLength;
+}
 
 /**
  * Get a description of this object's content.

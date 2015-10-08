@@ -63,7 +63,8 @@ namespace caret {
                              const int32_t surfaceNodeIndex,
                              const float surfaceOffsetLength);
         
-
+        float getSurfaceOffsetLength() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
