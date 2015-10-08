@@ -173,7 +173,6 @@ void ZFileImpl::open(const QString& filename, const CaretBinaryFile::OpenMode& o
 void ZFileImpl::close()
 {
     if (m_zfile == NULL) return;//happens when closed and then destroyed, error opening
-    gzflush(m_zfile, Z_FULL_FLUSH);
     if (gzclose(m_zfile) != 0) throw DataFileException("error closing compressed file '" + m_fileName + "'");
     m_zfile = NULL;
 }
@@ -254,11 +253,11 @@ ZFileImpl::~ZFileImpl()
     {
         close();
     } catch (CaretException& e) {//handles DataFileException, should be the only culprit
-        CaretLogWarning(e.whatString());
+        CaretLogSevere(e.whatString());
     } catch (exception& e) {
-        CaretLogWarning(e.what());
+        CaretLogSevere(e.what());
     } catch (...) {
-        CaretLogWarning("caught unknown exception type while closing a compressed file");
+        CaretLogSevere("caught unknown exception type while closing a compressed file");
     }
 }
 #endif //ZLIB_VERSION
