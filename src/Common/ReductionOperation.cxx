@@ -205,6 +205,43 @@ float ReductionOperation::reduceExcludeDev(const float* data, const int64_t& num
     }
     float stdev = sqrt(residsqr / validNum);
     float low = mean - numDevBelow * stdev, high = mean + numDevAbove * stdev;
+    switch (type)//special case things that use indices
+    {
+        case ReductionEnum::INDEXMAX:
+        {
+            float max = 0.0f;
+            int64_t index = -1;
+            bool first = true;
+            for (int64_t i = 0; i < numElems; ++i)
+            {
+                if (MathFunctions::isNumeric(data[i]) && data[i] >= low && data[i] <= high && (first || data[i] > max))
+                {
+                    first = false;
+                    max = data[i];
+                    index = i;
+                }
+            }
+            return index + 1;//1-based, to match gui and column arguments
+        }
+        case ReductionEnum::INDEXMIN:
+        {
+            float min = 0.0f;
+            int64_t index = -1;
+            bool first = true;
+            for (int64_t i = 0; i < numElems; ++i)
+            {
+                if (MathFunctions::isNumeric(data[i]) && data[i] >= low && data[i] <= high && (first || data[i] < min))
+                {
+                    first = false;
+                    min = data[i];
+                    index = i;
+                }
+            }
+            return index + 1;//1-based, to match gui and column arguments
+        }
+        default:
+            break;
+    }
     vector<float> excluded;
     excluded.reserve(validNum);
     for (int64_t i = 0; i < numElems; ++i)
@@ -212,6 +249,58 @@ float ReductionOperation::reduceExcludeDev(const float* data, const int64_t& num
         if (MathFunctions::isNumeric(data[i]) && data[i] >= low && data[i] <= high) excluded.push_back(data[i]);
     }
     if (excluded.size() == 0) throw CaretException("exclusion parameters to reduceExcludeDev resulted in no usable data");
+    return reduce(excluded.data(), excluded.size(), type);
+}
+
+float ReductionOperation::reduceOnlyNumeric(const float* data, const int64_t& numElems, const ReductionEnum::Enum& type)
+{
+    CaretAssert(numElems > 0);
+    switch (type)//special case things that use indices
+    {
+        case ReductionEnum::INDEXMAX:
+        {
+            float max = 0.0f;
+            int64_t index = -1;
+            bool first = true;
+            for (int64_t i = 0; i < numElems; ++i)
+            {
+                if (MathFunctions::isNumeric(data[i]) && (first || data[i] > max))
+                {
+                    first = false;
+                    max = data[i];
+                    index = i;
+                }
+            }
+            if (first) throw CaretException("all input values to reduceOnlyNumeric were non-numeric");
+            return index + 1;//1-based, to match gui and column arguments
+        }
+        case ReductionEnum::INDEXMIN:
+        {
+            float min = 0.0f;
+            int64_t index = -1;
+            bool first = true;
+            for (int64_t i = 0; i < numElems; ++i)
+            {
+                if (MathFunctions::isNumeric(data[i]) && (first || data[i] < min))
+                {
+                    first = false;
+                    min = data[i];
+                    index = i;
+                }
+            }
+            if (first) throw CaretException("all input values to reduceOnlyNumeric were non-numeric");
+            return index + 1;//1-based, to match gui and column arguments
+        }
+        default:
+            break;
+    }
+    vector<float> excluded;
+    excluded.reserve(numElems);
+    for (int64_t i = 0; i < numElems; ++i)
+    {
+        if (MathFunctions::isNumeric(data[i])) excluded.push_back(data[i]);
+    }
+    if (excluded.size() == 0) throw CaretException("all input values to reduceOnlyNumeric were non-numeric");
     return reduce(excluded.data(), excluded.size(), type);
 }
 

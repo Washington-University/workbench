@@ -47,9 +47,11 @@ OperationParameters* AlgorithmCiftiReduce::getParameters()
     
     ret->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
     
-    OptionalParameter* excludeOpt = ret->createOptionalParameter(4, "-exclude-outliers", "exclude outliers from each row by standard deviation");
+    OptionalParameter* excludeOpt = ret->createOptionalParameter(4, "-exclude-outliers", "exclude non-numeric values and outliers by standard deviation");
     excludeOpt->addDoubleParameter(1, "sigma-below", "number of standard deviations below the mean to include");
     excludeOpt->addDoubleParameter(2, "sigma-above", "number of standard deviations above the mean to include");
+    
+    ret->createOptionalParameter(5, "-only-numeric", "exclude non-numeric values");
     
     ret->setHelpText(
         AString("For each cifti row, takes the data along a row as a vector, and performs the specified reduction on it, putting the result ") +
@@ -64,18 +66,20 @@ void AlgorithmCiftiReduce::useParameters(OperationParameters* myParams, Progress
     AString opString = myParams->getString(2);
     CiftiFile* ciftiOut = myParams->getOutputCifti(3);
     OptionalParameter* excludeOpt = myParams->getOptionalParameter(4);
+    bool onlyNumeric = myParams->getOptionalParameter(5)->m_present;
     bool ok = false;
     ReductionEnum::Enum myReduce = ReductionEnum::fromName(opString, &ok);
     if (!ok) throw AlgorithmException("unrecognized operation string '" + opString + "'");
     if (excludeOpt->m_present)
     {
+        if (onlyNumeric) throw AlgorithmException("-exclude-outliers and -only-numeric may not be specified together");
         AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut, excludeOpt->getDouble(1), excludeOpt->getDouble(2));
     } else {
-        AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut);
+        AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut, onlyNumeric);
     }
 }
 
-AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const ReductionEnum::Enum& myReduce, CiftiFile* ciftiOut) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const ReductionEnum::Enum& myReduce, CiftiFile* ciftiOut, const bool& onlyNumeric) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int64_t numRows = ciftiIn->getNumberOfRows();
@@ -95,7 +99,12 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
     for (int64_t i = 0; i < numRows; ++i)
     {
         ciftiIn->getRow(scratchRow.data(), i);
-        outCol[i] = ReductionOperation::reduce(scratchRow.data(), numCols, myReduce);
+        if (onlyNumeric)
+        {
+            outCol[i] = ReductionOperation::reduceOnlyNumeric(scratchRow.data(), numCols, myReduce);
+        } else {
+            outCol[i] = ReductionOperation::reduce(scratchRow.data(), numCols, myReduce);
+        }
     }
     ciftiOut->setColumn(outCol.data(), 0);
 }

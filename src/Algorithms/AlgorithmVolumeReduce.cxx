@@ -49,9 +49,11 @@ OperationParameters* AlgorithmVolumeReduce::getParameters()
     
     ret->addVolumeOutputParameter(3, "volume-out", "the output volume");
     
-    OptionalParameter* excludeOpt = ret->createOptionalParameter(4, "-exclude-outliers", "exclude outliers from each timeseries by standard deviation");
+    OptionalParameter* excludeOpt = ret->createOptionalParameter(4, "-exclude-outliers", "exclude non-numeric values and outliers by standard deviation");
     excludeOpt->addDoubleParameter(1, "sigma-below", "number of standard deviations below the mean to include");
     excludeOpt->addDoubleParameter(2, "sigma-above", "number of standard deviations above the mean to include");
+    
+    ret->createOptionalParameter(5, "-only-numeric", "exclude non-numeric values");
     
     ret->setHelpText(
         AString("For each voxel, takes the data across subvolumes as a vector, and performs the specified reduction on it, putting the result ") +
@@ -66,18 +68,20 @@ void AlgorithmVolumeReduce::useParameters(OperationParameters* myParams, Progres
     AString opString = myParams->getString(2);
     VolumeFile* volumeOut = myParams->getOutputVolume(3);
     OptionalParameter* excludeOpt = myParams->getOptionalParameter(4);
+    bool onlyNumeric = myParams->getOptionalParameter(5)->m_present;
     bool ok = false;
     ReductionEnum::Enum myReduce = ReductionEnum::fromName(opString, &ok);
     if (!ok) throw AlgorithmException("unrecognized operation string '" + opString + "'");
     if (excludeOpt->m_present)
     {
+        if (onlyNumeric) throw AlgorithmException("-exclude-outliers and -only-numeric may not be specified together");
         AlgorithmVolumeReduce(myProgObj, volumeIn, myReduce, volumeOut, excludeOpt->getDouble(1), excludeOpt->getDouble(2));
     } else {
-        AlgorithmVolumeReduce(myProgObj, volumeIn, myReduce, volumeOut);
+        AlgorithmVolumeReduce(myProgObj, volumeIn, myReduce, volumeOut, onlyNumeric);
     }
 }
 
-AlgorithmVolumeReduce::AlgorithmVolumeReduce(ProgressObject* myProgObj, const VolumeFile* volumeIn, const ReductionEnum::Enum& myReduce, VolumeFile* volumeOut) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeReduce::AlgorithmVolumeReduce(ProgressObject* myProgObj, const VolumeFile* volumeIn, const ReductionEnum::Enum& myReduce, VolumeFile* volumeOut, const bool& onlyNumeric) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myDims, newDims = volumeIn->getOriginalDimensions();
@@ -100,7 +104,12 @@ AlgorithmVolumeReduce::AlgorithmVolumeReduce(ProgressObject* myProgObj, const Vo
                 const float* tempFrame = volumeIn->getFrame(b, c);
                 scratchArray[b] = tempFrame[i];
             }
-            outFrame[i] = ReductionOperation::reduce(scratchArray.data(), myDims[3], myReduce);
+            if (onlyNumeric)
+            {
+                outFrame[i] = ReductionOperation::reduceOnlyNumeric(scratchArray.data(), myDims[3], myReduce);
+            } else {
+                outFrame[i] = ReductionOperation::reduce(scratchArray.data(), myDims[3], myReduce);
+            }
         }
         volumeOut->setFrame(outFrame.data(), 0, c);
     }

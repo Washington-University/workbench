@@ -33,7 +33,7 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmVolumeReduce(ProgressObject* myProgObj, const VolumeFile* volumeIn, const ReductionEnum::Enum& myReduce, VolumeFile* volumeOut);
+        AlgorithmVolumeReduce(ProgressObject* myProgObj, const VolumeFile* volumeIn, const ReductionEnum::Enum& myReduce, VolumeFile* volumeOut, const bool& onlyNumeric = false);
         AlgorithmVolumeReduce(ProgressObject* myProgObj, const VolumeFile* volumeIn, const ReductionEnum::Enum& myReduce, VolumeFile* volumeOut, const float& sigmaBelow, const float& sigmaAbove);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

@@ -47,9 +47,11 @@ OperationParameters* AlgorithmMetricReduce::getParameters()
     
     ret->addMetricOutputParameter(3, "metric-out", "the output metric");
     
-    OptionalParameter* excludeOpt = ret->createOptionalParameter(4, "-exclude-outliers", "exclude outliers from each vector by standard deviation");
+    OptionalParameter* excludeOpt = ret->createOptionalParameter(4, "-exclude-outliers", "exclude non-numeric values and outliers by standard deviation");
     excludeOpt->addDoubleParameter(1, "sigma-below", "number of standard deviations below the mean to include");
     excludeOpt->addDoubleParameter(2, "sigma-above", "number of standard deviations above the mean to include");
+    
+    ret->createOptionalParameter(5, "-only-numeric", "exclude non-numeric values");
     
     ret->setHelpText(
         AString("For each surface vertex, takes the data across columns as a vector, and performs the specified reduction on it, putting the result ") +
@@ -64,18 +66,20 @@ void AlgorithmMetricReduce::useParameters(OperationParameters* myParams, Progres
     AString opString = myParams->getString(2);
     MetricFile* metricOut = myParams->getOutputMetric(3);
     OptionalParameter* excludeOpt = myParams->getOptionalParameter(4);
+    bool onlyNumeric = myParams->getOptionalParameter(5)->m_present;
     bool ok = false;
     ReductionEnum::Enum myReduce = ReductionEnum::fromName(opString, &ok);
     if (!ok) throw AlgorithmException("unrecognized operation string '" + opString + "'");
     if (excludeOpt->m_present)
     {
+        if (onlyNumeric) throw AlgorithmException("-exclude-outliers and -only-numeric may not be specified together");
         AlgorithmMetricReduce(myProgObj, metricIn, myReduce, metricOut, excludeOpt->getDouble(1), excludeOpt->getDouble(2));
     } else {
-        AlgorithmMetricReduce(myProgObj, metricIn, myReduce, metricOut);
+        AlgorithmMetricReduce(myProgObj, metricIn, myReduce, metricOut, onlyNumeric);
     }
 }
 
-AlgorithmMetricReduce::AlgorithmMetricReduce(ProgressObject* myProgObj, const MetricFile* metricIn, const ReductionEnum::Enum& myReduce, MetricFile* metricOut) : AbstractAlgorithm(myProgObj)
+AlgorithmMetricReduce::AlgorithmMetricReduce(ProgressObject* myProgObj, const MetricFile* metricIn, const ReductionEnum::Enum& myReduce, MetricFile* metricOut, const bool& onlyNumeric) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = metricIn->getNumberOfNodes();
@@ -91,7 +95,12 @@ AlgorithmMetricReduce::AlgorithmMetricReduce(ProgressObject* myProgObj, const Me
         {
             scratch[col] = metricIn->getValue(node, col);
         }
-        metricOut->setValue(node, 0, ReductionOperation::reduce(scratch.data(), numCols, myReduce));
+        if (onlyNumeric)
+        {
+            metricOut->setValue(node, 0, ReductionOperation::reduceOnlyNumeric(scratch.data(), numCols, myReduce));
+        } else {
+            metricOut->setValue(node, 0, ReductionOperation::reduce(scratch.data(), numCols, myReduce));
+        }
     }
 }
 
