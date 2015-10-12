@@ -68,8 +68,8 @@ namespace caret {
         void receiveEvent(Event* event);
         
         SelectionManager* performIdentification(const int x,
-                                                     const int y,
-                                                     const bool applySelectionBackgroundFiltering);
+                                                const int y,
+                                                const bool applySelectionBackgroundFiltering);
         
         SelectionItemAnnotation* performIdentificationAnnotations(const int x,
                                                            const int y);

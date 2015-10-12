@@ -978,7 +978,7 @@ UserInputModeAnnotations::getValidCoordinateSpacesFromXY(BrainOpenGLWidget* open
     SelectionManager* idManager =
     openGLWidget->performIdentification(windowX,
                                         windowY,
-                                        true);
+                                        false);
     
     SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     SelectionItemSurfaceNode*  surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
