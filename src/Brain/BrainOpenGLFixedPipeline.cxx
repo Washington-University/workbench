@@ -5870,55 +5870,83 @@ void
 BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
                                     const ImageFile* imageFile)
 {
-    int32_t imageWidth  = 0;
-    int32_t imageHeight = 0;
-    std::vector<uint8_t> imageBytesRGBA;
-    if ( ! imageFile->getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                        imageBytesRGBA,
-                                        imageWidth,
-                                        imageHeight)) {
+    const int32_t originalImageWidth  = imageFile->getWidth();
+    const int32_t originalImageHeight = imageFile->getHeight();
+    const int32_t imageSize = originalImageWidth * originalImageHeight;
+    if (imageSize <= 0) {
         return;
     }
-        
-    const float xScale = static_cast<float>(viewport[2])
-    / static_cast<float>(imageWidth);
-    const float yScale = static_cast<float>(viewport[3])
-    / static_cast<float>(imageHeight);
     
-    float pixelZoom = 1.0;
-    float xPos = 0.0;
-    float yPos = 0.0;
+    /*
+     * Normalized width/height
+     * 
+     * > 1.0 ===> viewport dimension larger than image dimension
+     * < 1.0 ===> viewport dimension smaller than image dimension
+     */
+    const int32_t viewportWidth  = viewport[2];
+    const int32_t viewportHeight = viewport[3];
+    const float widthNormalized  = static_cast<float>(viewportWidth)  / static_cast<float>(originalImageWidth);
+    const float heightNormalized = static_cast<float>(viewportHeight) / static_cast<float>(originalImageHeight);
     
-    bool centerImageX = false, centerImageY = false;
-    if (xScale < yScale) {
-        pixelZoom = xScale;
-        centerImageY = true;
+    /*
+     * Scale image so that it fills window in one dimension and other
+     * image dimension is less than or equal to the window dimension.
+     */
+    float imageScale = 0.0;
+    if (widthNormalized < heightNormalized) {
+        imageScale = widthNormalized;
     }
     else {
-        pixelZoom = yScale;
-        centerImageX = true;
+        imageScale = heightNormalized;
     }
     
-    if (centerImageY) {
-        // center image vertically
-        const float ySize = imageHeight * pixelZoom;
-        const float margin = viewport[3] - ySize;
-        yPos = margin * 0.5;
+    std::vector<uint8_t> imageBytesRGBA;
+    int32_t imageWidth  = originalImageWidth;
+    int32_t imageHeight = originalImageHeight;
+    if (imageScale > 0.0) {
+        imageWidth  = originalImageWidth  * imageScale;
+        imageHeight = originalImageHeight * imageScale;
+        imageFile->getImageResizedBytes(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                        imageWidth,
+                                        imageHeight,
+                                        imageBytesRGBA);
     }
-    if (centerImageX) {
-        // center image horizontally
-        const float xSize = imageWidth * pixelZoom;
-        const float margin = viewport[3] - xSize;
-        xPos = margin * 0.5;
+    else {
+        int32_t dummyWidth  = 0;
+        int32_t dummyHeight = 0;
+        imageFile->getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                     imageBytesRGBA,
+                                     dummyWidth,
+                                     dummyHeight);
     }
     
+    const int32_t correctNumberOfBytes = imageWidth * imageHeight * 4;
+    if (static_cast<int32_t>(imageBytesRGBA.size()) != correctNumberOfBytes) {
+        CaretLogSevere("Image size is incorrect.  Number of bytes is "
+                       + QString::number(imageBytesRGBA.size())
+                       + " but should be "
+                       + QString::number(correctNumberOfBytes));
+    }
+
+    /*
+     * Center image in the window
+     */
+    const int32_t xHalfMargin = (viewportWidth - imageWidth) / 2.0;
+    const int32_t xPos = std::max(xHalfMargin, 0);
+    
+    const int32_t yHalfMargin = (viewportHeight - imageHeight) / 2.0;
+    const int32_t yPos = std::max(yHalfMargin, 0);
+    
+    /*
+     * Reset orthographic projection to viewport size
+     */
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
     const double nearClip = -1000.0;
     const double farClip  =  1000.0;
-    glOrtho(0, viewport[2],
-            0, viewport[3],
+    glOrtho(0, viewportWidth,
+            0, viewportHeight,
             nearClip, farClip);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -5929,7 +5957,6 @@ BrainOpenGLFixedPipeline::drawImage(const int viewport[4],
     //
     const float imageZ = 10.0 - farClip;
     glRasterPos3f(xPos, yPos, imageZ); //-500.0); // set Z so image behind surface
-    glPixelZoom(pixelZoom, pixelZoom);
     
     glDrawPixels(imageWidth, imageHeight,
                  GL_RGBA, GL_UNSIGNED_BYTE,

@@ -95,6 +95,15 @@ public:
                            int32_t& widthOut,
                            int32_t& heightOut) const;
     
+    bool getImageResizedBytes(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                              const int32_t resizeToWidth,
+                              const int32_t resizeToHeight,
+                              std::vector<uint8_t>& bytesRGBAOut) const;
+    
+    int32_t getWidth() const;
+    
+    int32_t getHeight() const;
+    
     virtual void readFile(const AString& filename);
     
     virtual void writeFile(const AString& filename);
