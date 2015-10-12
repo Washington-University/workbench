@@ -124,11 +124,13 @@ AnnotationTextEditorDialog::done(int resultCode)
 void
 AnnotationTextEditorDialog::textWasEdited()
 {
-    const QString text = m_textEdit->toPlainText().trimmed();
+    const QString text = m_textEdit->toPlainText();
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+    std::vector<Annotation*> annotationVector;
+    annotationVector.push_back(m_textAnnotation);
     undoCommand->setModeTextCharacters(text,
-                                       annMan->getSelectedAnnotations());
+                                       annotationVector);
     annMan->applyCommand(undoCommand);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

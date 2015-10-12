@@ -169,7 +169,7 @@ AnnotationTextEditorWidget::textEditorDialogTextChanged(const QString& text)
 void
 AnnotationTextEditorWidget::annotationTextChanged()
 {
-    QString s(m_textLineEdit->text().trimmed());
+    QString s(m_textLineEdit->text());
     s.replace("\\n", "\n");
     
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();

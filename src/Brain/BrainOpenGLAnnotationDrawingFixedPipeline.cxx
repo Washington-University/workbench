@@ -334,7 +334,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
     const AnnotationText* textAnnotation = dynamic_cast<const AnnotationText*>(annotation2D);
     bool textFlag = false;
     if (textAnnotation != NULL) {
-        if ( ! textAnnotation->getText().trimmed().isEmpty()) {
+        if ( ! textAnnotation->getText().isEmpty()) {
             textFlag = true;
         }
     }
@@ -1184,7 +1184,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                                                        *text);
                 }
                 else {
-                    if (text->getText().trimmed().isEmpty()) {
+                    if (text->getText().isEmpty()) {
                         /*
                          * Text is empty when user is dragging mouse to create a
                          * text region.  In this case, use the bounds of the 

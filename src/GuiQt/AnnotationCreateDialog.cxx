@@ -523,7 +523,7 @@ AnnotationCreateDialog::okButtonClicked()
     
     QString userText;
     if (m_annotationType == AnnotationTypeEnum::TEXT) {
-        userText = m_textEdit->toPlainText().trimmed();
+        userText = m_textEdit->toPlainText();
         if (userText.isEmpty()) {
             errorMessage.appendWithNewLine("Text is missing.");
         }
