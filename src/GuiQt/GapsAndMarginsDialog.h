@@ -57,17 +57,23 @@ namespace caret {
         
         void volumeMontageGapChanged();
         
-        void rightTabMarginCheckBoxClicked();
+        void rightTabMarginApplyTabOneToAllCheckBoxClicked();
         
-        void leftTabMarginCheckBoxClicked();
+        void leftTabMarginApplyTabOneToAllCheckBoxClicked();
         
-        void bottomTabMarginCheckBoxClicked();
+        void bottomTabMarginApplyTabOneToAllCheckBoxClicked();
         
-        void topTabMarginCheckBoxClicked();
+        void topTabMarginApplyTabOneToAllCheckBoxClicked();
         
         void surfaceMontageScaleProportionatelyCheckBoxClicked();
         
         void volumeMontageScaleProportionatelyCheckBoxClicked();
+        
+        void tabMarginScaleAllProportionatelyAllOnButtonClicked();
+        
+        void tabMarginScaleAllProportionatelyAllOffButtonClicked();
+        
+        void tabMarginScaleProportionatelyCheckBoxClicked(int tabIndex);
         
     private:
         GapsAndMarginsDialog(const GapsAndMarginsDialog&);
@@ -96,13 +102,13 @@ namespace caret {
         
         std::vector<QDoubleSpinBox*> m_topMarginSpinBoxes;
         
-        QCheckBox* m_leftMarginCheckBox;
+        QCheckBox* m_leftMarginApplyTabOneToAllCheckBox;
         
-        QCheckBox* m_rightMarginCheckBox;
+        QCheckBox* m_rightMarginApplyTabOneToAllCheckBox;
         
-        QCheckBox* m_bottomMarginCheckBox;
+        QCheckBox* m_bottomMarginApplyTabOneToAllCheckBox;
         
-        QCheckBox* m_topMarginCheckBox;
+        QCheckBox* m_topMarginApplyTabOneToAllCheckBox;
         
         QDoubleSpinBox* m_surfaceMontageHorizontalGapSpinBox;
         
@@ -116,7 +122,11 @@ namespace caret {
         
         QCheckBox* m_volumeMontageScaleProportionatelyCheckBox;
         
+        std::vector<QCheckBox*> m_tabMarginScaleProportionatelyCheckBoxes;
+        
         QSignalMapper* m_tabIndexSignalMapper;
+        
+        QSignalMapper* m_tabMarginScaleProportionatelySignalMapper;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -65,14 +65,19 @@ GapsAndMargins::GapsAndMargins()
                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                                0.0);
     
-    m_sceneAssistant->add("m_tabMarginLeftAllSelected",
-                          &m_tabMarginLeftAllSelected);
-    m_sceneAssistant->add("m_tabMarginRightAllSelected",
-                          &m_tabMarginRightAllSelected);
-    m_sceneAssistant->add("m_tabMarginBottomAllSelected",
-                          &m_tabMarginBottomAllSelected);
-    m_sceneAssistant->add("m_tabMarginTopAllSelected",
-                          &m_tabMarginTopAllSelected);
+    m_sceneAssistant->addArray("m_tabMarginScaleProportionatelySelected",
+                               m_tabMarginScaleProportionatelySelected,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                               false);
+    
+    m_sceneAssistant->add("m_tabMarginLeftApplyTabOneToAllSelected",
+                          &m_tabMarginLeftApplyTabOneToAllSelected);
+    m_sceneAssistant->add("m_tabMarginRightApplyTabOneToAllSelected",
+                          &m_tabMarginRightApplyTabOneToAllSelected);
+    m_sceneAssistant->add("m_tabMarginBottomApplyTabOneToAllSelected",
+                          &m_tabMarginBottomApplyTabOneToAllSelected);
+    m_sceneAssistant->add("m_tabMarginTopApplyTabOneToAllSelected",
+                          &m_tabMarginTopApplyTabOneToAllSelected);
     
     m_sceneAssistant->addArray("m_surfaceMontageGaps",
                                m_surfaceMontageGaps,
@@ -116,12 +121,13 @@ GapsAndMargins::reset()
         m_tabMarginsLeft[i]   = 0.0;
         m_tabMarginsRight[i]  = 0.0;
         m_tabMarginsTop[i]    = 0.0;
+        m_tabMarginScaleProportionatelySelected[i] = false;
     }
 
-    m_tabMarginLeftAllSelected   = false;
-    m_tabMarginRightAllSelected  = false;
-    m_tabMarginBottomAllSelected = false;
-    m_tabMarginTopAllSelected    = false;
+    m_tabMarginLeftApplyTabOneToAllSelected   = false;
+    m_tabMarginRightApplyTabOneToAllSelected  = false;
+    m_tabMarginBottomApplyTabOneToAllSelected = false;
+    m_tabMarginTopApplyTabOneToAllSelected    = false;
     
     for (int32_t i = 0; i < 2; i++) {
         m_surfaceMontageGaps[i] = 0.0;
@@ -141,7 +147,7 @@ GapsAndMargins::reset()
  *     Left margin for the tab.
  */
 float
-GapsAndMargins::getTabMarginLeft(const int32_t tabIndex) const
+GapsAndMargins::getMarginLeftForTab(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_tabMarginsLeft, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_tabMarginsLeft[tabIndex];
@@ -156,7 +162,7 @@ GapsAndMargins::getTabMarginLeft(const int32_t tabIndex) const
  *     Right margin for the tab.
  */
 float
-GapsAndMargins::getTabMarginRight(const int32_t tabIndex) const
+GapsAndMargins::getMarginRightForTab(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_tabMarginsRight, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_tabMarginsRight[tabIndex];
@@ -171,7 +177,7 @@ GapsAndMargins::getTabMarginRight(const int32_t tabIndex) const
  *     Bottom margin for the tab.
  */
 float
-GapsAndMargins::getTabMarginBottom(const int32_t tabIndex) const
+GapsAndMargins::getMarginBottomForTab(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_tabMarginsBottom, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_tabMarginsBottom[tabIndex];
@@ -186,7 +192,7 @@ GapsAndMargins::getTabMarginBottom(const int32_t tabIndex) const
  *     Top margin for the tab.
  */
 float
-GapsAndMargins::getTabMarginTop(const int32_t tabIndex) const
+GapsAndMargins::getMarginTopForTab(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_tabMarginsTop, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     return m_tabMarginsTop[tabIndex];
@@ -201,7 +207,7 @@ GapsAndMargins::getTabMarginTop(const int32_t tabIndex) const
  *     Left margin for the tab.
  */
 void
-GapsAndMargins::setTabMarginLeft(const int32_t tabIndex,
+GapsAndMargins::setMarginLeftForTab(const int32_t tabIndex,
                                  const float margin)
 {
     CaretAssertArrayIndex(m_tabMarginsLeft, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
@@ -221,7 +227,7 @@ GapsAndMargins::setTabMarginLeft(const int32_t tabIndex,
  *     Right margin for the tab.
  */
 void
-GapsAndMargins::setTabMarginRight(const int32_t tabIndex,
+GapsAndMargins::setMarginRightForTab(const int32_t tabIndex,
                                   const float margin)
 {
     CaretAssertArrayIndex(m_tabMarginsRight, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
@@ -241,7 +247,7 @@ GapsAndMargins::setTabMarginRight(const int32_t tabIndex,
  *     Bottom margin for the tab.
  */
 void
-GapsAndMargins::setTabMarginBottom(const int32_t tabIndex,
+GapsAndMargins::setMarginBottomForTab(const int32_t tabIndex,
                                   const float margin)
 {
     CaretAssertArrayIndex(m_tabMarginsBottom, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
@@ -261,7 +267,7 @@ GapsAndMargins::setTabMarginBottom(const int32_t tabIndex,
  *     Top margin for the tab.
  */
 void
-GapsAndMargins::setTabMarginTop(const int32_t tabIndex,
+GapsAndMargins::setMarginTopForTab(const int32_t tabIndex,
                                   const float margin)
 {
     CaretAssertArrayIndex(m_tabMarginsTop, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
@@ -360,49 +366,49 @@ GapsAndMargins::setVolumeMontageVerticalGap(const float gap)
  * @return Tab margin left all selected (applies the tab 1 margin to all tabs)
  */
 bool
-GapsAndMargins::isTabMarginLeftAllSelected() const
+GapsAndMargins::isTabMarginLeftApplyTabOneToAllSelected() const
 {
-    return m_tabMarginLeftAllSelected;
+    return m_tabMarginLeftApplyTabOneToAllSelected;
 }
 
 /**
  * @return Tab margin right all selected (applies the tab 1 margin to all tabs)
  */
 bool
-GapsAndMargins::isTabMarginRightAllSelected() const
+GapsAndMargins::isTabMarginRightApplyTabOneToAllSelected() const
 {
-    return m_tabMarginRightAllSelected;
+    return m_tabMarginRightApplyTabOneToAllSelected;
 }
 
 /**
  * @return Tab margin bottom all selected (applies the tab 1 margin to all tabs)
  */
 bool
-GapsAndMargins::isTabMarginBottomAllSelected() const
+GapsAndMargins::isTabMarginBottomApplyTabOneToAllSelected() const
 {
-    return m_tabMarginBottomAllSelected;
+    return m_tabMarginBottomApplyTabOneToAllSelected;
 }
 
 /**
  * @return Tab margin top all selected (applies the tab 1 margin to all tabs)
  */
 bool
-GapsAndMargins::isTabMarginTopAllSelected() const
+GapsAndMargins::isTabMarginTopApplyTabOneToAllSelected() const
 {
-    return m_tabMarginTopAllSelected;
+    return m_tabMarginTopApplyTabOneToAllSelected;
 }
 
 /**
  * Set tab margin left all selected and sets the left margin
  * for every tab with the tab zero's current value.
  *
- * @param status
+ * @param selected
  *     New status for tab margin left all.
  */
 void
-GapsAndMargins::setTabMarginLeftAllSelected(const bool status)
+GapsAndMargins::setTabMarginLeftApplyTabOneToAllSelected(const bool selected)
 {
-    m_tabMarginLeftAllSelected = status;
+    m_tabMarginLeftApplyTabOneToAllSelected = selected;
 
     copyTabOneLeftMarginToAllLeftMargins();
 }
@@ -411,13 +417,13 @@ GapsAndMargins::setTabMarginLeftAllSelected(const bool status)
  * Set tab margin right all selected and sets the right margin
  * for every tab with the tab zero's current value.
  *
- * @param status
+ * @param selected
  *     New status for tab margin right all.
  */
 void
-GapsAndMargins::setTabMarginRightAllSelected(const bool status)
+GapsAndMargins::setTabMarginRightApplyTabOneToAllSelected(const bool selected)
 {
-    m_tabMarginRightAllSelected = status;
+    m_tabMarginRightApplyTabOneToAllSelected = selected;
     
     copyTabOneRightMarginToAllRightMargins();
 }
@@ -426,13 +432,13 @@ GapsAndMargins::setTabMarginRightAllSelected(const bool status)
  * Set tab margin bottom all selected and sets the bottom margin
  * for every tab with the tab zero's current value.
  *
- * @param status
+ * @param selected
  *     New status for tab margin bottom all.
  */
 void
-GapsAndMargins::setTabMarginBottomAllSelected(const bool status)
+GapsAndMargins::setTabMarginBottomApplyTabOneToAllSelected(const bool selected)
 {
-    m_tabMarginBottomAllSelected = status;
+    m_tabMarginBottomApplyTabOneToAllSelected = selected;
     
     copyTabOneBottomMarginToAllBottomMargins();
 }
@@ -441,13 +447,13 @@ GapsAndMargins::setTabMarginBottomAllSelected(const bool status)
  * Set tab margin top all selected and sets the top margin
  * for every tab with the tab zero's current value.
  *
- * @param status
+ * @param selected
  *     New status for tab margin top all.
  */
 void
-GapsAndMargins::setTabMarginTopAllSelected(const bool status)
+GapsAndMargins::setTabMarginTopApplyTabOneToAllSelected(const bool selected)
 {
-    m_tabMarginTopAllSelected = status;
+    m_tabMarginTopApplyTabOneToAllSelected = selected;
     
     copyTabOneTopMarginToAllTopMargins();
 }
@@ -458,7 +464,7 @@ GapsAndMargins::setTabMarginTopAllSelected(const bool status)
 void
 GapsAndMargins::copyTabOneLeftMarginToAllLeftMargins()
 {
-    if (m_tabMarginLeftAllSelected) {
+    if (m_tabMarginLeftApplyTabOneToAllSelected) {
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             m_tabMarginsLeft[i] = m_tabMarginsLeft[0];
         }
@@ -471,7 +477,7 @@ GapsAndMargins::copyTabOneLeftMarginToAllLeftMargins()
 void
 GapsAndMargins::copyTabOneRightMarginToAllRightMargins()
 {
-    if (m_tabMarginRightAllSelected) {
+    if (m_tabMarginRightApplyTabOneToAllSelected) {
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             m_tabMarginsRight[i] = m_tabMarginsRight[0];
         }
@@ -484,7 +490,7 @@ GapsAndMargins::copyTabOneRightMarginToAllRightMargins()
 void
 GapsAndMargins::copyTabOneBottomMarginToAllBottomMargins()
 {
-    if (m_tabMarginBottomAllSelected) {
+    if (m_tabMarginBottomApplyTabOneToAllSelected) {
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             m_tabMarginsBottom[i] = m_tabMarginsBottom[0];
         }
@@ -497,8 +503,8 @@ GapsAndMargins::copyTabOneBottomMarginToAllBottomMargins()
 void
 GapsAndMargins::copyTabOneTopMarginToAllTopMargins()
 {
-    if (m_tabMarginTopAllSelected) {
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+    if (m_tabMarginTopApplyTabOneToAllSelected) {
+        for (int32_t i = 1; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             m_tabMarginsTop[i] = m_tabMarginsTop[0];
         }
     }
@@ -545,6 +551,213 @@ GapsAndMargins::setVolumeMontageScaleProportionatelySelected(const bool selected
 {
     m_volumeMontageScaleProportionatelySelected = selected;
 }
+
+/**
+ * Is tab margin scale proportionately selected?
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ * @return
+ *     The selected status.
+ */
+bool
+GapsAndMargins::isTabMarginScaleProportionatelyForTabSelected(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    return m_tabMarginScaleProportionatelySelected[tabIndex];
+}
+
+/**
+ * Set tab margin scale proportionately selection status.
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ * @param selected
+ *     New selection status.
+ */
+void
+GapsAndMargins::setTabMarginScaleProportionatelyForTabSelected(const int32_t tabIndex,
+                                                         const bool selected)
+{
+    CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    m_tabMarginScaleProportionatelySelected[tabIndex] = selected;
+}
+
+/**
+ * Set the selected status for all tabs scale proportionately property.
+ *
+ * @param selected
+ *     New selected status.
+ */
+void
+GapsAndMargins::setScaleProportionatelyForAll(const bool selected)
+{
+    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+        setTabMarginScaleProportionatelyForTabSelected(iTab, selected);
+    }
+}
+
+/**
+ * Is the margin value gui control enabled for the given tab?
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ * @param applyTabOneToAllSelected
+ *     Is apply tab one to all tabs selected for the margin?
+ * @param topMarginFlag
+ *     True if this is the top margin.
+ * @return
+ *     True if the the margin for the given tab is enabled, else false.
+ */
+bool
+GapsAndMargins::isTabMarginGuiControlEnabled(const int32_t tabIndex,
+                                   const bool applyTabOneToAllSelected,
+                                   const bool topMarginFlag) const
+{
+    bool marginEnabled = true;
+
+    /*
+     * If apply tab one to all is selected, only first tab (index zero) is enabled.
+     */
+    if (applyTabOneToAllSelected) {
+        if (tabIndex > 0) {
+            marginEnabled = false;
+        }
+        
+    }
+    
+    if (marginEnabled) {
+        /*
+         * If scale proportionately is enabled for tab, only top margin is enabled.
+         */
+        CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+        if (m_tabMarginScaleProportionatelySelected[tabIndex]) {
+            if ( ! topMarginFlag) {
+                marginEnabled = false;
+            }
+        }
+    }
+    
+    return marginEnabled;
+}
+
+
+/**
+ * @return Is margin left gui control enabled for the given tab?
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ */
+bool
+GapsAndMargins::isMarginLeftForTabGuiControlEnabled(const int32_t tabIndex) const
+{
+    return isTabMarginGuiControlEnabled(tabIndex,
+                              m_tabMarginLeftApplyTabOneToAllSelected,
+                              false);
+}
+
+/**
+ * @return Is margin right gui control enabled for the given tab?
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ */
+bool
+GapsAndMargins::isMarginRightForTabGuiControlEnabled(const int32_t tabIndex) const
+{
+    return isTabMarginGuiControlEnabled(tabIndex,
+                              m_tabMarginRightApplyTabOneToAllSelected,
+                              false);
+}
+
+/**
+ * @return Is margin top gui control enabled for the given tab?
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ */
+bool
+GapsAndMargins::isMarginTopForTabGuiControlEnabled(const int32_t tabIndex) const
+{
+    return isTabMarginGuiControlEnabled(tabIndex,
+                              m_tabMarginTopApplyTabOneToAllSelected,
+                              true);
+}
+
+/**
+ * @return Is margin bottom gui control enabled for the given tab?
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ */
+bool
+GapsAndMargins::isMarginBottomForTabGuiControlEnabled(const int32_t tabIndex) const
+{
+    return isTabMarginGuiControlEnabled(tabIndex,
+                              m_tabMarginBottomApplyTabOneToAllSelected,
+                              false);
+}
+
+/**
+ * @return Is scale proportionately enabled for the given tab?
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ */
+bool
+GapsAndMargins::isTabMarginScaleProportionatelyForTabEnabled(const int32_t /*tabIndex*/) const
+{
+    return true;
+}
+
+/**
+ * Get the margins for drawing a tab.
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ * @param viewportWidth
+ *     Width of viewport.
+ * @param viewportHeight
+ *     Height of viewport.
+ * @param MarginOut
+ *     Margin for
+ * @param MarginOut
+ *     Margin for
+ * @param MarginOut
+ *     Margin for
+ * @param MarginOut
+ *     Margin for
+ */
+void
+GapsAndMargins::getMarginsInPixelsForDrawing(const int32_t tabIndex,
+                                             const int32_t viewportWidth,
+                                             const int32_t viewportHeight,
+                                             int32_t& leftMarginOut,
+                                             int32_t& rightMarginOut,
+                                             int32_t& bottomMarginOut,
+                                             int32_t& topMarginOut) const
+{
+    leftMarginOut   = 0;
+    rightMarginOut  = 0;
+    bottomMarginOut = 0;
+    topMarginOut    = 0;
+
+    if (isTabMarginScaleProportionatelyForTabSelected(tabIndex)) {
+        const float margin = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex) / 100.0));
+        topMarginOut    = margin;
+        bottomMarginOut = margin;
+        leftMarginOut   = margin;
+        rightMarginOut  = margin;
+    }
+    else {
+        topMarginOut    = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex)    / 100.0));
+        bottomMarginOut = static_cast<int32_t>(viewportHeight * (getMarginBottomForTab(tabIndex) / 100.0));
+        leftMarginOut   = static_cast<int32_t>(viewportWidth  * (getMarginLeftForTab(tabIndex)   / 100.0));
+        rightMarginOut  = static_cast<int32_t>(viewportWidth  * (getMarginRightForTab(tabIndex)  / 100.0));
+    }
+}
+
+
 
 /**
  * Save information specific to this type of model to the scene.

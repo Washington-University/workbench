@@ -88,24 +88,24 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
          * An "ALL" selection applies first tab margin to ALL tabs
          */
         const int32_t tabIndex = browserTabContent->getTabNumber();
-        const int32_t leftMargin   = modelViewport[2] * ( (gapsAndMargins->isTabMarginLeftAllSelected()
-                                                           ? gapsAndMargins->getTabMarginLeft(0)
-                                                           : gapsAndMargins->getTabMarginLeft(tabIndex))
-                                                         / 100.0);
-        const int32_t rightMargin  = modelViewport[2] * ( (gapsAndMargins->isTabMarginRightAllSelected()
-                                                           ? gapsAndMargins->getTabMarginRight(0)
-                                                           : gapsAndMargins->getTabMarginRight(tabIndex))
-                                                         / 100.0);
-        const int32_t bottomMargin = modelViewport[3] * ( (gapsAndMargins->isTabMarginBottomAllSelected()
-                                                           ? gapsAndMargins->getTabMarginBottom(0)
-                                                           : gapsAndMargins->getTabMarginBottom(tabIndex))
-                                                         / 100.0);
-        const int32_t topMargin    = modelViewport[3] * ( (gapsAndMargins->isTabMarginTopAllSelected()
-                                                           ? gapsAndMargins->getTabMarginTop(0)
-                                                           : gapsAndMargins->getTabMarginTop(tabIndex))
-                                                         / 100.0);
+        int32_t leftMargin   = 0;
+        int32_t rightMargin  = 0;
+        int32_t bottomMargin = 0;
+        int32_t topMargin    = 0;
+        gapsAndMargins->getMarginsInPixelsForDrawing(tabIndex,
+                                                     modelViewport[2],
+                                                     modelViewport[3],
+                                                     leftMargin,
+                                                     rightMargin,
+                                                     bottomMargin,
+                                                     topMargin);
         
-        const int32_t marginHorizSize = (leftMargin + rightMargin);
+//        const int32_t leftMargin   = modelViewport[2] * (gapsAndMargins->getMarginLeftForTab(tabIndex)   / 100.0);
+//        const int32_t rightMargin  = modelViewport[2] * (gapsAndMargins->getMarginRightForTab(tabIndex)  / 100.0);
+//        const int32_t bottomMargin = modelViewport[3] * (gapsAndMargins->getMarginBottomForTab(tabIndex) / 100.0);
+//        const int32_t topMargin    = modelViewport[3] * (gapsAndMargins->getMarginTopForTab(tabIndex)    / 100.0);
+        
+        const int32_t marginHorizSize = (leftMargin   + rightMargin);
         const int32_t marginVertSize  = (bottomMargin + topMargin);
         if ((marginHorizSize < modelViewport[2])
             && (marginVertSize < modelViewport[3])) {

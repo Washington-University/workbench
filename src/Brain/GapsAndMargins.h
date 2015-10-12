@@ -35,25 +35,33 @@ namespace caret {
         
         virtual ~GapsAndMargins();
         
-        float getTabMarginLeft(const int32_t tabIndex) const;
+        float getMarginLeftForTab(const int32_t tabIndex) const;
         
-        float getTabMarginRight(const int32_t tabIndex) const;
+        float getMarginRightForTab(const int32_t tabIndex) const;
         
-        float getTabMarginBottom(const int32_t tabIndex) const;
+        float getMarginBottomForTab(const int32_t tabIndex) const;
         
-        float getTabMarginTop(const int32_t tabIndex) const;
+        float getMarginTopForTab(const int32_t tabIndex) const;
         
-        void setTabMarginLeft(const int32_t tabIndex,
+        void setMarginLeftForTab(const int32_t tabIndex,
                               const float margin);
         
-        void setTabMarginRight(const int32_t tabIndex,
+        void setMarginRightForTab(const int32_t tabIndex,
                               const float margin);
         
-        void setTabMarginBottom(const int32_t tabIndex,
+        void setMarginBottomForTab(const int32_t tabIndex,
                               const float margin);
         
-        void setTabMarginTop(const int32_t tabIndex,
+        void setMarginTopForTab(const int32_t tabIndex,
                               const float margin);
+        
+        bool isMarginLeftForTabGuiControlEnabled(const int32_t tabIndex) const;
+        
+        bool isMarginRightForTabGuiControlEnabled(const int32_t tabIndex) const;
+        
+        bool isMarginBottomForTabGuiControlEnabled(const int32_t tabIndex) const;
+        
+        bool isMarginTopForTabGuiControlEnabled(const int32_t tabIndex) const;
         
         float getSurfaceMontageHorizontalGap() const;
         
@@ -79,27 +87,44 @@ namespace caret {
         
         void setVolumeMontageScaleProportionatelySelected(const bool selected);
         
-        bool isTabMarginLeftAllSelected() const;
+        bool isTabMarginLeftApplyTabOneToAllSelected() const;
         
-        bool isTabMarginRightAllSelected() const;
+        bool isTabMarginRightApplyTabOneToAllSelected() const;
         
-        bool isTabMarginBottomAllSelected() const;
+        bool isTabMarginBottomApplyTabOneToAllSelected() const;
         
-        bool isTabMarginTopAllSelected() const;
+        bool isTabMarginTopApplyTabOneToAllSelected() const;
         
-        void setTabMarginLeftAllSelected(const bool status);
+        void setTabMarginLeftApplyTabOneToAllSelected(const bool status);
         
-        void setTabMarginRightAllSelected(const bool status);
+        void setTabMarginRightApplyTabOneToAllSelected(const bool selected);
         
-        void setTabMarginBottomAllSelected(const bool status);
+        void setTabMarginBottomApplyTabOneToAllSelected(const bool selected);
         
-        void setTabMarginTopAllSelected(const bool status);
+        void setTabMarginTopApplyTabOneToAllSelected(const bool selected);
+        
+        void setScaleProportionatelyForAll(const bool selected);
+        
+        bool isTabMarginScaleProportionatelyForTabSelected(const int32_t tabIndex) const;
+        
+        void setTabMarginScaleProportionatelyForTabSelected(const int32_t tabIndex,
+                                                         const bool selected);
+        
+        bool isTabMarginScaleProportionatelyForTabEnabled(const int32_t tabIndex) const;
         
         void reset();
 
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
+        
+        void getMarginsInPixelsForDrawing(const int32_t tabIndex,
+                                          const int32_t viewportWidth,
+                                          const int32_t viewportHeight,
+                                          int32_t& leftMarginOut,
+                                          int32_t& rightMarginOut,
+                                          int32_t& bottomMarginOut,
+                                          int32_t& topMarginOut) const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -135,6 +160,12 @@ namespace caret {
         
         void copyTabOneTopMarginToAllTopMargins();
         
+        bool isTabMarginGuiControlEnabled(const int32_t tabIndex,
+                                const bool marginSelected,
+                                const bool topMarginFlag) const;
+        
+        void applyScaleProportionately();
+        
         SceneClassAssistant* m_sceneAssistant;
 
         float m_tabMarginsLeft[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
@@ -145,13 +176,15 @@ namespace caret {
         
         float m_tabMarginsTop[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool m_tabMarginLeftAllSelected;
+        bool m_tabMarginScaleProportionatelySelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool m_tabMarginRightAllSelected;
+        bool m_tabMarginLeftApplyTabOneToAllSelected;
         
-        bool m_tabMarginBottomAllSelected;
+        bool m_tabMarginRightApplyTabOneToAllSelected;
         
-        bool m_tabMarginTopAllSelected;
+        bool m_tabMarginBottomApplyTabOneToAllSelected;
+        
+        bool m_tabMarginTopApplyTabOneToAllSelected;
         
         float m_surfaceMontageGaps[2];
         
