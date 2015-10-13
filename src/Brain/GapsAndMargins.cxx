@@ -614,31 +614,34 @@ GapsAndMargins::isTabMarginGuiControlEnabled(const int32_t tabIndex,
                                    const bool applyTabOneToAllSelected,
                                    const bool topMarginFlag) const
 {
-    bool marginEnabled = true;
-
-    /*
-     * If apply tab one to all is selected, only first tab (index zero) is enabled.
-     */
-    if (applyTabOneToAllSelected) {
-        if (tabIndex > 0) {
-            marginEnabled = false;
+    if (tabIndex == 0) {
+        if (applyTabOneToAllSelected) {
+            return true;
         }
-        
-    }
-    
-    if (marginEnabled) {
-        /*
-         * If scale proportionately is enabled for tab, only top margin is enabled.
-         */
-        CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
         if (m_tabMarginScaleProportionatelySelected[tabIndex]) {
-            if ( ! topMarginFlag) {
-                marginEnabled = false;
+            if (topMarginFlag) {
+                return true;
+            }
+            else {
+                return false;
             }
         }
     }
+    else {
+        if (m_tabMarginScaleProportionatelySelected[tabIndex]) {
+            if (topMarginFlag) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        if (applyTabOneToAllSelected) {
+            return false;
+        }
+    }
     
-    return marginEnabled;
+    return true;
 }
 
 
