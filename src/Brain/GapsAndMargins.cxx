@@ -746,8 +746,15 @@ GapsAndMargins::getMarginsInPixelsForDrawing(const int32_t tabIndex,
         const float margin = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex) / 100.0));
         topMarginOut    = margin;
         bottomMarginOut = margin;
+        
         leftMarginOut   = margin;
         rightMarginOut  = margin;
+        
+        if (viewportHeight > 0) {
+            const float aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
+            leftMarginOut  = margin * aspectRatio;
+            rightMarginOut = margin * aspectRatio;
+        }
     }
     else {
         topMarginOut    = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex)    / 100.0));
