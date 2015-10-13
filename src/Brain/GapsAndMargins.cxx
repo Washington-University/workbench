@@ -284,12 +284,12 @@ GapsAndMargins::setMarginTopForTab(const int32_t tabIndex,
         CaretAssertArrayIndex(m_tabMarginsTop, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iTab);
         m_tabMarginsTop[iTab] = margin;
         
-        CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iTab);
-        if (m_tabMarginScaleProportionatelySelected[iTab]) {
-            m_tabMarginsBottom[iTab] = margin;
-            m_tabMarginsLeft[iTab]   = margin;
-            m_tabMarginsRight[iTab]  = margin;
-        }
+//        CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iTab);
+//        if (m_tabMarginScaleProportionatelySelected[iTab]) {
+//            m_tabMarginsBottom[iTab] = margin;
+//            m_tabMarginsLeft[iTab]   = margin;
+//            m_tabMarginsRight[iTab]  = margin;
+//        }
     }
     
     
@@ -778,26 +778,26 @@ GapsAndMargins::getMarginsInPixelsForDrawing(const int32_t tabIndex,
     bottomMarginOut = 0;
     topMarginOut    = 0;
 
-//    if (isTabMarginScaleProportionatelyForTabSelected(tabIndex)) {
-//        const float margin = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex) / 100.0));
-//        topMarginOut    = margin;
-//        bottomMarginOut = margin;
-//        
-//        leftMarginOut   = margin;
-//        rightMarginOut  = margin;
-//        
-//        if (viewportHeight > 0) {
-//            const float aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
-//            leftMarginOut  = margin * aspectRatio;
-//            rightMarginOut = margin * aspectRatio;
-//        }
-//    }
-//    else {
+    if (isTabMarginScaleProportionatelyForTabSelected(tabIndex)) {
+        const float margin = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex) / 100.0));
+        topMarginOut    = margin;
+        bottomMarginOut = margin;
+        
+        leftMarginOut   = margin;
+        rightMarginOut  = margin;
+        
+        if (viewportHeight > 0) {
+            const float aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
+            leftMarginOut  = margin * aspectRatio;
+            rightMarginOut = margin * aspectRatio;
+        }
+    }
+    else {
         topMarginOut    = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex)    / 100.0));
         bottomMarginOut = static_cast<int32_t>(viewportHeight * (getMarginBottomForTab(tabIndex) / 100.0));
         leftMarginOut   = static_cast<int32_t>(viewportWidth  * (getMarginLeftForTab(tabIndex)   / 100.0));
         rightMarginOut  = static_cast<int32_t>(viewportWidth  * (getMarginRightForTab(tabIndex)  / 100.0));
-//    }
+    }
 }
 
 

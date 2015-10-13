@@ -278,8 +278,8 @@ GapsAndMarginsDialog::createMarginsWidget()
         m_tabIndexSignalMapper->setMapping(topMarginSpinBox, iTab);
         
         QCheckBox* scaleCheckBox = new QCheckBox(" ");
-        scaleCheckBox->setToolTip("When checked: (1) bottom margin is the same size as top margin;\n"
-                                  "(2) left and right margins are scaled in proportion to bottom and top margins.");
+        scaleCheckBox->setToolTip("When checked, all margins are drawn in\n"
+                                  "the same pixel size as the top margin.");
         m_tabMarginScaleProportionatelyCheckBoxes.push_back(scaleCheckBox);
         QObject::connect(scaleCheckBox, SIGNAL(clicked(bool)),
                          m_tabMarginScaleProportionatelySignalMapper, SLOT(map()));
@@ -628,11 +628,11 @@ GapsAndMarginsDialog::receiveEvent(Event* event)
 void
 GapsAndMarginsDialog::tabMarginChanged(int tabIndex)
 {
-    EventBrowserTabGet getTabEvent(tabIndex);
-    EventManager::get()->sendEvent(getTabEvent.getPointer());
-    
-    BrowserTabContent* tabContent = getTabEvent.getBrowserTab();
-    if (tabContent != NULL) {
+//    EventBrowserTabGet getTabEvent(tabIndex);
+//    EventManager::get()->sendEvent(getTabEvent.getPointer());
+//    
+//    BrowserTabContent* tabContent = getTabEvent.getBrowserTab();
+//    if (tabContent != NULL) {
         GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
 
         CaretAssertVectorIndex(m_leftMarginSpinBoxes, tabIndex);
@@ -655,7 +655,7 @@ GapsAndMarginsDialog::tabMarginChanged(int tabIndex)
         updateMarginSpinBoxes();
         
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+//    }
 }
 
 /**
