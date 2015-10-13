@@ -240,7 +240,7 @@ GapsAndMarginsDialog::createMarginsWidget()
     gridLayout->addWidget(scaleLabel, titlesRow, COLUMN_SCALE_ONE,  1, 2, Qt::AlignHCenter);
     
     const int32_t applyToAllRow = gridLayout->rowCount();
-    gridLayout->addWidget(new QLabel("Apply tab 1\nto all tabs"), applyToAllRow, COLUMN_LABEL, Qt::AlignRight | Qt::AlignVCenter);
+    gridLayout->addWidget(new QLabel("Apply Tab 1\nto All Tabs"), applyToAllRow, COLUMN_LABEL, Qt::AlignRight | Qt::AlignVCenter);
     gridLayout->addWidget(m_leftMarginApplyTabOneToAllCheckBox,   applyToAllRow, COLUMN_LEFT,   Qt::AlignHCenter);
     gridLayout->addWidget(m_rightMarginApplyTabOneToAllCheckBox,  applyToAllRow, COLUMN_RIGHT,  Qt::AlignHCenter);
     gridLayout->addWidget(m_bottomMarginApplyTabOneToAllCheckBox, applyToAllRow, COLUMN_BOTTOM, Qt::AlignHCenter);

@@ -268,14 +268,34 @@ GapsAndMargins::setMarginBottomForTab(const int32_t tabIndex,
  */
 void
 GapsAndMargins::setMarginTopForTab(const int32_t tabIndex,
-                                  const float margin)
+                                   const float margin)
 {
-    CaretAssertArrayIndex(m_tabMarginsTop, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    m_tabMarginsTop[tabIndex] = margin;
+    int32_t tabStart = tabIndex;
+    int32_t tabEnd   = tabIndex + 1;
     
     if (tabIndex == 0) {
-        copyTabOneTopMarginToAllTopMargins();
+        if (m_tabMarginTopApplyTabOneToAllSelected) {
+            tabStart = 0;
+            tabEnd   = BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS;
+        }
     }
+    
+    for (int32_t iTab = tabStart; iTab < tabEnd; iTab++) {
+        CaretAssertArrayIndex(m_tabMarginsTop, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iTab);
+        m_tabMarginsTop[iTab] = margin;
+        
+        CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iTab);
+        if (m_tabMarginScaleProportionatelySelected[iTab]) {
+            m_tabMarginsBottom[iTab] = margin;
+            m_tabMarginsLeft[iTab]   = margin;
+            m_tabMarginsRight[iTab]  = margin;
+        }
+    }
+    
+    
+//    if (tabIndex == 0) {
+//        copyTabOneTopMarginToAllTopMargins();
+//    }
 }
 
 /**
@@ -455,7 +475,11 @@ GapsAndMargins::setTabMarginTopApplyTabOneToAllSelected(const bool selected)
 {
     m_tabMarginTopApplyTabOneToAllSelected = selected;
     
-    copyTabOneTopMarginToAllTopMargins();
+    if (m_tabMarginTopApplyTabOneToAllSelected) {
+        const int32_t tabOneMargin = m_tabMarginsTop[0];
+        setMarginTopForTab(0, tabOneMargin);
+//      copyTabOneTopMarginToAllTopMargins();
+    }
 }
 
 /**
@@ -581,6 +605,10 @@ GapsAndMargins::setTabMarginScaleProportionatelyForTabSelected(const int32_t tab
 {
     CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     m_tabMarginScaleProportionatelySelected[tabIndex] = selected;
+    
+    if (m_tabMarginScaleProportionatelySelected[tabIndex]) {
+        setMarginTopForTab(tabIndex, getMarginTopForTab(tabIndex));
+    }
 }
 
 /**
@@ -630,7 +658,12 @@ GapsAndMargins::isTabMarginGuiControlEnabled(const int32_t tabIndex,
     else {
         if (m_tabMarginScaleProportionatelySelected[tabIndex]) {
             if (topMarginFlag) {
-                return true;
+                if (applyTabOneToAllSelected) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
             }
             else {
                 return false;
@@ -745,26 +778,26 @@ GapsAndMargins::getMarginsInPixelsForDrawing(const int32_t tabIndex,
     bottomMarginOut = 0;
     topMarginOut    = 0;
 
-    if (isTabMarginScaleProportionatelyForTabSelected(tabIndex)) {
-        const float margin = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex) / 100.0));
-        topMarginOut    = margin;
-        bottomMarginOut = margin;
-        
-        leftMarginOut   = margin;
-        rightMarginOut  = margin;
-        
-        if (viewportHeight > 0) {
-            const float aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
-            leftMarginOut  = margin * aspectRatio;
-            rightMarginOut = margin * aspectRatio;
-        }
-    }
-    else {
+//    if (isTabMarginScaleProportionatelyForTabSelected(tabIndex)) {
+//        const float margin = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex) / 100.0));
+//        topMarginOut    = margin;
+//        bottomMarginOut = margin;
+//        
+//        leftMarginOut   = margin;
+//        rightMarginOut  = margin;
+//        
+//        if (viewportHeight > 0) {
+//            const float aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
+//            leftMarginOut  = margin * aspectRatio;
+//            rightMarginOut = margin * aspectRatio;
+//        }
+//    }
+//    else {
         topMarginOut    = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex)    / 100.0));
         bottomMarginOut = static_cast<int32_t>(viewportHeight * (getMarginBottomForTab(tabIndex) / 100.0));
         leftMarginOut   = static_cast<int32_t>(viewportWidth  * (getMarginLeftForTab(tabIndex)   / 100.0));
         rightMarginOut  = static_cast<int32_t>(viewportWidth  * (getMarginRightForTab(tabIndex)  / 100.0));
-    }
+//    }
 }
 
 
