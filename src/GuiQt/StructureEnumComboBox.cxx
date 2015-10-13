@@ -105,9 +105,12 @@ StructureEnumComboBox::listOnlyTheseStructures(const std::vector<StructureEnum::
 void
 StructureEnumComboBox::listOnlyValidStructures()
 {
+    const StructureEnum::Enum selectedStructure = getSelectedStructure();
+    
     this->structureComboBox->clear();
     this->structureComboBox->blockSignals(true);
     
+    int32_t selectedStructureIndex = -1;
     const Brain* brain = GuiManager::get()->getBrain();
     const int32_t numStructures = brain->getNumberOfBrainStructures();
     for (int32_t i = 0; i < numStructures; i++) {
@@ -115,6 +118,16 @@ StructureEnumComboBox::listOnlyValidStructures()
         const StructureEnum::Enum structure = bs->getStructure();
         this->structureComboBox->addItem(StructureEnum::toGuiName(structure));
         this->structureComboBox->setItemData(i, StructureEnum::toIntegerCode(structure));
+        
+        if (selectedStructure != StructureEnum::INVALID) {
+            if (structure == selectedStructure) {
+                selectedStructureIndex = this->structureComboBox->count() - 1;
+            }
+        }
+    }
+    
+    if (selectedStructureIndex >= 0) {
+        this->structureComboBox->setCurrentIndex(selectedStructureIndex);
     }
     
     this->structureComboBox->blockSignals(false);
