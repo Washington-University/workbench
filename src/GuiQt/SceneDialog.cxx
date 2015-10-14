@@ -864,7 +864,7 @@ SceneDialog::validateContentOfCreateSceneDialog(WuQDataEntryDialog* sceneCreateD
     
     QWidget* sceneNameWidget = sceneCreateDialog->getDataWidgetWithName("sceneNameLineEdit");
     if (sceneNameWidget != NULL) {
-        QLineEdit* sceneNameLineEdit = dynamic_cast<QLineEdit*>(sceneNameWidget);
+        QLineEdit* sceneNameLineEdit = qobject_cast<QLineEdit*>(sceneNameWidget);
         const AString sceneName = sceneNameLineEdit->text().trimmed();
         if (sceneName.isEmpty()) {
             dataValid = false;

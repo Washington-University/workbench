@@ -47,7 +47,7 @@ namespace caret {
         
         void clear();
         
-        QObject* getObject() { return dynamic_cast<QObject*>(this); }
+        QObject* getObject() { return qobject_cast<QObject*>(this); }
         
         bool isVisible() const;
         

@@ -171,10 +171,10 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
     const int32_t sceneHeight = sceneClass->getIntegerValue("geometryHeight",
                                                             -1);
 
-    const bool isDialog = (dynamic_cast<QDialog*>(m_window) != NULL);
-    QDockWidget* dockWidget = dynamic_cast<QDockWidget*>(m_window);
+    const bool isDialog = (qobject_cast<QDialog*>(m_window) != NULL);
+    QDockWidget* dockWidget = qobject_cast<QDockWidget*>(m_window);
     const bool isDockWidget = (dockWidget != NULL);
-    const bool isWindow = (dynamic_cast<QMainWindow*>(m_window) != NULL);
+    const bool isWindow = (qobject_cast<QMainWindow*>(m_window) != NULL);
     
     bool isWidget = true;
     if (isDialog

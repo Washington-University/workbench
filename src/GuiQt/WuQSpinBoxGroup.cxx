@@ -111,12 +111,12 @@ SpinBoxReceiver::SpinBoxReceiver(WuQSpinBoxGroup* spinBoxGroup,
     this->spinBoxGroup = spinBoxGroup;
     this->spinBoxIndex = spinBoxIndex;
     
-    this->spinBox = dynamic_cast<QSpinBox*>(abstractSpinBox);
+    this->spinBox = qobject_cast<QSpinBox*>(abstractSpinBox);
     if (this->spinBox != NULL) {
         QObject::connect(this->spinBox, SIGNAL(valueChanged(int)),
                          this, SLOT(valueChangedSlot(int)));
     }
-    this->doubleSpinBox = dynamic_cast<QDoubleSpinBox*>(abstractSpinBox);
+    this->doubleSpinBox = qobject_cast<QDoubleSpinBox*>(abstractSpinBox);
     if (this->doubleSpinBox != NULL) {
         QObject::connect(this->doubleSpinBox, SIGNAL(valueChanged(double)),
                          this, SLOT(valueChangedSlot(double)));
