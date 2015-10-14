@@ -78,7 +78,7 @@ MacApplication::event(QEvent *event)
     switch (event->type()) {
         case QEvent::FileOpen:
         {
-            QFileOpenEvent* openFileEvent = dynamic_cast<QFileOpenEvent*>(event);
+            QFileOpenEvent* openFileEvent = static_cast<QFileOpenEvent*>(event);
             CaretAssert(openFileEvent);
             
             const QString filename = openFileEvent->file();

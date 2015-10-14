@@ -750,7 +750,7 @@ BrainOpenGLWidget::event(QEvent* event)
     const bool toolTipsEnabled = false;
     if (toolTipsEnabled) {
         if (event->type() == QEvent::ToolTip) {
-            QHelpEvent* helpEvent = dynamic_cast<QHelpEvent*>(event);
+            QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
             CaretAssert(helpEvent);
             
             QPoint globalXY = helpEvent->globalPos();
