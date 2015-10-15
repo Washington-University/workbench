@@ -854,11 +854,61 @@ CaretPreferences::addToPreviousSpecFiles(const AString& specFileName)
     this->qSettings->sync();
 }
 
+/**
+ * Clear the previous spec files.
+ */
 void 
 CaretPreferences::clearPreviousSpecFiles()
 {
     this->previousSpecFiles.clear();
     this->addToPreviousSpecFiles("");
+}
+
+/**
+ * Get the previous scene files.
+ *
+ * @param previousSceneFiles
+ *    Will contain previous scene files.
+ */
+void
+CaretPreferences::getPreviousSceneFiles(std::vector<AString>& previousSceneFiles) const
+{
+    previousSceneFiles = this->previousSceneFiles;
+}
+
+/**
+ * Add to the previous scene files.
+ *
+ * @param sceneFileName
+ *    Scene file added to the previous scene files.
+ */
+void
+CaretPreferences::addToPreviousSceneFiles(const AString& sceneFileName)
+{
+    if (sceneFileName.isEmpty() == false) {
+        this->addToPrevious(this->previousSceneFiles,
+                            sceneFileName);
+    }
+    
+    const int32_t num = static_cast<int32_t>(this->previousSceneFiles.size());
+    this->qSettings->beginWriteArray(NAME_PREVIOUS_SCENE_FILES);
+    for (int i = 0; i < num; i++) {
+        this->qSettings->setArrayIndex(i);
+        this->qSettings->setValue(AString::number(i),
+                                  this->previousSceneFiles[i]);
+    }
+    this->qSettings->endArray();
+    this->qSettings->sync();
+}
+
+/**
+ * Clear the previous scene files.
+ */
+void
+CaretPreferences::clearPreviousSceneFiles()
+{
+    this->previousSceneFiles.clear();
+    this->addToPreviousSceneFiles("");
 }
 
 /**
@@ -1488,6 +1538,14 @@ CaretPreferences::readPreferences()
     for (int i = 0; i < numPrevSpec; i++) {
         this->qSettings->setArrayIndex(i);
         previousSpecFiles.push_back(this->qSettings->value(AString::number(i)).toString());
+    }
+    this->qSettings->endArray();
+    
+    this->previousSceneFiles.clear();
+    const int numPrevScene = this->qSettings->beginReadArray(NAME_PREVIOUS_SCENE_FILES);
+    for (int i = 0; i < numPrevScene; i++) {
+        this->qSettings->setArrayIndex(i);
+        previousSceneFiles.push_back(this->qSettings->value(AString::number(i)).toString());
     }
     this->qSettings->endArray();
     

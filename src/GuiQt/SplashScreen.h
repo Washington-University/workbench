@@ -38,16 +38,16 @@ namespace caret {
         
         virtual ~SplashScreen();
         
-        AString getSelectedSpecFileName() const;
+        AString getSelectedDataFileName() const;
         
     private slots:
         void websiteLinkActivated(const QString& link);
         
-        void specFileTreeWidgetItemClicked(QTreeWidgetItem* item);
+        void dataFileTreeWidgetItemClicked(QTreeWidgetItem* item);
         
-        void specFileTreeWidgetItemDoubleClicked(QTreeWidgetItem* item);
+        void dataFileTreeWidgetItemDoubleClicked(QTreeWidgetItem* item);
         
-        void chooseSpecFileViaOpenFileDialog();
+        void chooseDataFileViaOpenFileDialog();
         
         void twitterActionTriggered();
         
@@ -59,15 +59,19 @@ namespace caret {
 
         SplashScreen& operator=(const SplashScreen&);
         
+        QTreeWidgetItem* addRecentSceneFiles();
+        
         QTreeWidgetItem* addRecentSpecFiles();
+        
+        QTreeWidgetItem* addDirectorySceneFiles();
         
         QTreeWidgetItem* addDirectorySpecFiles();
         
-        int32_t loadSpecFileTreeWidget();
+        int32_t loadDataFileTreeWidget();
         
-        QTreeWidget* m_specFileTreeWidget;
+        QTreeWidget* m_dataFileTreeWidget;
         
-        AString m_selectedSpecFileName;
+        AString m_selectedDataFileName;
         
         QPushButton* m_openOtherSpecFilePushButton;
     };

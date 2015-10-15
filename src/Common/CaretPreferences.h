@@ -89,6 +89,12 @@ namespace caret {
         
         void clearPreviousSpecFiles();
         
+        void getPreviousSceneFiles(std::vector<AString>& previousSceneFiles) const;
+        
+        void addToPreviousSceneFiles(const AString& specFileName);
+        
+        void clearPreviousSceneFiles();
+        
         void getPreviousOpenFileDirectories(std::vector<AString>& previousOpenFileDirectories) const;
         
         void getPreviousOpenFileDirectories(QStringList& previousOpenFileDirectories) const;
@@ -269,6 +275,8 @@ namespace caret {
         
         std::vector<AString> previousSpecFiles;
         
+        std::vector<AString> previousSceneFiles;
+        
         std::vector<AString> previousOpenFileDirectories;
         
         LogLevelEnum::Enum loggingLevel;
@@ -333,6 +341,7 @@ namespace caret {
         static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_MANAGE_FILES_VIEW_FILE_TYPE;
         static const AString NAME_OPENGL_DRAWING_METHOD;
+        static const AString NAME_PREVIOUS_SCENE_FILES;
         static const AString NAME_PREVIOUS_SPEC_FILES;
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
         static const AString NAME_SPLASH_SCREEN;
@@ -371,6 +380,7 @@ namespace caret {
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_MANAGE_FILES_VIEW_FILE_TYPE     = "manageFilesViewFileType";
     const AString CaretPreferences::NAME_OPENGL_DRAWING_METHOD     = "openGLDrawingMethod";
+    const AString CaretPreferences::NAME_PREVIOUS_SCENE_FILES     = "previousSceneFiles";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
     const AString CaretPreferences::NAME_SPLASH_SCREEN = "splashScreen";

@@ -3192,6 +3192,10 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
         m_sceneFiles.push_back(sf);
     }
     
+    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->addToPreviousSceneFiles(sf->getFileName());
+    
     return sf;
 }
 

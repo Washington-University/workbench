@@ -943,6 +943,13 @@ BrainBrowserWindow::createMenuFile()
                      this, SLOT(processRecentSpecFileMenuAboutToBeDisplayed()));
     QObject::connect(m_recentSpecFileMenu, SIGNAL(triggered(QAction*)),
                      this, SLOT(processRecentSpecFileMenuSelection(QAction*)));
+    
+    m_recentSceneFileMenu = menu->addMenu("Open Recent Scene File");
+    QObject::connect(m_recentSceneFileMenu, SIGNAL(aboutToShow()),
+                     this, SLOT(processRecentSceneFileMenuAboutToBeDisplayed()));
+    QObject::connect(m_recentSceneFileMenu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(processRecentSceneFileMenuSelection(QAction*)));
+    
     //menu->addAction(m_openFileViaSpecFileAction);
     menu->addAction(m_manageFilesAction);
     menu->addAction(m_closeSpecFileAction);
@@ -1185,6 +1192,143 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
             return;
         }
 
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+
+
+/**
+ * Called when Open Recent Scene File Menu is about to be displayed
+ * and creates the content of the menu.
+ */
+void
+BrainBrowserWindow::processRecentSceneFileMenuAboutToBeDisplayed()
+{
+    m_recentSceneFileMenu->clear();
+    
+    const int32_t numRecentSceneFiles = BrainBrowserWindow::loadRecentSceneFileMenu(m_recentSceneFileMenu);
+    
+    if (numRecentSceneFiles > 0) {
+        m_recentSceneFileMenu->addSeparator();
+        QAction* action = new QAction("Clear Menu",
+                                      m_recentSceneFileMenu);
+        action->setData("CLEAR_CLEAR");
+        m_recentSceneFileMenu->addAction(action);
+    }
+}
+
+/**
+ * Load a menu with recent scene files.  This method only ADDS
+ * items to the menu, nothing is removed or cleared.
+ *
+ * @param recentSceneFileMenu
+ *    Menu to which recent scene files are added.
+ * @return
+ *    Returns the number of recent scene files added to the menu.
+ */
+int32_t
+BrainBrowserWindow::loadRecentSceneFileMenu(QMenu* recentSceneFileMenu)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    std::vector<AString> recentSceneFiles;
+    prefs->getPreviousSceneFiles(recentSceneFiles);
+    
+    const int32_t numRecentSceneFiles = static_cast<int>(recentSceneFiles.size());
+    for (int32_t i = 0; i < numRecentSceneFiles; i++) {
+        AString actionName;
+        AString actionFullPath;
+        if (DataFile::isFileOnNetwork(recentSceneFiles[i])) {
+            actionName     = recentSceneFiles[i];
+            actionFullPath = recentSceneFiles[i];
+        }
+        else {
+            FileInformation fileInfo(recentSceneFiles[i]);
+            QString path = fileInfo.getPathName();
+            QString name = fileInfo.getFileName();
+            if (path.isEmpty() == false) {
+                name += (" (" + path + ")");
+            }
+            actionName = name;
+            actionFullPath = fileInfo.getAbsoluteFilePath();
+        }
+        
+        QAction* action = new QAction(actionName,
+                                      recentSceneFileMenu);
+        /*
+         * If this "setData()" action changes you will need to update:
+         * (1) BrainBrowserWindow::processRecentSceneFileMenuSelection
+         * (2) MacDockMenu::menuActionTriggered
+         */
+        action->setData(actionFullPath);
+        recentSceneFileMenu->addAction(action);
+    }
+    
+    return numRecentSceneFiles;
+}
+
+/**
+ * Called when an item is selected from the recent scene file
+ * menu.
+ * @param itemAction
+ *    Action of the menu item that was selected.
+ */
+void
+BrainBrowserWindow::processRecentSceneFileMenuSelection(QAction* itemAction)
+{
+    //AString errorMessages;
+    
+    const AString sceneFileName = itemAction->data().toString();
+    if (sceneFileName == "CLEAR_CLEAR") {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->clearPreviousSceneFiles();
+        return;
+    }
+    
+    if ( ! sceneFileName.isEmpty()) {
+        std::vector<AString> filenamesVector;
+        filenamesVector.push_back(sceneFileName);
+        std::vector<DataFileTypeEnum::Enum> dataFileTypes;
+        dataFileTypes.push_back(DataFileTypeEnum::SCENE);
+        loadFiles(this,
+                  filenamesVector,
+                  dataFileTypes,
+                  LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE,
+                  "",
+                  "");
+//        loadSceneFromCommandLine(sceneFileName,
+//                                 "");
+//        SpecFile specFile;
+//        try {
+//            specFile.readFile(sceneFileName);
+//            
+//            if (m_recentSpecFileMenu->title() == m_recentSpecFileMenuOpenConfirmTitle) {
+//                if (GuiManager::get()->processShowOpenSpecFileDialog(&specFile,
+//                                                                     this)) {
+//                    m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+//                }
+//            }
+//            else if (m_recentSpecFileMenu->title() == m_recentSpecFileMenuLoadNoConfirmTitle) {
+//                std::vector<AString> fileNamesToLoad;
+//                fileNamesToLoad.push_back(specFileName);
+//                loadFilesFromCommandLine(fileNamesToLoad,
+//                                         BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
+//                m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+//            }
+//            else {
+//                CaretAssert(0);
+//            }
+//        }
+//        catch (const DataFileException& e) {
+//            //errorMessages += e.whatString();
+//            QMessageBox::critical(this,
+//                                  "ERROR",
+//                                  e.whatString());
+//            return;
+//        }
+        
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -3036,8 +3180,7 @@ BrainBrowserWindow::getBrowserTabContent(int tabIndex)
  * Overrides that in QMainWindow and prevents the 
  * default context menu from appearing.
  *
- * @return Context menu for display or NULL if
- * nothing available.
+"O * nothing available.
  */
 QMenu* 
 BrainBrowserWindow::createPopupMenu()

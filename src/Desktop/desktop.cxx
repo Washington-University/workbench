@@ -407,12 +407,12 @@ main(int argc, char* argv[])
             myState.fileList.push_back(dataFileNameFromOS);
             showSelectionSplashScreen = false;
             if (dataFileNameFromOS.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
-                haveSpec = true;
+                haveSpec  = true;
                 haveFiles = false;
                 myState.specLoadType = 0;
             }
             else {
-                haveSpec = false;
+                haveSpec  = false;
                 haveFiles = true;
             }
         }
@@ -429,13 +429,19 @@ main(int argc, char* argv[])
             SplashScreen splashScreen(NULL);
             app.processEvents();
             if (splashScreen.exec()) {
-                const QString specFileName = splashScreen.getSelectedSpecFileName();
-                if (specFileName.isEmpty() == false) {
+                const QString dataFileName = splashScreen.getSelectedDataFileName();
+                if ( ! dataFileName.isEmpty()) {
                     myState.fileList.clear();
-                    myState.fileList.push_back(specFileName);
-                    myState.specLoadType = 0; // which means use BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE;
-                    haveSpec = true;
-                    haveFiles = false;
+                    myState.fileList.push_back(dataFileName);
+                    if (dataFileName.endsWith(DataFileTypeEnum::SPECIFICATION)) {
+                        myState.specLoadType = 0; // which means use BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE;
+                        haveSpec  = true;
+                        haveFiles = false;
+                    }
+                    else {
+                        haveSpec  = false;
+                        haveFiles = true;
+                    }
                 }
             }
         }

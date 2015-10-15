@@ -125,6 +125,8 @@ namespace caret {
         
         static int32_t loadRecentSpecFileMenu(QMenu* recentSpecFileMenu);
         
+        static int32_t loadRecentSceneFileMenu(QMenu* recentSpecFileMenu);
+        
         float getOpenGLWidgetAspectRatio() const;
         
         float getOpenGLWidgetAspectRatioForTabIndex(const int32_t tabIndex) const;
@@ -171,6 +173,9 @@ namespace caret {
         
         void processMoveSelectedTabToWindowMenuAboutToBeDisplayed();
         void processMoveSelectedTabToWindowMenuSelection(QAction*);
+        
+        void processRecentSceneFileMenuAboutToBeDisplayed();
+        void processRecentSceneFileMenuSelection(QAction*);
         
         void processRecentSpecFileMenuAboutToBeDisplayed();
         void processRecentSpecFileMenuSelection(QAction*);
@@ -366,6 +371,8 @@ namespace caret {
         QMenu* m_recentSpecFileMenu;
         AString m_recentSpecFileMenuOpenConfirmTitle;
         AString m_recentSpecFileMenuLoadNoConfirmTitle;
+        
+        QMenu* m_recentSceneFileMenu;
         
         /**
          * The aspect ratio value.

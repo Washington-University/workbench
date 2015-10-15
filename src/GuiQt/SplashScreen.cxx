@@ -120,15 +120,15 @@ SplashScreen::SplashScreen(QWidget* parent)
     QStringList headerText;
     headerText.append("Spec File");
     headerText.append("Path");
-    m_specFileTreeWidget = new QTreeWidget();
-    m_specFileTreeWidget->setHeaderLabels(headerText);
-    QObject::connect(m_specFileTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-                     this, SLOT(specFileTreeWidgetItemClicked(QTreeWidgetItem*)));
-    QObject::connect(m_specFileTreeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),
-                     this, SLOT(specFileTreeWidgetItemDoubleClicked(QTreeWidgetItem*)));
+    m_dataFileTreeWidget = new QTreeWidget();
+    m_dataFileTreeWidget->setHeaderLabels(headerText);
+    QObject::connect(m_dataFileTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+                     this, SLOT(dataFileTreeWidgetItemClicked(QTreeWidgetItem*)));
+    QObject::connect(m_dataFileTreeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),
+                     this, SLOT(dataFileTreeWidgetItemDoubleClicked(QTreeWidgetItem*)));
 
     QScrollArea* treeScrollArea = new QScrollArea();
-    treeScrollArea->setWidget(m_specFileTreeWidget);
+    treeScrollArea->setWidget(m_dataFileTreeWidget);
     treeScrollArea->setWidgetResizable(true);
     
     QWidget* leftWidget = new QWidget();
@@ -152,7 +152,7 @@ SplashScreen::SplashScreen(QWidget* parent)
     horizLayout->addWidget(leftWidget);
     horizLayout->addWidget(treeScrollArea);
     
-    const int32_t treeDesiredWidth = loadSpecFileTreeWidget();
+    const int32_t treeDesiredWidth = loadDataFileTreeWidget();
     
     m_openOtherSpecFilePushButton = addUserPushButton("Open Other...",
                                                       QDialogButtonBox::AcceptRole);
@@ -185,12 +185,12 @@ SplashScreen::~SplashScreen()
 }
 
 /**
- * @return The selected spec file name.
+ * @return The selected data file name.
  */
 AString 
-SplashScreen::getSelectedSpecFileName() const
+SplashScreen::getSelectedDataFileName() const
 {
-    return m_selectedSpecFileName;
+    return m_selectedDataFileName;
 }
 
 /**
@@ -221,12 +221,14 @@ SplashScreen::twitterActionTriggered()
  *    Item clicked.
  */
 void 
-SplashScreen::specFileTreeWidgetItemClicked(QTreeWidgetItem* item)
+SplashScreen::dataFileTreeWidgetItemClicked(QTreeWidgetItem* item)
 {
-    m_selectedSpecFileName = "";
+    m_selectedDataFileName = "";
     
     if (item != NULL) {
-        m_selectedSpecFileName = item->data(0, Qt::UserRole).toString();
+        if ( ! item->isDisabled()) {
+            m_selectedDataFileName = item->data(0, Qt::UserRole).toString();
+        }
     }
 }
 
@@ -236,17 +238,19 @@ SplashScreen::specFileTreeWidgetItemClicked(QTreeWidgetItem* item)
  *    Item clicked.
  */
 void 
-SplashScreen::specFileTreeWidgetItemDoubleClicked(QTreeWidgetItem* item)
+SplashScreen::dataFileTreeWidgetItemDoubleClicked(QTreeWidgetItem* item)
 {
-    m_selectedSpecFileName = "";
+    m_selectedDataFileName = "";
     
     if (item != NULL) {
-        m_selectedSpecFileName = item->data(0, Qt::UserRole).toString();
+        if ( ! item->isDisabled()) {
+            m_selectedDataFileName = item->data(0, Qt::UserRole).toString();
         
-        /*
-         * Accept is like hitting OK button
-         */
-        this->accept();
+            /*
+             * Accept is like hitting OK button
+             */
+            this->accept();
+        }
     }
 }
 
@@ -260,7 +264,7 @@ WuQDialogModal::DialogUserButtonResult
 SplashScreen::userButtonPressed(QPushButton* userPushButton)
 {
     if (userPushButton == m_openOtherSpecFilePushButton) {
-        chooseSpecFileViaOpenFileDialog();
+        chooseDataFileViaOpenFileDialog();
     }
     else {
         CaretAssertMessage(0, "Unrecognized user pushbutton clicked \""
@@ -271,25 +275,27 @@ SplashScreen::userButtonPressed(QPushButton* userPushButton)
 }
 
 /**
- * Choose a spec file with the Open File Dialog.
+ * Choose a data file with the Open File Dialog.
  */
 void 
-SplashScreen::chooseSpecFileViaOpenFileDialog()
+SplashScreen::chooseDataFileViaOpenFileDialog()
 {
     QStringList filenameFilterList;
+    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SCENE));
     filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
     CaretFileDialog fd(this);
     fd.setAcceptMode(CaretFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::ExistingFile);
     fd.setViewMode(CaretFileDialog::List);
+    fd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
     
     AString errorMessages;
     
     if (fd.exec()) {
         QStringList selectedFiles = fd.selectedFiles();
         if (selectedFiles.empty() == false) {   
-            m_selectedSpecFileName = selectedFiles.at(0);
+            m_selectedDataFileName = selectedFiles.at(0);
             
             /*
              * Accept indicates user has 'accepted' the
@@ -304,28 +310,40 @@ SplashScreen::chooseSpecFileViaOpenFileDialog()
  * Load Spec Files into the tree widget.
  */
 int32_t 
-SplashScreen::loadSpecFileTreeWidget()
+SplashScreen::loadDataFileTreeWidget()
 {
-    m_specFileTreeWidget->clear();
+    m_dataFileTreeWidget->clear();
     
     QTreeWidgetItem* selectedItem = addDirectorySpecFiles();
+    
+    if (selectedItem != NULL) {
+        addDirectorySceneFiles();
+    }
+    else {
+        selectedItem = addDirectorySceneFiles();
+    }
     
     QTreeWidgetItem* specItem = addRecentSpecFiles();
     if (specItem != NULL) {
         selectedItem = specItem;
     }
     
+    QTreeWidgetItem* sceneItem = addRecentSceneFiles();
+    if (selectedItem == NULL) {
+        selectedItem = sceneItem;
+    }
+    
     int nameColWidth = 0;
     int pathColWidth = 0;
     if (selectedItem != NULL) {
-        m_specFileTreeWidget->setCurrentItem(selectedItem);
+        m_dataFileTreeWidget->setCurrentItem(selectedItem);
         
-        nameColWidth = m_specFileTreeWidget->QAbstractItemView::sizeHintForColumn(0) + 25;
-        pathColWidth = m_specFileTreeWidget->QAbstractItemView::sizeHintForColumn(1);
-        m_specFileTreeWidget->setColumnWidth(0,
+        nameColWidth = m_dataFileTreeWidget->QAbstractItemView::sizeHintForColumn(0) + 25;
+        pathColWidth = m_dataFileTreeWidget->QAbstractItemView::sizeHintForColumn(1);
+        m_dataFileTreeWidget->setColumnWidth(0,
                                              nameColWidth);
         
-        this->specFileTreeWidgetItemClicked(selectedItem);
+        this->dataFileTreeWidgetItemClicked(selectedItem);
     }
     
     int treeWidgetWidth = (nameColWidth
@@ -334,7 +352,7 @@ SplashScreen::loadSpecFileTreeWidget()
         treeWidgetWidth = 250;
     }
     
-    m_specFileTreeWidget->setMinimumWidth(treeWidgetWidth);
+    m_dataFileTreeWidget->setMinimumWidth(treeWidgetWidth);
     
     return treeWidgetWidth;
 }
@@ -363,7 +381,7 @@ SplashScreen::addRecentSpecFiles()
             itemText.append("-------------------------------");
             QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
             titleItem->setDisabled(true);
-            m_specFileTreeWidget->addTopLevelItem(titleItem);
+            m_dataFileTreeWidget->addTopLevelItem(titleItem);
         }
         
         const QString specFileName = recentSpecFiles[i];
@@ -393,13 +411,78 @@ SplashScreen::addRecentSpecFiles()
                          Qt::UserRole, 
                          fullPath);   
             
-            m_specFileTreeWidget->addTopLevelItem(lwi);
+            m_dataFileTreeWidget->addTopLevelItem(lwi);
             
             if (firstItem == NULL) {
                 firstItem = lwi;
             }
         }
     } 
+    
+    return firstItem;
+}
+
+/**
+ * Add recent scene files.
+ */
+QTreeWidgetItem*
+SplashScreen::addRecentSceneFiles()
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    std::vector<AString> recentSceneFiles;
+    prefs->getPreviousSceneFiles(recentSceneFiles);
+    
+    QTreeWidgetItem* firstItem = NULL;
+    
+    const int32_t numRecentSceneFiles = static_cast<int>(recentSceneFiles.size());
+    for (int32_t i = 0; i < numRecentSceneFiles; i++) {
+        QString path;
+        QString name;
+        QString fullPath;
+        
+        if (firstItem == NULL) {
+            QStringList itemText;
+            itemText.append("Recent Scene Files");
+            itemText.append("-------------------------------");
+            QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
+            titleItem->setDisabled(true);
+            m_dataFileTreeWidget->addTopLevelItem(titleItem);
+        }
+        
+        const QString sceneFileName = recentSceneFiles[i];
+        if (DataFile::isFileOnNetwork(sceneFileName)) {
+            const int lastSlash = sceneFileName.lastIndexOf('/');
+            name = sceneFileName.mid(lastSlash + 1);
+            path = sceneFileName.left(lastSlash);
+            fullPath = sceneFileName;
+        }
+        else {
+            FileInformation fileInfo(sceneFileName);
+            path = fileInfo.getPathName().trimmed();
+            name = fileInfo.getFileName().trimmed();
+            fullPath = fileInfo.getAbsoluteFilePath();
+        }
+        
+        if (name.isEmpty() == false) {
+            QStringList treeText;
+            treeText.append("    " + name);
+            treeText.append(path);
+            
+            QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
+            lwi->setData(0,
+                         Qt::UserRole,
+                         fullPath);
+            lwi->setData(1,
+                         Qt::UserRole,
+                         fullPath);
+            
+            m_dataFileTreeWidget->addTopLevelItem(lwi);
+            
+            if (firstItem == NULL) {
+                firstItem = lwi;
+            }
+        }
+    }
     
     return firstItem;
 }
@@ -425,11 +508,11 @@ SplashScreen::addDirectorySpecFiles()
     for (int32_t i = 0; i < numFiles; i++) {
         if (firstItem == NULL) {
             QStringList itemText;
-            itemText.append("Current Directory");
+            itemText.append("Current Directory Spec Files");
             itemText.append(dirName);
             QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
             titleItem->setDisabled(true);
-            m_specFileTreeWidget->addTopLevelItem(titleItem);
+            m_dataFileTreeWidget->addTopLevelItem(titleItem);
         }
         
         FileInformation fileInfo(specFileList.at(i));
@@ -447,8 +530,61 @@ SplashScreen::addDirectorySpecFiles()
         lwi->setData(1,
                      Qt::UserRole, 
                      fullPath);            
-        m_specFileTreeWidget->addTopLevelItem(lwi);
+        m_dataFileTreeWidget->addTopLevelItem(lwi);
 
+        if (firstItem == NULL) {
+            firstItem = lwi;
+        }
+    }
+    
+    return firstItem;
+}
+
+/**
+ * Add scene files in current directory
+ */
+QTreeWidgetItem*
+SplashScreen::addDirectorySceneFiles()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    const QString dirName = brain->getCurrentDirectory();
+    
+    QTreeWidgetItem* firstItem = NULL;
+    
+    QStringList nameFilters;
+    nameFilters.append("*." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SCENE));
+    QDir dir(dirName);
+    QStringList sceneFileList = dir.entryList(nameFilters,
+                                             QDir::Files,
+                                             QDir::Name);
+    const int32_t numFiles = sceneFileList.count();
+    for (int32_t i = 0; i < numFiles; i++) {
+        if (firstItem == NULL) {
+            QStringList itemText;
+            itemText.append("Current Directory Scene");
+            itemText.append(dirName);
+            QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
+            titleItem->setDisabled(true);
+            m_dataFileTreeWidget->addTopLevelItem(titleItem);
+        }
+        
+        FileInformation fileInfo(sceneFileList.at(i));
+        const QString name = fileInfo.getFileName().trimmed();
+        const QString fullPath = fileInfo.getAbsoluteFilePath();
+        
+        QStringList treeText;
+        treeText.append("    " + name);
+        treeText.append(" . "); // Use . for current directory
+        
+        QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
+        lwi->setData(0,
+                     Qt::UserRole,
+                     fullPath);
+        lwi->setData(1,
+                     Qt::UserRole,
+                     fullPath);
+        m_dataFileTreeWidget->addTopLevelItem(lwi);
+        
         if (firstItem == NULL) {
             firstItem = lwi;
         }
