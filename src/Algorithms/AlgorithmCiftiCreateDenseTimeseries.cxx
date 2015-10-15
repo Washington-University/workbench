@@ -21,13 +21,14 @@
 #include "AlgorithmCiftiCreateDenseTimeseries.h"
 #include "AlgorithmException.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "CaretPointer.h"
+#include "CiftiFile.h"
+#include "GiftiLabelTable.h"
+#include "MetricFile.h"
 #include "StructureEnum.h"
 #include "VolumeFile.h"
-#include "MetricFile.h"
-#include "CiftiFile.h"
-#include "CaretAssert.h"
-#include "GiftiLabelTable.h"
-#include "CaretPointer.h"
+
 #include <map>
 #include <vector>
 #include <cmath>
@@ -379,7 +380,12 @@ CiftiBrainModelsMap AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(const 
         denseMap.setVolumeSpace(VolumeSpace(mydims.data(), myVol->getSform()));
         for (map<StructureEnum::Enum, int>::iterator myiter = componentMap.begin(); myiter != componentMap.end(); ++myiter)
         {
-            denseMap.addVolumeModel(myiter->first, voxelLists[myiter->second]);
+            if (voxelLists[myiter->second].empty())
+            {
+                CaretLogWarning("volume label file has empty definition of '" + StructureEnum::toName(myiter->first) + "', skipping");
+            } else {
+                denseMap.addVolumeModel(myiter->first, voxelLists[myiter->second]);
+            }
         }
     }
     if (noData)
