@@ -23,7 +23,6 @@
 #include "GapsAndMarginsDialog.h"
 #undef __GAPS_AND_MARGINS_DIALOG_DECLARE__
 
-#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -34,6 +33,8 @@
 #include <QToolButton>
 
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
+#include "BrainBrowserWindowComboBox.h"
 #include "BrainConstants.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -45,6 +46,7 @@
 #include "GapsAndMargins.h"
 #include "GuiManager.h"
 #include "WuQGridLayoutGroup.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -65,12 +67,20 @@ GapsAndMarginsDialog::GapsAndMarginsDialog(QWidget* parent)
 {
     setApplyButtonText("");
  
+    m_browserWindowComboBox = new BrainBrowserWindowComboBox(BrainBrowserWindowComboBox::STYLE_NAME_AND_NUMBER,
+                                                             this);
+    QObject::connect(m_browserWindowComboBox, SIGNAL(browserWindowIndexSelected(const int32_t)),
+                     this, SLOT(browserWindowIndexChanged(const int32_t)));
+    
     QWidget* gapsWidget = createGapsWidget();
     
     QWidget* marginsWidget = createMarginsWidget();
     
     QWidget* dialogWidget = new QWidget;
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
+    dialogLayout->addWidget(m_browserWindowComboBox->getWidget(), 0, Qt::AlignHCenter);
+    //dialogLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    dialogLayout->addSpacing(8);
     dialogLayout->addWidget(gapsWidget, 0, Qt::AlignHCenter);
     dialogLayout->addWidget(marginsWidget);
     
@@ -111,10 +121,12 @@ GapsAndMarginsDialog::createGapsWidget()
     QObject::connect(m_surfaceMontageVerticalGapSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(surfaceMontageGapChanged()));
     
-    m_surfaceMontageScaleProportionatelyCheckBox = new QCheckBox("");
-    m_surfaceMontageScaleProportionatelyCheckBox->setToolTip("When checked, horizontal gap will be same size as vertical gap in graphics region");
-    QObject::connect(m_surfaceMontageScaleProportionatelyCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(surfaceMontageScaleProportionatelyCheckBoxClicked()));
+    m_surfaceMontageMatchPixelToolButton = new QToolButton;
+    m_surfaceMontageMatchPixelToolButton->setText("Match Pixel Width\nto Pixel Height");
+    m_surfaceMontageMatchPixelToolButton->setToolTip("Set the width to same pixel size as height");
+    QObject::connect(m_surfaceMontageMatchPixelToolButton, SIGNAL(clicked(bool)),
+                     this, SLOT(surfaceMontageScaleProportionatelyToolButtonClicked()));
+    
     
     m_volumeMontageHorizontalGapSpinBox = createPercentageSpinBox();
     QObject::connect(m_volumeMontageHorizontalGapSpinBox, SIGNAL(valueChanged(double)),
@@ -124,10 +136,11 @@ GapsAndMarginsDialog::createGapsWidget()
     QObject::connect(m_volumeMontageVerticalGapSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeMontageGapChanged()));
     
-    m_volumeMontageScaleProportionatelyCheckBox = new QCheckBox("");
-    m_volumeMontageScaleProportionatelyCheckBox->setToolTip("When checked, horizontal gap will be same size as vertical gap in graphics region");
-    QObject::connect(m_volumeMontageScaleProportionatelyCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(volumeMontageScaleProportionatelyCheckBoxClicked()));
+    m_volumeMontageMatchPixelToolButton = new QToolButton;
+    m_volumeMontageMatchPixelToolButton->setText("Match Pixel Width\nto Pixel Height");
+    m_volumeMontageMatchPixelToolButton->setToolTip("Set the width to same pixel size as height");
+    QObject::connect(m_volumeMontageMatchPixelToolButton, SIGNAL(clicked(bool)),
+                     this, SLOT(volumeMontageScaleProportionatelyToolButtonClicked()));
     
     const int COLUMN_LABEL      = 0;
     const int COLUMN_HORIZONTAL = 1;
@@ -149,7 +162,7 @@ GapsAndMarginsDialog::createGapsWidget()
                           row, COLUMN_HORIZONTAL);
     gridLayout->addWidget(m_surfaceMontageVerticalGapSpinBox,
                           row, COLUMN_VERTICAL);
-    gridLayout->addWidget(m_surfaceMontageScaleProportionatelyCheckBox,
+    gridLayout->addWidget(m_surfaceMontageMatchPixelToolButton,
                           row, COLUMN_SCALE, Qt::AlignHCenter);
     row++;
     gridLayout->addWidget(volumeLabel,
@@ -158,7 +171,7 @@ GapsAndMarginsDialog::createGapsWidget()
                           row, COLUMN_HORIZONTAL);
     gridLayout->addWidget(m_volumeMontageVerticalGapSpinBox,
                           row, COLUMN_VERTICAL);
-    gridLayout->addWidget(m_volumeMontageScaleProportionatelyCheckBox,
+    gridLayout->addWidget(m_volumeMontageMatchPixelToolButton,
                           row, COLUMN_SCALE, Qt::AlignHCenter);
     row++;
     
@@ -178,47 +191,20 @@ GapsAndMarginsDialog::createMarginsWidget()
     QObject::connect(m_tabIndexSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(tabMarginChanged(int)));
     
-    m_tabMarginScaleProportionatelySignalMapper = new QSignalMapper(this);
-    QObject::connect(m_tabMarginScaleProportionatelySignalMapper, SIGNAL(mapped(int)),
-                     this, SLOT(tabMarginScaleProportionatelyCheckBoxClicked(int)));
+    m_tabMarginMatchPixelsToolButtonSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_tabMarginMatchPixelsToolButtonSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(tabMarginMatchPixelButtonClicked(int)));
     
     
     QLabel* leftLabel = new QLabel("Left");
     QLabel* rightLabel = new QLabel("Right");
     QLabel* topLabel = new QLabel("Top");
     QLabel* bottomLabel = new QLabel("Bottom");
-    QLabel* scaleLabel = new QLabel("Scale\nProportionately");
-    scaleLabel->setAlignment(Qt::AlignCenter);
     
-    m_leftMarginApplyTabOneToAllCheckBox = new QCheckBox(" "); //"Left");
-    QObject::connect(m_leftMarginApplyTabOneToAllCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(leftTabMarginApplyTabOneToAllCheckBoxClicked()));
-    m_leftMarginApplyTabOneToAllCheckBox->setToolTip("When checked, tab 1 left margin is applied to ALL tabs");
-    
-    m_rightMarginApplyTabOneToAllCheckBox = new QCheckBox(" "); //"Right");
-    QObject::connect(m_rightMarginApplyTabOneToAllCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(rightTabMarginApplyTabOneToAllCheckBoxClicked()));
-    m_rightMarginApplyTabOneToAllCheckBox->setToolTip("When checked, tab 1 right margin is applied to ALL tabs");
-    
-    m_bottomMarginApplyTabOneToAllCheckBox = new QCheckBox(" "); //"Bottom");
-    QObject::connect(m_bottomMarginApplyTabOneToAllCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(bottomTabMarginApplyTabOneToAllCheckBoxClicked()));
-    m_bottomMarginApplyTabOneToAllCheckBox->setToolTip("When checked, tab 1 bottom margin applied to ALL tabs");
-    
-    m_topMarginApplyTabOneToAllCheckBox = new QCheckBox(" "); //"Top");
-    QObject::connect(m_topMarginApplyTabOneToAllCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(topTabMarginApplyTabOneToAllCheckBoxClicked()));
-    m_topMarginApplyTabOneToAllCheckBox->setToolTip("When checked, tab 1 top margin is applied to ALL tabs");
-    
-    QToolButton* scalePropAllOnToolButton = new QToolButton();
-    scalePropAllOnToolButton->setText("All On");
-    QObject::connect(scalePropAllOnToolButton, SIGNAL(clicked(bool)),
-                     this, SLOT(tabMarginScaleAllProportionatelyAllOnButtonClicked()));
-    
-    QToolButton* scalePropAllOffToolButton = new QToolButton();
-    scalePropAllOffToolButton->setText("All Off");
-    QObject::connect(scalePropAllOffToolButton, SIGNAL(clicked(bool)),
-                     this, SLOT(tabMarginScaleAllProportionatelyAllOffButtonClicked()));
+    m_applyFirstTabToAllToolButton = new QToolButton();
+    m_applyFirstTabToAllToolButton->setText("Apply First Row to All");
+    QObject::connect(m_applyFirstTabToAllToolButton, SIGNAL(clicked(bool)),
+                     this, SLOT(applyFirstTabToAllButtonClicked()));
     
     QWidget* tabsWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(tabsWidget);
@@ -229,28 +215,19 @@ GapsAndMarginsDialog::createMarginsWidget()
     const int32_t COLUMN_RIGHT  = columnCounter++;
     const int32_t COLUMN_BOTTOM = columnCounter++;
     const int32_t COLUMN_TOP    = columnCounter++;
-    const int32_t COLUMN_SCALE_ONE  = columnCounter++;
-    const int32_t COLUMN_SCALE_TWO  = columnCounter++;
+    const int32_t COLUMN_MATCH  = columnCounter++;
+
+    const int32_t applyToAllRow = gridLayout->rowCount();
+    gridLayout->addWidget(m_applyFirstTabToAllToolButton, applyToAllRow, COLUMN_LABEL, 1, COLUMN_MATCH, Qt::AlignHCenter);
+    
     const int32_t titlesRow = gridLayout->rowCount();
-    //gridLayout->addWidget(new QLabel("Tab"), titlesRow, COLUMN_LABEL,  Qt::AlignHCenter);
     gridLayout->addWidget(leftLabel, titlesRow, COLUMN_LEFT,  Qt::AlignHCenter);
     gridLayout->addWidget(rightLabel, titlesRow, COLUMN_RIGHT,  Qt::AlignHCenter);
     gridLayout->addWidget(bottomLabel, titlesRow, COLUMN_BOTTOM,  Qt::AlignHCenter);
     gridLayout->addWidget(topLabel, titlesRow, COLUMN_TOP,  Qt::AlignHCenter);
-    gridLayout->addWidget(scaleLabel, titlesRow, COLUMN_SCALE_ONE,  1, 2, Qt::AlignHCenter);
-    
-    const int32_t applyToAllRow = gridLayout->rowCount();
-    gridLayout->addWidget(new QLabel("Apply Tab 1\nto All Tabs"), applyToAllRow, COLUMN_LABEL, Qt::AlignRight | Qt::AlignVCenter);
-    gridLayout->addWidget(m_leftMarginApplyTabOneToAllCheckBox,   applyToAllRow, COLUMN_LEFT,   Qt::AlignHCenter);
-    gridLayout->addWidget(m_rightMarginApplyTabOneToAllCheckBox,  applyToAllRow, COLUMN_RIGHT,  Qt::AlignHCenter);
-    gridLayout->addWidget(m_bottomMarginApplyTabOneToAllCheckBox, applyToAllRow, COLUMN_BOTTOM, Qt::AlignHCenter);
-    gridLayout->addWidget(m_topMarginApplyTabOneToAllCheckBox,    applyToAllRow, COLUMN_TOP,    Qt::AlignHCenter);
-    gridLayout->addWidget(scalePropAllOnToolButton, applyToAllRow, COLUMN_SCALE_ONE, Qt::AlignHCenter);
-    gridLayout->addWidget(scalePropAllOffToolButton, applyToAllRow, COLUMN_SCALE_TWO, Qt::AlignHCenter);
     
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
-        QLabel* tabLabel = new QLabel("Tab "
-                                      + QString::number(iTab + 1));
+        QLabel* tabLabel = new QLabel("123456789012345");
         m_tabNumberLabels.push_back(tabLabel);
         
         QDoubleSpinBox* leftMarginSpinBox = createPercentageSpinBox();
@@ -277,25 +254,27 @@ GapsAndMarginsDialog::createMarginsWidget()
                          m_tabIndexSignalMapper, SLOT(map()));
         m_tabIndexSignalMapper->setMapping(topMarginSpinBox, iTab);
         
-        QCheckBox* scaleCheckBox = new QCheckBox(" ");
-        scaleCheckBox->setToolTip("When checked, all margins are drawn in\n"
-                                  "the same pixel size as the top margin.");
-        m_tabMarginScaleProportionatelyCheckBoxes.push_back(scaleCheckBox);
-        QObject::connect(scaleCheckBox, SIGNAL(clicked(bool)),
-                         m_tabMarginScaleProportionatelySignalMapper, SLOT(map()));
-        m_tabMarginScaleProportionatelySignalMapper->setMapping(scaleCheckBox, iTab);
+        QToolButton* matchPixelsToolButton = new QToolButton;
+        matchPixelsToolButton->setText("Match Pixel\nSize to Top");
+        matchPixelsToolButton->setToolTip("When clicked, percentages of Left, Right, and\n"
+                                          "Top are set to match the pixel height of Top");
+        m_tabMarginMatchPixelToolButtons.push_back(matchPixelsToolButton);
+        QObject::connect(matchPixelsToolButton, SIGNAL(clicked(bool)),
+                         m_tabMarginMatchPixelsToolButtonSignalMapper, SLOT(map()));
+        m_tabMarginMatchPixelsToolButtonSignalMapper->setMapping(matchPixelsToolButton, iTab);
         
         const int32_t gridRow = gridLayout->rowCount();
-        gridLayout->addWidget(tabLabel,            gridRow, COLUMN_LABEL, Qt::AlignRight);
+        gridLayout->addWidget(tabLabel,            gridRow, COLUMN_LABEL); //, Qt::AlignRight);
         gridLayout->addWidget(leftMarginSpinBox,   gridRow, COLUMN_LEFT);
         gridLayout->addWidget(rightMarginSpinBox,  gridRow, COLUMN_RIGHT);
         gridLayout->addWidget(bottomMarginSpinBox, gridRow, COLUMN_BOTTOM);
         gridLayout->addWidget(topMarginSpinBox,    gridRow, COLUMN_TOP);
-        gridLayout->addWidget(scaleCheckBox,       gridRow, COLUMN_SCALE_ONE, 1, 2, Qt::AlignCenter);
+        gridLayout->addWidget(matchPixelsToolButton, gridRow, COLUMN_MATCH);
     }
     
     QScrollArea* scrollArea = new QScrollArea();
     scrollArea->setWidget(tabsWidget);
+    scrollArea->setWidgetResizable(true);
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     
@@ -341,264 +320,150 @@ GapsAndMarginsDialog::createPercentageSpinBox()
 void
 GapsAndMarginsDialog::updateDialog()
 {
-//    EventBrowserTabGetAll allTabsEvent;
-//    EventManager::get()->sendEvent(allTabsEvent.getPointer());
-//    
-//    const std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
-//    
-//    BrowserTabContent* nullValue = NULL;
-//    std::vector<BrowserTabContent*> allTabsContent(100,
-//                                                   nullValue);  // error on linux32    NULL);
-//    const int32_t numValidTabs = allTabsEvent.getNumberOfBrowserTabs();
-//    for (int32_t iValid = 0; iValid < numValidTabs; iValid++) {
-//        BrowserTabContent* tabContent = allTabsEvent.getBrowserTab(iValid);
-//        CaretAssert(tabContent);
-//        
-//        const int32_t tabIndex = tabContent->getTabNumber();
-//        CaretAssertVectorIndex(allTabsContent, tabIndex);
-//        allTabsContent[tabIndex] = tabContent;
-//    }
+    m_browserWindowComboBox->updateComboBox();
     
-//    const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-//    const bool leftAllFlag   = gapsAndMargins->isTabMarginLeftAllSelected();
-//    const bool rightAllFlag  = gapsAndMargins->isTabMarginRightAllSelected();
-//    const bool bottomAllFlag = gapsAndMargins->isTabMarginBottomAllSelected();
-//    const bool topAllFlag    = gapsAndMargins->isTabMarginTopAllSelected();
-//    
-//    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
-//        CaretAssertVectorIndex(allTabsContent, iTab);
-//        BrowserTabContent* tabContent = allTabsContent[iTab];
-//        const bool valid = (tabContent != NULL);
-//        
-//        CaretAssertVectorIndex(m_tabNumberLabels, iTab);
-//        m_tabNumberLabels[iTab]->setEnabled(valid);
-//        
-//        CaretAssertVectorIndex(m_leftMarginSpinBoxes, iTab);
-//        m_leftMarginSpinBoxes[iTab]->setEnabled(valid);
-//        
-//        CaretAssertVectorIndex(m_rightMarginSpinBoxes, iTab);
-//        m_rightMarginSpinBoxes[iTab]->setEnabled(valid);
-//        
-//        CaretAssertVectorIndex(m_bottomMarginSpinBoxes, iTab);
-//        m_bottomMarginSpinBoxes[iTab]->setEnabled(valid);
-//        
-//        CaretAssertVectorIndex(m_topMarginSpinBoxes, iTab);
-//        m_topMarginSpinBoxes[iTab]->setEnabled(valid);
-//        
-////        if (iTab <= maximumValidTabIndex) {
-//            const float leftMargin   = gapsAndMargins->getTabMarginLeft(iTab);
-//            const float rightMargin  = gapsAndMargins->getTabMarginRight(iTab);
-//            const float bottomMargin = gapsAndMargins->getTabMarginBottom(iTab);
-//            const float topMargin    = gapsAndMargins->getTabMarginTop(iTab);
-//
-//            m_leftMarginSpinBoxes[iTab]->blockSignals(true);
-//            m_leftMarginSpinBoxes[iTab]->setValue(leftMargin);
-//            m_leftMarginSpinBoxes[iTab]->blockSignals(false);
-//            
-//            m_rightMarginSpinBoxes[iTab]->blockSignals(true);
-//            m_rightMarginSpinBoxes[iTab]->setValue(rightMargin);
-//            m_rightMarginSpinBoxes[iTab]->blockSignals(false);
-//            
-//            m_bottomMarginSpinBoxes[iTab]->blockSignals(true);
-//            m_bottomMarginSpinBoxes[iTab]->setValue(bottomMargin);
-//            m_bottomMarginSpinBoxes[iTab]->blockSignals(false);
-//            
-//            m_topMarginSpinBoxes[iTab]->blockSignals(true);
-//            m_topMarginSpinBoxes[iTab]->setValue(topMargin);
-//            m_topMarginSpinBoxes[iTab]->blockSignals(false);
-////        }
-//    }
+    const int32_t windowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
     
+    updateGapsSpinBoxes(windowIndex);
+    
+    updateMarginSpinBoxes(windowIndex);
+    
+    if (windowIndex >= 0) {
+        setEnabled(true);
+    }
+    else {
+        setDisabled(true);
+    }
+}
+
+/**
+ * Update the gaps spin boxes.
+ *
+ * @param windowIndex
+ *     Index of window whose gaps are being updated.
+ */
+void
+GapsAndMarginsDialog::updateGapsSpinBoxes(const int32_t windowIndex)
+{
     const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-
-    m_leftMarginApplyTabOneToAllCheckBox->setChecked(gapsAndMargins->isTabMarginLeftApplyTabOneToAllSelected());
-    
-    m_rightMarginApplyTabOneToAllCheckBox->setChecked(gapsAndMargins->isTabMarginRightApplyTabOneToAllSelected());
-
-    m_bottomMarginApplyTabOneToAllCheckBox->setChecked(gapsAndMargins->isTabMarginBottomApplyTabOneToAllSelected());
-
-    m_topMarginApplyTabOneToAllCheckBox->setChecked(gapsAndMargins->isTabMarginTopApplyTabOneToAllSelected());
     
     m_surfaceMontageHorizontalGapSpinBox->blockSignals(true);
-    m_surfaceMontageHorizontalGapSpinBox->setValue(gapsAndMargins->getSurfaceMontageHorizontalGap());
+    m_surfaceMontageHorizontalGapSpinBox->setValue(gapsAndMargins->getSurfaceMontageHorizontalGapForWindow(windowIndex));
     m_surfaceMontageHorizontalGapSpinBox->blockSignals(false);
     
     m_surfaceMontageVerticalGapSpinBox->blockSignals(true);
-    m_surfaceMontageVerticalGapSpinBox->setValue(gapsAndMargins->getSurfaceMontageVerticalGap());
+    m_surfaceMontageVerticalGapSpinBox->setValue(gapsAndMargins->getSurfaceMontageVerticalGapForWindow(windowIndex));
     m_surfaceMontageVerticalGapSpinBox->blockSignals(false);
     
     m_volumeMontageHorizontalGapSpinBox->blockSignals(true);
-    m_volumeMontageHorizontalGapSpinBox->setValue(gapsAndMargins->getVolumeMontageHorizontalGap());
+    m_volumeMontageHorizontalGapSpinBox->setValue(gapsAndMargins->getVolumeMontageHorizontalGapForWindow(windowIndex));
     m_volumeMontageHorizontalGapSpinBox->blockSignals(false);
     
     m_volumeMontageVerticalGapSpinBox->blockSignals(true);
-    m_volumeMontageVerticalGapSpinBox->setValue(gapsAndMargins->getVolumeMontageVerticalGap());
+    m_volumeMontageVerticalGapSpinBox->setValue(gapsAndMargins->getVolumeMontageVerticalGapForWindow(windowIndex));
     m_volumeMontageVerticalGapSpinBox->blockSignals(false);
     
-    m_surfaceMontageScaleProportionatelyCheckBox->setChecked(gapsAndMargins->isSurfaceMontageScaleProportionatelySelected());
-    m_volumeMontageScaleProportionatelyCheckBox->setChecked(gapsAndMargins->isVolumeMontageScaleProportionatelySelected());
-    
-    updateMarginSpinBoxes();
-    
-    enableDisableHorizontalMontageSpinBoxes();
 }
 
 /**
  * Update the margin spin boxes.
+ *
+ * @param windowIndex
+ *     Index of window whose margins are being updated.
  */
 void
-GapsAndMarginsDialog::updateMarginSpinBoxes()
+GapsAndMarginsDialog::updateMarginSpinBoxes(const int32_t windowIndex)
 {
-    EventBrowserTabGetAll allTabsEvent;
-    EventManager::get()->sendEvent(allTabsEvent.getPointer());
-    
-    const std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
-    
-    BrowserTabContent* nullValue = NULL;
-    std::vector<BrowserTabContent*> allTabsContent(100,
-                                                   nullValue);  // error on linux32    NULL);
-    const int32_t numValidTabs = allTabsEvent.getNumberOfBrowserTabs();
-    for (int32_t iValid = 0; iValid < numValidTabs; iValid++) {
-        BrowserTabContent* tabContent = allTabsEvent.getBrowserTab(iValid);
-        CaretAssert(tabContent);
-        
-        const int32_t tabIndex = tabContent->getTabNumber();
-        CaretAssertVectorIndex(allTabsContent, tabIndex);
-        allTabsContent[tabIndex] = tabContent;
+    std::vector<BrowserTabContent*> tabContents;
+//    std::vector<int32_t> tabIndices;
+    const BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(windowIndex);
+    if (browserWindow != NULL) {
+//        browserWindow->getAllTabContentIndices(tabIndices);
+        browserWindow->getAllTabContent(tabContents);
     }
+    
     const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
     
-//    const bool leftAllFlag   = gapsAndMargins->isTabMarginLeftApplyTabOneToAllSelected();
-//    const bool rightAllFlag  = gapsAndMargins->isTabMarginRightApplyTabOneToAllSelected();
-//    const bool bottomAllFlag = gapsAndMargins->isTabMarginBottomApplyTabOneToAllSelected();
-//    const bool topAllFlag    = gapsAndMargins->isTabMarginTopApplyTabOneToAllSelected();
-    
+    const int32_t numValidTabs = static_cast<int32_t>(tabContents.size());
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
-//        CaretAssertVectorIndex(allTabsContent, iTab);
-//        BrowserTabContent* tabContent = allTabsContent[iTab];
-//        const bool valid = (tabContent != NULL);
         
-//        bool leftValid = true;
-//        if (leftAllFlag) {
-//            if (iTab > 0) {
-//                leftValid = false;
-//            }
-//        }
-//        
-//        bool rightValid = true;
-//        if (rightAllFlag) {
-//            if (iTab > 0) {
-//                rightValid = false;
-//            }
-//        }
-//        
-//        bool bottomValid = true;
-//        if (bottomAllFlag) {
-//            if (iTab > 0) {
-//                bottomValid = false;
-//            }
-//        }
-//        
-//        bool topValid = true;
-//        if (topAllFlag) {
-//            if (iTab > 0) {
-//                topValid = false;
-//            }
-//        }
+        bool tabValid = false;
+        if (iTab < numValidTabs) {
+            CaretAssertVectorIndex(tabContents, iTab);
+            const BrowserTabContent* browserTab = tabContents[iTab];
+            CaretAssert(browserTab);
+            
+            const int32_t tabIndex = browserTab->getTabNumber();
+            
+            CaretAssertArrayIndex(m_tabIndexInTabMarginRow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iTab);
+            m_tabIndexInTabMarginRow[iTab] = tabIndex;
+            
+            const float leftMargin   = gapsAndMargins->getMarginLeftForTab(tabIndex);
+            const float rightMargin  = gapsAndMargins->getMarginRightForTab(tabIndex);
+            const float bottomMargin = gapsAndMargins->getMarginBottomForTab(tabIndex);
+            const float topMargin    = gapsAndMargins->getMarginTopForTab(tabIndex);
+            
+            CaretAssertVectorIndex(m_tabNumberLabels, iTab);
+//            m_tabNumberLabels[iTab]->setText("Tab " + QString::number(tabIndex + 1));
+            m_tabNumberLabels[iTab]->setText(browserTab->getName());
+            
+            CaretAssertVectorIndex(m_leftMarginSpinBoxes, iTab);
+            m_leftMarginSpinBoxes[iTab]->blockSignals(true);
+            m_leftMarginSpinBoxes[iTab]->setValue(leftMargin);
+            m_leftMarginSpinBoxes[iTab]->blockSignals(false);
+            
+            CaretAssertVectorIndex(m_rightMarginSpinBoxes, iTab);
+            m_rightMarginSpinBoxes[iTab]->blockSignals(true);
+            m_rightMarginSpinBoxes[iTab]->setValue(rightMargin);
+            m_rightMarginSpinBoxes[iTab]->blockSignals(false);
+            
+            CaretAssertVectorIndex(m_bottomMarginSpinBoxes, iTab);
+            m_bottomMarginSpinBoxes[iTab]->blockSignals(true);
+            m_bottomMarginSpinBoxes[iTab]->setValue(bottomMargin);
+            m_bottomMarginSpinBoxes[iTab]->blockSignals(false);
+            
+            CaretAssertVectorIndex(m_topMarginSpinBoxes, iTab);
+            m_topMarginSpinBoxes[iTab]->blockSignals(true);
+            m_topMarginSpinBoxes[iTab]->setValue(topMargin);
+            m_topMarginSpinBoxes[iTab]->blockSignals(false);
+            
+            tabValid = true;
+        }
+        else {
+            m_tabIndexInTabMarginRow[iTab] = -1;
+        }
         
-
-        const float leftMargin   = gapsAndMargins->getMarginLeftForTab(iTab);
-        const float rightMargin  = gapsAndMargins->getMarginRightForTab(iTab);
-        const float bottomMargin = gapsAndMargins->getMarginBottomForTab(iTab);
-        const float topMargin    = gapsAndMargins->getMarginTopForTab(iTab);
+        CaretAssertVectorIndex(m_tabNumberLabels, iTab);
+        m_tabNumberLabels[iTab]->setVisible(tabValid);
         
         CaretAssertVectorIndex(m_leftMarginSpinBoxes, iTab);
-        m_leftMarginSpinBoxes[iTab]->setEnabled(gapsAndMargins->isMarginLeftForTabGuiControlEnabled(iTab));
-        m_leftMarginSpinBoxes[iTab]->blockSignals(true);
-        m_leftMarginSpinBoxes[iTab]->setValue(leftMargin);
-        m_leftMarginSpinBoxes[iTab]->blockSignals(false);
+        m_leftMarginSpinBoxes[iTab]->setVisible(tabValid);
         
         CaretAssertVectorIndex(m_rightMarginSpinBoxes, iTab);
-        m_rightMarginSpinBoxes[iTab]->setEnabled(gapsAndMargins->isMarginRightForTabGuiControlEnabled(iTab));
-        m_rightMarginSpinBoxes[iTab]->blockSignals(true);
-        m_rightMarginSpinBoxes[iTab]->setValue(rightMargin);
-        m_rightMarginSpinBoxes[iTab]->blockSignals(false);
+        m_rightMarginSpinBoxes[iTab]->setVisible(tabValid);
         
         CaretAssertVectorIndex(m_bottomMarginSpinBoxes, iTab);
-        m_bottomMarginSpinBoxes[iTab]->setEnabled(gapsAndMargins->isMarginBottomForTabGuiControlEnabled(iTab));
-        m_bottomMarginSpinBoxes[iTab]->blockSignals(true);
-        m_bottomMarginSpinBoxes[iTab]->setValue(bottomMargin);
-        m_bottomMarginSpinBoxes[iTab]->blockSignals(false);
+        m_bottomMarginSpinBoxes[iTab]->setVisible(tabValid);
         
         CaretAssertVectorIndex(m_topMarginSpinBoxes, iTab);
-        m_topMarginSpinBoxes[iTab]->setEnabled(gapsAndMargins->isMarginTopForTabGuiControlEnabled(iTab));
-        m_topMarginSpinBoxes[iTab]->blockSignals(true);
-        m_topMarginSpinBoxes[iTab]->setValue(topMargin);
-        m_topMarginSpinBoxes[iTab]->blockSignals(false);
+        m_topMarginSpinBoxes[iTab]->setVisible(tabValid);
         
-        CaretAssertVectorIndex(m_tabMarginScaleProportionatelyCheckBoxes, iTab);
-        m_tabMarginScaleProportionatelyCheckBoxes[iTab]->setEnabled(gapsAndMargins->isTabMarginScaleProportionatelyForTabEnabled(iTab));
-        m_tabMarginScaleProportionatelyCheckBoxes[iTab]->setChecked(gapsAndMargins->isTabMarginScaleProportionatelyForTabSelected(iTab));
+        CaretAssertVectorIndex(m_tabMarginMatchPixelToolButtons, iTab);
+        m_tabMarginMatchPixelToolButtons[iTab]->setVisible(tabValid);
     }
 }
 
 /**
- * Scale proportionately ALL ON button clicked.
+ * Called when match pixel button is clicked.
+ *
+ * @param setVisible(tabValid);
+ *    Index of row that is clicked
  */
 void
-GapsAndMarginsDialog::tabMarginScaleAllProportionatelyAllOnButtonClicked()
+GapsAndMarginsDialog::tabMarginMatchPixelButtonClicked(int rowIndex)
 {
-    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setScaleProportionatelyForAll(true);
-
-    updateDialog();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    std::cout << "Button clicked " << rowIndex << std::endl;
 }
-
-/**
- * Scale proportionately ALL OFF button clicked.
- */
-void
-GapsAndMarginsDialog::tabMarginScaleAllProportionatelyAllOffButtonClicked()
-{
-    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setScaleProportionatelyForAll(false);
-    
-    updateDialog();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-/**
- * Gets called when a tab's scale proportionately checkbox is changed by the user.
- */
-void
-GapsAndMarginsDialog::tabMarginScaleProportionatelyCheckBoxClicked(int tabIndex)
-{
-    CaretAssertVectorIndex(m_tabMarginScaleProportionatelyCheckBoxes, tabIndex);
-    
-    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setTabMarginScaleProportionatelyForTabSelected(tabIndex, m_tabMarginScaleProportionatelyCheckBoxes[tabIndex]->isChecked());
-    
-    updateMarginSpinBoxes();
-
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-
-/**
- * Enable/disable the horizontal montage spin boxes
- */
-void
-GapsAndMarginsDialog::enableDisableHorizontalMontageSpinBoxes()
-{
-    /*
-     * A horizontal gap spin box is disabled when scale proportionately is checked.
-     */
-    const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    m_surfaceMontageHorizontalGapSpinBox->setEnabled( ! gapsAndMargins->isSurfaceMontageScaleProportionatelySelected());
-    m_volumeMontageHorizontalGapSpinBox->setEnabled( ! gapsAndMargins->isVolumeMontageScaleProportionatelySelected());
-}
-
 
 /**
  * Receive an event.
@@ -620,100 +485,80 @@ GapsAndMarginsDialog::receiveEvent(Event* event)
 }
 
 /**
+ * Gets called when the browser window index is changed.
+ *
+ * @param browserWindowIndex
+ *     Index of the browser window.
+ */
+void
+GapsAndMarginsDialog::browserWindowIndexChanged(const int32_t /*browserWindowIndex*/)
+{
+    updateDialog();
+}
+
+/**
  * Gets called when a tab's margin is changed.
  *
- * @param tabIndex
+ * @param rowIndex
  *    Index of the tab.
  */
 void
-GapsAndMarginsDialog::tabMarginChanged(int tabIndex)
-{
-//    EventBrowserTabGet getTabEvent(tabIndex);
-//    EventManager::get()->sendEvent(getTabEvent.getPointer());
-//    
-//    BrowserTabContent* tabContent = getTabEvent.getBrowserTab();
-//    if (tabContent != NULL) {
-        GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-
-        CaretAssertVectorIndex(m_leftMarginSpinBoxes, tabIndex);
-        CaretAssertVectorIndex(m_rightMarginSpinBoxes, tabIndex);
-        CaretAssertVectorIndex(m_bottomMarginSpinBoxes, tabIndex);
-        CaretAssertVectorIndex(m_topMarginSpinBoxes, tabIndex);
-        
-        gapsAndMargins->setMarginLeftForTab(tabIndex,
-                                         m_leftMarginSpinBoxes[tabIndex]->value());
-        gapsAndMargins->setMarginRightForTab(tabIndex,
-                                         m_rightMarginSpinBoxes[tabIndex]->value());
-        gapsAndMargins->setMarginBottomForTab(tabIndex,
-                                         m_bottomMarginSpinBoxes[tabIndex]->value());
-        gapsAndMargins->setMarginTopForTab(tabIndex,
-                                         m_topMarginSpinBoxes[tabIndex]->value());
-
-        /*
-         * May need to update due to apply one to all or scale proportionately
-         */
-        updateMarginSpinBoxes();
-        
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//    }
-}
-
-/**
- * Gets called when right tab margin is changed.
- */
-void
-GapsAndMarginsDialog::rightTabMarginApplyTabOneToAllCheckBoxClicked()
+GapsAndMarginsDialog::tabMarginChanged(int rowIndex)
 {
     GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setTabMarginRightApplyTabOneToAllSelected(m_rightMarginApplyTabOneToAllCheckBox->isChecked());
     
-    /*
-     * Update dialog since "select all" will change all margins to the first margin value
-     */
-    updateDialog();
+    CaretAssertArrayIndex(m_tabIndexInTabMarginRow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, rowIndex);
+    const int32_t tabIndex = m_tabIndexInTabMarginRow[rowIndex];
+    CaretAssert(tabIndex >= 0);
+    
+    CaretAssertVectorIndex(m_leftMarginSpinBoxes, rowIndex);
+    CaretAssertVectorIndex(m_rightMarginSpinBoxes, rowIndex);
+    CaretAssertVectorIndex(m_bottomMarginSpinBoxes, rowIndex);
+    CaretAssertVectorIndex(m_topMarginSpinBoxes, rowIndex);
+    
+    gapsAndMargins->setMarginLeftForTab(tabIndex,
+                                        m_leftMarginSpinBoxes[rowIndex]->value());
+    gapsAndMargins->setMarginRightForTab(tabIndex,
+                                         m_rightMarginSpinBoxes[rowIndex]->value());
+    gapsAndMargins->setMarginBottomForTab(tabIndex,
+                                          m_bottomMarginSpinBoxes[rowIndex]->value());
+    gapsAndMargins->setMarginTopForTab(tabIndex,
+                                       m_topMarginSpinBoxes[rowIndex]->value());
+    
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
- * Gets called when left tab margin is changed.
+ * Gets called when apply first tab to all button is clicked.
  */
 void
-GapsAndMarginsDialog::leftTabMarginApplyTabOneToAllCheckBoxClicked()
+GapsAndMarginsDialog::applyFirstTabToAllButtonClicked()
 {
-    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setTabMarginLeftApplyTabOneToAllSelected(m_leftMarginApplyTabOneToAllCheckBox->isChecked());
+    const int32_t rowZero = 0;
+    CaretAssertVectorIndex(m_leftMarginSpinBoxes, rowZero);
+    const int leftMargin = m_leftMarginSpinBoxes[rowZero]->value();
     
-    /*
-     * Update dialog since "select all" will change all margins to the first margin value
-     */
-    updateDialog();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-/**
- * Gets called when bottom tab margin is changed.
- */
-void
-GapsAndMarginsDialog::bottomTabMarginApplyTabOneToAllCheckBoxClicked()
-{
-    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setTabMarginBottomApplyTabOneToAllSelected(m_bottomMarginApplyTabOneToAllCheckBox->isChecked());
+    CaretAssertVectorIndex(m_rightMarginSpinBoxes, rowZero);
+    const int rightMargin = m_rightMarginSpinBoxes[rowZero]->value();
     
-    /*
-     * Update dialog since "select all" will change all margins to the first margin value
-     */
-    updateDialog();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-/**
- * Gets called when top tab margin is changed.
- */
-void
-GapsAndMarginsDialog::topTabMarginApplyTabOneToAllCheckBoxClicked()
-{
+    CaretAssertVectorIndex(m_bottomMarginSpinBoxes, rowZero);
+    const int bottomMargin = m_bottomMarginSpinBoxes[rowZero]->value();
+    
+    CaretAssertVectorIndex(m_topMarginSpinBoxes, rowZero);
+    const int topMargin = m_topMarginSpinBoxes[rowZero]->value();
+    
     GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setTabMarginTopApplyTabOneToAllSelected(m_topMarginApplyTabOneToAllCheckBox->isChecked());
+    
+    for (int32_t iRow = 1; iRow < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iRow++) {
+        CaretAssertArrayIndex(m_tabIndexInTabMarginRow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iRow);
+        const int32_t tabIndex = m_tabIndexInTabMarginRow[iRow];
+        if (tabIndex >= 0) {
+            gapsAndMargins->setMarginLeftForTab(tabIndex, leftMargin);
+            gapsAndMargins->setMarginRightForTab(tabIndex, rightMargin);
+            gapsAndMargins->setMarginBottomForTab(tabIndex, bottomMargin);
+            gapsAndMargins->setMarginTopForTab(tabIndex, topMargin);
+        }
+    }
     
     /*
      * Update dialog since "select all" will change all margins to the first margin value
@@ -728,9 +573,16 @@ GapsAndMarginsDialog::topTabMarginApplyTabOneToAllCheckBoxClicked()
 void
 GapsAndMarginsDialog::surfaceMontageGapChanged()
 {
+    const int32_t windowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
+    if (windowIndex < 0) {
+        return;
+    }
+    
     GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setSurfaceMontageHorizontalGap(m_surfaceMontageHorizontalGapSpinBox->value());
-    gapsAndMargins->setSurfaceMontageVerticalGap(m_surfaceMontageVerticalGapSpinBox->value());
+    gapsAndMargins->setSurfaceMontageHorizontalGapForWindow(windowIndex,
+                                                            m_surfaceMontageHorizontalGapSpinBox->value());
+    gapsAndMargins->setSurfaceMontageVerticalGapForWindow(windowIndex,
+                                                          m_surfaceMontageVerticalGapSpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -741,36 +593,39 @@ GapsAndMarginsDialog::surfaceMontageGapChanged()
 void
 GapsAndMarginsDialog::volumeMontageGapChanged()
 {
+    const int32_t windowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
+    if (windowIndex < 0) {
+        return;
+    }
+    
     GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setVolumeMontageHorizontalGap(m_volumeMontageHorizontalGapSpinBox->value());
-    gapsAndMargins->setVolumeMontageVerticalGap(m_volumeMontageVerticalGapSpinBox->value());
+    gapsAndMargins->setVolumeMontageHorizontalGapForWindow(windowIndex,
+                                                           m_volumeMontageHorizontalGapSpinBox->value());
+    gapsAndMargins->setVolumeMontageVerticalGapForWindow(windowIndex,
+                                                         m_volumeMontageVerticalGapSpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
- * Gets called when the surface montage scaled proportionately check box is clicked.
+ * Gets called when the surface montage match pixels tool button is clicked.
  */
 void
-GapsAndMarginsDialog::surfaceMontageScaleProportionatelyCheckBoxClicked()
+GapsAndMarginsDialog::surfaceMontageScaleProportionatelyToolButtonClicked()
 {
     GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setSurfaceMontageScaleProportionatelySelected(m_surfaceMontageScaleProportionatelyCheckBox->isChecked());
     
-    enableDisableHorizontalMontageSpinBoxes();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
- * Gets called when the volume montage scaled proportionately check box is clicked.
+ * Gets called when the volume montage match pixels tool button is clicked.
  */
 void
-GapsAndMarginsDialog::volumeMontageScaleProportionatelyCheckBoxClicked()
+GapsAndMarginsDialog::volumeMontageScaleProportionatelyToolButtonClicked()
 {
     GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    gapsAndMargins->setVolumeMontageScaleProportionatelySelected(m_volumeMontageScaleProportionatelyCheckBox->isChecked());
     
-    enableDisableHorizontalMontageSpinBoxes();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

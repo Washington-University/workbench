@@ -65,34 +65,25 @@ GapsAndMargins::GapsAndMargins()
                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                                0.0);
     
-    m_sceneAssistant->addArray("m_tabMarginScaleProportionatelySelected",
-                               m_tabMarginScaleProportionatelySelected,
-                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                               false);
-    
-    m_sceneAssistant->add("m_tabMarginLeftApplyTabOneToAllSelected",
-                          &m_tabMarginLeftApplyTabOneToAllSelected);
-    m_sceneAssistant->add("m_tabMarginRightApplyTabOneToAllSelected",
-                          &m_tabMarginRightApplyTabOneToAllSelected);
-    m_sceneAssistant->add("m_tabMarginBottomApplyTabOneToAllSelected",
-                          &m_tabMarginBottomApplyTabOneToAllSelected);
-    m_sceneAssistant->add("m_tabMarginTopApplyTabOneToAllSelected",
-                          &m_tabMarginTopApplyTabOneToAllSelected);
-    
-    m_sceneAssistant->addArray("m_surfaceMontageGaps",
-                               m_surfaceMontageGaps,
-                               2,
+    m_sceneAssistant->addArray("m_surfaceMontageHorizontalGaps",
+                               m_surfaceMontageHorizontalGaps,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
                                0.0);
     
-    m_sceneAssistant->addArray("m_volumeMontageGaps",
-                               m_volumeMontageGaps,
-                               2,
+    m_sceneAssistant->addArray("m_surfaceMontageVerticalGaps",
+                               m_surfaceMontageVerticalGaps,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
                                0.0);
     
-    m_sceneAssistant->add("m_surfaceMontageScaleProportionatelySelected",
-                          &m_surfaceMontageScaleProportionatelySelected);
-    m_sceneAssistant->add("m_volumeMontageScaleProportionatelySelected",
-                          &m_volumeMontageScaleProportionatelySelected);
+    m_sceneAssistant->addArray("m_volumeMontageHorizontalGaps",
+                               m_volumeMontageHorizontalGaps,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
+                               0.0);
+    
+    m_sceneAssistant->addArray("m_volumeMontageVerticalGaps",
+                               m_volumeMontageVerticalGaps,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
+                               0.0);
 }
 
 /**
@@ -121,21 +112,14 @@ GapsAndMargins::reset()
         m_tabMarginsLeft[i]   = 0.0;
         m_tabMarginsRight[i]  = 0.0;
         m_tabMarginsTop[i]    = 0.0;
-        m_tabMarginScaleProportionatelySelected[i] = false;
     }
 
-    m_tabMarginLeftApplyTabOneToAllSelected   = false;
-    m_tabMarginRightApplyTabOneToAllSelected  = false;
-    m_tabMarginBottomApplyTabOneToAllSelected = false;
-    m_tabMarginTopApplyTabOneToAllSelected    = false;
-    
-    for (int32_t i = 0; i < 2; i++) {
-        m_surfaceMontageGaps[i] = 0.0;
-        m_volumeMontageGaps[i]  = 0.0;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
+        m_surfaceMontageHorizontalGaps[i] = 0.0;
+        m_surfaceMontageVerticalGaps[i]   = 0.0;
+        m_volumeMontageHorizontalGaps[i]  = 0.0;
+        m_volumeMontageVerticalGaps[i]    = 0.0;
     }
-    
-    m_surfaceMontageScaleProportionatelySelected = false;
-    m_volumeMontageScaleProportionatelySelected  = false;
 }
 
 /**
@@ -212,10 +196,6 @@ GapsAndMargins::setMarginLeftForTab(const int32_t tabIndex,
 {
     CaretAssertArrayIndex(m_tabMarginsLeft, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     m_tabMarginsLeft[tabIndex] = margin;
-    
-    if (tabIndex == 0) {
-        copyTabOneLeftMarginToAllLeftMargins();
-    }
 }
 
 /**
@@ -232,10 +212,6 @@ GapsAndMargins::setMarginRightForTab(const int32_t tabIndex,
 {
     CaretAssertArrayIndex(m_tabMarginsRight, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     m_tabMarginsRight[tabIndex] = margin;
-    
-    if (tabIndex == 0) {
-        copyTabOneRightMarginToAllRightMargins();
-    }
 }
 
 /**
@@ -252,10 +228,6 @@ GapsAndMargins::setMarginBottomForTab(const int32_t tabIndex,
 {
     CaretAssertArrayIndex(m_tabMarginsBottom, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     m_tabMarginsBottom[tabIndex] = margin;
-    
-    if (tabIndex == 0) {
-        copyTabOneBottomMarginToAllBottomMargins();
-    }
 }
 
 /**
@@ -270,480 +242,124 @@ void
 GapsAndMargins::setMarginTopForTab(const int32_t tabIndex,
                                    const float margin)
 {
-    int32_t tabStart = tabIndex;
-    int32_t tabEnd   = tabIndex + 1;
-    
-    if (tabIndex == 0) {
-        if (m_tabMarginTopApplyTabOneToAllSelected) {
-            tabStart = 0;
-            tabEnd   = BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS;
-        }
-    }
-    
-    for (int32_t iTab = tabStart; iTab < tabEnd; iTab++) {
-        CaretAssertArrayIndex(m_tabMarginsTop, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iTab);
-        m_tabMarginsTop[iTab] = margin;
-        
-//        CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iTab);
-//        if (m_tabMarginScaleProportionatelySelected[iTab]) {
-//            m_tabMarginsBottom[iTab] = margin;
-//            m_tabMarginsLeft[iTab]   = margin;
-//            m_tabMarginsRight[iTab]  = margin;
-//        }
-    }
-    
-    
-//    if (tabIndex == 0) {
-//        copyTabOneTopMarginToAllTopMargins();
-//    }
+    CaretAssertArrayIndex(m_tabMarginsTop, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    m_tabMarginsTop[tabIndex] = margin;
 }
 
 /**
  * @return The surface montage horizontal gap.
+ *
+ * @param windowIndex
+ *    Index of window.
  */
 float
-GapsAndMargins::getSurfaceMontageHorizontalGap() const
+GapsAndMargins::getSurfaceMontageHorizontalGapForWindow(const int32_t windowIndex) const
 {
-    return m_surfaceMontageGaps[0];
+    CaretAssertArrayIndex(m_surfaceMontageHorizontalGaps, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    return m_surfaceMontageHorizontalGaps[windowIndex];
 }
 
 /**
  * @return The surface montage vertical gap.
+ *
+ * @param windowIndex
+ *    Index of window.
  */
 float
-GapsAndMargins::getSurfaceMontageVerticalGap() const
+GapsAndMargins::getSurfaceMontageVerticalGapForWindow(const int32_t windowIndex) const
 {
-    return m_surfaceMontageGaps[1];
+    CaretAssertArrayIndex(m_surfaceMontageVerticalGaps, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    return m_surfaceMontageVerticalGaps[windowIndex];
 }
 
 /**
  * @return The volume montage horizontal gap.
+ *
+ * @param windowIndex
+ *    Index of window.
  */
 float
-GapsAndMargins::getVolumeMontageHorizontalGap() const
+GapsAndMargins::getVolumeMontageHorizontalGapForWindow(const int32_t windowIndex) const
 {
-    return m_volumeMontageGaps[0];
+    CaretAssertArrayIndex(m_volumeMontageHorizontalGaps, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    return m_volumeMontageHorizontalGaps[windowIndex];
 }
 
 /**
  * @return The volume montage vertical gap.
+ *
+ * @param windowIndex
+ *    Index of window.
  */
 float
-GapsAndMargins::getVolumeMontageVerticalGap() const
+GapsAndMargins::getVolumeMontageVerticalGapForWindow(const int32_t windowIndex) const
 {
-    return m_volumeMontageGaps[1];
+    CaretAssertArrayIndex(m_volumeMontageVerticalGaps, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    return m_volumeMontageVerticalGaps[windowIndex];
 }
 
 /**
  * Set the surface montage horizontal gap.
  *
+ * @param windowIndex
+ *    Index of window.
  * @param gap
  *    New value for horizontal gap.
  */
 void
-GapsAndMargins::setSurfaceMontageHorizontalGap(const float gap)
+GapsAndMargins::setSurfaceMontageHorizontalGapForWindow(const int32_t windowIndex,
+                                                        const float gap)
 {
-    m_surfaceMontageGaps[0] = gap;
+    CaretAssertArrayIndex(m_surfaceMontageHorizontalGaps, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    m_surfaceMontageHorizontalGaps[windowIndex] = gap;
 }
 
 /**
  * Set the surface montage vertical gap.
  *
+ * @param windowIndex
+ *    Index of window.
  * @param gap
  *    New value for vertical gap.
  */
 void
-GapsAndMargins::setSurfaceMontageVerticalGap(const float gap)
+GapsAndMargins::setSurfaceMontageVerticalGapForWindow(const int32_t windowIndex,
+                                                      const float gap)
 {
-    m_surfaceMontageGaps[1] = gap;
+    CaretAssertArrayIndex(m_surfaceMontageVerticalGaps, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    m_surfaceMontageVerticalGaps[windowIndex] = gap;
 }
 
 /**
  * Set the volume montage horizontal gap.
  *
+ * @param windowIndex
+ *    Index of window.
  * @param gap
  *    New value for horizontal gap.
  */
 void
-GapsAndMargins::setVolumeMontageHorizontalGap(const float gap)
+GapsAndMargins::setVolumeMontageHorizontalGapForWindow(const int32_t windowIndex,
+                                                       const float gap)
 {
-    m_volumeMontageGaps[0] = gap;
+    CaretAssertArrayIndex(m_volumeMontageHorizontalGaps, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    m_volumeMontageHorizontalGaps[windowIndex] = gap;
 }
 
 /**
  * Set the volume montage vertical gap.
  *
+ * @param windowIndex
+ *    Index of window.
  * @param gap
  *    New value for vertical gap.
  */
 void
-GapsAndMargins::setVolumeMontageVerticalGap(const float gap)
+GapsAndMargins::setVolumeMontageVerticalGapForWindow(const int32_t windowIndex,
+                                                     const float gap)
 {
-    m_volumeMontageGaps[1] = gap;
-}
-
-/**
- * @return Tab margin left all selected (applies the tab 1 margin to all tabs)
- */
-bool
-GapsAndMargins::isTabMarginLeftApplyTabOneToAllSelected() const
-{
-    return m_tabMarginLeftApplyTabOneToAllSelected;
-}
-
-/**
- * @return Tab margin right all selected (applies the tab 1 margin to all tabs)
- */
-bool
-GapsAndMargins::isTabMarginRightApplyTabOneToAllSelected() const
-{
-    return m_tabMarginRightApplyTabOneToAllSelected;
-}
-
-/**
- * @return Tab margin bottom all selected (applies the tab 1 margin to all tabs)
- */
-bool
-GapsAndMargins::isTabMarginBottomApplyTabOneToAllSelected() const
-{
-    return m_tabMarginBottomApplyTabOneToAllSelected;
-}
-
-/**
- * @return Tab margin top all selected (applies the tab 1 margin to all tabs)
- */
-bool
-GapsAndMargins::isTabMarginTopApplyTabOneToAllSelected() const
-{
-    return m_tabMarginTopApplyTabOneToAllSelected;
-}
-
-/**
- * Set tab margin left all selected and sets the left margin
- * for every tab with the tab zero's current value.
- *
- * @param selected
- *     New status for tab margin left all.
- */
-void
-GapsAndMargins::setTabMarginLeftApplyTabOneToAllSelected(const bool selected)
-{
-    m_tabMarginLeftApplyTabOneToAllSelected = selected;
-
-    copyTabOneLeftMarginToAllLeftMargins();
-}
-
-/**
- * Set tab margin right all selected and sets the right margin
- * for every tab with the tab zero's current value.
- *
- * @param selected
- *     New status for tab margin right all.
- */
-void
-GapsAndMargins::setTabMarginRightApplyTabOneToAllSelected(const bool selected)
-{
-    m_tabMarginRightApplyTabOneToAllSelected = selected;
-    
-    copyTabOneRightMarginToAllRightMargins();
-}
-
-/**
- * Set tab margin bottom all selected and sets the bottom margin
- * for every tab with the tab zero's current value.
- *
- * @param selected
- *     New status for tab margin bottom all.
- */
-void
-GapsAndMargins::setTabMarginBottomApplyTabOneToAllSelected(const bool selected)
-{
-    m_tabMarginBottomApplyTabOneToAllSelected = selected;
-    
-    copyTabOneBottomMarginToAllBottomMargins();
-}
-
-/**
- * Set tab margin top all selected and sets the top margin
- * for every tab with the tab zero's current value.
- *
- * @param selected
- *     New status for tab margin top all.
- */
-void
-GapsAndMargins::setTabMarginTopApplyTabOneToAllSelected(const bool selected)
-{
-    m_tabMarginTopApplyTabOneToAllSelected = selected;
-    
-    if (m_tabMarginTopApplyTabOneToAllSelected) {
-        const int32_t tabOneMargin = m_tabMarginsTop[0];
-        setMarginTopForTab(0, tabOneMargin);
-//      copyTabOneTopMarginToAllTopMargins();
-    }
-}
-
-/**
- * Copy tab one left margin to all left margins.
- */
-void
-GapsAndMargins::copyTabOneLeftMarginToAllLeftMargins()
-{
-    if (m_tabMarginLeftApplyTabOneToAllSelected) {
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            m_tabMarginsLeft[i] = m_tabMarginsLeft[0];
-        }
-    }
-}
-
-/**
- * Copy tab one right margin to all right margins.
- */
-void
-GapsAndMargins::copyTabOneRightMarginToAllRightMargins()
-{
-    if (m_tabMarginRightApplyTabOneToAllSelected) {
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            m_tabMarginsRight[i] = m_tabMarginsRight[0];
-        }
-    }
-}
-
-/**
- * Copy tab one bottom margin to all bottom margins.
- */
-void
-GapsAndMargins::copyTabOneBottomMarginToAllBottomMargins()
-{
-    if (m_tabMarginBottomApplyTabOneToAllSelected) {
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            m_tabMarginsBottom[i] = m_tabMarginsBottom[0];
-        }
-    }
-}
-
-/**
- * Copy tab one top margin to all top margins.
- */
-void
-GapsAndMargins::copyTabOneTopMarginToAllTopMargins()
-{
-    if (m_tabMarginTopApplyTabOneToAllSelected) {
-        for (int32_t i = 1; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            m_tabMarginsTop[i] = m_tabMarginsTop[0];
-        }
-    }
-}
-
-/**
- * @return Is surface montage scale proportionately selected ?
- */
-bool
-GapsAndMargins::isSurfaceMontageScaleProportionatelySelected() const
-{
-    return m_surfaceMontageScaleProportionatelySelected;
-}
-
-/**
- * @return Is volume montage scale proportionately selected ?
- */
-bool
-GapsAndMargins::isVolumeMontageScaleProportionatelySelected() const
-{
-    return m_volumeMontageScaleProportionatelySelected;
-}
-
-/**
- * Set surface montage scale proportionately selected.
- *
- * @param selected
- *    New selection status.
- */
-void
-GapsAndMargins::setSurfaceMontageScaleProportionatelySelected(const bool selected)
-{
-    m_surfaceMontageScaleProportionatelySelected = selected;
-}
-
-/**
- * Set volume montage scale proportionately selected.
- *
- * @param selected
- *    New selection status.
- */
-void
-GapsAndMargins::setVolumeMontageScaleProportionatelySelected(const bool selected)
-{
-    m_volumeMontageScaleProportionatelySelected = selected;
-}
-
-/**
- * Is tab margin scale proportionately selected?
- *
- * @param tabIndex
- *     Index of the tab.
- * @return
- *     The selected status.
- */
-bool
-GapsAndMargins::isTabMarginScaleProportionatelyForTabSelected(const int32_t tabIndex) const
-{
-    CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    return m_tabMarginScaleProportionatelySelected[tabIndex];
-}
-
-/**
- * Set tab margin scale proportionately selection status.
- *
- * @param tabIndex
- *     Index of the tab.
- * @param selected
- *     New selection status.
- */
-void
-GapsAndMargins::setTabMarginScaleProportionatelyForTabSelected(const int32_t tabIndex,
-                                                         const bool selected)
-{
-    CaretAssertArrayIndex(m_tabMarginScaleProportionatelySelected, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    m_tabMarginScaleProportionatelySelected[tabIndex] = selected;
-    
-    if (m_tabMarginScaleProportionatelySelected[tabIndex]) {
-        setMarginTopForTab(tabIndex, getMarginTopForTab(tabIndex));
-    }
-}
-
-/**
- * Set the selected status for all tabs scale proportionately property.
- *
- * @param selected
- *     New selected status.
- */
-void
-GapsAndMargins::setScaleProportionatelyForAll(const bool selected)
-{
-    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
-        setTabMarginScaleProportionatelyForTabSelected(iTab, selected);
-    }
-}
-
-/**
- * Is the margin value gui control enabled for the given tab?
- *
- * @param tabIndex
- *     Index of the tab.
- * @param applyTabOneToAllSelected
- *     Is apply tab one to all tabs selected for the margin?
- * @param topMarginFlag
- *     True if this is the top margin.
- * @return
- *     True if the the margin for the given tab is enabled, else false.
- */
-bool
-GapsAndMargins::isTabMarginGuiControlEnabled(const int32_t tabIndex,
-                                   const bool applyTabOneToAllSelected,
-                                   const bool topMarginFlag) const
-{
-    if (tabIndex == 0) {
-        if (applyTabOneToAllSelected) {
-            return true;
-        }
-        if (m_tabMarginScaleProportionatelySelected[tabIndex]) {
-            if (topMarginFlag) {
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-    }
-    else {
-        if (m_tabMarginScaleProportionatelySelected[tabIndex]) {
-            if (topMarginFlag) {
-                if (applyTabOneToAllSelected) {
-                    return false;
-                }
-                else {
-                    return true;
-                }
-            }
-            else {
-                return false;
-            }
-        }
-        if (applyTabOneToAllSelected) {
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-
-/**
- * @return Is margin left gui control enabled for the given tab?
- *
- * @param tabIndex
- *     Index of the tab.
- */
-bool
-GapsAndMargins::isMarginLeftForTabGuiControlEnabled(const int32_t tabIndex) const
-{
-    return isTabMarginGuiControlEnabled(tabIndex,
-                              m_tabMarginLeftApplyTabOneToAllSelected,
-                              false);
-}
-
-/**
- * @return Is margin right gui control enabled for the given tab?
- *
- * @param tabIndex
- *     Index of the tab.
- */
-bool
-GapsAndMargins::isMarginRightForTabGuiControlEnabled(const int32_t tabIndex) const
-{
-    return isTabMarginGuiControlEnabled(tabIndex,
-                              m_tabMarginRightApplyTabOneToAllSelected,
-                              false);
-}
-
-/**
- * @return Is margin top gui control enabled for the given tab?
- *
- * @param tabIndex
- *     Index of the tab.
- */
-bool
-GapsAndMargins::isMarginTopForTabGuiControlEnabled(const int32_t tabIndex) const
-{
-    return isTabMarginGuiControlEnabled(tabIndex,
-                              m_tabMarginTopApplyTabOneToAllSelected,
-                              true);
-}
-
-/**
- * @return Is margin bottom gui control enabled for the given tab?
- *
- * @param tabIndex
- *     Index of the tab.
- */
-bool
-GapsAndMargins::isMarginBottomForTabGuiControlEnabled(const int32_t tabIndex) const
-{
-    return isTabMarginGuiControlEnabled(tabIndex,
-                              m_tabMarginBottomApplyTabOneToAllSelected,
-                              false);
-}
-
-/**
- * @return Is scale proportionately enabled for the given tab?
- *
- * @param tabIndex
- *     Index of the tab.
- */
-bool
-GapsAndMargins::isTabMarginScaleProportionatelyForTabEnabled(const int32_t /*tabIndex*/) const
-{
-    return true;
+    CaretAssertArrayIndex(m_volumeMontageVerticalGaps, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    m_volumeMontageVerticalGaps[windowIndex] = gap;
 }
 
 /**
@@ -778,26 +394,10 @@ GapsAndMargins::getMarginsInPixelsForDrawing(const int32_t tabIndex,
     bottomMarginOut = 0;
     topMarginOut    = 0;
 
-    if (isTabMarginScaleProportionatelyForTabSelected(tabIndex)) {
-        const float margin = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex) / 100.0));
-        topMarginOut    = margin;
-        bottomMarginOut = margin;
-        
-        leftMarginOut   = margin;
-        rightMarginOut  = margin;
-        
-        if (viewportHeight > 0) {
-            const float aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
-            leftMarginOut  = margin * aspectRatio;
-            rightMarginOut = margin * aspectRatio;
-        }
-    }
-    else {
-        topMarginOut    = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex)    / 100.0));
-        bottomMarginOut = static_cast<int32_t>(viewportHeight * (getMarginBottomForTab(tabIndex) / 100.0));
-        leftMarginOut   = static_cast<int32_t>(viewportWidth  * (getMarginLeftForTab(tabIndex)   / 100.0));
-        rightMarginOut  = static_cast<int32_t>(viewportWidth  * (getMarginRightForTab(tabIndex)  / 100.0));
-    }
+    topMarginOut    = static_cast<int32_t>(viewportHeight * (getMarginTopForTab(tabIndex)    / 100.0));
+    bottomMarginOut = static_cast<int32_t>(viewportHeight * (getMarginBottomForTab(tabIndex) / 100.0));
+    leftMarginOut   = static_cast<int32_t>(viewportWidth  * (getMarginLeftForTab(tabIndex)   / 100.0));
+    rightMarginOut  = static_cast<int32_t>(viewportWidth  * (getMarginRightForTab(tabIndex)  / 100.0));
 }
 
 

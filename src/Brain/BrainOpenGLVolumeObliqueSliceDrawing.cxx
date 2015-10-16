@@ -461,23 +461,22 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
 //    const int32_t totalGapY = verticalMargin * (numRows - 1);
 //    const int32_t vpSizeY = (viewport[3] - totalGapY) / numRows;
     
+    const int32_t windowIndex = m_fixedPipelineDrawing->windowIndex;
+    
     int32_t vpSizeY        = 0;
     int32_t verticalMargin = 0;
     BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport[3],
-                                                           gapsAndMargins->getVolumeMontageVerticalGap(),
+                                                           gapsAndMargins->getVolumeMontageVerticalGapForWindow(windowIndex),
                                                            -1,
                                                            numRows,
                                                            vpSizeY,
                                                            verticalMargin);
     
-    const int32_t overrideHorizontalMargin = (gapsAndMargins->isVolumeMontageScaleProportionatelySelected()
-                                              ? verticalMargin:
-                                              -1);
     int32_t vpSizeX          = 0;
     int32_t horizontalMargin = 0;
     BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport[2],
-                                                           gapsAndMargins->getVolumeMontageHorizontalGap(),
-                                                           overrideHorizontalMargin,
+                                                           gapsAndMargins->getVolumeMontageHorizontalGapForWindow(windowIndex),
+                                                           -1,
                                                            numCols,
                                                            vpSizeX,
                                                            horizontalMargin);

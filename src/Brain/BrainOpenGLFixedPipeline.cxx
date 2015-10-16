@@ -4599,21 +4599,17 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     int32_t subViewportHeight = 0;
     int32_t verticalGap       = 0;
     createSubViewportSizeAndGaps(viewport[3],
-                                 gapsAndMargins->getSurfaceMontageVerticalGap(),
+                                 gapsAndMargins->getSurfaceMontageVerticalGapForWindow(this->windowIndex),
                                  -1,
                                  numberOfRows,
                                  subViewportHeight,
                                  verticalGap);
     
-    const int32_t overrideHorizontalGap = (gapsAndMargins->isSurfaceMontageScaleProportionatelySelected()
-                                           ? verticalGap:
-                                           -1);
-    
     int32_t subViewportWidth = 0;
     int32_t horizontalGap    = 0;
     createSubViewportSizeAndGaps(viewport[2],
-                                 gapsAndMargins->getSurfaceMontageHorizontalGap(),
-                                 overrideHorizontalGap,
+                                 gapsAndMargins->getSurfaceMontageHorizontalGapForWindow(this->windowIndex),
+                                 -1,
                                  numberOfColumns,
                                  subViewportWidth,
                                  horizontalGap);

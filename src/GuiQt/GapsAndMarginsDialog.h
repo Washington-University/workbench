@@ -22,17 +22,18 @@
 /*LICENSE_END*/
 
 
-
+#include "BrainConstants.h"
 #include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
-class QCheckBox;
 class QLabel;
 class QSignalMapper;
 class QDoubleSpinBox;
+class QToolButton;
 
 namespace caret {
 
+    class BrainBrowserWindowComboBox;
     class WuQGridLayoutGroup;
     
     class GapsAndMarginsDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -51,29 +52,21 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private slots:
-        void tabMarginChanged(int tabIndex);
+        void browserWindowIndexChanged(const int32_t browserWindowIndex);
+        
+        void tabMarginChanged(int rowIndex);
         
         void surfaceMontageGapChanged();
         
         void volumeMontageGapChanged();
         
-        void rightTabMarginApplyTabOneToAllCheckBoxClicked();
+        void applyFirstTabToAllButtonClicked();
         
-        void leftTabMarginApplyTabOneToAllCheckBoxClicked();
+        void surfaceMontageScaleProportionatelyToolButtonClicked();
         
-        void bottomTabMarginApplyTabOneToAllCheckBoxClicked();
+        void volumeMontageScaleProportionatelyToolButtonClicked();
         
-        void topTabMarginApplyTabOneToAllCheckBoxClicked();
-        
-        void surfaceMontageScaleProportionatelyCheckBoxClicked();
-        
-        void volumeMontageScaleProportionatelyCheckBoxClicked();
-        
-        void tabMarginScaleAllProportionatelyAllOnButtonClicked();
-        
-        void tabMarginScaleAllProportionatelyAllOffButtonClicked();
-        
-        void tabMarginScaleProportionatelyCheckBoxClicked(int tabIndex);
+        void tabMarginMatchPixelButtonClicked(int rowIndex);
         
     private:
         GapsAndMarginsDialog(const GapsAndMarginsDialog&);
@@ -86,9 +79,11 @@ namespace caret {
         
         QDoubleSpinBox* createPercentageSpinBox();
         
-        void enableDisableHorizontalMontageSpinBoxes();
+        void updateGapsSpinBoxes(const int32_t windowIndex);
         
-        void updateMarginSpinBoxes();
+        void updateMarginSpinBoxes(const int32_t windowIndex);
+        
+        BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
         WuQGridLayoutGroup* m_gridLayoutGroup;
         
@@ -102,13 +97,7 @@ namespace caret {
         
         std::vector<QDoubleSpinBox*> m_topMarginSpinBoxes;
         
-        QCheckBox* m_leftMarginApplyTabOneToAllCheckBox;
-        
-        QCheckBox* m_rightMarginApplyTabOneToAllCheckBox;
-        
-        QCheckBox* m_bottomMarginApplyTabOneToAllCheckBox;
-        
-        QCheckBox* m_topMarginApplyTabOneToAllCheckBox;
+        QToolButton* m_applyFirstTabToAllToolButton;
         
         QDoubleSpinBox* m_surfaceMontageHorizontalGapSpinBox;
         
@@ -118,15 +107,17 @@ namespace caret {
         
         QDoubleSpinBox* m_volumeMontageVerticalGapSpinBox;
         
-        QCheckBox* m_surfaceMontageScaleProportionatelyCheckBox;
+        QToolButton* m_surfaceMontageMatchPixelToolButton;
         
-        QCheckBox* m_volumeMontageScaleProportionatelyCheckBox;
+        QToolButton* m_volumeMontageMatchPixelToolButton;
         
-        std::vector<QCheckBox*> m_tabMarginScaleProportionatelyCheckBoxes;
+        std::vector<QToolButton*> m_tabMarginMatchPixelToolButtons;
         
         QSignalMapper* m_tabIndexSignalMapper;
         
-        QSignalMapper* m_tabMarginScaleProportionatelySignalMapper;
+        QSignalMapper* m_tabMarginMatchPixelsToolButtonSignalMapper;
+        
+        int32_t m_tabIndexInTabMarginRow[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         // ADD_NEW_MEMBERS_HERE
 

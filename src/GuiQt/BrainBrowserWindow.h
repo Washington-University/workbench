@@ -69,6 +69,10 @@ namespace caret {
         
         QMenu* createPopupMenu();
         
+        void getAllTabContent(std::vector<BrowserTabContent*>& allTabContent) const;
+        
+        void getAllTabContentIndices(std::vector<int32_t>& allTabContentIndices) const;
+        
         void removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent);
         
         int32_t getBrowserWindowIndex() const;

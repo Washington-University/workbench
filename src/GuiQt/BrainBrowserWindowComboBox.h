@@ -36,7 +36,18 @@ namespace caret {
         Q_OBJECT
 
     public:
-        BrainBrowserWindowComboBox(QObject* parent);
+        /**
+         * Style of combo box content
+         */
+        enum Style {
+            /** Name and number: "Window 3" */
+            STYLE_NAME_AND_NUMBER,
+            /** Number only:  "3" */
+            STYLE_NUMBER
+        };
+        
+        BrainBrowserWindowComboBox(const Style style,
+                                   QObject* parent);
         
         virtual ~BrainBrowserWindowComboBox();
         
@@ -70,7 +81,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-
+        const Style m_style;
+        
         QComboBox* m_comboBox;
         
         // ADD_NEW_MEMBERS_HERE

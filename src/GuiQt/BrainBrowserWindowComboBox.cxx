@@ -39,9 +39,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param style
+ *     Style of combo box content
+ * @param parent
+ *     Parent of this combo box
  */
-BrainBrowserWindowComboBox::BrainBrowserWindowComboBox(QObject* parent)
-: WuQWidget(parent)
+BrainBrowserWindowComboBox::BrainBrowserWindowComboBox(const Style style,
+                                                       QObject* parent)
+: WuQWidget(parent),
+m_style(style)
 {
     m_comboBox = new QComboBox();
     QObject::connect(m_comboBox, SIGNAL(currentIndexChanged(int)),
@@ -92,7 +99,14 @@ BrainBrowserWindowComboBox::updateComboBox()
     for (int32_t i = 0; i < numWindows; i++) {
         BrainBrowserWindow* bbw = browserWindows[i];
         const int32_t browserWindowIndex = bbw->getBrowserWindowIndex();
-        m_comboBox->addItem(QString::number(browserWindowIndex + 1));
+        switch (m_style) {
+            case STYLE_NAME_AND_NUMBER:
+                m_comboBox->addItem("Window " + QString::number(browserWindowIndex + 1));
+                break;
+            case STYLE_NUMBER:
+                m_comboBox->addItem(QString::number(browserWindowIndex + 1));
+                break;
+        }
         m_comboBox->setItemData(i,
                                 qVariantFromValue((void*)bbw));
         

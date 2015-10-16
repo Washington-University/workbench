@@ -3176,6 +3176,42 @@ BrainBrowserWindow::getBrowserTabContent(int tabIndex)
 }
 
 /**
+ * Get content of all tabs
+ *
+ * @param allTabContent
+ *    Will contain the tabs in window upon return
+ */
+void
+BrainBrowserWindow::getAllTabContent(std::vector<BrowserTabContent*>& allTabContent) const
+{
+    m_toolbar->getAllTabContent(allTabContent);
+}
+
+/**
+ * Get indices of all tabs in window
+ *
+ * @param allTabContentIndices
+ *    Will contain the indices from all tabs in window upon return.
+ */
+void
+BrainBrowserWindow::getAllTabContentIndices(std::vector<int32_t>& allTabContentIndices) const
+{
+    allTabContentIndices.clear();
+    
+    std::vector<BrowserTabContent*> allTabContent;
+    getAllTabContent(allTabContent);
+    
+    for (std::vector<BrowserTabContent*>::iterator iter = allTabContent.begin();
+         iter != allTabContent.end();
+         iter++) {
+        const BrowserTabContent* btc = *iter;
+        CaretAssert(btc);
+        allTabContentIndices.push_back(btc->getTabNumber());
+    }
+}
+
+
+/**
  * Returns a popup menu for the main window.
  * Overrides that in QMainWindow and prevents the 
  * default context menu from appearing.

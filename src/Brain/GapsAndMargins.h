@@ -55,62 +55,25 @@ namespace caret {
         void setMarginTopForTab(const int32_t tabIndex,
                               const float margin);
         
-        bool isMarginLeftForTabGuiControlEnabled(const int32_t tabIndex) const;
+        float getSurfaceMontageHorizontalGapForWindow(const int32_t windowIndex) const;
         
-        bool isMarginRightForTabGuiControlEnabled(const int32_t tabIndex) const;
+        float getSurfaceMontageVerticalGapForWindow(const int32_t windowIndex) const;
         
-        bool isMarginBottomForTabGuiControlEnabled(const int32_t tabIndex) const;
+        float getVolumeMontageHorizontalGapForWindow(const int32_t windowIndex) const;
         
-        bool isMarginTopForTabGuiControlEnabled(const int32_t tabIndex) const;
+        float getVolumeMontageVerticalGapForWindow(const int32_t windowIndex) const;
         
-        float getSurfaceMontageHorizontalGap() const;
+        void setSurfaceMontageHorizontalGapForWindow(const int32_t windowIndex,
+                                                     const float gap);
         
-        float getSurfaceMontageVerticalGap() const;
+        void setSurfaceMontageVerticalGapForWindow(const int32_t windowIndex,
+                                                   const float gap);
         
-        float getVolumeMontageHorizontalGap() const;
+        void setVolumeMontageHorizontalGapForWindow(const int32_t windowIndex,
+                                                    const float gap);
         
-        float getVolumeMontageVerticalGap() const;
-        
-        void setSurfaceMontageHorizontalGap(const float gap);
-        
-        void setSurfaceMontageVerticalGap(const float gap);
-        
-        void setVolumeMontageHorizontalGap(const float gap);
-        
-        void setVolumeMontageVerticalGap(const float gap);
-        
-        bool isSurfaceMontageScaleProportionatelySelected() const;
-        
-        bool isVolumeMontageScaleProportionatelySelected() const;
-        
-        void setSurfaceMontageScaleProportionatelySelected(const bool selected);
-        
-        void setVolumeMontageScaleProportionatelySelected(const bool selected);
-        
-        bool isTabMarginLeftApplyTabOneToAllSelected() const;
-        
-        bool isTabMarginRightApplyTabOneToAllSelected() const;
-        
-        bool isTabMarginBottomApplyTabOneToAllSelected() const;
-        
-        bool isTabMarginTopApplyTabOneToAllSelected() const;
-        
-        void setTabMarginLeftApplyTabOneToAllSelected(const bool status);
-        
-        void setTabMarginRightApplyTabOneToAllSelected(const bool selected);
-        
-        void setTabMarginBottomApplyTabOneToAllSelected(const bool selected);
-        
-        void setTabMarginTopApplyTabOneToAllSelected(const bool selected);
-        
-        void setScaleProportionatelyForAll(const bool selected);
-        
-        bool isTabMarginScaleProportionatelyForTabSelected(const int32_t tabIndex) const;
-        
-        void setTabMarginScaleProportionatelyForTabSelected(const int32_t tabIndex,
-                                                         const bool selected);
-        
-        bool isTabMarginScaleProportionatelyForTabEnabled(const int32_t tabIndex) const;
+        void setVolumeMontageVerticalGapForWindow(const int32_t windowIndex,
+                                                  const float gap);
         
         void reset();
 
@@ -152,20 +115,6 @@ namespace caret {
 
         GapsAndMargins& operator=(const GapsAndMargins&);
         
-        void copyTabOneLeftMarginToAllLeftMargins();
-        
-        void copyTabOneRightMarginToAllRightMargins();
-        
-        void copyTabOneBottomMarginToAllBottomMargins();
-        
-        void copyTabOneTopMarginToAllTopMargins();
-        
-        bool isTabMarginGuiControlEnabled(const int32_t tabIndex,
-                                const bool marginSelected,
-                                const bool topMarginFlag) const;
-        
-        void applyScaleProportionately();
-        
         SceneClassAssistant* m_sceneAssistant;
 
         float m_tabMarginsLeft[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
@@ -176,23 +125,13 @@ namespace caret {
         
         float m_tabMarginsTop[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool m_tabMarginScaleProportionatelySelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_surfaceMontageHorizontalGaps[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
-        bool m_tabMarginLeftApplyTabOneToAllSelected;
+        float m_surfaceMontageVerticalGaps[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
-        bool m_tabMarginRightApplyTabOneToAllSelected;
+        float m_volumeMontageHorizontalGaps[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
-        bool m_tabMarginBottomApplyTabOneToAllSelected;
-        
-        bool m_tabMarginTopApplyTabOneToAllSelected;
-        
-        float m_surfaceMontageGaps[2];
-        
-        float m_volumeMontageGaps[2];
-        
-        bool m_surfaceMontageScaleProportionatelySelected;
-        
-        bool m_volumeMontageScaleProportionatelySelected;
+        float m_volumeMontageVerticalGaps[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         // ADD_NEW_MEMBERS_HERE
 

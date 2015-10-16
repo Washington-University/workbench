@@ -401,7 +401,8 @@ CustomViewDialog::createTransformsWidget()
      * Window number
      */
     QLabel* windowLabel = new QLabel("Workbench Window: ");
-    m_browserWindowComboBox = new BrainBrowserWindowComboBox(this);
+    m_browserWindowComboBox = new BrainBrowserWindowComboBox(BrainBrowserWindowComboBox::STYLE_NUMBER,
+                                                             this);
     m_browserWindowComboBox->getWidget()->setFixedWidth(spinBoxWidth);
     QObject::connect(m_browserWindowComboBox, SIGNAL(browserWindowSelected(BrainBrowserWindow*)),
                      this, SLOT(browserWindowComboBoxValueChanged(BrainBrowserWindow*)));
