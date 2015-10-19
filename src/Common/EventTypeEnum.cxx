@@ -105,6 +105,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_GET_ALL_VIEWED",
                                      "Get ALL Viewed browser tabs"));
 
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE,
+                                     "EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE",
+                                     "Get the viewport size for a browser tab"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_INDICES_GET_ALL,
                                      "EVENT_BROWSER_TAB_INDICES_GET_ALL",
                                      "Browser Tab Indices Get All"));

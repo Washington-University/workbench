@@ -372,6 +372,20 @@ BrainOpenGLViewportContent::getBrowserTabContent()
 }
 
 /**
+ * @return Index of browser tab or -1 if there is not browser tab for this viewport.
+ */
+int32_t
+BrainOpenGLViewportContent::getTabIndex() const
+{
+    if (m_browserTabContent != NULL) {
+        return m_browserTabContent->getTabNumber();
+    }
+    
+    return -1;
+}
+
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

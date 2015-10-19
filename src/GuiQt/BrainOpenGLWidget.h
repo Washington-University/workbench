@@ -63,8 +63,6 @@ namespace caret {
         
         ~BrainOpenGLWidget();
         
-        //Model* getDisplayedModelController();
-        
         void receiveEvent(Event* event);
         
         SelectionManager* performIdentification(const int x,
@@ -88,12 +86,10 @@ namespace caret {
         
         QString getOpenGLInformation();
 
-//        void getViewPortSize(int &w, int &h);
-        
-        float getAspectRatioForTabIndex(const int32_t tabIndex) const;
-        
         void updateCursor();
         
+        std::vector<const BrainOpenGLViewportContent*> getViewportContent() const;
+
     protected:
         virtual void initializeGL();
         
@@ -137,13 +133,7 @@ namespace caret {
         
         BrainOpenGL* openGL;
         
-        //BrowserTabContent* browserTabContent;
-        
         int32_t windowIndex;
-        
-        //int32_t windowTabIndex;
-        
-        //Model* modelController;
         
         std::vector<BrainOpenGLViewportContent*> drawingViewportContents;
         

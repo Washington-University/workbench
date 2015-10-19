@@ -133,8 +133,6 @@ namespace caret {
         
         float getOpenGLWidgetAspectRatio() const;
         
-        float getOpenGLWidgetAspectRatioForTabIndex(const int32_t tabIndex) const;
-        
         bool isAspectRatioLocked() const;
         
         float getAspectRatio() const;

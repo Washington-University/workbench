@@ -40,6 +40,7 @@
 #include "CaretAssert.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventBrowserTabGetViewportSize.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -459,7 +460,54 @@ GapsAndMarginsDialog::updateMarginSpinBoxes(const int32_t windowIndex)
 void
 GapsAndMarginsDialog::tabMarginMatchPixelButtonClicked(int rowIndex)
 {
-    std::cout << "Button clicked " << rowIndex << std::endl;
+    CaretAssertArrayIndex(m_tabIndexInTabMarginRow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, rowIndex);
+    const int32_t tabIndex = m_tabIndexInTabMarginRow[rowIndex];
+    if (tabIndex >= 0) {
+        EventBrowserTabGetViewportSize viewportSizeEvent(tabIndex);
+        EventManager::get()->sendEvent(viewportSizeEvent.getPointer());
+        if (viewportSizeEvent.isViewportSizeValid()) {
+            int32_t viewport[4];
+            viewportSizeEvent.getViewportSize(viewport);
+            std::cout << "Tab " << tabIndex << " viewport size " << qPrintable(AString::fromNumbers(viewport, 4, ",")) << std::endl;
+            
+            
+            
+            const float vpWidth  = viewport[2];
+            const float vpHeight = viewport[3];
+            if (vpHeight > 0) {
+                const float aspectRatio = vpWidth / vpHeight;
+
+                const float topBottomMargin = m_topMarginSpinBoxes[rowIndex]->value();
+                const float leftRightMargin = topBottomMargin * aspectRatio;
+                
+                CaretAssertVectorIndex(m_leftMarginSpinBoxes, rowIndex);
+                CaretAssertVectorIndex(m_rightMarginSpinBoxes, rowIndex);
+                CaretAssertVectorIndex(m_bottomMarginSpinBoxes, rowIndex);
+                CaretAssertVectorIndex(m_topMarginSpinBoxes, rowIndex);
+                
+                m_leftMarginSpinBoxes[rowIndex]->blockSignals(true);
+                m_leftMarginSpinBoxes[rowIndex]->setValue(leftRightMargin);
+                m_leftMarginSpinBoxes[rowIndex]->blockSignals(false);
+
+                m_rightMarginSpinBoxes[rowIndex]->blockSignals(true);
+                m_rightMarginSpinBoxes[rowIndex]->setValue(leftRightMargin);
+                m_rightMarginSpinBoxes[rowIndex]->blockSignals(false);
+                
+                m_bottomMarginSpinBoxes[rowIndex]->blockSignals(true);
+                m_bottomMarginSpinBoxes[rowIndex]->setValue(topBottomMargin);
+                m_bottomMarginSpinBoxes[rowIndex]->blockSignals(false);
+                
+                m_topMarginSpinBoxes[rowIndex]->blockSignals(true);
+                m_topMarginSpinBoxes[rowIndex]->setValue(topBottomMargin);
+                m_topMarginSpinBoxes[rowIndex]->blockSignals(false);
+                
+                tabMarginChanged(rowIndex);
+            }
+        }
+        else {
+            std::cout << "Unable to get tab's viewport size" << std::endl;
+        }
+    }
 }
 
 /**
@@ -533,16 +581,16 @@ GapsAndMarginsDialog::applyFirstTabToAllButtonClicked()
 {
     const int32_t rowZero = 0;
     CaretAssertVectorIndex(m_leftMarginSpinBoxes, rowZero);
-    const int leftMargin = m_leftMarginSpinBoxes[rowZero]->value();
+    const float leftMargin = m_leftMarginSpinBoxes[rowZero]->value();
     
     CaretAssertVectorIndex(m_rightMarginSpinBoxes, rowZero);
-    const int rightMargin = m_rightMarginSpinBoxes[rowZero]->value();
+    const float rightMargin = m_rightMarginSpinBoxes[rowZero]->value();
     
     CaretAssertVectorIndex(m_bottomMarginSpinBoxes, rowZero);
-    const int bottomMargin = m_bottomMarginSpinBoxes[rowZero]->value();
+    const float bottomMargin = m_bottomMarginSpinBoxes[rowZero]->value();
     
     CaretAssertVectorIndex(m_topMarginSpinBoxes, rowZero);
-    const int topMargin = m_topMarginSpinBoxes[rowZero]->value();
+    const float topMargin = m_topMarginSpinBoxes[rowZero]->value();
     
     GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
     

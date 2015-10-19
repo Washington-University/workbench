@@ -55,6 +55,8 @@ namespace caret {
         
         BrowserTabContent* getBrowserTabContent();
         
+        int32_t getTabIndex() const;
+        
         bool isTabHighlighted() const;
         
         static void adjustViewportForAspectRatio(int viewport[4],

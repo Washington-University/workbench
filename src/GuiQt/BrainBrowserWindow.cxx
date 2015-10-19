@@ -42,6 +42,7 @@
 #include "Brain.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -56,6 +57,7 @@
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"
+#include "EventBrowserTabGetViewportSize.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventDataFileRead.h"
 #include "EventMacDockMenuUpdate.h"
@@ -236,6 +238,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE);
 }
 /**
  * Destructor.
@@ -263,6 +266,61 @@ BrainBrowserWindow::receiveEvent(Event* event)
         if (m_developMenuAction != NULL) {
             m_developMenuAction->setVisible(prefs->isDevelopMenuEnabled());
             event->setEventProcessed();
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE) {
+        EventBrowserTabGetViewportSize* viewportSizeEvent = dynamic_cast<EventBrowserTabGetViewportSize*>(event);
+        CaretAssert(viewportSizeEvent);
+        
+        std::vector<BrowserTabContent*> allTabContent;
+        m_toolbar->getAllTabContent(allTabContent);
+        
+        const std::vector<const BrainOpenGLViewportContent*> allViewportContent = m_openGLWidget->getViewportContent();
+        
+        int32_t tabViewport[4] = { 0, 0, 0, 0 };
+        bool tabViewportValid = false;
+        
+        /*
+         * Find the viewport content containing the specified tab by index
+         */
+        for (std::vector<BrowserTabContent*>::iterator tabIter = allTabContent.begin();
+             tabIter != allTabContent.end();
+             tabIter++) {
+            const BrowserTabContent* btc = *tabIter;
+            CaretAssert(btc);
+            
+            if (btc->getTabNumber() == viewportSizeEvent->getTabIndex()) {
+                for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
+                     vpIter != allViewportContent.end();
+                     vpIter++) {
+                    const BrainOpenGLViewportContent* vpContent = *vpIter;
+                    if (vpContent->getTabIndex() == viewportSizeEvent->getTabIndex()) {
+                        vpContent->getTabViewport(tabViewport);
+                        tabViewportValid = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (tabViewportValid) {
+                break;
+            }
+        }
+        
+        if ( ! tabViewportValid) {
+            /*
+             * Tab is in this window but not the active tab.
+             * So, use the active tab's viewport
+             */
+            if ( ! allViewportContent.empty()) {
+                CaretAssertVectorIndex(allViewportContent, 0);
+                allViewportContent[0]->getTabViewport(tabViewport);
+                tabViewportValid = true;
+            }
+        }
+        
+        if (tabViewportValid) {
+            viewportSizeEvent->setViewportSize(tabViewport);
         }
     }
 }
@@ -3284,24 +3342,6 @@ BrainBrowserWindow::getOpenGLWidgetAspectRatio() const
     const float aspectRatio = ((w != 0.0) ? (h / w) : 1.0);
     return aspectRatio;
 }
-
-/**
- * Get the aspect ratio of the viewport for the given tab index.
- *
- * @param tabIndex
- *     Index of the tab.
- * @return
- *     The aspect ratio for the viewport containing the tab.
- *     A negative value indicates that the tab invalid meaning
- *     that either the tab is not displayed or the index is
- *     invalid.
- */
-float
-BrainBrowserWindow::getOpenGLWidgetAspectRatioForTabIndex(const int32_t tabIndex) const
-{
-    return m_openGLWidget->getAspectRatioForTabIndex(tabIndex);
-}
-
 
 /**
  * Create a scene for an instance of a class.

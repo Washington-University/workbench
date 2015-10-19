@@ -60,6 +60,8 @@ public:
         EVENT_BROWSER_TAB_GET_ALL,
         /** Get ALL VIEWED browser tabs (tabs that are viewed in windows) */
         EVENT_BROWSER_TAB_GET_ALL_VIEWED,
+        /** Get the viewport size for a browser tab */
+        EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
         /** Get the content of a browser window */
