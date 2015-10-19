@@ -38,6 +38,7 @@
 #include "BrainConstants.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetViewportSize.h"
@@ -452,6 +453,31 @@ GapsAndMarginsDialog::updateMarginSpinBoxes(const int32_t windowIndex)
 }
 
 /**
+ * Match the left/right margins to the same pixel size as the top margin.
+ *
+ * @param topMarginPercentage
+ *     Percentage size of top margin.
+ * @param viewportWidth
+ *     Width of viewport in pixels.
+ * @param viewportHeight
+ *     Height of viewport in pixels.
+ */
+float
+GapsAndMarginsDialog::matchLeftRightMarginPercentageFromTop(const float topMarginPercentage,
+                                                            const float viewportWidth,
+                                                            const float viewportHeight) const
+{
+    float leftRightMarginPercentageOut = 0.0;
+    
+    const float marginPixelSize = topMarginPercentage * viewportHeight;
+    if (viewportWidth > 0) {
+        leftRightMarginPercentageOut = marginPixelSize / viewportWidth;
+    }
+    
+    return leftRightMarginPercentageOut;
+}
+
+/**
  * Called when match pixel button is clicked.
  *
  * @param setVisible(tabValid);
@@ -468,44 +494,40 @@ GapsAndMarginsDialog::tabMarginMatchPixelButtonClicked(int rowIndex)
         if (viewportSizeEvent.isViewportSizeValid()) {
             int32_t viewport[4];
             viewportSizeEvent.getViewportSize(viewport);
-            std::cout << "Tab " << tabIndex << " viewport size " << qPrintable(AString::fromNumbers(viewport, 4, ",")) << std::endl;
             
+            CaretAssertVectorIndex(m_topMarginSpinBoxes, rowIndex);
+            const float bottomTopPercentage = m_topMarginSpinBoxes[rowIndex]->value();
+            const float leftRightMarginPercentage = matchLeftRightMarginPercentageFromTop(bottomTopPercentage,
+                                                                                          viewport[2],
+                                                                                          viewport[3]);
             
+            CaretAssertVectorIndex(m_leftMarginSpinBoxes, rowIndex);
+            CaretAssertVectorIndex(m_rightMarginSpinBoxes, rowIndex);
+            CaretAssertVectorIndex(m_bottomMarginSpinBoxes, rowIndex);
+            CaretAssertVectorIndex(m_topMarginSpinBoxes, rowIndex);
             
-            const float vpWidth  = viewport[2];
-            const float vpHeight = viewport[3];
-            if (vpHeight > 0) {
-                const float aspectRatio = vpWidth / vpHeight;
-
-                const float topBottomMargin = m_topMarginSpinBoxes[rowIndex]->value();
-                const float leftRightMargin = topBottomMargin * aspectRatio;
-                
-                CaretAssertVectorIndex(m_leftMarginSpinBoxes, rowIndex);
-                CaretAssertVectorIndex(m_rightMarginSpinBoxes, rowIndex);
-                CaretAssertVectorIndex(m_bottomMarginSpinBoxes, rowIndex);
-                CaretAssertVectorIndex(m_topMarginSpinBoxes, rowIndex);
-                
-                m_leftMarginSpinBoxes[rowIndex]->blockSignals(true);
-                m_leftMarginSpinBoxes[rowIndex]->setValue(leftRightMargin);
-                m_leftMarginSpinBoxes[rowIndex]->blockSignals(false);
-
-                m_rightMarginSpinBoxes[rowIndex]->blockSignals(true);
-                m_rightMarginSpinBoxes[rowIndex]->setValue(leftRightMargin);
-                m_rightMarginSpinBoxes[rowIndex]->blockSignals(false);
-                
-                m_bottomMarginSpinBoxes[rowIndex]->blockSignals(true);
-                m_bottomMarginSpinBoxes[rowIndex]->setValue(topBottomMargin);
-                m_bottomMarginSpinBoxes[rowIndex]->blockSignals(false);
-                
-                m_topMarginSpinBoxes[rowIndex]->blockSignals(true);
-                m_topMarginSpinBoxes[rowIndex]->setValue(topBottomMargin);
-                m_topMarginSpinBoxes[rowIndex]->blockSignals(false);
-                
-                tabMarginChanged(rowIndex);
-            }
+            m_leftMarginSpinBoxes[rowIndex]->blockSignals(true);
+            m_leftMarginSpinBoxes[rowIndex]->setValue(leftRightMarginPercentage);
+            m_leftMarginSpinBoxes[rowIndex]->blockSignals(false);
+            
+            m_rightMarginSpinBoxes[rowIndex]->blockSignals(true);
+            m_rightMarginSpinBoxes[rowIndex]->setValue(leftRightMarginPercentage);
+            m_rightMarginSpinBoxes[rowIndex]->blockSignals(false);
+            
+            m_bottomMarginSpinBoxes[rowIndex]->blockSignals(true);
+            m_bottomMarginSpinBoxes[rowIndex]->setValue(bottomTopPercentage);
+            m_bottomMarginSpinBoxes[rowIndex]->blockSignals(false);
+            
+            m_topMarginSpinBoxes[rowIndex]->blockSignals(true);
+            m_topMarginSpinBoxes[rowIndex]->setValue(bottomTopPercentage);
+            m_topMarginSpinBoxes[rowIndex]->blockSignals(false);
+            
+            tabMarginChanged(rowIndex);
         }
         else {
-            std::cout << "Unable to get tab's viewport size" << std::endl;
+            CaretLogWarning("Unable to get tab "
+                            + AString::number(tabIndex + 1)
+                            + " viewport size.");
         }
     }
 }

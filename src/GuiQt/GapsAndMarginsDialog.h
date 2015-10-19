@@ -83,6 +83,10 @@ namespace caret {
         
         void updateMarginSpinBoxes(const int32_t windowIndex);
         
+        float matchLeftRightMarginPercentageFromTop(const float topMarginPercentage,
+                                                    const float viewportWidth,
+                                                    const float viewportHeight) const;
+        
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
         WuQGridLayoutGroup* m_gridLayoutGroup;
