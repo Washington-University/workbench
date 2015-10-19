@@ -53,14 +53,17 @@ using namespace caret;
  *    True indicates that the tab is highlighted (used in 
  *    Tile Tabs mode so user knows graphics region corresponding
  *    to the tab that was recently selected).
+ * @param aspectRatio
+ *     If positive value, use as aspect ratio for tab
  * @param browserTabContent
  *    Tab's content that is being drawn.
  */
 BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[4],
-                                                       const int modelViewport[4],
+                                                       const int modelViewportIn[4],
                                                        const int32_t windowIndex,
                                                        const bool highlightTabFlag,
                                                        const GapsAndMargins* gapsAndMargins,
+                                                       const float aspectRatio,
                                                        BrowserTabContent* browserTabContent)
 : CaretObject()
 {
@@ -73,6 +76,17 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
     m_windowViewport[2] = windowViewport[2];
     m_windowViewport[3] = windowViewport[3];
     
+    int modelViewport[4] = {
+        modelViewportIn[0],
+        modelViewportIn[1],
+        modelViewportIn[2],
+        modelViewportIn[3]
+    };
+    if (aspectRatio > 0.0) {
+        BrainOpenGLViewportContent::adjustViewportForAspectRatio(modelViewport,
+                                                                 aspectRatio);
+    }
+    
     m_tabViewport[0] = modelViewport[0];
     m_tabViewport[1] = modelViewport[1];
     m_tabViewport[2] = modelViewport[2];
@@ -82,6 +96,7 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
     m_modelViewport[1] = modelViewport[1];
     m_modelViewport[2] = modelViewport[2];
     m_modelViewport[3] = modelViewport[3];
+    
     
     if (browserTabContent != NULL) {
         /*
@@ -410,6 +425,8 @@ BrainOpenGLViewportContent::toString() const
  *     Width of each column.
  * @param hightlightTabIndex
  *     Index of tab that is highlighted when selected by user.
+ * @param aspectRatio
+ *     If positive value, use as aspect ratio for tab
  * @return 
  *     Vector containing data for drawing each model.
  */
@@ -420,7 +437,8 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                                                              const std::vector<int32_t>& rowHeights,
                                                              const std::vector<int32_t>& columnWidths,
                                                              const int32_t highlightTabIndex,
-                                                             const GapsAndMargins* gapsAndMargins)
+                                                             const GapsAndMargins* gapsAndMargins,
+                                                             const float aspectRatio)
 {
     const int32_t numRows = static_cast<int32_t>(rowHeights.size());
     const int32_t numCols = static_cast<int32_t>(columnWidths.size());
@@ -458,6 +476,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                                                windowIndex,
                                                highlightTab,
                                                gapsAndMargins,
+                                               aspectRatio,
                                                tabContent);
                 viewportContentsOut.push_back(vc);
             }

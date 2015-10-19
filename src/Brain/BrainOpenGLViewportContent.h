@@ -37,6 +37,7 @@ namespace caret {
                                    const int windowIndex,
                                    const bool highlightTabFlag,
                                    const GapsAndMargins* gapsAndMargins,
+                                   const float aspectRatio,
                                    BrowserTabContent* browserTabContent);
         
         ~BrainOpenGLViewportContent();
@@ -68,7 +69,8 @@ namespace caret {
                                                                                          const std::vector<int32_t>& rowHeights,
                                                                                          const std::vector<int32_t>& columnWidths,
                                                                                          const int32_t highlightTabIndex,
-                                                                                         const GapsAndMargins* gapsAndMargins);
+                                                                                         const GapsAndMargins* gapsAndMargins,
+                                                                                         const float aspectRatio);
         
     private:
         void initializeMembersBrainOpenGLViewportContent();

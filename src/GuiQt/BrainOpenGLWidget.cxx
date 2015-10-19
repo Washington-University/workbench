@@ -354,11 +354,13 @@ BrainOpenGLWidget::paintGL()
         this->windowHeight[this->windowIndex]
     };
     
+    float aspectRatio = -1.0;
     BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
     if (bbw != NULL) {
         if (bbw->isAspectRatioLocked()) {
-            BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
-                                                                     bbw->getAspectRatio());
+            aspectRatio = bbw->getAspectRatio();
+//            BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
+//                                                                     bbw->getAspectRatio());
         }
     }
 
@@ -387,6 +389,7 @@ BrainOpenGLWidget::paintGL()
                                                                         this->windowIndex,
                                                                         false,
                                                                         gapsAndMargins,
+                                                                        aspectRatio,
                                                                         getModelEvent.getTabContentToDraw(0));
         this->drawingViewportContents.push_back(vc);
     }
@@ -428,7 +431,8 @@ BrainOpenGLWidget::paintGL()
                                                                                                      rowHeights,
                                                                                                      columnsWidths,
                                                                                                      getModelEvent.getTabIndexForTileTabsHighlighting(),
-                                                                                                     gapsAndMargins);
+                                                                                                     gapsAndMargins,
+                                                                                                     aspectRatio);
     }
     
     if (this->selectedUserInputProcessor == userInputBordersModeProcessor) {

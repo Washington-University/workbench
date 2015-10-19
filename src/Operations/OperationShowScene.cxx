@@ -296,13 +296,16 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             int windowViewport[4] = {
                 imageViewport[0], imageViewport[1], imageViewport[2], imageViewport[3]
             };
+            
+            float aspectRatio = -1.0;
             const bool windowAspectRatioLocked = browserClass->getBooleanValue("m_aspectRatioLockedStatus");
             if (windowAspectRatioLocked) {
-                const float aspectRatio = browserClass->getFloatValue("m_aspectRatio", -1.0);
-                if (aspectRatio > 0.0) {
-                    BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
-                                                                             aspectRatio);
-                }
+                aspectRatio = browserClass->getFloatValue("m_aspectRatio", -1.0);
+//                const float aspectRatio = browserClass->getFloatValue("m_aspectRatio", -1.0);
+//                if (aspectRatio > 0.0) {
+//                    BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
+//                                                                             aspectRatio);
+//                }
             }
             
             const int windowWidth  = windowViewport[2];
@@ -367,7 +370,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                                                                                           rowHeights,
                                                                                                                                           columnWidths,
                                                                                                                                           tabIndexToHighlight,
-                                                                                                                                          gapsAndMargins);
+                                                                                                                                          gapsAndMargins,
+                                                                                                                                          aspectRatio);
                         
                         brainOpenGL->drawModels(brain,
                                                 viewports);
@@ -420,6 +424,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                        windowIndex,
                                                        false, // highlight the tab
                                                        gapsAndMargins,
+                                                       aspectRatio,
                                                        tabContent);
                     std::vector<BrainOpenGLViewportContent*> viewportContents;
                     viewportContents.push_back(&content);
