@@ -110,8 +110,6 @@ GapsAndMarginsDialog::createGapsWidget()
     QLabel* volumeLabel     = new QLabel("Volume");
     QLabel* horizontalLabel = new QLabel("Horizontal");
     QLabel* verticalLabel   = new QLabel("Vertical");
-    QLabel* scaleProportionatelyLabel = new QLabel("Scale\nProportionately");
-    scaleProportionatelyLabel->setAlignment(Qt::AlignCenter);
     
     m_surfaceMontageHorizontalGapSpinBox = createPercentageSpinBox();
     QObject::connect(m_surfaceMontageHorizontalGapSpinBox, SIGNAL(valueChanged(double)),
@@ -153,8 +151,6 @@ GapsAndMarginsDialog::createGapsWidget()
                           row, COLUMN_HORIZONTAL, Qt::AlignHCenter);
     gridLayout->addWidget(verticalLabel,
                           row, COLUMN_VERTICAL, Qt::AlignHCenter);
-    gridLayout->addWidget(scaleProportionatelyLabel,
-                          row, COLUMN_SCALE, Qt::AlignHCenter);
     row++;
     gridLayout->addWidget(surfaceLabel,
                           row, COLUMN_LABEL);
