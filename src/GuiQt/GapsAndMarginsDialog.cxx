@@ -195,10 +195,10 @@ GapsAndMarginsDialog::createMarginsWidget()
     QObject::connect(m_tabMarginMatchPixelsToolButtonSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(tabMarginMatchPixelButtonClicked(int)));
     
-    
-    QLabel* leftLabel = new QLabel("Left");
-    QLabel* rightLabel = new QLabel("Right");
-    QLabel* topLabel = new QLabel("Top");
+    QLabel* tabLabel    = new QLabel("Tab");
+    QLabel* leftLabel   = new QLabel("Left");
+    QLabel* rightLabel  = new QLabel("Right");
+    QLabel* topLabel    = new QLabel("Top");
     QLabel* bottomLabel = new QLabel("Bottom");
     
     m_applyFirstTabToAllToolButton = new QToolButton();
@@ -221,6 +221,7 @@ GapsAndMarginsDialog::createMarginsWidget()
     gridLayout->addWidget(m_applyFirstTabToAllToolButton, applyToAllRow, COLUMN_LABEL, 1, COLUMN_MATCH, Qt::AlignHCenter);
     
     const int32_t titlesRow = gridLayout->rowCount();
+    gridLayout->addWidget(tabLabel, titlesRow, COLUMN_LABEL, Qt::AlignLeft);
     gridLayout->addWidget(leftLabel, titlesRow, COLUMN_LEFT,  Qt::AlignHCenter);
     gridLayout->addWidget(rightLabel, titlesRow, COLUMN_RIGHT,  Qt::AlignHCenter);
     gridLayout->addWidget(bottomLabel, titlesRow, COLUMN_BOTTOM,  Qt::AlignHCenter);
