@@ -61,7 +61,7 @@ AnnotationSelectionViewController::AnnotationSelectionViewController(const int32
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    m_displayModelAnnotationCheckBox = new QCheckBox("Show Model Annotations");
+    m_displayModelAnnotationCheckBox = new QCheckBox("Show Stereotaxic Annotations");
     QObject::connect(m_displayModelAnnotationCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(checkBoxToggled()));
     
@@ -126,7 +126,7 @@ AnnotationSelectionViewController::receiveEvent(Event* event)
                                 + QString::number(browserTabIndex + 1));
         
         m_displayModelAnnotationCheckBox->setChecked(dpa->isDisplayModelAnnotations(browserTabIndex));
-        m_displayModelAnnotationCheckBox->setText("Display Model Annotations "
+        m_displayModelAnnotationCheckBox->setText("Display Stereotaxic Annotations "
                                                   + inTabText);
         
         m_displaySurfaceAnnotationCheckBox->setChecked(dpa->isDisplaySurfaceAnnotations(browserTabIndex));
