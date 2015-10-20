@@ -110,6 +110,8 @@ namespace caret {
         
         ModelVolume* getDisplayedVolumeModel();
         
+        const ModelVolume* getDisplayedVolumeModel() const;
+        
         ModelWholeBrain* getDisplayedWholeBrainModel();
         
         ModelSurfaceMontage* getDisplayedSurfaceMontageModel();

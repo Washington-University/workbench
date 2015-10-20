@@ -31,9 +31,18 @@ namespace caret {
     class EventBrowserTabGetViewportSize : public Event {
         
     public:
+        enum Mode {
+            MODE_SURFACE_MONTAGE,
+            MODE_TAB_INDEX,
+            MODE_VOLUME_MONTAGE
+        };
         EventBrowserTabGetViewportSize(const int32_t tabIndex);
         
+        EventBrowserTabGetViewportSize(const Mode mode);
+        
         virtual ~EventBrowserTabGetViewportSize();
+        
+        Mode getMode() const;
         
         int32_t getTabIndex() const;
         
@@ -49,6 +58,8 @@ namespace caret {
         EventBrowserTabGetViewportSize(const EventBrowserTabGetViewportSize&);
 
         EventBrowserTabGetViewportSize& operator=(const EventBrowserTabGetViewportSize&);
+        
+        const Mode m_mode;
         
         const int32_t m_tabIndex;
         

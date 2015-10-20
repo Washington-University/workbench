@@ -125,7 +125,7 @@ GapsAndMarginsDialog::createGapsWidget()
     m_surfaceMontageMatchPixelToolButton->setText("Match Pixel Width\nto Pixel Height");
     m_surfaceMontageMatchPixelToolButton->setToolTip("Set the width to same pixel size as height");
     QObject::connect(m_surfaceMontageMatchPixelToolButton, SIGNAL(clicked(bool)),
-                     this, SLOT(surfaceMontageScaleProportionatelyToolButtonClicked()));
+                     this, SLOT(surfaceMontageMatchPixelButtonClicked()));
     
     
     m_volumeMontageHorizontalGapSpinBox = createPercentageSpinBox();
@@ -140,7 +140,7 @@ GapsAndMarginsDialog::createGapsWidget()
     m_volumeMontageMatchPixelToolButton->setText("Match Pixel Width\nto Pixel Height");
     m_volumeMontageMatchPixelToolButton->setToolTip("Set the width to same pixel size as height");
     QObject::connect(m_volumeMontageMatchPixelToolButton, SIGNAL(clicked(bool)),
-                     this, SLOT(volumeMontageScaleProportionatelyToolButtonClicked()));
+                     this, SLOT(volumeMontageMatchPixelButtonClicked()));
     
     const int COLUMN_LABEL      = 0;
     const int COLUMN_HORIZONTAL = 1;
@@ -453,28 +453,31 @@ GapsAndMarginsDialog::updateMarginSpinBoxes(const int32_t windowIndex)
 }
 
 /**
- * Match the left/right margins to the same pixel size as the top margin.
+ * Find the horizontal percentage that is the equivalent pixel
+ * size as the vertical percentage.
  *
- * @param topMarginPercentage
- *     Percentage size of top margin.
+ * @param verticalPercentage
+ *     Vertical percentage size.
  * @param viewportWidth
  *     Width of viewport in pixels.
  * @param viewportHeight
  *     Height of viewport in pixels.
+ * @return
+ *     The horizontal percentage.
  */
 float
-GapsAndMarginsDialog::matchLeftRightMarginPercentageFromTop(const float topMarginPercentage,
-                                                            const float viewportWidth,
-                                                            const float viewportHeight) const
+GapsAndMarginsDialog::matchHorizontalPercentageFromVerticalPercentage(const float verticalPercentage,
+                                                              const float viewportWidth,
+                                                              const float viewportHeight) const
 {
-    float leftRightMarginPercentageOut = 0.0;
+    float horizontalPercentageOut = 0.0;
     
-    const float marginPixelSize = topMarginPercentage * viewportHeight;
+    const float marginPixelSize = verticalPercentage * viewportHeight;
     if (viewportWidth > 0) {
-        leftRightMarginPercentageOut = marginPixelSize / viewportWidth;
+        horizontalPercentageOut = marginPixelSize / viewportWidth;
     }
     
-    return leftRightMarginPercentageOut;
+    return horizontalPercentageOut;
 }
 
 /**
@@ -497,9 +500,9 @@ GapsAndMarginsDialog::tabMarginMatchPixelButtonClicked(int rowIndex)
             
             CaretAssertVectorIndex(m_topMarginSpinBoxes, rowIndex);
             const float bottomTopPercentage = m_topMarginSpinBoxes[rowIndex]->value();
-            const float leftRightMarginPercentage = matchLeftRightMarginPercentageFromTop(bottomTopPercentage,
-                                                                                          viewport[2],
-                                                                                          viewport[3]);
+            const float leftRightMarginPercentage = matchHorizontalPercentageFromVerticalPercentage(bottomTopPercentage,
+                                                                                                    viewport[2],
+                                                                                                    viewport[3]);
             
             CaretAssertVectorIndex(m_leftMarginSpinBoxes, rowIndex);
             CaretAssertVectorIndex(m_rightMarginSpinBoxes, rowIndex);
@@ -678,9 +681,24 @@ GapsAndMarginsDialog::volumeMontageGapChanged()
  * Gets called when the surface montage match pixels tool button is clicked.
  */
 void
-GapsAndMarginsDialog::surfaceMontageScaleProportionatelyToolButtonClicked()
+GapsAndMarginsDialog::surfaceMontageMatchPixelButtonClicked()
 {
-    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    EventBrowserTabGetViewportSize viewportSizeEvent(EventBrowserTabGetViewportSize::MODE_SURFACE_MONTAGE);
+    EventManager::get()->sendEvent(viewportSizeEvent.getPointer());
+    if (viewportSizeEvent.isViewportSizeValid()) {
+        int32_t viewport[4];
+        viewportSizeEvent.getViewportSize(viewport);
+        
+        const float verticalPercentage = m_surfaceMontageVerticalGapSpinBox->value();
+        const float leftRightMarginPercentage = matchHorizontalPercentageFromVerticalPercentage(verticalPercentage,
+                                                                                                viewport[2],
+                                                                                                viewport[3]);
+        m_surfaceMontageHorizontalGapSpinBox->blockSignals(true);
+        m_surfaceMontageHorizontalGapSpinBox->setValue(leftRightMarginPercentage);
+        m_surfaceMontageHorizontalGapSpinBox->blockSignals(false);
+        
+        surfaceMontageGapChanged();
+    }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -689,9 +707,24 @@ GapsAndMarginsDialog::surfaceMontageScaleProportionatelyToolButtonClicked()
  * Gets called when the volume montage match pixels tool button is clicked.
  */
 void
-GapsAndMarginsDialog::volumeMontageScaleProportionatelyToolButtonClicked()
+GapsAndMarginsDialog::volumeMontageMatchPixelButtonClicked()
 {
-    GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    EventBrowserTabGetViewportSize viewportSizeEvent(EventBrowserTabGetViewportSize::MODE_VOLUME_MONTAGE);
+    EventManager::get()->sendEvent(viewportSizeEvent.getPointer());
+    if (viewportSizeEvent.isViewportSizeValid()) {
+        int32_t viewport[4];
+        viewportSizeEvent.getViewportSize(viewport);
+        
+        const float verticalPercentage = m_volumeMontageVerticalGapSpinBox->value();
+        const float horizontalPercentage = matchHorizontalPercentageFromVerticalPercentage(verticalPercentage,
+                                                                                                viewport[2],
+                                                                                                viewport[3]);
+        m_volumeMontageHorizontalGapSpinBox->blockSignals(true);
+        m_volumeMontageHorizontalGapSpinBox->setValue(horizontalPercentage);
+        m_volumeMontageHorizontalGapSpinBox->blockSignals(false);
+        
+        volumeMontageGapChanged();
+    }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

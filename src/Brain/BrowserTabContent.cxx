@@ -630,6 +630,20 @@ BrowserTabContent::getDisplayedVolumeModel()
 }
 
 /**
+ * Get the displayed volume model.
+ *
+ * @return  Pointer to displayed volume model or
+ *          NULL if the displayed model is NOT a
+ *          volume.
+ */
+const ModelVolume*
+BrowserTabContent::getDisplayedVolumeModel() const
+{
+    const ModelVolume* mdcv = dynamic_cast<const ModelVolume*>(getModelForDisplay());
+    return mdcv;
+}
+
+/**
  * @return True if the displayed model is a cerebellum surface.
  */
 bool

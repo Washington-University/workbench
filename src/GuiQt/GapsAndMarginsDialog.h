@@ -62,9 +62,9 @@ namespace caret {
         
         void applyFirstTabToAllButtonClicked();
         
-        void surfaceMontageScaleProportionatelyToolButtonClicked();
+        void surfaceMontageMatchPixelButtonClicked();
         
-        void volumeMontageScaleProportionatelyToolButtonClicked();
+        void volumeMontageMatchPixelButtonClicked();
         
         void tabMarginMatchPixelButtonClicked(int rowIndex);
         
@@ -83,9 +83,9 @@ namespace caret {
         
         void updateMarginSpinBoxes(const int32_t windowIndex);
         
-        float matchLeftRightMarginPercentageFromTop(const float topMarginPercentage,
-                                                    const float viewportWidth,
-                                                    const float viewportHeight) const;
+        float matchHorizontalPercentageFromVerticalPercentage(const float verticalPercentage,
+                                                              const float viewportWidth,
+                                                              const float viewportHeight) const;
         
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         

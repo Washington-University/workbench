@@ -37,14 +37,33 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructor for finding a specific tab index.
  *
  * @param tabIndex
  *     Index of tab for which viewport size is requested.
  */
 EventBrowserTabGetViewportSize::EventBrowserTabGetViewportSize(const int32_t tabIndex)
 : Event(EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE),
+m_mode(MODE_TAB_INDEX),
 m_tabIndex(tabIndex),
+m_viewportValid(false)
+{
+    m_viewport[0] = 0;
+    m_viewport[1] = 0;
+    m_viewport[2] = 0;
+    m_viewport[3] = 0;
+}
+
+/**
+ * Constructor for finding a surface or volume montage.
+ *
+ * @param mode
+ *     The mode.
+ */
+EventBrowserTabGetViewportSize::EventBrowserTabGetViewportSize(const Mode mode)
+: Event(EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE),
+m_mode(mode),
+m_tabIndex(-1),
 m_viewportValid(false)
 {
     m_viewport[0] = 0;
@@ -67,6 +86,15 @@ bool
 EventBrowserTabGetViewportSize::isViewportSizeValid() const
 {
     return m_viewportValid;
+}
+
+/**
+ * @return The mode.
+ */
+EventBrowserTabGetViewportSize::Mode
+EventBrowserTabGetViewportSize::getMode() const
+{
+    return m_mode;
 }
 
 /**

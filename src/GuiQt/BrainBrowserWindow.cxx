@@ -280,6 +280,9 @@ BrainBrowserWindow::receiveEvent(Event* event)
         int32_t tabViewport[4] = { 0, 0, 0, 0 };
         bool tabViewportValid = false;
         
+        int32_t notBestTabViewport[4] = { 0, 0, 0, 0 };
+        bool notBestTabViewportValid = false;
+        
         /*
          * Find the viewport content containing the specified tab by index
          */
@@ -289,17 +292,61 @@ BrainBrowserWindow::receiveEvent(Event* event)
             const BrowserTabContent* btc = *tabIter;
             CaretAssert(btc);
             
-            if (btc->getTabNumber() == viewportSizeEvent->getTabIndex()) {
-                for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
-                     vpIter != allViewportContent.end();
-                     vpIter++) {
-                    const BrainOpenGLViewportContent* vpContent = *vpIter;
-                    if (vpContent->getTabIndex() == viewportSizeEvent->getTabIndex()) {
-                        vpContent->getTabViewport(tabViewport);
-                        tabViewportValid = true;
-                        break;
+            switch (viewportSizeEvent->getMode()) {
+                case EventBrowserTabGetViewportSize::MODE_SURFACE_MONTAGE:
+                {
+                    const Model* model = btc->getModelForDisplay();
+                    if (model->getModelType() == ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE) {
+                        for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
+                             vpIter != allViewportContent.end();
+                             vpIter++) {
+                            const BrainOpenGLViewportContent* vpContent = *vpIter;
+                            if (vpContent->getTabIndex() == btc->getTabNumber()) {
+                                vpContent->getTabViewport(tabViewport);
+                                tabViewportValid = true;
+                                break;
+                            }
+                        }
                     }
                 }
+                    break;
+                case EventBrowserTabGetViewportSize::MODE_TAB_INDEX:
+                    if (btc->getTabNumber() == viewportSizeEvent->getTabIndex()) {
+                        for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
+                             vpIter != allViewportContent.end();
+                             vpIter++) {
+                            const BrainOpenGLViewportContent* vpContent = *vpIter;
+                            if (vpContent->getTabIndex() == viewportSizeEvent->getTabIndex()) {
+                                vpContent->getTabViewport(tabViewport);
+                                tabViewportValid = true;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                case EventBrowserTabGetViewportSize::MODE_VOLUME_MONTAGE:
+                {
+                    const Model* model = btc->getModelForDisplay();
+                    if (model->getModelType() == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
+                        for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
+                             vpIter != allViewportContent.end();
+                             vpIter++) {
+                            const BrainOpenGLViewportContent* vpContent = *vpIter;
+                            if (vpContent->getTabIndex() == btc->getTabNumber()) {
+                                if (btc->getSliceDrawingType() == VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE) {
+                                    vpContent->getTabViewport(tabViewport);
+                                    tabViewportValid = true;
+                                    break;
+                                }
+                                else {
+                                    vpContent->getTabViewport(notBestTabViewport);
+                                    notBestTabViewportValid = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                    break;
             }
             
             if (tabViewportValid) {
@@ -308,14 +355,23 @@ BrainBrowserWindow::receiveEvent(Event* event)
         }
         
         if ( ! tabViewportValid) {
-            /*
-             * Tab is in this window but not the active tab.
-             * So, use the active tab's viewport
-             */
-            if ( ! allViewportContent.empty()) {
-                CaretAssertVectorIndex(allViewportContent, 0);
-                allViewportContent[0]->getTabViewport(tabViewport);
+            if (notBestTabViewportValid) {
+                tabViewport[0] = notBestTabViewport[0];
+                tabViewport[1] = notBestTabViewport[1];
+                tabViewport[2] = notBestTabViewport[2];
+                tabViewport[3] = notBestTabViewport[3];
                 tabViewportValid = true;
+            }
+            else {
+                /*
+                 * Tab is in this window but not the active tab.
+                 * So, use the active tab's viewport
+                 */
+                if ( ! allViewportContent.empty()) {
+                    CaretAssertVectorIndex(allViewportContent, 0);
+                    allViewportContent[0]->getTabViewport(tabViewport);
+                    tabViewportValid = true;
+                }
             }
         }
         
