@@ -32,14 +32,6 @@ namespace caret {
     class BrainOpenGLViewportContent : public CaretObject {
         
     public:
-        BrainOpenGLViewportContent(const int windowViewport[4],
-                                   const int modelViewport[4],
-                                   const int windowIndex,
-                                   const bool highlightTabFlag,
-                                   const GapsAndMargins* gapsAndMargins,
-                                   const float aspectRatio,
-                                   BrowserTabContent* browserTabContent);
-        
         ~BrainOpenGLViewportContent();
         
         BrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj);
@@ -72,15 +64,50 @@ namespace caret {
                                                                                          const GapsAndMargins* gapsAndMargins,
                                                                                          const float aspectRatio);
         
+        static BrainOpenGLViewportContent* createViewportForSingleTab(const int windowViewport[4],
+                                                                      const int modelViewport[4],
+                                                                      const int windowIndex,
+                                                                      const bool highlightTabFlag,
+                                                                      const GapsAndMargins* gapsAndMargins,
+                                                                      const float aspectRatio,
+                                                                      BrowserTabContent* browserTabContent);
+        
     private:
+        BrainOpenGLViewportContent(const int32_t tileTabsRowIndex,
+                                   const int32_t tileTabsColumnIndex,
+                                   const int windowViewport[4],
+                                   const int modelViewport[4],
+                                   const int windowIndex,
+                                   const bool highlightTabFlag,
+                                   const GapsAndMargins* gapsAndMargins,
+                                   const float aspectRatio,
+                                   BrowserTabContent* browserTabContent);
+        
         void initializeMembersBrainOpenGLViewportContent();
         
         void copyHelperBrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj);
 
+        static void centerViewportsInWindow(std::vector<BrainOpenGLViewportContent*>& viewports,
+                                            const std::vector<int32_t>& rowHeights,
+                                            const std::vector<int32_t>& columnWidths);
+        
+        static void wrapWindowViewportAroundTabViewports(std::vector<BrainOpenGLViewportContent*>& viewports);
+        
+        static BrainOpenGLViewportContent* findViewportAtRowColumn(std::vector<BrainOpenGLViewportContent*>& viewports,
+                                                                   const int32_t row,
+                                                                   const int32_t column);
+        
+        const int32_t m_tileTabsRowIndex;
+        
+        const int32_t m_tileTabsColumnIndex;
+        
+        /** Viewport for drawing the browser tab */
         int m_tabViewport[4];
         
+        /** The model viewport is produced by applying the tab margins to the tab viewport */
         int m_modelViewport[4];
-        
+
+        /** The viewport for the entire graphics region */
         int m_windowViewport[4];
         
         BrowserTabContent* m_browserTabContent;

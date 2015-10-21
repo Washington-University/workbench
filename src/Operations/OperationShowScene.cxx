@@ -419,15 +419,15 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                  + AString::number(i + 1));
                     }
                     
-                    BrainOpenGLViewportContent content(windowViewport,
+                    CaretPointer<BrainOpenGLViewportContent> content(BrainOpenGLViewportContent::createViewportForSingleTab(                                                       windowViewport,
                                                        windowViewport,
                                                        windowIndex,
                                                        false, // highlight the tab
                                                        gapsAndMargins,
                                                        aspectRatio,
-                                                       tabContent);
+                                                       tabContent));
                     std::vector<BrainOpenGLViewportContent*> viewportContents;
-                    viewportContents.push_back(&content);
+                    viewportContents.push_back(content);
                     
                     brainOpenGL->drawModels(brain,
                                             viewportContents);
@@ -441,6 +441,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                imageBuffer,
                                imageWidth,
                                imageHeight);
+                    
                 }
             }
         }

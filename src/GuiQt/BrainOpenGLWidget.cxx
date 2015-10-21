@@ -384,13 +384,13 @@ BrainOpenGLWidget::paintGL()
     
     const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
     if (numToDraw == 1) {
-        BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(windowViewport,
-                                                                        windowViewport,
-                                                                        this->windowIndex,
-                                                                        false,
-                                                                        gapsAndMargins,
-                                                                        aspectRatio,
-                                                                        getModelEvent.getTabContentToDraw(0));
+        BrainOpenGLViewportContent* vc = BrainOpenGLViewportContent::createViewportForSingleTab(windowViewport,
+                                                                                                windowViewport,
+                                                                                                this->windowIndex,
+                                                                                                false,
+                                                                                                gapsAndMargins,
+                                                                                                aspectRatio,
+                                                                                                getModelEvent.getTabContentToDraw(0));
         this->drawingViewportContents.push_back(vc);
     }
     else if (numToDraw > 1) {
