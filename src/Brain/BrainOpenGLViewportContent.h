@@ -101,6 +101,10 @@ namespace caret {
         
         const int32_t m_tileTabsColumnIndex;
         
+        const int m_windowIndex;
+        
+        const bool m_highlightTab;
+        
         /** Viewport for drawing the browser tab */
         int m_tabViewport[4];
         
@@ -111,10 +115,6 @@ namespace caret {
         int m_windowViewport[4];
         
         BrowserTabContent* m_browserTabContent;
-        
-        int m_windowIndex;
-        
-        bool m_highlightTab;
         
     public:
         virtual AString toString() const;
