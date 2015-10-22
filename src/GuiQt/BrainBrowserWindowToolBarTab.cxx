@@ -56,8 +56,8 @@ BrainBrowserWindowToolBarTab::BrainBrowserWindowToolBarTab(const int32_t browser
                                                            BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_browserWindowIndex(browserWindowIndex),
-m_tabAspectRatioLockedAction(tabAspectRatioLockedAction),
-m_parentToolBar(parentToolBar)
+m_parentToolBar(parentToolBar),
+m_tabAspectRatioLockedAction(tabAspectRatioLockedAction)
 {
     m_yokingGroupComboBox = new EnumComboBoxTemplate(this);
     m_yokingGroupComboBox->setup<YokingGroupEnum, YokingGroupEnum::Enum>();
