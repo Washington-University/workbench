@@ -545,6 +545,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     m_tabAspectRatioLockedAction = new QAction(this);
     m_tabAspectRatioLockedAction->setCheckable(true);
     m_tabAspectRatioLockedAction->setText("Lock Aspect");
+    m_tabAspectRatioLockedAction->setToolTip("Lock aspect ratio of selected tab");
     m_tabAspectRatioLockedAction->setShortcut(Qt::CTRL+Qt::Key_K);
     QObject::connect(m_tabAspectRatioLockedAction, SIGNAL(toggled(bool)),
                      this, SLOT(processTabAspectRatioLockedToggled(bool)));
