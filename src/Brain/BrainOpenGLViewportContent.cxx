@@ -61,8 +61,6 @@ using namespace caret;
  *    True indicates that the tab is highlighted (used in 
  *    Tile Tabs mode so user knows graphics region corresponding
  *    to the tab that was recently selected).
- * @param aspectRatio
- *     If positive value, use as aspect ratio for tab
  * @param browserTabContent
  *    Tab's content that is being drawn.
  */
@@ -73,13 +71,13 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int32_t tileTabsRow
                                                        const int32_t windowIndex,
                                                        const bool highlightTabFlag,
                                                        const GapsAndMargins* gapsAndMargins,
-                                                       const float aspectRatio,
                                                        BrowserTabContent* browserTabContent)
 : CaretObject(),
 m_tileTabsRowIndex(tileTabsRowIndex),
 m_tileTabsColumnIndex(tileTabsColumnIndex),
 m_windowIndex(windowIndex),
-m_highlightTab(highlightTabFlag)
+m_highlightTab(highlightTabFlag),
+m_browserTabContent(browserTabContent)
 {
     initializeMembersBrainOpenGLViewportContent();
     
@@ -94,9 +92,12 @@ m_highlightTab(highlightTabFlag)
         modelViewportIn[2],
         modelViewportIn[3]
     };
-    if (aspectRatio > 0.0) {
-        BrainOpenGLViewportContent::adjustViewportForAspectRatio(modelViewport,
-                                                                 aspectRatio);
+    
+    if (m_browserTabContent != NULL) {
+        if (m_browserTabContent->isAspectRatioLocked()) {
+            BrainOpenGLViewportContent::adjustViewportForAspectRatio(modelViewport,
+                                                                     m_browserTabContent->getAspectRatio());
+        }
     }
     
     m_tabViewport[0] = modelViewport[0];
@@ -168,8 +169,6 @@ m_highlightTab(highlightTabFlag)
         m_modelViewport[2] = modelViewport[2];
         m_modelViewport[3] = modelViewport[3];
     }
-
-    m_browserTabContent = browserTabContent;
 }
 
 /**
@@ -231,8 +230,6 @@ BrainOpenGLViewportContent::initializeMembersBrainOpenGLViewportContent()
     m_windowViewport[1] = 0;
     m_windowViewport[2] = 0;
     m_windowViewport[3] = 0;
-    
-    m_browserTabContent = NULL;
 }
 
 /**
@@ -381,7 +378,7 @@ BrainOpenGLViewportContent::getWindowIndex() const
  * @return Pointer to tab content in viewport.
  */
 BrowserTabContent* 
-BrainOpenGLViewportContent::getBrowserTabContent()
+BrainOpenGLViewportContent::getBrowserTabContent() const
 {
     return m_browserTabContent;
 }
@@ -425,8 +422,6 @@ BrainOpenGLViewportContent::toString() const
  *    to the tab that was recently selected).
  * @param gapsAndMargins
  *     Gaps and margins
- * @param aspectRatio
- *     If positive value, use as aspect ratio for tab
  * @param browserTabContent
  *     Tab's content that is being drawn.
  * @return
@@ -438,7 +433,6 @@ BrainOpenGLViewportContent::createViewportForSingleTab(const int windowViewport[
                                                        const int windowIndex,
                                                        const bool highlightTabFlag,
                                                        const GapsAndMargins* gapsAndMargins,
-                                                       const float aspectRatio,
                                                        BrowserTabContent* browserTabContent)
 {
     BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(0,
@@ -448,7 +442,6 @@ BrainOpenGLViewportContent::createViewportForSingleTab(const int windowViewport[
                                                                            windowIndex,
                                                                            highlightTabFlag,
                                                                            gapsAndMargins,
-                                                                           aspectRatio,
                                                                            browserTabContent);
     
     std::vector<BrainOpenGLViewportContent*> viewportsVector;
@@ -474,9 +467,7 @@ BrainOpenGLViewportContent::createViewportForSingleTab(const int windowViewport[
  *     Width of each column.
  * @param hightlightTabIndex
  *     Index of tab that is highlighted when selected by user.
- * @param aspectRatio
- *     If positive value, use as aspect ratio for tab
- * @return 
+ * @return
  *     Vector containing data for drawing each model.
  */
 std::vector<BrainOpenGLViewportContent*>
@@ -486,8 +477,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                                                              const std::vector<int32_t>& rowHeights,
                                                              const std::vector<int32_t>& columnWidths,
                                                              const int32_t highlightTabIndex,
-                                                             const GapsAndMargins* gapsAndMargins,
-                                                             const float aspectRatio)
+                                                             const GapsAndMargins* gapsAndMargins)
 {
     std::vector<BrainOpenGLViewportContent*> viewportContentsOut;
     
@@ -536,7 +526,6 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                                                windowIndex,
                                                highlightTab,
                                                gapsAndMargins,
-                                               aspectRatio,
                                                tabContent);
                 viewportContentsOut.push_back(vc);
                 

@@ -112,6 +112,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
     
+    m_aspectRatio = 1.0;
+    m_aspectRatioLocked = false;
+    
     m_cerebellumViewingTransformation  = new ViewingTransformationsCerebellum();
     m_flatSurfaceViewingTransformation = new ViewingTransformations();
     m_viewingTransformation            = new ViewingTransformations();
@@ -170,6 +173,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 
     m_sceneClassAssistant->add("m_identificationUpdatesVolumeSlices",
                                &m_identificationUpdatesVolumeSlices);
+    
+    m_sceneClassAssistant->add("m_aspectRatio",
+                               &m_aspectRatio);
+    m_sceneClassAssistant->add("m_aspectRatioLocked",
+                               &m_aspectRatioLocked);
     
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
                                                                    &m_yokingGroup);
@@ -1023,8 +1031,51 @@ BrowserTabContent::isSurfaceMontageModelValid() const
 }
 
 /**
- * Receive an event.
+ * @return Is the aspect ratio locked?
+ */
+bool
+BrowserTabContent::isAspectRatioLocked() const
+{
+    return m_aspectRatioLocked;
+}
+
+/**
+ * Set the aspect ratio locked status.
  * 
+ * @param locked
+ *     New status.
+ */
+void
+BrowserTabContent::setAspectRatioLocked(const bool locked)
+{
+    m_aspectRatioLocked = locked;
+}
+
+/**
+ * @return The aspect ratio.
+ */
+float
+BrowserTabContent::getAspectRatio() const
+{
+    return m_aspectRatio;
+}
+
+/**
+ * Set the aspect ratio.
+ *
+ * @param aspectRatio
+ *     New value for aspect ratio.
+ */
+void
+BrowserTabContent::setAspectRatio(const float aspectRatio)
+{
+    m_aspectRatio = aspectRatio;
+}
+
+
+/**
+ * Receive an event.
+ *
  * @param event
  *     The event that the receive can respond to.
  */

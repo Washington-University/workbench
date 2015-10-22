@@ -133,10 +133,6 @@ namespace caret {
         
         float getOpenGLWidgetAspectRatio() const;
         
-        bool isAspectRatioLocked() const;
-        
-        float getAspectRatio() const;
-        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);
@@ -214,7 +210,7 @@ namespace caret {
         
         void processProjectFoci();
         void processSplitBorderFiles();
-        void processWindowAspectRatioLockedToggled(bool checked);
+        void processTabAspectRatioLockedToggled(bool checked);
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -268,8 +264,6 @@ namespace caret {
         
         void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
         void saveWindowComponentStatus(WindowComponentStatus& wcs);
-        
-        void setAspectRatio(const float aspectRatio);
         
         void openSpecFile(const AString& specFileName);
         
@@ -361,7 +355,7 @@ namespace caret {
         
         QAction* m_overlayToolBoxAction;
         
-        QAction* m_windowAspectRatioLockedAction;
+        QAction* m_tabAspectRatioLockedAction;
         
         QAction* m_featuresToolBoxAction;
         
@@ -375,12 +369,6 @@ namespace caret {
         AString m_recentSpecFileMenuLoadNoConfirmTitle;
         
         QMenu* m_recentSceneFileMenu;
-        
-        /**
-         * The aspect ratio value.
-         * The action handles enabled/disabled.
-         */
-        float m_aspectRatio;
         
         BrainBrowserWindowOrientedToolBox* m_overlayHorizontalToolBox;
         BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;

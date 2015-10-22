@@ -153,6 +153,15 @@ namespace caret {
         
         const VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet() const;
         
+        bool isAspectRatioLocked() const;
+        
+        void setAspectRatioLocked(const bool locked);
+        
+        float getAspectRatio() const;
+        
+        void setAspectRatio(const float aspectRatio);
+        
+
         void getClippingPlaneEnabled(bool& xEnabled,
                                      bool& yEnabled,
                                      bool& zEnabled,
@@ -440,6 +449,12 @@ namespace caret {
         
         /** Whole brain surface settings. */
         WholeBrainSurfaceSettings* m_wholeBrainSurfaceSettings;
+        
+        /** aspect ratio */
+        float m_aspectRatio;
+        
+        /** aspect ratio locked */
+        bool m_aspectRatioLocked;
         
         /** 
          * If true, selected volume slices in tab move to location

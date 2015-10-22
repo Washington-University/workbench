@@ -23,6 +23,7 @@
 #include "BrainBrowserWindowToolBarTab.h"
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_TAB_DECLARE__
 
+#include <QAction>
 #include <QLabel>
 #include <QCheckBox>
 #include <QToolButton>
@@ -51,10 +52,11 @@ using namespace caret;
  * Constructor.
  */
 BrainBrowserWindowToolBarTab::BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
-                                                           QAction* windowAspectRatioLockedAction,
+                                                           QAction* tabAspectRatioLockedAction,
                                                            BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_browserWindowIndex(browserWindowIndex),
+m_tabAspectRatioLockedAction(tabAspectRatioLockedAction),
 m_parentToolBar(parentToolBar)
 {
     m_yokingGroupComboBox = new EnumComboBoxTemplate(this);
@@ -69,22 +71,18 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
-    QLabel* lockAspectLabel = new QLabel("Window:");
-    
-    m_windowAspectRatioLockedToolButton = new QToolButton();
-    m_windowAspectRatioLockedToolButton->setDefaultAction(windowAspectRatioLockedAction);
+    QToolButton* tabAspectRatioLockedToolButton = new QToolButton();
+    tabAspectRatioLockedToolButton->setDefaultAction(tabAspectRatioLockedAction);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     layout->addWidget(yokeToLabel);
     layout->addWidget(m_yokingGroupComboBox->getWidget());
     layout->addSpacing(15);
-    layout->addWidget(lockAspectLabel);
-    layout->addWidget(m_windowAspectRatioLockedToolButton);
+    layout->addWidget(tabAspectRatioLockedToolButton);
     
     addToWidgetGroup(yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
-    addToWidgetGroup(m_windowAspectRatioLockedToolButton);
 }
 
 /**
@@ -106,6 +104,9 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     blockAllSignals(true);
     
     m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getYokingGroup());
+    m_tabAspectRatioLockedAction->blockSignals(true);
+    m_tabAspectRatioLockedAction->setChecked(browserTabContent->isAspectRatioLocked());
+    m_tabAspectRatioLockedAction->blockSignals(false);
     
     blockAllSignals(false);
 }

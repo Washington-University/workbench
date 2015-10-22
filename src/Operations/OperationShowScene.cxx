@@ -370,8 +370,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                                                                                           rowHeights,
                                                                                                                                           columnWidths,
                                                                                                                                           tabIndexToHighlight,
-                                                                                                                                          gapsAndMargins,
-                                                                                                                                          aspectRatio);
+                                                                                                                                          gapsAndMargins);
                         
                         brainOpenGL->drawModels(brain,
                                                 viewports);
@@ -424,7 +423,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                        windowIndex,
                                                        false, // highlight the tab
                                                        gapsAndMargins,
-                                                       aspectRatio,
                                                        tabContent));
                     std::vector<BrainOpenGLViewportContent*> viewportContents;
                     viewportContents.push_back(content);

@@ -36,7 +36,7 @@ namespace caret {
         
     public:
         BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
-                                     QAction* windowAspectRatioLockedAction,
+                                     QAction* tabAspectRatioLockedAction,
                                      BrainBrowserWindowToolBar* parentToolBar);
         
         virtual ~BrainBrowserWindowToolBarTab();
@@ -60,7 +60,7 @@ namespace caret {
         
         BrainBrowserWindowToolBar* m_parentToolBar;
         
-        QToolButton* m_windowAspectRatioLockedToolButton;
+        QAction* m_tabAspectRatioLockedAction;
         
         // ADD_NEW_MEMBERS_HERE
 
