@@ -102,24 +102,31 @@ namespace caret {
         
         const bool m_highlightTab;
         
-        /* Viewport for drawing the browser tab */
+        /** Tab viewport's X-coordinate */
         int m_tabX;
+        /** Tab viewport's Y-coordinate */
         int m_tabY;
+        /** Tab viewport's Width */
         int m_tabWidth;
+        /** Tab viewport's Height */
         int m_tabHeight;
         
-        /** The model viewport is produced by applying the tab margins to the tab viewport */
-        int m_modelViewport[4];
+        /** Model viewport's X-coordinate */
         int m_modelX;
+        /** Model viewport's Y-coordinate */
         int m_modelY;
+        /** Model viewport's Width */
         int m_modelWidth;
+        /** Model viewport's Height */
         int m_modelHeight;
 
-        /** The viewport for the entire graphics region */
-        int m_windowViewport[4];
+        /** Window viewport's X-coordinate */
         int m_windowX;
+        /** Window viewport's Y-coordinate */
         int m_windowY;
+        /** Window viewport's Width */
         int m_windowWidth;
+        /** Window viewport's Height */
         int m_windowHeight;
         
         BrowserTabContent* m_browserTabContent;

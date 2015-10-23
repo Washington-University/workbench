@@ -158,12 +158,10 @@ m_browserTabContent(browserTabContent)
      * so test for it and if the viewport is invalid,
      * override with original viewport.
      */
-    bool validViewportFlag = true;
-    for (int32_t i = 0; i < 4; i++) {
-        if (m_modelViewport[i] < 0) {
-            validViewportFlag = false;
-        }
-    }
+    const bool validViewportFlag = ((m_modelX >= 0)
+                                    && (m_modelY >= 0)
+                                    && (m_modelWidth > 0)
+                                    && (m_modelHeight > 0));
     if ( ! validViewportFlag) {
         m_modelX = modelViewport[0];
         m_modelY = modelViewport[1];
