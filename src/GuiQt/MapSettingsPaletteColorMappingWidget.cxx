@@ -128,6 +128,8 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
 
     QWidget* thresholdWidget = this->createThresholdSection();
     
+    QWidget* colorBarWidget = this->createColorBarSection();
+    
     QWidget* leftWidget = new QWidget();
     QVBoxLayout* leftLayout = new QVBoxLayout(leftWidget);
     this->setLayoutSpacingAndMargins(leftLayout);
@@ -135,16 +137,21 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     leftLayout->addWidget(paletteWidget);
     leftLayout->addStretch();
     
-    QVBoxLayout* optionsLayout = new QVBoxLayout();
-    optionsLayout->addWidget(normalizationWidget);
-    optionsLayout->addWidget(dataOptionsWidget);
-    optionsLayout->addStretch(100);
+    QHBoxLayout* dataLayout = new QHBoxLayout();
+    dataLayout->addWidget(normalizationWidget);
+    dataLayout->addWidget(dataOptionsWidget);
+    dataLayout->addStretch();
+    
+    QHBoxLayout* histoColorBarLayout = new QHBoxLayout();
+    histoColorBarLayout->addWidget(histogramControlWidget);
+    histoColorBarLayout->addWidget(colorBarWidget);
+    histoColorBarLayout->addStretch();
     
     QWidget* bottomRightWidget = new QWidget();
-    QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
+    QVBoxLayout* bottomRightLayout = new QVBoxLayout(bottomRightWidget);
     this->setLayoutSpacingAndMargins(bottomRightLayout);
-    bottomRightLayout->addWidget(histogramControlWidget);   
-    bottomRightLayout->addLayout(optionsLayout);
+    bottomRightLayout->addLayout(dataLayout);
+    bottomRightLayout->addLayout(histoColorBarLayout);
     bottomRightWidget->setFixedSize(bottomRightWidget->sizeHint());
     
     QWidget* rightWidget = new QWidget();
@@ -1645,6 +1652,8 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
     
     this->updateNormalizationControlSection();
     
+    this->updateColorBarAttributes();
+    
     this->paletteWidgetGroup->blockAllSignals(false);
 }
 
@@ -2125,6 +2134,10 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
     
+    this->paletteColorMapping->setNumericFormatMode(m_colorBarNumericFormatModeComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
+    this->paletteColorMapping->setPrecisionDigits(m_colorBarPrecisionDigitsSpinBox->value());
+    this->paletteColorMapping->setNumericSubdivisionCount(m_colorBarNumericSubdivisionsSpinBox->value());
+    
     if (this->applyAllMapsCheckBox->checkState() == Qt::Checked) {
         const int numMaps = this->caretMappableDataFile->getNumberOfMaps();
         for (int32_t i = 0; i < numMaps; i++) {
@@ -2414,6 +2427,90 @@ MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
         }
         
         updateColoringAndGraphics();
+    }
+}
+
+/**
+ * @return Create the color bar section.
+ */
+QWidget*
+MapSettingsPaletteColorMappingWidget::createColorBarSection()
+{
+    QLabel* precisionModeLabel = new QLabel("Numeric Format");
+    m_colorBarNumericFormatModeComboBox = new EnumComboBoxTemplate(this);
+    QObject::connect(m_colorBarNumericFormatModeComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(applySelections()));
+    m_colorBarNumericFormatModeComboBox->setup<NumericFormatModeEnum, NumericFormatModeEnum::Enum>();
+
+    QLabel* precisionDigitsLabel = new QLabel("Precision Digits");
+    m_colorBarPrecisionDigitsSpinBox = new QSpinBox();
+    m_colorBarPrecisionDigitsSpinBox->setMinimum(0);
+    m_colorBarPrecisionDigitsSpinBox->setMaximum(100);
+    m_colorBarPrecisionDigitsSpinBox->setSingleStep(1);
+    QObject::connect(m_colorBarPrecisionDigitsSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(applySelections()));
+    
+    QLabel* subdivisionsLabel = new QLabel("Subdivisions");
+    m_colorBarNumericSubdivisionsSpinBox = new QSpinBox();
+    m_colorBarNumericSubdivisionsSpinBox->setMinimum(0);
+    m_colorBarNumericSubdivisionsSpinBox->setMaximum(100);
+    m_colorBarNumericSubdivisionsSpinBox->setSingleStep(1);
+    QObject::connect(m_colorBarNumericSubdivisionsSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(applySelections()));
+
+    QGroupBox* colorBarGroupBox = new QGroupBox("Color Bar");
+    QGridLayout* gridLayout = new QGridLayout(colorBarGroupBox);
+    this->setLayoutSpacingAndMargins(gridLayout);
+    gridLayout->addWidget(precisionModeLabel, 0, 0);
+    gridLayout->addWidget(m_colorBarNumericFormatModeComboBox->getWidget(), 0, 1);
+    gridLayout->addWidget(precisionDigitsLabel, 1, 0);
+    gridLayout->addWidget(m_colorBarPrecisionDigitsSpinBox, 1, 1);
+    gridLayout->addWidget(subdivisionsLabel, 2, 0);
+    gridLayout->addWidget(m_colorBarNumericSubdivisionsSpinBox, 2, 1);
+    colorBarGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    
+    return colorBarGroupBox;
+}
+/*
+ this->applyAllMapsCheckBox = new QCheckBox("Apply to All Maps");
+ this->applyAllMapsCheckBox->setCheckState(Qt::Checked);
+ QObject::connect(this->applyAllMapsCheckBox, SIGNAL(clicked(bool)),
+ this, SLOT(applyAllMapsCheckBoxStateChanged(bool)));
+ this->applyAllMapsCheckBox->setToolTip("If checked, settings are applied to all maps\n"
+ "in the file containing the selected map");
+ 
+ this->applyToMultipleFilesPushButton = new QPushButton("Apply to Files...");
+ const QString tt("Displays a dialog that allows selection of data files to which the "
+ "palette settings are applied.");
+ this->applyToMultipleFilesPushButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(tt));
+ QObject::connect(this->applyToMultipleFilesPushButton, SIGNAL(clicked()),
+ this, SLOT(applyToMultipleFilesPushbuttonClicked()));
+ 
+ QGroupBox* optionsGroupBox = new QGroupBox("Data Options");
+ QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
+ this->setLayoutSpacingAndMargins(optionsLayout);
+ optionsLayout->addWidget(this->applyAllMapsCheckBox);
+ optionsLayout->addWidget(this->applyToMultipleFilesPushButton);
+ optionsGroupBox->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
+ QSizePolicy::Fixed));
+ 
+ return optionsGroupBox;
+ */
+
+/**
+ * Update the colorbar attributes section.
+ */
+void
+MapSettingsPaletteColorMappingWidget::updateColorBarAttributes()
+{
+    if (this->paletteColorMapping != NULL) {
+        m_colorBarNumericFormatModeComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(this->paletteColorMapping->getNumericFormatMode());
+        m_colorBarPrecisionDigitsSpinBox->blockSignals(true);
+        m_colorBarPrecisionDigitsSpinBox->setValue(this->paletteColorMapping->getPrecisionDigits());
+        m_colorBarPrecisionDigitsSpinBox->blockSignals(false);
+        m_colorBarNumericSubdivisionsSpinBox->blockSignals(true);
+        m_colorBarNumericSubdivisionsSpinBox->setValue(this->paletteColorMapping->getNumericSubdivisionCount());
+        m_colorBarNumericSubdivisionsSpinBox->blockSignals(false);
     }
 }
 

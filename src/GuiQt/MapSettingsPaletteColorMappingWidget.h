@@ -33,6 +33,7 @@ class QLabel;
 class QLayout;
 class QPushButton;
 class QRadioButton;
+class QSpinBox;
 class QwtPlot;
 
 
@@ -114,6 +115,7 @@ namespace caret {
         QWidget* createHistogramControlSection();
         QWidget* createNormalizationControlSection();
         QWidget* createDataOptionsSection();
+        QWidget* createColorBarSection();
         
         void updateNormalizationControlSection();
         
@@ -123,6 +125,8 @@ namespace caret {
         void updateHistogramPlot();
         
         void updateColoringAndGraphics();
+        
+        void updateColorBarAttributes();
         
         void updateThresholdControlsMinimumMaximumRangeValues();
         
@@ -205,6 +209,10 @@ namespace caret {
         
         WuQWidgetObjectGroup* paletteWidgetGroup;
         WuQWidgetObjectGroup* thresholdWidgetGroup;
+        
+        EnumComboBoxTemplate* m_colorBarNumericFormatModeComboBox;
+        QSpinBox* m_colorBarPrecisionDigitsSpinBox;
+        QSpinBox* m_colorBarNumericSubdivisionsSpinBox;
     };
     
 #ifdef __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_DECLARE__

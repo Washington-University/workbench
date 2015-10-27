@@ -6450,6 +6450,10 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                                                          textLeft,
                                                          textCenter,
                                                          textRight);
+        
+        std::vector<std::pair<float, AString> > normalizedPositionAndText;
+        paletteColorMapping->getPaletteColorBarScaleText(statistics,
+                                                         normalizedPositionAndText);
     }
     else {
         float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };

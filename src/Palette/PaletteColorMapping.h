@@ -25,6 +25,7 @@
 
 #include "CaretObject.h"
 
+#include "NumericFormatModeEnum.h"
 #include "PaletteEnums.h"
 #include "PaletteThresholdRangeModeEnum.h"
 #include "XmlException.h"
@@ -60,15 +61,12 @@ namespace caret {
         void initializeMembersPaletteColorMapping();
         
     public:
-        void writeAsXML(XmlWriter& xmlWriter)
-       ;
+        void writeAsXML(XmlWriter& xmlWriter);
         
-        AString encodeInXML()
-       ;
+        AString encodeInXML();
         
         
-        void decodeFromStringXML(const AString& xml)
-       ;
+        void decodeFromStringXML(const AString& xml);
         
         float getAutoScalePercentageNegativeMaximum() const;
         
@@ -200,6 +198,18 @@ namespace caret {
         
         void setThresholdNegMinPosMaxLinked(const bool linked);
         
+        NumericFormatModeEnum::Enum getNumericFormatMode() const;
+        
+        int32_t getPrecisionDigits() const;
+        
+        int32_t getNumericSubdivisionCount() const;
+        
+        void setNumericFormatMode(const NumericFormatModeEnum::Enum numericFormatMode);
+        
+        void setPrecisionDigits(const int32_t precisionDigits);
+        
+        void setNumericSubdivisionCount(const int32_t numericSubdivisionCount);
+        
         void setModified();
         
         void clearModified();
@@ -215,6 +225,9 @@ namespace caret {
                                          AString& minimumValueTextOut,
                                          AString& zeroValueTextOut,
                                          AString& maximumValueTextOut) const;
+        
+        void getPaletteColorBarScaleText(const FastStatistics* statistics,
+                                         std::vector<std::pair<float, AString> >& normalizedPositionAndTextOut) const;
         
         /** A positive value near zero - may be zero! */
         static const float SMALL_POSITIVE;
@@ -278,6 +291,12 @@ namespace caret {
         bool thresholdShowFailureInGreen;
         
         bool thresholdNegMinPosMaxLinked;
+        
+        NumericFormatModeEnum::Enum numericFormatMode;
+        
+        int32_t precisionDigits;
+        
+        int32_t numericSubdivisionCount;
         
         /**Tracks modification, DO NOT copy */
         bool modifiedFlag;

@@ -291,6 +291,24 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING) {
                /* Top level tag, nothing to do */
            }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_NUMERIC_FORMAT_MODE) {
+               bool isValid = false;
+               NumericFormatModeEnum::Enum numericFormatMode = NumericFormatModeEnum::fromName(this->elementText,
+                                                                                                       &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setNumericFormatMode(numericFormatMode);
+               }
+               else {
+                   throw XmlSaxParserException("Invalid PalettePrecisionModeEnum::Enum: "
+                                               + this->elementText);
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_PRECISION_DIGITS) {
+               this->paletteColorMapping->setPrecisionDigits(this->elementText.toInt());
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_NUMERIC_SUBDIVISIONS) {
+               this->paletteColorMapping->setNumericSubdivisionCount(this->elementText.toInt());
+           }
            else {
                std::ostringstream str;
                str
