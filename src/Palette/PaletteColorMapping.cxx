@@ -215,7 +215,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
     this->thresholdNegMinPosMaxLinked = false;
     this->numericFormatMode = NumericFormatModeEnum::AUTO;
-    this->precisionDigits = 0;
+    this->precisionDigits = 2;
     this->numericSubdivisionCount = 0;
     this->modifiedFlag = false;
 }
@@ -1391,104 +1391,104 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
     }
 }
 
-/**
- * Get the text characters for drawing the scale above the palette
- * color bar.
- *
- * @param statistics
- *     Statistics for the data.
- * @param minimumValueTextOut
- *     Text for the minimum value.
- * @param zeroValueTextOut
- *     Text for the zero value(s)
- * @param maximumValueTextOut
- *     Text for the maximum value.
- *
- */
-void
-PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistics,
-                                                 AString& minimumValueTextOut,
-                                                 AString& zeroValueTextOut,
-                                                 AString& maximumValueTextOut) const
-{
-    minimumValueTextOut = "";
-    zeroValueTextOut    = "";
-    maximumValueTextOut = "";
-    
-    float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
-    switch (getScaleMode()) {
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-        {
-            float dummy;
-            statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
-        }
-            break;
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
-        {
-            const float maxPct = getAutoScaleAbsolutePercentageMaximum();
-            const float minPct = getAutoScaleAbsolutePercentageMinimum();
-            
-            minMax[0] = -statistics->getApproxAbsolutePercentile(maxPct);
-            minMax[1] = -statistics->getApproxAbsolutePercentile(minPct);
-            minMax[2] =  statistics->getApproxAbsolutePercentile(minPct);
-            minMax[3] =  statistics->getApproxAbsolutePercentile(maxPct);
-        }
-            break;
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
-        {
-            const float negMaxPct = getAutoScalePercentageNegativeMaximum();
-            const float negMinPct = getAutoScalePercentageNegativeMinimum();
-            const float posMinPct = getAutoScalePercentagePositiveMinimum();
-            const float posMaxPct = getAutoScalePercentagePositiveMaximum();
-            
-            minMax[0] = statistics->getApproxNegativePercentile(negMaxPct);
-            minMax[1] = statistics->getApproxNegativePercentile(negMinPct);
-            minMax[2] = statistics->getApproxPositivePercentile(posMinPct);
-            minMax[3] = statistics->getApproxPositivePercentile(posMaxPct);
-        }
-            break;
-        case PaletteScaleModeEnum::MODE_USER_SCALE:
-            minMax[0] = getUserScaleNegativeMaximum();
-            minMax[1] = getUserScaleNegativeMinimum();
-            minMax[2] = getUserScalePositiveMinimum();
-            minMax[3] = getUserScalePositiveMaximum();
-            break;
-    }
-    
-    AString minMaxValueText[4];
-//    NumericTextFormatting::formatValueRange(minMax,
-//                                            minMaxValueText,
-//                                            4);
-    
-    NumericTextFormatting::formatValueRangeNegativeAndPositive(minMax,
-                                                               minMaxValueText);
-    
-    /*
-     * Types of values for display
-     */
-    const bool isPositiveDisplayed = isDisplayPositiveDataFlag();
-    const bool isNegativeDisplayed = isDisplayNegativeDataFlag();
-    
-    minimumValueTextOut = minMaxValueText[0];
-    AString textCenterNeg = minMaxValueText[1];
-    AString textCenterPos = minMaxValueText[2];
-    AString textCenter = textCenterPos;
-    if (isNegativeDisplayed && isPositiveDisplayed) {
-        if (textCenterNeg != textCenterPos) {
-            zeroValueTextOut = textCenterNeg + "/" + textCenterPos;
-        }
-        else {
-            zeroValueTextOut = textCenterPos;
-        }
-    }
-    else if (isNegativeDisplayed) {
-        zeroValueTextOut = textCenterNeg;
-    }
-    else if (isPositiveDisplayed) {
-        zeroValueTextOut = textCenterPos;
-    }
-    maximumValueTextOut = minMaxValueText[3];
-}
+///**
+// * Get the text characters for drawing the scale above the palette
+// * color bar.
+// *
+// * @param statistics
+// *     Statistics for the data.
+// * @param minimumValueTextOut
+// *     Text for the minimum value.
+// * @param zeroValueTextOut
+// *     Text for the zero value(s)
+// * @param maximumValueTextOut
+// *     Text for the maximum value.
+// *
+// */
+//void
+//PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistics,
+//                                                 AString& minimumValueTextOut,
+//                                                 AString& zeroValueTextOut,
+//                                                 AString& maximumValueTextOut) const
+//{
+//    minimumValueTextOut = "";
+//    zeroValueTextOut    = "";
+//    maximumValueTextOut = "";
+//    
+//    float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
+//    switch (getScaleMode()) {
+//        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+//        {
+//            float dummy;
+//            statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
+//        }
+//            break;
+//        case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+//        {
+//            const float maxPct = getAutoScaleAbsolutePercentageMaximum();
+//            const float minPct = getAutoScaleAbsolutePercentageMinimum();
+//            
+//            minMax[0] = -statistics->getApproxAbsolutePercentile(maxPct);
+//            minMax[1] = -statistics->getApproxAbsolutePercentile(minPct);
+//            minMax[2] =  statistics->getApproxAbsolutePercentile(minPct);
+//            minMax[3] =  statistics->getApproxAbsolutePercentile(maxPct);
+//        }
+//            break;
+//        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+//        {
+//            const float negMaxPct = getAutoScalePercentageNegativeMaximum();
+//            const float negMinPct = getAutoScalePercentageNegativeMinimum();
+//            const float posMinPct = getAutoScalePercentagePositiveMinimum();
+//            const float posMaxPct = getAutoScalePercentagePositiveMaximum();
+//            
+//            minMax[0] = statistics->getApproxNegativePercentile(negMaxPct);
+//            minMax[1] = statistics->getApproxNegativePercentile(negMinPct);
+//            minMax[2] = statistics->getApproxPositivePercentile(posMinPct);
+//            minMax[3] = statistics->getApproxPositivePercentile(posMaxPct);
+//        }
+//            break;
+//        case PaletteScaleModeEnum::MODE_USER_SCALE:
+//            minMax[0] = getUserScaleNegativeMaximum();
+//            minMax[1] = getUserScaleNegativeMinimum();
+//            minMax[2] = getUserScalePositiveMinimum();
+//            minMax[3] = getUserScalePositiveMaximum();
+//            break;
+//    }
+//    
+//    AString minMaxValueText[4];
+////    NumericTextFormatting::formatValueRange(minMax,
+////                                            minMaxValueText,
+////                                            4);
+//    
+//    NumericTextFormatting::formatValueRangeNegativeAndPositive(minMax,
+//                                                               minMaxValueText);
+//    
+//    /*
+//     * Types of values for display
+//     */
+//    const bool isPositiveDisplayed = isDisplayPositiveDataFlag();
+//    const bool isNegativeDisplayed = isDisplayNegativeDataFlag();
+//    
+//    minimumValueTextOut = minMaxValueText[0];
+//    AString textCenterNeg = minMaxValueText[1];
+//    AString textCenterPos = minMaxValueText[2];
+//    AString textCenter = textCenterPos;
+//    if (isNegativeDisplayed && isPositiveDisplayed) {
+//        if (textCenterNeg != textCenterPos) {
+//            zeroValueTextOut = textCenterNeg + "/" + textCenterPos;
+//        }
+//        else {
+//            zeroValueTextOut = textCenterPos;
+//        }
+//    }
+//    else if (isNegativeDisplayed) {
+//        zeroValueTextOut = textCenterNeg;
+//    }
+//    else if (isPositiveDisplayed) {
+//        zeroValueTextOut = textCenterPos;
+//    }
+//    maximumValueTextOut = minMaxValueText[3];
+//}
 
 /**
  * Get the text characters for drawing the scale above the palette
@@ -1723,22 +1723,17 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
         }
     }
     
-    const int numItems = static_cast<int32_t>(normalizedPositionAndTextOut.size());
-    std::cout << "Colorbar: " << std::endl;
-    for (int32_t i = 0; i < numItems; i++) {
-        std::cout << "    " << qPrintable(QString::number(normalizedPositionAndTextOut[i].first)
-                                          + ": "
-                                          + normalizedPositionAndTextOut[i].second) << std::endl;
+    const bool debugFlag = false;
+    if (debugFlag) {
+        const int numItems = static_cast<int32_t>(normalizedPositionAndTextOut.size());
+        std::cout << "Colorbar: " << std::endl;
+        for (int32_t i = 0; i < numItems; i++) {
+            std::cout << "    " << qPrintable(QString::number(normalizedPositionAndTextOut[i].first)
+                                              + ": "
+                                              + normalizedPositionAndTextOut[i].second) << std::endl;
+        }
+        std::cout << std::endl;
     }
-    std::cout << std::endl;
-    
-    //    else if (isNegativeDisplayed) {
-    //        zeroValueTextOut = textCenterNeg;
-    //    }
-    //    else if (isPositiveDisplayed) {
-    //        zeroValueTextOut = textCenterPos;
-    //    }
-    //    maximumValueTextOut = minMaxValueText[3];
 }
 
 /**
