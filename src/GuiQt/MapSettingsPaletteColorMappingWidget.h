@@ -103,6 +103,8 @@ namespace caret {
         
         void normalizationModeComboBoxActivated(int);
         
+        void colorBarNumericFormatModeComboBoxItemActivated();
+        
     private:
         void updateEditorInternal(CaretMappableDataFile* caretMappableDataFile,
                                  const int32_t mapIndex);

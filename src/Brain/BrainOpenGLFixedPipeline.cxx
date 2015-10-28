@@ -6167,6 +6167,428 @@ BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
                savedViewport[3]);
 }
 
+///**
+// * Draw a palette.
+// * @param palette
+// *    Palette that is drawn.
+// * @param paletteColorMapping
+// *    Controls mapping of data to colors.
+// * @param statistics
+// *    Statistics describing the data that is mapped to the palette.
+// * @param paletteDrawingIndex
+// *    Counts number of palettes being drawn for the Y-position
+// */
+//void 
+//BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
+//                                      const PaletteColorMapping* paletteColorMapping,
+//                                      const FastStatistics* statistics,
+//                                      const int paletteDrawingIndex)
+//{
+//    /*
+//     * Save viewport.
+//     */
+//    GLint modelViewport[4];
+//    glGetIntegerv(GL_VIEWPORT, modelViewport);
+//    
+//    /*
+//     * Create a viewport for drawing the palettes in the 
+//     * lower left corner of the window.  Try to use
+//     * 25% of the display's width.
+//     */
+//    const GLint colorbarViewportWidth = std::max(static_cast<GLint>(modelViewport[2] * 0.25), 
+//                                                 (GLint)120);
+//    const GLint colorbarViewportHeight = 35;    
+//    const GLint colorbarViewportX = modelViewport[0] + 10;
+//    const GLint colorbarVerticalSpacing = 10;
+//    GLint colorbarViewportY = (modelViewport[1]
+//                               + colorbarVerticalSpacing
+//                               + (paletteDrawingIndex * colorbarViewportHeight));
+//    
+//    glViewport(colorbarViewportX, 
+//               colorbarViewportY, 
+//               colorbarViewportWidth, 
+//               colorbarViewportHeight);
+//    
+//    CaretLogFine("Palette " + palette->getName() + " Viewport: ("
+//                   + AString::number(colorbarViewportX) + ", "
+//                   + AString::number(colorbarViewportY) + ", "
+//                   + AString::number(colorbarViewportWidth) + ", "
+//                   + AString::number(colorbarViewportHeight)
+//                   + ")\n Model Viewport: "
+//                   + AString::fromNumbers(modelViewport, 4, ", "));
+//    /*
+//     * Types of values for display
+//     */
+//    const bool isPositiveDisplayed = paletteColorMapping->isDisplayPositiveDataFlag();
+//    const bool isNegativeDisplayed = paletteColorMapping->isDisplayNegativeDataFlag();
+//    const bool isZeroDisplayed     = paletteColorMapping->isDisplayZeroDataFlag();
+//    const bool isPositiveOnly = (isPositiveDisplayed && (isNegativeDisplayed == false));
+//    const bool isNegativeOnly = ((isPositiveDisplayed == false) && isNegativeDisplayed);
+//   
+//    /*
+//     * Create an orthographic projection that ranges in X:
+//     *   (-1, 1) If negative and positive displayed
+//     *   (-1, 0) If positive is NOT displayed
+//     *   (0, 1)  If negative is NOT displayed
+//     */
+//    const GLdouble halfHeight = static_cast<GLdouble>(colorbarViewportHeight / 2);
+//    const GLdouble orthoHeight = halfHeight;
+//    GLdouble orthoLeft = -1.0;
+//    GLdouble orthoRight = 1.0;    
+//    if (isPositiveOnly) {
+//        orthoLeft = 0.0;
+//    }
+//    else if (isNegativeOnly) {
+//        orthoRight = 0.0;
+//    }
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    glOrtho(orthoLeft,  orthoRight, 
+//            -orthoHeight, orthoHeight, 
+//            -1.0, 1.0);
+//    
+//    glMatrixMode (GL_MODELVIEW);
+//    glLoadIdentity();
+//
+//    /*
+//     * A little extra so viewport gets filled
+//     */
+//    const GLdouble orthoLeftWithExtra = orthoLeft - 0.10;
+//    const GLdouble orthoRightWithExtra = orthoRight + 0.10;
+//    
+//    /*
+//     * Fill the palette viewport with the background color
+//     * Add a little to left and right so viewport is filled (excess will get clipped)
+//     */
+//    glColor3fv(m_backgroundColorFloat);
+//    glRectf(orthoLeftWithExtra, -orthoHeight, orthoRightWithExtra, orthoHeight);
+//    
+//    /*
+//     * Always interpolate if the palette has only two colors
+//     */
+//    bool interpolateColor = paletteColorMapping->isInterpolatePaletteFlag();
+//    if (palette->getNumberOfScalarsAndColors() <= 2) {
+//        interpolateColor = true;
+//    }
+//    
+//    /*
+//     * Draw the colorbar starting with the color assigned
+//     * to the negative end of the palette.
+//     * Colorbar scalars range from -1 to 1.
+//     */
+//    const int iStart = palette->getNumberOfScalarsAndColors() - 1;
+//    const int iEnd = 1;
+//    const int iStep = -1;
+//    for (int i = iStart; i >= iEnd; i += iStep) {
+//        /*
+//         * palette data for 'left' side of a color in the palette.
+//         */
+//        const PaletteScalarAndColor* sc = palette->getScalarAndColor(i);
+//        float scalar = sc->getScalar();
+//        float rgba[4];
+//        sc->getColor(rgba);
+//        
+//        /*
+//         * palette data for 'right' side of a color in the palette.
+//         */
+//        const PaletteScalarAndColor* nextSC = palette->getScalarAndColor(i - 1);
+//        float nextScalar = nextSC->getScalar();
+//        float nextRGBA[4];
+//        nextSC->getColor(nextRGBA);
+//        const bool isNoneColorFlag = nextSC->isNoneColor();
+//        
+//        /*
+//         * Exclude negative regions if not displayed.
+//         */
+//        if (isNegativeDisplayed == false) {
+//            if (nextScalar < 0.0) {
+//                continue;
+//            }
+//            else if (scalar < 0.0) {
+//                scalar = 0.0;
+//            }
+//        }
+//        
+//        /*
+//         * Exclude positive regions if not displayed.
+//         */
+//        if (isPositiveDisplayed == false) {
+//            if (scalar > 0.0) {
+//                continue;
+//            }
+//            else if (nextScalar > 0.0) {
+//                nextScalar = 0.0;
+//            }
+//        }
+//        
+//        /*
+//         * Normally, the first entry has a scalar value of -1.
+//         * If it does not, use the first color draw from 
+//         * -1 to the first scalar value.
+//         */
+//        if (i == iStart) {
+//            if (sc->isNoneColor() == false) {
+//                if (scalar > -1.0) {
+//                    const float xStart = -1.0;
+//                    const float xEnd   = scalar;
+//                    glColor3fv(rgba);
+//                    glBegin(GL_POLYGON);
+//                    glVertex3f(xStart, 0.0, 0.0);
+//                    glVertex3f(xStart, -halfHeight, 0.0);
+//                    glVertex3f(xEnd, -halfHeight, 0.0);
+//                    glVertex3f(xEnd, 0.0, 0.0);
+//                    glEnd();
+//                }
+//            }
+//        }
+//        
+//        /*
+//         * If the 'next' color is none, drawing
+//         * is skipped to let the background show
+//         * throw the 'none' region of the palette.
+//         */ 
+//        if (isNoneColorFlag == false) {
+//            /*
+//             * left and right region of an entry in the palette
+//             */
+//            const float xStart = scalar;
+//            const float xEnd   = nextScalar;
+//            
+//            /*
+//             * Unless interpolating, use the 'next' color.
+//             */
+//            float* startRGBA = nextRGBA;
+//            float* endRGBA   = nextRGBA;
+//            if (interpolateColor) {
+//                startRGBA = rgba;
+//            }
+//            
+//            /*
+//             * Draw the region in the palette.
+//             */
+//            glBegin(GL_POLYGON);
+//            glColor3fv(startRGBA);
+//            glVertex3f(xStart, 0.0, 0.0);
+//            glVertex3f(xStart, -halfHeight, 0.0);
+//            glColor3fv(endRGBA);
+//            glVertex3f(xEnd, -halfHeight, 0.0);
+//            glVertex3f(xEnd, 0.0, 0.0);
+//            glEnd();
+//            
+//            /*
+//             * The last scalar value is normally 1.0.  If the last
+//             * scalar is less than 1.0, then fill in the rest of 
+//             * the palette from the last scalar to 1.0.
+//             */
+//            if (i == iEnd) {
+//                if (nextScalar < 1.0) {
+//                    const float xStart = nextScalar;
+//                    const float xEnd   = 1.0;
+//                    glColor3fv(nextRGBA);
+//                    glBegin(GL_POLYGON);
+//                    glVertex3f(xStart, 0.0, 0.0);
+//                    glVertex3f(xStart, -halfHeight, 0.0);
+//                    glVertex3f(xEnd, -halfHeight, 0.0);
+//                    glVertex3f(xEnd, 0.0, 0.0);
+//                    glEnd();
+//                }
+//            }
+//        }
+//    }
+//    
+//    /*
+//     * Draw over thresholded regions with background color
+//     */
+//    const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
+//    if (thresholdType != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+//        const float minMaxThresholds[2] = {
+//            paletteColorMapping->getThresholdMinimum(thresholdType),
+//            paletteColorMapping->getThresholdMaximum(thresholdType)
+//        };
+//        float normalizedThresholds[2];
+//        
+//        paletteColorMapping->mapDataToPaletteNormalizedValues(statistics,
+//                                                              minMaxThresholds,
+//                                                              normalizedThresholds,
+//                                                              2);
+//        
+//        switch (paletteColorMapping->getThresholdTest()) {
+//            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+//                glColor3fv(m_backgroundColorFloat);
+//                glRectf(orthoLeftWithExtra, -orthoHeight, normalizedThresholds[0], orthoHeight);
+//                glRectf(normalizedThresholds[1], -orthoHeight, orthoRightWithExtra, orthoHeight);
+//                break;
+//            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+//                glColor3fv(m_backgroundColorFloat);
+//                glRectf(normalizedThresholds[0], -orthoHeight, normalizedThresholds[1], orthoHeight);
+//                break;
+//        }
+//    }
+//    
+//    /*
+//     * If zeros are not displayed, draw a line in the 
+//     * background color at zero in the palette.
+//     */
+//    if (isZeroDisplayed == false) {
+//        this->setLineWidth(1.0);
+//        glColor3fv(m_backgroundColorFloat);
+//        glBegin(GL_LINES);
+//        glVertex2f(0.0, -halfHeight);
+//        glVertex2f(0.0, 0.0);
+//        glEnd();
+//    }
+//    
+//    AString textLeft;
+//    AString textCenter;
+//    AString textRight;
+//    const bool useNewFormattingFlag = true;
+//    if (useNewFormattingFlag) {
+//        /*
+//         * NEW FORMATTING !!!!!
+//         */
+//        paletteColorMapping->getPaletteColorBarScaleText(statistics,
+//                                                         textLeft,
+//                                                         textCenter,
+//                                                         textRight);
+//        
+//        std::vector<std::pair<float, AString> > normalizedPositionAndText;
+//        paletteColorMapping->getPaletteColorBarScaleText(statistics,
+//                                                         normalizedPositionAndText);
+//    }
+//    else {
+//        float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
+//        switch (paletteColorMapping->getScaleMode()) {
+//            case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+//            {
+//                float dummy;
+//                statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
+//            }
+//                break;
+//            case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
+//            {
+//                const float maxPct = paletteColorMapping->getAutoScaleAbsolutePercentageMaximum();
+//                const float minPct = paletteColorMapping->getAutoScaleAbsolutePercentageMinimum();
+//                
+//                minMax[0] = -statistics->getApproxAbsolutePercentile(maxPct);
+//                minMax[1] = -statistics->getApproxAbsolutePercentile(minPct);
+//                minMax[2] =  statistics->getApproxAbsolutePercentile(minPct);
+//                minMax[3] =  statistics->getApproxAbsolutePercentile(maxPct);
+//            }
+//                break;
+//            case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+//            {
+//                const float negMaxPct = paletteColorMapping->getAutoScalePercentageNegativeMaximum();
+//                const float negMinPct = paletteColorMapping->getAutoScalePercentageNegativeMinimum();
+//                const float posMinPct = paletteColorMapping->getAutoScalePercentagePositiveMinimum();
+//                const float posMaxPct = paletteColorMapping->getAutoScalePercentagePositiveMaximum();
+//                
+//                minMax[0] = statistics->getApproxNegativePercentile(negMaxPct);
+//                minMax[1] = statistics->getApproxNegativePercentile(negMinPct);
+//                minMax[2] = statistics->getApproxPositivePercentile(posMinPct);
+//                minMax[3] = statistics->getApproxPositivePercentile(posMaxPct);
+//            }
+//                break;
+//            case PaletteScaleModeEnum::MODE_USER_SCALE:
+//                minMax[0] = paletteColorMapping->getUserScaleNegativeMaximum();
+//                minMax[1] = paletteColorMapping->getUserScaleNegativeMinimum();
+//                minMax[2] = paletteColorMapping->getUserScalePositiveMinimum();
+//                minMax[3] = paletteColorMapping->getUserScalePositiveMaximum();
+//                break;
+//        }
+//        textLeft = AString::number(minMax[0], 'f', 1);
+//        AString textCenterNeg = AString::number(minMax[1], 'f', 1);
+//        if (textCenterNeg == "-0.0") {
+//            textCenterNeg = "0.0";
+//        }
+//        AString textCenterPos = AString::number(minMax[2], 'f', 1);
+//        textCenter = textCenterPos;
+//        if (isNegativeDisplayed && isPositiveDisplayed) {
+//            if (textCenterNeg != textCenterPos) {
+//                textCenter = textCenterNeg + "/" + textCenterPos;
+//            }
+//        }
+//        else if (isNegativeDisplayed) {
+//            textCenter = textCenterNeg;
+//        }
+//        else if (isPositiveDisplayed) {
+//            textCenter = textCenterPos;
+//        }
+//        textRight = AString::number(minMax[3], 'f', 1);
+//    }
+//    
+//    /*
+//     * Reset to the models viewport for drawing text.
+//     */
+//    glViewport(modelViewport[0], 
+//               modelViewport[1], 
+//               modelViewport[2], 
+//               modelViewport[3]);
+//    
+//    /*
+//     * Account for margin around colorbar when calculating text locations
+//     */
+//    int textCenterX = colorbarViewportX - modelViewport[0] + (colorbarViewportWidth / 2);
+//    const int textLeftX   = colorbarViewportX - modelViewport[0];
+//    const int textRightX  = (colorbarViewportX  - modelViewport[0] + colorbarViewportWidth);
+//    if (isPositiveOnly) {
+//        textCenterX = textLeftX;
+//    }
+//    else if (isNegativeOnly) {
+//        textCenterX = textRightX;
+//    }
+//    
+//    const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
+//    if (isNegativeDisplayed) {
+//        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+//        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+//        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+//        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
+//        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
+//        annotationText.setCustomForegroundColor(m_foregroundColorFloat);
+//        annotationText.setText(textLeft);
+//        this->drawTextAtViewportCoords(textLeftX,
+//                                       textY,
+//                                       annotationText);
+//    }
+//    
+//    if (isNegativeDisplayed
+//        || isZeroDisplayed
+//        || isPositiveDisplayed) {
+//
+//        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+//        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+//        if (isNegativeOnly) {
+//            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+//        }
+//        else if (isPositiveOnly) {
+//            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+//        }
+//        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+//        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
+//        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
+//        annotationText.setCustomForegroundColor(m_foregroundColorFloat);
+//        annotationText.setText(textCenter);
+//        this->drawTextAtViewportCoords(textCenterX,
+//                                       textY,
+//                                       annotationText);
+//    }
+//    
+//    if (isPositiveDisplayed) {
+//        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+//        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+//        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+//        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
+//        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
+//        annotationText.setCustomForegroundColor(m_foregroundColorFloat);
+//        annotationText.setText(textRight);
+//        this->drawTextAtViewportCoords(textRightX,
+//                                       textY,
+//                                       annotationText);
+//    }
+//    
+//    return;
+//}
+
 /**
  * Draw a palette.
  * @param palette
@@ -6178,7 +6600,7 @@ BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
  * @param paletteDrawingIndex
  *    Counts number of palettes being drawn for the Y-position
  */
-void 
+void
 BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                                       const PaletteColorMapping* paletteColorMapping,
                                       const FastStatistics* statistics,
@@ -6191,31 +6613,31 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     glGetIntegerv(GL_VIEWPORT, modelViewport);
     
     /*
-     * Create a viewport for drawing the palettes in the 
+     * Create a viewport for drawing the palettes in the
      * lower left corner of the window.  Try to use
      * 25% of the display's width.
      */
-    const GLint colorbarViewportWidth = std::max(static_cast<GLint>(modelViewport[2] * 0.25), 
+    const GLint colorbarViewportWidth = std::max(static_cast<GLint>(modelViewport[2] * 0.25),
                                                  (GLint)120);
-    const GLint colorbarViewportHeight = 35;    
+    const GLint colorbarViewportHeight = 35;
     const GLint colorbarViewportX = modelViewport[0] + 10;
     const GLint colorbarVerticalSpacing = 10;
     GLint colorbarViewportY = (modelViewport[1]
                                + colorbarVerticalSpacing
                                + (paletteDrawingIndex * colorbarViewportHeight));
     
-    glViewport(colorbarViewportX, 
-               colorbarViewportY, 
-               colorbarViewportWidth, 
+    glViewport(colorbarViewportX,
+               colorbarViewportY,
+               colorbarViewportWidth,
                colorbarViewportHeight);
     
     CaretLogFine("Palette " + palette->getName() + " Viewport: ("
-                   + AString::number(colorbarViewportX) + ", "
-                   + AString::number(colorbarViewportY) + ", "
-                   + AString::number(colorbarViewportWidth) + ", "
-                   + AString::number(colorbarViewportHeight)
-                   + ")\n Model Viewport: "
-                   + AString::fromNumbers(modelViewport, 4, ", "));
+                 + AString::number(colorbarViewportX) + ", "
+                 + AString::number(colorbarViewportY) + ", "
+                 + AString::number(colorbarViewportWidth) + ", "
+                 + AString::number(colorbarViewportHeight)
+                 + ")\n Model Viewport: "
+                 + AString::fromNumbers(modelViewport, 4, ", "));
     /*
      * Types of values for display
      */
@@ -6224,7 +6646,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     const bool isZeroDisplayed     = paletteColorMapping->isDisplayZeroDataFlag();
     const bool isPositiveOnly = (isPositiveDisplayed && (isNegativeDisplayed == false));
     const bool isNegativeOnly = ((isPositiveDisplayed == false) && isNegativeDisplayed);
-   
+    
     /*
      * Create an orthographic projection that ranges in X:
      *   (-1, 1) If negative and positive displayed
@@ -6234,7 +6656,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     const GLdouble halfHeight = static_cast<GLdouble>(colorbarViewportHeight / 2);
     const GLdouble orthoHeight = halfHeight;
     GLdouble orthoLeft = -1.0;
-    GLdouble orthoRight = 1.0;    
+    GLdouble orthoRight = 1.0;
     if (isPositiveOnly) {
         orthoLeft = 0.0;
     }
@@ -6243,13 +6665,13 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     }
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(orthoLeft,  orthoRight, 
-            -orthoHeight, orthoHeight, 
+    glOrtho(orthoLeft,  orthoRight,
+            -orthoHeight, orthoHeight,
             -1.0, 1.0);
     
     glMatrixMode (GL_MODELVIEW);
     glLoadIdentity();
-
+    
     /*
      * A little extra so viewport gets filled
      */
@@ -6323,7 +6745,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         
         /*
          * Normally, the first entry has a scalar value of -1.
-         * If it does not, use the first color draw from 
+         * If it does not, use the first color draw from
          * -1 to the first scalar value.
          */
         if (i == iStart) {
@@ -6346,7 +6768,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
          * If the 'next' color is none, drawing
          * is skipped to let the background show
          * throw the 'none' region of the palette.
-         */ 
+         */
         if (isNoneColorFlag == false) {
             /*
              * left and right region of an entry in the palette
@@ -6377,7 +6799,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
             
             /*
              * The last scalar value is normally 1.0.  If the last
-             * scalar is less than 1.0, then fill in the rest of 
+             * scalar is less than 1.0, then fill in the rest of
              * the palette from the last scalar to 1.0.
              */
             if (i == iEnd) {
@@ -6426,7 +6848,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     }
     
     /*
-     * If zeros are not displayed, draw a line in the 
+     * If zeros are not displayed, draw a line in the
      * background color at zero in the palette.
      */
     if (isZeroDisplayed == false) {
@@ -6438,155 +6860,48 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         glEnd();
     }
     
-    AString textLeft;
-    AString textCenter;
-    AString textRight;
-    const bool useNewFormattingFlag = true;
-    if (useNewFormattingFlag) {
-        /*
-         * NEW FORMATTING !!!!!
-         */
-        paletteColorMapping->getPaletteColorBarScaleText(statistics,
-                                                         textLeft,
-                                                         textCenter,
-                                                         textRight);
-        
-        std::vector<std::pair<float, AString> > normalizedPositionAndText;
-        paletteColorMapping->getPaletteColorBarScaleText(statistics,
-                                                         normalizedPositionAndText);
-    }
-    else {
-        float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
-        switch (paletteColorMapping->getScaleMode()) {
-            case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-            {
-                float dummy;
-                statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
-            }
-                break;
-            case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
-            {
-                const float maxPct = paletteColorMapping->getAutoScaleAbsolutePercentageMaximum();
-                const float minPct = paletteColorMapping->getAutoScaleAbsolutePercentageMinimum();
-                
-                minMax[0] = -statistics->getApproxAbsolutePercentile(maxPct);
-                minMax[1] = -statistics->getApproxAbsolutePercentile(minPct);
-                minMax[2] =  statistics->getApproxAbsolutePercentile(minPct);
-                minMax[3] =  statistics->getApproxAbsolutePercentile(maxPct);
-            }
-                break;
-            case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
-            {
-                const float negMaxPct = paletteColorMapping->getAutoScalePercentageNegativeMaximum();
-                const float negMinPct = paletteColorMapping->getAutoScalePercentageNegativeMinimum();
-                const float posMinPct = paletteColorMapping->getAutoScalePercentagePositiveMinimum();
-                const float posMaxPct = paletteColorMapping->getAutoScalePercentagePositiveMaximum();
-                
-                minMax[0] = statistics->getApproxNegativePercentile(negMaxPct);
-                minMax[1] = statistics->getApproxNegativePercentile(negMinPct);
-                minMax[2] = statistics->getApproxPositivePercentile(posMinPct);
-                minMax[3] = statistics->getApproxPositivePercentile(posMaxPct);
-            }
-                break;
-            case PaletteScaleModeEnum::MODE_USER_SCALE:
-                minMax[0] = paletteColorMapping->getUserScaleNegativeMaximum();
-                minMax[1] = paletteColorMapping->getUserScaleNegativeMinimum();
-                minMax[2] = paletteColorMapping->getUserScalePositiveMinimum();
-                minMax[3] = paletteColorMapping->getUserScalePositiveMaximum();
-                break;
-        }
-        textLeft = AString::number(minMax[0], 'f', 1);
-        AString textCenterNeg = AString::number(minMax[1], 'f', 1);
-        if (textCenterNeg == "-0.0") {
-            textCenterNeg = "0.0";
-        }
-        AString textCenterPos = AString::number(minMax[2], 'f', 1);
-        textCenter = textCenterPos;
-        if (isNegativeDisplayed && isPositiveDisplayed) {
-            if (textCenterNeg != textCenterPos) {
-                textCenter = textCenterNeg + "/" + textCenterPos;
-            }
-        }
-        else if (isNegativeDisplayed) {
-            textCenter = textCenterNeg;
-        }
-        else if (isPositiveDisplayed) {
-            textCenter = textCenterPos;
-        }
-        textRight = AString::number(minMax[3], 'f', 1);
-    }
-    
     /*
      * Reset to the models viewport for drawing text.
      */
-    glViewport(modelViewport[0], 
-               modelViewport[1], 
-               modelViewport[2], 
+    glViewport(modelViewport[0],
+               modelViewport[1],
+               modelViewport[2],
                modelViewport[3]);
-    
-    /*
-     * Account for margin around colorbar when calculating text locations
-     */
-    int textCenterX = colorbarViewportX - modelViewport[0] + (colorbarViewportWidth / 2);
-    const int textLeftX   = colorbarViewportX - modelViewport[0];
-    const int textRightX  = (colorbarViewportX  - modelViewport[0] + colorbarViewportWidth);
-    if (isPositiveOnly) {
-        textCenterX = textLeftX;
-    }
-    else if (isNegativeOnly) {
-        textCenterX = textRightX;
-    }
-    
-    const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
-    if (isNegativeDisplayed) {
-        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
-        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
-        annotationText.setCustomForegroundColor(m_foregroundColorFloat);
-        annotationText.setText(textLeft);
-        this->drawTextAtViewportCoords(textLeftX,
-                                       textY,
-                                       annotationText);
-    }
-    
-    if (isNegativeDisplayed
-        || isZeroDisplayed
-        || isPositiveDisplayed) {
 
+    /*
+     * Get the numeric text values for display above the color bar
+     */
+    std::vector<std::pair<float, AString> > normalizedPositionAndText;
+    paletteColorMapping->getPaletteColorBarScaleText(statistics,
+                                                     normalizedPositionAndText);
+    
+    
+    const int textViewportY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
+    const int32_t numericTextCount = static_cast<int32_t>(normalizedPositionAndText.size());
+    for (int32_t iText = 0; iText < numericTextCount; iText++) {
+        CaretAssertVectorIndex(normalizedPositionAndText, iText);
+        
+        const float textNormalizedX = normalizedPositionAndText[iText].first;
+        const float textViewportX = ((colorbarViewportX - modelViewport[0])
+                                     + static_cast<int32_t>(textNormalizedX * colorbarViewportWidth));
+        
         AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        if (isNegativeOnly) {
-            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-        }
-        else if (isPositiveOnly) {
+        if (iText == 0) {
             annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
         }
+        else if (iText == (numericTextCount - 1)) {
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        }
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(m_foregroundColorFloat);
-        annotationText.setText(textCenter);
-        this->drawTextAtViewportCoords(textCenterX,
-                                       textY,
+        annotationText.setText(normalizedPositionAndText[iText].second);
+        this->drawTextAtViewportCoords(textViewportX,
+                                       textViewportY,
                                        annotationText);
     }
-    
-    if (isPositiveDisplayed) {
-        AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
-        annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
-        annotationText.setCustomForegroundColor(m_foregroundColorFloat);
-        annotationText.setText(textRight);
-        this->drawTextAtViewportCoords(textRightX,
-                                       textY,
-                                       annotationText);
-    }
-    
-    return;
 }
 
 /**

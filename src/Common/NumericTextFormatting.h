@@ -23,7 +23,7 @@
 
 
 #include "CaretObject.h"
-
+#include "NumericFormatModeEnum.h"
 
 
 namespace caret {
@@ -35,6 +35,12 @@ namespace caret {
                                                         AString formattedValuesOut[4]);
         
         static void formatValueRange(const float valuesIn[],
+                                     AString formattedValuesOut[],
+                                     const int32_t numberOfValues);
+        
+        static void formatValueRange(const NumericFormatModeEnum::Enum numericFormat,
+                                     const int32_t numericFormatPrecision,
+                                     const float valuesIn[],
                                      AString formattedValuesOut[],
                                      const int32_t numberOfValues);
         

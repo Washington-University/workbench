@@ -186,9 +186,9 @@ NumericTextFormatting::removeLeadingZeroFromExponent(const AString& textValueIn)
  */
 AString
 NumericTextFormatting::formatNumberForDisplay(const double value,
-                                      const char format,
-                                      const int fieldWidth,
-                                      const int precision)
+                                              const char format,
+                                              const int fieldWidth,
+                                              const int precision)
 {
     if (MathFunctions::isNaN(value)) {
         return "NaN";
@@ -219,7 +219,9 @@ NumericTextFormatting::formatNumberForDisplay(const double value,
     }
     textValue += numberValue;
     
-    textValue = cleanZerosInValueText(textValue);
+    if ( ! textValue.contains('e')) {
+        textValue = cleanZerosInValueText(textValue);
+    }
     
     return textValue;
 }
@@ -273,8 +275,12 @@ NumericTextFormatting::getFormatAndPrecision(const float valueIn,
  * Format the values by using the value of the range (min to max)
  * to set format and precision for all values.
  *
+ * @param numericFormat
+ *    How to format the numbers when converted to text.
+ * @param numericFormatPrecision
+ *    Precision used the numeric format is not automatic.
  * @param valuesIn
- *    The input values array.  Must be at least two elements and 
+ *    The input values array.  Must be at least two elements and
  *    the values must be sorted from smallest to largest.
  * @param formattedValuesOut
  *    Output containing values formatted as text.
@@ -283,7 +289,9 @@ NumericTextFormatting::getFormatAndPrecision(const float valueIn,
  *    arrays must sized to this value.
  */
 void
-NumericTextFormatting::formatValueRange(const float valuesIn[],
+NumericTextFormatting::formatValueRange(const NumericFormatModeEnum::Enum numericFormat,
+                                        const int32_t numericFormatPrecision,
+                                        const float valuesIn[],
                                         AString formattedValuesOut[],
                                         const int32_t numberOfValues)
 {
@@ -309,10 +317,22 @@ NumericTextFormatting::formatValueRange(const float valuesIn[],
     
     char format    = 'f';
     int  precision = 0;
+    switch (numericFormat) {
+        case NumericFormatModeEnum::AUTO:
+            getFormatAndPrecision(range,
+                                  format,
+                                  precision);
+            break;
+        case NumericFormatModeEnum::DECIMAL:
+            format = 'f';
+            precision = numericFormatPrecision;
+            break;
+        case NumericFormatModeEnum::SCIENTIFIC:
+            format = 'e';
+            precision = numericFormatPrecision;
+            break;
+    }
     
-    getFormatAndPrecision(range,
-                          format,
-                          precision);
     
     const int FIELD_WIDTH = 0;
     
@@ -325,6 +345,31 @@ NumericTextFormatting::formatValueRange(const float valuesIn[],
                                                    precision);
         formattedValuesOut[i] = textValue;
     }
+}
+
+/**
+ * Format the values by using the value of the range (min to max)
+ * to set format and precision for all values.
+ *
+ * @param valuesIn
+ *    The input values array.  Must be at least two elements and 
+ *    the values must be sorted from smallest to largest.
+ * @param formattedValuesOut
+ *    Output containing values formatted as text.
+ * @param numberOfValues
+ *    Number of values in the arrays and both the input and output
+ *    arrays must sized to this value.
+ */
+void
+NumericTextFormatting::formatValueRange(const float valuesIn[],
+                                        AString formattedValuesOut[],
+                                        const int32_t numberOfValues)
+{
+    NumericTextFormatting::formatValueRange(NumericFormatModeEnum::AUTO,
+                                            0,
+                                            valuesIn,
+                                            formattedValuesOut,
+                                            numberOfValues);
 }
 
 /**

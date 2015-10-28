@@ -1585,7 +1585,9 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      */
     const int32_t numberOfNegValues = static_cast<int32_t>(negativeValues.size());
     std::vector<AString> negativeValuesText(numberOfNegValues);
-    NumericTextFormatting::formatValueRange(&negativeValues[0],
+    NumericTextFormatting::formatValueRange(this->numericFormatMode,
+                                            this->precisionDigits,
+                                            &negativeValues[0],
                                             &negativeValuesText[0],
                                             numberOfNegValues);
     
@@ -1594,7 +1596,9 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      */
     const int32_t numberOfPosValues = static_cast<int32_t>(positiveValues.size());
     std::vector<AString> positiveValuesText(numberOfPosValues);
-    NumericTextFormatting::formatValueRange(&positiveValues[0],
+    NumericTextFormatting::formatValueRange(this->numericFormatMode,
+                                            this->precisionDigits,
+                                            &positiveValues[0],
                                             &positiveValuesText[0],
                                             numberOfPosValues);
     
