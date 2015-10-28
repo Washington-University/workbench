@@ -2455,15 +2455,17 @@ MapSettingsPaletteColorMappingWidget::createColorBarSection()
                                                                  "         with the selected precision in the\n"
                                                                  "         significand");
 
-    QLabel* precisionDigitsLabel = new QLabel("Precision Digits");
+    QLabel* precisionDigitsLabel = new QLabel("Dec/Sci Decimals"); //Precision Digits");
     m_colorBarPrecisionDigitsSpinBox = new QSpinBox();
     m_colorBarPrecisionDigitsSpinBox->setMinimum(0);
     m_colorBarPrecisionDigitsSpinBox->setMaximum(100);
     m_colorBarPrecisionDigitsSpinBox->setSingleStep(1);
     QObject::connect(m_colorBarPrecisionDigitsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(applySelections()));
-    m_colorBarPrecisionDigitsSpinBox->setToolTip("Number of digits right of the decimal point"
-                                                 "in the numbers above the color bar");
+    m_colorBarPrecisionDigitsSpinBox->setToolTip("Number of digits right of the decimal point\n"
+                                                 "in the numbers above the color bar when format\n"
+                                                 "is " + NumericFormatModeEnum::toGuiName(NumericFormatModeEnum::DECIMAL)
+                                                 + " or " + NumericFormatModeEnum::toGuiName(NumericFormatModeEnum::SCIENTIFIC));
     
     QLabel* subdivisionsLabel = new QLabel("Subdivisions");
     m_colorBarNumericSubdivisionsSpinBox = new QSpinBox();
