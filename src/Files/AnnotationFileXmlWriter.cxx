@@ -315,9 +315,14 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     writeCoordinate(text->getCoordinate(),
                     ELEMENT_COORDINATE_ONE);
     
+    /*
+     * Write the text data.
+     * Note: QXmlStreamWriter::writeCharacters() will replace special 
+     * characters (& " ' < >) with escape sequences
+     */
     m_stream->writeStartElement(ELEMENT_TEXT_DATA);
     m_stream->writeAttributes(textDataAttributes);
-    m_stream->writeCharacters(XmlUtilities::encodeXmlSpecialCharacters(text->getText()));
+    m_stream->writeCharacters(text->getText());
     m_stream->writeEndElement();
     
     m_stream->writeEndElement();
