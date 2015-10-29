@@ -414,15 +414,35 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     
     for (int32_t indx = 0; indx < numberOfEnumValues; indx++) {
         AString name = "";
+        AString guiName = name;
         if (indx < static_cast<int32_t>(enumValueNames.size())) {
             name = enumValueNames[indx];
+            
+            /*
+             *    Name: "NAME_OF_ENUM_VALUE"
+             * guiName: "Name Of Enum Value"
+             */
+            guiName = name.toLower();
+            const int numChars = guiName.length();
+            for (int32_t k = 0; k < numChars; k++) {
+                if (k == 0) {
+                    guiName[k] = guiName[k].toUpper();
+                }
+                else if (guiName[k] == '_') {
+                    guiName[k] = ' ';
+                    if (k < (numChars - 1)) {
+                        k++;
+                        guiName[k] = guiName[k].toUpper();
+                    }
+                }
+            }
         }
         t += ("    enumData.push_back(" + enumClassName + "(" + name + ", \n");
         if (isAutoNumber == false) {
             t += ("                                    " + AString::number(indx) + ", \n");
         }
         t += ("                                    \"" + name + "\", \n");
-        t += ("                                    \"\"));\n");
+        t += ("                                    \"" + guiName + "\"));\n");
         t += ("    \n");
     }
     t += ("}\n");
