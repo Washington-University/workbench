@@ -169,6 +169,14 @@ AnnotationTextEditorWidget::textEditorDialogTextChanged(const QString& text)
 void
 AnnotationTextEditorWidget::annotationTextChanged()
 {
+    /*
+     * The update event will cause the text to be reloaded
+     * into the line edit and that will cause the cursor
+     * position to change so save and later restore the
+     * cursor position.
+     */
+    const int cursorPos = m_textLineEdit->cursorPosition();
+    
     QString s(m_textLineEdit->text());
     s.replace("\\n", "\n");
     
@@ -179,6 +187,8 @@ AnnotationTextEditorWidget::annotationTextChanged()
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    m_textLineEdit->setCursorPosition(cursorPos);
 }
 
 /**
