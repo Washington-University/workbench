@@ -215,6 +215,8 @@ namespace caret {
         EnumComboBoxTemplate* m_colorBarNumericFormatModeComboBox;
         QSpinBox* m_colorBarPrecisionDigitsSpinBox;
         QSpinBox* m_colorBarNumericSubdivisionsSpinBox;
+        
+        EnumComboBoxTemplate* m_colorBarValuesModeComboBox;
     };
     
 #ifdef __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_DECLARE__

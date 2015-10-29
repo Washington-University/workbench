@@ -26,6 +26,7 @@
 #include "CaretObject.h"
 
 #include "NumericFormatModeEnum.h"
+#include "PaletteColorBarValuesModeEnum.h"
 #include "PaletteEnums.h"
 #include "PaletteThresholdRangeModeEnum.h"
 #include "XmlException.h"
@@ -210,6 +211,10 @@ namespace caret {
         
         void setNumericSubdivisionCount(const int32_t numericSubdivisionCount);
         
+        PaletteColorBarValuesModeEnum::Enum getColorBarValuesMode() const;
+        
+        void setColorBarValuesMode(const PaletteColorBarValuesModeEnum::Enum colorBarValuesMode);
+        
         void setModified();
         
         void clearModified();
@@ -298,6 +303,8 @@ namespace caret {
         
         int32_t numericSubdivisionCount;
         
+        PaletteColorBarValuesModeEnum::Enum colorBarValuesMode;
+    
         /**Tracks modification, DO NOT copy */
         bool modifiedFlag;
         

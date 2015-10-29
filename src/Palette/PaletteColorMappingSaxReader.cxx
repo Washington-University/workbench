@@ -309,6 +309,18 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_NUMERIC_SUBDIVISIONS) {
                this->paletteColorMapping->setNumericSubdivisionCount(this->elementText.toInt());
            }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_COLOR_BAR_VALUES_MODE) {
+               bool isValid = false;
+               PaletteColorBarValuesModeEnum::Enum colorBarMode = PaletteColorBarValuesModeEnum::fromName(this->elementText,
+                                                                                               &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setColorBarValuesMode(colorBarMode);
+               }
+               else {
+                   throw XmlSaxParserException("Invalid PaletteColorBarValuesModeEnum::Enum: "
+                                               + this->elementText);
+               }
+           }
            else {
                std::ostringstream str;
                str

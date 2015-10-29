@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Palette
 Palette.h
+PaletteColorBarValuesModeEnum.h
 PaletteColorMapping.h
 PaletteColorMappingSaxReader.h
 PaletteColorMappingXmlElements.h
@@ -28,6 +29,7 @@ PaletteScalarAndColor.h
 PaletteThresholdRangeModeEnum.h
 
 Palette.cxx
+PaletteColorBarValuesModeEnum.cxx
 PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
 PaletteEnums.cxx

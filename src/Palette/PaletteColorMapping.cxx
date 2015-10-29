@@ -131,6 +131,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->numericFormatMode = pcm.numericFormatMode;
     this->precisionDigits = pcm.precisionDigits;
     this->numericSubdivisionCount = pcm.numericSubdivisionCount;
+    this->colorBarValuesMode = pcm.colorBarValuesMode;
     
     this->clearModified();
 }
@@ -175,7 +176,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->thresholdNegMinPosMaxLinked == pcm.thresholdNegMinPosMaxLinked)
         && (this->numericFormatMode == pcm.numericFormatMode)
         && (this->precisionDigits == pcm.precisionDigits)
-        && (this->numericSubdivisionCount == pcm.numericSubdivisionCount)) {
+        && (this->numericSubdivisionCount == pcm.numericSubdivisionCount)
+        && (this->colorBarValuesMode == pcm.colorBarValuesMode)) {
         return true;
     }
     
@@ -218,6 +220,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->precisionDigits = 2;
     this->numericSubdivisionCount = 0;
     this->modifiedFlag = false;
+    this->colorBarValuesMode = PaletteColorBarValuesModeEnum::DATA;
 }
 
 /**
@@ -335,6 +338,9 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      this->precisionDigits);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_NUMERIC_SUBDIVISIONS,
                                      this->numericSubdivisionCount);
+
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_COLOR_BAR_VALUES_MODE,
+                                     PaletteColorBarValuesModeEnum::toName(this->colorBarValuesMode));
 
     xmlWriter.writeEndElement();
 }
@@ -1507,6 +1513,44 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
 {
     normalizedPositionAndTextOut.clear();
     
+    /*
+     * Processing for Sign Only Mode
+     */
+    switch (this->colorBarValuesMode) {
+        case PaletteColorBarValuesModeEnum::DATA:
+            break;
+        case PaletteColorBarValuesModeEnum::PERCENTILE:
+            break;
+        case PaletteColorBarValuesModeEnum::SIGN_ONLY:
+        {
+            const AString positive("POS");
+            const AString zero("0");
+            const AString negative("NEG");
+            
+            if (isDisplayPositiveDataFlag()
+                && isDisplayNegativeDataFlag()) {
+                normalizedPositionAndTextOut.push_back(std::make_pair(0.0, negative));
+                normalizedPositionAndTextOut.push_back(std::make_pair(0.5, zero));
+                normalizedPositionAndTextOut.push_back(std::make_pair(1.0, positive));
+            }
+            else if (isDisplayPositiveDataFlag()) {
+                normalizedPositionAndTextOut.push_back(std::make_pair(0.0, zero));
+                normalizedPositionAndTextOut.push_back(std::make_pair(1.0, positive));
+            }
+            else if (isDisplayNegativeDataFlag()) {
+                normalizedPositionAndTextOut.push_back(std::make_pair(0.0, negative));
+                normalizedPositionAndTextOut.push_back(std::make_pair(1.0, zero));
+            }
+            else if (isDisplayZeroDataFlag()) {
+                normalizedPositionAndTextOut.push_back(std::make_pair(0.5, zero));
+            }
+            
+            return;
+        }
+            break;
+    }
+    
+    
     float negMax = -1.0;
     float negMin =  0.0;
     float posMin =  0.0;
@@ -1579,6 +1623,48 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
         }
     }
     positiveValues.push_back(posMax);
+    
+    /*
+     * Processing for percentile mode
+     * Convert numeric values to percentiles
+     */
+    switch (this->colorBarValuesMode) {
+        case PaletteColorBarValuesModeEnum::DATA:
+            break;
+        case PaletteColorBarValuesModeEnum::PERCENTILE:
+//        if (getScaleMode() == PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE) {
+//            for (std::vector<float>::iterator iter = positiveValues.begin();
+//                 iter != positiveValues.end();
+//                 iter++) {
+//                const float percentile = statistics->getAbsoluteValuePercentile(*iter);
+//                *iter = percentile;
+//            }
+//            for (std::vector<float>::iterator iter = negativeValues.begin();
+//                 iter != negativeValues.end();
+//                 iter++) {
+//                const float percentile = statistics->getAbsoluteValuePercentile(*iter);
+//                *iter = percentile;
+//            }
+//        }
+//        else {
+            for (std::vector<float>::iterator iter = positiveValues.begin();
+                 iter != positiveValues.end();
+                 iter++) {
+                const float percentile = statistics->getPositiveValuePercentile(*iter);
+                *iter = percentile;
+            }
+            for (std::vector<float>::iterator iter = negativeValues.begin();
+                 iter != negativeValues.end();
+                 iter++) {
+                const float percentile = statistics->getNegativeValuePercentile(*iter);
+                *iter = percentile;
+            }
+//        }
+            break;
+        case PaletteColorBarValuesModeEnum::SIGN_ONLY:
+            CaretAssertMessage(0, "Should never get here.  Sign only handled above");
+            break;
+    }
     
     /*
      * Create text representations for negative values
@@ -1844,5 +1930,28 @@ PaletteColorMapping::setNumericSubdivisionCount(const int32_t numericSubdivision
         setModified();
     }
 }
+
+/**
+ * @return The color bar values mode.
+ */
+PaletteColorBarValuesModeEnum::Enum PaletteColorMapping::getColorBarValuesMode() const
+{
+    return this->colorBarValuesMode;
+}
+
+/**
+ * Set the color bar values mode.
+ *
+ * @param colorBarValuesMode
+ *     New value for color bar values mode.
+ */
+void PaletteColorMapping::setColorBarValuesMode(const PaletteColorBarValuesModeEnum::Enum colorBarValuesMode)
+{
+    if (colorBarValuesMode != this->colorBarValuesMode) {
+        this->colorBarValuesMode = colorBarValuesMode;
+        setModified();
+    }
+}
+
 
 
