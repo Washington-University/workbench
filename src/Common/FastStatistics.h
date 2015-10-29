@@ -37,6 +37,8 @@ namespace caret
         
         void reset();
         
+        static float getValuePercentileHelper(const Histogram& histogram, const float numberOfDataValues, const bool negativeDataFlag, const float value);
+
     public:
         FastStatistics();
         
@@ -92,6 +94,12 @@ namespace caret
         float getSampleStdDev() const { return m_stdDevSample; }
         
         float getPopulationStdDev() const { return m_stdDevPop; }
+        
+        float getPositiveValuePercentile(const float value) const;
+        
+        float getNegativeValuePercentile(const float value) const;
+        
+        float getAbsoluteValuePercentile(const float value) const;
         
     };
     

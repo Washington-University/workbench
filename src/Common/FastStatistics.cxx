@@ -454,3 +454,120 @@ float FastStatistics::getApproximateMedian() const
         }
     }
 }
+
+float
+FastStatistics::getValuePercentileHelper(const Histogram& histogram, const float numberOfDataValues, const bool negativeDataFlag, const float value)
+{
+    float percentile = 0.0;
+    
+    const std::vector<int64_t>& cumulativeBuckets = histogram.getHistogramCumulativeCounts();
+    if ((numberOfDataValues > 0)
+        && (! cumulativeBuckets.empty())) {
+        float minValue = 0.0;
+        float maxValue = 0.0;
+        histogram.getRange(minValue,
+                                  maxValue);
+        if (value < minValue) {
+            if (negativeDataFlag) {
+                percentile = 100.0;
+            }
+            else {
+                percentile = 0.0;
+            }
+        }
+        else if (value > maxValue) {
+            if (negativeDataFlag) {
+                percentile = 0;
+            }
+            else {
+                percentile = 100.0;
+            }
+        }
+        else {
+            const float histoRange = maxValue - minValue;
+            if (histoRange > 0.0) {
+                const int64_t numBuckets = cumulativeBuckets.size();
+                int64_t bucketIndex = static_cast<int>(((value - minValue) / histoRange) * numBuckets);
+                if (bucketIndex < 0) {
+                    bucketIndex = 0;
+                }
+                else if (bucketIndex >= numBuckets) {
+                    bucketIndex = numBuckets - 1;
+                }
+                
+                CaretAssertVectorIndex(cumulativeBuckets,
+                                       bucketIndex);
+                float cumulativeValue = cumulativeBuckets[bucketIndex];
+                
+                if (negativeDataFlag) {
+                    CaretAssertVectorIndex(cumulativeBuckets, numBuckets - 1);
+                    cumulativeValue = cumulativeBuckets[numBuckets - 1] - cumulativeBuckets[bucketIndex];
+                }
+                
+                percentile = (cumulativeValue / numberOfDataValues) * 100.0;
+            }
+        }
+    }
+    
+    return percentile;
+}
+
+float
+FastStatistics::getNegativeValuePercentile(const float value) const
+{
+    return getValuePercentileHelper(m_negPercentHist, m_negCount, true, value);
+}
+
+float
+FastStatistics::getAbsoluteValuePercentile(const float value) const
+{
+    float dataValue = value;
+    if (dataValue < 0.0) {
+        dataValue = -dataValue;
+    }
+    return getValuePercentileHelper(m_absPercentHist, m_absCount, false, dataValue);
+}
+
+float
+FastStatistics::getPositiveValuePercentile(const float value) const
+{
+    return getValuePercentileHelper(m_posPercentHist, m_posCount, false, value);
+    
+//    float percentile = 0.0;
+//    
+//    const std::vector<int64_t>& cumulativeBuckets = m_posPercentHist.getHistogramCumulativeCounts();
+//    if ( ! cumulativeBuckets.empty()) {
+//        float minValue = 0.0;
+//        float maxValue = 0.0;
+//        m_posPercentHist.getRange(minValue,
+//                                  maxValue);
+//        if (value < minValue) {
+//            percentile = 0.0;
+//        }
+//        else if (value > maxValue) {
+//            percentile = 100.0;
+//        }
+//        else {
+//            const float histoRange = maxValue - minValue;
+//            if (histoRange > 0.0) {
+//                const int64_t numBuckets = cumulativeBuckets.size();
+//                int64_t bucketIndex = static_cast<int>(((value - minValue) / histoRange) * numBuckets);
+//                if (bucketIndex < 0) {
+//                    bucketIndex = 0;
+//                }
+//                else if (bucketIndex >= numBuckets) {
+//                    bucketIndex = numBuckets - 1;
+//                }
+//                
+//                CaretAssertVectorIndex(cumulativeBuckets,
+//                                       bucketIndex);
+//                const float cumulativeValue = cumulativeBuckets[bucketIndex];
+//                percentile = (cumulativeValue / m_posCount) * 100.0;
+//            }
+//        }
+//    }
+//    
+//    return percentile;
+}
+
+
