@@ -2138,9 +2138,9 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
     
-    this->paletteColorMapping->setColorBarValuesMode(m_colorBarValuesModeComboBox->getSelectedItem<PaletteColorBarValuesModeEnum, PaletteColorBarValuesModeEnum::Enum>());
+    this->paletteColorMapping->setColorBarValuesMode(m_colorBarDataModeComboBox->getSelectedItem<PaletteColorBarValuesModeEnum, PaletteColorBarValuesModeEnum::Enum>());
     this->paletteColorMapping->setNumericFormatMode(m_colorBarNumericFormatModeComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
-    this->paletteColorMapping->setPrecisionDigits(m_colorBarPrecisionDigitsSpinBox->value());
+    this->paletteColorMapping->setPrecisionDigits(m_colorBarDecimalsSpinBox->value());
     this->paletteColorMapping->setNumericSubdivisionCount(m_colorBarNumericSubdivisionsSpinBox->value());
     
     if (this->applyAllMapsCheckBox->checkState() == Qt::Checked) {
@@ -2442,19 +2442,19 @@ QWidget*
 MapSettingsPaletteColorMappingWidget::createColorBarSection()
 {
     QLabel* valuesModeLabel = new QLabel("Data Mode");
-    m_colorBarValuesModeComboBox = new EnumComboBoxTemplate(this);
-    QObject::connect(m_colorBarValuesModeComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(colorBarNumericFormatModeComboBoxItemActivated()));
-    m_colorBarValuesModeComboBox->setup<PaletteColorBarValuesModeEnum, PaletteColorBarValuesModeEnum::Enum>();
-    m_colorBarValuesModeComboBox->getWidget()->setToolTip("Format of numbers above color bar\n"
+    m_colorBarDataModeComboBox = new EnumComboBoxTemplate(this);
+    QObject::connect(m_colorBarDataModeComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(colorBarItemActivated()));
+    m_colorBarDataModeComboBox->setup<PaletteColorBarValuesModeEnum, PaletteColorBarValuesModeEnum::Enum>();
+    m_colorBarDataModeComboBox->getWidget()->setToolTip("Format of numbers above color bar\n"
                                                                  "   DATA: Numbers show mapping of data to the colobar\n"
                                                                  "   PERCENTILE: Numbers show data percentiles\n"
                                                                  "   SIGN ONLY: Text above colorbar indicates sign of data");
     
-    QLabel* precisionModeLabel = new QLabel("Numeric Format");
+    m_colorBarNumericFormatModeLabel = new QLabel("Numeric Format");
     m_colorBarNumericFormatModeComboBox = new EnumComboBoxTemplate(this);
     QObject::connect(m_colorBarNumericFormatModeComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(colorBarNumericFormatModeComboBoxItemActivated()));
+                     this, SLOT(colorBarItemActivated()));
     m_colorBarNumericFormatModeComboBox->setup<NumericFormatModeEnum, NumericFormatModeEnum::Enum>();
     m_colorBarNumericFormatModeComboBox->getWidget()->setToolTip("Format of numbers above color bar\n"
                                                                  "   AUTO: Format (decimal or scientific notation)\n"
@@ -2466,19 +2466,19 @@ MapSettingsPaletteColorMappingWidget::createColorBarSection()
                                                                  "         with the selected precision in the\n"
                                                                  "         significand");
 
-    QLabel* precisionDigitsLabel = new QLabel("Dec/Sci Decimals"); //Precision Digits");
-    m_colorBarPrecisionDigitsSpinBox = new QSpinBox();
-    m_colorBarPrecisionDigitsSpinBox->setMinimum(0);
-    m_colorBarPrecisionDigitsSpinBox->setMaximum(100);
-    m_colorBarPrecisionDigitsSpinBox->setSingleStep(1);
-    QObject::connect(m_colorBarPrecisionDigitsSpinBox, SIGNAL(valueChanged(int)),
+    m_colorBarDecimalsLabel = new QLabel("Dec/Sci Decimals"); //Precision Digits");
+    m_colorBarDecimalsSpinBox = new QSpinBox();
+    m_colorBarDecimalsSpinBox->setMinimum(0);
+    m_colorBarDecimalsSpinBox->setMaximum(100);
+    m_colorBarDecimalsSpinBox->setSingleStep(1);
+    QObject::connect(m_colorBarDecimalsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(applySelections()));
-    m_colorBarPrecisionDigitsSpinBox->setToolTip("Number of digits right of the decimal point\n"
+    m_colorBarDecimalsSpinBox->setToolTip("Number of digits right of the decimal point\n"
                                                  "in the numbers above the color bar when format\n"
                                                  "is " + NumericFormatModeEnum::toGuiName(NumericFormatModeEnum::DECIMAL)
                                                  + " or " + NumericFormatModeEnum::toGuiName(NumericFormatModeEnum::SCIENTIFIC));
     
-    QLabel* subdivisionsLabel = new QLabel("Subdivisions");
+    m_colorBarNumericSubdivisionsLabel = new QLabel("Subdivisions");
     m_colorBarNumericSubdivisionsSpinBox = new QSpinBox();
     m_colorBarNumericSubdivisionsSpinBox->setMinimum(0);
     m_colorBarNumericSubdivisionsSpinBox->setMaximum(100);
@@ -2493,15 +2493,15 @@ MapSettingsPaletteColorMappingWidget::createColorBarSection()
     int row = gridLayout->rowCount();
     this->setLayoutSpacingAndMargins(gridLayout);
     gridLayout->addWidget(valuesModeLabel, row, 0);
-    gridLayout->addWidget(m_colorBarValuesModeComboBox->getWidget(), row, 1);
+    gridLayout->addWidget(m_colorBarDataModeComboBox->getWidget(), row, 1);
     row++;
-    gridLayout->addWidget(precisionModeLabel, row, 0);
+    gridLayout->addWidget(m_colorBarNumericFormatModeLabel, row, 0);
     gridLayout->addWidget(m_colorBarNumericFormatModeComboBox->getWidget(), row, 1);
     row++;
-    gridLayout->addWidget(precisionDigitsLabel, row, 0);
-    gridLayout->addWidget(m_colorBarPrecisionDigitsSpinBox, row, 1);
+    gridLayout->addWidget(m_colorBarDecimalsLabel, row, 0);
+    gridLayout->addWidget(m_colorBarDecimalsSpinBox, row, 1);
     row++;
-    gridLayout->addWidget(subdivisionsLabel, row, 0);
+    gridLayout->addWidget(m_colorBarNumericSubdivisionsLabel, row, 0);
     gridLayout->addWidget(m_colorBarNumericSubdivisionsSpinBox, row, 1);
     colorBarGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
@@ -2509,10 +2509,10 @@ MapSettingsPaletteColorMappingWidget::createColorBarSection()
 }
 
 /**
- * Gets called when the numeric format combo box is selected.
+ * Gets called when a color bar item is selected.
  */
 void
-MapSettingsPaletteColorMappingWidget::colorBarNumericFormatModeComboBoxItemActivated()
+MapSettingsPaletteColorMappingWidget::colorBarItemActivated()
 {
     applySelections();
     
@@ -2526,33 +2526,52 @@ void
 MapSettingsPaletteColorMappingWidget::updateColorBarAttributes()
 {
     if (this->paletteColorMapping != NULL) {
+        bool numericForatComboBoxEnabled   = true;
+        bool precisionDigitsSpinBoxEnabled = true;
+        bool subdivisionsSpinBoxEnabled    = true;
+        
         const PaletteColorBarValuesModeEnum::Enum valuesMode = this->paletteColorMapping->getColorBarValuesMode();
-        m_colorBarValuesModeComboBox->setSelectedItem<PaletteColorBarValuesModeEnum, PaletteColorBarValuesModeEnum::Enum>(valuesMode);
+        switch (valuesMode) {
+            case PaletteColorBarValuesModeEnum::DATA:
+                break;
+            case PaletteColorBarValuesModeEnum::PERCENTILE:
+                break;
+            case PaletteColorBarValuesModeEnum::SIGN_ONLY:
+                numericForatComboBoxEnabled   = false;
+                precisionDigitsSpinBoxEnabled = false;
+                subdivisionsSpinBoxEnabled    = false;
+                break;
+        }
         
         const NumericFormatModeEnum::Enum numericFormat = this->paletteColorMapping->getNumericFormatMode();
+        switch (numericFormat) {
+            case NumericFormatModeEnum::AUTO:
+                precisionDigitsSpinBoxEnabled = false;
+                break;
+            case NumericFormatModeEnum::DECIMAL:
+                break;
+            case NumericFormatModeEnum::SCIENTIFIC:
+                break;
+        }
+        
+        m_colorBarDataModeComboBox->setSelectedItem<PaletteColorBarValuesModeEnum, PaletteColorBarValuesModeEnum::Enum>(valuesMode);
+        
+        m_colorBarNumericFormatModeLabel->setEnabled(numericForatComboBoxEnabled);
         m_colorBarNumericFormatModeComboBox->setSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>(numericFormat);
+        m_colorBarNumericFormatModeComboBox->getWidget()->setEnabled(numericForatComboBoxEnabled);
         
-        m_colorBarPrecisionDigitsSpinBox->blockSignals(true);
-        m_colorBarPrecisionDigitsSpinBox->setValue(this->paletteColorMapping->getPrecisionDigits());
-        m_colorBarPrecisionDigitsSpinBox->blockSignals(false);
+        m_colorBarDecimalsLabel->setEnabled(precisionDigitsSpinBoxEnabled);
+        m_colorBarDecimalsSpinBox->blockSignals(true);
+        m_colorBarDecimalsSpinBox->setValue(this->paletteColorMapping->getPrecisionDigits());
+        m_colorBarDecimalsSpinBox->blockSignals(false);
+        m_colorBarDecimalsSpinBox->setEnabled(precisionDigitsSpinBoxEnabled);
         
+        m_colorBarNumericSubdivisionsLabel->setEnabled(subdivisionsSpinBoxEnabled);
         m_colorBarNumericSubdivisionsSpinBox->blockSignals(true);
         m_colorBarNumericSubdivisionsSpinBox->setValue(this->paletteColorMapping->getNumericSubdivisionCount());
         m_colorBarNumericSubdivisionsSpinBox->blockSignals(false);
+        m_colorBarNumericSubdivisionsSpinBox->setEnabled(subdivisionsSpinBoxEnabled);
         
-        bool precisionEnabled = false;
-        switch (numericFormat) {
-            case NumericFormatModeEnum::AUTO:
-                precisionEnabled = false;
-                break;
-            case NumericFormatModeEnum::DECIMAL:
-                precisionEnabled = true;
-                break;
-            case NumericFormatModeEnum::SCIENTIFIC:
-                precisionEnabled = true;
-                break;
-        }
-        m_colorBarPrecisionDigitsSpinBox->setEnabled(precisionEnabled);
     }
 }
 

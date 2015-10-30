@@ -103,7 +103,7 @@ namespace caret {
         
         void normalizationModeComboBoxActivated(int);
         
-        void colorBarNumericFormatModeComboBoxItemActivated();
+        void colorBarItemActivated();
         
     private:
         void updateEditorInternal(CaretMappableDataFile* caretMappableDataFile,
@@ -212,11 +212,17 @@ namespace caret {
         WuQWidgetObjectGroup* paletteWidgetGroup;
         WuQWidgetObjectGroup* thresholdWidgetGroup;
         
+        EnumComboBoxTemplate* m_colorBarDataModeComboBox;
+        
+        QLabel* m_colorBarNumericFormatModeLabel;
         EnumComboBoxTemplate* m_colorBarNumericFormatModeComboBox;
-        QSpinBox* m_colorBarPrecisionDigitsSpinBox;
+        
+        QLabel* m_colorBarDecimalsLabel;
+        QSpinBox* m_colorBarDecimalsSpinBox;
+        
+        QLabel* m_colorBarNumericSubdivisionsLabel;
         QSpinBox* m_colorBarNumericSubdivisionsSpinBox;
         
-        EnumComboBoxTemplate* m_colorBarValuesModeComboBox;
     };
     
 #ifdef __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_DECLARE__
