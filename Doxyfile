@@ -31,7 +31,9 @@ SUBGROUPING = YES
 
 INPUT = \
 	src/Algorithms \
+	src/Annotations \
 	src/Brain \
+	src/Charting \
 	src/Cifti \
 	src/CommandLine \
 	src/Commands \
@@ -39,9 +41,11 @@ INPUT = \
 	src/Desktop \
 	src/Files \
 	src/FilesBase \
+	src/FtglFont \
 	src/Gifti \
 	src/GuiQt \
 	src/Nifti \
+	src/OSMesaDummy \
 	src/Operations \
 	src/OperationsBase \
 	src/Palette \
