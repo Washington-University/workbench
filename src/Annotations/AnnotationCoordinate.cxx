@@ -279,7 +279,7 @@ AnnotationCoordinate::setSurfaceSpace(const StructureEnum::Enum structure,
 float
 AnnotationCoordinate::getDefaultSurfaceOffsetLength()
 {
-    return 10.0;
+    return 5.0;
 }
 
 /**
