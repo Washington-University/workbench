@@ -1523,9 +1523,11 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
             break;
         case PaletteColorBarValuesModeEnum::SIGN_ONLY:
         {
-            const AString positive("POS");
+            const int emDash = 0x2014;
+            
+            const AString positive("(+)"); //"POS");
             const AString zero("0");
-            const AString negative("NEG");
+            const AString negative("(" + QString(QChar(emDash)) + ")");   //"NEG");
             
             if (isDisplayPositiveDataFlag()
                 && isDisplayNegativeDataFlag()) {

@@ -6894,7 +6894,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
             annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
         }
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE12);
+        annotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomForegroundColor(m_foregroundColorFloat);
         annotationText.setText(normalizedPositionAndText[iText].second);
