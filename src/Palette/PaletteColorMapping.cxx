@@ -1809,6 +1809,23 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
         }
     }
     
+    /*
+     * Add percentage signs when percentile is selected
+     */
+    switch (this->colorBarValuesMode) {
+        case PaletteColorBarValuesModeEnum::DATA:
+            break;
+        case PaletteColorBarValuesModeEnum::PERCENTILE:
+            for (std::vector<std::pair<float, AString> >::iterator iter = normalizedPositionAndTextOut.begin();
+                 iter != normalizedPositionAndTextOut.end();
+                 iter++) {
+                iter->second.append("%");
+            }
+            break;
+        case PaletteColorBarValuesModeEnum::SIGN_ONLY:
+            break;
+    }
+    
     const bool debugFlag = false;
     if (debugFlag) {
         const int numItems = static_cast<int32_t>(normalizedPositionAndTextOut.size());
