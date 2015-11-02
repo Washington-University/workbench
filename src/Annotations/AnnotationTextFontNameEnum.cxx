@@ -132,6 +132,19 @@ AnnotationTextFontNameEnum::initialize()
 }
 
 /**
+ * @return The default font name.
+ */
+AnnotationTextFontNameEnum::Enum
+AnnotationTextFontNameEnum::getDefaultFontName()
+{
+    if (initializedFlag == false) initialize();
+    
+    CaretAssert( ! enumData.empty());
+    
+    return enumData[0].enumValue;
+}
+
+/**
  * Find the data for and enumerated value.
  * @param enumValue
  *     The enumerated value.

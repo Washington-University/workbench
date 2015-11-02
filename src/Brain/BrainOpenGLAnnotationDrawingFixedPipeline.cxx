@@ -764,6 +764,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
                     dynamic_cast<AnnotationBox*>(annotation),
                     surfaceDisplayed);
             break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            CaretAssertMessage(0, "Need to implement drawing of annotation color bar");
+            break;
         case AnnotationTypeEnum::IMAGE:
             drawImage(annotationFile,
                       dynamic_cast<AnnotationImage*>(annotation),

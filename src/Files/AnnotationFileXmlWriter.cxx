@@ -180,6 +180,9 @@ AnnotationFileXmlWriter::writeFileContentToXmlStreamWriter(const AnnotationFile*
             case AnnotationTypeEnum::BOX:
                 writeBox(dynamic_cast<const AnnotationBox*>(annotation));
                 break;
+            case AnnotationTypeEnum::COLOR_BAR:
+                CaretAssertMessage(0, "Color bar is NEVER written to an annotation file");
+                break;
             case AnnotationTypeEnum::IMAGE:
                 writeImage(dynamic_cast<const AnnotationImage*>(annotation));
                 break;

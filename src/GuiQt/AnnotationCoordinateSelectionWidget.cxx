@@ -89,6 +89,8 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
         case AnnotationTypeEnum::IMAGE:
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;

@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __ANNOTATION_TYPE_ENUM_DECLARE__
-#include "AnnotationTypeEnum.h"
-#undef __ANNOTATION_TYPE_ENUM_DECLARE__
+#define __ANNOTATION_COLOR_BAR_POSITION_MODE_ENUM_DECLARE__
+#include "AnnotationColorBarPositionModeEnum.h"
+#undef __ANNOTATION_COLOR_BAR_POSITION_MODE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,10 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationTypeEnum 
- * \brief Types of annotations.
+ * \class caret::AnnotationColorBarPositionModeEnum 
+ * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ *
+ * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +42,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_AnnotationTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_annotationColorBarPositionModeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void AnnotationTypeEnumComboBoxItemActivated();
+ *             void annotationColorBarPositionModeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "AnnotationTypeEnum.h"
+ *         #include "AnnotationColorBarPositionModeEnum.h"
  * 
  *     Instatiate:
- *         m_AnnotationTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_AnnotationTypeEnumComboBox->setup<AnnotationTypeEnum,AnnotationTypeEnum::Enum>();
+ *         m_annotationColorBarPositionModeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_annotationColorBarPositionModeEnumComboBox->setup<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_AnnotationTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(AnnotationTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_annotationColorBarPositionModeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(annotationColorBarPositionModeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_AnnotationTypeEnumComboBox->setSelectedItem<AnnotationTypeEnum,AnnotationTypeEnum::Enum>(NEW_VALUE);
+ *         m_annotationColorBarPositionModeEnumComboBox->setSelectedItem<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const AnnotationTypeEnum::Enum VARIABLE = m_AnnotationTypeEnumComboBox->getSelectedItem<AnnotationTypeEnum,AnnotationTypeEnum::Enum>();
+ *         const AnnotationColorBarPositionModeEnum::Enum VARIABLE = m_annotationColorBarPositionModeEnumComboBox->getSelectedItem<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>();
  * 
  */
 
@@ -78,7 +80,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-AnnotationTypeEnum::AnnotationTypeEnum(const Enum enumValue,
+AnnotationColorBarPositionModeEnum::AnnotationColorBarPositionModeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +93,7 @@ AnnotationTypeEnum::AnnotationTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-AnnotationTypeEnum::~AnnotationTypeEnum()
+AnnotationColorBarPositionModeEnum::~AnnotationColorBarPositionModeEnum()
 {
 }
 
@@ -99,36 +101,21 @@ AnnotationTypeEnum::~AnnotationTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-AnnotationTypeEnum::initialize()
+AnnotationColorBarPositionModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationTypeEnum(BOX,
-                                          "BOX",
-                                          "Box"));
+    enumData.push_back(AnnotationColorBarPositionModeEnum(AUTO, 
+                                    "AUTO", 
+                                    "Auto"));
     
-    enumData.push_back(AnnotationTypeEnum(COLOR_BAR,
-                                          "COLOR_BAR",
-                                          "Color Bar"));
-
-    enumData.push_back(AnnotationTypeEnum(IMAGE,
-                                          "IMAGE",
-                                          "Image"));
+    enumData.push_back(AnnotationColorBarPositionModeEnum(USER, 
+                                    "USER", 
+                                    "User"));
     
-    enumData.push_back(AnnotationTypeEnum(LINE,
-                                          "LINE",
-                                          "Line"));
-    
-    enumData.push_back(AnnotationTypeEnum(OVAL,
-                                          "OVAL",
-                                          "Oval"));
-    
-    enumData.push_back(AnnotationTypeEnum(TEXT,
-                                          "TEXT",
-                                          "Text"));
 }
 
 /**
@@ -138,14 +125,14 @@ AnnotationTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const AnnotationTypeEnum*
-AnnotationTypeEnum::findData(const Enum enumValue)
+const AnnotationColorBarPositionModeEnum*
+AnnotationColorBarPositionModeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const AnnotationTypeEnum* d = &enumData[i];
+        const AnnotationColorBarPositionModeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -162,10 +149,10 @@ AnnotationTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-AnnotationTypeEnum::toName(Enum enumValue) {
+AnnotationColorBarPositionModeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationTypeEnum* enumInstance = findData(enumValue);
+    const AnnotationColorBarPositionModeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -179,18 +166,18 @@ AnnotationTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationTypeEnum::Enum 
-AnnotationTypeEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationColorBarPositionModeEnum::Enum 
+AnnotationColorBarPositionModeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationTypeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationColorBarPositionModeEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationColorBarPositionModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationTypeEnum& d = *iter;
+        const AnnotationColorBarPositionModeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -202,7 +189,7 @@ AnnotationTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type AnnotationColorBarPositionModeEnum"));
     }
     return enumValue;
 }
@@ -215,10 +202,10 @@ AnnotationTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-AnnotationTypeEnum::toGuiName(Enum enumValue) {
+AnnotationColorBarPositionModeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const AnnotationTypeEnum* enumInstance = findData(enumValue);
+    const AnnotationColorBarPositionModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -232,18 +219,18 @@ AnnotationTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-AnnotationTypeEnum::Enum 
-AnnotationTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+AnnotationColorBarPositionModeEnum::Enum 
+AnnotationColorBarPositionModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationTypeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationColorBarPositionModeEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationColorBarPositionModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationTypeEnum& d = *iter;
+        const AnnotationColorBarPositionModeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -255,7 +242,7 @@ AnnotationTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AnnotationColorBarPositionModeEnum"));
     }
     return enumValue;
 }
@@ -267,10 +254,10 @@ AnnotationTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-AnnotationTypeEnum::toIntegerCode(Enum enumValue)
+AnnotationColorBarPositionModeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const AnnotationTypeEnum* enumInstance = findData(enumValue);
+    const AnnotationColorBarPositionModeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -285,18 +272,18 @@ AnnotationTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-AnnotationTypeEnum::Enum
-AnnotationTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+AnnotationColorBarPositionModeEnum::Enum
+AnnotationColorBarPositionModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = AnnotationTypeEnum::enumData[0].enumValue;
+    Enum enumValue = AnnotationColorBarPositionModeEnum::enumData[0].enumValue;
     
-    for (std::vector<AnnotationTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationColorBarPositionModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AnnotationTypeEnum& enumInstance = *iter;
+        const AnnotationColorBarPositionModeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -308,7 +295,7 @@ AnnotationTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AnnotationColorBarPositionModeEnum"));
     }
     return enumValue;
 }
@@ -321,13 +308,13 @@ AnnotationTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-AnnotationTypeEnum::getAllEnums(std::vector<AnnotationTypeEnum::Enum>& allEnums)
+AnnotationColorBarPositionModeEnum::getAllEnums(std::vector<AnnotationColorBarPositionModeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<AnnotationTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationColorBarPositionModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -343,16 +330,16 @@ AnnotationTypeEnum::getAllEnums(std::vector<AnnotationTypeEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+AnnotationColorBarPositionModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<AnnotationTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationColorBarPositionModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(AnnotationTypeEnum::toName(iter->enumValue));
+        allNames.push_back(AnnotationColorBarPositionModeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -369,16 +356,16 @@ AnnotationTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSor
  *     If true, the names are sorted in alphabetical order.
  */
 void
-AnnotationTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+AnnotationColorBarPositionModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<AnnotationTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<AnnotationColorBarPositionModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(AnnotationTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(AnnotationColorBarPositionModeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

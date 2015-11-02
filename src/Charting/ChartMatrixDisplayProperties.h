@@ -29,6 +29,8 @@
 
 
 namespace caret {
+    class AnnotationColorBar;
+
     class SceneClassAssistant;
 
     class ChartMatrixDisplayProperties : public CaretObject, public SceneableInterface {
@@ -75,6 +77,10 @@ namespace caret {
         bool isSelectedRowColumnHighlighted() const;
         
         void setSelectedRowColumnHighlighted(const bool highlightStatus);
+        
+        AnnotationColorBar* getColorBar();
+        
+        const AnnotationColorBar* getColorBar() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -129,6 +135,9 @@ namespace caret {
         
         /** Display grid lines */
         bool m_displayGridLines;
+        
+        /** The color bar displayed in the graphics window */
+        AnnotationColorBar* m_colorBar;
         
         // ADD_NEW_MEMBERS_HERE
 

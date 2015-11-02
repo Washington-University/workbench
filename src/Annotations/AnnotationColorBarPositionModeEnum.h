@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_TEXT_FONT_NAME_ENUM_H__
-#define __ANNOTATION_TEXT_FONT_NAME_ENUM_H__
+#ifndef __ANNOTATION_COLOR_BAR_POSITION_MODE_ENUM_H__
+#define __ANNOTATION_COLOR_BAR_POSITION_MODE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,24 +28,22 @@
 
 namespace caret {
 
-class AnnotationTextFontNameEnum {
+class AnnotationColorBarPositionModeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Vera Fonts */
-        VERA,
-        /** Vera Monospaced Fonts */
-        VERA_MONOSPACE
+        /** */
+        AUTO,
+        /** */
+        USER
     };
 
 
-    ~AnnotationTextFontNameEnum();
+    ~AnnotationColorBarPositionModeEnum();
 
-    static Enum getDefaultFontName();
-    
     static AString toName(Enum enumValue);
     
     static Enum fromName(const AString& name, bool* isValidOut);
@@ -64,27 +62,15 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-    static AString getResourceFontFileName(Enum enumValue);
-    
-    static AString getResourceBoldFontFileName(Enum enumValue);
-    
-    static AString getResourceBoldItalicFontFileName(Enum enumValue);
-
-    static AString getResourceItalicFontFileName(Enum enumValue);
-    
 private:
-    AnnotationTextFontNameEnum(const Enum enumValue, 
-                           const AString& name,
-                           const AString& guiName,
-                           const AString& fontFileName,
-                           const AString& boldFontFileName,
-                           const AString& boldItalicFontFileName,
-                           const AString& italicFontFileName);
+    AnnotationColorBarPositionModeEnum(const Enum enumValue, 
+                 const AString& name,
+                 const AString& guiName);
 
-    static const AnnotationTextFontNameEnum* findData(const Enum enumValue);
+    static const AnnotationColorBarPositionModeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationTextFontNameEnum> enumData;
+    static std::vector<AnnotationColorBarPositionModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -106,25 +92,13 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
-    
-    /** Name of font file */
-    AString resourceFontFileName;
-
-    /** Name of bold font file */
-    AString resourceBoldFontFileName;
-
-    /** Name of bold italic font file */
-    AString resourceBoldItalicFontFileName;
-
-    /** Name of italic font file */
-    AString resourceItalicFontFileName;
 };
 
-#ifdef __ANNOTATION_TEXT_FONT_NAME_ENUM_DECLARE__
-std::vector<AnnotationTextFontNameEnum> AnnotationTextFontNameEnum::enumData;
-bool AnnotationTextFontNameEnum::initializedFlag = false;
-int32_t AnnotationTextFontNameEnum::integerCodeCounter = 0; 
-#endif // __ANNOTATION_TEXT_FONT_NAME_ENUM_DECLARE__
+#ifdef __ANNOTATION_COLOR_BAR_POSITION_MODE_ENUM_DECLARE__
+std::vector<AnnotationColorBarPositionModeEnum> AnnotationColorBarPositionModeEnum::enumData;
+bool AnnotationColorBarPositionModeEnum::initializedFlag = false;
+int32_t AnnotationColorBarPositionModeEnum::integerCodeCounter = 0; 
+#endif // __ANNOTATION_COLOR_BAR_POSITION_MODE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_TEXT_FONT_NAME_ENUM_H__
+#endif  //__ANNOTATION_COLOR_BAR_POSITION_MODE_ENUM_H__

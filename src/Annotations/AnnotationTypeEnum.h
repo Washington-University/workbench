@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** Box */
         BOX,
+        /** Colorbar */
+        COLOR_BAR,
         /** Image */
         IMAGE,
         /** Line */

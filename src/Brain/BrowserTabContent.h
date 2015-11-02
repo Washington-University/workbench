@@ -37,6 +37,7 @@
 
 namespace caret {
 
+    class AnnotationColorBar;
     class BrainOpenGLViewportContent;
     class CaretDataFile;
     class CaretMappableDataFile;
@@ -51,6 +52,7 @@ namespace caret {
     class ModelWholeBrain;
     class OverlaySet;
     class Palette;
+    class PaletteColorBarDrawingInformation;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
     class Surface;
@@ -145,6 +147,8 @@ namespace caret {
         bool isWholeBrainModelValid() const;
 
         bool isSurfaceMontageModelValid() const;
+        
+        void getPaletteColorBarDrawingInformation(std::vector<const PaletteColorBarDrawingInformation*>& paletteColorBarDrawingInfoOut);
         
         void getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile*>& mapFiles,
                                          std::vector<int32_t>& mapIndices);
@@ -365,6 +369,22 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
     private:
+        class ColorBarFileMap {
+        public:
+            ColorBarFileMap(const AnnotationColorBar* colorBar,
+                            CaretMappableDataFile* mapFile,
+                            const int32_t mapIndex)
+            : m_colorBar(colorBar),
+            m_mapFile(mapFile),
+            m_mapIndex(mapIndex)
+            {
+            }
+            
+            const AnnotationColorBar* m_colorBar;
+            CaretMappableDataFile* m_mapFile;
+            const int32_t m_mapIndex;
+        };
+        
         BrowserTabContent(const BrowserTabContent&);
         
         BrowserTabContent& operator=(const BrowserTabContent&);

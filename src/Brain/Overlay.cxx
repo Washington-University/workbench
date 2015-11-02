@@ -25,6 +25,7 @@
 #include "Overlay.h"
 #undef __OVERLAY_DECLARE__
 
+#include "AnnotationColorBar.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
@@ -71,6 +72,8 @@ m_includeVolumeFiles(includeVolumeFiles)
     
     m_wholeBrainVoxelDrawingMode = WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES;
     
+    m_colorBar = new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL);
+    
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_opacity", &m_opacity);
     m_sceneAssistant->add("m_enabled", &m_enabled);
@@ -79,6 +82,7 @@ m_includeVolumeFiles(includeVolumeFiles)
                                                                                         &m_wholeBrainVoxelDrawingMode);
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
                                                                         &m_mapYokingGroup);
+    m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_OVERLAY_VALIDATE);
@@ -91,6 +95,7 @@ Overlay::~Overlay()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
+    delete m_colorBar;
     delete m_sceneAssistant;
 }
 
@@ -263,6 +268,8 @@ Overlay::copyData(const Overlay* overlay)
     m_selectedMapIndex = overlay->m_selectedMapIndex;
     m_paletteDisplayedFlag = overlay->m_paletteDisplayedFlag;
     m_mapYokingGroup = overlay->m_mapYokingGroup;
+    
+    *m_colorBar = *overlay->m_colorBar;
 }
 
 /**
@@ -515,6 +522,24 @@ void
 Overlay::setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup)
 {
     m_mapYokingGroup = mapYokingGroup;
+}
+
+/**
+ * @return The color bar displayed in graphics window.
+ */
+AnnotationColorBar*
+Overlay::getColorBar()
+{
+    return m_colorBar;
+}
+
+/**
+ * @return The color bar displayed in graphics window (const method).
+ */
+const AnnotationColorBar*
+Overlay::getColorBar() const
+{
+    return m_colorBar;
 }
 
 

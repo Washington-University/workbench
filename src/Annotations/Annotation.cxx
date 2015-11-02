@@ -24,6 +24,7 @@
 #undef __ANNOTATION_DECLARE__
 
 #include "AnnotationBox.h"
+#include "AnnotationColorBar.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
@@ -150,6 +151,13 @@ Annotation::clone() const
             myClone = new AnnotationBox(*box);
         }
             break;
+        case AnnotationTypeEnum::COLOR_BAR:
+        {
+            const AnnotationColorBar* colorBar = dynamic_cast<const AnnotationColorBar*>(this);
+            CaretAssert(colorBar);
+            myClone = new AnnotationColorBar(*colorBar);
+        }
+            break;
         case AnnotationTypeEnum::IMAGE:
         {
             const AnnotationImage* image = dynamic_cast<const AnnotationImage*>(this);
@@ -246,6 +254,9 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
         case AnnotationTypeEnum::BOX:
             annotation = new AnnotationBox(attributeDefaultType);
             break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            annotation = new AnnotationColorBar(attributeDefaultType);
+            break;
         case AnnotationTypeEnum::IMAGE:
             annotation = new AnnotationImage(attributeDefaultType);
             break;
@@ -326,6 +337,9 @@ Annotation::initializeAnnotationMembers()
     bool disallowForegroundNoneFlag = false;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            disallowForegroundNoneFlag = true;
             break;
         case AnnotationTypeEnum::IMAGE:
             break;

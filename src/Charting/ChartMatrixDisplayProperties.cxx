@@ -23,6 +23,7 @@
 #include "ChartMatrixDisplayProperties.h"
 #undef __CHART_MATRIX_DISPLAY_PROPERTIES_DECLARE__
 
+#include "AnnotationColorBar.h"
 #include "CaretAssert.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -49,6 +50,8 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_colorBarDisplayed = false;
     m_highlightSelectedRowColumn = true;
     m_displayGridLines = true;
+    m_colorBar = new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL);
+
     resetPropertiesToDefault();
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -59,6 +62,7 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_sceneAssistant->add("m_colorBarDisplayed", &m_colorBarDisplayed);
     m_sceneAssistant->add("m_highlightSelectedRowColumn", &m_highlightSelectedRowColumn);
     m_sceneAssistant->add("m_displayGridLines", &m_displayGridLines);
+    m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar);
     
     m_sceneAssistant->add<ChartMatrixScaleModeEnum, ChartMatrixScaleModeEnum::Enum>("m_scaleMode",
                                                                                     &m_scaleMode);
@@ -70,6 +74,7 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
  */
 ChartMatrixDisplayProperties::~ChartMatrixDisplayProperties()
 {
+    delete m_colorBar;
     delete m_sceneAssistant;
 }
 
@@ -247,6 +252,24 @@ void
 ChartMatrixDisplayProperties::setScaleMode(const ChartMatrixScaleModeEnum::Enum scaleMode)
 {
     m_scaleMode = scaleMode;
+}
+
+/**
+ * @return The color bar displayed in graphics window.
+ */
+AnnotationColorBar*
+ChartMatrixDisplayProperties::getColorBar()
+{
+    return m_colorBar;
+}
+
+/**
+ * @return The color bar displayed in graphics window (const method).
+ */
+const AnnotationColorBar*
+ChartMatrixDisplayProperties::getColorBar() const
+{
+    return m_colorBar;
 }
 
 /**
