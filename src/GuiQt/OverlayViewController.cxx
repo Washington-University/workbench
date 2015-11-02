@@ -37,6 +37,7 @@
 #include "OverlayViewController.h"
 #undef __OVERLAY_VIEW_CONTROLLER_DECLARE__
 
+#include "AnnotationColorBar.h"
 #include "CaretMappableDataFile.h"
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -499,8 +500,8 @@ OverlayViewController::colorBarActionTriggered(bool status)
     if (overlay == NULL) {
         return;
     }
-    
-    this->overlay->setPaletteDisplayEnabled(status);
+
+    this->overlay->getColorBar()->setDisplayed(status);
     
     this->updateGraphicsWindow();
 }
@@ -664,7 +665,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
     m_mapYokingGroupComboBox->setMapYokingGroup(overlay->getMapYokingGroup());
     
     this->colorBarAction->blockSignals(true);
-    this->colorBarAction->setChecked(overlay->isPaletteDisplayEnabled());
+    this->colorBarAction->setChecked(overlay->getColorBar()->isDisplayed());
     this->colorBarAction->blockSignals(false);
     
     this->opacityDoubleSpinBox->blockSignals(true);

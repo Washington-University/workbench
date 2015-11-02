@@ -47,7 +47,6 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_scaleMode  = ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO;
     m_cellWidth  = 10.0;
     m_cellHeight = 10.0;
-    m_colorBarDisplayed = false;
     m_highlightSelectedRowColumn = true;
     m_displayGridLines = true;
     m_colorBar = new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL);
@@ -59,7 +58,6 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_sceneAssistant->add("m_cellHeight", &m_cellHeight);
     m_sceneAssistant->add("m_viewZooming", &m_viewZooming);
     m_sceneAssistant->addArray("m_viewPanning", m_viewPanning, 2, 0.0);
-    m_sceneAssistant->add("m_colorBarDisplayed", &m_colorBarDisplayed);
     m_sceneAssistant->add("m_highlightSelectedRowColumn", &m_highlightSelectedRowColumn);
     m_sceneAssistant->add("m_displayGridLines", &m_displayGridLines);
     m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar);
@@ -135,7 +133,7 @@ ChartMatrixDisplayProperties::copyHelperChartMatrixDisplayProperties(const Chart
     m_cellWidth      = obj.m_cellWidth;
     m_cellHeight     = obj.m_cellHeight;
     m_scaleMode      = obj.m_scaleMode;
-    m_colorBarDisplayed = obj.m_colorBarDisplayed;
+    *m_colorBar      = *obj.m_colorBar;
 }
 
 /**
@@ -322,34 +320,20 @@ ChartMatrixDisplayProperties::restoreFromScene(const SceneAttributes* sceneAttri
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
+    /*
+     * "m_paletteDisplayedFlag" controlled display of palette colorbar
+     * prior to the addition of AnnotationColorBar
+     */
+    const AString colorBarDisplayedFlagString = sceneClass->getStringValue("m_colorBarDisplayed");
+    if ( ! colorBarDisplayedFlagString.isEmpty()) {
+        m_colorBar->reset();
+        m_colorBar->setDisplayed(sceneClass->getBooleanValue("m_colorBarDisplayed"));
+    }
+    
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
     
-}
-
-/**
- * Is the colorbar displayed for the given tab?
- *
- * @return
- *     True if colorbar is displayed, else false.
- */
-bool
-ChartMatrixDisplayProperties::isColorBarDisplayed() const
-{
-    return m_colorBarDisplayed;
-}
-
-/**
- * Set the colorbar displayed for the given tab.
- *
- * @param displayed
- *     True if colorbar is displayed, else false.
- */
-void
-ChartMatrixDisplayProperties::setColorBarDisplayed(const bool displayed)
-{
-    m_colorBarDisplayed = displayed;
 }
 
 /**

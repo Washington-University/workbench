@@ -44,10 +44,6 @@ namespace caret {
 
         ChartMatrixDisplayProperties& operator=(const ChartMatrixDisplayProperties& obj);
         
-        bool isColorBarDisplayed() const;
-        
-        void setColorBarDisplayed(const bool displayed);
-        
         float getCellWidth() const;
         
         void setCellWidth(const float cellSizeX);
@@ -126,9 +122,6 @@ namespace caret {
         
         /** scale mode for view of matrix*/
         ChartMatrixScaleModeEnum::Enum m_scaleMode;
-        
-        /** Display color bar */
-        bool m_colorBarDisplayed;
         
         /** Highlight the selected row/column */
         bool m_highlightSelectedRowColumn;

@@ -36,6 +36,7 @@
 #include <QStackedWidget>
 #include <QToolButton>
 
+#include "AnnotationColorBar.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -271,7 +272,7 @@ ChartMatrixSeriesSelectionViewController::updateSelectionViewController()
             m_matrixSeriesYokingComboBox->setMapYokingGroup(yokingGroup);
             
             m_matrixSeriesColorBarAction->blockSignals(true);
-            m_matrixSeriesColorBarAction->setChecked(chartMatrixDisplayProperties->isColorBarDisplayed());
+            m_matrixSeriesColorBarAction->setChecked(chartMatrixDisplayProperties->getColorBar()->isDisplayed());
             m_matrixSeriesColorBarAction->blockSignals(false);
             
             m_matrixSeriesColorBarAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
@@ -436,7 +437,7 @@ ChartMatrixSeriesSelectionViewController::matrixSeriesColorBarActionTriggered(bo
     }
     
     if (chartableMatrixSeriesInterface != NULL) {
-        chartMatrixDisplayProperties->setColorBarDisplayed(status);
+        chartMatrixDisplayProperties->getColorBar()->setDisplayed(status);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }

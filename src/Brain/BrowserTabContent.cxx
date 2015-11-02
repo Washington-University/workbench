@@ -1397,7 +1397,8 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
         for (int32_t i = (numOverlays - 1); i >= 0; i--) {
             Overlay* overlay = overlaySet->getOverlay(i);
             if (overlay->isEnabled()) {
-                if (overlay->isPaletteDisplayEnabled()) {
+                AnnotationColorBar* colorBar = overlay->getColorBar();
+                if (colorBar->isDisplayed()) {
                     CaretMappableDataFile* mapFile;
                     int32_t mapFileIndex;
                     overlay->getSelectionData(mapFile, mapFileIndex);
@@ -1448,7 +1449,7 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
                         ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(mapFile);
                         if (matrixFile != NULL) {
                             ChartMatrixDisplayProperties* props = matrixFile->getChartMatrixDisplayProperties(m_tabNumber);
-                            if (props->isColorBarDisplayed()) {
+                            if (props->getColorBar()->isDisplayed()) {
                                 /*
                                  * Matrix contains all file data and always
                                  * uses a map index of zero.

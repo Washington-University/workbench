@@ -25,6 +25,7 @@
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #undef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
 
+#include "AnnotationColorBar.h"
 #include "AnnotationPointSizeText.h"
 #include "CaretOpenGLInclude.h"
 #include "BrainOpenGLFixedPipeline.h"
@@ -326,7 +327,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
     resetIdentification();
 
     ChartMatrixDisplayProperties* matrixProperties = chartMatrixInterface->getChartMatrixDisplayProperties(m_tabIndex);
-    const int32_t paletteHeight = (matrixProperties->isColorBarDisplayed()
+    const int32_t paletteHeight = (matrixProperties->getColorBar()->isDisplayed()
                                    ? 40
                                    : 0);
     

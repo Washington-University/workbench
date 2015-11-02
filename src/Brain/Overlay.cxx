@@ -67,7 +67,6 @@ m_includeVolumeFiles(includeVolumeFiles)
     m_selectedMapIndex = -1;
     m_name = "Overlay ";
     m_enabled = true;
-    m_paletteDisplayedFlag = false;
     m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     
     m_wholeBrainVoxelDrawingMode = WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES;
@@ -77,7 +76,6 @@ m_includeVolumeFiles(includeVolumeFiles)
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_opacity", &m_opacity);
     m_sceneAssistant->add("m_enabled", &m_enabled);
-    m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag);
     m_sceneAssistant->add<WholeBrainVoxelDrawingMode, WholeBrainVoxelDrawingMode::Enum>("m_wholeBrainVoxelDrawingMode",
                                                                                         &m_wholeBrainVoxelDrawingMode);
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
@@ -266,7 +264,6 @@ Overlay::copyData(const Overlay* overlay)
     
     m_selectedMapFile = overlay->m_selectedMapFile;
     m_selectedMapIndex = overlay->m_selectedMapIndex;
-    m_paletteDisplayedFlag = overlay->m_paletteDisplayedFlag;
     m_mapYokingGroup = overlay->m_mapYokingGroup;
     
     *m_colorBar = *overlay->m_colorBar;
@@ -484,26 +481,6 @@ Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
 }
 
 /**
- * @return Is display of palette in graphics window enabled?
- */
-bool 
-Overlay::isPaletteDisplayEnabled() const
-{
-    return m_paletteDisplayedFlag;
-}
-
-/**
- * Set display of palette in graphics window.
- * @param enabled
- *   New status for palette display in graphics window.
- */
-void 
-Overlay::setPaletteDisplayEnabled(const bool enabled)
-{
-    m_paletteDisplayedFlag = enabled;
-}
-
-/**
  * @return Selected map yoking group.
  */
 MapYokingGroupEnum::Enum
@@ -638,6 +615,17 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
 
+    
+    /*
+     * "m_paletteDisplayedFlag" controlled display of palette colorbar 
+     * prior to the addition of AnnotationColorBar
+     */
+    const AString paletteDisplayedFlagString = sceneClass->getStringValue("m_paletteDisplayedFlag");
+    if ( ! paletteDisplayedFlagString.isEmpty()) {
+        m_colorBar->reset();
+        m_colorBar->setDisplayed(sceneClass->getBooleanValue("m_paletteDisplayedFlag"));
+    }
+    
     /*
      * OverlayYokingGroup was replaced by MapYokingGroup.
      * If an overlay yoking group is found, convert it to 

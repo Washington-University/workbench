@@ -86,10 +86,6 @@ namespace caret {
         void setSelectionData(CaretMappableDataFile* selectedMapFile,
                               const int32_t selectedMapIndex);
         
-        bool isPaletteDisplayEnabled() const;
-        
-        void setPaletteDisplayEnabled(const bool enabled);
-        
         MapYokingGroupEnum::Enum getMapYokingGroup() const;
         
         void setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup);
@@ -140,9 +136,6 @@ namespace caret {
         
         /** selected data file map unique id */
         //AString m_selectedMapUniqueID;
-        
-        /** Display palette in graphics window */
-        bool m_paletteDisplayedFlag;
         
         /** Voxel drawing mode in Whole Brain View */
         WholeBrainVoxelDrawingMode::Enum m_wholeBrainVoxelDrawingMode;

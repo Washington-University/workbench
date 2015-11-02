@@ -38,6 +38,8 @@ namespace caret {
 
         AnnotationColorBar& operator=(const AnnotationColorBar& obj);
         
+        void reset();
+        
         AnnotationTextFontNameEnum::Enum getFont() const;
         
         void setFont(const AnnotationTextFontNameEnum::Enum font);

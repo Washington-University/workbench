@@ -45,10 +45,7 @@ AnnotationColorBar::AnnotationColorBar(const AnnotationAttributesDefaultTypeEnum
 : AnnotationTwoDimensionalShape(AnnotationTypeEnum::COLOR_BAR,
                                 attributeDefaultType)
 {
-    m_fontName = AnnotationTextFontNameEnum::getDefaultFontName();
-    m_fontPercentViewportHeight = 0.05;
-    m_positionMode = AnnotationColorBarPositionModeEnum::AUTO;
-    m_displayedFlag = false;
+    reset();
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add<AnnotationTextFontNameEnum, AnnotationTextFontNameEnum::Enum>("m_fontName",
@@ -109,6 +106,20 @@ AnnotationColorBar::copyHelperAnnotationColorBar(const AnnotationColorBar& obj)
     m_fontPercentViewportHeight = obj.m_fontPercentViewportHeight;
     m_positionMode              = obj.m_positionMode;
     m_displayedFlag             = obj.m_displayedFlag;
+}
+
+/**
+ * Reset the annotation colorbar.
+ *
+ * DO NOT make this method virtual is it is called from constructor.
+ */
+void
+AnnotationColorBar::reset()
+{
+    m_fontPercentViewportHeight = 0.05;
+    m_fontName      = AnnotationTextFontNameEnum::getDefaultFontName();
+    m_positionMode  = AnnotationColorBarPositionModeEnum::AUTO;
+    m_displayedFlag = false;
 }
 
 /**
