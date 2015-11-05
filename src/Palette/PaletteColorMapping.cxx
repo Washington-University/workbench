@@ -21,7 +21,11 @@
 #include <cmath>
 #include <sstream>
 
+#include "AnnotationColorBar.h"
+#include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "EventManager.h"
+#include "EventPaletteGetByName.h"
 #include "FastStatistics.h"
 #include "MathFunctions.h"
 #include "NumericTextFormatting.h"
@@ -32,6 +36,7 @@
 #undef __PALETTE_COLOR_MAPPING_DECLARE__
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteColorMappingXmlElements.h"
+#include "PaletteScalarAndColor.h"
 #include "XmlSaxParser.h"
 #include "XmlUtilities.h"
 #include "XmlWriter.h"
@@ -396,6 +401,241 @@ PaletteColorMapping::decodeFromStringXML(const AString& xml)
         throw XmlException(AString::fromStdString(str.str()));
     }
     delete parser;
+}
+
+/**
+ * Setup an annotation color bar with its color sections.
+ *
+ * @param statistics
+ *     Statistics of data for colorbar.
+ * @param colorBar
+ *     The annotation colorbar that has its color sections set.
+ */
+void
+PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
+                                             AnnotationColorBar* colorBar)
+{
+    CaretAssert(statistics);
+    CaretAssert(colorBar);
+    
+    colorBar->clearSections();
+    
+    const AString paletteName = getSelectedPaletteName();
+    EventPaletteGetByName paletteEvent(paletteName);
+    EventManager::get()->sendEvent(paletteEvent.getPointer());
+    const Palette* palette = paletteEvent.getPalette();
+    if (palette == NULL) {
+        CaretLogSevere("Unable to find palette named \""
+                       + paletteName
+                       + "\"");
+        return;
+    }
+    
+    
+    /*
+     * Types of values for display
+     */
+    const bool isPositiveOnly = (this->displayPositiveDataFlag && ( ! this->displayNegativeDataFlag));
+    const bool isNegativeOnly = (( ! this->displayPositiveDataFlag) && this->displayNegativeDataFlag);
+    
+    float xMinimum = -1.0;
+    float xMaximum =  1.0;
+    if (isPositiveOnly) {
+        xMinimum = 0.0;
+    }
+    else if (isNegativeOnly) {
+        xMaximum = 0.0;
+    }
+    
+    /*
+     * Always interpolate if the palette has only two colors
+     */
+    bool interpolateColor = this->interpolatePaletteFlag;
+    if (palette->getNumberOfScalarsAndColors() <= 2) {
+        interpolateColor = true;
+    }
+    
+    /*
+     * Draw the colorbar starting with the color assigned
+     * to the negative end of the palette.
+     * Colorbar scalars range from -1 to 1.
+     */
+    const int iStart = palette->getNumberOfScalarsAndColors() - 1;
+    const int iEnd = 1;
+    const int iStep = -1;
+    for (int i = iStart; i >= iEnd; i += iStep) {
+        /*
+         * palette data for 'left' side of a color in the palette.
+         */
+        const PaletteScalarAndColor* sc = palette->getScalarAndColor(i);
+        float scalar = sc->getScalar();
+        float rgba[4];
+        sc->getColor(rgba);
+        
+        /*
+         * palette data for 'right' side of a color in the palette.
+         */
+        const PaletteScalarAndColor* nextSC = palette->getScalarAndColor(i - 1);
+        float nextScalar = nextSC->getScalar();
+        float nextRGBA[4];
+        nextSC->getColor(nextRGBA);
+        const bool isNoneColorFlag = nextSC->isNoneColor();
+        
+        /*
+         * Exclude negative regions if not displayed.
+         */
+        if ( ! this->displayNegativeDataFlag) {
+            if (nextScalar < 0.0) {
+                continue;
+            }
+            else if (scalar < 0.0) {
+                scalar = 0.0;
+            }
+        }
+        
+        /*
+         * Exclude positive regions if not displayed.
+         */
+        if ( ! this->displayPositiveDataFlag) {
+            if (scalar > 0.0) {
+                continue;
+            }
+            else if (nextScalar > 0.0) {
+                nextScalar = 0.0;
+            }
+        }
+        
+        /*
+         * Normally, the first entry has a scalar value of -1.
+         * If it does not, use the first color draw from
+         * -1 to the first scalar value.
+         */
+        if (i == iStart) {
+            if ( ! sc->isNoneColor()) {
+                if (scalar > -1.0) {
+                    const float xStart = -1.0;
+                    const float xEnd   = scalar;
+                    
+                    colorBar->addSection(xStart,
+                                         xEnd,
+                                         rgba,
+                                         rgba);
+                }
+            }
+        }
+        
+        /*
+         * If the 'next' color is none, drawing
+         * is skipped to let the background show
+         * throw the 'none' region of the palette.
+         */
+        if ( ! isNoneColorFlag) {
+            /*
+             * left and right region of an entry in the palette
+             */
+            const float xStart = scalar;
+            const float xEnd   = nextScalar;
+            
+            /*
+             * Unless interpolating, use the 'next' color.
+             */
+            float* startRGBA = nextRGBA;
+            float* endRGBA   = nextRGBA;
+            if (interpolateColor) {
+                startRGBA = rgba;
+            }
+            
+            /*
+             * Draw the region in the palette.
+             */
+            colorBar->addSection(xStart,
+                                 xEnd,
+                                 startRGBA,
+                                 endRGBA);
+            
+            /*
+             * The last scalar value is normally 1.0.  If the last
+             * scalar is less than 1.0, then fill in the rest of
+             * the palette from the last scalar to 1.0.
+             */
+            if (i == iEnd) {
+                if (nextScalar < 1.0) {
+                    const float xStart = nextScalar;
+                    const float xEnd   = 1.0;
+                    colorBar->addSection(xStart,
+                                         xEnd,
+                                         nextRGBA,
+                                         nextRGBA);
+                }
+            }
+        }
+    }
+    
+    float backgroundRGBA[4];
+    colorBar->getBackgroundColorRGBA(backgroundRGBA);
+    
+    /*
+     * Draw over thresholded regions with background color
+     */
+    if (this->thresholdType != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+        const float minMaxThresholds[2] = {
+            getThresholdMinimum(thresholdType),
+            getThresholdMaximum(thresholdType)
+        };
+        float normalizedThresholds[2];
+        
+        mapDataToPaletteNormalizedValues(statistics,
+                                         minMaxThresholds,
+                                         normalizedThresholds,
+                                         2);
+        
+        switch (this->thresholdTest) {
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+                if (normalizedThresholds[0] >= xMinimum) {
+                    colorBar->addSection(xMinimum,
+                                         normalizedThresholds[0],
+                                         backgroundRGBA,
+                                         backgroundRGBA);
+                }
+                if (normalizedThresholds[1] < xMaximum) {
+                    colorBar->addSection(normalizedThresholds[1],
+                                         xMaximum,
+                                         backgroundRGBA,
+                                         backgroundRGBA);
+                }
+                break;
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+            {
+                const float xMin = MathFunctions::limitRange(normalizedThresholds[0],
+                                                             xMinimum,
+                                                             xMaximum);
+                const float xMax = MathFunctions::limitRange(normalizedThresholds[1],
+                                                             xMinimum,
+                                                             xMaximum);
+                if (xMin < xMax) {
+                    colorBar->addSection(normalizedThresholds[0],
+                                         normalizedThresholds[1],
+                                         backgroundRGBA,
+                                         backgroundRGBA);
+                }
+            }
+                break;
+        }
+    }
+    
+    /*
+     * If zeros are not displayed, draw a line in the
+     * background color at zero in the palette.
+     */
+    if ( ! this->displayZeroDataFlag) {
+        colorBar->addSection(0.0, 0.0, backgroundRGBA, backgroundRGBA);
+    }
+
+    /**
+     * Add numeric text to the color bar.
+     */
+    setupAnnotationColorBarNumericText(statistics,
+                                       colorBar);
 }
 
 /**
@@ -1497,6 +1737,33 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
 //}
 
 /**
+ * Setup the numeric text for the annotation colorbar.
+ *
+ * @param statistics
+ *     Statistics for the data.
+ * @param colorBar
+ *     Colorbar that receives the numeric text.
+ */
+void
+PaletteColorMapping::setupAnnotationColorBarNumericText(const FastStatistics* statistics,
+                                                        AnnotationColorBar* colorBar)
+{
+    colorBar->clearNumericText();
+    
+    std::vector<std::pair<float, AString> > normalizedPositionAndText;
+    getPaletteColorBarScaleText(statistics,
+                                normalizedPositionAndText);
+    
+    for (std::vector<std::pair<float, AString> >::iterator iter = normalizedPositionAndText.begin();
+         iter != normalizedPositionAndText.end();
+         iter++) {
+        colorBar->addNumericText(iter->first,
+                                 iter->second);
+    }
+}
+
+
+/**
  * Get the text characters for drawing the scale above the palette
  * color bar.
  *
@@ -1505,7 +1772,6 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
  * @param normalizedPositionAndTextOut,
  *     Horizontal position ranging 0.0 to 1.0
  *     and text values.
- *
  */
 void
 PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistics,

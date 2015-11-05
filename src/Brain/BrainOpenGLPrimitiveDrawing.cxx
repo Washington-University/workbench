@@ -76,6 +76,33 @@ BrainOpenGLPrimitiveDrawing::~BrainOpenGLPrimitiveDrawing()
  */
 void
 BrainOpenGLPrimitiveDrawing::drawQuads(const std::vector<float>& coordinates,
+                                       const std::vector<float>& normals,
+                                       const std::vector<float>& rgbaColors)
+{
+    std::vector<uint8_t> rgbaBytes;
+    for (std::vector<float>::const_iterator iter = rgbaColors.begin();
+         iter != rgbaColors.end();
+         iter++) {
+        rgbaBytes.push_back(static_cast<uint8_t>(*iter * 255.0));
+    }
+    
+    drawQuads(coordinates,
+              normals,
+              rgbaBytes);
+}
+
+/**
+ * Draw quads.
+ *
+ * @param coordinates
+ *    Coordinates of the quads.
+ * @param normals
+ *    Normal vectors for the quads.
+ * @param rgbaColors
+ *    RGBA colors for the quads.
+ */
+void
+BrainOpenGLPrimitiveDrawing::drawQuads(const std::vector<float>& coordinates,
                                              const std::vector<float>& normals,
                                              const std::vector<uint8_t>& rgbaColors)
 {

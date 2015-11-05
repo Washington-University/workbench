@@ -23,8 +23,11 @@
 #include "AnnotationColorBar.h"
 #undef __ANNOTATION_COLOR_BAR_DECLARE__
 
+#include "AnnotationColorBarNumericText.h"
+#include "AnnotationColorBarSection.h"
 #include "CaretAssert.h"
 #include "SceneClassAssistant.h"
+
 using namespace caret;
 
 
@@ -63,6 +66,7 @@ AnnotationColorBar::AnnotationColorBar(const AnnotationAttributesDefaultTypeEnum
  */
 AnnotationColorBar::~AnnotationColorBar()
 {
+    clearSections();
 }
 
 /**
@@ -102,6 +106,12 @@ AnnotationColorBar::operator=(const AnnotationColorBar& obj)
 void 
 AnnotationColorBar::copyHelperAnnotationColorBar(const AnnotationColorBar& obj)
 {
+    /*
+     * NOTE: sections and numeric text are not copied
+     */
+    clearSections();
+    clearNumericText();
+    
     m_fontName                  = obj.m_fontName;
     m_fontPercentViewportHeight = obj.m_fontPercentViewportHeight;
     m_positionMode              = obj.m_positionMode;
@@ -120,6 +130,12 @@ AnnotationColorBar::reset()
     m_fontName      = AnnotationTextFontNameEnum::getDefaultFontName();
     m_positionMode  = AnnotationColorBarPositionModeEnum::AUTO;
     m_displayedFlag = false;
+    
+    setForegroundColor(CaretColorEnum::WHITE);
+    setBackgroundColor(CaretColorEnum::BLACK);
+    
+    clearSections();
+    clearNumericText();
 }
 
 /**
@@ -261,3 +277,158 @@ AnnotationColorBar::restoreSubClassDataFromScene(const SceneAttributes* sceneAtt
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
 }
+
+/**
+ * Add a section.
+ *
+ * Note: sections are not saved to scene so this method DOES NOT change the modified status.
+ *
+ * @param startScalar
+ *     Value of the starting scalar.
+ * @param endScalar
+ *     Value of the ending scalar.
+ * @param startRGBA
+ *     RGBA coloring at the starting scalar.
+ * @param endRGBA
+ *     RGBA coloring at the ending scalar.
+ */
+void
+AnnotationColorBar::addSection(const float startScalar,
+                               const float endScalar,
+                               const float startRGBA[4],
+                               const float endRGBA[4])
+{
+    m_sections.push_back(new AnnotationColorBarSection(startScalar,
+                                                       endScalar,
+                                                       startRGBA,
+                                                       endRGBA));
+}
+
+/**
+ * Clear the sections.
+ *
+ * Note: sections are not saved to scene so this method DOES NOT change the modified status.
+ */
+void
+AnnotationColorBar::clearSections()
+{
+    for (std::vector<const AnnotationColorBarSection*>::iterator iter = m_sections.begin();
+         iter != m_sections.end();
+         iter++) {
+        delete *iter;
+    }
+    
+    m_sections.clear();
+}
+
+/**
+ * @return Number of sections.
+ */
+int32_t
+AnnotationColorBar::getNumberOfSections() const
+{
+    return m_sections.size();
+}
+
+/**
+ * @return Section at the given index.
+ *
+ * @param index
+ *     Index of the section.
+ */
+const AnnotationColorBarSection*
+AnnotationColorBar::getSection(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_sections, index);
+    return m_sections[index];
+}
+
+/**
+ * Add numeric text.
+ *
+ * Note: numeric text is not saved to scene so this method DOES NOT change the modified status.
+ *
+ * @param scalar
+ *     Scalar value for position of numeric text.
+ * @param numericText
+ *     The numeric text.
+ */
+void AnnotationColorBar::addNumericText(const float scalar,
+                                        const AString& numericText)
+{
+    m_numericText.push_back(new AnnotationColorBarNumericText(scalar,
+                                                              numericText));
+}
+
+/**
+ * Clear the numeric text.
+ *
+ * Note: numeric text is not saved to scene so this method DOES NOT change the modified status.
+ */
+void AnnotationColorBar::clearNumericText()
+{
+    for (std::vector<const AnnotationColorBarNumericText*>::iterator iter = m_numericText.begin();
+         iter != m_numericText.end();
+         iter++) {
+        delete *iter;
+    }
+    m_numericText.clear();
+}
+
+/**
+ * @return Number of numeric text.
+ */
+int32_t AnnotationColorBar::getNumberOfNumericText() const
+{
+    return m_numericText.size();
+}
+
+/**
+ * @return Numeric text at the given index.
+ *
+ * @param index
+ *     Inext of the numeric text.
+ */
+const AnnotationColorBarNumericText*
+AnnotationColorBar::getNumericText(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_numericText, index);
+    return m_numericText[index];
+}
+
+/**
+ * Get the minimum and maximum scalar values in the colorbar.
+ *
+ * @param minimumScalarOut
+ *     Minimum scalar value upon exit.
+ * @param maximumScalarOut
+ *     Maximum scalar value upon exit.
+ */
+void
+AnnotationColorBar::getScalarMinimumAndMaximumValues(float& minimumScalarOut,
+                                                     float& maximumScalarOut) const
+{
+    minimumScalarOut =  std::numeric_limits<float>::max();
+    maximumScalarOut = -std::numeric_limits<float>::max();
+    
+    const int32_t numSections = getNumberOfSections();
+    if (numSections <= 0) {
+        minimumScalarOut = 0.0;
+        maximumScalarOut = 0.0;
+        return;
+    }
+    
+    for (int32_t i = 0; i < numSections; i++) {
+        const AnnotationColorBarSection* section = getSection(i);
+        minimumScalarOut = std::min(minimumScalarOut,
+                                    section->getStartScalar());
+        minimumScalarOut = std::min(minimumScalarOut,
+                                    section->getEndScalar());
+        maximumScalarOut = std::max(maximumScalarOut,
+                                    section->getStartScalar());
+        maximumScalarOut = std::max(maximumScalarOut,
+                                    section->getEndScalar());
+    }
+}
+
+

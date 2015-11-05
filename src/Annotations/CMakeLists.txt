@@ -22,7 +22,9 @@ AnnotationAlignmentEnum.h
 AnnotationAttributesDefaultTypeEnum.h
 AnnotationBox.h
 AnnotationColorBar.h
+AnnotationColorBarNumericText.h
 AnnotationColorBarPositionModeEnum.h
+AnnotationColorBarSection.h
 AnnotationCoordinate.h
 AnnotationCoordinateSpaceEnum.h
 AnnotationTextFontPointSizeEnum.h
@@ -51,7 +53,9 @@ AnnotationAlignmentEnum.cxx
 AnnotationAttributesDefaultTypeEnum.cxx
 AnnotationBox.cxx
 AnnotationColorBar.cxx
+AnnotationColorBarNumericText.cxx
 AnnotationColorBarPositionModeEnum.cxx
+AnnotationColorBarSection.cxx
 AnnotationCoordinate.cxx
 AnnotationCoordinateSpaceEnum.cxx
 AnnotationTextFontPointSizeEnum.cxx

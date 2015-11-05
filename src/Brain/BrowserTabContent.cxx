@@ -66,6 +66,7 @@
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "PaletteColorBarDrawingInformation.h"
+#include "PaletteColorMapping.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -187,6 +188,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS);
+    
     
     isExecutingConstructor = false;
     
@@ -1183,6 +1185,146 @@ BrowserTabContent::receiveEvent(Event* event)
 }
 
 /**
+ * Get annotation color bars that should be drawn for this tab.
+ *
+ * @param colorBarsOut
+ *     Colorbars that should be drawn.
+ */
+void
+BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colorBarsOut)
+{
+    colorBarsOut.clear();
+    
+    if (getModelForDisplay() == NULL) {
+        return;
+    }
+    
+    bool useOverlayFlag = false;
+    bool useChartsFlag  = false;
+    switch (getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            useChartsFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            useOverlayFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            useOverlayFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            useOverlayFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            useOverlayFlag = true;
+            break;
+    }
+    
+    
+    std::vector<ColorBarFileMap> colorBarMapFileInfo;
+    
+    if (useOverlayFlag) {
+        OverlaySet* overlaySet = getOverlaySet();
+        const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+        for (int32_t i = (numOverlays - 1); i >= 0; i--) {
+            Overlay* overlay = overlaySet->getOverlay(i);
+            if (overlay->isEnabled()) {
+                AnnotationColorBar* colorBar = overlay->getColorBar();
+                CaretMappableDataFile* mapFile;
+                int32_t mapIndex;
+                overlay->getSelectionData(mapFile, mapIndex);
+                
+                colorBarMapFileInfo.push_back(ColorBarFileMap(colorBar,
+                                                              mapFile,
+                                                              mapIndex));
+            }
+        }
+    }
+    
+    if (useChartsFlag) {
+        ModelChart* modelChart = getDisplayedChartModel();
+        if (modelChart != NULL) {
+            CaretDataFileSelectionModel* fileModel = NULL;
+            
+            switch (modelChart->getSelectedChartDataType(m_tabNumber)) {
+                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER) {
+                        fileModel = modelChart->getChartableMatrixParcelFileSelectionModel(m_tabNumber);
+                    }
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                    if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES) {
+                        fileModel = modelChart->getChartableMatrixSeriesFileSelectionModel(m_tabNumber);
+                    }
+            }
+            
+            if (fileModel != NULL) {
+                CaretDataFile* caretFile = fileModel->getSelectedFile();
+                if (caretFile != NULL) {
+                    CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(caretFile);
+                    if (mapFile != NULL) {
+                        ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(mapFile);
+                        if (matrixFile != NULL) {
+                            ChartMatrixDisplayProperties* props = matrixFile->getChartMatrixDisplayProperties(m_tabNumber);
+                            AnnotationColorBar* colorBar = props->getColorBar();
+                            
+                            const int32_t mapIndex = 0;
+                            colorBarMapFileInfo.push_back(ColorBarFileMap(colorBar,
+                                                                          mapFile,
+                                                                          mapIndex));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    const int32_t numColorBarMapInfo = static_cast<int32_t>(colorBarMapFileInfo.size());
+    for (int32_t i = 0; i < numColorBarMapInfo; i++) {
+        CaretAssertVectorIndex(colorBarMapFileInfo, i);
+        const ColorBarFileMap& info = colorBarMapFileInfo[i];
+        
+        if (info.m_colorBar->isDisplayed()) {
+            if (info.m_mapFile != NULL) {
+                if (info.m_mapFile->isMappedWithPalette()) {
+                    if ((info.m_mapIndex >= 0)
+                        && (info.m_mapIndex < info.m_mapFile->getNumberOfMaps())) {
+                        PaletteColorMapping* paletteColorMapping = info.m_mapFile->getMapPaletteColorMapping(info.m_mapIndex);
+                        if (paletteColorMapping != NULL) {
+                            FastStatistics* statistics = NULL;
+                            switch (info.m_mapFile->getPaletteNormalizationMode()) {
+                                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                                    statistics = const_cast<FastStatistics*>(info.m_mapFile->getFileFastStatistics());
+                                    break;
+                                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                                    statistics = const_cast<FastStatistics*>(info.m_mapFile->getMapFastStatistics(info.m_mapIndex));
+                                    break;
+                            }
+                            
+                            paletteColorMapping->setupAnnotationColorBar(statistics,
+                                                                         info.m_colorBar);
+                            
+                            info.m_colorBar->setTabIndex(m_tabNumber);
+                            colorBarsOut.push_back(info.m_colorBar);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/**
  * Get palette color bar drawing information for this tab's content.
  *
  * @param paletteColorBarDrawingInfoOut
@@ -1228,7 +1370,7 @@ BrowserTabContent::getPaletteColorBarDrawingInformation(std::vector<const Palett
         for (int32_t i = (numOverlays - 1); i >= 0; i--) {
             Overlay* overlay = overlaySet->getOverlay(i);
             if (overlay->isEnabled()) {
-                const AnnotationColorBar* colorBar = overlay->getColorBar();
+                AnnotationColorBar* colorBar = overlay->getColorBar();
                 CaretMappableDataFile* mapFile;
                 int32_t mapIndex;
                 overlay->getSelectionData(mapFile, mapIndex);
@@ -1300,7 +1442,7 @@ BrowserTabContent::getPaletteColorBarDrawingInformation(std::vector<const Palett
                         ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(mapFile);
                         if (matrixFile != NULL) {
                             ChartMatrixDisplayProperties* props = matrixFile->getChartMatrixDisplayProperties(m_tabNumber);
-                            const AnnotationColorBar* colorBar = props->getColorBar();
+                            AnnotationColorBar* colorBar = props->getColorBar();
                             
                             const int32_t mapIndex = 0;
                             colorBarMapFileInfo.push_back(ColorBarFileMap(colorBar,

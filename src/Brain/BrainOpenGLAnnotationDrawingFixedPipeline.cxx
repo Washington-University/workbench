@@ -28,12 +28,16 @@
 #undef __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
 
 #include "AnnotationBox.h"
+#include "AnnotationColorBar.h"
+#include "AnnotationColorBarSection.h"
+#include "AnnotationColorBarNumericText.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationManager.h"
 #include "AnnotationOval.h"
+#include "AnnotationPercentSizeText.h"
 #include "AnnotationText.h"
 #include "Brain.h"
 #include "DisplayPropertiesAnnotation.h"
@@ -42,9 +46,12 @@
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLTextRenderInterface.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
+#include "EventBrowserTabGet.h"
+#include "EventManager.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -399,6 +406,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const float rota
  *
  * @param plane
  *     The volume slice's plane.
+ * @param tabViewport
+ *     Viewport for drawing the current tab.
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane,
@@ -415,7 +424,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
     
     m_volumeSpacePlaneValid = false;
 }
-
 
 /**
  * Draw the annotations in the given coordinate space.
@@ -500,8 +508,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     SelectionItemAnnotation* annotationID = m_brainOpenGLFixedPipeline->m_brain->getSelectionManager()->getAnnotationIdentification();
     
     GLint savedShadeModel;
-    glGetIntegerv(GL_SHADE_MODEL,
-                  &savedShadeModel);
+    startOpenGLForDrawing(&savedShadeModel);
+    
     /*
      * Check for a 'selection' type mode
      */
@@ -529,49 +537,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     }
     
     /*
-     * When selection is performed, annoations in model space need
-     * to be converted to window coordinates.  However, when 
-     * selecting, all annotations are drawn in WINDOW SPACE 
-     * as a rectangle in a solid color so that the color selector
-     * can be used.
-     *
-     * So, when selecting:
-     *    (1) Save the matrices and viewewport if drawing in
-     *        model space.
-     *    (2) Setup matrices for pixel (window) coordinates.
-     *        Since we are changing the matrices, they must
-     *        be saved as is done in (1).
-     */
-    glGetDoublev(GL_MODELVIEW_MATRIX,
-                 m_modelSpaceModelMatrix);
-    glGetDoublev(GL_PROJECTION_MATRIX,
-                 m_modelSpaceProjectionMatrix);
-    glGetIntegerv(GL_VIEWPORT,
-                  m_modelSpaceViewport);
-
-    GLdouble depthRange[2];
-    glGetDoublev(GL_DEPTH_RANGE,
-                 depthRange);
-    
-    /*
-     * All drawing is in window space
-     */
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0.0, m_modelSpaceViewport[2],
-            0.0, m_modelSpaceViewport[3],
-            depthRange[0], depthRange[1]);  // -1.0, 1.0);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    
-    /*
-     * Enable anti-aliasing for lines and polygons
-     */
-    m_brainOpenGLFixedPipeline->enableLineAntiAliasing();
-    
-    /*
      * When selecting, clear out all previous drawing
      * since we identify via colors in each pixel.
      */
@@ -586,11 +551,78 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
 
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("Before draw annotations loop in space: "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
-    for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
-         fileIter != allAnnotationFiles.end();
-         fileIter++) {
-        AnnotationFile* annotationFile = *fileIter;
-        const std::vector<Annotation*> annotationsFromFile = annotationFile->getAllAnnotations();
+    
+    /*
+     * Draw annotations from all files.
+     * NOTE: iFile == numAnnFiles, the annotation colorbars are drawn
+     */
+    const int32_t numAnnFiles = static_cast<int32_t>(allAnnotationFiles.size());
+    for (int32_t iFile = 0; iFile <= numAnnFiles; iFile++) {
+        AnnotationFile* annotationFile = NULL;
+        std::vector<Annotation*> annotationsFromFile;
+        if (iFile == numAnnFiles) {
+            switch (drawingCoordinateSpace) {
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                {
+                    EventBrowserTabGet tabEvent(m_brainOpenGLFixedPipeline->windowTabIndex);
+                    EventManager::get()->sendEvent(tabEvent.getPointer());
+                    BrowserTabContent* tabContent = tabEvent.getBrowserTab();
+                    if (tabContent != NULL) {
+                        std::vector<AnnotationColorBar*> colorBars;
+                        tabContent->getAnnotationColorBars(colorBars);
+                        
+                        float x = 0.10;
+                        float y = 0.25;
+                        if ( ! colorBars.empty()) {
+                            for (std::vector<AnnotationColorBar*>::iterator cbIter = colorBars.begin();
+                                 cbIter != colorBars.end();
+                                 cbIter++) {
+                                AnnotationColorBar* cb = *cbIter;
+                                switch  (cb->getPositionMode()) {
+                                    case AnnotationColorBarPositionModeEnum::AUTO:
+                                    {
+                                        /*
+                                         * Note: Y is incremented twice.  Once to move colorbar
+                                         * so that the colorbars bottom is just above the previous 
+                                         * colorbar or bottom of screen.  Second time to move the 
+                                         * Y to the top of this annotation.
+                                         */
+                                        const float halfHeight = cb->getHeight() / 2.0;
+                                        y += halfHeight;
+                                        float xyz[3];
+                                        cb->getCoordinate()->getXYZ(xyz);
+                                        xyz[0] = x + (cb->getWidth() / 2.0);
+                                        xyz[1] = y;
+                                        cb->getCoordinate()->setXYZ(xyz);
+                                        y += halfHeight;
+                                    }
+                                        break;
+                                    case AnnotationColorBarPositionModeEnum::USER:
+                                        break;
+                                }
+                            }
+                            annotationsFromFile.insert(annotationsFromFile.end(),
+                                                       colorBars.begin(),
+                                                       colorBars.end());
+                        }
+                    }
+                }
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    break;
+            }
+        }
+        else {
+            CaretAssertVectorIndex(allAnnotationFiles, iFile);
+            annotationFile = allAnnotationFiles[iFile];
+            annotationsFromFile = annotationFile->getAllAnnotations();
+        }
         
         const int32_t annotationCount = static_cast<int32_t>(annotationsFromFile.size());
         for (int32_t iAnn = 0; iAnn < annotationCount; iAnn++) {
@@ -707,6 +739,75 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                                                         "End of annotation drawn by user model space.");
     }
     
+
+    endOpenGLForDrawing(savedShadeModel);
+    
+    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At end of annotation drawing in space "
+                                                           + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
+}
+
+/**
+ * Sets OpenGL attributes before drawing annotations.
+ *
+ * @param savedShadeModelOut
+ *      Current shading model is saved to this.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::startOpenGLForDrawing(GLint* savedShadeModelOut)
+{
+    glGetIntegerv(GL_SHADE_MODEL,
+                  savedShadeModelOut);
+
+    /*
+     * When selection is performed, annoations in model space need
+     * to be converted to window coordinates.  However, when
+     * selecting, all annotations are drawn in WINDOW SPACE
+     * as a rectangle in a solid color so that the color selector
+     * can be used.
+     *
+     * So, when selecting:
+     *    (1) Save the matrices and viewewport if drawing in
+     *        model space.
+     *    (2) Setup matrices for pixel (window) coordinates.
+     *        Since we are changing the matrices, they must
+     *        be saved as is done in (1).
+     */
+    glGetDoublev(GL_MODELVIEW_MATRIX,
+                 m_modelSpaceModelMatrix);
+    glGetDoublev(GL_PROJECTION_MATRIX,
+                 m_modelSpaceProjectionMatrix);
+    glGetIntegerv(GL_VIEWPORT,
+                  m_modelSpaceViewport);
+    
+    GLdouble depthRange[2];
+    glGetDoublev(GL_DEPTH_RANGE,
+                 depthRange);
+    
+    /*
+     * All drawing is in window space
+     */
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0.0, m_modelSpaceViewport[2],
+            0.0, m_modelSpaceViewport[3],
+            depthRange[0], depthRange[1]);  // -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    /*
+     * Enable anti-aliasing for lines and polygons
+     */
+    m_brainOpenGLFixedPipeline->enableLineAntiAliasing();
+}
+
+/**
+ * Resets OpenGL attributes after drawing annotations.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::endOpenGLForDrawing(GLint savedShadeModel)
+{
     /*
      * Disable anti-aliasing for lines
      */
@@ -721,9 +822,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
-
-    m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At end of annotation drawing in space "
-                                                           + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
 }
 
 /**
@@ -765,7 +863,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
                     surfaceDisplayed);
             break;
         case AnnotationTypeEnum::COLOR_BAR:
-            CaretAssertMessage(0, "Need to implement drawing of annotation color bar");
+            drawColorBar(annotationFile,
+                         dynamic_cast<AnnotationColorBar*>(annotation));
             break;
         case AnnotationTypeEnum::IMAGE:
             drawImage(annotationFile,
@@ -893,6 +992,341 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
 
     setDepthTestingStatus(savedDepthTestStatus);
 }
+
+/**
+ * Draw an annotation box.
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param colorBar
+ *    Color bar to draw.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotationFile,
+                                                        AnnotationColorBar* colorBar)
+{
+    std::cout << "Drawing a color bar" << std::endl;
+    CaretAssert(colorBar);
+    CaretAssert(colorBar->getType() == AnnotationTypeEnum::COLOR_BAR);
+    
+    float windowXYZ[3];
+    if ( ! getAnnotationWindowCoordinate(colorBar->getCoordinate(),
+                                         colorBar->getCoordinateSpace(),
+                                         NULL,
+                                         windowXYZ)) {
+        return;
+    }
+    
+    float bottomLeft[3];
+    float bottomRight[3];
+    float topRight[3];
+    float topLeft[3];
+    if ( ! getAnnotationTwoDimShapeBounds(colorBar, windowXYZ,
+                                          bottomLeft, bottomRight, topRight, topLeft)) {
+        return;
+    }
+    
+//    GLint savedViewport[4];
+//    glGetIntegerv(GL_VIEWPORT, savedViewport);
+//    
+//    GLint annViewport[4] = {
+//        
+//    }
+    const float selectionCenterXYZ[3] = {
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
+    };
+    
+    const float outlineWidth = colorBar->getForegroundLineWidth();
+    
+    const bool depthTestFlag = isDrawnWithDepthTesting(colorBar);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
+    std::vector<float> coords;
+    coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);
+    coords.insert(coords.end(), bottomRight, bottomRight + 3);
+    coords.insert(coords.end(), topRight,    topRight + 3);
+    coords.insert(coords.end(), topLeft,     topLeft + 3);
+    
+    std::vector<float> dummyNormals;
+    
+    float backgroundRGBA[4];
+    colorBar->getBackgroundColorRGBA(backgroundRGBA);
+    float foregroundRGBA[4];
+    colorBar->getForegroundColorRGBA(foregroundRGBA);
+    
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
+    
+    if (m_selectionModeFlag) {
+        uint8_t selectionColorRGBA[4];
+        getIdentificationColor(selectionColorRGBA);
+        BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                 dummyNormals,
+                                                 selectionColorRGBA);
+        m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                colorBar,
+                                                AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                selectionCenterXYZ));
+    }
+    else {
+        if (drawBackgroundFlag) {
+            BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                     dummyNormals,
+                                                     backgroundRGBA);
+        }
+        
+        drawColorBarSections(colorBar,
+                             bottomLeft,
+                             bottomRight,
+                             topRight,
+                             topLeft);
+        
+        drawColorBarText(colorBar,
+                         bottomLeft,
+                         bottomRight,
+                         topRight,
+                         topLeft);
+        
+//        if (drawForegroundFlag) {
+            BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+                                                      foregroundRGBA,
+                                                      outlineWidth);
+//        }
+    }
+    if (colorBar->isSelected()) {
+        drawAnnotationTwoDimSizingHandles(annotationFile,
+                                          colorBar,
+                                          bottomLeft,
+                                          bottomRight,
+                                          topRight,
+                                          topLeft,
+                                          outlineWidth,
+                                          colorBar->getRotationAngle());
+    }
+    
+    setDepthTestingStatus(savedDepthTestStatus);
+}
+
+/**
+ * Draw the color bar's sections (the actual color bar)
+ *
+ * @param colorBar
+ *     Colorbar whose sections are drawn.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const AnnotationColorBar* colorBar,
+                                                                const float bottomLeft[3],
+                                                                const float bottomRight[3],
+                                                                const float topRight[3],
+                                                                const float topLeft[3])
+{
+//    glMatrixMode(GL_PROJECTION);
+//    glPushMatrix();
+//    glLoadIdentity();
+//    glOrtho(-1.0, 1.0,
+//            -1.0, 1.0,
+//            -1.0, 1.0);
+//    glMatrixMode(GL_MODELVIEW);
+//    glPushMatrix();
+//    glLoadIdentity();
+//    
+    std::vector<float> normals;
+    for (int32_t i = 0; i < 4; i++) {
+        normals.push_back(0.0);
+        normals.push_back(0.0);
+        normals.push_back(1.0);
+    }
+    
+    std::vector<ColorBarLine> colorBarLines;
+    
+    const float xTopLeft  = (bottomLeft[0] + topLeft[0]) / 2.0;
+    const float xTopRight = (bottomRight[0] + topRight[0]) / 2.0;
+    const float dx        = xTopRight - xTopLeft;
+    
+    const float yTopLeft  = (bottomLeft[1] + topLeft[1]) / 2.0;
+    const float yTopRight = (bottomRight[1] + topRight[1]) / 2.0;
+    const float dy        = yTopRight - yTopLeft;
+    
+    const float xBottomLeft = bottomLeft[0];
+    const float yBottomLeft = bottomLeft[1];
+
+    float minScalar = 0.0;
+    float maxScalar = 0.0;
+    colorBar->getScalarMinimumAndMaximumValues(minScalar,
+                                               maxScalar);
+    const float dScalar = maxScalar - minScalar;
+    
+    std::cout << qPrintable(QString("minScalar %1, maxScalar %2, dScalar %3").arg(minScalar).arg(maxScalar).arg(dScalar)) << std::endl;
+
+    const float z = 0.0;
+
+    const int32_t numSections = colorBar->getNumberOfSections();
+    
+    for (int32_t iSect = 0; iSect < numSections; iSect++) {
+        const AnnotationColorBarSection* section = colorBar->getSection(iSect);
+        const float startScalar = section->getStartScalar();
+        const float endScalar   = section->getEndScalar();
+        
+        
+        float startNormalizedScalar = startScalar;
+        float endNormalizedScalar   = endScalar;
+        if (dScalar > 0.0) {
+            startNormalizedScalar = (startScalar - minScalar) / dScalar;
+            endNormalizedScalar   = (endScalar - minScalar)   / dScalar;
+        }
+        
+        const float blX = xBottomLeft + (dx * startNormalizedScalar);
+        const float blY = yBottomLeft + (dy * startNormalizedScalar);
+        const float tlX = xTopLeft    + (dx * startNormalizedScalar);
+        const float tlY = yTopLeft    + (dy * startNormalizedScalar);
+
+        if (startScalar == endScalar) {
+            std::vector<float> lineCoords;
+            lineCoords.push_back(blX);
+            lineCoords.push_back(blY);
+            lineCoords.push_back(z);
+            lineCoords.push_back(tlX);
+            lineCoords.push_back(tlY);
+            lineCoords.push_back(z);
+            
+            colorBarLines.push_back(ColorBarLine(lineCoords,
+                                                 section->getStartRGBA()));
+        }
+        else {
+            const float brX = xBottomLeft + (dx * endNormalizedScalar);
+            const float brY = yBottomLeft + (dy * endNormalizedScalar);
+            const float trX = xTopLeft    + (dx * endNormalizedScalar);
+            const float trY = yTopLeft    + (dy * endNormalizedScalar);
+            
+            
+            std::vector<float> coords;
+            coords.push_back(blX);
+            coords.push_back(blY);
+            coords.push_back(z);
+            coords.push_back(brX);
+            coords.push_back(brY);
+            coords.push_back(z);
+            coords.push_back(trX);
+            coords.push_back(trY);
+            coords.push_back(z);
+            coords.push_back(tlX);
+            coords.push_back(tlY);
+            coords.push_back(z);
+            
+            const float* rgbaLeft  = section->getStartRGBA();
+            const float* rgbaRight = section->getEndRGBA();
+            std::vector<float> rgbaColors;
+            rgbaColors.insert(rgbaColors.end(), rgbaLeft, rgbaLeft + 4);
+            rgbaColors.insert(rgbaColors.end(), rgbaRight, rgbaRight + 4);
+            rgbaColors.insert(rgbaColors.end(), rgbaRight, rgbaRight + 4);
+            rgbaColors.insert(rgbaColors.end(), rgbaLeft, rgbaLeft + 4);
+            
+            BrainOpenGLPrimitiveDrawing::drawQuads(coords,
+                                                   normals,
+                                                   rgbaColors);
+            
+            const AString msg("Section ("
+                              + AString::number(startScalar)
+                              + ", "
+                              + AString::number(endScalar)
+                              + ") normalized ("
+                              + AString::number(startNormalizedScalar)
+                              + ", "
+                              + AString::number(endNormalizedScalar)
+                              + ") X-range ("
+                              + AString::number(blX)
+                              + ", "
+                              + AString::number(brX));
+            std::cout << qPrintable(msg) << std::endl;
+        }
+    }
+    
+    /*
+     * Lines need to be drawn OVER any quads (otherwise the quads
+     * would obscure the lines
+     */
+    glPolygonOffset(1.0, 1.0);
+    glEnable(GL_POLYGON_OFFSET_LINE);
+    for (std::vector<ColorBarLine>::iterator iter = colorBarLines.begin();
+         iter != colorBarLines.end();
+         iter++) {
+        CaretAssert(iter->m_lineCoords.size() == 6);
+        BrainOpenGLPrimitiveDrawing::drawLines(iter->m_lineCoords,
+                                               iter->m_rgba,
+                                               1.0);
+    }
+    glDisable(GL_POLYGON_OFFSET_LINE);
+    
+//
+//    glPopMatrix();
+//    glMatrixMode(GL_PROJECTION);
+//    glPopMatrix();
+//    glMatrixMode(GL_MODELVIEW);
+}
+
+/**
+ * Draw the color bar's text
+ *
+ * @param colorBar
+ *     Colorbar whose text is drawn.
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColorBar* colorBar,
+                                                            const float bottomLeft[3],
+                                                            const float bottomRight[3],
+                                                            const float topRight[3],
+                                                            const float topLeft[3])
+{
+    AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+    annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+    annText.setFont(colorBar->getFont());
+    annText.setFontPercentViewportSize(colorBar->getFontPercentViewportSize());
+    annText.setForegroundColor(CaretColorEnum::CUSTOM);
+    float rgba[4];
+    colorBar->getForegroundColorRGBA(rgba);
+    annText.setCustomForegroundColor(rgba);
+    
+    const float xLeft  = (bottomLeft[0] + topLeft[0]) / 2.0;
+    const float xRight = (bottomRight[0] + topRight[0]) / 2.0;
+    const float dx     = xRight - xLeft;
+    
+    const float yLeft  = (bottomLeft[1] + topLeft[1]) / 2.0;
+    const float yRight = (bottomRight[1] + topRight[1]) / 2.0;
+    const float dy     = yRight - yLeft;
+    
+    const int32_t numText = colorBar->getNumberOfNumericText();
+    for (int32_t i = 0; i < numText; i++) {
+        const AnnotationColorBarNumericText* numericText = colorBar->getNumericText(i);
+        const float scalar = numericText->getScalar();
+        const float windowX = xLeft + (dx * scalar);
+        const float windowY = yLeft + (dy * scalar);
+        
+        if (i == 0) {
+            annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+        }
+        else if (i == (numText - 1)) {
+            annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        }
+        else {
+            annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        }
+        
+        annText.setText(numericText->getNumericText());
+        m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowX,
+                                                                                windowY,
+                                                                                annText);
+    }
+}
+
 
 /**
  * Draw an annotation oval.

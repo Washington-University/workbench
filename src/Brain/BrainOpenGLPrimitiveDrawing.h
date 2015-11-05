@@ -34,7 +34,11 @@ namespace caret {
     public:
         static void drawQuads(const std::vector<float>& coordinates,
                        const std::vector<float>& normals,
-                       const std::vector<uint8_t>& rgbaColors);
+                       const std::vector<float>& rgbaColors);
+        
+        static void drawQuads(const std::vector<float>& coordinates,
+                              const std::vector<float>& normals,
+                              const std::vector<uint8_t>& rgbaColors);
         
         static void drawQuadIndices(const std::vector<float>& coordinates,
                                     const std::vector<float>& normals,

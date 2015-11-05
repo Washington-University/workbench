@@ -27,6 +27,9 @@
 
 namespace caret {
 
+    class AnnotationColorBarSection;
+    class AnnotationColorBarNumericText;
+    
     class AnnotationColorBar : public AnnotationTwoDimensionalShape {
         
     public:
@@ -56,6 +59,29 @@ namespace caret {
         
         void setDisplayed(const bool displayed);
 
+        void addSection(const float startScalar,
+                        const float endScalar,
+                        const float startRGBA[4],
+                        const float endRGBA[4]);
+        
+        void clearSections();
+        
+        int32_t getNumberOfSections() const;
+        
+        const AnnotationColorBarSection* getSection(const int32_t index) const;
+        
+        void addNumericText(const float scalar,
+                            const AString& numericText);
+        
+        void clearNumericText();
+        
+        int32_t getNumberOfNumericText() const;
+        
+        const AnnotationColorBarNumericText* getNumericText(const int32_t index) const;
+        
+        void getScalarMinimumAndMaximumValues(float& minimumScalarOut,
+                                              float& maximumScalarOut) const;
+
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -77,6 +103,12 @@ namespace caret {
         AnnotationColorBarPositionModeEnum::Enum m_positionMode;
         
         bool m_displayedFlag;
+        
+        /** color bar sections NOT SAVED TO SCENE */
+        std::vector<const AnnotationColorBarSection*> m_sections;
+        
+        /** color bar numeric text NOT SAVED TO SCENE */
+        std::vector<const AnnotationColorBarNumericText*> m_numericText;
         
         // ADD_NEW_MEMBERS_HERE
 

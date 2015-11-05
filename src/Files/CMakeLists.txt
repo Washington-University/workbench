@@ -65,7 +65,6 @@ EventChartMatrixParcelYokingValidation.h
 EventGetDisplayedDataFiles.h
 EventMapYokingSelectMap.h
 EventMapYokingValidation.h
-EventPaletteGetByName.h
 EventSurfaceColoringInvalidate.h
 EventSurfaceStructuresValidGet.h
 Fiber.h
@@ -181,7 +180,6 @@ EventChartMatrixParcelYokingValidation.cxx
 EventGetDisplayedDataFiles.cxx
 EventMapYokingSelectMap.cxx
 EventMapYokingValidation.cxx
-EventPaletteGetByName.cxx
 EventSurfaceColoringInvalidate.cxx
 EventSurfaceStructuresValidGet.cxx
 Fiber.cxx

@@ -26,7 +26,6 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventTypeEnum.h"
-#include "Palette.h"
 
 using namespace caret;
 
@@ -35,7 +34,7 @@ using namespace caret;
 /**
  * \class caret::EventPaletteGetByName 
  * \brief Find a palette by name
- * \ingroup Files
+ * \ingroup Common
  */
 
 /**
@@ -84,15 +83,10 @@ EventPaletteGetByName::setPalette(Palette* palette)
 {
     CaretAssert(palette);
     
-    if (palette->getName() != m_paletteName) {
-        CaretAssertMessage(0, "Palette name does not match!");
-        CaretLogSevere("Palette name does not match!");
-        return;
-    }
-    
     if (m_palette != NULL) {
-        CaretLogWarning("More that one palette with name "
-                        + m_paletteName);
+        CaretLogWarning("There appears to be more than one palette with name \""
+                        + m_paletteName
+                        + "\"");
     }
     
     m_palette = palette;

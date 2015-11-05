@@ -33,6 +33,7 @@
 
 namespace caret {
 
+    class AnnotationColorBar;
     class FastStatistics;
     class XmlWriter;
     
@@ -62,10 +63,15 @@ namespace caret {
         void initializeMembersPaletteColorMapping();
         
     public:
+        void setupAnnotationColorBar(const FastStatistics* statistics,
+                                     AnnotationColorBar* colorBar);
+
+        void setupAnnotationColorBarNumericText(const FastStatistics* statistics,
+                                                AnnotationColorBar* colorBar);
+        
         void writeAsXML(XmlWriter& xmlWriter);
         
         AString encodeInXML();
-        
         
         void decodeFromStringXML(const AString& xml);
         

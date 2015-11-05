@@ -72,6 +72,7 @@ EventAlertUser.h
 EventBrowserTabIndicesGetAll.h
 EventListenerInterface.h
 EventManager.h
+EventPaletteGetByName.h
 EventProgressUpdate.h
 EventTypeEnum.h
 FastStatistics.h
@@ -157,6 +158,7 @@ Event.cxx
 EventAlertUser.cxx
 EventBrowserTabIndicesGetAll.cxx
 EventManager.cxx
+EventPaletteGetByName.cxx
 EventProgressUpdate.cxx
 EventTypeEnum.cxx
 FastStatistics.cxx

@@ -150,6 +150,8 @@ namespace caret {
         
         void getPaletteColorBarDrawingInformation(std::vector<const PaletteColorBarDrawingInformation*>& paletteColorBarDrawingInfoOut);
         
+        void getAnnotationColorBars(std::vector<AnnotationColorBar*>& colorBarsOut);
+        
         void getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile*>& mapFiles,
                                          std::vector<int32_t>& mapIndices);
         
@@ -371,7 +373,7 @@ namespace caret {
     private:
         class ColorBarFileMap {
         public:
-            ColorBarFileMap(const AnnotationColorBar* colorBar,
+            ColorBarFileMap(AnnotationColorBar* colorBar,
                             CaretMappableDataFile* mapFile,
                             const int32_t mapIndex)
             : m_colorBar(colorBar),
@@ -380,7 +382,7 @@ namespace caret {
             {
             }
             
-            const AnnotationColorBar* m_colorBar;
+            AnnotationColorBar* m_colorBar;
             CaretMappableDataFile* m_mapFile;
             const int32_t m_mapIndex;
         };

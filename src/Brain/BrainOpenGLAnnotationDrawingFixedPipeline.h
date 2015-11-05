@@ -33,14 +33,15 @@
 namespace caret {
 
     class Annotation;
-    class AnnotationTwoDimensionalShape;
     class AnnotationBox;
+    class AnnotationColorBar;
     class AnnotationCoordinate;
     class AnnotationFile;
     class AnnotationImage;
     class AnnotationLine;
     class AnnotationOval;
     class AnnotationText;
+    class AnnotationTwoDimensionalShape;
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLShapeRing;
     class Surface;
@@ -87,6 +88,21 @@ namespace caret {
             double m_windowXYZ[3];
         };
         
+        class ColorBarLine {
+        public:
+            ColorBarLine(const std::vector<float>& lineCoords,
+                         const float rgba[4]) {
+                m_lineCoords = lineCoords;
+                m_rgba[0] = rgba[0];
+                m_rgba[1] = rgba[1];
+                m_rgba[2] = rgba[2];
+                m_rgba[3] = rgba[3];
+            }
+            
+            std::vector<float> m_lineCoords;
+            float m_rgba[4];
+        };
+        
         BrainOpenGLAnnotationDrawingFixedPipeline(const BrainOpenGLAnnotationDrawingFixedPipeline&);
 
         BrainOpenGLAnnotationDrawingFixedPipeline& operator=(const BrainOpenGLAnnotationDrawingFixedPipeline&);
@@ -120,6 +136,9 @@ namespace caret {
                      AnnotationBox* box,
                        const Surface* surfaceDisplayed);
         
+        void drawColorBar(AnnotationFile* annotationFile,
+                          AnnotationColorBar* colorBar);
+        
         void drawImage(AnnotationFile* annotationFile,
                        AnnotationImage* image,
                       const Surface* surfaceDisplayed);
@@ -136,6 +155,19 @@ namespace caret {
                       AnnotationText* text,
                        const Surface* surfaceDisplayed);
         
+        void drawColorBarSections(const AnnotationColorBar* colorBar,
+                                  const float bottomLeft[3],
+                                  const float bottomRight[3],
+                                  const float topRight[3],
+                                  const float topLeft[3]);
+        
+        void drawColorBarText(const AnnotationColorBar* colorBar,
+                              const float bottomLeft[3],
+                              const float bottomRight[3],
+                              const float topRight[3],
+                              const float topLeft[3]);
+
+
         void drawSizingHandle(const AnnotationSizingHandleTypeEnum::Enum handleType,
                               AnnotationFile* annotationFile,
                               Annotation* annotation,
@@ -179,6 +211,10 @@ namespace caret {
                                                        std::vector<float>& lineCoordinatesOut) const;
         
         void setSelectionBoxColor();
+        
+        void startOpenGLForDrawing(GLint* savedShadeModelOut);
+        
+        void endOpenGLForDrawing(GLint savedShadeModel);
         
         /** Tracks items drawn for selection */
         std::vector<SelectionInfo> m_selectionInfo;
