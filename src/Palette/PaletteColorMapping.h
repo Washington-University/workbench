@@ -232,11 +232,6 @@ namespace caret {
                                               float* normalizedValuesOut,
                                               const int64_t numberOfData) const;
         
-//        void getPaletteColorBarScaleText(const FastStatistics* statistics,
-//                                         AString& minimumValueTextOut,
-//                                         AString& zeroValueTextOut,
-//                                         AString& maximumValueTextOut) const;
-        
         void getPaletteColorBarScaleText(const FastStatistics* statistics,
                                          std::vector<std::pair<float, AString> >& normalizedPositionAndTextOut) const;
         

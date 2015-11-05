@@ -52,7 +52,6 @@ namespace caret {
     class ModelWholeBrain;
     class OverlaySet;
     class Palette;
-    class PaletteColorBarDrawingInformation;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
     class Surface;
@@ -147,8 +146,6 @@ namespace caret {
         bool isWholeBrainModelValid() const;
 
         bool isSurfaceMontageModelValid() const;
-        
-        void getPaletteColorBarDrawingInformation(std::vector<const PaletteColorBarDrawingInformation*>& paletteColorBarDrawingInfoOut);
         
         void getAnnotationColorBars(std::vector<AnnotationColorBar*>& colorBarsOut);
         

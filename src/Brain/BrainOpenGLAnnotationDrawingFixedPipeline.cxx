@@ -577,8 +577,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                         std::vector<AnnotationColorBar*> colorBars;
                         tabContent->getAnnotationColorBars(colorBars);
                         
-                        float x = 0.10;
-                        float y = 0.25;
+                        /*
+                         * Note: Positions are in percentages ranging [0.0, 100.0]
+                         */
+                        float x = 10.0;
+                        float y = 25.0;
                         if ( ! colorBars.empty()) {
                             for (std::vector<AnnotationColorBar*>::iterator cbIter = colorBars.begin();
                                  cbIter != colorBars.end();
@@ -1005,7 +1008,6 @@ void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotationFile,
                                                         AnnotationColorBar* colorBar)
 {
-    std::cout << "Drawing a color bar" << std::endl;
     CaretAssert(colorBar);
     CaretAssert(colorBar->getType() == AnnotationTypeEnum::COLOR_BAR);
     
@@ -1089,9 +1091,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                          topLeft);
         
 //        if (drawForegroundFlag) {
-            BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-                                                      foregroundRGBA,
-                                                      outlineWidth);
+//            BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+//                                                      foregroundRGBA,
+//                                                      outlineWidth);
 //        }
     }
     if (colorBar->isSelected()) {
@@ -1140,12 +1142,32 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
     
     std::vector<ColorBarLine> colorBarLines;
     
-    const float xTopLeft  = (bottomLeft[0] + topLeft[0]) / 2.0;
-    const float xTopRight = (bottomRight[0] + topRight[0]) / 2.0;
-    const float dx        = xTopRight - xTopLeft;
+    const float spaceBetweenTextAndColorBar = 2.0;
+    const float availableHeight = (colorBar->getHeight()
+                                   - colorBar->getFontPercentViewportSize()
+                                   - spaceBetweenTextAndColorBar);
+    const float maximumHeight = 95.0;
+    const float minimumHeight = 5.0;
     
-    const float yTopLeft  = (bottomLeft[1] + topLeft[1]) / 2.0;
-    const float yTopRight = (bottomRight[1] + topRight[1]) / 2.0;
+    const float colorBarHeightPercent = (MathFunctions::limitRange(availableHeight,
+                                                                   minimumHeight,
+                                                                   maximumHeight)
+                                         / 100.0);
+    const float colorBarHeight = (static_cast<float>(m_tabViewport[3])
+                                  * colorBarHeightPercent);
+    
+    float bottomToTopUnitVector[3];
+    MathFunctions::createUnitVector(bottomLeft,
+                                    topLeft,
+                                    bottomToTopUnitVector);
+    
+    const float xTopLeft  = (bottomLeft[0] + (bottomToTopUnitVector[0] * colorBarHeight));
+    const float yTopLeft  = (bottomLeft[1] + (bottomToTopUnitVector[1] * colorBarHeight));
+    
+    const float xTopRight = (bottomRight[0] + (bottomToTopUnitVector[0] * colorBarHeight));
+    const float yTopRight = (bottomRight[1] + (bottomToTopUnitVector[1] * colorBarHeight));
+    
+    const float dx        = xTopRight - xTopLeft;
     const float dy        = yTopRight - yTopLeft;
     
     const float xBottomLeft = bottomLeft[0];
@@ -1157,8 +1179,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
                                                maxScalar);
     const float dScalar = maxScalar - minScalar;
     
-    std::cout << qPrintable(QString("minScalar %1, maxScalar %2, dScalar %3").arg(minScalar).arg(maxScalar).arg(dScalar)) << std::endl;
-
+    const bool printDebugFlag = false;
+    if (printDebugFlag) {
+        std::cout << qPrintable(QString("minScalar %1, maxScalar %2, dScalar %3").arg(minScalar).arg(maxScalar).arg(dScalar)) << std::endl;
+    }
+    
     const float z = 0.0;
 
     const int32_t numSections = colorBar->getNumberOfSections();
@@ -1226,19 +1251,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
                                                    normals,
                                                    rgbaColors);
             
-            const AString msg("Section ("
-                              + AString::number(startScalar)
-                              + ", "
-                              + AString::number(endScalar)
-                              + ") normalized ("
-                              + AString::number(startNormalizedScalar)
-                              + ", "
-                              + AString::number(endNormalizedScalar)
-                              + ") X-range ("
-                              + AString::number(blX)
-                              + ", "
-                              + AString::number(brX));
-            std::cout << qPrintable(msg) << std::endl;
+            if (printDebugFlag) {
+                const AString msg("Section ("
+                                  + AString::number(startScalar)
+                                  + ", "
+                                  + AString::number(endScalar)
+                                  + ") normalized ("
+                                  + AString::number(startNormalizedScalar)
+                                  + ", "
+                                  + AString::number(endNormalizedScalar)
+                                  + ") X-range ("
+                                  + AString::number(blX)
+                                  + ", "
+                                  + AString::number(brX)
+                                  + ") Y-range ("
+                                  + AString::number(blY)
+                                  + ", "
+                                  + AString::number(tlY)
+                                  + ")");
+                std::cout << qPrintable(msg) << std::endl;
+            }
         }
     }
     
@@ -1265,6 +1297,183 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
 //    glMatrixMode(GL_MODELVIEW);
 }
 
+///**
+// * Draw the color bar's sections (the actual color bar)
+// *
+// * @param colorBar
+// *     Colorbar whose sections are drawn.
+// */
+//void
+//BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const AnnotationColorBar* colorBar,
+//                                                                const float bottomLeft[3],
+//                                                                const float bottomRight[3],
+//                                                                const float topRight[3],
+//                                                                const float topLeft[3])
+//{
+//    //    glMatrixMode(GL_PROJECTION);
+//    //    glPushMatrix();
+//    //    glLoadIdentity();
+//    //    glOrtho(-1.0, 1.0,
+//    //            -1.0, 1.0,
+//    //            -1.0, 1.0);
+//    //    glMatrixMode(GL_MODELVIEW);
+//    //    glPushMatrix();
+//    //    glLoadIdentity();
+//    //
+//    std::vector<float> normals;
+//    for (int32_t i = 0; i < 4; i++) {
+//        normals.push_back(0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(1.0);
+//    }
+//    
+//    std::vector<ColorBarLine> colorBarLines;
+//    
+//    const float availableHeight = colorBar->getHeight() - colorBar->getFontPercentViewportSize();
+//    const float maximumHeight = 95.0;
+//    const float minimumHeight = 5.0;
+//    
+//    const float colorBarHeightPercent = MathFunctions::limitRange(availableHeight,
+//                                                                  minimumHeight,
+//                                                                  maximumHeight);
+//    
+//    const float leftHeight = MathFunctions::distance3D(bottomLeft,
+//                                                       topLeft);
+//    const float xTopLeft  = (bottomLeft[0] + topLeft[0]) / 2.0;
+//    const float xTopRight = (bottomRight[0] + topRight[0]) / 2.0;
+//    const float dx        = xTopRight - xTopLeft;
+//    
+//    const float yTopLeft  = (bottomLeft[1] + topLeft[1]) / 2.0;
+//    const float yTopRight = (bottomRight[1] + topRight[1]) / 2.0;
+//    const float dy        = yTopRight - yTopLeft;
+//    
+//    const float xBottomLeft = bottomLeft[0];
+//    const float yBottomLeft = bottomLeft[1];
+//    
+//    float minScalar = 0.0;
+//    float maxScalar = 0.0;
+//    colorBar->getScalarMinimumAndMaximumValues(minScalar,
+//                                               maxScalar);
+//    const float dScalar = maxScalar - minScalar;
+//    
+//    const bool printDebugFlag = true;
+//    if (printDebugFlag) {
+//        std::cout << qPrintable(QString("minScalar %1, maxScalar %2, dScalar %3").arg(minScalar).arg(maxScalar).arg(dScalar)) << std::endl;
+//    }
+//    
+//    const float z = 0.0;
+//    
+//    const int32_t numSections = colorBar->getNumberOfSections();
+//    
+//    for (int32_t iSect = 0; iSect < numSections; iSect++) {
+//        const AnnotationColorBarSection* section = colorBar->getSection(iSect);
+//        const float startScalar = section->getStartScalar();
+//        const float endScalar   = section->getEndScalar();
+//        
+//        
+//        float startNormalizedScalar = startScalar;
+//        float endNormalizedScalar   = endScalar;
+//        if (dScalar > 0.0) {
+//            startNormalizedScalar = (startScalar - minScalar) / dScalar;
+//            endNormalizedScalar   = (endScalar - minScalar)   / dScalar;
+//        }
+//        
+//        const float blX = xBottomLeft + (dx * startNormalizedScalar);
+//        const float blY = yBottomLeft + (dy * startNormalizedScalar);
+//        const float tlX = xTopLeft    + (dx * startNormalizedScalar);
+//        const float tlY = yTopLeft    + (dy * startNormalizedScalar);
+//        
+//        if (startScalar == endScalar) {
+//            std::vector<float> lineCoords;
+//            lineCoords.push_back(blX);
+//            lineCoords.push_back(blY);
+//            lineCoords.push_back(z);
+//            lineCoords.push_back(tlX);
+//            lineCoords.push_back(tlY);
+//            lineCoords.push_back(z);
+//            
+//            colorBarLines.push_back(ColorBarLine(lineCoords,
+//                                                 section->getStartRGBA()));
+//        }
+//        else {
+//            const float brX = xBottomLeft + (dx * endNormalizedScalar);
+//            const float brY = yBottomLeft + (dy * endNormalizedScalar);
+//            const float trX = xTopLeft    + (dx * endNormalizedScalar);
+//            const float trY = yTopLeft    + (dy * endNormalizedScalar);
+//            
+//            
+//            std::vector<float> coords;
+//            coords.push_back(blX);
+//            coords.push_back(blY);
+//            coords.push_back(z);
+//            coords.push_back(brX);
+//            coords.push_back(brY);
+//            coords.push_back(z);
+//            coords.push_back(trX);
+//            coords.push_back(trY);
+//            coords.push_back(z);
+//            coords.push_back(tlX);
+//            coords.push_back(tlY);
+//            coords.push_back(z);
+//            
+//            const float* rgbaLeft  = section->getStartRGBA();
+//            const float* rgbaRight = section->getEndRGBA();
+//            std::vector<float> rgbaColors;
+//            rgbaColors.insert(rgbaColors.end(), rgbaLeft, rgbaLeft + 4);
+//            rgbaColors.insert(rgbaColors.end(), rgbaRight, rgbaRight + 4);
+//            rgbaColors.insert(rgbaColors.end(), rgbaRight, rgbaRight + 4);
+//            rgbaColors.insert(rgbaColors.end(), rgbaLeft, rgbaLeft + 4);
+//            
+//            BrainOpenGLPrimitiveDrawing::drawQuads(coords,
+//                                                   normals,
+//                                                   rgbaColors);
+//            
+//            if (printDebugFlag) {
+//                const AString msg("Section ("
+//                                  + AString::number(startScalar)
+//                                  + ", "
+//                                  + AString::number(endScalar)
+//                                  + ") normalized ("
+//                                  + AString::number(startNormalizedScalar)
+//                                  + ", "
+//                                  + AString::number(endNormalizedScalar)
+//                                  + ") X-range ("
+//                                  + AString::number(blX)
+//                                  + ", "
+//                                  + AString::number(brX)
+//                                  + ") Y-range ("
+//                                  + AString::number(blY)
+//                                  + ", "
+//                                  + AString::number(tlY)
+//                                  + ")");
+//                std::cout << qPrintable(msg) << std::endl;
+//            }
+//        }
+//    }
+//    
+//    /*
+//     * Lines need to be drawn OVER any quads (otherwise the quads
+//     * would obscure the lines
+//     */
+//    glPolygonOffset(1.0, 1.0);
+//    glEnable(GL_POLYGON_OFFSET_LINE);
+//    for (std::vector<ColorBarLine>::iterator iter = colorBarLines.begin();
+//         iter != colorBarLines.end();
+//         iter++) {
+//        CaretAssert(iter->m_lineCoords.size() == 6);
+//        BrainOpenGLPrimitiveDrawing::drawLines(iter->m_lineCoords,
+//                                               iter->m_rgba,
+//                                               1.0);
+//    }
+//    glDisable(GL_POLYGON_OFFSET_LINE);
+//    
+//    //
+//    //    glPopMatrix();
+//    //    glMatrixMode(GL_PROJECTION);
+//    //    glPopMatrix();
+//    //    glMatrixMode(GL_MODELVIEW);
+//}
+
 /**
  * Draw the color bar's text
  *
@@ -1287,7 +1496,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
                                                             const float topLeft[3])
 {
     AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-    annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+    annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
     annText.setFont(colorBar->getFont());
     annText.setFontPercentViewportSize(colorBar->getFontPercentViewportSize());
     annText.setForegroundColor(CaretColorEnum::CUSTOM);
@@ -1295,30 +1504,58 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
     colorBar->getForegroundColorRGBA(rgba);
     annText.setCustomForegroundColor(rgba);
     
-    const float xLeft  = (bottomLeft[0] + topLeft[0]) / 2.0;
-    const float xRight = (bottomRight[0] + topRight[0]) / 2.0;
-    const float dx     = xRight - xLeft;
+    const float textHeightPixels = (static_cast<float>(m_tabViewport[3])
+                                    * (colorBar->getFontPercentViewportSize()
+                                       / 100.0));
     
-    const float yLeft  = (bottomLeft[1] + topLeft[1]) / 2.0;
-    const float yRight = (bottomRight[1] + topRight[1]) / 2.0;
-    const float dy     = yRight - yLeft;
+    const float offsetFromTopPercent = 2.0;
+    const float offsetFromTopPixels  = (m_tabViewport[3]
+                                        * (offsetFromTopPercent
+                                           / 100.0));
+    
+    float bottomToTopUnitVector[3];
+    MathFunctions::createUnitVector(bottomLeft,
+                                    topLeft,
+                                    bottomToTopUnitVector);
+    const float distanceBottomToTop = MathFunctions::distance3D(topLeft,
+                                                                bottomLeft);
+    const float distanceBottomToTopWithOffset = (distanceBottomToTop
+                                                 - offsetFromTopPixels);
+    
+    const float xTopLeft  = (bottomLeft[0] + (bottomToTopUnitVector[0] * distanceBottomToTopWithOffset));
+    const float yTopLeft  = (bottomLeft[1] + (bottomToTopUnitVector[1] * distanceBottomToTopWithOffset));
+    
+    const float xTopRight = (bottomRight[0] + (bottomToTopUnitVector[0] * distanceBottomToTopWithOffset));
+    const float yTopRight = (bottomRight[1] + (bottomToTopUnitVector[1] * distanceBottomToTopWithOffset));
+    
+    float leftToRightVector[3];
+    MathFunctions::subtractVectors(topRight,
+                                   topLeft,
+                                   leftToRightVector);
+    
+    const float dx = leftToRightVector[0];
+    const float dy = leftToRightVector[1];
     
     const int32_t numText = colorBar->getNumberOfNumericText();
     for (int32_t i = 0; i < numText; i++) {
         const AnnotationColorBarNumericText* numericText = colorBar->getNumericText(i);
         const float scalar = numericText->getScalar();
-        const float windowX = xLeft + (dx * scalar);
-        const float windowY = yLeft + (dy * scalar);
+        float scalarOffset = 0.0;
         
         if (i == 0) {
             annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+            scalarOffset = 0.02;
         }
         else if (i == (numText - 1)) {
             annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+            scalarOffset = -0.02;
         }
         else {
             annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         }
+        
+        const float windowX = xTopLeft + (dx * (scalar + scalarOffset));
+        const float windowY = yTopLeft + (dy * (scalar + scalarOffset));
         
         annText.setText(numericText->getNumericText());
         m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowX,
@@ -1326,6 +1563,69 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
                                                                                 annText);
     }
 }
+
+
+///**
+// * Draw the color bar's text
+// *
+// * @param colorBar
+// *     Colorbar whose text is drawn.
+// * @param bottomLeft
+// *     Bottom left corner of annotation.
+// * @param bottomRight
+// *     Bottom right corner of annotation.
+// * @param topRight
+// *     Top right corner of annotation.
+// * @param topLeft
+// *     Top left corner of annotation.
+// */
+//void
+//BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColorBar* colorBar,
+//                                                            const float bottomLeft[3],
+//                                                            const float bottomRight[3],
+//                                                            const float topRight[3],
+//                                                            const float topLeft[3])
+//{
+//    AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+//    annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+//    annText.setFont(colorBar->getFont());
+//    annText.setFontPercentViewportSize(colorBar->getFontPercentViewportSize());
+//    annText.setForegroundColor(CaretColorEnum::CUSTOM);
+//    float rgba[4];
+//    colorBar->getForegroundColorRGBA(rgba);
+//    annText.setCustomForegroundColor(rgba);
+//    
+//    const float xLeft  = (bottomLeft[0] + topLeft[0]) / 2.0;
+//    const float xRight = (bottomRight[0] + topRight[0]) / 2.0;
+//    const float dx     = xRight - xLeft;
+//    
+//    const float yLeft  = (bottomLeft[1] + topLeft[1]) / 2.0;
+//    const float yRight = (bottomRight[1] + topRight[1]) / 2.0;
+//    const float dy     = yRight - yLeft;
+//    
+//    const int32_t numText = colorBar->getNumberOfNumericText();
+//    for (int32_t i = 0; i < numText; i++) {
+//        const AnnotationColorBarNumericText* numericText = colorBar->getNumericText(i);
+//        const float scalar = numericText->getScalar();
+//        const float windowX = xLeft + (dx * scalar);
+//        const float windowY = yLeft + (dy * scalar);
+//        
+//        if (i == 0) {
+//            annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+//        }
+//        else if (i == (numText - 1)) {
+//            annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+//        }
+//        else {
+//            annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+//        }
+//        
+//        annText.setText(numericText->getNumericText());
+//        m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowX,
+//                                                                                windowY,
+//                                                                                annText);
+//    }
+//}
 
 
 /**

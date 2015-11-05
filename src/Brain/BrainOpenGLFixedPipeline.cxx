@@ -98,7 +98,6 @@
 #include "IdentificationManager.h"
 #include "ImageFile.h"
 #include "Matrix4x4.h"
-#include "PaletteColorBarDrawingInformation.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -6117,79 +6116,49 @@ BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
     
     this->disableLighting();
     
-    const bool useNewPaletteDrawingFlag = true;
-    if (useNewPaletteDrawingFlag) {
-        std::vector<const PaletteColorBarDrawingInformation*> paletteColorBarDrawingInfo;
-        browserTabContent->getPaletteColorBarDrawingInformation(paletteColorBarDrawingInfo);
-        
-        const int32_t numColorBars = static_cast<int32_t>(paletteColorBarDrawingInfo.size());
-        for (int32_t i = 0; i < numColorBars; i++) {
-            CaretAssertVectorIndex(paletteColorBarDrawingInfo, i);
-            
-            const AString paletteName = paletteColorBarDrawingInfo[i]->getPaletteColorMapping()->getSelectedPaletteName();
-            EventPaletteGetByName paletteEvent(paletteName);
-            EventManager::get()->sendEvent(paletteEvent.getPointer());
-            
-            const Palette* palette = paletteEvent.getPalette();
+    PaletteFile* paletteFile = brain->getPaletteFile();
+    CaretAssert(paletteFile);
+    
+    std::vector<CaretMappableDataFile*> mapFiles;
+    std::vector<int32_t> mapIndices;
+    this->browserTabContent->getDisplayedPaletteMapFiles(mapFiles,
+                                                         mapIndices);
+    
+    /*
+     * Each map file has a palette drawn to represent the
+     * datas mapping to colors.
+     */
+    const int32_t numMapFiles = static_cast<int32_t>(mapFiles.size());
+    for (int32_t i = 0; i < numMapFiles; i++) {
+        const int mapIndex = mapIndices[i];
+        const PaletteColorMapping* pcm = mapFiles[i]->getMapPaletteColorMapping(mapIndex);
+        if (pcm != NULL) {
+            const AString paletteName = pcm->getSelectedPaletteName();
+            const Palette* palette = paletteFile->getPaletteByName(paletteName);
             if (palette != NULL) {
-                this->drawPalette(palette,
-                                  paletteColorBarDrawingInfo[i]->getPaletteColorMapping(),
-                                  paletteColorBarDrawingInfo[i]->getStatistics(),
-                                  i);
+                FastStatistics* statistics = NULL;
+                switch (mapFiles[i]->getPaletteNormalizationMode()) {
+                    case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
+                        statistics = const_cast<FastStatistics*>(mapFiles[i]->getFileFastStatistics());
+                        break;
+                    case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
+                        statistics = const_cast<FastStatistics*>(mapFiles[i]->getMapFastStatistics(mapIndex));
+                        break;
+                }
+                if (statistics != NULL) {
+                    this->drawPalette(palette,
+                                      pcm,
+                                      statistics,
+                                      i);
+                }
             }
             else {
-                CaretLogSevere("Palette named " + paletteName + " not found");
-            }
-            
-            delete paletteColorBarDrawingInfo[i];
-        }
-    }
-    else {
-        PaletteFile* paletteFile = brain->getPaletteFile();
-        CaretAssert(paletteFile);
-        
-        std::vector<CaretMappableDataFile*> mapFiles;
-        std::vector<int32_t> mapIndices;
-        this->browserTabContent->getDisplayedPaletteMapFiles(mapFiles,
-                                                             mapIndices);
-        
-        /*
-         * Each map file has a palette drawn to represent the
-         * datas mapping to colors.
-         */
-        const int32_t numMapFiles = static_cast<int32_t>(mapFiles.size());
-        for (int32_t i = 0; i < numMapFiles; i++) {
-            const int mapIndex = mapIndices[i];
-            const PaletteColorMapping* pcm = mapFiles[i]->getMapPaletteColorMapping(mapIndex);
-            if (pcm != NULL) {
-                const AString paletteName = pcm->getSelectedPaletteName();
-                const Palette* palette = paletteFile->getPaletteByName(paletteName);
-                if (palette != NULL) {
-                    FastStatistics* statistics = NULL;
-                    switch (mapFiles[i]->getPaletteNormalizationMode()) {
-                        case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                            statistics = const_cast<FastStatistics*>(mapFiles[i]->getFileFastStatistics());
-                            break;
-                        case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                            statistics = const_cast<FastStatistics*>(mapFiles[i]->getMapFastStatistics(mapIndex));
-                            break;
-                    }
-                    if (statistics != NULL) {
-                        this->drawPalette(palette,
-                                          pcm,
-                                          statistics,
-                                          i);
-                    }
-                }
-                else {
-                    CaretLogWarning("Palette named "
-                                    + paletteName
-                                    + " not found in palette file.");
-                }
+                CaretLogWarning("Palette named "
+                                + paletteName
+                                + " not found in palette file.");
             }
         }
     }
-    
     
     /*
      * Restore the projection matrix, model matrix, and viewport.
