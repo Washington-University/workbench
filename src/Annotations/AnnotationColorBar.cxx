@@ -67,6 +67,8 @@ AnnotationColorBar::AnnotationColorBar(const AnnotationAttributesDefaultTypeEnum
 AnnotationColorBar::~AnnotationColorBar()
 {
     clearSections();
+    
+    clearNumericText();
 }
 
 /**
