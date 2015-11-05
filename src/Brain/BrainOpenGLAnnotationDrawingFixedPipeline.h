@@ -216,6 +216,13 @@ namespace caret {
         
         void endOpenGLForDrawing(GLint savedShadeModel);
         
+        /** 
+         * Dummy annotation file is used for annotations that 
+         * do not belong to a file.  This includes the 
+         * "annotation being drawn" and AnnotationColorBar's.
+         */
+        AnnotationFile* m_dummyAnnotationFile;
+        
         /** Tracks items drawn for selection */
         std::vector<SelectionInfo> m_selectionInfo;
         

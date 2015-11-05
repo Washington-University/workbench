@@ -82,6 +82,9 @@ m_volumeSpacePlaneValid(false)
 {
     CaretAssert(brainOpenGLFixedPipeline);
     
+    m_dummyAnnotationFile = new AnnotationFile();
+    m_dummyAnnotationFile->setFileName("DummyFileForDrawing"
+                                       + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION));
     m_rotationHandleCircle = new BrainOpenGLShapeRing(20,
                                                       0.7,
                                                       1.0);
@@ -561,6 +564,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
         AnnotationFile* annotationFile = NULL;
         std::vector<Annotation*> annotationsFromFile;
         if (iFile == numAnnFiles) {
+            /*
+             * Use the dummy file when drawing annotation color
+             * bars since they do not belong to a file.
+             */
+            annotationFile = m_dummyAnnotationFile;
+            
             switch (drawingCoordinateSpace) {
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
@@ -733,8 +742,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
         m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
                                                         "Start of annotation drawn by user model space.");
         if (annotationBeingDrawn != NULL) {
-            AnnotationFile dummyFile;
-            drawAnnotation(&dummyFile,
+            drawAnnotation(m_dummyAnnotationFile,
                            const_cast<Annotation*>(annotationBeingDrawn),
                            surfaceDisplayed);
         }
