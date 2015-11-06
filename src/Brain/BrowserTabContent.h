@@ -381,7 +381,7 @@ namespace caret {
             
             AnnotationColorBar* m_colorBar;
             CaretMappableDataFile* m_mapFile;
-            const int32_t m_mapIndex;
+            int32_t m_mapIndex;
         };
         
         BrowserTabContent(const BrowserTabContent&);
