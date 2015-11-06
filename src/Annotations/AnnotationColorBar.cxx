@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <limits>
+
 #define __ANNOTATION_COLOR_BAR_DECLARE__
 #include "AnnotationColorBar.h"
 #undef __ANNOTATION_COLOR_BAR_DECLARE__
