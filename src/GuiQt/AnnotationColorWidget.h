@@ -24,6 +24,7 @@
 
 #include <QWidget>
 
+#include "AnnotationWidgetParentEnum.h"
 #include "CaretColorEnum.h"
 
 class QAction;
@@ -41,7 +42,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationColorWidget(const int32_t browserWindowIndex,
+        AnnotationColorWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+                              const int32_t browserWindowIndex,
                               QWidget* parent = 0);
         
         virtual ~AnnotationColorWidget();
@@ -69,6 +71,8 @@ namespace caret {
         void updateForegroundColorButton();
         
         void updateForegroundThicknessSpinBox();
+        
+        const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         
         const int32_t m_browserWindowIndex;
         

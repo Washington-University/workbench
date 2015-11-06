@@ -41,6 +41,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabelTableEditor.h"
+#include "MapSettingsColorBarWidget.h"
 #include "MapSettingsFiberTrajectoryWidget.h"
 #include "MapSettingsLabelsWidget.h"
 #include "MapSettingsLayerWidget.h"
@@ -85,6 +86,8 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
     
     QWidget* mapNameWidget = createMapFileAndNameSection();
     
+    m_colorBarWidget = new MapSettingsColorBarWidget();
+    
     m_fiberTrajectoryWidget = new MapSettingsFiberTrajectoryWidget();
     
     m_layerWidget = new MapSettingsLayerWidget();
@@ -98,6 +101,10 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
     m_labelsWidget = new MapSettingsLabelsWidget();
     
     m_tabWidget = new QTabWidget();
+    
+    m_colorBarWidgetTabIndex = m_tabWidget->addTab(m_colorBarWidget,
+                                                   "Color Bar");
+    
     m_labelsWidgetTabIndex = m_tabWidget->addTab(m_labelsWidget,
                       "Labels");
     m_tabWidget->setTabEnabled(m_tabWidget->count() - 1, false);
@@ -287,6 +294,7 @@ OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
                     isPaletteValid = true;
                     m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
                                                               m_mapIndex);
+                    m_colorBarWidget->updateContent(overlay);
                 }
             }
             
@@ -327,6 +335,8 @@ OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
     /*
      * Set enabled status of tabs
      */
+    m_tabWidget->setTabEnabled(m_colorBarWidgetTabIndex,
+                               isPaletteValid);
     m_tabWidget->setTabEnabled(m_labelsWidgetTabIndex,
                                isLabelsValid);
     m_tabWidget->setTabEnabled(m_layersWidgetTabIndex,
@@ -347,6 +357,7 @@ OverlaySettingsEditorDialog::updateDialogContent(Overlay* overlay)
      */
     std::vector<int32_t> priorityTabIndices;
     priorityTabIndices.push_back(m_paletteWidgetTabIndex);
+    priorityTabIndices.push_back(m_colorBarWidgetTabIndex);
     priorityTabIndices.push_back(m_labelsWidgetTabIndex);
     priorityTabIndices.push_back(m_parcelsWidgetTabIndex);
     priorityTabIndices.push_back(m_trajectoryWidgetTabIndex);

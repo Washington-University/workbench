@@ -87,7 +87,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_fontWidget                 = new AnnotationFontWidget(m_browserWindowIndex);
     
-    m_colorWidget                = new AnnotationColorWidget(m_browserWindowIndex);
+    m_colorWidget                = new AnnotationColorWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                             m_browserWindowIndex);
     
     m_textAlignmentWidget        = new AnnotationTextAlignmentWidget(m_browserWindowIndex);
     
@@ -95,13 +96,16 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_coordinateSpaceWidget      = new AnnotationCoordinateSpaceWidget(m_browserWindowIndex);
     
-    m_coordinateOneWidget        = new AnnotationCoordinateWidget(AnnotationCoordinateWidget::COORDINATE_ONE,
+    m_coordinateOneWidget        = new AnnotationCoordinateWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                  AnnotationCoordinateWidget::COORDINATE_ONE,
                                                                   m_browserWindowIndex);
     
-    m_coordinateTwoWidget        = new AnnotationCoordinateWidget(AnnotationCoordinateWidget::COORDINATE_TWO,
+    m_coordinateTwoWidget        = new AnnotationCoordinateWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                  AnnotationCoordinateWidget::COORDINATE_TWO,
                                                                   m_browserWindowIndex);
     
-    m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_browserWindowIndex);
+    m_widthHeightWidget          = new AnnotationWidthHeightWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                   m_browserWindowIndex);
     
     m_rotationWidget             = new AnnotationRotationWidget(m_browserWindowIndex);
     

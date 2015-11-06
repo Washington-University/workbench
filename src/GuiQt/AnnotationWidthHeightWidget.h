@@ -26,6 +26,8 @@
 #include <vector>
 #include <QWidget>
 
+#include "AnnotationWidgetParentEnum.h"
+
 class QDoubleSpinBox;
 
 namespace caret {
@@ -37,8 +39,9 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationWidthHeightWidget(const int32_t browserWindowIndex,
-                                            QWidget* parent = 0);
+        AnnotationWidthHeightWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+                                    const int32_t browserWindowIndex,
+                                    QWidget* parent = 0);
         
         virtual ~AnnotationWidthHeightWidget();
         
@@ -59,11 +62,15 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
+        
         const int32_t m_browserWindowIndex;
         
         QDoubleSpinBox* m_widthSpinBox;
         
         QDoubleSpinBox* m_heightSpinBox;
+        
+        std::vector<AnnotationTwoDimensionalShape*> m_annotations2D;
         
     };
     

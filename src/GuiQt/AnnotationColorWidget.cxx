@@ -62,9 +62,11 @@ using namespace caret;
  * @param parent
  *     Parent for this widget.
  */
-AnnotationColorWidget::AnnotationColorWidget(const int32_t browserWindowIndex,
+AnnotationColorWidget::AnnotationColorWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+                                             const int32_t browserWindowIndex,
                                              QWidget* parent)
 : QWidget(parent),
+m_parentWidgetType(parentWidgetType),
 m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* backLabel      = new QLabel("Fill");
@@ -173,6 +175,9 @@ m_browserWindowIndex(browserWindowIndex)
 
     backgroundColorSelected(CaretColorEnum::WHITE);
     foregroundColorSelected(CaretColorEnum::BLACK);
+    
+    setSizePolicy(QSizePolicy::Fixed,
+                  QSizePolicy::Fixed);
 }
 
 /**
@@ -228,24 +233,48 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
                 rgba[0] = newColor.redF();
                 rgba[1] = newColor.greenF();
                 rgba[2] = newColor.blueF();
-                //m_annotation->setCustomBackgroundColor(rgba);
                 
-                Annotation::setUserDefaultCustomBackgroundColor(rgba);
+
+                switch (m_parentWidgetType) {
+                    case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+                        Annotation::setUserDefaultCustomBackgroundColor(rgba);
+                        break;
+                    case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                        break;
+                }
             }
         }
         
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeColorBackground(caretColor,
-                                           rgba,
-                                           annMan->getSelectedAnnotations());
-        annMan->applyCommand(undoCommand);
+        switch (m_parentWidgetType) {
+            case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            {
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                undoCommand->setModeColorBackground(caretColor,
+                                                    rgba,
+                                                    annMan->getSelectedAnnotations());
+                annMan->applyCommand(undoCommand);
+                
+                Annotation::setUserDefaultBackgroundColor(caretColor);
+                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            }
+                break;
+            case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
+                     iter != m_annotations.end();
+                     iter++) {
+                    Annotation* ann = *iter;
+                    ann->setBackgroundColor(caretColor);
+                    if (caretColor == CaretColorEnum::CUSTOM) {
+                        ann->setCustomBackgroundColor(rgba);
+                    }
+                }
+                break;
+        }
         
-        Annotation::setUserDefaultBackgroundColor(caretColor);
     }
 
     updateBackgroundColorButton();
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -298,8 +327,21 @@ AnnotationColorWidget::updateBackgroundColorButton()
             m_annotations[0]->getCustomBackgroundColor(customRGBA);
             m_backgroundColorMenu->setCustomIconColor(customRGBA);
             
-            Annotation::setUserDefaultBackgroundColor(colorEnum);
-            Annotation::setUserDefaultCustomBackgroundColor(customRGBA);
+            switch (m_parentWidgetType) {
+                case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+                    break;
+                case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                    break;
+            }
+            
+            switch (m_parentWidgetType) {
+                case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+                    Annotation::setUserDefaultBackgroundColor(colorEnum);
+                    Annotation::setUserDefaultCustomBackgroundColor(customRGBA);
+                    break;
+                case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                    break;
+            }
         }
         
         
@@ -381,8 +423,15 @@ AnnotationColorWidget::updateForegroundColorButton()
             m_annotations[0]->getCustomForegroundColor(customRGBA);
             m_foregroundColorMenu->setCustomIconColor(customRGBA);
 
-            Annotation::setUserDefaultForegroundColor(colorEnum);
-            Annotation::setUserDefaultCustomForegroundColor(customRGBA);
+            switch (m_parentWidgetType) {
+                case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+                    Annotation::setUserDefaultForegroundColor(colorEnum);
+                    Annotation::setUserDefaultCustomForegroundColor(customRGBA);
+                    break;
+                case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                    break;
+            }
+            
         }
         
         
@@ -420,23 +469,56 @@ AnnotationColorWidget::foregroundColorSelected(const CaretColorEnum::Enum caretC
                 rgba[0] = newColor.redF();
                 rgba[1] = newColor.greenF();
                 rgba[2] = newColor.blueF();
-                //m_annotation->setCustomForegroundColor(rgba);
                 
-                Annotation::setUserDefaultCustomForegroundColor(rgba);
+                
+                switch (m_parentWidgetType) {
+                    case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+                        Annotation::setUserDefaultCustomForegroundColor(rgba);
+                        break;
+                    case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                        break;
+                }
             }
         }
         
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeColorForeground(caretColor,
-                                            rgba,
-                                            annMan->getSelectedAnnotations());
-        annMan->applyCommand(undoCommand);
         
-        Annotation::setUserDefaultForegroundColor(caretColor);
+        switch (m_parentWidgetType) {
+            case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            {
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                undoCommand->setModeColorForeground(caretColor,
+                                                    rgba,
+                                                    annMan->getSelectedAnnotations());
+                annMan->applyCommand(undoCommand);
+                
+                Annotation::setUserDefaultForegroundColor(caretColor);
+            }
+                break;
+            case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
+                     iter != m_annotations.end();
+                     iter++) {
+                    Annotation* ann = *iter;
+                    ann->setForegroundColor(caretColor);
+                    if (caretColor == CaretColorEnum::CUSTOM) {
+                        ann->setCustomBackgroundColor(rgba);
+                    }
+                }
+                break;
+        }
     }
+    
     updateForegroundColorButton();
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            break;
+    }
+    
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -462,15 +544,29 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
         }
     }
     
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-    undoCommand->setModeLineWidthForeground(value, annMan->getSelectedAnnotations());
-    annMan->applyCommand(undoCommand);
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+        {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeLineWidthForeground(value, annMan->getSelectedAnnotations());
+            annMan->applyCommand(undoCommand);
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            Annotation::setUserDefaultForegroundLineWidth(value);
+        }
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            for (std::vector<Annotation*>::iterator iter = m_annotations.begin();
+                 iter != m_annotations.end();
+                 iter++) {
+                Annotation* ann = *iter;
+                ann->setForegroundLineWidth(value);
+            }
+            break;
+    }
     
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    
-    Annotation::setUserDefaultForegroundLineWidth(value);
 }
 
 /**
@@ -503,7 +599,13 @@ AnnotationColorWidget::updateForegroundThicknessSpinBox()
         }
         
         if (lineWidthValid) {
-            Annotation::setUserDefaultForegroundLineWidth(lineWidthValue);
+            switch (m_parentWidgetType) {
+                case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+                    Annotation::setUserDefaultForegroundLineWidth(lineWidthValue);
+                    break;
+                case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                    break;
+            }
         }
     }
     

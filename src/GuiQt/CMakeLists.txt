@@ -108,6 +108,7 @@ InformationDisplayPropertiesDialog.h
 LabelSelectionViewController.h
 MacApplication.h
 MacDockMenu.h
+MapSettingsColorBarWidget.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
@@ -199,6 +200,7 @@ AnnotationTextAlignmentWidget.h
 AnnotationTextEditorDialog.h
 AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
+AnnotationWidgetParentEnum.h
 AnnotationWidthHeightWidget.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
@@ -289,6 +291,7 @@ KeyEvent.h
 LabelSelectionViewController.h
 MacApplication.h
 MacDockMenu.h
+MapSettingsColorBarWidget.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
@@ -383,6 +386,7 @@ AnnotationTextAlignmentWidget.cxx
 AnnotationTextEditorDialog.cxx
 AnnotationTextEditorWidget.cxx
 AnnotationTextOrientationWidget.cxx
+AnnotationWidgetParentEnum.cxx
 AnnotationWidthHeightWidget.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
@@ -472,6 +476,7 @@ KeyEvent.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx
 MacDockMenu.cxx
+MapSettingsColorBarWidget.cxx
 MapSettingsFiberTrajectoryWidget.cxx
 MapSettingsLabelsWidget.cxx
 MapSettingsLayerWidget.cxx

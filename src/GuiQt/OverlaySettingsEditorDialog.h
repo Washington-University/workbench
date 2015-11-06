@@ -34,6 +34,7 @@ namespace caret {
     
     class CaretMappableDataFile;
     class LabelTableEditorWidget;
+    class MapSettingsColorBarWidget;
     class MapSettingsFiberTrajectoryWidget;
     class MapSettingsLabelsWidget;
     class MapSettingsLayerWidget;
@@ -97,6 +98,8 @@ namespace caret {
         
         MapSettingsParcelsWidget* m_parcelsWidget;
         
+        MapSettingsColorBarWidget* m_colorBarWidget;
+        
         LabelTableEditorWidget* m_labelTableEditorWidget;
         
         MapSettingsFiberTrajectoryWidget* m_fiberTrajectoryWidget;
@@ -110,6 +113,8 @@ namespace caret {
         QLabel* m_selectedMapFileNameLabel;
         
         QLabel* m_selectedMapNameLabel;
+        
+        int32_t m_colorBarWidgetTabIndex;
         
         int32_t m_labelsWidgetTabIndex;
         

@@ -57,6 +57,7 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param
  * @param whichCoordinate
  *     Which coordinate, one (or only), or two
  * @param browserWindowIndex
@@ -64,10 +65,12 @@ using namespace caret;
  * @param parent
  *     Parent widget
  */
-AnnotationCoordinateWidget::AnnotationCoordinateWidget(const WhichCoordinate whichCoordinate,
+AnnotationCoordinateWidget::AnnotationCoordinateWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+                                                       const WhichCoordinate whichCoordinate,
                                                        const int32_t browserWindowIndex,
                                                        QWidget* parent)
 : QWidget(parent),
+m_parentWidgetType(parentWidgetType),
 m_whichCoordinate(whichCoordinate),
 m_browserWindowIndex(browserWindowIndex)
 {
@@ -135,8 +138,17 @@ m_browserWindowIndex(browserWindowIndex)
                                                                this,
                                                                this,
                                                                SLOT(setCoordinateActionTriggered()));
-    QToolButton* setCoordinateToolButton = new QToolButton();
-    setCoordinateToolButton->setDefaultAction(setCoordinateAction);
+    
+
+    QToolButton* setCoordinateToolButton = NULL;
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            setCoordinateToolButton = new QToolButton();
+            setCoordinateToolButton->setDefaultAction(setCoordinateAction);
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            break;
+    }
     
     m_surfaceWidget = new QWidget();
     QHBoxLayout* surfaceLayout = new QHBoxLayout(m_surfaceWidget);
@@ -161,7 +173,9 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(m_surfaceWidget);
     layout->addWidget(m_coordinateWidget);
-    layout->addWidget(setCoordinateToolButton);
+    if (setCoordinateToolButton != NULL) {
+        layout->addWidget(setCoordinateToolButton);
+    }
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -326,48 +340,72 @@ AnnotationCoordinateWidget::valueChanged()
                 break;
         }
         
-        AnnotationCoordinate coordinateCopy(*coordinate);
-        
-        if (surfaceFlag) {
-            StructureEnum::Enum structure = StructureEnum::INVALID;
-            int32_t surfaceNumberOfNodes  = -1;
-            int32_t surfaceNodeIndex      = -1;
-            float surfaceOffsetLength     = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
-            coordinate->getSurfaceSpace(structure,
-                                          surfaceNumberOfNodes,
-                                          surfaceNodeIndex,
-                                          surfaceOffsetLength);
-            structure = m_surfaceStructureComboBox->getSelectedStructure();
-            surfaceNodeIndex = m_surfaceNodeIndexSpinBox->value();
-            surfaceOffsetLength = m_surfaceOffsetLengthSpinBox->value();
-            
-            coordinateCopy.setSurfaceSpace(structure,
-                                            surfaceNumberOfNodes,
-                                            surfaceNodeIndex,
-                                            surfaceOffsetLength);
-        }
-        else {
-            float xyz[3] = {
-                m_xCoordSpinBox->value(),
-                m_yCoordSpinBox->value(),
-                m_zCoordSpinBox->value()
-            };
-            coordinateCopy.setXYZ(xyz);
-        }
-        
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        switch (m_whichCoordinate) {
-            case COORDINATE_ONE:
-                undoCommand->setModeCoordinateOne(coordinateCopy, annMan->getSelectedAnnotations());
+        switch (m_parentWidgetType) {
+            case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            {
+                AnnotationCoordinate coordinateCopy(*coordinate);
+                
+                if (surfaceFlag) {
+                    StructureEnum::Enum structure = StructureEnum::INVALID;
+                    int32_t surfaceNumberOfNodes  = -1;
+                    int32_t surfaceNodeIndex      = -1;
+                    float surfaceOffsetLength     = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
+                    coordinate->getSurfaceSpace(structure,
+                                                surfaceNumberOfNodes,
+                                                surfaceNodeIndex,
+                                                surfaceOffsetLength);
+                    structure = m_surfaceStructureComboBox->getSelectedStructure();
+                    surfaceNodeIndex = m_surfaceNodeIndexSpinBox->value();
+                    surfaceOffsetLength = m_surfaceOffsetLengthSpinBox->value();
+                    
+                    coordinateCopy.setSurfaceSpace(structure,
+                                                   surfaceNumberOfNodes,
+                                                   surfaceNodeIndex,
+                                                   surfaceOffsetLength);
+                }
+                else {
+                    float xyz[3] = {
+                        m_xCoordSpinBox->value(),
+                        m_yCoordSpinBox->value(),
+                        m_zCoordSpinBox->value()
+                    };
+                    coordinateCopy.setXYZ(xyz);
+                }
+                
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                switch (m_whichCoordinate) {
+                    case COORDINATE_ONE:
+                        undoCommand->setModeCoordinateOne(coordinateCopy, annMan->getSelectedAnnotations());
+                        break;
+                    case COORDINATE_TWO:
+                        undoCommand->setModeCoordinateTwo(coordinateCopy, annMan->getSelectedAnnotations());
+                        break;
+                }
+                annMan->applyCommand(undoCommand);
+                
+                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            }
                 break;
-            case COORDINATE_TWO:
-                undoCommand->setModeCoordinateTwo(coordinateCopy, annMan->getSelectedAnnotations());
+            case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                if (surfaceFlag) {
+                    CaretAssertMessage(0, "Color Bar Coordinate should never be a surface coordinate.");
+                }
+                else {
+                    AnnotationCoordinate* coordinate = getCoordinate();
+                    if (coordinate != NULL) {
+                        float xyz[3] = {
+                            m_xCoordSpinBox->value(),
+                            m_yCoordSpinBox->value(),
+                            m_zCoordSpinBox->value()
+                        };
+                        
+                        coordinate->setXYZ(xyz);
+                    }
+                }
                 break;
         }
-        annMan->applyCommand(undoCommand);
         
-        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }

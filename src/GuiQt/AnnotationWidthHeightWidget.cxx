@@ -52,14 +52,18 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param parentWidgetType
+ *    Type of parent widget
  * @param browserWindowIndex
  *    Index of browser window.
  * @param parent
  *    Parent of this widget.
  */
-AnnotationWidthHeightWidget::AnnotationWidthHeightWidget(const int32_t browserWindowIndex,
+AnnotationWidthHeightWidget::AnnotationWidthHeightWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+                                                         const int32_t browserWindowIndex,
                                                                          QWidget* parent)
 : QWidget(parent),
+m_parentWidgetType(parentWidgetType),
 m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* widthLabel = new QLabel(" W:");
@@ -103,7 +107,9 @@ AnnotationWidthHeightWidget::~AnnotationWidthHeightWidget()
 void
 AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
 {
-    if ( ! annotations2D.empty()) {
+    m_annotations2D = annotations2D;
+    
+    if ( ! m_annotations2D.empty()) {
         float widthValue = 0.0;
         bool haveMultipleWidthValuesFlag = false;
         
@@ -113,17 +119,17 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalS
         bool firstFlag = true;
         bool haveValuesFlag = false;
         
-        const int32_t numAnns = static_cast<int32_t>(annotations2D.size());
+        const int32_t numAnns = static_cast<int32_t>(m_annotations2D.size());
         for (int32_t i = 0; i < numAnns; i++) {
-            CaretAssertVectorIndex(annotations2D, i);
-            if (annotations2D[i]->getType() == AnnotationTypeEnum::TEXT) {
+            CaretAssertVectorIndex(m_annotations2D, i);
+            if (m_annotations2D[i]->getType() == AnnotationTypeEnum::TEXT) {
                 continue;
             }
             
             haveValuesFlag = true;
             
-            const float width  = annotations2D[i]->getWidth();
-            const float height = annotations2D[i]->getHeight();
+            const float width  = m_annotations2D[i]->getWidth();
+            const float height = m_annotations2D[i]->getHeight();
             
             if (firstFlag) {
                 widthValue  = width;
@@ -166,8 +172,15 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalS
             }
             m_heightSpinBox->blockSignals(false);
             
-            AnnotationTwoDimensionalShape::setUserDefaultWidth(widthValue);
-            AnnotationTwoDimensionalShape::setUserDefaultHeight(heightValue);
+
+            switch (m_parentWidgetType) {
+                case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+                    AnnotationTwoDimensionalShape::setUserDefaultWidth(widthValue);
+                    AnnotationTwoDimensionalShape::setUserDefaultHeight(heightValue);
+                    break;
+                case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+                    break;
+            }
             
             setEnabled(true);
         }
@@ -189,16 +202,32 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalS
 void
 AnnotationWidthHeightWidget::heightValueChanged(double value)
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-    undoCommand->setModeTwoDimHeight(value,
-                                     annMan->getSelectedAnnotations());
-    annMan->applyCommand(undoCommand);
-    
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+        {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeTwoDimHeight(value,
+                                             annMan->getSelectedAnnotations());
+            annMan->applyCommand(undoCommand);
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            
+            AnnotationTwoDimensionalShape::setUserDefaultHeight(value);
+        }
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            for (std::vector<AnnotationTwoDimensionalShape*>::iterator iter = m_annotations2D.begin();
+                 iter != m_annotations2D.end();
+                 iter++) {
+                AnnotationTwoDimensionalShape* ann2D = *iter;
+                ann2D->setHeight(value);
+            }
+            break;
+    }
+
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationTwoDimensionalShape::setUserDefaultHeight(value);
 }
 
 /**
@@ -210,15 +239,31 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
 void
 AnnotationWidthHeightWidget::widthValueChanged(double value)
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-    undoCommand->setModeTwoDimWidth(value,
-                                     annMan->getSelectedAnnotations());
-    annMan->applyCommand(undoCommand);
-    
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+        {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeTwoDimWidth(value,
+                                            annMan->getSelectedAnnotations());
+            annMan->applyCommand(undoCommand);
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            
+            AnnotationTwoDimensionalShape::setUserDefaultWidth(value);
+        }
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            for (std::vector<AnnotationTwoDimensionalShape*>::iterator iter = m_annotations2D.begin();
+                 iter != m_annotations2D.end();
+                 iter++) {
+                AnnotationTwoDimensionalShape* ann2D = *iter;
+                ann2D->setWidth(value);
+            }
+            break;
+    }
+
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationTwoDimensionalShape::setUserDefaultWidth(value);
 }
 

@@ -128,10 +128,10 @@ AnnotationColorBar::copyHelperAnnotationColorBar(const AnnotationColorBar& obj)
 void
 AnnotationColorBar::reset()
 {
-    setWidth(35.0);
-    const float heightPercent = 15.0;
-    setHeight(heightPercent);
-    m_fontPercentViewportHeight = heightPercent / 4.0;
+    
+    setWidth(25.0);
+    setHeight(10.0);
+    m_fontPercentViewportHeight = 3.33;
     m_fontName      = AnnotationTextFontNameEnum::getDefaultFontName();
     m_positionMode  = AnnotationColorBarPositionModeEnum::AUTO;
     m_displayedFlag = false;

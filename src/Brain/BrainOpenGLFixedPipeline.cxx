@@ -6068,7 +6068,7 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const float modelXYZ[3],
 void
 BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
 {
-    const bool useTheNewestPaletteDrawingFlag = false;
+    const bool useTheNewestPaletteDrawingFlag = true;
     if (useTheNewestPaletteDrawingFlag) {
         return;
     }

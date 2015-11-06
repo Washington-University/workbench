@@ -578,7 +578,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
-                {
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                if (m_brainOpenGLFixedPipeline->windowTabIndex >= 0) {
                     EventBrowserTabGet tabEvent(m_brainOpenGLFixedPipeline->windowTabIndex);
                     EventManager::get()->sendEvent(tabEvent.getPointer());
                     BrowserTabContent* tabContent = tabEvent.getBrowserTab();
@@ -589,34 +590,36 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                         /*
                          * Note: Positions are in percentages ranging [0.0, 100.0]
                          */
-                        float x = 10.0;
-                        float y = 25.0;
+                        float x = 14.0;
+                        float y = 6.0;
                         if ( ! colorBars.empty()) {
                             for (std::vector<AnnotationColorBar*>::iterator cbIter = colorBars.begin();
                                  cbIter != colorBars.end();
                                  cbIter++) {
                                 AnnotationColorBar* cb = *cbIter;
-                                switch  (cb->getPositionMode()) {
-                                    case AnnotationColorBarPositionModeEnum::AUTO:
-                                    {
-                                        /*
-                                         * Note: Y is incremented twice.  Once to move colorbar
-                                         * so that the colorbars bottom is just above the previous 
-                                         * colorbar or bottom of screen.  Second time to move the 
-                                         * Y to the top of this annotation.
-                                         */
-                                        const float halfHeight = cb->getHeight() / 2.0;
-                                        y += halfHeight;
-                                        float xyz[3];
-                                        cb->getCoordinate()->getXYZ(xyz);
-                                        xyz[0] = x + (cb->getWidth() / 2.0);
-                                        xyz[1] = y;
-                                        cb->getCoordinate()->setXYZ(xyz);
-                                        y += halfHeight;
+                                if (cb->getCoordinateSpace() == drawingCoordinateSpace) {
+                                    switch  (cb->getPositionMode()) {
+                                        case AnnotationColorBarPositionModeEnum::AUTO:
+                                        {
+                                            /*
+                                             * Note: Y is incremented twice.  Once to move colorbar
+                                             * so that the colorbars bottom is just above the previous
+                                             * colorbar or bottom of screen.  Second time to move the
+                                             * Y to the top of this annotation.
+                                             */
+                                            const float halfHeight = cb->getHeight() / 2.0;
+                                            y += halfHeight;
+                                            float xyz[3];
+                                            cb->getCoordinate()->getXYZ(xyz);
+                                            xyz[0] = x;
+                                            xyz[1] = y;
+                                            cb->getCoordinate()->setXYZ(xyz);
+                                            y += halfHeight;
+                                        }
+                                            break;
+                                        case AnnotationColorBarPositionModeEnum::USER:
+                                            break;
                                     }
-                                        break;
-                                    case AnnotationColorBarPositionModeEnum::USER:
-                                        break;
                                 }
                             }
                             annotationsFromFile.insert(annotationsFromFile.end(),
@@ -625,8 +628,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                         }
                     }
                 }
-                    break;
-                case AnnotationCoordinateSpaceEnum::WINDOW:
                     break;
             }
         }
@@ -1024,6 +1025,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                                          colorBar->getCoordinateSpace(),
                                          NULL,
                                          windowXYZ)) {
+        return;
+    }
+    
+    /*
+     * NO SELECTION OF COLOR BAR ANNOTATIONS
+     */
+    if (m_selectionModeFlag) {
         return;
     }
     
