@@ -97,7 +97,7 @@ m_volumeSpacePlaneValid(false)
 BrainOpenGLAnnotationDrawingFixedPipeline::~BrainOpenGLAnnotationDrawingFixedPipeline()
 {
     delete m_rotationHandleCircle;
-    m_rotationHandleCircle = NULL;
+    delete m_dummyAnnotationFile;
 }
 
 /**
