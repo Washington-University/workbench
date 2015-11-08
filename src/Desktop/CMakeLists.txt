@@ -94,7 +94,7 @@ OperationsBase
 ${Qwt_LIBRARIES}
 OSMesaDummy
 Brain
-${FTGL_FONT_MODULE_FOR_LINKING}
+${FTGL_LIBRARIES}
 Files
 Annotations
 Charting
