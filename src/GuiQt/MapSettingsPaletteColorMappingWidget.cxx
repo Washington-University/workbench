@@ -836,14 +836,14 @@ MapSettingsPaletteColorMappingWidget::createHistogramSection()
     /*
      * Allow zooming
      */
-    PlotMagnifier* magnifier = new PlotMagnifier(this->thresholdPlot->canvas());
+    PlotMagnifier* magnifier = new PlotMagnifier(qobject_cast<QwtPlotCanvas*>(this->thresholdPlot->canvas()));
     magnifier->setAxisEnabled(QwtPlot::yLeft, true);
     magnifier->setAxisEnabled(QwtPlot::yRight, true);
     
     /*
      * Allow panning
      */
-    (void)new PlotPanner(this->thresholdPlot->canvas());
+    (void)new PlotPanner(qobject_cast<QwtPlotCanvas*>(this->thresholdPlot->canvas()));
     
     /*
      * Auto scaling
