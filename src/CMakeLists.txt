@@ -207,6 +207,18 @@ ENDIF(QT4_FOUND)
 INCLUDE(${QT_USE_FILE})
 
 #
+# Try to find Qwt, utherwise use bundle
+#
+PKG_CHECK_MODULES(Qwt qwt)
+IF (Qwt_FOUND)
+    MESSAGE("Qwt library found")
+    MESSAGE("   INCLUDES ${Qwt_INCLUDE_DIRS}")
+    MESSAGE("   LIBS ${Qwt_LIBRARIES}")
+ELSE (Qwt_FOUND)
+    MESSAGE("Qwt library not found, using bundled")
+ENDIF (Qwt_FOUND)
+
+#
 # The Find OpenMP package may not work on all systems and the user may
 # furnish the paths to the OpenMP files by using environment variables.
 #
@@ -410,7 +422,9 @@ ADD_SUBDIRECTORY ( OperationsBase )
 ADD_SUBDIRECTORY ( Algorithms )
 ADD_SUBDIRECTORY ( Operations )
 ADD_SUBDIRECTORY ( Brain )
-ADD_SUBDIRECTORY ( Qwt )
+IF (NOT Qwt_FOUND)
+    ADD_SUBDIRECTORY ( Qwt )
+ENDIF (NOT Qwt_FOUND)
 ADD_SUBDIRECTORY ( GuiQt )
 ADD_SUBDIRECTORY ( Commands )
 ADD_SUBDIRECTORY ( Desktop )
