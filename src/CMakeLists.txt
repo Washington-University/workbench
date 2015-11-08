@@ -293,13 +293,24 @@ ELSE (ZLIB_FOUND)
 ENDIF (ZLIB_FOUND)
 
 #
-# Quazip needs this defined here for static linking on windows
+# Try to find QuaZip, otherwise use bundled
 #
-IF(WIN32)
-   IF(MSVC)
-      ADD_DEFINITIONS(-DQUAZIP_STATIC)
-   ENDIF(MSVC)
-ENDIF(WIN32)
+FIND_PACKAGE(QuaZip)
+IF (QUAZIP_FOUND)
+  MESSAGE("QuaZip library found")
+  MESSAGE("   INCLUDES ${QUAZIP_INCLUDE_DIRS}")
+  MESSAGE("   LIBS ${QUAZIP_LIBRARIES}")
+ELSE (QUAZIP_FOUND)
+    MESSAGE("QuaZip library not found, using bundled")
+    #
+    # Quazip needs this defined here for static linking on windows
+    #
+    IF(WIN32)
+        IF(MSVC)
+            ADD_DEFINITIONS(-DQUAZIP_STATIC)
+        ENDIF(MSVC)
+     ENDIF(WIN32)
+ENDIF (QUAZIP_FOUND)
 
 #
 # Find FreeType
@@ -410,7 +421,9 @@ MESSAGE("")
 #
 # All subdirectories that will be configured for building
 #
-ADD_SUBDIRECTORY ( Quazip )
+IF (NOT QUAZIP_FOUND)
+  ADD_SUBDIRECTORY ( Quazip )
+ENDIF (NOT QUAZIP_FOUND)
 ADD_SUBDIRECTORY ( Common )
 ADD_SUBDIRECTORY ( Xml )
 ADD_SUBDIRECTORY ( Scenes )
