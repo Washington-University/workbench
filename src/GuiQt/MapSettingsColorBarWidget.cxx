@@ -80,7 +80,8 @@ MapSettingsColorBarWidget::MapSettingsColorBarWidget(QWidget* parent)
     m_widthHeightWidget = new AnnotationWidthHeightWidget(AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET,
                                                           browserWindowIndex);
     
-    m_fontWidget = new AnnotationFontWidget(browserWindowIndex);
+    m_fontWidget = new AnnotationFontWidget(AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET,
+                                            browserWindowIndex);
     
     m_colorWidget = new AnnotationColorWidget(AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET,
                                               browserWindowIndex);
@@ -150,7 +151,7 @@ MapSettingsColorBarWidget::updateContent(Overlay* overlay)
                 
                 m_coordinateWidget->updateContent(colorBar);
                 m_widthHeightWidget->updateContent(annotationTwoDimVector);
-                //m_fontWidget->updateContent(colorBar)
+                m_fontWidget->updateAnnotationColorBarContent(colorBar);
                 m_colorWidget->updateContent(annotationVector);
                 
                 bool enableSelections = false;
@@ -165,7 +166,7 @@ MapSettingsColorBarWidget::updateContent(Overlay* overlay)
                 m_annotationCoordinateSpaceEnumComboBox->getWidget()->setEnabled(false); //enableSelections);
                 m_coordinateWidget->setEnabled(enableSelections);
                 m_widthHeightWidget->setEnabled(enableSelections);
-                m_fontWidget->setEnabled(false);
+                m_fontWidget->setEnabled(enableSelections);
                 m_colorWidget->setEnabled(enableSelections);
                 
                 enableWidget = true;

@@ -85,7 +85,8 @@ m_inputModeAnnotations(inputModeAnnotations)
     
     m_lineArrowTipsWidget        = new AnnotationLineArrowTipsWidget(m_browserWindowIndex);
     
-    m_fontWidget                 = new AnnotationFontWidget(m_browserWindowIndex);
+    m_fontWidget                 = new AnnotationFontWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                            m_browserWindowIndex);
     
     m_colorWidget                = new AnnotationColorWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                              m_browserWindowIndex);
@@ -313,7 +314,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     }
     
     m_coordinateSpaceWidget->updateContent(selectedAnnotations);
-    m_fontWidget->updateContent(textAnnotations);
+    m_fontWidget->updateAnnotationTextContent(textAnnotations);
     m_textEditorWidget->updateContent(textAnnotations);
     m_colorWidget->updateContent(selectedAnnotations);
     m_lineArrowTipsWidget->updateContent(lineAnnotations);

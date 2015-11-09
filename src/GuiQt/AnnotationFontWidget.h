@@ -26,8 +26,11 @@
 #include <vector>
 #include <QWidget>
 
+#include "AnnotationWidgetParentEnum.h"
+
 namespace caret {
 
+    class AnnotationColorBar;
     class AnnotationText;
     class EnumComboBoxTemplate;
     class WuQSpecialIncrementDoubleSpinBox;
@@ -37,12 +40,15 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationFontWidget(const int32_t browserWindowIndex,
+        AnnotationFontWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+                             const int32_t browserWindowIndex,
                              QWidget* parent = 0);
         
         virtual ~AnnotationFontWidget();
         
-        void updateContent(std::vector<AnnotationText*>& annotationText);
+        void updateAnnotationTextContent(std::vector<AnnotationText*>& annotationText);
+        
+        void updateAnnotationColorBarContent(AnnotationColorBar* annotationColorBar);
         
         // ADD_NEW_METHODS_HERE
         
@@ -62,6 +68,11 @@ namespace caret {
 
         AnnotationFontWidget& operator=(const AnnotationFontWidget&);
         
+        void updateFontSizeSpinBox(const float value,
+                                   const bool haveMultipleValuesFlag);
+        
+        const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
+        
         const int32_t m_browserWindowIndex;
         
         EnumComboBoxTemplate* m_fontNameComboBox;
@@ -74,6 +85,7 @@ namespace caret {
         
         QAction* m_underlineFontAction;
         
+        AnnotationColorBar* m_annotationColorBar;
         
         // ADD_NEW_MEMBERS_HERE
 

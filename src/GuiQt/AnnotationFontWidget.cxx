@@ -29,6 +29,7 @@
 #include "AnnotationFontWidget.h"
 #undef __ANNOTATION_FONT_WIDGET_DECLARE__
 
+#include "AnnotationColorBar.h"
 #include "AnnotationManager.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationTextFontNameEnum.h"
@@ -75,11 +76,15 @@ public:
  * @param parent
  *     Parent for this widget.
  */
-AnnotationFontWidget::AnnotationFontWidget(const int32_t browserWindowIndex,
+AnnotationFontWidget::AnnotationFontWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+                                           const int32_t browserWindowIndex,
                                            QWidget* parent)
 : QWidget(parent),
+m_parentWidgetType(parentWidgetType),
 m_browserWindowIndex(browserWindowIndex)
 {
+    m_annotationColorBar = NULL;
+    
     /*
      * "Font" label
      */
@@ -108,78 +113,112 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setToolTipAndStatusTip(m_fontSizeSpinBox,
                                           "Change font size (height) as percentage, zero to one-hundred, of viewport height");
     
-    /*
-     * Bold Font
-     */
-    m_boldFontAction = WuQtUtilities::createAction("B", //boldFontText.toStringWithHtmlBody(),
-                                                   "Enable/disable bold styling",
-                                                   this, this, SLOT(fontBoldChanged()));
-    m_boldFontAction->setCheckable(true);
-    QToolButton* boldFontToolButton = new QToolButton();
-    boldFontToolButton->setDefaultAction(m_boldFontAction);
+    QToolButton* boldFontToolButton      = NULL;
+    QToolButton* italicFontToolButton    = NULL;
+    QToolButton* underlineFontToolButton = NULL;
+    m_boldFontAction      = NULL;
+    m_italicFontAction    = NULL;
+    m_underlineFontAction = NULL;
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+        {
+            /*
+             * Bold Font
+             */
+            m_boldFontAction = WuQtUtilities::createAction("B", //boldFontText.toStringWithHtmlBody(),
+                                                           "Enable/disable bold styling",
+                                                           this, this, SLOT(fontBoldChanged()));
+            m_boldFontAction->setCheckable(true);
+            boldFontToolButton = new QToolButton();
+            boldFontToolButton->setDefaultAction(m_boldFontAction);
+            
+            /*
+             * Change the bold toolbutton's font to bold.
+             */
+            QFont boldFont = boldFontToolButton->font();
+            boldFont.setBold(true);
+            boldFontToolButton->setFont(boldFont);
+            
+            /*
+             * Italic font toolbutton
+             */
+            m_italicFontAction = WuQtUtilities::createAction("i", "Enable/disable italic styling",
+                                                             this, this, SLOT(fontItalicChanged()));
+            m_italicFontAction->setCheckable(true);
+            italicFontToolButton = new QToolButton();
+            italicFontToolButton->setDefaultAction(m_italicFontAction);
+            
+            /*
+             * Change the italic toolbutton's font to italic.
+             */
+            QFont italicFont = italicFontToolButton->font();
+            italicFont.setItalic(true);
+            italicFontToolButton->setFont(italicFont);
+            
+            /*
+             * Underline font toolbutton
+             */
+            m_underlineFontAction =  WuQtUtilities::createAction("U", "Enable/disable font underlining",
+                                                                 this, this, SLOT(fontUnderlineChanged()));
+            m_underlineFontAction->setCheckable(true);
+            underlineFontToolButton = new QToolButton();
+            underlineFontToolButton->setDefaultAction(m_underlineFontAction);
+            
+            /*
+             * Change the underline toolbutton's font to underline.
+             */
+            QFont underlineFont = underlineFontToolButton->font();
+            underlineFont.setUnderline(true);
+            underlineFontToolButton->setFont(underlineFont);
+        }
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            break;
+    }
     
-    /*
-     * Change the bold toolbutton's font to bold.
-     */
-    QFont boldFont = boldFontToolButton->font();
-    boldFont.setBold(true);
-    boldFontToolButton->setFont(boldFont);
-    
-    /*
-     * Italic font toolbutton
-     */
-    m_italicFontAction = WuQtUtilities::createAction("i", "Enable/disable italic styling",
-                                                     this, this, SLOT(fontItalicChanged()));
-    m_italicFontAction->setCheckable(true);
-    QToolButton* italicFontToolButton = new QToolButton();
-    italicFontToolButton->setDefaultAction(m_italicFontAction);
-    
-    /*
-     * Change the italic toolbutton's font to italic.
-     */
-    QFont italicFont = italicFontToolButton->font();
-    italicFont.setItalic(true);
-    italicFontToolButton->setFont(italicFont);
-    
-    /*
-     * Underline font toolbutton
-     */
-    m_underlineFontAction =  WuQtUtilities::createAction("U", "Enable/disable font underlining",
-                                                         this, this, SLOT(fontUnderlineChanged()));
-    m_underlineFontAction->setCheckable(true);
-    QToolButton* underlineFontToolButton = new QToolButton();
-    underlineFontToolButton->setDefaultAction(m_underlineFontAction);
-    
-    /*
-     * Change the underline toolbutton's font to underline.
-     */
-    QFont underlineFont = underlineFontToolButton->font();
-    underlineFont.setUnderline(true);
-    underlineFontToolButton->setFont(underlineFont);
     
     /*
      * Layout the widgets
      */
-    QHBoxLayout* topRowLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 0);
-    topRowLayout->addWidget(fontLabel, 0);
-    topRowLayout->addWidget(m_fontNameComboBox->getWidget(), 100);
     
     
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+        {
+            QHBoxLayout* topRowLayout = new QHBoxLayout();
+            WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 0);
+            topRowLayout->addWidget(fontLabel, 0);
+            topRowLayout->addWidget(m_fontNameComboBox->getWidget(), 100);
+            QHBoxLayout* bottomRowLayout = new QHBoxLayout();
+            WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 0);
+            
+            bottomRowLayout->addWidget(boldFontToolButton);
+            bottomRowLayout->addWidget(italicFontToolButton);
+            bottomRowLayout->addWidget(underlineFontToolButton);
+            bottomRowLayout->addStretch();
+            bottomRowLayout->addWidget(m_fontSizeSpinBox);
+
+            QVBoxLayout* layout = new QVBoxLayout(this);
+            WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+            layout->addLayout(topRowLayout);
+            layout->addLayout(bottomRowLayout);
+//            layout->addStretch();
+        }
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+        {
+            QLabel* sizeLabel = new QLabel("Size");
+            
+            QGridLayout* gridLayout = new QGridLayout(this);
+            WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
+            gridLayout->addWidget(fontLabel, 0, 0);
+            gridLayout->addWidget(m_fontNameComboBox->getWidget(), 0, 1);
+            gridLayout->addWidget(sizeLabel, 1, 0);
+            gridLayout->addWidget(m_fontSizeSpinBox, 1, 1);
+        }
+            break;
+    }
     
-    QHBoxLayout* bottomRowLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 0);
-    bottomRowLayout->addWidget(boldFontToolButton);
-    bottomRowLayout->addWidget(italicFontToolButton);
-    bottomRowLayout->addWidget(underlineFontToolButton);
-    bottomRowLayout->addStretch();
-    bottomRowLayout->addWidget(m_fontSizeSpinBox);
-    
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addLayout(topRowLayout);
-    layout->addLayout(bottomRowLayout);
-    layout->addStretch();
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -195,11 +234,29 @@ AnnotationFontWidget::~AnnotationFontWidget()
 /**
  * Update the content of this widget with the given text annotation.
  *
+ * @param annotationColorBar
+ *     Color bar for display (may be NULL).
+ */
+void
+AnnotationFontWidget::updateAnnotationColorBarContent(AnnotationColorBar* annotationColorBar)
+{
+    m_annotationColorBar = annotationColorBar;
+    
+    if (m_annotationColorBar != NULL) {
+        m_fontNameComboBox->setSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>(m_annotationColorBar->getFont());
+        updateFontSizeSpinBox(m_annotationColorBar->getFontPercentViewportSize(),
+                              false);
+    }
+}
+
+/**
+ * Update the content of this widget with the given text annotation.
+ *
  * @param annotationTexts
  *     Text annotations for display (may be NULL).
  */
 void
-AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationTexts)
+AnnotationFontWidget::updateAnnotationTextContent(std::vector<AnnotationText*>& annotationTexts)
 {
     if ( ! annotationTexts.empty()) {
         bool boldOnFlag      = true;
@@ -246,14 +303,8 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationText
         
         m_fontNameComboBox->setSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>(fontName);
         
-        m_fontSizeSpinBox->blockSignals(true);
-        m_fontSizeSpinBox->setValue(fontSizeValue);
-        m_fontSizeSpinBox->blockSignals(false);
-        QString fontSizeSuffix("%");
-        if (haveMultipleFontSizeValues) {
-            fontSizeSuffix = "%+";
-        }
-        m_fontSizeSpinBox->setSuffix(fontSizeSuffix);
+        updateFontSizeSpinBox(fontSizeValue,
+                              haveMultipleFontSizeValues);
         
         /*
          * Font styles are ON only if all selected
@@ -271,6 +322,29 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationText*>& annotationText
     }
     
     setEnabled( ! annotationTexts.empty());
+}
+
+/**
+ * Update the font size spin box.
+ *
+ * @param value
+ *     New value for font size spin box.
+ * @param haveMultipleValuesFlag
+ *     If true, there are multiple font size values so indicate
+ *     this with a '+' sign as a suffix
+ */
+void
+AnnotationFontWidget::updateFontSizeSpinBox(const float value,
+                                            const bool haveMultipleValuesFlag)
+{
+    m_fontSizeSpinBox->blockSignals(true);
+    m_fontSizeSpinBox->setValue(value);
+    m_fontSizeSpinBox->blockSignals(false);
+    QString fontSizeSuffix("%");
+    if (haveMultipleValuesFlag) {
+        fontSizeSuffix = "%+";
+    }
+    m_fontSizeSpinBox->setSuffix(fontSizeSuffix);
 }
 
 /**
@@ -316,16 +390,28 @@ void
 AnnotationFontWidget::fontNameChanged()
 {
     const AnnotationTextFontNameEnum::Enum fontName = m_fontNameComboBox->getSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>();
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
-    command->setModeTextFontName(fontName,
-                                 annMan->getSelectedAnnotations());
-    annMan->applyCommand(command);
     
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+        {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+            command->setModeTextFontName(fontName,
+                                         annMan->getSelectedAnnotations());
+            annMan->applyCommand(command);
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            AnnotationText::setUserDefaultFont(fontName);
+        }
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            if (m_annotationColorBar != NULL) {
+                m_annotationColorBar->setFont(fontName);
+            }
+            break;
+    }
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationText::setUserDefaultFont(fontName);
 }
 
 /**
@@ -335,16 +421,29 @@ void
 AnnotationFontWidget::fontSizeChanged()
 {
     const float fontPercentSize = m_fontSizeSpinBox->value();
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
-    command->setModeTextFontPercentSize(fontPercentSize,
-                                        annMan->getSelectedAnnotations());
-    annMan->applyCommand(command);
     
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+        {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+            command->setModeTextFontPercentSize(fontPercentSize,
+                                                annMan->getSelectedAnnotations());
+            annMan->applyCommand(command);
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            AnnotationText::setUserDefaultFontPercentViewportSize(fontPercentSize);
+        }
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            if (m_annotationColorBar != NULL) {
+                m_annotationColorBar->setFontPercentViewportSize(fontPercentSize);
+            }
+            break;
+    }
+    
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    AnnotationText::setUserDefaultFontPercentViewportSize(fontPercentSize);
 }
 
 /**
