@@ -159,13 +159,15 @@ namespace caret {
                                   const float bottomLeft[3],
                                   const float bottomRight[3],
                                   const float topRight[3],
-                                  const float topLeft[3]);
+                                  const float topLeft[3],
+                                  const float sectionsHeightInPixels);
         
         void drawColorBarText(const AnnotationColorBar* colorBar,
                               const float bottomLeft[3],
                               const float bottomRight[3],
                               const float topRight[3],
-                              const float topLeft[3]);
+                              const float topLeft[3],
+                              const float textHeightInPixels);
 
 
         void drawSizingHandle(const AnnotationSizingHandleTypeEnum::Enum handleType,

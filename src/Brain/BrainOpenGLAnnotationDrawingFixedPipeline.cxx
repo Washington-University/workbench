@@ -1094,17 +1094,35 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                                                      backgroundRGBA);
         }
         
+        const float totalHeight       = colorBar->getHeight();
+        float textHeight     = colorBar->getFontPercentViewportSize();
+        float sectionsHeight = totalHeight - textHeight;
+        
+        if (sectionsHeight <= 0.0) {
+            sectionsHeight = totalHeight * 0.10;
+            textHeight     = totalHeight - sectionsHeight;
+        }
+        
+        const float sectionsHeightInPixels = (static_cast<float>(m_tabViewport[3])
+                                              * (sectionsHeight
+                                                 / 100.0));
+        const float textHeightInPixels = (static_cast<float>(m_tabViewport[3])
+                                              * (textHeight
+                                                 / 100.0));
+        
         drawColorBarSections(colorBar,
                              bottomLeft,
                              bottomRight,
                              topRight,
-                             topLeft);
+                             topLeft,
+                             sectionsHeightInPixels);
         
         drawColorBarText(colorBar,
                          bottomLeft,
                          bottomRight,
                          topRight,
-                         topLeft);
+                         topLeft,
+                         textHeightInPixels);
         
 //        if (drawForegroundFlag) {
 //            BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
@@ -1131,13 +1149,24 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
  *
  * @param colorBar
  *     Colorbar whose sections are drawn.
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param sectionsHeightInPixels
+ *     Height for drawing the sections in pixels.
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const AnnotationColorBar* colorBar,
                                                                 const float bottomLeft[3],
                                                                 const float bottomRight[3],
                                                                 const float topRight[3],
-                                                                const float topLeft[3])
+                                                                const float topLeft[3],
+                                                                const float sectionsHeightInPixels)
 {
 //    glMatrixMode(GL_PROJECTION);
 //    glPushMatrix();
@@ -1158,30 +1187,30 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
     
     std::vector<ColorBarLine> colorBarLines;
     
-    const float spaceBetweenTextAndColorBar = 2.0;
-    const float availableHeight = (colorBar->getHeight()
-                                   - colorBar->getFontPercentViewportSize()
-                                   - spaceBetweenTextAndColorBar);
-    const float maximumHeight = 95.0;
-    const float minimumHeight = 5.0;
-    
-    const float colorBarHeightPercent = (MathFunctions::limitRange(availableHeight,
-                                                                   minimumHeight,
-                                                                   maximumHeight)
-                                         / 100.0);
-    const float colorBarHeight = (static_cast<float>(m_tabViewport[3])
-                                  * colorBarHeightPercent);
+//    const float spaceBetweenTextAndColorBar = 2.0;
+//    const float availableHeight = (colorBar->getHeight()
+//                                   - colorBar->getFontPercentViewportSize()
+//                                   - spaceBetweenTextAndColorBar);
+//    const float maximumHeight = 95.0;
+//    const float minimumHeight = 1.0;
+//    
+//    const float colorBarHeightPercent = (MathFunctions::limitRange(availableHeight,
+//                                                                   minimumHeight,
+//                                                                   maximumHeight)
+//                                         / 100.0);
+//    const float colorBarHeight = (static_cast<float>(m_tabViewport[3])
+//                                  * colorBarHeightPercent);
     
     float bottomToTopUnitVector[3];
     MathFunctions::createUnitVector(bottomLeft,
                                     topLeft,
                                     bottomToTopUnitVector);
     
-    const float xTopLeft  = (bottomLeft[0] + (bottomToTopUnitVector[0] * colorBarHeight));
-    const float yTopLeft  = (bottomLeft[1] + (bottomToTopUnitVector[1] * colorBarHeight));
+    const float xTopLeft  = (bottomLeft[0] + (bottomToTopUnitVector[0] * sectionsHeightInPixels));
+    const float yTopLeft  = (bottomLeft[1] + (bottomToTopUnitVector[1] * sectionsHeightInPixels));
     
-    const float xTopRight = (bottomRight[0] + (bottomToTopUnitVector[0] * colorBarHeight));
-    const float yTopRight = (bottomRight[1] + (bottomToTopUnitVector[1] * colorBarHeight));
+    const float xTopRight = (bottomRight[0] + (bottomToTopUnitVector[0] * sectionsHeightInPixels));
+    const float yTopRight = (bottomRight[1] + (bottomToTopUnitVector[1] * sectionsHeightInPixels));
     
     const float dx        = xTopRight - xTopLeft;
     const float dy        = yTopRight - yTopLeft;
@@ -1503,31 +1532,37 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
  *     Top right corner of annotation.
  * @param topLeft
  *     Top left corner of annotation.
+ * @param textHeightInPixels
+ *     Height of text in pixels.
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColorBar* colorBar,
                                                             const float bottomLeft[3],
                                                             const float bottomRight[3],
                                                             const float topRight[3],
-                                                            const float topLeft[3])
+                                                            const float topLeft[3],
+                                                            const float textHeightInPixels)
 {
+    const float textPercentageHeight = (textHeightInPixels / m_tabViewport[3]) * 100.0;
+    
     AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
     annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
     annText.setFont(colorBar->getFont());
-    annText.setFontPercentViewportSize(colorBar->getFontPercentViewportSize());
+    annText.setFontPercentViewportSize(textPercentageHeight); //colorBar->getFontPercentViewportSize());
     annText.setForegroundColor(CaretColorEnum::CUSTOM);
     float rgba[4];
     colorBar->getForegroundColorRGBA(rgba);
     annText.setCustomForegroundColor(rgba);
     
-    const float textHeightPixels = (static_cast<float>(m_tabViewport[3])
-                                    * (colorBar->getFontPercentViewportSize()
-                                       / 100.0));
-    
-    const float offsetFromTopPercent = 2.0;
-    const float offsetFromTopPixels  = (m_tabViewport[3]
-                                        * (offsetFromTopPercent
-                                           / 100.0));
+//    const float textHeightPixels = (static_cast<float>(m_tabViewport[3])
+//                                    * (colorBar->getFontPercentViewportSize()
+//                                       / 100.0));
+//    
+//    const float offsetFromTopPercent = 2.0;
+//    const float offsetFromTopPixels  = (m_tabViewport[3]
+//                                        * (offsetFromTopPercent
+//                                           / 100.0));
+    const float offsetFromTopPixels = 0.0;  //textHeightInPixels;
     
     float bottomToTopUnitVector[3];
     MathFunctions::createUnitVector(bottomLeft,
