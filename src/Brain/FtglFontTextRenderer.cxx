@@ -1077,10 +1077,10 @@ m_stringGlyphsMaxY(0.0)
      */
     const int32_t numChars = textString.length();
     for (int32_t i = 0; i < numChars; i++) {
-        const std::wstring theWideCharStr = textString.mid(i, 1).toStdWString();
+        const std::wstring theWideCharStr = textString.mid(i, 2).toStdWString();
         const wchar_t theWideChar = theWideCharStr.at(0);
         FTBBox bbox = font->BBox(theWideCharStr.c_str(),
-                                 theWideCharStr.length());
+                                 1);
         
         /*
          * A space character has a valid horizontal advance.
@@ -1109,10 +1109,11 @@ m_stringGlyphsMaxY(0.0)
              * See https://en.wikipedia.org/wiki/Kerning
              * and https://en.wikipedia.org/wiki/Serif
              */
-            const std::wstring nextWideCharStr = textString.mid(i + 1, 1).toStdWString();
-            const wchar_t nextWideChar = nextWideCharStr.at(0);
-            advanceValue = font->Advance(theWideChar,
-                                         nextWideChar);
+            advanceValue = font->Advance(theWideCharStr.c_str(), 1);
+//            const std::wstring nextWideCharStr = textString.mid(i + 1, 1).toStdWString();
+//            const wchar_t nextWideChar = nextWideCharStr.at(0);
+//            advanceValue = font->Advance(theWideChar,
+//                                         nextWideChar);
         }
         
         TextCharacter* tc = new TextCharacter(theWideChar,
