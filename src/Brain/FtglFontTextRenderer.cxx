@@ -1097,6 +1097,18 @@ m_stringGlyphsMaxY(0.0)
         
         double advanceValue = 0.0;
         if (i < (numChars - 1)) {
+            /*
+             * We need to use both the currrent AND the next character 
+             * when calculating the advance for it to be correct.
+             * In some instances the bounding boxes of two adjacent 
+             * characters will overlap.  An example is the character
+             * sequence 'AV' especially with a 'serif' font that has 
+             * small horizontal lines attached to the bottom legs of 
+             * the 'A' and the top of the 'V'.
+             *
+             * See https://en.wikipedia.org/wiki/Kerning
+             * and https://en.wikipedia.org/wiki/Serif
+             */
             const std::wstring nextWideCharStr = textString.mid(i + 1, 1).toStdWString();
             const wchar_t nextWideChar = nextWideCharStr.at(0);
             advanceValue = font->Advance(theWideChar,
