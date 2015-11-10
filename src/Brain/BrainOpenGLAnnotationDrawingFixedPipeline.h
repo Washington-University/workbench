@@ -168,7 +168,8 @@ namespace caret {
                               const float bottomRight[3],
                               const float topRight[3],
                               const float topLeft[3],
-                              const float textHeightInPixels);
+                              const float textHeightInPixels,
+                              const float offsetFromTopInPixels);
 
 
         void drawSizingHandle(const AnnotationSizingHandleTypeEnum::Enum handleType,

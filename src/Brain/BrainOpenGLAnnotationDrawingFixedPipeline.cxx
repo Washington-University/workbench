@@ -1098,14 +1098,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
             textHeight     = totalHeight - sectionsHeight;
         }
         
-        GLint viewport[4];
-        glGetIntegerv(GL_VIEWPORT, viewport);
-        const float viewportHeight = viewport[3];
+        const float viewportHeight = m_modelSpaceViewport[3];
         
-        const float sectionsHeightInPixels = (static_cast<float>(m_modelSpaceViewport[3])
+        const float pixelSpacing = 2;
+        const float sectionsHeightInPixels = (static_cast<float>(viewportHeight)
                                               * (sectionsHeight
-                                                 / 100.0));
-        const float textHeightInPixels = (static_cast<float>(m_modelSpaceViewport[3])
+                                                 / 100.0)) - pixelSpacing;
+        const float textHeightInPixels = (static_cast<float>(viewportHeight)
                                               * (textHeight
                                                  / 100.0));
         
@@ -1121,7 +1120,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                          bottomRight,
                          topRight,
                          topLeft,
-                         textHeightInPixels);
+                         textHeightInPixels,
+                         pixelSpacing);
         
 //        if (drawForegroundFlag) {
 //            BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
@@ -1533,6 +1533,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
  *     Top left corner of annotation.
  * @param textHeightInPixels
  *     Height of text in pixels.
+ * @param offsetFromTopInPixels
+ *     Offset of text from the top of the colorbar viewport in pixels
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColorBar* colorBar,
@@ -1540,7 +1542,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
                                                             const float bottomRight[3],
                                                             const float topRight[3],
                                                             const float topLeft[3],
-                                                            const float textHeightInPixels)
+                                                            const float textHeightInPixels,
+                                                            const float offsetFromTopInPixels)
 {
     const float textPercentageHeight = (textHeightInPixels / m_modelSpaceViewport[3]) * 100.0;
     
@@ -1561,7 +1564,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
 //    const float offsetFromTopPixels  = (m_tabViewport[3]
 //                                        * (offsetFromTopPercent
 //                                           / 100.0));
-    const float offsetFromTopPixels = 0.0;  //textHeightInPixels;
+//    const float offsetFromTopPixels = 0.0;  //textHeightInPixels;
     
     float bottomToTopUnitVector[3];
     MathFunctions::createUnitVector(bottomLeft,
@@ -1570,7 +1573,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
     const float distanceBottomToTop = MathFunctions::distance3D(topLeft,
                                                                 bottomLeft);
     const float distanceBottomToTopWithOffset = (distanceBottomToTop
-                                                 - offsetFromTopPixels);
+                                                 - offsetFromTopInPixels);
     
     const float xTopLeft  = (bottomLeft[0] + (bottomToTopUnitVector[0] * distanceBottomToTopWithOffset));
     const float yTopLeft  = (bottomLeft[1] + (bottomToTopUnitVector[1] * distanceBottomToTopWithOffset));
