@@ -446,7 +446,8 @@ namespace caret {
         void drawTextAtModelCoords(const float modelXYZ[3],
                                    const AnnotationText& annotationText);
         
-        void drawWindowAnnotations(const int windowViewport[4]);
+        void drawWindowAnnotations(const int windowViewport[4],
+                                   std::vector<AnnotationColorBar*>& colorBars);
         
         void drawAllPalettes(Brain* brain);
         

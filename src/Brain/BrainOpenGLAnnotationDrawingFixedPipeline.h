@@ -55,6 +55,7 @@ namespace caret {
         
         void drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                              const int tabViewport[4],
+                             std::vector<AnnotationColorBar*>& colorBars,
                              const Surface* surfaceDisplayed);
 
         void drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane,

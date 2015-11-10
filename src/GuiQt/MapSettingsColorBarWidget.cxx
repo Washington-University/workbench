@@ -163,7 +163,7 @@ MapSettingsColorBarWidget::updateContent(Overlay* overlay)
                         break;
                 }
                 
-                m_annotationCoordinateSpaceEnumComboBox->getWidget()->setEnabled(false); //enableSelections);
+                m_annotationCoordinateSpaceEnumComboBox->getWidget()->setEnabled(enableSelections);
                 m_coordinateWidget->setEnabled(enableSelections);
                 m_widthHeightWidget->setEnabled(enableSelections);
                 m_fontWidget->setEnabled(enableSelections);

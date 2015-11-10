@@ -420,8 +420,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
         m_volumeSpacePlane = plane;
         m_volumeSpacePlaneValid = true;
         
+        std::vector<AnnotationColorBar*> colorBars;
         drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                         tabViewport,
+                        colorBars,
                         NULL);
     }
     
@@ -439,6 +441,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                            const int tabViewport[4],
+                                                           std::vector<AnnotationColorBar*>& colorBars,
                                                            const Surface* surfaceDisplayed)
 {
     if (m_brainOpenGLFixedPipeline->m_brain == NULL) {
@@ -579,53 +582,45 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 case AnnotationCoordinateSpaceEnum::WINDOW:
-                if (m_brainOpenGLFixedPipeline->windowTabIndex >= 0) {
-                    EventBrowserTabGet tabEvent(m_brainOpenGLFixedPipeline->windowTabIndex);
-                    EventManager::get()->sendEvent(tabEvent.getPointer());
-                    BrowserTabContent* tabContent = tabEvent.getBrowserTab();
-                    if (tabContent != NULL) {
-                        std::vector<AnnotationColorBar*> colorBars;
-                        tabContent->getAnnotationColorBars(colorBars);
-                        
-                        /*
-                         * Note: Positions are in percentages ranging [0.0, 100.0]
-                         */
-                        float x = 14.0;
-                        float y = 6.0;
-                        if ( ! colorBars.empty()) {
-                            for (std::vector<AnnotationColorBar*>::iterator cbIter = colorBars.begin();
-                                 cbIter != colorBars.end();
-                                 cbIter++) {
-                                AnnotationColorBar* cb = *cbIter;
-                                if (cb->getCoordinateSpace() == drawingCoordinateSpace) {
-                                    switch  (cb->getPositionMode()) {
-                                        case AnnotationColorBarPositionModeEnum::AUTO:
-                                        {
-                                            /*
-                                             * Note: Y is incremented twice.  Once to move colorbar
-                                             * so that the colorbars bottom is just above the previous
-                                             * colorbar or bottom of screen.  Second time to move the
-                                             * Y to the top of this annotation.
-                                             */
-                                            const float halfHeight = cb->getHeight() / 2.0;
-                                            y += halfHeight;
-                                            float xyz[3];
-                                            cb->getCoordinate()->getXYZ(xyz);
-                                            xyz[0] = x;
-                                            xyz[1] = y;
-                                            cb->getCoordinate()->setXYZ(xyz);
-                                            y += halfHeight;
-                                        }
-                                            break;
-                                        case AnnotationColorBarPositionModeEnum::USER:
-                                            break;
+                {
+                    /*
+                     * Note: Positions are in percentages ranging [0.0, 100.0]
+                     */
+                    float x = 14.0;
+                    float y = 6.0;
+                    if ( ! colorBars.empty()) {
+                        for (std::vector<AnnotationColorBar*>::iterator cbIter = colorBars.begin();
+                             cbIter != colorBars.end();
+                             cbIter++) {
+                            AnnotationColorBar* cb = *cbIter;
+                            if (cb->getCoordinateSpace() == drawingCoordinateSpace) {
+                                switch  (cb->getPositionMode()) {
+                                    case AnnotationColorBarPositionModeEnum::AUTO:
+                                    {
+                                        /*
+                                         * Note: Y is incremented twice.  Once to move colorbar
+                                         * so that the colorbars bottom is just above the previous
+                                         * colorbar or bottom of screen.  Second time to move the
+                                         * Y to the top of this annotation.
+                                         */
+                                        const float halfHeight = cb->getHeight() / 2.0;
+                                        y += halfHeight;
+                                        float xyz[3];
+                                        cb->getCoordinate()->getXYZ(xyz);
+                                        xyz[0] = x;
+                                        xyz[1] = y;
+                                        cb->getCoordinate()->setXYZ(xyz);
+                                        y += halfHeight;
                                     }
+                                        break;
+                                    case AnnotationColorBarPositionModeEnum::USER:
+                                        break;
                                 }
                             }
-                            annotationsFromFile.insert(annotationsFromFile.end(),
-                                                       colorBars.begin(),
-                                                       colorBars.end());
                         }
+                        annotationsFromFile.insert(annotationsFromFile.end(),
+                                                   colorBars.begin(),
+                                                   colorBars.end());
                     }
                 }
                     break;
@@ -1103,10 +1098,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
             textHeight     = totalHeight - sectionsHeight;
         }
         
-        const float sectionsHeightInPixels = (static_cast<float>(m_tabViewport[3])
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        const float viewportHeight = viewport[3];
+        
+        const float sectionsHeightInPixels = (static_cast<float>(m_modelSpaceViewport[3])
                                               * (sectionsHeight
                                                  / 100.0));
-        const float textHeightInPixels = (static_cast<float>(m_tabViewport[3])
+        const float textHeightInPixels = (static_cast<float>(m_modelSpaceViewport[3])
                                               * (textHeight
                                                  / 100.0));
         
@@ -1543,7 +1542,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
                                                             const float topLeft[3],
                                                             const float textHeightInPixels)
 {
-    const float textPercentageHeight = (textHeightInPixels / m_tabViewport[3]) * 100.0;
+    const float textPercentageHeight = (textHeightInPixels / m_modelSpaceViewport[3]) * 100.0;
     
     AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
     annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
