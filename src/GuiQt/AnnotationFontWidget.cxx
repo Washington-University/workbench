@@ -210,7 +210,7 @@ m_browserWindowIndex(browserWindowIndex)
             QLabel* sizeLabel = new QLabel("Size");
             
             QGridLayout* gridLayout = new QGridLayout(this);
-            WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
+            WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
             gridLayout->addWidget(fontLabel, 0, 0);
             gridLayout->addWidget(m_fontNameComboBox->getWidget(), 0, 1);
             gridLayout->addWidget(sizeLabel, 1, 0);

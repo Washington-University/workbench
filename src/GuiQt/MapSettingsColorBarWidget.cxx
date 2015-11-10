@@ -38,6 +38,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "Overlay.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -86,19 +87,18 @@ MapSettingsColorBarWidget::MapSettingsColorBarWidget(QWidget* parent)
     m_colorWidget = new AnnotationColorWidget(AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET,
                                               browserWindowIndex);
     
-    QHBoxLayout* positionModeLayout = new QHBoxLayout();
-    positionModeLayout->addWidget(positionModeLabel);
-    positionModeLayout->addWidget(m_annotationColorBarPositionModeEnumComboBox->getWidget());
-    positionModeLayout->addStretch();
-    
-    QHBoxLayout* coordSpaceLayout = new QHBoxLayout();
-    coordSpaceLayout->addWidget(coordinateSpaceLabel);
-    coordSpaceLayout->addWidget(m_annotationCoordinateSpaceEnumComboBox->getWidget());
-    coordSpaceLayout->addStretch();
+    QWidget* modeSpaceWidget = new QWidget();
+    modeSpaceWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QGridLayout* modeSpaceLayout = new QGridLayout(modeSpaceWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(modeSpaceLayout, 4, 2);
+    modeSpaceLayout->addWidget(coordinateSpaceLabel, 0, 0);
+    modeSpaceLayout->addWidget(m_annotationCoordinateSpaceEnumComboBox->getWidget(), 0, 1);
+    modeSpaceLayout->addWidget(positionModeLabel, 1, 0);
+    modeSpaceLayout->addWidget(m_annotationColorBarPositionModeEnumComboBox->getWidget(), 1, 1);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addLayout(positionModeLayout);
-    layout->addLayout(coordSpaceLayout);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 6);
+    layout->addWidget(modeSpaceWidget);
     layout->addWidget(m_coordinateWidget);
     layout->addWidget(m_widthHeightWidget);
     layout->addWidget(m_fontWidget);

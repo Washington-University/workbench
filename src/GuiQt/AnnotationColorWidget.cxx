@@ -69,11 +69,23 @@ AnnotationColorWidget::AnnotationColorWidget(const AnnotationWidgetParentEnum::E
 m_parentWidgetType(parentWidgetType),
 m_browserWindowIndex(browserWindowIndex)
 {
-    QLabel* backLabel      = new QLabel("Fill");
-    QLabel* backColorLabel = new QLabel("Color");
-    QLabel* lineLabel      = new QLabel("Line");
-    QLabel* lineColorLabel = new QLabel("Color");
-    QLabel* lineWidthLabel = new QLabel("Width");
+    
+    QLabel* backFillLabel      = new QLabel("Fill");
+    QLabel* backFillColorLabel = new QLabel("Color");
+    QLabel* foreLineLabel      = new QLabel("Line");
+    QLabel* foreLineColorLabel = new QLabel("Color");
+    
+    QLabel* lineWidthLabel = NULL;
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            lineWidthLabel = new QLabel("Width");
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            backFillLabel->setText("Background");
+            foreLineLabel->setText("Text");
+            break;
+    }
+    
     
     const QSize toolButtonSize(16, 16);
     
@@ -100,8 +112,8 @@ m_browserWindowIndex(browserWindowIndex)
      * Widget/object group for background widgets
      */
     m_backgroundWidgetGroup = new WuQWidgetObjectGroup(this);
-    m_backgroundWidgetGroup->add(backLabel);
-    m_backgroundWidgetGroup->add(backColorLabel);
+    m_backgroundWidgetGroup->add(backFillLabel);
+    m_backgroundWidgetGroup->add(backFillColorLabel);
     m_backgroundWidgetGroup->add(m_backgroundToolButton);
     
     /*
@@ -129,50 +141,86 @@ m_browserWindowIndex(browserWindowIndex)
     float minimumLineWidth = 0.0;
     float maximumLineWidth = 1.0;
     
-    BrainOpenGL::getMinMaxLineWidth(minimumLineWidth,
-                                    maximumLineWidth);
-    minimumLineWidth = std::max(minimumLineWidth, 1.0f);
-    m_foregroundThicknessSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minimumLineWidth,
-                                                                                                  maximumLineWidth,
-                                                                                                  1.0,
-                                                                                                  0,
-                                                                                                  this,
-                                                                                                  SLOT(foregroundThicknessSpinBoxValueChanged(double)));
-    WuQtUtilities::setWordWrappedToolTip(m_foregroundThicknessSpinBox,
-                                         "Adjust the line thickness");
-    m_foregroundThicknessSpinBox->setFixedWidth(45);
+    m_foregroundThicknessSpinBox = NULL;
+    if (lineWidthLabel != NULL) {
+        BrainOpenGL::getMinMaxLineWidth(minimumLineWidth,
+                                        maximumLineWidth);
+        minimumLineWidth = std::max(minimumLineWidth, 1.0f);
+        m_foregroundThicknessSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minimumLineWidth,
+                                                                                                      maximumLineWidth,
+                                                                                                      1.0,
+                                                                                                      0,
+                                                                                                      this,
+                                                                                                      SLOT(foregroundThicknessSpinBoxValueChanged(double)));
+        WuQtUtilities::setWordWrappedToolTip(m_foregroundThicknessSpinBox,
+                                             "Adjust the line thickness");
+        m_foregroundThicknessSpinBox->setFixedWidth(45);
+    }
+    
+
+    QGridLayout* gridLayout = new QGridLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
+    
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+        {
+            CaretAssert(lineWidthLabel);
+            gridLayout->addWidget(foreLineLabel,
+                                  0, 0,
+                                  1, 2,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(lineWidthLabel,
+                                  1, 0,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(foreLineColorLabel,
+                                  1, 1,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(m_foregroundThicknessSpinBox,
+                                  2, 0,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(m_foregroundToolButton,
+                                  2, 1,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(backFillLabel,
+                                  0, 2,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(backFillColorLabel,
+                                  1, 2,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(m_backgroundToolButton,
+                                  2, 2,
+                                  Qt::AlignHCenter);
+        }
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+        {
+            CaretAssert(lineWidthLabel == NULL);
+            
+            gridLayout->addWidget(foreLineLabel,
+                                  0, 0,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(foreLineColorLabel,
+                                  1, 0,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(m_foregroundToolButton,
+                                  2, 0,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(backFillLabel,
+                                  0, 1,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(backFillColorLabel,
+                                  1, 1,
+                                  Qt::AlignHCenter);
+            gridLayout->addWidget(m_backgroundToolButton,
+                                  2, 1,
+                                  Qt::AlignHCenter);
+        }
+            break;
+    }
     
     /*
      * Layout widgets
      */
-    QGridLayout* gridLayout = new QGridLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
-    gridLayout->addWidget(lineLabel,
-                          0, 0,
-                          1, 2,
-                          Qt::AlignHCenter);
-    gridLayout->addWidget(lineWidthLabel,
-                          1, 0,
-                          Qt::AlignHCenter);
-    gridLayout->addWidget(lineColorLabel,
-                          1, 1,
-                          Qt::AlignHCenter);
-    gridLayout->addWidget(m_foregroundThicknessSpinBox,
-                          2, 0,
-                          Qt::AlignHCenter);
-    gridLayout->addWidget(m_foregroundToolButton,
-                          2, 1,
-                          Qt::AlignHCenter);
-    gridLayout->addWidget(backLabel,
-                          0, 2,
-                          Qt::AlignHCenter);
-    gridLayout->addWidget(backColorLabel,
-                          1, 2,
-                          Qt::AlignHCenter);
-    gridLayout->addWidget(m_backgroundToolButton,
-                          2, 2,
-                          Qt::AlignHCenter);
-
     backgroundColorSelected(CaretColorEnum::WHITE);
     foregroundColorSelected(CaretColorEnum::BLACK);
     
@@ -271,7 +319,6 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
                 }
                 break;
         }
-        
     }
 
     updateBackgroundColorButton();
@@ -575,6 +622,10 @@ AnnotationColorWidget::foregroundThicknessSpinBoxValueChanged(double value)
 void
 AnnotationColorWidget::updateForegroundThicknessSpinBox()
 {
+    if (m_foregroundThicknessSpinBox == NULL) {
+        return;
+    }
+    
     float lineWidthValue = 1.0;
     bool  lineWidthValid = false;
     bool  haveMultipleLineWidthValues = false;
