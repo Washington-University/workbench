@@ -31,7 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::AnnotationColorBarPositionModeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Enumerated type for positioning of color bar
  *
  * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
@@ -108,13 +108,13 @@ AnnotationColorBarPositionModeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(AnnotationColorBarPositionModeEnum(AUTO, 
-                                    "AUTO", 
-                                    "Auto"));
+    enumData.push_back(AnnotationColorBarPositionModeEnum(AUTOMATIC,
+                                    "AUTOMATIC",
+                                    "Automatic"));
     
-    enumData.push_back(AnnotationColorBarPositionModeEnum(USER, 
-                                    "USER", 
-                                    "User"));
+    enumData.push_back(AnnotationColorBarPositionModeEnum(MANUAL,
+                                    "MANUAL",
+                                    "Manual"));
     
 }
 
@@ -167,9 +167,17 @@ AnnotationColorBarPositionModeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 AnnotationColorBarPositionModeEnum::Enum 
-AnnotationColorBarPositionModeEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationColorBarPositionModeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    
+    AString name(nameIn);
+    if (name == "USER") {
+        name = AnnotationColorBarPositionModeEnum::toName(MANUAL);
+    }
+    if (name == "AUTO") {
+        name = AnnotationColorBarPositionModeEnum::toName(AUTOMATIC);
+    }
     
     bool validFlag = false;
     Enum enumValue = AnnotationColorBarPositionModeEnum::enumData[0].enumValue;

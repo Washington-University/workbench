@@ -66,14 +66,26 @@ AnnotationWidthHeightWidget::AnnotationWidthHeightWidget(const AnnotationWidgetP
 m_parentWidgetType(parentWidgetType),
 m_browserWindowIndex(browserWindowIndex)
 {
-    QLabel* widthLabel = new QLabel(" W:");
+    QString widthLabelText;
+    QString heightLabelText;
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            widthLabelText  = " W:";
+            heightLabelText = " H:";
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            widthLabelText  = "Width ";
+            heightLabelText = "Height ";
+            break;
+    }
+    QLabel* widthLabel = new QLabel(widthLabelText);
     m_widthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 1.0, 1,
                                                                                     this, SLOT(widthValueChanged(double)));
     m_widthSpinBox->setSuffix("%");
     WuQtUtilities::setWordWrappedToolTip(m_widthSpinBox,
                                          "Percentage width of 2D Shapes (Box, Image, Oval)");
 
-    QLabel* heightLabel = new QLabel(" H:");
+    QLabel* heightLabel = new QLabel(heightLabelText);
     m_heightSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 1.0, 1,
                                                                                     this, SLOT(heightValueChanged(double)));
     m_heightSpinBox->setSuffix("%");

@@ -595,7 +595,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                             AnnotationColorBar* cb = *cbIter;
                             if (cb->getCoordinateSpace() == drawingCoordinateSpace) {
                                 switch  (cb->getPositionMode()) {
-                                    case AnnotationColorBarPositionModeEnum::AUTO:
+                                    case AnnotationColorBarPositionModeEnum::AUTOMATIC:
                                     {
                                         /*
                                          * Note: Y is incremented twice.  Once to move colorbar
@@ -613,7 +613,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                                         y += halfHeight;
                                     }
                                         break;
-                                    case AnnotationColorBarPositionModeEnum::USER:
+                                    case AnnotationColorBarPositionModeEnum::MANUAL:
                                         break;
                                 }
                             }

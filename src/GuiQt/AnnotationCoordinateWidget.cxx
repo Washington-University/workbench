@@ -74,7 +74,18 @@ m_parentWidgetType(parentWidgetType),
 m_whichCoordinate(whichCoordinate),
 m_browserWindowIndex(browserWindowIndex)
 {
+
     m_annotation = NULL;
+
+    QString colonString;
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            colonString = ":";
+            break;
+        case AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET:
+            colonString = " ";
+            break;
+    }
     
     QLabel* surfaceVertexLabel = new QLabel("Vertex:");
     m_surfaceStructureComboBox = new StructureEnumComboBox(this);
@@ -98,7 +109,7 @@ m_browserWindowIndex(browserWindowIndex)
                      this, SLOT(valueChanged()));
     
     const int digitsRightOfDecimal = 1;
-    QLabel* xCoordLabel = new QLabel(" X:");
+    QLabel* xCoordLabel = new QLabel(" X" + colonString);
     m_xCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 0.1, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_xCoordSpinBox,
@@ -108,7 +119,7 @@ m_browserWindowIndex(browserWindowIndex)
                                          "      0.0 => Left side of tab/window\n"
                                          "      100.0 => Right side of tab/window\n");
     
-    QLabel* yCoordLabel = new QLabel(" Y:");
+    QLabel* yCoordLabel = new QLabel(" Y" + colonString);
     m_yCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 0.1, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_yCoordSpinBox,
@@ -118,7 +129,7 @@ m_browserWindowIndex(browserWindowIndex)
                                          "      0.0 => Bottom of tab/window\n"
                                          "      100.0 => Top of tab/window\n");
     
-    QLabel* zCoordLabel = new QLabel(" Z:");
+    QLabel* zCoordLabel = new QLabel(" Z" + colonString);
     m_zCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-100.0, 100.0, 0.1, digitsRightOfDecimal,
                                                                                      this, SLOT(valueChanged()));
     WuQtUtilities::setWordWrappedToolTip(m_zCoordSpinBox,

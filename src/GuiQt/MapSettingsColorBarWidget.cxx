@@ -23,6 +23,7 @@
 #include "MapSettingsColorBarWidget.h"
 #undef __MAP_SETTINGS_COLOR_BAR_WIDGET_DECLARE__
 
+#include <QGroupBox>
 #include <QLabel>
 #include <QVBoxLayout>
 
@@ -58,21 +59,30 @@ MapSettingsColorBarWidget::MapSettingsColorBarWidget(QWidget* parent)
 {
     const int32_t browserWindowIndex = 0;
     
-    QLabel* positionModeLabel = new QLabel("Position Mode");
+    QLabel* positionModeLabel = new QLabel("Location (XYZ)");
     m_annotationColorBarPositionModeEnumComboBox = new EnumComboBoxTemplate(this);
     m_annotationColorBarPositionModeEnumComboBox->setup<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>();
     QObject::connect(m_annotationColorBarPositionModeEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(annotationColorBarPositionModeEnumComboBoxItemActivated()));
+    m_annotationColorBarPositionModeEnumComboBox->getWidget()->setToolTip("AUTOMATIC - color bars are stacked\n"
+                                                                          "   in lower left corner of Tab/Window\n"
+                                                                          "MANUAL - user must set the X and Y\n"
+                                                                          "   coordinates in the Tab/Window\n");
     
     std::vector<AnnotationCoordinateSpaceEnum::Enum> supportedSpaces;
     supportedSpaces.push_back(AnnotationCoordinateSpaceEnum::TAB);
     supportedSpaces.push_back(AnnotationCoordinateSpaceEnum::WINDOW);
     
-    QLabel* coordinateSpaceLabel = new QLabel("Coordinate Space");
+    QLabel* coordinateSpaceLabel = new QLabel("Show Color Bar in ");
     m_annotationCoordinateSpaceEnumComboBox = new EnumComboBoxTemplate(this);
     m_annotationCoordinateSpaceEnumComboBox->setupWithItems<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>(supportedSpaces);
     QObject::connect(m_annotationCoordinateSpaceEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(annotationCoordinateSpaceEnumComboBoxItemActivated()));
+    m_annotationCoordinateSpaceEnumComboBox->getWidget()->setToolTip("TAB - Restricts location of colorbar\n"
+                                                                     "   to within its respective tab's\n"
+                                                                     "   region in the graphics area\n"
+                                                                     "WINDOW - Allows colorbar in any\n"
+                                                                     "   location in the graphics area");
     
     m_coordinateWidget = new AnnotationCoordinateWidget(AnnotationWidgetParentEnum::COLOR_BAR_EDITOR_WIDGET,
                                                         AnnotationCoordinateWidget::COORDINATE_ONE,
@@ -88,21 +98,30 @@ MapSettingsColorBarWidget::MapSettingsColorBarWidget(QWidget* parent)
                                               browserWindowIndex);
     
     QWidget* modeSpaceWidget = new QWidget();
-    modeSpaceWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     QGridLayout* modeSpaceLayout = new QGridLayout(modeSpaceWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(modeSpaceLayout, 4, 2);
+    modeSpaceLayout->setContentsMargins(0, 0, 0, 0);
     modeSpaceLayout->addWidget(coordinateSpaceLabel, 0, 0);
     modeSpaceLayout->addWidget(m_annotationCoordinateSpaceEnumComboBox->getWidget(), 0, 1);
     modeSpaceLayout->addWidget(positionModeLabel, 1, 0);
     modeSpaceLayout->addWidget(m_annotationColorBarPositionModeEnumComboBox->getWidget(), 1, 1);
     
+    QGroupBox* locationAndDimGroupBox = new QGroupBox("Location and Dimensions");
+    QVBoxLayout* locationAndDimLayout = new QVBoxLayout(locationAndDimGroupBox);
+    locationAndDimLayout->setContentsMargins(0, 0, 0, 0);
+    locationAndDimLayout->setSpacing(2);
+    locationAndDimLayout->addWidget(modeSpaceWidget, 0, Qt::AlignLeft);
+    locationAndDimLayout->addWidget(m_coordinateWidget, 0, Qt::AlignLeft);
+    locationAndDimLayout->addWidget(m_widthHeightWidget, 0, Qt::AlignLeft);
+    
+    QGroupBox* fontGroupBox = new QGroupBox("Font and Colors");
+    QVBoxLayout* fontGroupLayout = new QVBoxLayout(fontGroupBox);
+    fontGroupLayout->addWidget(m_fontWidget);
+    fontGroupLayout->addWidget(m_colorWidget);
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 6);
-    layout->addWidget(modeSpaceWidget);
-    layout->addWidget(m_coordinateWidget);
-    layout->addWidget(m_widthHeightWidget);
-    layout->addWidget(m_fontWidget);
-    layout->addWidget(m_colorWidget);
+    layout->addWidget(locationAndDimGroupBox, 0, Qt::AlignLeft);
+    layout->addWidget(fontGroupBox, 0, Qt::AlignLeft);
     layout->addStretch();
 
     setSizePolicy(QSizePolicy::Fixed,
@@ -156,18 +175,14 @@ MapSettingsColorBarWidget::updateContent(Overlay* overlay)
                 
                 bool enableSelections = false;
                 switch (positionMode) {
-                    case AnnotationColorBarPositionModeEnum::AUTO:
+                    case AnnotationColorBarPositionModeEnum::AUTOMATIC:
                         break;
-                    case AnnotationColorBarPositionModeEnum::USER:
+                    case AnnotationColorBarPositionModeEnum::MANUAL:
                         enableSelections = true;
                         break;
                 }
                 
-                m_annotationCoordinateSpaceEnumComboBox->getWidget()->setEnabled(enableSelections);
                 m_coordinateWidget->setEnabled(enableSelections);
-                m_widthHeightWidget->setEnabled(enableSelections);
-                m_fontWidget->setEnabled(enableSelections);
-                m_colorWidget->setEnabled(enableSelections);
                 
                 enableWidget = true;
             }

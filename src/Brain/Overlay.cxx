@@ -72,7 +72,7 @@ m_includeVolumeFiles(includeVolumeFiles)
     m_wholeBrainVoxelDrawingMode = WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES;
     
     m_colorBar = new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL);
-    m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+    m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_opacity", &m_opacity);

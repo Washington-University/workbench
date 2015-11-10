@@ -135,7 +135,7 @@ AnnotationColorBar::reset()
     setHeight(10.0);
     m_fontPercentViewportHeight = 3.33;
     m_fontName      = AnnotationTextFontNameEnum::getDefaultFontName();
-    m_positionMode  = AnnotationColorBarPositionModeEnum::AUTO;
+    m_positionMode  = AnnotationColorBarPositionModeEnum::AUTOMATIC;
     m_displayedFlag = false;
     
     setForegroundColor(CaretColorEnum::WHITE);
