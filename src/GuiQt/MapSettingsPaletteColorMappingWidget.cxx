@@ -836,14 +836,14 @@ MapSettingsPaletteColorMappingWidget::createHistogramSection()
     /*
      * Allow zooming
      */
-    PlotMagnifier* magnifier = new PlotMagnifier(this->thresholdPlot->canvas());
+    PlotMagnifier* magnifier = new PlotMagnifier(qobject_cast<QwtPlotCanvas*>(this->thresholdPlot->canvas()));
     magnifier->setAxisEnabled(QwtPlot::yLeft, true);
     magnifier->setAxisEnabled(QwtPlot::yRight, true);
     
     /*
      * Allow panning
      */
-    (void)new PlotPanner(this->thresholdPlot->canvas());
+    (void)new PlotPanner(qobject_cast<QwtPlotCanvas*>(this->thresholdPlot->canvas()));
     
     /*
      * Auto scaling
@@ -1944,8 +1944,8 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             switch (this->paletteColorMapping->getThresholdTest()) {
                 case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
                 {
-                    const float plotMinValue = this->thresholdPlot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
-                    const float plotMaxValue = this->thresholdPlot->axisScaleDiv(QwtPlot::xBottom)->upperBound();
+                    const float plotMinValue = this->thresholdPlot->axisScaleDiv(QwtPlot::xBottom).lowerBound();
+                    const float plotMaxValue = this->thresholdPlot->axisScaleDiv(QwtPlot::xBottom).upperBound();
                     
                     /* 
                      * Draw shaded region to left of minimum threshold

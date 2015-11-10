@@ -83,7 +83,6 @@
 #include "Matrix4x4.h"
 
 #ifdef HAVE_FREETYPE
-#include <FtglConfig.h>
 #include <FTGL/ftgl.h>
 using namespace FTGL;
 #endif // HAVE_FREETYPE

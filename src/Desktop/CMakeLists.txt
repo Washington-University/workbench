@@ -91,10 +91,10 @@ Commands
 Operations
 Algorithms
 OperationsBase
-Qwt
+${Qwt_LIBRARIES}
 OSMesaDummy
 Brain
-${FTGL_FONT_MODULE_FOR_LINKING}
+${FTGL_LIBRARIES}
 Files
 Annotations
 Charting
@@ -106,7 +106,7 @@ FilesBase
 Scenes
 Xml
 Common
-Quazip
+${QUAZIP_LIBRARIES}
 ${FREETYPE_LIBRARIES}
 ${QT_LIBRARIES}
 ${ZLIB_LIBRARIES}
@@ -168,7 +168,7 @@ ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
-${CMAKE_SOURCE_DIR}/Qwt
+${Qwt_INCLUDE_DIRS}
 ${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common

@@ -207,6 +207,18 @@ ENDIF(QT4_FOUND)
 INCLUDE(${QT_USE_FILE})
 
 #
+# Try to find Qwt, utherwise use bundle
+#
+PKG_CHECK_MODULES(Qwt qwt)
+IF (Qwt_FOUND)
+    MESSAGE("Qwt library found")
+    MESSAGE("   INCLUDES ${Qwt_INCLUDE_DIRS}")
+    MESSAGE("   LIBS ${Qwt_LIBRARIES}")
+ELSE (Qwt_FOUND)
+    MESSAGE("Qwt library not found, using bundled")
+ENDIF (Qwt_FOUND)
+
+#
 # The Find OpenMP package may not work on all systems and the user may
 # furnish the paths to the OpenMP files by using environment variables.
 #
@@ -281,13 +293,24 @@ ELSE (ZLIB_FOUND)
 ENDIF (ZLIB_FOUND)
 
 #
-# Quazip needs this defined here for static linking on windows
+# Try to find QuaZip, otherwise use bundled
 #
-IF(WIN32)
-   IF(MSVC)
-      ADD_DEFINITIONS(-DQUAZIP_STATIC)
-   ENDIF(MSVC)
-ENDIF(WIN32)
+FIND_PACKAGE(QuaZip)
+IF (QUAZIP_FOUND)
+  MESSAGE("QuaZip library found")
+  MESSAGE("   INCLUDES ${QUAZIP_INCLUDE_DIRS}")
+  MESSAGE("   LIBS ${QUAZIP_LIBRARIES}")
+ELSE (QUAZIP_FOUND)
+    MESSAGE("QuaZip library not found, using bundled")
+    #
+    # Quazip needs this defined here for static linking on windows
+    #
+    IF(WIN32)
+        IF(MSVC)
+            ADD_DEFINITIONS(-DQUAZIP_STATIC)
+        ENDIF(MSVC)
+     ENDIF(WIN32)
+ENDIF (QUAZIP_FOUND)
 
 #
 # Find FreeType
@@ -296,12 +319,20 @@ SET(FTGL_FONT_MODULE_FOR_LINKING "")
 
 FIND_PACKAGE(Freetype)
 IF (FREETYPE_FOUND)
-    SET (FTGL_FONT_MODULE_FOR_LINKING FtglFont)
     MESSAGE("FreeType library found")
     MESSAGE("   INCLUDES ${FREETYPE_INCLUDE_DIRS}")
     MESSAGE("   INCLUDES_FT2_BUILD ${FREETYPE_INCLUDE_DIR_ft2build}")
     MESSAGE("   INCLUDES_FT2 ${FREETYPE_INCLUDE_DIR_freetype2}")
     MESSAGE("   LIBS ${FREETYPE_LIBRARIES}")
+
+    PKG_CHECK_MODULES(FTGL ftgl)
+    IF (FTGL_FOUND)
+        MESSAGE("FTGL library found")
+        MESSAGE("   INCLUDES ${FTGL_INCLUDE_DIRS}")
+        MESSAGE("   LIBS ${FTGL_LIBRARIES}")
+    ELSE (FTGL_FOUND)
+        MESSAGE("FTGL library not found, using bundled")
+    ENDIF (FTGL_FOUND)
 
     ADD_DEFINITIONS(-DHAVE_FREETYPE)
 ELSE (FREETYPE_FOUND)
@@ -390,14 +421,16 @@ MESSAGE("")
 #
 # All subdirectories that will be configured for building
 #
-ADD_SUBDIRECTORY ( Quazip )
+IF (NOT QUAZIP_FOUND)
+  ADD_SUBDIRECTORY ( Quazip )
+ENDIF (NOT QUAZIP_FOUND)
 ADD_SUBDIRECTORY ( Common )
 ADD_SUBDIRECTORY ( Xml )
 ADD_SUBDIRECTORY ( Scenes )
 ADD_SUBDIRECTORY ( OSMesaDummy )
-IF (FREETYPE_FOUND)
+IF (FREETYPE_FOUND AND NOT FTGL_FOUND)
     ADD_SUBDIRECTORY ( FtglFont )
-ENDIF (FREETYPE_FOUND)
+ENDIF (FREETYPE_FOUND AND NOT FTGL_FOUND)
 ADD_SUBDIRECTORY ( Annotations )
 ADD_SUBDIRECTORY ( Charting )
 ADD_SUBDIRECTORY ( Palette )
@@ -410,7 +443,9 @@ ADD_SUBDIRECTORY ( OperationsBase )
 ADD_SUBDIRECTORY ( Algorithms )
 ADD_SUBDIRECTORY ( Operations )
 ADD_SUBDIRECTORY ( Brain )
-ADD_SUBDIRECTORY ( Qwt )
+IF (NOT Qwt_FOUND)
+    ADD_SUBDIRECTORY ( Qwt )
+ENDIF (NOT Qwt_FOUND)
 ADD_SUBDIRECTORY ( GuiQt )
 ADD_SUBDIRECTORY ( Commands )
 ADD_SUBDIRECTORY ( Desktop )
