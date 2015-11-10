@@ -209,7 +209,9 @@ INCLUDE(${QT_USE_FILE})
 #
 # Try to find Qwt, utherwise use bundle
 #
-PKG_CHECK_MODULES(Qwt qwt)
+IF (NOT WIN32)
+    PKG_CHECK_MODULES(Qwt qwt)
+ENDIF (NOT WIN32)
 IF (Qwt_FOUND)
     MESSAGE("Qwt library found")
     MESSAGE("   INCLUDES ${Qwt_INCLUDE_DIRS}")
@@ -325,7 +327,9 @@ IF (FREETYPE_FOUND)
     MESSAGE("   INCLUDES_FT2 ${FREETYPE_INCLUDE_DIR_freetype2}")
     MESSAGE("   LIBS ${FREETYPE_LIBRARIES}")
 
-    PKG_CHECK_MODULES(FTGL ftgl)
+    IF (NOT WIN32)
+        PKG_CHECK_MODULES(FTGL ftgl)
+    ENDIF (NOT WIN32)
     IF (FTGL_FOUND)
         MESSAGE("FTGL library found")
         MESSAGE("   INCLUDES ${FTGL_INCLUDE_DIRS}")
