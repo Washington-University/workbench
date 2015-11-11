@@ -222,7 +222,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
     this->thresholdNegMinPosMaxLinked = false;
     this->numericFormatMode = NumericFormatModeEnum::AUTO;
-    this->precisionDigits = 0;
+    this->precisionDigits = 2;
     this->numericSubdivisionCount = 0;
     this->modifiedFlag = false;
     this->colorBarValuesMode = PaletteColorBarValuesModeEnum::DATA;
