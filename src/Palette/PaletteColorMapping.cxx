@@ -1788,6 +1788,12 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
     positiveValues.push_back(posMax);
     
     /*
+     * Wil need to override these values when percentile
+     */
+    NumericFormatModeEnum::Enum numericFormatModeForTextFormatting = this->numericFormatMode;
+    int32_t precisionDigitsForTextFormatting = this->precisionDigits;
+    
+    /*
      * Processing for percentile mode
      * Convert numeric values to percentiles
      */
@@ -1807,6 +1813,12 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
                 const float percentile = statistics->getNegativeValuePercentile(*iter);
                 *iter = percentile;
             }
+            
+            /*
+             * Decimal mode integers for percentile
+             */
+            numericFormatModeForTextFormatting = NumericFormatModeEnum::DECIMAL;
+            precisionDigitsForTextFormatting = 0;
             break;
         case PaletteColorBarValuesModeEnum::SIGN_ONLY:
             CaretAssertMessage(0, "Should never get here.  Sign only handled above");
@@ -1818,8 +1830,8 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      */
     const int32_t numberOfNegValues = static_cast<int32_t>(negativeValues.size());
     std::vector<AString> negativeValuesText(numberOfNegValues);
-    NumericTextFormatting::formatValueRange(this->numericFormatMode,
-                                            this->precisionDigits,
+    NumericTextFormatting::formatValueRange(numericFormatModeForTextFormatting,
+                                            precisionDigitsForTextFormatting,
                                             &negativeValues[0],
                                             &negativeValuesText[0],
                                             numberOfNegValues);
@@ -1829,8 +1841,8 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      */
     const int32_t numberOfPosValues = static_cast<int32_t>(positiveValues.size());
     std::vector<AString> positiveValuesText(numberOfPosValues);
-    NumericTextFormatting::formatValueRange(this->numericFormatMode,
-                                            this->precisionDigits,
+    NumericTextFormatting::formatValueRange(numericFormatModeForTextFormatting,
+                                            precisionDigitsForTextFormatting,
                                             &positiveValues[0],
                                             &positiveValuesText[0],
                                             numberOfPosValues);
