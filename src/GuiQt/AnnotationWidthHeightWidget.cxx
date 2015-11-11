@@ -79,14 +79,14 @@ m_browserWindowIndex(browserWindowIndex)
             break;
     }
     QLabel* widthLabel = new QLabel(widthLabelText);
-    m_widthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 1.0, 1,
+    m_widthSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 0.1, 1,
                                                                                     this, SLOT(widthValueChanged(double)));
     m_widthSpinBox->setSuffix("%");
     WuQtUtilities::setWordWrappedToolTip(m_widthSpinBox,
                                          "Percentage width of 2D Shapes (Box, Image, Oval)");
 
     QLabel* heightLabel = new QLabel(heightLabelText);
-    m_heightSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 1.0, 1,
+    m_heightSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 0.1, 1,
                                                                                     this, SLOT(heightValueChanged(double)));
     m_heightSpinBox->setSuffix("%");
     WuQtUtilities::setWordWrappedToolTip(m_heightSpinBox,
