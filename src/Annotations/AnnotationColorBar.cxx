@@ -132,7 +132,7 @@ AnnotationColorBar::reset()
 {
     
     setWidth(25.0);
-    setHeight(10.0);
+    setHeight(7.0);
     m_fontPercentViewportHeight = 3.33;
     m_fontName      = AnnotationTextFontNameEnum::getDefaultFontName();
     m_positionMode  = AnnotationColorBarPositionModeEnum::AUTOMATIC;

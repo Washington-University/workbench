@@ -587,7 +587,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                      * Note: Positions are in percentages ranging [0.0, 100.0]
                      */
                     float x = 14.0;
-                    float y = 6.0;
+                    float y = 4.0;
+                    bool firstColorBarFlag = true;
                     if ( ! colorBars.empty()) {
                         for (std::vector<AnnotationColorBar*>::iterator cbIter = colorBars.begin();
                              cbIter != colorBars.end();
@@ -604,7 +605,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                                          * Y to the top of this annotation.
                                          */
                                         const float halfHeight = cb->getHeight() / 2.0;
-                                        y += halfHeight;
+                                        if (firstColorBarFlag) {
+                                            firstColorBarFlag = false;
+                                            y = 4;
+                                            if (halfHeight > y) {
+                                                y = halfHeight;
+                                            }
+                                        }
+                                        else {
+                                            y += halfHeight;
+                                        }
+                                        
                                         float xyz[3];
                                         cb->getCoordinate()->getXYZ(xyz);
                                         xyz[0] = x;
