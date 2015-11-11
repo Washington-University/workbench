@@ -1174,7 +1174,7 @@ void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const AnnotationColorBar* colorBar,
                                                                 const float bottomLeft[3],
                                                                 const float bottomRight[3],
-                                                                const float topRight[3],
+                                                                const float*  /* const float topRight[3]*/,
                                                                 const float topLeft[3],
                                                                 const float sectionsHeightInPixels)
 {
@@ -1550,7 +1550,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColorBar* colorBar,
                                                             const float bottomLeft[3],
-                                                            const float bottomRight[3],
+                                                            const float* /*const float bottomRight[3]*/,
                                                             const float topRight[3],
                                                             const float topLeft[3],
                                                             const float textHeightInPixels,
@@ -1589,8 +1589,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
     const float xTopLeft  = (bottomLeft[0] + (bottomToTopUnitVector[0] * distanceBottomToTopWithOffset));
     const float yTopLeft  = (bottomLeft[1] + (bottomToTopUnitVector[1] * distanceBottomToTopWithOffset));
     
-    const float xTopRight = (bottomRight[0] + (bottomToTopUnitVector[0] * distanceBottomToTopWithOffset));
-    const float yTopRight = (bottomRight[1] + (bottomToTopUnitVector[1] * distanceBottomToTopWithOffset));
+//    const float xTopRight = (bottomRight[0] + (bottomToTopUnitVector[0] * distanceBottomToTopWithOffset));
+//    const float yTopRight = (bottomRight[1] + (bottomToTopUnitVector[1] * distanceBottomToTopWithOffset));
     
     float leftToRightVector[3];
     MathFunctions::subtractVectors(topRight,
