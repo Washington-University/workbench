@@ -194,6 +194,8 @@ namespace caret {
         GuiManager(const GuiManager&);
         GuiManager& operator=(const GuiManager&);
         
+        void initializeGuiManager();
+        
         BrainBrowserWindow* newBrainBrowserWindow(QWidget* parent,
                                                   BrowserTabContent* browserTabContent,
                                                   const bool createDefaultTabs);

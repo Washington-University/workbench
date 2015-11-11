@@ -131,6 +131,25 @@ using namespace caret;
 GuiManager::GuiManager(QObject* parent)
 : QObject(parent)
 {
+    /*
+     * This constructor should be called only once.
+     * When the first instance of GuiManager is created,
+     * singletonGuiManager will be NULL.
+     */
+    CaretAssertMessage((GuiManager::singletonGuiManager == NULL),
+                       "There should never be more than one instance of GuiManager.");
+}
+
+/**
+ * Initialize the GUI manager.
+ *
+ * NOTE: This method is NOT called from the constructor.
+ * If there are problems loading some of the images, there will
+ * be calls to GuiManager::get() which results in recursive calls.
+ */
+void
+GuiManager::initializeGuiManager()
+{
     this->nameOfApplication = "Connectome Workbench";
     //this->brainOpenGL = NULL;
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
@@ -298,10 +317,9 @@ GuiManager::~GuiManager()
 GuiManager* 
 GuiManager::get()
 {
-    if (GuiManager::singletonGuiManager == NULL) {
-        GuiManager::singletonGuiManager = new GuiManager();
-        WuQtUtilities::sendListOfResourcesToCaretLogger();
-    }
+    CaretAssertMessage((GuiManager::singletonGuiManager != NULL),
+                       "GuiManager::singletonGuiManager has not been created.  Must call GuiManager::createGuiManager()");
+
     return GuiManager::singletonGuiManager;
 }
 
@@ -315,6 +333,8 @@ GuiManager::createGuiManager()
                        "GUI manager has already been created.");
     
     GuiManager::singletonGuiManager = new GuiManager();
+    GuiManager::singletonGuiManager->initializeGuiManager();
+    WuQtUtilities::sendListOfResourcesToCaretLogger();
 }
 
 /*
