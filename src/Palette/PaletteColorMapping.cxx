@@ -2062,7 +2062,7 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
             break;
     }
     
-    const bool debugFlag = true;
+    const bool debugFlag = false;
     if (debugFlag) {
         const int numItems = static_cast<int32_t>(colorBarNumericTextOut.size());
         std::cout << "Colorbar: " << std::endl;
