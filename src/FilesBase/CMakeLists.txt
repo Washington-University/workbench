@@ -50,6 +50,7 @@ VolumeSpace.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/Annotations
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Common
 ${CMAKE_SOURCE_DIR}/Palette

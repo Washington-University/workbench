@@ -89,6 +89,7 @@ ${CMAKE_SOURCE_DIR}/CommandLine
 ${CMAKE_SOURCE_DIR}/Commands
 ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/Algorithms
+${CMAKE_SOURCE_DIR}/Annotations
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Charting

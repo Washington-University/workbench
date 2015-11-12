@@ -21,10 +21,8 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationTextAlignHorizontalEnum.h"
 #include "CaretObject.h"
-
-
 
 namespace caret {
 
@@ -32,7 +30,9 @@ namespace caret {
         
     public:
         AnnotationColorBarNumericText(const float scalar,
-                                      const AString& numericText);
+                                      const AString& numericText,
+                                      const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment,
+                                      const bool drawTickMarkAtScalar);
         
         virtual ~AnnotationColorBarNumericText();
         
@@ -50,6 +50,24 @@ namespace caret {
          */
         AString getNumericText() const { return m_numericText; }
         
+        /**
+         * Set the numeric text
+         *
+         * @param text
+         *     New text.
+         */
+        void setNumericText(const AString& text) { m_numericText = text; }
+        
+        /**
+         * @return The horizontal alignment for the text
+         */
+        AnnotationTextAlignHorizontalEnum::Enum getHorizontalAlignment() const { return m_horizontalAlignment; }
+        
+        /**
+         * @return Is a tick mark drawn at the scalar value ?
+         */
+        bool isDrawTickMarkAtScalar() const { return m_drawTickMarkAtScalar; }
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -60,6 +78,10 @@ namespace caret {
         float m_scalar;
         
         AString m_numericText;
+        
+        AnnotationTextAlignHorizontalEnum::Enum m_horizontalAlignment;
+        
+        bool m_drawTickMarkAtScalar;
         
         // ADD_NEW_MEMBERS_HERE
 

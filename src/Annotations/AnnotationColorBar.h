@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "AnnotationColorBarPositionModeEnum.h"
+#include "AnnotationTextAlignHorizontalEnum.h"
 #include "AnnotationTextFontNameEnum.h"
 #include "AnnotationTwoDimensionalShape.h"
 
@@ -71,7 +72,9 @@ namespace caret {
         const AnnotationColorBarSection* getSection(const int32_t index) const;
         
         void addNumericText(const float scalar,
-                            const AString& numericText);
+                            const AString& numericText,
+                            const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment,
+                            const bool drawTickMarkAtScalar);
         
         void clearNumericText();
         

@@ -25,6 +25,7 @@
 
 #include "CaretObject.h"
 
+#include "AnnotationColorBarNumericText.h"
 #include "NumericFormatModeEnum.h"
 #include "PaletteColorBarValuesModeEnum.h"
 #include "PaletteEnums.h"
@@ -234,6 +235,9 @@ namespace caret {
         
         void getPaletteColorBarScaleText(const FastStatistics* statistics,
                                          std::vector<std::pair<float, AString> >& normalizedPositionAndTextOut) const;
+        
+        void getPaletteColorBarScaleText(const FastStatistics* statistics,
+                                         std::vector<AnnotationColorBarNumericText*>& colorBarNumericTextOut) const;
         
         /** A positive value near zero - may be zero! */
         static const float SMALL_POSITIVE;

@@ -235,6 +235,7 @@ OverlapLogicEnum.cxx
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Algorithms
+${CMAKE_SOURCE_DIR}/Annotations
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files

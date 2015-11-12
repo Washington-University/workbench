@@ -361,10 +361,14 @@ AnnotationColorBar::getSection(const int32_t index) const
  *     The numeric text.
  */
 void AnnotationColorBar::addNumericText(const float scalar,
-                                        const AString& numericText)
+                                        const AString& numericText,
+                                        const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment,
+                                        const bool drawTickMarkAtScalar)
 {
     m_numericText.push_back(new AnnotationColorBarNumericText(scalar,
-                                                              numericText));
+                                                              numericText,
+                                                              horizontalAlignment,
+                                                              drawTickMarkAtScalar));
 }
 
 /**

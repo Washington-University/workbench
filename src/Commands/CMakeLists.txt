@@ -52,6 +52,7 @@ CommandUnitTest.cxx
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Commands
 ${CMAKE_SOURCE_DIR}/Algorithms
+${CMAKE_SOURCE_DIR}/Annotations
 ${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/OperationsBase

@@ -41,12 +41,20 @@ using namespace caret;
  *     Scalar for position of text.
  * @param numericText
  *     Text that is displayed.
+ * @param horizontalAlignment
+ *     Horizontal alignment for the text.
+ * @param drawTickMarkAtScalar
+ *     If true, a tick mark is drawn at the scalar
  */
 AnnotationColorBarNumericText::AnnotationColorBarNumericText(const float scalar,
-                                                             const AString& numericText)
+                                                             const AString& numericText,
+                                                             const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment,
+                                                             const bool drawTickMarkAtScalar)
 : CaretObject(),
 m_scalar(scalar),
-m_numericText(numericText)
+m_numericText(numericText),
+m_horizontalAlignment(horizontalAlignment),
+m_drawTickMarkAtScalar(drawTickMarkAtScalar)
 {
     
 }
