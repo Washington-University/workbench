@@ -2566,6 +2566,26 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
             glEnable(GL_POLYGON_OFFSET_FILL);
             glPolygonOffset(factor, units);
         }
+        else {
+            /*
+             * A layer may be "under" another layer and not be seen.
+             * Draw all layers at the selected slice coordinate.
+             */
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    startCoordinate[2] = selectedSliceCoordinate;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    startCoordinate[1] = selectedSliceCoordinate;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    startCoordinate[0] = selectedSliceCoordinate;
+                    break;
+            }
+        }
         
         /*
          * Draw the voxels in the slice.
