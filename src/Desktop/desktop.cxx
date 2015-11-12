@@ -109,7 +109,7 @@ messageHandlerForQt(QtMsgType type, const char* msg)
         /*
          * Beep to alert user about an error!!!
          */
-        GuiManager::beep(1);
+        GuiManager::beep();
         
         if (abortFlag) {
             std::abort();

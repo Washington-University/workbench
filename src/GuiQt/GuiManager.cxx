@@ -354,12 +354,9 @@ GuiManager::deleteGuiManager()
  * Beep to alert the user.
  */
 void 
-GuiManager::beep(const int32_t numTimesToBeep)
+GuiManager::beep()
 {
-    for (int32_t i = 0; i < numTimesToBeep; i++) {
-        SystemUtilities::sleepSeconds(0.25);
-        QApplication::beep();
-    }
+    QApplication::beep();
 }
 
 /**
