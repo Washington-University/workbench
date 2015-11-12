@@ -67,6 +67,7 @@
 #include "AlgorithmLabelResample.h"
 #include "AlgorithmLabelToBorder.h"
 #include "AlgorithmMetricDilate.h"
+#include "AlgorithmMetricErode.h"
 #include "AlgorithmMetricEstimateFWHM.h"
 #include "AlgorithmMetricExtrema.h"
 #include "AlgorithmMetricFalseCorrelation.h"
@@ -179,11 +180,13 @@
 #include "OperationMetricWeightedStats.h"
 #include "OperationNiftiInformation.h"
 #include "OperationProbtrackXDotConvert.h"
+#include "OperationSceneFileRelocate.h"
 #include "OperationSetMapName.h"
 #include "OperationSetMapNames.h"
 #include "OperationSetStructure.h"
 #include "OperationShowScene.h"
 #include "OperationSpecFileMerge.h"
+#include "OperationSpecFileRelocate.h"
 #include "OperationSurfaceClosestVertex.h"
 #include "OperationSurfaceCoordinatesToMetric.h"
 #include "OperationSurfaceCutResample.h"
@@ -308,6 +311,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelToBorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricErode()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFalseCorrelation()));
@@ -417,12 +421,14 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricWeightedStats()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationNiftiInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSceneFileRelocate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapNames()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     if (OperationShowScene::isShowSceneCommandAvailable()) {
         this->commandOperations.push_back(new CommandParser(new AutoOperationShowScene()));
     }
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileMerge()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileRelocate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceCoordinatesToMetric()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceCutResample()));

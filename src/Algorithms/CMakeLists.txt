@@ -63,6 +63,7 @@ AlgorithmLabelModifyKeys.h
 AlgorithmLabelResample.h
 AlgorithmLabelToBorder.h
 AlgorithmMetricDilate.h
+AlgorithmMetricErode.h
 AlgorithmMetricEstimateFWHM.h
 AlgorithmMetricExtrema.h
 AlgorithmMetricFalseCorrelation.h
@@ -169,6 +170,7 @@ AlgorithmLabelModifyKeys.cxx
 AlgorithmLabelResample.cxx
 AlgorithmLabelToBorder.cxx
 AlgorithmMetricDilate.cxx
+AlgorithmMetricErode.cxx
 AlgorithmMetricEstimateFWHM.cxx
 AlgorithmMetricExtrema.cxx
 AlgorithmMetricFalseCorrelation.cxx

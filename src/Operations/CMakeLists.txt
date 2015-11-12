@@ -70,11 +70,13 @@ OperationMetricVertexSum.h
 OperationMetricWeightedStats.h
 OperationNiftiInformation.h
 OperationProbtrackXDotConvert.h
+OperationSceneFileRelocate.h
 OperationSetMapName.h
 OperationSetMapNames.h
 OperationSetStructure.h
 OperationShowScene.h
 OperationSpecFileMerge.h
+OperationSpecFileRelocate.h
 OperationSurfaceClosestVertex.h
 OperationSurfaceCoordinatesToMetric.h
 OperationSurfaceCutResample.h
@@ -153,11 +155,13 @@ OperationMetricVertexSum.cxx
 OperationMetricWeightedStats.cxx
 OperationNiftiInformation.cxx
 OperationProbtrackXDotConvert.cxx
+OperationSceneFileRelocate.cxx
 OperationSetMapName.cxx
 OperationSetMapNames.cxx
 OperationSetStructure.cxx
 OperationShowScene.cxx
 OperationSpecFileMerge.cxx
+OperationSpecFileRelocate.cxx
 OperationSurfaceClosestVertex.cxx
 OperationSurfaceCoordinatesToMetric.cxx
 OperationSurfaceCutResample.cxx
