@@ -79,7 +79,7 @@ namespace caret {
         
         static void deleteGuiManager();
         
-        void beep(const int32_t numTimesToBeep = 1);
+        static void beep(const int32_t numTimesToBeep = 1);
         
         Brain* getBrain();
         
