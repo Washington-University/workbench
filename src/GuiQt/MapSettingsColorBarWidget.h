@@ -24,7 +24,8 @@
 
 #include <QWidget>
 
-
+class QLabel;
+class QSpinBox;
 
 namespace caret {
 
@@ -33,6 +34,7 @@ namespace caret {
     class AnnotationFontWidget;
     class AnnotationWidthHeightWidget;
     class EnumComboBoxTemplate;
+    class PaletteColorMapping;
     
     class Overlay;
     
@@ -57,12 +59,24 @@ namespace caret {
         
         void annotationCoordinateSpaceEnumComboBoxItemActivated();
         
+        void colorBarItemActivated();
+        
     private:
         MapSettingsColorBarWidget(const MapSettingsColorBarWidget&);
 
         MapSettingsColorBarWidget& operator=(const MapSettingsColorBarWidget&);
         
+        QWidget* createColorBarSection();
+        
+        QWidget* createLocationDimensionsSection();
+        
+        QWidget* createFontColorsSection();
+        
+        void updateColorBarAttributes();
+        
         Overlay* m_overlay;
+        
+        PaletteColorMapping* m_paletteColorMapping;
         
         EnumComboBoxTemplate* m_annotationColorBarPositionModeEnumComboBox;
         
@@ -76,6 +90,16 @@ namespace caret {
         
         AnnotationWidthHeightWidget* m_widthHeightWidget;
 
+        EnumComboBoxTemplate* m_colorBarDataModeComboBox;
+        
+        QLabel* m_colorBarNumericFormatModeLabel;
+        EnumComboBoxTemplate* m_colorBarNumericFormatModeComboBox;
+        
+        QLabel* m_colorBarDecimalsLabel;
+        QSpinBox* m_colorBarDecimalsSpinBox;
+        
+        QLabel* m_colorBarNumericSubdivisionsLabel;
+        QSpinBox* m_colorBarNumericSubdivisionsSpinBox;
         // ADD_NEW_MEMBERS_HERE
 
     };

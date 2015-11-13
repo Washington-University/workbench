@@ -103,8 +103,6 @@ namespace caret {
         
         void normalizationModeComboBoxActivated(int);
         
-        void colorBarItemActivated();
-        
     private:
         void updateEditorInternal(CaretMappableDataFile* caretMappableDataFile,
                                  const int32_t mapIndex);
@@ -117,7 +115,6 @@ namespace caret {
         QWidget* createHistogramControlSection();
         QWidget* createNormalizationControlSection();
         QWidget* createDataOptionsSection();
-        QWidget* createColorBarSection();
         
         void updateNormalizationControlSection();
         
@@ -127,8 +124,6 @@ namespace caret {
         void updateHistogramPlot();
         
         void updateColoringAndGraphics();
-        
-        void updateColorBarAttributes();
         
         void updateThresholdControlsMinimumMaximumRangeValues();
         
@@ -212,16 +207,6 @@ namespace caret {
         WuQWidgetObjectGroup* paletteWidgetGroup;
         WuQWidgetObjectGroup* thresholdWidgetGroup;
         
-        EnumComboBoxTemplate* m_colorBarDataModeComboBox;
-        
-        QLabel* m_colorBarNumericFormatModeLabel;
-        EnumComboBoxTemplate* m_colorBarNumericFormatModeComboBox;
-        
-        QLabel* m_colorBarDecimalsLabel;
-        QSpinBox* m_colorBarDecimalsSpinBox;
-        
-        QLabel* m_colorBarNumericSubdivisionsLabel;
-        QSpinBox* m_colorBarNumericSubdivisionsSpinBox;
         
     };
     
