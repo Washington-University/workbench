@@ -1827,7 +1827,7 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
     positiveValues.push_back(posMax);
     
     /*
-     * Wil need to override these values when percentile
+     * Will need to override these values when percentile
      */
     NumericFormatModeEnum::Enum numericFormatModeForTextFormatting = this->numericFormatMode;
     int32_t precisionDigitsForTextFormatting = this->precisionDigits;

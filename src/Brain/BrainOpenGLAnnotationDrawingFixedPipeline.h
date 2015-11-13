@@ -171,6 +171,13 @@ namespace caret {
                               const float textHeightInPixels,
                               const float offsetFromTopInPixels);
 
+        void drawColorBarTickMarks(const AnnotationColorBar* colorBar,
+                                   const float bottomLeft[3],
+                                   const float bottomRight[3],
+                                   const float topRight[3],
+                                   const float topLeft[3],
+                                   const float tickMarksHeightInPixels,
+                                   const float offsetFromBottomInPixels);
 
         void drawSizingHandle(const AnnotationSizingHandleTypeEnum::Enum handleType,
                               AnnotationFile* annotationFile,
