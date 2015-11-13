@@ -505,14 +505,9 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
         }
     }
     else {
-        FileInformation specFileInfo(getFileName());
-        if (specFileInfo.isAbsolute()) {
-            FileInformation fileInfo(name);
-            if (fileInfo.isRelative()) {
-                FileInformation fileInfo(specFileInfo.getPathName(),
-                                         name);
-                name = fileInfo.getAbsoluteFilePath();
-            }
+        FileInformation fileInfo(name);
+        if (fileInfo.isRelative()) {
+            name = fileInfo.getAbsoluteFilePath();
         }
     }
     

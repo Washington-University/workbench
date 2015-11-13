@@ -27,6 +27,7 @@
 #include "SpecFile.h"
 #include "SpecFileSaxReader.h"
 #include "GiftiMetaDataSaxReader.h"
+#include "FileInformation.h"
 
 #include "XmlAttributes.h"
 #include "XmlException.h"
@@ -180,9 +181,10 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
        {
            try {
                const AString filename = this->elementText.trimmed();
+               FileInformation resolvePath(FileInformation(specFile->getFileName()).getAbsolutePath(), filename);
                this->specFile->addDataFile(this->fileAttributeTypeName, 
                                            this->fileAttributeStructureName, 
-                                           filename,
+                                           resolvePath.getAbsoluteFilePath(),
                                            this->fileAttributeSelectionStatus,
                                            false, // not selected for saving
                                            true); // is a member of spec file since read from spec file
