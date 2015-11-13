@@ -221,6 +221,13 @@ namespace caret {
                                                        const Surface* surfaceDisplayed,
                                                        std::vector<float>& lineCoordinatesOut) const;
         
+        void expandBox(float bottomLeft[3],
+                       float bottomRight[3],
+                       float topRight[3],
+                       float topLeft[3],
+                       const float extraSpaceX,
+                       const float extraSpaceY) const;
+        
         void setSelectionBoxColor();
         
         void startOpenGLForDrawing(GLint* savedShadeModelOut);

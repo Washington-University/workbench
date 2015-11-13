@@ -1090,7 +1090,25 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
     }
     else {
         if (drawBackgroundFlag) {
-            BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+            float bgBottomLeft[3];
+            float bgBottomRight[3];
+            float bgTopRight[3];
+            float bgTopLeft[3];
+            for (int32_t i = 0; i < 3; i++) {
+                bgBottomLeft[i]  = bottomLeft[i];
+                bgBottomRight[i] = bottomRight[i];
+                bgTopLeft[i]     = topLeft[i];
+                bgTopRight[i]    = topRight[i];
+            }
+            expandBox(bgBottomLeft, bgBottomRight, bgTopRight, bgTopLeft, 2, 0);
+            
+            std::vector<float> bgCoords;
+            bgCoords.insert(bgCoords.end(), bgBottomLeft,  bgBottomLeft + 3);
+            bgCoords.insert(bgCoords.end(), bgBottomRight, bgBottomRight + 3);
+            bgCoords.insert(bgCoords.end(), bgTopRight,    bgTopRight + 3);
+            bgCoords.insert(bgCoords.end(), bgTopLeft,     bgTopLeft + 3);
+            
+            BrainOpenGLPrimitiveDrawing::drawPolygon(bgCoords,
                                                      dummyNormals,
                                                      backgroundRGBA);
         }
@@ -1210,10 +1228,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const AnnotationColorBar* colorBar,
-                                                                 const float bottomLeft[3],
-                                                                 const float bottomRight[3],
-                                                                 const float topRight[3],
-                                                                 const float topLeft[3],
+                                                                 const float bottomLeftIn[3],
+                                                                 const float bottomRightIn[3],
+                                                                 const float topRightIn[3],
+                                                                 const float topLeftIn[3],
                                                                  const float tickMarksHeightInPixels,
                                                                  const float offsetFromBottomInPixels)
 {
@@ -1221,6 +1239,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
        
         return;
     }
+    
+    float bottomLeft[3];
+    float bottomRight[3];
+    float topRight[3];
+    float topLeft[3];
+    for (int32_t i = 0; i < 3; i++) {
+        bottomLeft[i]  = bottomLeftIn[i];
+        bottomRight[i] = bottomRightIn[i];
+        topRight[i]    = topRightIn[i];
+        topLeft[i]     = topLeftIn[i];
+    }
+
+
+    /*
+     * Shrink the box that bounds the color bar in X so that start
+     * and end ticks are at the ends of the color bar.
+     */
+    const float tickThickness = 2.0;
+    expandBox(bottomLeft, bottomRight, topRight, topLeft, (-tickThickness / 2.0), 0);
+    
     float bottomToTopUnitVector[3];
     MathFunctions::createUnitVector(bottomLeft,
                                     topLeft,
@@ -1305,7 +1343,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
         CaretAssert(iter->m_lineCoords.size() == 6);
         BrainOpenGLPrimitiveDrawing::drawLines(iter->m_lineCoords,
                                                iter->m_rgba,
-                                               2.0);
+                                               tickThickness);
     }
     glDisable(GL_POLYGON_OFFSET_LINE);
 }
@@ -2346,6 +2384,57 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(Ann
                      rotationAngle);
 }
 
+/**
+ * Expand a box by given amounts in X and Y.
+ *
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param extraSpaceX
+ *     Extra space to add in X.
+ * @param extraSpaceY
+ *     Extra space to add in Y.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::expandBox(float bottomLeft[3],
+                                                     float bottomRight[3],
+                                                     float topRight[3],
+                                                     float topLeft[3],
+                                                     const float extraSpaceX,
+                                                     const float extraSpaceY) const
+{
+    float widthVector[3];
+    MathFunctions::subtractVectors(topRight, topLeft, widthVector);
+    MathFunctions::normalizeVector(widthVector);
+    
+    float heightVector[3];
+    MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
+    MathFunctions::normalizeVector(heightVector);
+    
+    const float widthSpacingX = extraSpaceX * widthVector[0];
+    const float widthSpacingY = extraSpaceY * widthVector[1];
+    
+    const float heightSpacingX = extraSpaceX * heightVector[0];
+    const float heightSpacingY = extraSpaceY * heightVector[1];
+    
+
+    topLeft[0] += (-widthSpacingX + heightSpacingX);
+    topLeft[1] += (-widthSpacingY + heightSpacingY);
+    
+    topRight[0] += (widthSpacingX + heightSpacingX);
+    topRight[1] += (widthSpacingY + heightSpacingY);
+
+    bottomLeft[0] += (-widthSpacingX - heightSpacingX);
+    bottomLeft[1] += (-widthSpacingY - heightSpacingY);
+
+    bottomRight[0] += (widthSpacingX - heightSpacingX);
+    bottomRight[1] += (widthSpacingY - heightSpacingY);
+}
 
 /**
  * Draw sizing handles around a two-dimensional annotation.
@@ -2377,44 +2466,58 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                                                                         const float lineThickness,
                                                                         const float rotationAngle)
 {
-    float widthVector[3];
-    MathFunctions::subtractVectors(topRight, topLeft, widthVector);
-    MathFunctions::normalizeVector(widthVector);
-    
+//    float widthVector[3];
+//    MathFunctions::subtractVectors(topRight, topLeft, widthVector);
+//    MathFunctions::normalizeVector(widthVector);
+//    
     float heightVector[3];
     MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
     MathFunctions::normalizeVector(heightVector);
-    
+//
     const float innerSpacing = 2.0 + (lineThickness / 2.0);
-    
-    const float widthSpacingX = innerSpacing * widthVector[0];
-    const float widthSpacingY = innerSpacing * widthVector[1];
-    
-    const float heightSpacingX = innerSpacing * heightVector[0];
-    const float heightSpacingY = innerSpacing * heightVector[1];
-
-    const float handleTopLeft[3] = {
-        topLeft[0] - widthSpacingX + heightSpacingX,
-        topLeft[1] - widthSpacingY + heightSpacingY,
-        topLeft[2]
-    };
-    
-    const float handleTopRight[3] = {
-        topRight[0] + widthSpacingX + heightSpacingX,
-        topRight[1] + widthSpacingY + heightSpacingY,
-        topRight[2]
-    };
-    
-    const float handleBottomLeft[3] = {
-        bottomLeft[0] - widthSpacingX - heightSpacingX,
-        bottomLeft[1] - widthSpacingY - heightSpacingY,
-        bottomLeft[2]
-    };
-    const float handleBottomRight[3] = {
-        bottomRight[0] + widthSpacingX - heightSpacingX,
-        bottomRight[1] + widthSpacingY - heightSpacingY,
-        bottomRight[2]
-    };
+//    
+//    const float widthSpacingX = innerSpacing * widthVector[0];
+//    const float widthSpacingY = innerSpacing * widthVector[1];
+//    
+//    const float heightSpacingX = innerSpacing * heightVector[0];
+//    const float heightSpacingY = innerSpacing * heightVector[1];
+//
+//    const float handleTopLeft[3] = {
+//        topLeft[0] - widthSpacingX + heightSpacingX,
+//        topLeft[1] - widthSpacingY + heightSpacingY,
+//        topLeft[2]
+//    };
+//    
+//    const float handleTopRight[3] = {
+//        topRight[0] + widthSpacingX + heightSpacingX,
+//        topRight[1] + widthSpacingY + heightSpacingY,
+//        topRight[2]
+//    };
+//    
+//    const float handleBottomLeft[3] = {
+//        bottomLeft[0] - widthSpacingX - heightSpacingX,
+//        bottomLeft[1] - widthSpacingY - heightSpacingY,
+//        bottomLeft[2]
+//    };
+//    const float handleBottomRight[3] = {
+//        bottomRight[0] + widthSpacingX - heightSpacingX,
+//        bottomRight[1] + widthSpacingY - heightSpacingY,
+//        bottomRight[2]
+//    };
+//    
+//    {
+        float handleTopLeft[3];
+        float handleTopRight[3];
+        float handleBottomRight[3];
+        float handleBottomLeft[3];
+        for (int32_t i = 0; i < 3; i++) {
+            handleTopLeft[i]     = topLeft[i];
+            handleTopRight[i]    = topRight[i];
+            handleBottomRight[i] = bottomRight[i];
+            handleBottomLeft[i]  = bottomLeft[i];
+        }
+    expandBox(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft, innerSpacing, innerSpacing);
+//    }
     
     if (! m_selectionModeFlag) {
         std::vector<float> coords;
