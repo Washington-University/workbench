@@ -23,7 +23,7 @@
 #include "MapSettingsColorBarWidget.h"
 #undef __MAP_SETTINGS_COLOR_BAR_WIDGET_DECLARE__
 
-#include <QGridLayOut>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QSpinBox>
