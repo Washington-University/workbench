@@ -4802,19 +4802,22 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                     twoDimSliceDrawVolumeDrawInfo.push_back(vdi);
                 }
             }
-            /*
-             * Check for oblique slice drawing
-             */
-            VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
-            VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
             
-            BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-            volumeSliceDrawing.draw(this,
-                                    browserTabContent,
-                                    volumeDrawInfo,
-                                    sliceDrawingType,
-                                    sliceProjectionType,
-                                    viewport);
+            if ( ! twoDimSliceDrawVolumeDrawInfo.empty()) {
+                /*
+                 * Check for oblique slice drawing
+                 */
+                VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
+                VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
+                
+                BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+                volumeSliceDrawing.draw(this,
+                                        browserTabContent,
+                                        twoDimSliceDrawVolumeDrawInfo, //volumeDrawInfo,
+                                        sliceDrawingType,
+                                        sliceProjectionType,
+                                        viewport);
+            }
         }
     }
     
