@@ -2375,7 +2375,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
                                                     culledFirstVoxelIJK,
                                                     culledLastVoxelIJK,
                                                     voxelDeltaXYZ)) {
-            CaretLogSevere("BrainOpenGLVolumeSliceDrawing::getVolumeDrawingViewDependentCulling() failed.");
+            /* volume does not have slice within the culled region */
             continue;
         }
         const int64_t numVoxelsI = std::abs(culledLastVoxelIJK[0] - culledFirstVoxelIJK[0]) + 1;
@@ -5255,37 +5255,99 @@ BrainOpenGLVolumeSliceDrawing::getVolumeDrawingViewDependentCulling(const Volume
         return false;
     }
     
+    
+    /*
+     * Limit the corner coordinates to the volume's bounding box
+     */
+    BoundingBox boundingBox;
+    volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+
+    {
+        float spaceX, spaceY, spaceZ;
+        volumeFile->getVoxelSpacing(spaceX,
+                                    spaceY,
+                                    spaceZ);
+        const float halfX = std::fabs(spaceX / 2.0);
+        const float halfY = std::fabs(spaceY / 2.0);
+        const float halfZ = std::fabs(spaceZ / 2.0);
+        
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+            {
+                const float maxZ = boundingBox.getMaxZ() + halfZ;
+                const float minZ = boundingBox.getMinZ() - halfZ;
+                if ((selectedSliceCoordinate < minZ)
+                    || (selectedSliceCoordinate > maxZ)) {
+                    return false;
+                }
+            }
+                    break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+            {
+                const float maxY = boundingBox.getMaxY() + halfY;
+                const float minY = boundingBox.getMinY() - halfY;
+                if ((selectedSliceCoordinate < minY)
+                    || (selectedSliceCoordinate > maxY)) {
+                    return false;
+                }
+            }
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            {
+                const float maxX = boundingBox.getMaxX() + halfX;
+                const float minX = boundingBox.getMinX() - halfX;
+                if ((selectedSliceCoordinate < minX)
+                    || (selectedSliceCoordinate > maxX)) {
+                    return false;
+                }
+            }
+                break;
+        }
+    }
+    
+    /*
+     * Limit the corner coordinates to the volume's bounding box
+     */
+    boundingBox.limitCoordinateToBoundingBox(bottomLeftCoord);
+    boundingBox.limitCoordinateToBoundingBox(bottomRightCoord);
+    boundingBox.limitCoordinateToBoundingBox(topRightCoord);
+    boundingBox.limitCoordinateToBoundingBox(topLeftCoord);
+    
+    /*
+     * The unproject functions will return the "in plane" coordinate (Z in axial view)
+     * that is not correct for the slice being viewed.  So, override the
+     * Z-coordinate with the coordinate of the current slice plane.
+     * 
+     * This must be done AFTER limiting coordinates to the volume's bounding box.
+     * Otherwise, the culled voxels will always be the first or last slice when
+     * the slice coordinate is NOT within the volume file.
+     */
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             CaretAssert(0);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            bottomLeftCoord[2] = selectedSliceCoordinate;
+            bottomLeftCoord[2]  = selectedSliceCoordinate;
             bottomRightCoord[2] = selectedSliceCoordinate;
-            topRightCoord[2] = selectedSliceCoordinate;
-            topLeftCoord[2] = selectedSliceCoordinate;
+            topRightCoord[2]    = selectedSliceCoordinate;
+            topLeftCoord[2]     = selectedSliceCoordinate;
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            bottomLeftCoord[1] = selectedSliceCoordinate;
+            bottomLeftCoord[1]  = selectedSliceCoordinate;
             bottomRightCoord[1] = selectedSliceCoordinate;
-            topRightCoord[1] = selectedSliceCoordinate;
-            topLeftCoord[1] = selectedSliceCoordinate;
+            topRightCoord[1]    = selectedSliceCoordinate;
+            topLeftCoord[1]     = selectedSliceCoordinate;
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            bottomLeftCoord[0] = selectedSliceCoordinate;
+            bottomLeftCoord[0]  = selectedSliceCoordinate;
             bottomRightCoord[0] = selectedSliceCoordinate;
-            topRightCoord[0] = selectedSliceCoordinate;
-            topLeftCoord[0] = selectedSliceCoordinate;
+            topRightCoord[0]    = selectedSliceCoordinate;
+            topLeftCoord[0]     = selectedSliceCoordinate;
             break;
     }
-    
-    BoundingBox boundingBox;
-    volumeFile->getVoxelSpaceBoundingBox(boundingBox);
-    
-    boundingBox.limitCoordinateToBoundingBox(bottomLeftCoord);
-    boundingBox.limitCoordinateToBoundingBox(bottomRightCoord);
-    boundingBox.limitCoordinateToBoundingBox(topRightCoord);
-    boundingBox.limitCoordinateToBoundingBox(topLeftCoord);
     
     /*
      * Note: Spacing may be negative for some orientations
