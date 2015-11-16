@@ -514,6 +514,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
     /*
      * Check for a 'selection' type mode
      */
+    bool idReturnFlag = false;
     m_selectionModeFlag = false;
     m_selectionInfo.clear();
     switch (m_brainOpenGLFixedPipeline->mode) {
@@ -524,7 +525,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
                 m_selectionModeFlag = true;
             }
             else {
-                return;
+                idReturnFlag = true;
             }
             
             /*
@@ -533,8 +534,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
             glShadeModel(GL_FLAT);
             break;
         case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-            return;
+            idReturnFlag = true;
             break;
+    }
+    
+    if (idReturnFlag) {
+        endOpenGLForDrawing(savedShadeModel);
+        return;
     }
     
     /*
