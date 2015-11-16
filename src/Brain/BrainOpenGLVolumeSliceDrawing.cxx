@@ -4572,6 +4572,9 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsQuadIndicesAndStrips(con
     
     int64_t numberOfVoxelsToDraw = 0;
     
+    int64_t voxelJMin = 10000000;
+    int64_t voxelJMax = -10000000;
+    
     /*
      * Loop through column COORDINATES
      */
@@ -4686,14 +4689,17 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxelsQuadIndicesAndStrips(con
                      * Identification information is encoded in the
                      * RGBA coloring.
                      */
-                    const float voxelCenterX = rowCoord[0] + halfVoxelStepX;
-                    const float voxelCenterY = rowCoord[1] + halfVoxelStepY;
-                    const float voxelCenterZ = rowCoord[2] + halfVoxelStepZ;
+                    const float voxelCenterX = rowCoord[0] -rowStep[0] + halfVoxelStepX;
+                    const float voxelCenterY = rowCoord[1] -rowStep[1] + halfVoxelStepY;
+                    const float voxelCenterZ = rowCoord[2] -rowStep[2] + halfVoxelStepZ;
                     int64_t voxelI = 0;
                     int64_t voxelJ = 0;
                     int64_t voxelK = 0;
                     volumeInterface->enclosingVoxel(voxelCenterX, voxelCenterY, voxelCenterZ,
                                                     voxelI, voxelJ, voxelK);
+                    
+                    voxelJMin = std::min(voxelJMin, voxelJ);
+                    voxelJMax = std::max(voxelJMax, voxelJ);
                     
                     addVoxelToIdentification(volumeIndex,
                                              mapIndex,
