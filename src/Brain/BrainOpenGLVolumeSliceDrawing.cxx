@@ -126,6 +126,12 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(browserTabContent);
     m_browserTabContent = browserTabContent;    
+    m_fixedPipelineDrawing = fixedPipelineDrawing;
+    
+    /*
+     * No lighting for drawing slices
+     */
+    m_fixedPipelineDrawing->disableLighting();
     
     /*
      * Initialize class members which help reduce the number of
@@ -146,8 +152,6 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
         CaretAssertMessage(0, "Invalid model for volume slice drawing.");
     }
     CaretAssert(m_brain);
-    
-    m_fixedPipelineDrawing = fixedPipelineDrawing;
     
     m_volumeDrawInfo = volumeDrawInfo;
     if (m_volumeDrawInfo.empty()) {

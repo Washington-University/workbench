@@ -3569,6 +3569,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         }
     }
     
+    this->disableLighting();
     glShadeModel(GL_SMOOTH);
     glDisable(GL_BLEND);
 }
