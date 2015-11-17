@@ -24,6 +24,7 @@
 
 #include <QWidget>
 
+class QCheckBox;
 class QLabel;
 class QSpinBox;
 
@@ -100,6 +101,9 @@ namespace caret {
         
         QLabel* m_colorBarNumericSubdivisionsLabel;
         QSpinBox* m_colorBarNumericSubdivisionsSpinBox;
+        
+        QCheckBox* m_showTickMarksCheckBox;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

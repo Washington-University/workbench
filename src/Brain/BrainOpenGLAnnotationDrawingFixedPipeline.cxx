@@ -1241,8 +1241,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
                                                                  const float tickMarksHeightInPixels,
                                                                  const float offsetFromBottomInPixels)
 {
+    if ( ! colorBar->isShowTickMarksSelected()) {
+        return;
+    }
+    
     if (tickMarksHeightInPixels < 1.0) {
-       
         return;
     }
     
@@ -1292,7 +1295,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
     /*
      * Horizontal line at top of tick marks
      */
-    {
+    const bool showHorizontalLineFlag = false;
+    if (showHorizontalLineFlag) {
         std::vector<float> lineCoords;
         lineCoords.push_back(xTopLeft);
         lineCoords.push_back(yTopLeft);

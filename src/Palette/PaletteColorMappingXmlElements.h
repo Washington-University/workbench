@@ -49,6 +49,7 @@ namespace PaletteColorMappingXmlElements {
     static const AString XML_TAG_PRECISION_DIGITS = "PrecisionDigits";
     static const AString XML_TAG_NUMERIC_SUBDIVISIONS = "NumericSubivisions";
     static const AString XML_TAG_COLOR_BAR_VALUES_MODE = "ColorBarValuesMode";
+    static const AString XML_TAG_SHOW_TICK_MARKS = "ShowTickMarksSelected";
     static const AString XML_ATTRIBUTE_VERSION_NUMBER = "Version";
     static const int XML_VERSION_NUMBER = 1;
 }  // namespace

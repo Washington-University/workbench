@@ -138,6 +138,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->precisionDigits = pcm.precisionDigits;
     this->numericSubdivisionCount = pcm.numericSubdivisionCount;
     this->colorBarValuesMode = pcm.colorBarValuesMode;
+    this->showTickMarksSelected = pcm.showTickMarksSelected;
     
     this->clearModified();
 }
@@ -183,7 +184,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->numericFormatMode == pcm.numericFormatMode)
         && (this->precisionDigits == pcm.precisionDigits)
         && (this->numericSubdivisionCount == pcm.numericSubdivisionCount)
-        && (this->colorBarValuesMode == pcm.colorBarValuesMode)) {
+        && (this->colorBarValuesMode == pcm.colorBarValuesMode)
+        && (this->showTickMarksSelected == pcm.showTickMarksSelected)) {
         return true;
     }
     
@@ -227,6 +229,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->numericSubdivisionCount = 0;
     this->modifiedFlag = false;
     this->colorBarValuesMode = PaletteColorBarValuesModeEnum::DATA;
+    this->showTickMarksSelected = false;
 }
 
 /**
@@ -348,6 +351,9 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_COLOR_BAR_VALUES_MODE,
                                      PaletteColorBarValuesModeEnum::toName(this->colorBarValuesMode));
 
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_SHOW_TICK_MARKS,
+                                     this->showTickMarksSelected);
+    
     xmlWriter.writeEndElement();
 }
 
@@ -1664,6 +1670,8 @@ PaletteColorMapping::setupAnnotationColorBarNumericText(const FastStatistics* st
                                  nt->isDrawTickMarkAtScalar());
         delete nt;
     }
+    
+    colorBar->setShowTickMarksSelected(this->showTickMarksSelected);
 }
 
 /**
@@ -2551,6 +2559,30 @@ void PaletteColorMapping::setColorBarValuesMode(const PaletteColorBarValuesModeE
 {
     if (colorBarValuesMode != this->colorBarValuesMode) {
         this->colorBarValuesMode = colorBarValuesMode;
+        setModified();
+    }
+}
+
+/**
+ * @param Is show tick marks selected?
+ */
+bool
+PaletteColorMapping::isShowTickMarksSelected() const
+{
+    return this->showTickMarksSelected;
+}
+
+/**
+ * Set show tick marks selected.
+ *
+ * @param selected
+ *     New selection status.
+ */
+void
+PaletteColorMapping::setShowTickMarksSelected(const bool selected)
+{
+    if (selected != this->showTickMarksSelected) {
+        this->showTickMarksSelected = selected;
         setModified();
     }
 }

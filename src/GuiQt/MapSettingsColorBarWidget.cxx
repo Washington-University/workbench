@@ -23,6 +23,7 @@
 #include "MapSettingsColorBarWidget.h"
 #undef __MAP_SETTINGS_COLOR_BAR_WIDGET_DECLARE__
 
+#include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -166,6 +167,7 @@ MapSettingsColorBarWidget::applySelections()
             m_paletteColorMapping->setNumericFormatMode(m_colorBarNumericFormatModeComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
             m_paletteColorMapping->setPrecisionDigits(m_colorBarDecimalsSpinBox->value());
             m_paletteColorMapping->setNumericSubdivisionCount(m_colorBarNumericSubdivisionsSpinBox->value());
+            m_paletteColorMapping->setShowTickMarksSelected(m_showTickMarksCheckBox->isChecked());
         }
     }
     
@@ -330,6 +332,10 @@ MapSettingsColorBarWidget::createColorBarSection()
     m_colorBarNumericSubdivisionsSpinBox->setToolTip("Adds additional numbers to the negative\n"
                                                      "and positive regions in the color bar");
     
+    m_showTickMarksCheckBox = new QCheckBox("Show Tick Marks");
+    QObject::connect(m_showTickMarksCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(applySelections()));
+    
     QGroupBox* colorBarGroupBox = new QGroupBox("Data Numerics");
     QGridLayout* gridLayout = new QGridLayout(colorBarGroupBox);
     int row = gridLayout->rowCount();
@@ -345,7 +351,8 @@ MapSettingsColorBarWidget::createColorBarSection()
     row++;
     gridLayout->addWidget(m_colorBarNumericSubdivisionsLabel, row, 0);
     gridLayout->addWidget(m_colorBarNumericSubdivisionsSpinBox, row, 1);
-    colorBarGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    row++;
+    gridLayout->addWidget(m_showTickMarksCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     
     colorBarGroupBox->setSizePolicy(QSizePolicy::Fixed,
                                     QSizePolicy::Fixed);
@@ -417,6 +424,7 @@ MapSettingsColorBarWidget::updateColorBarAttributes()
         m_colorBarNumericSubdivisionsSpinBox->blockSignals(false);
         m_colorBarNumericSubdivisionsSpinBox->setEnabled(subdivisionsSpinBoxEnabled);
         
+        m_showTickMarksCheckBox->setChecked(m_paletteColorMapping->isShowTickMarksSelected());
     }
 }
 

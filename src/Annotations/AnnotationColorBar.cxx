@@ -61,6 +61,9 @@ AnnotationColorBar::AnnotationColorBar(const AnnotationAttributesDefaultTypeEnum
                                                                                                         &m_positionMode);
     m_sceneAssistant->add("m_displayedFlag",
                           &m_displayedFlag);
+    
+    m_sceneAssistant->add("m_showTickMarksSelected",
+                          &m_showTickMarksSelected);
 }
 
 /**
@@ -120,6 +123,7 @@ AnnotationColorBar::copyHelperAnnotationColorBar(const AnnotationColorBar& obj)
     m_fontPercentViewportHeight = obj.m_fontPercentViewportHeight;
     m_positionMode              = obj.m_positionMode;
     m_displayedFlag             = obj.m_displayedFlag;
+    m_showTickMarksSelected     = obj.m_showTickMarksSelected;
 }
 
 /**
@@ -137,6 +141,7 @@ AnnotationColorBar::reset()
     m_fontName      = AnnotationTextFontNameEnum::getDefaultFontName();
     m_positionMode  = AnnotationColorBarPositionModeEnum::AUTOMATIC;
     m_displayedFlag = false;
+    m_showTickMarksSelected = false;
     
     setForegroundColor(CaretColorEnum::WHITE);
     setBackgroundColor(CaretColorEnum::BLACK);
@@ -351,6 +356,27 @@ AnnotationColorBar::getSection(const int32_t index) const
 }
 
 /**
+ * @param Is show tick marks selected?
+ */
+bool
+AnnotationColorBar::isShowTickMarksSelected() const
+{
+    return m_showTickMarksSelected;
+}
+
+/**
+ * Set show tick marks selected.
+ *
+ * @param selected
+ *     New selection status.
+ */
+void
+AnnotationColorBar::setShowTickMarksSelected(const bool selected)
+{
+    m_showTickMarksSelected = selected;
+}
+
+/**
  * Add numeric text.
  *
  * Note: numeric text is not saved to scene so this method DOES NOT change the modified status.
@@ -360,7 +386,8 @@ AnnotationColorBar::getSection(const int32_t index) const
  * @param numericText
  *     The numeric text.
  */
-void AnnotationColorBar::addNumericText(const float scalar,
+void
+AnnotationColorBar::addNumericText(const float scalar,
                                         const AString& numericText,
                                         const AnnotationTextAlignHorizontalEnum::Enum horizontalAlignment,
                                         const bool drawTickMarkAtScalar)
@@ -376,7 +403,8 @@ void AnnotationColorBar::addNumericText(const float scalar,
  *
  * Note: numeric text is not saved to scene so this method DOES NOT change the modified status.
  */
-void AnnotationColorBar::clearNumericText()
+void
+AnnotationColorBar::clearNumericText()
 {
     for (std::vector<const AnnotationColorBarNumericText*>::iterator iter = m_numericText.begin();
          iter != m_numericText.end();
@@ -389,7 +417,8 @@ void AnnotationColorBar::clearNumericText()
 /**
  * @return Number of numeric text.
  */
-int32_t AnnotationColorBar::getNumberOfNumericText() const
+int32_t
+AnnotationColorBar::getNumberOfNumericText() const
 {
     return m_numericText.size();
 }

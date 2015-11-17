@@ -85,6 +85,10 @@ namespace caret {
         void getScalarMinimumAndMaximumValues(float& minimumScalarOut,
                                               float& maximumScalarOut) const;
 
+        bool isShowTickMarksSelected() const;
+        
+        void setShowTickMarksSelected(const bool selected);
+        
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -112,6 +116,8 @@ namespace caret {
         
         /** color bar numeric text NOT SAVED TO SCENE */
         std::vector<const AnnotationColorBarNumericText*> m_numericText;
+        
+        bool m_showTickMarksSelected;
         
         // ADD_NEW_MEMBERS_HERE
 

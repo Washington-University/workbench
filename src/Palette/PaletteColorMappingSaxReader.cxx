@@ -321,6 +321,9 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                                                + this->elementText);
                }
            }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_SHOW_TICK_MARKS) {
+               this->paletteColorMapping->setShowTickMarksSelected(toBool(this->elementText));
+           }
            else {
                std::ostringstream str;
                str
