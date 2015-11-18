@@ -487,29 +487,14 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
     AString name = filename;
 
     const bool dataFileOnNetwork = DataFile::isFileOnNetwork(name);
-    const bool specFileOnNetwork = DataFile::isFileOnNetwork(getFileName());
 
-    if (dataFileOnNetwork) {
-        /* nothing */
-    }
-    else if (specFileOnNetwork) {
-        const int32_t lastSlashIndex = getFileName().lastIndexOf("/");
-        if (lastSlashIndex >= 0) {
-            const AString newName = (getFileName().left(lastSlashIndex)
-                                     + "/"
-                                     + name);
-            name = newName;
-        }
-        else {
-            CaretAssert(0);
-        }
-    }
-    else {
+    //NOTE: the spec file's location is completely irrelevant to this operation!
+    if (!dataFileOnNetwork) {
         FileInformation fileInfo(name);
         if (fileInfo.isRelative()) {
             name = fileInfo.getAbsoluteFilePath();
         }
-    }
+    }//if it is on the network, don't modify it
     
 //    const AString message = ("After adding, " 
 //                             + filename

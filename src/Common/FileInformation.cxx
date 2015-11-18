@@ -111,9 +111,12 @@ FileInformation::FileInformation(const AString& path,
          * Clean up path to remove any ".." (up a directory level).
          * Note that canonicalFilePath() will return an empty string
          * if the path does not point to a valid file.
+         * 
+         * TSC: NEVER USE CANONICAL FOR THIS!  canonical resolves symlinks, which is NOT DESIRED unless explicitly asked for (by calling a function including the word "canonical").
+         * 
          */
         if (getAbsoluteFilePath().contains("..")) {
-            const AString cleanedPath = m_fileInfo.canonicalFilePath();
+            const AString cleanedPath = QDir::cleanPath(m_fileInfo.absolutePath()) + "/" + m_fileInfo.fileName();
             if (cleanedPath.isEmpty() == false) {
                 m_fileInfo.setFile(cleanedPath);
             }
