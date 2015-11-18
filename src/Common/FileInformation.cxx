@@ -116,7 +116,9 @@ FileInformation::FileInformation(const AString& path,
          * 
          */
         if (getAbsoluteFilePath().contains("..")) {
-            const AString cleanedPath = QDir::cleanPath(m_fileInfo.absolutePath()) + "/" + m_fileInfo.fileName();
+            AString cleanedPath = QDir::cleanPath(m_fileInfo.absolutePath());
+            if (!cleanedPath.endsWith('/')) cleanedPath += "/";//because "/" and "/usr" are both possible results
+            cleanedPath += m_fileInfo.fileName();
             if (cleanedPath.isEmpty() == false) {
                 m_fileInfo.setFile(cleanedPath);
             }
