@@ -641,7 +641,8 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4],
     m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::WINDOW,
                                          m_tabViewport,
                                          colorBars,
-                                         NULL);
+                                         NULL,
+                                         BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
     
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -739,7 +740,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::TAB,
                                                  m_tabViewport,
                                                  colorBars,
-                                                 NULL);
+                                                 NULL,
+                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
         }
     }
     
@@ -1041,12 +1043,12 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXY
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
-            eyeZ = 5.0;
+            eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance; //5.0;
             upY  = 1.0;
             useGluLookAt = true;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
-            eyeZ = 5.0;
+            eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance; //5.0;
             upY  = 1.0;
             useGluLookAt = true;
             break;
@@ -1516,12 +1518,14 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
                                                  m_tabViewport,
                                                  colorBars,
-                                                 surface);
+                                                 surface,
+                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      m_tabViewport,
                                                      colorBars,
-                                                     NULL);
+                                                     NULL,
+                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
             }
         }
             break;
@@ -1556,12 +1560,14 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
                                                  m_tabViewport,
                                                  colorBars,
-                                              surface);
+                                                 surface,
+                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      m_tabViewport,
                                                      colorBars,
-                                                  NULL);
+                                                     NULL,
+                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
             }
             
             /*

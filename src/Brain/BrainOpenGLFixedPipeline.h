@@ -597,6 +597,8 @@ namespace caret {
         CaretPointer<BrainOpenGLAnnotationDrawingFixedPipeline> m_annotationDrawing;
         
         static bool s_staticInitialized;
+
+        static const float s_gluLookAtCenterFromEyeOffsetDistance;
         
         static float COLOR_RED[3];
         static float COLOR_GREEN[3];
@@ -614,6 +616,7 @@ namespace caret {
     float BrainOpenGLFixedPipeline::COLOR_RED[3]   = { 1.0, 0.0, 0.0 };
     float BrainOpenGLFixedPipeline::COLOR_GREEN[3] = { 0.0, 1.0, 0.0 };
     float BrainOpenGLFixedPipeline::COLOR_BLUE[3]  = { 0.0, 0.0, 1.0 };
+    const float BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance = 1.0;
 #endif //__BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
 } // namespace

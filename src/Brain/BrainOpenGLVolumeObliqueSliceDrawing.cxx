@@ -821,8 +821,32 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const Volume
     /*
      * Draw model space annotaitons on the volume slice
      */
+    float sliceThickness = 1.0;
+    if ( ! m_volumeDrawInfo.empty()) {
+        if (m_volumeDrawInfo[0].volumeFile != NULL) {
+            float spaceX = 0.0, spaceY = 0.0, spaceZ = 0.0;
+            m_volumeDrawInfo[0].volumeFile->getVoxelSpacing(spaceX, spaceY, spaceZ);
+            
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    sliceThickness = spaceZ;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    sliceThickness = spaceY;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    sliceThickness = spaceX;
+                    break;
+            }
+        }
+    }
     m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(slicePlane,
-                                                                                        m_fixedPipelineDrawing->m_tabViewport);
+                                                                                        m_fixedPipelineDrawing->m_tabViewport,
+                                                                                        sliceThickness,
+                                                                                        BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
     
     m_fixedPipelineDrawing->disableClippingPlanes();
     
@@ -2460,9 +2484,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::setVolumeSliceViewingAndModelingTransforma
     double planeNormal[3];
     plane.getNormalVector(planeNormal);
     double cameraXYZ[3] = {
-        m_lookAtCenter[0] + planeNormal[0] * 1.0,
-        m_lookAtCenter[1] + planeNormal[1] * 1.0,
-        m_lookAtCenter[2] + planeNormal[2] * 1.0,
+        m_lookAtCenter[0] + planeNormal[0] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+        m_lookAtCenter[1] + planeNormal[1] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+        m_lookAtCenter[2] + planeNormal[2] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
     };
     
     /*
@@ -3550,7 +3574,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
          */
         double eyeX = 0.0;
         double eyeY = 0.0;
-        double eyeZ = 100.0;
+        double eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance; //100.0;
         const double centerX = 0;
         const double centerY = 0;
         const double centerZ = 0;

@@ -358,7 +358,7 @@ namespace caret {
     };
     
 #ifdef __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
-const int32_t BrainOpenGLVolumeSliceDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 8;
+    const int32_t BrainOpenGLVolumeSliceDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 8;
 #endif // __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
 
 } // namespace

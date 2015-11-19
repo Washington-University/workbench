@@ -56,10 +56,13 @@ namespace caret {
         void drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                              const int tabViewport[4],
                              std::vector<AnnotationColorBar*>& colorBars,
-                             const Surface* surfaceDisplayed);
+                             const Surface* surfaceDisplayed,
+                             const float centerToEyeDistance);
 
         void drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane,
-                                                    const int tabViewport[4]);
+                                                    const int tabViewport[4],
+                                                    const float sliceThickness,
+                                                    const float centerToEyeDistance);
         
         // ADD_NEW_METHODS_HERE
 
@@ -108,7 +111,12 @@ namespace caret {
 
         BrainOpenGLAnnotationDrawingFixedPipeline& operator=(const BrainOpenGLAnnotationDrawingFixedPipeline&);
         
-        BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
+        void drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
+                                     const int tabViewport[4],
+                                     std::vector<AnnotationColorBar*>& colorBars,
+                                     const Surface* surfaceDisplayed,
+                                     const float sliceThickness,
+                                     const float centerToEyeDistance);
         
         bool getAnnotationWindowCoordinate(const AnnotationCoordinate* coordinate,
                                            const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace,
@@ -234,7 +242,9 @@ namespace caret {
         
         void endOpenGLForDrawing(GLint savedShadeModel);
         
-        /** 
+        BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
+        
+        /**
          * Dummy annotation file is used for annotations that 
          * do not belong to a file.  This includes the 
          * "annotation being drawn" and AnnotationColorBar's.
@@ -262,7 +272,14 @@ namespace caret {
         /** volume space plane */
         Plane m_volumeSpacePlane;
         
+        /** Validity of volume space plane */
         bool m_volumeSpacePlaneValid;
+        
+        /** Thickness of volume slice when drawing annotations on volume slices */
+        float m_volumeSliceThickness;
+        
+        /** Distance from "eye" to "center" used setting up viewing transformation */
+        float m_centerToEyeDistance;
         
         /** Color for selection box and sizing handles */
         uint8_t m_selectionBoxRGBA[4];

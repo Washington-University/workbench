@@ -78,7 +78,9 @@ using namespace caret;
 BrainOpenGLAnnotationDrawingFixedPipeline::BrainOpenGLAnnotationDrawingFixedPipeline(BrainOpenGLFixedPipeline* brainOpenGLFixedPipeline)
 : CaretObject(),
 m_brainOpenGLFixedPipeline(brainOpenGLFixedPipeline),
-m_volumeSpacePlaneValid(false)
+m_volumeSpacePlaneValid(false),
+m_volumeSliceThickness(0.0),
+m_centerToEyeDistance(0.0)
 {
     CaretAssert(brainOpenGLFixedPipeline);
     
@@ -151,8 +153,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                     stereotaxicXYZ[2]
                 };
                 const float distToPlaneAbs = std::fabs(m_volumeSpacePlane.signedDistanceToPlane(xyzFloat));
-                if (distToPlaneAbs < 1.5) {
+                const float halfSliceThickness = ((m_volumeSliceThickness > 0.0)
+                                                  ? (m_volumeSliceThickness / 2.0)
+                                                  : 1.0);
+                if (distToPlaneAbs < halfSliceThickness) { //1.5) {
                     stereotaxicXYZValid = true;
+                    
+                    float projectedPoint[3];
+                    m_volumeSpacePlane.projectPointToPlane(stereotaxicXYZ, projectedPoint);
                 }
                 else {
                     stereotaxicXYZValid = false;
@@ -301,6 +309,44 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
          */
         windowXYZOut[2] = -windowZ;
         
+        if ((m_modelSpaceProjectionMatrix[0] != 0.0)
+            && (m_modelSpaceProjectionMatrix[5] != 0.0)
+            && (m_modelSpaceProjectionMatrix[10] != 0.0)) {
+            /*
+             * From http://lektiondestages.blogspot.com/2013/11/decompose-opengl-projection-matrix.html
+             */
+            GLfloat near   =  (1.0f + m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
+            GLfloat far    = -(1.0f - m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
+            //GLfloat bottom =  (1.0f - m_modelSpaceProjectionMatrix[13]) / m_modelSpaceProjectionMatrix[5];
+            //GLfloat top    = -(1.0f + m_modelSpaceProjectionMatrix[13]) / m_modelSpaceProjectionMatrix[5];
+            GLfloat left   = -(1.0f + m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
+            GLfloat right  =  (1.0f - m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
+
+            /*
+             * Depending upon view, near may be positive and far negative
+             */
+            const float farNearRange = std::fabs(far - near);
+            if ((m_centerToEyeDistance > 0.0)
+                && (farNearRange > 0.0)) {
+                /*
+                 * Using gluLookAt moves the eye away from the center which
+                 * causes the window Z to also move.  Thus, we need to remove
+                 * this amount from the window's Z-coordinate.
+                 */
+                const float eyeAdjustment = (m_centerToEyeDistance / farNearRange);
+                if (m_volumeSpacePlaneValid) {
+                    windowXYZOut[2] = -(windowZ - eyeAdjustment);
+                }
+                else if (left > right) {
+                    windowXYZOut[2] = -(windowZ - eyeAdjustment);
+                }
+                else {
+                    windowXYZOut[2] = -(windowZ + eyeAdjustment);
+                }
+//                std::cout << "Z adjusted for eye/near/far=" << windowXYZOut[2] << std::endl;
+            }
+        }
+        
         return true;
     }
     
@@ -411,20 +457,30 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const float rota
  *     The volume slice's plane.
  * @param tabViewport
  *     Viewport for drawing the current tab.
+ * @param sliceThickness
+ *     Thickness of volume slice
+ * @param centerToEyeDistance
+ *     Distance from center to eye using in gluLookAt().
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane,
-                                                                                  const int tabViewport[4])
+                                                                                  const int tabViewport[4],
+                                                                                  const float sliceThickness,
+                                                                                  const float centerToEyeDistance)
 {
+    m_volumeSpacePlaneValid = false;
+    
     if (plane.isValidPlane()) {
         m_volumeSpacePlane = plane;
         m_volumeSpacePlaneValid = true;
         
         std::vector<AnnotationColorBar*> colorBars;
-        drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
-                        tabViewport,
-                        colorBars,
-                        NULL);
+        drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
+                                tabViewport,
+                                colorBars,
+                                NULL,
+                                sliceThickness,
+                                centerToEyeDistance);
     }
     
     m_volumeSpacePlaneValid = false;
@@ -437,16 +493,61 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
  *     Coordinate space of annotation that are drawn.
  * @param surfaceDisplayed
  *     Surface that is displayed.  May be NULL in some instances.
+ * @param colorbars
+ *     Colorbars that will be drawn.
+ * @param surfaceDisplayed
+ *     In not NULL, surface no which annotations are drawn.
+ * @param centerToEyeDistance
+ *     Distance from center to eye using in gluLookAt().
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                            const int tabViewport[4],
                                                            std::vector<AnnotationColorBar*>& colorBars,
-                                                           const Surface* surfaceDisplayed)
+                                                           const Surface* surfaceDisplayed,
+                                                           const float centerToEyeDistance)
+{
+    m_volumeSpacePlaneValid = false;
+    
+    const float sliceThickness      = 0.0;
+    drawAnnotationsInternal(drawingCoordinateSpace,
+                            tabViewport,
+                            colorBars,
+                            surfaceDisplayed,
+                            sliceThickness,
+                            centerToEyeDistance);
+}
+
+/**
+ * Draw the annotations in the given coordinate space.
+ *
+ * @param drawingCoordinateSpace
+ *     Coordinate space of annotation that are drawn.
+ * @param surfaceDisplayed
+ *     Surface that is displayed.  May be NULL in some instances.
+ * @param colorbars
+ *     Colorbars that will be drawn.
+ * @param surfaceDisplayed
+ *     In not NULL, surface no which annotations are drawn.
+ * @param sliceThickness
+ *     Thickness of volume slice
+ * @param centerToEyeDistance
+ *     Distance from center to eye using in gluLookAt().
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
+                                                                   const int tabViewport[4],
+                                                                   std::vector<AnnotationColorBar*>& colorBars,
+                                                                   const Surface* surfaceDisplayed,
+                                                                   const float sliceThickness,
+                                                                   const float centerToEyeDistance)
 {
     if (m_brainOpenGLFixedPipeline->m_brain == NULL) {
         return;
     }
+    
+    m_volumeSliceThickness  = sliceThickness;
+    m_centerToEyeDistance   = centerToEyeDistance;
     
     setSelectionBoxColor();
     
@@ -1051,12 +1152,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
         return;
     }
     
-//    GLint savedViewport[4];
-//    glGetIntegerv(GL_VIEWPORT, savedViewport);
-//    
-//    GLint annViewport[4] = {
-//        
-//    }
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
         (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
@@ -1193,12 +1288,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                               topLeft,
                               totalTickMarksHeightPixels,
                               tickMarksOffsetFromBotom);
-        
-//        if (drawForegroundFlag) {
-//            BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
-//                                                      foregroundRGBA,
-//                                                      outlineWidth);
-//        }
     }
     if (colorBar->isSelected()) {
         drawAnnotationTwoDimSizingHandles(annotationFile,
@@ -1928,18 +2017,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                 }
                 
                 setDepthTestingStatus(depthTestFlag);
-                
-//                if (text->isUnderlineEnabled()) {
-//                    if (text->getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
-//                        std::vector<float> underlineCoords;
-//                        underlineCoords.insert(underlineCoords.end(), bottomLeft,  bottomLeft + 3);
-//                        underlineCoords.insert(underlineCoords.end(), bottomRight, bottomRight + 3);
-//                        
-//                        BrainOpenGLPrimitiveDrawing::drawLines(underlineCoords,
-//                                                               foregroundRGBA,
-//                                                               2.0);
-//                    }
-//                }
             }
         }
         
@@ -2005,18 +2082,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::createLineCoordinates(const float lin
                                                                  std::vector<float>& coordinatesOut) const
 {
     coordinatesOut.clear();
-    
-//    /*
-//     * Length of arrow's line
-//     */
-//    const float lineLength = MathFunctions::distance3D(lineHeadXYZ,
-//                                                       lineTailXYZ);
-    
-//    /*
-//     * Length of arrow's right and left pointer tips
-//     */
-//    const float pointerPercent = 0.2;
-//    const float tipLength = lineLength * pointerPercent;
     
     /*
      * Length of arrow's tips is function of line thickness
@@ -2476,46 +2541,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                                                                         const float lineThickness,
                                                                         const float rotationAngle)
 {
-//    float widthVector[3];
-//    MathFunctions::subtractVectors(topRight, topLeft, widthVector);
-//    MathFunctions::normalizeVector(widthVector);
-//    
     float heightVector[3];
     MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
     MathFunctions::normalizeVector(heightVector);
-//
+
     const float innerSpacing = 2.0 + (lineThickness / 2.0);
-//    
-//    const float widthSpacingX = innerSpacing * widthVector[0];
-//    const float widthSpacingY = innerSpacing * widthVector[1];
-//    
-//    const float heightSpacingX = innerSpacing * heightVector[0];
-//    const float heightSpacingY = innerSpacing * heightVector[1];
-//
-//    const float handleTopLeft[3] = {
-//        topLeft[0] - widthSpacingX + heightSpacingX,
-//        topLeft[1] - widthSpacingY + heightSpacingY,
-//        topLeft[2]
-//    };
-//    
-//    const float handleTopRight[3] = {
-//        topRight[0] + widthSpacingX + heightSpacingX,
-//        topRight[1] + widthSpacingY + heightSpacingY,
-//        topRight[2]
-//    };
-//    
-//    const float handleBottomLeft[3] = {
-//        bottomLeft[0] - widthSpacingX - heightSpacingX,
-//        bottomLeft[1] - widthSpacingY - heightSpacingY,
-//        bottomLeft[2]
-//    };
-//    const float handleBottomRight[3] = {
-//        bottomRight[0] + widthSpacingX - heightSpacingX,
-//        bottomRight[1] + widthSpacingY - heightSpacingY,
-//        bottomRight[2]
-//    };
-//    
-//    {
         float handleTopLeft[3];
         float handleTopRight[3];
         float handleBottomRight[3];
@@ -2527,7 +2557,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
             handleBottomLeft[i]  = bottomLeft[i];
         }
     expandBox(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft, innerSpacing, innerSpacing);
-//    }
     
     if (! m_selectionModeFlag) {
         std::vector<float> coords;
