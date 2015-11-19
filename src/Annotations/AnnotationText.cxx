@@ -23,6 +23,7 @@
 #include "AnnotationText.h"
 #undef __ANNOTATION_TEXT_DECLARE__
 
+#include "AnnotationSpatialModification.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "MathFunctions.h"
@@ -612,44 +613,20 @@ AnnotationText::setFontPercentViewportSizeProtected(const float fontPercentViewp
 }
 
 /**
- * Apply a move or resize operation received from the GUI.
+ * Apply a spatial modification to an annotation.
  *
- * @param handleSelected
- *     Annotatoion handle that is being dragged by the user.
- * @param viewportWidth
- *     Width of viewport
- * @param viewportHeight
- *     Height of viewport
- * @param mousePressX
- *     Mouse pressed X-coordinate.
- * @param mousePressY
- *     Mouse pressed Y-coordinate.
- * @param mouseX
- *     Mouse X-coordinate.
- * @param mouseY
- *     Mouse Y-coordinate.
- * @param mouseDX
- *     Change in mouse X-coordinate.
- * @param mouseDY
- *     Change in mouse Y-coordinate.
+ * @param spatialModification
+ *     Contains information about the spatial modification.
  */
 void
-AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
-                                         const float viewportWidth,
-                                         const float viewportHeight,
-                                         const float mousePressX,
-                                         const float mousePressY,
-                                         const float mouseX,
-                                         const float mouseY,
-                                         const float mouseDX,
-                                         const float mouseDY)
+AnnotationText::applySpatialModification(const AnnotationSpatialModification& spatialModification)
 {
     /*
      * Text limits support of resize options
      */
     bool operationSupportedFlag = false;
     
-    switch (handleSelected) {
+    switch (spatialModification.m_sizingHandleType) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
@@ -679,17 +656,10 @@ AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::E
     }
     
     if (operationSupportedFlag) {
-        AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(handleSelected,
-                                                                viewportWidth,
-                                                                viewportHeight,
-                                                                mousePressX,
-                                                                mousePressY,
-                                                                mouseX,
-                                                                mouseY,
-                                                                mouseDX,
-                                                                mouseDY);
+        AnnotationTwoDimensionalShape::applySpatialModification(spatialModification);
     }
 }
+
 
 /**
  * Save subclass data to the scene.

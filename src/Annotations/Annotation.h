@@ -31,6 +31,7 @@
 
 
 namespace caret {
+    class AnnotationSpatialModification;
     class SceneClassAssistant;
 
     class Annotation : public CaretObjectTracksModification, public SceneableInterface {
@@ -119,37 +120,14 @@ namespace caret {
         static void setUserDefaultCustomBackgroundColor(const float rgba[4]);
         
         static void setUserDefaultForegroundLineWidth(const float lineWidth);
+        
         /**
-         * Apply a move or resize operation received from the GUI.
+         * Apply a spatial modification to an annotation.
          *
-         * @param handleSelected
-         *     Annotatoion handle that is being dragged by the user.
-         * @param viewportWidth
-         *     Width of viewport
-         * @param viewportHeight
-         *     Height of viewport
-         * @param mousePressX
-         *     Mouse pressed X-coordinate.
-         * @param mousePressY
-         *     Mouse pressed Y-coordinate.
-         * @param mouseX
-         *     Mouse X-coordinate.
-         * @param mouseY
-         *     Mouse Y-coordinate.
-         * @param mouseDX
-         *     Change in mouse X-coordinate.
-         * @param mouseDY
-         *     Change in mouse Y-coordinate.
+         * @param spatialModification
+         *     Contains information about the spatial modification.
          */
-        virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
-                                              const float viewportWidth,
-                                              const float viewportHeight,
-                                              const float mousePressX,
-                                              const float mousePressY,
-                                              const float mouseX,
-                                              const float mouseY,
-                                              const float mouseDX,
-                                              const float mouseDY) = 0;
+        virtual void applySpatialModification(const AnnotationSpatialModification& spatialModification) = 0;
         
         bool isMovableOrResizableFromGUI() const;
         

@@ -26,6 +26,7 @@
 #undef __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
 
 #include "AnnotationCoordinate.h"
+#include "AnnotationSpatialModification.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "MathFunctions.h"
@@ -290,55 +291,30 @@ AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
     setWindowIndex(otherAnnotation->getWindowIndex());
 }
 
-
 /**
- * Apply a move or resize operation received from the GUI.
+ * Apply a spatial modification to an annotation.
  *
- * @param handleSelected
- *     Annotatoion handle that is being dragged by the user.
- * @param viewportWidth
- *     Width of viewport
- * @param viewportHeight
- *     Height of viewport
- * @param mousePressX
- *     Mouse pressed X-coordinate.
- * @param mousePressY
- *     Mouse pressed Y-coordinate.
- * @param mouseX
- *     Mouse X-coordinate.
- * @param mouseY
- *     Mouse Y-coordinate.
- * @param mouseDX
- *     Change in mouse X-coordinate.
- * @param mouseDY
- *     Change in mouse Y-coordinate.
+ * @param spatialModification
+ *     Contains information about the spatial modification.
  */
 void
-AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
-                                                        const float viewportWidth,
-                                                        const float viewportHeight,
-                                                        const float mousePressX,
-                                                        const float mousePressY,
-                                                        const float mouseX,
-                                                        const float mouseY,
-                                                        const float mouseDX,
-                                                        const float mouseDY)
+AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialModification& spatialModification)
 {
     float xyz[3];
     m_coordinate->getXYZ(xyz);
     
     float viewportXYZ[3] = {
-        (xyz[0] / 100.0) * viewportWidth,
-        (xyz[1] / 100.0) * viewportHeight,
-         xyz[2]
+        (xyz[0] / 100.0) * spatialModification.m_viewportWidth,
+        (xyz[1] / 100.0) * spatialModification.m_viewportHeight,
+        xyz[2]
     };
     
     float bottomLeftXYZ[3];
     float bottomRightXYZ[3];
     float topLeftXYZ[3];
     float topRightXYZ[3];
-    const bool validBounds = getShapeBounds(viewportWidth,
-                                            viewportHeight,
+    const bool validBounds = getShapeBounds(spatialModification.m_viewportWidth,
+                                            spatialModification.m_viewportHeight,
                                             viewportXYZ,
                                             bottomLeftXYZ,
                                             bottomRightXYZ,
@@ -353,28 +329,23 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     MathFunctions::createUnitVector(bottomLeftXYZ, bottomRightXYZ, leftToRightUnitVector);
     float bottomToTopUnitVector[3];
     MathFunctions::createUnitVector(bottomLeftXYZ, topLeftXYZ, bottomToTopUnitVector);
-    //    const AString infoTxt("ORIG: Bottom=" + AString::number(bottomXYZ[1], 'f', 4)
-    //                          + " Top=" + AString::number(topXYZ[1], 'f', 4)
-    //                          + " Y=" + AString::number(xyz[1], 'f', 6)
-    //                          + " aspect=" + AString::number(m_height, 'f', 6));
-    //    std::cout << qPrintable(infoTxt) << std::endl;
     
     /*
      * Find size adjustment for side (not corner) sizing handles
      */
     float sideHandleDX = 0.0;
     float sideHandleDY = 0.0;
-    getSideHandleMouseDelta(handleSelected,
+    getSideHandleMouseDelta(spatialModification.m_sizingHandleType,
                             leftToRightUnitVector,
                             bottomToTopUnitVector,
-                            mouseDX,
-                            mouseDY,
+                            spatialModification.m_mouseDX,
+                            spatialModification.m_mouseDY,
                             sideHandleDX,
                             sideHandleDY);
     /*
      * When a resize handle is moved, update the corners of the shape
      */
-    switch (handleSelected) {
+    switch (spatialModification.m_sizingHandleType) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
         {
             addToXYZWithXY(bottomLeftXYZ,  sideHandleDX, sideHandleDY);
@@ -386,8 +357,8 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             /*
              * Bottom left is now at the mouse XY
              */
-            bottomLeftXYZ[0] = mouseX;
-            bottomLeftXYZ[1] = mouseY;
+            bottomLeftXYZ[0] = spatialModification.m_mouseX;
+            bottomLeftXYZ[1] = spatialModification.m_mouseY;
             
             /*
              * Unit vector from bottom left to updated top right
@@ -403,8 +374,8 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
              *    angles add up to PI=180).
              */
             const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
-                                                            topRightXYZ,
-                                                            bottomLeftXYZ);
+                                                             topRightXYZ,
+                                                             bottomLeftXYZ);
             const float angle = (M_PI / 2.0) - oppositeAngle;
             const float hypotnuseLength = MathFunctions::distance3D(bottomLeftXYZ,
                                                                     topRightXYZ);
@@ -424,8 +395,8 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             /*
              * Bottom right is now at the mouse XY
              */
-            bottomRightXYZ[0] = mouseX;
-            bottomRightXYZ[1] = mouseY;
+            bottomRightXYZ[0] = spatialModification.m_mouseX;
+            bottomRightXYZ[1] = spatialModification.m_mouseY;
             
             /*
              * Unit vector from top left to updated bottom right
@@ -477,8 +448,8 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             /*
              * Top left is now at the mouse XY
              */
-            topLeftXYZ[0] = mouseX;
-            topLeftXYZ[1] = mouseY;
+            topLeftXYZ[0] = spatialModification.m_mouseX;
+            topLeftXYZ[1] = spatialModification.m_mouseY;
             
             /*
              * Unit vector from top left to updated bottom right
@@ -513,8 +484,8 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             /*
              * Top right is now at the mouse XY
              */
-            topRightXYZ[0] = mouseX;
-            topRightXYZ[1] = mouseY;
+            topRightXYZ[0] = spatialModification.m_mouseX;
+            topRightXYZ[1] = spatialModification.m_mouseY;
             
             /*
              * Unit vector from updated top right to bottom left
@@ -550,10 +521,10 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
             if (isMovableOrResizableFromGUI()) {
-                addToXYZWithXY(bottomLeftXYZ,  mouseDX, mouseDY);
-                addToXYZWithXY(bottomRightXYZ, mouseDX, mouseDY);
-                addToXYZWithXY(topRightXYZ,    mouseDX, mouseDY);
-                addToXYZWithXY(topLeftXYZ,     mouseDX, mouseDY);
+                addToXYZWithXY(bottomLeftXYZ,  spatialModification.m_mouseDX, spatialModification.m_mouseDY);
+                addToXYZWithXY(bottomRightXYZ, spatialModification.m_mouseDX, spatialModification.m_mouseDY);
+                addToXYZWithXY(topRightXYZ,    spatialModification.m_mouseDX, spatialModification.m_mouseDY);
+                addToXYZWithXY(topLeftXYZ,     spatialModification.m_mouseDX, spatialModification.m_mouseDY);
             }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
@@ -565,18 +536,18 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                 {
                     const float previousMouseXY[3] = {
-                        mouseX - mouseDX,
-                        mouseY - mouseDY,
+                        spatialModification.m_mouseX - spatialModification.m_mouseDX,
+                        spatialModification.m_mouseY - spatialModification.m_mouseDY,
                         0.0
                     };
                     const float currentMouseXY[3] = {
-                        mouseX,
-                        mouseY,
+                        spatialModification.m_mouseX,
+                        spatialModification.m_mouseY,
                         0.0
                     };
                     const float pressXY[3] = {
-                        mousePressX,
-                        mousePressY,
+                        spatialModification.m_mousePressX,
+                        spatialModification.m_mousePressY,
                         0.0
                     };
                     
@@ -587,53 +558,24 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
                                                 normalVector);
                     
                     
-                    float delta = std::sqrt(mouseDX*mouseDX + mouseDY*mouseDY);
+                    float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
                     if (normalVector[2] < 0.0) {
                         delta = -delta;
                     }
                     m_rotationAngle += delta;
-//                    bool rotateCW  = false;
-//                    bool rotateCCW = false;
-//                    if ((mouseDX > 0.0)
-//                        && (mouseDY > 0.0)) {
-//                        rotateCW = true;
-//                        std::cout << "++ CW" << std::endl;
-//                    }
-//                    else if ((mouseDX > 0.0)
-//                             && (mouseDY < 0.0)) {
-//                        rotateCW = true;
-//                        std::cout << "+- CW" << std::endl;
-//                    }
-//                    else if ((mouseDX < 0.0)
-//                             && (mouseDY < 0.0)) {
-//                        rotateCCW = true;
-//                        std::cout << "-- CCW" << std::endl;
-//                    }
-//                    else if ((mouseDX < 0.0)
-//                             && (mouseDY > 0.0)) {
-//                        rotateCCW = true;
-//                        std::cout << "-+ CCW" << std::endl;
-//                    }
-//                    
-//                    if (rotateCW) {
-//                        m_rotationAngle += delta;
-//                    }
-//                    else if (rotateCCW) {
-//                        m_rotationAngle -= delta;
-//                    }
                 }
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 case AnnotationCoordinateSpaceEnum::WINDOW:
                 {
                     const float previousMouseXY[3] = {
-                        mouseX - mouseDX,
-                        mouseY - mouseDY,
+                        spatialModification.m_mouseX - spatialModification.m_mouseDX,
+                        spatialModification.m_mouseY - spatialModification.m_mouseDY,
                         0.0
                     };
                     const float currentMouseXY[3] = {
-                        mouseX,
-                        mouseY,
+                        spatialModification.m_mouseX,
+                        spatialModification.m_mouseY,
                         0.0
                     };
                     const float shapeXY[3] = {
@@ -649,7 +591,7 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
                                                 normalVector);
                     
                     
-                    float delta = std::sqrt(mouseDX*mouseDX + mouseDY*mouseDY);
+                    float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
                     if (normalVector[2] < 0.0) {
                         delta = -delta;
                     }
@@ -670,18 +612,18 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         }
             break;
     }
-
+    
     /*
      * Using the updated corners of the annotation, convert back to normalized x, y, width, and aspect ratio
      */
     float newViewportXYZ[3];
     MathFunctions::averageOfFourCoordinates(bottomLeftXYZ, bottomRightXYZ, topRightXYZ, topLeftXYZ, newViewportXYZ);
-    const float newX = 100.0 * (newViewportXYZ[0] / viewportWidth);
-    const float newY = 100.0 * (newViewportXYZ[1] / viewportHeight);
+    const float newX = 100.0 * (newViewportXYZ[0] / spatialModification.m_viewportWidth);
+    const float newY = 100.0 * (newViewportXYZ[1] / spatialModification.m_viewportHeight);
     const float newShapeViewportWidth = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
-    const float newWidth = 100.0 * (newShapeViewportWidth / viewportWidth);
+    const float newWidth = 100.0 * (newShapeViewportWidth / spatialModification.m_viewportWidth);
     const float newShapeViewportHeight = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
-    const float newHeight = 100.0 * (newShapeViewportHeight / viewportHeight);
+    const float newHeight = 100.0 * (newShapeViewportHeight / spatialModification.m_viewportHeight);
     
     /*
      * Note:
@@ -703,18 +645,6 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
         m_width  = newWidth;
         m_height = newHeight;
         setModified();
-        
-        //        {
-        //            const float h = m_width * m_height;
-        //            const float b = xyz[1] - (h / 2.0);
-        //            const float t = xyz[1] + (h / 2.0);
-        //            const AString infoTxt("NEW:  Bottom=" + AString::number(b, 'f', 4)
-        //                                  + " Top=" + AString::number(t, 'f', 4)
-        //                                  + " Y=" + AString::number(xyz[1], 'f', 6)
-        //                                  + " aspect=" + AString::number(m_height, 'f', 6));
-        //            std::cout << qPrintable(infoTxt) << std::endl;
-        //            std::cout << std::endl;
-        //        }
     }
 }
 

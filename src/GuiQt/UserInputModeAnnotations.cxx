@@ -30,6 +30,7 @@
 #include "AnnotationManager.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoCommand.h"
+#include "AnnotationSpatialModification.h"
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"
 #include "AnnotationTwoDimensionalShape.h"
@@ -708,15 +709,16 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
                 
                 if (applyMouseMovementFlag) {
-                    annotationModified->applyMoveOrResizeFromGUI(m_annotationBeingDraggedHandleType,
-                                                                 spaceWidth,
-                                                                 spaceHeight,
-                                                                 mouseEvent.getPressedX(),
-                                                                 mouseEvent.getPressedY(),
-                                                                 mouseViewportX,
-                                                                 mouseViewportY,
-                                                                 dx,
-                                                                 dy);
+                    AnnotationSpatialModification annMod(m_annotationBeingDraggedHandleType,
+                                                         spaceWidth,
+                                                         spaceHeight,
+                                                         mouseEvent.getPressedX(),
+                                                         mouseEvent.getPressedY(),
+                                                         mouseViewportX,
+                                                         mouseViewportY,
+                                                         dx,
+                                                         dy);
+                    annotationModified->applySpatialModification(annMod);
                 }
                 
                 annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);

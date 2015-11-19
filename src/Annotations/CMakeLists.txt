@@ -35,6 +35,7 @@ AnnotationOval.h
 AnnotationPercentSizeText.h
 AnnotationPointSizeText.h
 AnnotationSizingHandleTypeEnum.h
+AnnotationSpatialModification.h
 AnnotationText.h
 AnnotationTextAlignHorizontalEnum.h
 AnnotationTextAlignVerticalEnum.h
@@ -66,6 +67,7 @@ AnnotationOval.cxx
 AnnotationPercentSizeText.cxx
 AnnotationPointSizeText.cxx
 AnnotationSizingHandleTypeEnum.cxx
+AnnotationSpatialModification.cxx
 AnnotationText.cxx
 AnnotationTextAlignHorizontalEnum.cxx
 AnnotationTextAlignVerticalEnum.cxx

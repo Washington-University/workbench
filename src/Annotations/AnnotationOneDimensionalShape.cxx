@@ -24,6 +24,7 @@
 #undef __ANNOTATION_ONE_DIMENSIONAL_SHAPE_DECLARE__
 
 #include "AnnotationCoordinate.h"
+#include "AnnotationSpatialModification.h"
 #include "CaretAssert.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -217,38 +218,15 @@ AnnotationOneDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
     setWindowIndex(otherAnnotation->getWindowIndex());
 }
 
+
 /**
- * Apply a move or resize operation received from the GUI.
+ * Apply a spatial modification to an annotation.
  *
- * @param handleSelected
- *     Annotatoion handle that is being dragged by the user.
- * @param viewportWidth
- *     Width of viewport
- * @param viewportHeight
- *     Height of viewport
- * @param mousePressX
- *     Mouse pressed X-coordinate.
- * @param mousePressY
- *     Mouse pressed Y-coordinate.
- * @param mouseX
- *     Mouse X-coordinate.
- * @param mouseY
- *     Mouse Y-coordinate.
- * @param mouseDX
- *     Change in mouse X-coordinate.
- * @param mouseDY
- *     Change in mouse Y-coordinate.
+ * @param spatialModification
+ *     Contains information about the spatial modification.
  */
 void
-AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
-                                                        const float viewportWidth,
-                                                        const float viewportHeight,
-                                                        const float /*mousePressX*/,
-                                                        const float /*mousePressY*/,
-                                                        const float /*mouseX*/,
-                                                        const float /*mouseY*/,
-                                                        const float mouseDX,
-                                                        const float mouseDY)
+AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialModification& spatialModification)
 {
     if ( ! isMovableOrResizableFromGUI()) {
         return;
@@ -263,15 +241,15 @@ AnnotationOneDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
     float newY1 = xyz1[1];
     float newX2 = xyz2[0];
     float newY2 = xyz2[1];
-
-    const float spaceDX = 100.0 * ((viewportWidth != 0.0)
-                                   ? (mouseDX / viewportWidth)
+    
+    const float spaceDX = 100.0 * ((spatialModification.m_viewportWidth != 0.0)
+                                   ? (spatialModification.m_mouseDX / spatialModification.m_viewportWidth)
                                    : 0.0);
-    const float spaceDY = 100.0 * ((viewportHeight != 0.0)
-                                   ? (mouseDY / viewportHeight)
+    const float spaceDY = 100.0 * ((spatialModification.m_viewportHeight != 0.0)
+                                   ? (spatialModification.m_mouseDY / spatialModification.m_viewportHeight)
                                    : 0.0);
     
-    switch (handleSelected) {
+    switch (spatialModification.m_sizingHandleType) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
