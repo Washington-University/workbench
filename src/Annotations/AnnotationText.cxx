@@ -620,6 +620,10 @@ AnnotationText::setFontPercentViewportSizeProtected(const float fontPercentViewp
  *     Width of viewport
  * @param viewportHeight
  *     Height of viewport
+ * @param mousePressX
+ *     Mouse pressed X-coordinate.
+ * @param mousePressY
+ *     Mouse pressed Y-coordinate.
  * @param mouseX
  *     Mouse X-coordinate.
  * @param mouseY
@@ -633,6 +637,8 @@ void
 AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                          const float viewportWidth,
                                          const float viewportHeight,
+                                         const float mousePressX,
+                                         const float mousePressY,
                                          const float mouseX,
                                          const float mouseY,
                                          const float mouseDX,
@@ -676,6 +682,8 @@ AnnotationText::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::E
         AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(handleSelected,
                                                                 viewportWidth,
                                                                 viewportHeight,
+                                                                mousePressX,
+                                                                mousePressY,
                                                                 mouseX,
                                                                 mouseY,
                                                                 mouseDX,

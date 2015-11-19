@@ -54,16 +54,16 @@ AnnotationCoordinateSpaceWidget::AnnotationCoordinateSpaceWidget(const int32_t b
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
-    m_spaceLabel = new QLabel("");
+    m_spaceLabel = new QLabel("  ");
     m_spaceLabel->setToolTip("Selection annotation(s) space.\n"
                              "Mouse dragging to move/resize\n"
                              "annotations allowed in Tab or \n"
                              "Window space only.\n"
-                             "   M : Model\n"
-                             "   S : Surface\n"
-                             "   T : Tab\n"
-                             "   W : Window\n"
-                             "   + : Multiple Spaces");
+                             "   St : Stereotaxic\n"
+                             "   Sf : Surface\n"
+                             "   T  : Tab\n"
+                             "   W  : Window\n"
+                             "   +  : Multiple Spaces");
     
                              
     QHBoxLayout* layout = new QHBoxLayout(this);
@@ -117,13 +117,13 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
         else {
             switch (space) {
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                    text = "S";
+                    text = "St";
                     break;
                 case AnnotationCoordinateSpaceEnum::PIXELS:
                     text = "P";
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
-                    text = "";
+                    text = "Sf";
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
                 {

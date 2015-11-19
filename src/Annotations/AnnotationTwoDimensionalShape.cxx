@@ -300,6 +300,10 @@ AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
  *     Width of viewport
  * @param viewportHeight
  *     Height of viewport
+ * @param mousePressX
+ *     Mouse pressed X-coordinate.
+ * @param mousePressY
+ *     Mouse pressed Y-coordinate.
  * @param mouseX
  *     Mouse X-coordinate.
  * @param mouseY
@@ -313,6 +317,8 @@ void
 AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                                         const float viewportWidth,
                                                         const float viewportHeight,
+                                                        const float mousePressX,
+                                                        const float mousePressY,
                                                         const float mouseX,
                                                         const float mouseY,
                                                         const float mouseDX,
@@ -552,34 +558,105 @@ AnnotationTwoDimensionalShape::applyMoveOrResizeFromGUI(const AnnotationSizingHa
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
         {
-            const float previousMouseXY[3] = {
-                mouseX - mouseDX,
-                mouseY - mouseDY,
-                0.0
-            };
-            const float currentMouseXY[3] = {
-                mouseX,
-                mouseY,
-                0.0
-            };
-            const float shapeXY[3] = {
-                viewportXYZ[0],
-                viewportXYZ[1],
-                0.0
-            };
-            
-            float normalVector[3];
-            MathFunctions::normalVector(shapeXY,
-                                        currentMouseXY,
-                                        previousMouseXY,
-                                        normalVector);
-
-            
-            float delta = std::sqrt(mouseDX*mouseDX + mouseDY*mouseDY);
-            if (normalVector[2] < 0.0) {
-                delta = -delta;
+            switch (getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                {
+                    const float previousMouseXY[3] = {
+                        mouseX - mouseDX,
+                        mouseY - mouseDY,
+                        0.0
+                    };
+                    const float currentMouseXY[3] = {
+                        mouseX,
+                        mouseY,
+                        0.0
+                    };
+                    const float pressXY[3] = {
+                        mousePressX,
+                        mousePressY,
+                        0.0
+                    };
+                    
+                    float normalVector[3];
+                    MathFunctions::normalVector(pressXY,
+                                                currentMouseXY,
+                                                previousMouseXY,
+                                                normalVector);
+                    
+                    
+                    float delta = std::sqrt(mouseDX*mouseDX + mouseDY*mouseDY);
+                    if (normalVector[2] < 0.0) {
+                        delta = -delta;
+                    }
+                    m_rotationAngle += delta;
+//                    bool rotateCW  = false;
+//                    bool rotateCCW = false;
+//                    if ((mouseDX > 0.0)
+//                        && (mouseDY > 0.0)) {
+//                        rotateCW = true;
+//                        std::cout << "++ CW" << std::endl;
+//                    }
+//                    else if ((mouseDX > 0.0)
+//                             && (mouseDY < 0.0)) {
+//                        rotateCW = true;
+//                        std::cout << "+- CW" << std::endl;
+//                    }
+//                    else if ((mouseDX < 0.0)
+//                             && (mouseDY < 0.0)) {
+//                        rotateCCW = true;
+//                        std::cout << "-- CCW" << std::endl;
+//                    }
+//                    else if ((mouseDX < 0.0)
+//                             && (mouseDY > 0.0)) {
+//                        rotateCCW = true;
+//                        std::cout << "-+ CCW" << std::endl;
+//                    }
+//                    
+//                    if (rotateCW) {
+//                        m_rotationAngle += delta;
+//                    }
+//                    else if (rotateCCW) {
+//                        m_rotationAngle -= delta;
+//                    }
+                }
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                {
+                    const float previousMouseXY[3] = {
+                        mouseX - mouseDX,
+                        mouseY - mouseDY,
+                        0.0
+                    };
+                    const float currentMouseXY[3] = {
+                        mouseX,
+                        mouseY,
+                        0.0
+                    };
+                    const float shapeXY[3] = {
+                        viewportXYZ[0],
+                        viewportXYZ[1],
+                        0.0
+                    };
+                    
+                    float normalVector[3];
+                    MathFunctions::normalVector(shapeXY,
+                                                currentMouseXY,
+                                                previousMouseXY,
+                                                normalVector);
+                    
+                    
+                    float delta = std::sqrt(mouseDX*mouseDX + mouseDY*mouseDY);
+                    if (normalVector[2] < 0.0) {
+                        delta = -delta;
+                    }
+                    m_rotationAngle += delta;
+                }
+                    break;
             }
-            m_rotationAngle += delta;
             if (m_rotationAngle > 360.0) {
                 m_rotationAngle -= 360.0;
             }

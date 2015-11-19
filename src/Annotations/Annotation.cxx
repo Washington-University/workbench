@@ -900,6 +900,37 @@ Annotation::isMovableOrResizableFromGUI() const
 }
 
 /**
+ * @return True if the annotation can be rotated by
+ * the GUI.  This status is dependent upon the annotation's
+ * coordinate space.
+ */
+bool
+Annotation::isRotatableFromGUI() const
+{
+    bool rotatableSpaceFlag = false;
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            rotatableSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            rotatableSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            rotatableSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            rotatableSpaceFlag = true;
+            break;
+    }
+    
+    return rotatableSpaceFlag;
+}
+
+
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes

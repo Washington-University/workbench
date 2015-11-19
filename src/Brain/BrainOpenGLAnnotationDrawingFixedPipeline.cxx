@@ -2667,7 +2667,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
         }
     }
     
-    if (annotation->isMovableOrResizableFromGUI()) {
+    if (annotation->isRotatableFromGUI()) {
         /* 
          * Rotation handle and line connecting rotation handle to selection box
          */

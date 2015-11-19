@@ -92,6 +92,8 @@ namespace caret {
         virtual void applyMoveOrResizeFromGUI(const AnnotationSizingHandleTypeEnum::Enum handleSelected,
                                               const float viewportWidth,
                                               const float viewportHeight,
+                                               const float mousePressX,
+                                              const float mousePressY,
                                               const float mouseX,
                                               const float mouseY,
                                               const float mouseDX,
