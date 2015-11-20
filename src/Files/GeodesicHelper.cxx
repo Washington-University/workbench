@@ -563,10 +563,10 @@ void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
         }//dijkstra done...lotsa brackets...now to propagate the information gained to other roots
         for (i = root + 1; i < numNodes; ++i)
         {//any node smaller than root already has all distances calculated for entire surface
-            if (!(marked[i] & 2))
+            if ((marked[i] & 1) && !(marked[i] & 2))//don't propagate from it if we didn't reach it
             {//if endpoint already had distance to root precomputed, all available info from this node has been propagated previously
-                midrevparent = i;
-                midpoint = parents[root][i];
+                midrevparent = i;//if we reached the endpoint, then it has a full parent chain that was also reached, so we don't have to test for the 1 flag further
+                midpoint = parents[root][i];//also, if we ended early from remain, anything not marked with a 1 is marked with a 2 and skipped anyway
                 endparent = midpoint;
                 tempf = out[root][i];
                 while (midpoint != root)
