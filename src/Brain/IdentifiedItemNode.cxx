@@ -192,7 +192,7 @@ IdentifiedItemNode::isValid() const
     if (m_surfaceNumberOfNodes <= 0) {
         return false;
     }
-    if (m_nodeIndex <= 0) {
+    if (m_nodeIndex < 0) {
         return false;
     }
     
