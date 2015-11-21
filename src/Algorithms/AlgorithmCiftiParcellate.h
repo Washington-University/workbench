@@ -24,6 +24,7 @@
 #include "AbstractAlgorithm.h"
 #include "CiftiBrainModelsMap.h"
 #include "CiftiParcelsMap.h"
+#include "ReductionEnum.h"
 #include <vector>
 
 namespace caret {
@@ -35,7 +36,16 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut);
+        AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
+                                 const ReductionEnum::Enum& method = ReductionEnum::MEAN,
+                                 const float& excludeLow = -1.0f, const float& excludeHigh = -1.0f, const bool& onlyNumeric = false);
+        AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
+                                 const MetricFile* leftWeights, const MetricFile* rightWeights = NULL, const MetricFile* cerebWeights = NULL,
+                                 const ReductionEnum::Enum& method = ReductionEnum::MEAN,
+                                 const float& excludeLow = -1.0f, const float& excludeHigh = -1.0f, const bool& onlyNumeric = false);
+        AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
+                                 const CiftiFile* ciftiWeights, const ReductionEnum::Enum& method = ReductionEnum::MEAN,
+                                 const float& excludeLow = -1.0f, const float& excludeHigh = -1.0f, const bool& onlyNumeric = false);
         static CiftiParcelsMap parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, std::vector<int>& indexToParcelOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

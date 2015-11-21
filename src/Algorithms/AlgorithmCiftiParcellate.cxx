@@ -20,11 +20,14 @@
 
 #include "AlgorithmCiftiParcellate.h"
 #include "AlgorithmException.h"
+#include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "MetricFile.h"
 #include "MultiDimIterator.h"
 #include "ReductionOperation.h"
+#include "SurfaceFile.h"
 
 #include <cmath>
 #include <map>
@@ -53,11 +56,40 @@ OperationParameters* AlgorithmCiftiParcellate::getParameters()
     
     ret->addCiftiOutputParameter(4, "cifti-out", "output cifti file");
     
+    OptionalParameter* spatialWeightOpt = ret->createOptionalParameter(5, "-spatial-weights", "use voxel volume and either vertex areas or metric files as weights");
+    OptionalParameter* leftAreaSurfOpt = spatialWeightOpt->createOptionalParameter(1, "-left-area-surf", "use a surface for left vertex areas");
+    leftAreaSurfOpt->addSurfaceParameter(1, "left-surf", "the left surface to use, areas are in mm^2");
+    OptionalParameter* rightAreaSurfOpt = spatialWeightOpt->createOptionalParameter(2, "-right-area-surf", "use a surface for right vertex areas");
+    rightAreaSurfOpt->addSurfaceParameter(1, "right-surf", "the right surface to use, areas are in mm^2");
+    OptionalParameter* cerebAreaSurfOpt = spatialWeightOpt->createOptionalParameter(3, "-cerebellum-area-surf", "use a surface for cerebellum vertex areas");
+    cerebAreaSurfOpt->addSurfaceParameter(1, "cerebellum-surf", "the cerebellum surface to use, areas are in mm^2");
+    OptionalParameter* leftAreaMetricOpt = spatialWeightOpt->createOptionalParameter(4, "-left-area-metric", "use a metric file for left vertex weights");
+    leftAreaMetricOpt->addMetricParameter(1, "left-metric", "metric file containing left vertex weights");
+    OptionalParameter* rightAreaMetricOpt = spatialWeightOpt->createOptionalParameter(5, "-right-area-metric", "use a metric file for right vertex weights");
+    rightAreaMetricOpt->addMetricParameter(1, "right-metric", "metric file containing right vertex weights");
+    OptionalParameter* cerebAreaMetricOpt = spatialWeightOpt->createOptionalParameter(6, "-cerebellum-area-metric", "use a metric file for cerebellum vertex weights");
+    cerebAreaMetricOpt->addMetricParameter(1, "cerebellum-metric", "metric file containing cerebellum vertex weights");
+    
+    OptionalParameter* ciftiWeightOpt = ret->createOptionalParameter(6, "-cifti-weights", "use a cifti file containing weights");
+    ciftiWeightOpt->addCiftiParameter(1, "weight-cifti", "the weights to use, as a cifti file");
+    
+    OptionalParameter* methodOpt = ret->createOptionalParameter(7, "-method", "specify method of parcellation (default MEAN, or MODE if label data)");
+    methodOpt->addStringParameter(1, "method", "the method to use to assign parcel values from the values of member brainordinates");
+
+    OptionalParameter* excludeOpt = ret->createOptionalParameter(8, "-exclude-outliers", "exclude non-numeric values and outliers from each parcel by standard deviation");
+    excludeOpt->addDoubleParameter(1, "sigma-below", "number of standard deviations below the mean to include");
+    excludeOpt->addDoubleParameter(2, "sigma-above", "number of standard deviations above the mean to include");
+    
+    ret->createOptionalParameter(9, "-only-numeric", "exclude non-numeric values");
+    
     ret->setHelpText(
         AString("Each label in the cifti label file will be treated as a parcel, and all rows or columns within the parcel are averaged together to form the output ") +
         "row or column.  " +
         "If ROW is specified, then the input mapping along rows must be brainordinates, and the output mapping along rows will be parcels, meaning columns will be averaged together.  " +
-        "For dtseries or dscalar, use COLUMN."
+        "For dtseries or dscalar, use COLUMN.  " +
+        "If you are parcellating a dconn in both directions, parcellating by ROW first will use much less memory.\n\n" +
+        "The parameter to the -method option must be one of the following:\n\n" + ReductionOperation::getHelpInfo() +
+        "\nThe -*-weights options are mutually exclusive and may only be used with MEAN, SUM, STDEV, SAMPSTDEV, VARIANCE, MEDIAN, or MODE."
     );
     return ret;
 }
@@ -80,10 +112,112 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
         }
     }
     CiftiFile* myCiftiOut = myParams->getOutputCifti(4);
-    AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut);
+    const CiftiXML& myXML = myCiftiIn->getCiftiXML();
+    vector<int64_t> dims = myXML.getDimensions();
+    ReductionEnum::Enum method = ReductionEnum::MEAN;
+    for (int i = 0; i < (int)dims.size(); ++i)
+    {
+        if (myXML.getMappingType(i) == CiftiMappingType::LABELS)
+        {
+            method = ReductionEnum::MODE;
+            break;
+        }
+    }
+    OptionalParameter* methodOpt = myParams->getOptionalParameter(7);
+    if (methodOpt->m_present)
+    {
+        bool ok = false;
+        method = ReductionEnum::fromName(methodOpt->getString(1), &ok);
+        if (!ok)
+        {
+            throw AlgorithmException("unrecognized method string '" + methodOpt->getString(1) + "'");
+        }
+    }
+    bool onlyNumeric = myParams->getOptionalParameter(9)->m_present;
+    float excludeLow = -1.0f, excludeHigh = -1.0f;
+    OptionalParameter* excludeOpt = myParams->getOptionalParameter(8);
+    if (excludeOpt->m_present)
+    {
+        if (onlyNumeric) CaretLogWarning("-only-numeric is redundant when -exclude-outliers is specified");
+        excludeLow = (float)excludeOpt->getDouble(1);
+        excludeHigh = (float)excludeOpt->getDouble(2);
+        if (!(excludeLow > 0.0f && excludeHigh > 0.0f)) throw AlgorithmException("exclusion sigmas must be positive");
+    }
+    OptionalParameter* spatialWeightOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* ciftiWeightOpt = myParams->getOptionalParameter(6);
+    if (spatialWeightOpt->m_present && ciftiWeightOpt->m_present)
+    {
+        throw AlgorithmException("only one of -spatial-weights and -cifti-weights may be specified");
+    }
+    if (spatialWeightOpt->m_present)
+    {
+        if (myXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("input cifti file does not have brain models mapping type in specified direction");
+        CiftiBrainModelsMap myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+        OptionalParameter* leftSurfOpt = spatialWeightOpt->getOptionalParameter(1);
+        OptionalParameter* rightSurfOpt = spatialWeightOpt->getOptionalParameter(2);
+        OptionalParameter* cerebSurfOpt = spatialWeightOpt->getOptionalParameter(3);
+        OptionalParameter* leftMetricOpt = spatialWeightOpt->getOptionalParameter(4);
+        OptionalParameter* rightMetricOpt = spatialWeightOpt->getOptionalParameter(5);
+        OptionalParameter* cerebMetricOpt = spatialWeightOpt->getOptionalParameter(6);
+        if (leftSurfOpt->m_present && leftMetricOpt->m_present) throw AlgorithmException("only one of -left-area-surf and -left-area-metric may be specified");
+        if (rightSurfOpt->m_present && rightMetricOpt->m_present) throw AlgorithmException("only one of -right-area-surf and -right-area-metric may be specified");
+        if (cerebSurfOpt->m_present && cerebMetricOpt->m_present) throw AlgorithmException("only one of -cerebellum-area-surf and -cerebellum-area-metric may be specified");
+        MetricFile leftStore, rightStore, cerebStore;
+        const MetricFile* leftWeights = NULL, *rightWeights = NULL, *cerebWeights = NULL;
+        for (int i = 0; i < 3; ++i)
+        {
+            MetricFile* thisStore = NULL;
+            const MetricFile** thisWeights = NULL;
+            OptionalParameter* thisSurfOpt = NULL, *thisMetricOpt = NULL;
+            switch (i)
+            {
+                case 0:
+                    thisStore = &leftStore;
+                    thisWeights = &leftWeights;
+                    thisSurfOpt = leftSurfOpt;
+                    thisMetricOpt = leftMetricOpt;
+                    break;
+                case 1:
+                    thisStore = &rightStore;
+                    thisWeights = &rightWeights;
+                    thisSurfOpt = rightSurfOpt;
+                    thisMetricOpt = cerebMetricOpt;
+                    break;
+                case 2:
+                    thisStore = &cerebStore;
+                    thisWeights = &cerebWeights;
+                    thisSurfOpt = cerebSurfOpt;
+                    thisMetricOpt = cerebMetricOpt;
+                    break;
+            }
+            if (thisMetricOpt->m_present)
+            {
+                *thisWeights = leftMetricOpt->getMetric(1);
+            }
+            if (thisSurfOpt->m_present)
+            {
+                SurfaceFile* thisSurf = thisSurfOpt->getSurface(1);
+                thisStore->setNumberOfNodesAndColumns(thisSurf->getNumberOfNodes(), 1);
+                thisStore->setStructure(thisSurf->getStructure());
+                vector<float> vertAreas;
+                thisSurf->computeNodeAreas(vertAreas);
+                thisStore->setValuesForColumn(0, vertAreas.data());
+                *thisWeights = thisStore;
+            }
+        }
+        AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut, leftWeights, rightWeights, cerebWeights, method, excludeLow, excludeHigh, onlyNumeric);
+        return;
+    }
+    if (ciftiWeightOpt->m_present)
+    {
+        AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut, ciftiWeightOpt->getCifti(1), method, excludeLow, excludeHigh, onlyNumeric);
+        return;
+    }
+    AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut, method, excludeLow, excludeHigh, onlyNumeric);
 }
 
-AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
+                                                   const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
@@ -142,15 +276,195 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
             break;//there should never be more than one dimension with LABEL type, and if there is, just use the first one, i guess...
         }
     }
+    if (isLabel && method != ReductionEnum::MODE)
+    {
+        CaretLogWarning(ReductionEnum::toName(method) + " reduction requested while parcellating label data");
+    }
     if (direction == CiftiXML::ALONG_ROW)
     {
         vector<float> scratchOutRow(numParcels);
-        if (isLabel)
+        vector<vector<float> > parcelData(numParcels);//float so we can use ReductionOperation
+        for (int j = 0; j < numParcels; ++j)
         {
-            vector<vector<float> > parcelData(numParcels);//float so we can use ReductionOperation (when not considering vertex area, etc)
+            parcelData[j].reserve(parcelCounts[j]);
+        }
+        for (MultiDimIterator<int64_t> iter(vector<int64_t>(dims.begin() + 1, dims.end())); !iter.atEnd(); ++iter)
+        {
             for (int j = 0; j < numParcels; ++j)
             {
-                parcelData[j].reserve(parcelCounts[j]);
+                parcelData[j].clear();//doesn't change allocation
+            }
+            myCiftiIn->getRow(scratchRow.data(), *iter);
+            for (int64_t j = 0; j < numCols; ++j)
+            {
+                int parcel = indexToParcel[j];
+                if (parcel != -1)
+                {
+                    if (isLabel)
+                    {
+                        parcelData[parcel].push_back(floor(scratchRow[j] + 0.5f));//round to nearest integer to be safe
+                    } else {
+                        parcelData[parcel].push_back(scratchRow[j]);
+                    }
+                }
+            }
+            for (int j = 0; j < numParcels; ++j)
+            {
+                CaretAssert(parcelCounts[j] == (int64_t)parcelData[j].size());
+                if (parcelCounts[j] > 0 && (method != ReductionEnum::SAMPSTDEV || parcelCounts[j] > 1))
+                {
+                    if (excludeLow > 0.0f && excludeHigh > 0.0f)
+                    {
+                        scratchOutRow[j] = ReductionOperation::reduceExcludeDev(parcelData[j].data(), parcelData[j].size(), method, excludeLow, excludeHigh);
+                    } else {
+                        if (onlyNumeric)
+                        {
+                            scratchOutRow[j] = ReductionOperation::reduceOnlyNumeric(parcelData[j].data(), parcelData[j].size(), method);
+                        } else {
+                            scratchOutRow[j] = ReductionOperation::reduce(parcelData[j].data(), parcelData[j].size(), method);
+                        }
+                    }
+                } else {//labelDir can't be 0 (row) because we are parcellating along row, so row must be dense
+                    if (isLabel)
+                    {
+                        scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable((*iter)[labelDir - 1])->getUnassignedLabelKey();
+                    } else {
+                        scratchOutRow[j] = 0.0f;
+                    }
+                }
+            }
+            myCiftiOut->setRow(scratchOutRow.data(), *iter);
+        }
+    } else {
+        vector<float> scratchOutRow(numCols);
+        vector<int64_t> otherDims = dims;
+        otherDims.erase(otherDims.begin() + direction);//direction being parcellated
+        otherDims.erase(otherDims.begin());//row
+        vector<vector<vector<float> > > parcelData(numParcels, vector<vector<float> >(numCols));//float so we can use ReductionOperation
+        for (int i = 0; i < numParcels; ++i)
+        {
+            for (int j = 0; j < numCols; ++j)
+            {
+                parcelData[i][j].reserve(parcelCounts[i]);
+            }
+        }
+        for (MultiDimIterator<int64_t> iter(otherDims); !iter.atEnd(); ++iter)
+        {
+            vector<int64_t> indices(dims.size() - 1);//we need to add the parcellated direction index back into the index list to use it in getRow/setRow
+            for (int i = 0; i < (int)otherDims.size(); ++i)
+            {
+                if (i < direction - 1)
+                {
+                    indices[i] = (*iter)[i];
+                } else {
+                    indices[i + 1] = (*iter)[i];
+                }
+            }//indices[direction - 1] is uninitialized, as it is the dimension to be parcellated
+            for (int i = 0; i < numParcels; ++i)
+            {
+                for (int j = 0; j < numCols; ++j)
+                {
+                    parcelData[i][j].clear();//doesn't change allocation
+                }
+            }
+            for (int64_t i = 0; i < dims[direction]; ++i)
+            {
+                int parcel = indexToParcel[i];
+                if (parcel != -1)
+                {
+                    indices[direction - 1] = i;
+                    myCiftiIn->getRow(scratchRow.data(), indices);
+                    vector<vector<float> >& parcelRef = parcelData[parcel];
+                    for (int j = 0; j < numCols; ++j)
+                    {
+                        if (isLabel)
+                        {
+                            parcelRef[j].push_back(floor(scratchRow[j] + 0.5f));
+                        } else {
+                            parcelRef[j].push_back(scratchRow[j]);
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < numParcels; ++i)
+            {
+                indices[direction - 1] = i;
+                int64_t count = parcelCounts[i];
+                vector<vector<float> >& parcelRef = parcelData[i];
+                if (count > 0 && (method != ReductionEnum::SAMPSTDEV || count > 1))
+                {
+                    for (int j = 0; j < numCols; ++j)
+                    {
+                        CaretAssert((int64_t)parcelRef[j].size() == count);
+                        if (excludeLow > 0.0f && excludeHigh > 0.0f)
+                        {
+                            scratchOutRow[j] = ReductionOperation::reduceExcludeDev(parcelRef[j].data(), parcelRef[j].size(), method, excludeLow, excludeHigh);
+                        } else {
+                            if (onlyNumeric)
+                            {
+                                scratchOutRow[j] = ReductionOperation::reduceOnlyNumeric(parcelRef[j].data(), parcelRef[j].size(), method);
+                            } else {
+                                scratchOutRow[j] = ReductionOperation::reduce(parcelRef[j].data(), parcelRef[j].size(), method);
+                            }
+                        }
+                    }
+                } else {
+                    for (int j = 0; j < numCols; ++j)
+                    {
+                        CaretAssert((int64_t)parcelRef[j].size() == count);
+                        if (isLabel)
+                        {
+                            if (labelDir == CiftiXML::ALONG_ROW)
+                            {
+                                scratchOutRow[j] = myOutXML.getLabelsMap(CiftiXML::ALONG_ROW).getMapLabelTable(j)->getUnassignedLabelKey();
+                            } else {
+                                scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable(indices[labelDir - 1])->getUnassignedLabelKey();
+                            }
+                        } else {
+                            scratchOutRow[j] = 0.0f;
+                        }
+                    }
+                }
+                myCiftiOut->setRow(scratchOutRow.data(), indices);
+            }
+        }
+    }
+}
+
+namespace
+{
+    void doWeightedParcellation(const CiftiFile* myCiftiIn, const int& direction, CiftiFile* myCiftiOut, const vector<int>& indexToParcel,
+                                const vector<vector<float> >& parcelWeights, const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric)
+    {
+        const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
+        const CiftiXML& myOutXML = myCiftiOut->getCiftiXML();
+        vector<int64_t> dims = myInputXML.getDimensions();
+        CaretAssert(direction < (int)dims.size());
+        bool isLabel = false;
+        int labelDir = -1;
+        for (int i = 0; i < (int)dims.size(); ++i)
+        {
+            if (myInputXML.getMappingType(i) == CiftiMappingType::LABELS)
+            {
+                isLabel = true;
+                labelDir = i;
+                break;//there should never be more than one dimension with LABEL type, and if there is, just use the first one, i guess...
+            }
+        }
+        if (isLabel && method != ReductionEnum::MODE)
+        {
+            CaretLogWarning(ReductionEnum::toName(method) + " reduction requested while parcellating label data");
+        }
+        int numParcels = myCiftiOut->getCiftiXML().getDimensionLength(direction);
+        int64_t numCols = myInputXML.getDimensionLength(CiftiXML::ALONG_ROW);
+        vector<float> scratchRow(numCols);
+        if (direction == CiftiXML::ALONG_ROW)
+        {
+            vector<float> scratchOutRow(numParcels);
+            vector<vector<float> > parcelData(numParcels);//float so we can use ReductionOperation
+            for (int j = 0; j < numParcels; ++j)
+            {
+                parcelData[j].reserve(parcelWeights[j].size());
             }
             for (MultiDimIterator<int64_t> iter(vector<int64_t>(dims.begin() + 1, dims.end())); !iter.atEnd(); ++iter)
             {
@@ -164,59 +478,52 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
                     int parcel = indexToParcel[j];
                     if (parcel != -1)
                     {
-                        parcelData[parcel].push_back(floor(scratchRow[j] + 0.5f));//round to nearest integer to be safe
+                        if (isLabel)
+                        {
+                            parcelData[parcel].push_back(floor(scratchRow[j] + 0.5f));//round to nearest integer to be safe
+                        } else {
+                            parcelData[parcel].push_back(scratchRow[j]);
+                        }
                     }
                 }
                 for (int j = 0; j < numParcels; ++j)
                 {
-                    CaretAssert(parcelCounts[j] == (int64_t)parcelData[j].size());
-                    if (parcelCounts[j] > 0)
+                    CaretAssert(parcelWeights[j].size() == parcelData[j].size());
+                    if (parcelData[j].size() > 0 && (method != ReductionEnum::SAMPSTDEV || parcelData[j].size() > 1))
                     {
-                        scratchOutRow[j] = ReductionOperation::reduce(parcelData[j].data(), parcelData[j].size(), ReductionEnum::MODE);
+                        if (excludeLow > 0.0f && excludeHigh > 0.0f)
+                        {
+                            scratchOutRow[j] = ReductionOperation::reduceWeightedExcludeDev(parcelData[j].data(), parcelWeights[j].data(), parcelData[j].size(), method, excludeLow, excludeHigh);
+                        } else {
+                            if (onlyNumeric)
+                            {
+                                scratchOutRow[j] = ReductionOperation::reduceWeightedOnlyNumeric(parcelData[j].data(), parcelWeights[j].data(), parcelData[j].size(), method);
+                            } else {
+                                scratchOutRow[j] = ReductionOperation::reduceWeighted(parcelData[j].data(), parcelWeights[j].data(), parcelData[j].size(), method);
+                            }
+                        }
                     } else {//labelDir can't be 0 (row) because we are parcellating along row, so row must be dense
-                        scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable((*iter)[labelDir - 1])->getUnassignedLabelKey();
+                        if (isLabel)
+                        {
+                            scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable((*iter)[labelDir - 1])->getUnassignedLabelKey();
+                        } else {
+                            scratchOutRow[j] = 0.0f;
+                        }
                     }
                 }
                 myCiftiOut->setRow(scratchOutRow.data(), *iter);
             }
         } else {
-            for (MultiDimIterator<int64_t> iter(vector<int64_t>(dims.begin() + 1, dims.end())); !iter.atEnd(); ++iter)
-            {
-                vector<double> scratchAccum(numParcels, 0.0);
-                myCiftiIn->getRow(scratchRow.data(), *iter);
-                for (int64_t j = 0; j < numCols; ++j)
-                {
-                    int parcel = indexToParcel[j];
-                    if (parcel != -1)
-                    {
-                        scratchAccum[parcel] += scratchRow[j];
-                    }
-                }
-                for (int j = 0; j < numParcels; ++j)
-                {
-                    if (parcelCounts[j] > 0)
-                    {
-                        scratchOutRow[j] = scratchAccum[j] / parcelCounts[j];
-                    } else {
-                        scratchOutRow[j] = 0.0f;
-                    }
-                }
-                myCiftiOut->setRow(scratchOutRow.data(), *iter);
-            }
-        }
-    } else {
-        vector<float> scratchOutRow(numCols);
-        vector<int64_t> otherDims = dims;
-        otherDims.erase(otherDims.begin() + direction);//direction being parcellated
-        otherDims.erase(otherDims.begin());//row
-        if (isLabel)
-        {
-            vector<vector<vector<float> > > parcelData(numParcels, vector<vector<float> >(numCols));//float so we can use ReductionOperation (when not considering vertex area, etc)
+            vector<float> scratchOutRow(numCols);
+            vector<int64_t> otherDims = dims;
+            otherDims.erase(otherDims.begin() + direction);//direction being parcellated
+            otherDims.erase(otherDims.begin());//row
+            vector<vector<vector<float> > > parcelData(numParcels, vector<vector<float> >(numCols));//float so we can use ReductionOperation
             for (int i = 0; i < numParcels; ++i)
             {
                 for (int j = 0; j < numCols; ++j)
                 {
-                    parcelData[i][j].reserve(parcelCounts[i]);
+                    parcelData[i][j].reserve(parcelWeights[i].size());
                 }
             }
             for (MultiDimIterator<int64_t> iter(otherDims); !iter.atEnd(); ++iter)
@@ -248,80 +555,52 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
                         vector<vector<float> >& parcelRef = parcelData[parcel];
                         for (int j = 0; j < numCols; ++j)
                         {
-                            parcelRef[j].push_back(floor(scratchRow[j] + 0.5f));
-                        }
-                    }
-                }
-                for (int i = 0; i < numParcels; ++i)
-                {
-                    indices[direction - 1] = i;
-                    int64_t count = parcelCounts[i];
-                    vector<vector<float> >& parcelRef = parcelData[i];
-                    if (count > 0)
-                    {
-                        for (int j = 0; j < numCols; ++j)
-                        {
-                            CaretAssert((int64_t)parcelRef[j].size() == count);
-                            scratchOutRow[j] = ReductionOperation::reduce(parcelRef[j].data(), parcelRef[j].size(), ReductionEnum::MODE);
-                        }
-                    } else {
-                        for (int j = 0; j < numCols; ++j)
-                        {
-                            CaretAssert((int64_t)parcelRef[j].size() == count);
-                            if (labelDir == CiftiXML::ALONG_ROW)
+                            if (isLabel)
                             {
-                                scratchOutRow[j] = myOutXML.getLabelsMap(CiftiXML::ALONG_ROW).getMapLabelTable(j)->getUnassignedLabelKey();
+                                parcelRef[j].push_back(floor(scratchRow[j] + 0.5f));
                             } else {
-                                scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable(indices[labelDir - 1])->getUnassignedLabelKey();
+                                parcelRef[j].push_back(scratchRow[j]);
                             }
                         }
                     }
-                    myCiftiOut->setRow(scratchOutRow.data(), indices);
-                }
-            }
-        } else {
-            for (MultiDimIterator<int64_t> iter(otherDims); !iter.atEnd(); ++iter)
-            {
-                vector<int64_t> indices(dims.size() - 1);//we need to add the parcellated direction index back into the index list to use it in getRow/setRow
-                for (int i = 0; i < (int)otherDims.size(); ++i)
-                {
-                    if (i < direction - 1)
-                    {
-                        indices[i] = (*iter)[i];
-                    } else {
-                        indices[i + 1] = (*iter)[i];
-                    }
-                }//indices[direction - 1] is uninitialized, as it is the dimension to be parcellated
-                vector<vector<double> > accumRows(numParcels, vector<double>(numCols, 0.0f));
-                for (int64_t i = 0; i < dims[direction]; ++i)
-                {
-                    int parcel = indexToParcel[i];
-                    if (parcel != -1)
-                    {
-                        indices[direction - 1] = i;
-                        myCiftiIn->getRow(scratchRow.data(), indices);
-                        vector<double>& parcelRowRef = accumRows[parcel];
-                        for (int64_t j = 0; j < numCols; ++j)
-                        {
-                            parcelRowRef[j] += scratchRow[j];
-                        }
-                    }
                 }
                 for (int i = 0; i < numParcels; ++i)
                 {
                     indices[direction - 1] = i;
-                    int64_t count = parcelCounts[i];
-                    if (count > 0)
+                    int64_t count = (int64_t)parcelWeights[i].size();
+                    vector<vector<float> >& parcelRef = parcelData[i];
+                    if (count > 0 && (method != ReductionEnum::SAMPSTDEV || count > 1))
                     {
-                        vector<double>& parcelRowRef = accumRows[i];
-                        for (int64_t j = 0; j < numCols; ++j)
+                        for (int j = 0; j < numCols; ++j)
                         {
-                            scratchOutRow[j] = parcelRowRef[j] / count;
+                            CaretAssert((int64_t)parcelRef[j].size() == count);
+                            if (excludeLow > 0.0f && excludeHigh > 0.0f)
+                            {
+                                scratchOutRow[j] = ReductionOperation::reduceWeightedExcludeDev(parcelRef[j].data(), parcelWeights[i].data(), parcelRef[j].size(), method, excludeLow, excludeHigh);
+                            } else {
+                                if (onlyNumeric)
+                                {
+                                    scratchOutRow[j] = ReductionOperation::reduceWeightedOnlyNumeric(parcelRef[j].data(), parcelWeights[i].data(), parcelRef[j].size(), method);
+                                } else {
+                                    scratchOutRow[j] = ReductionOperation::reduceWeighted(parcelRef[j].data(), parcelWeights[i].data(), parcelRef[j].size(), method);
+                                }
+                            }
                         }
                     } else {
-                        for (int64_t j = 0; j < numCols; ++j)
+                        for (int j = 0; j < numCols; ++j)
                         {
-                            scratchOutRow[j] = 0.0f;
+                            CaretAssert((int64_t)parcelRef[j].size() == count);
+                            if (isLabel)
+                            {
+                                if (labelDir == CiftiXML::ALONG_ROW)
+                                {
+                                    scratchOutRow[j] = myOutXML.getLabelsMap(CiftiXML::ALONG_ROW).getMapLabelTable(j)->getUnassignedLabelKey();
+                                } else {
+                                    scratchOutRow[j] = myOutXML.getLabelsMap(labelDir).getMapLabelTable(indices[labelDir - 1])->getUnassignedLabelKey();
+                                }
+                            } else {
+                                scratchOutRow[j] = 0.0f;
+                            }
                         }
                     }
                     myCiftiOut->setRow(scratchOutRow.data(), indices);
@@ -329,6 +608,166 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
             }
         }
     }
+}
+
+AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
+                                                   const MetricFile* leftWeights, const MetricFile* rightWeights, const MetricFile* cerebWeights, const ReductionEnum::Enum& method,
+                                                   const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric): AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
+    const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
+    vector<int64_t> dims = myInputXML.getDimensions();
+    if (direction >= (int)dims.size()) throw AlgorithmException("specified direction doesn't exist in input file");
+    if (myInputXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS)
+    {
+        throw AlgorithmException("input cifti file does not have brain models mapping type in specified direction");
+    }
+    if (myLabelXML.getNumberOfDimensions() != 2 ||
+        myLabelXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::LABELS ||
+        myLabelXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS)
+    {
+        throw AlgorithmException("input cifti label file has the wrong mapping types");
+    }
+    const CiftiBrainModelsMap& inputDense = myInputXML.getBrainModelsMap(direction);
+    const CiftiBrainModelsMap& labelDense = myLabelXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    float voxelVolume = 1.0f;
+    if (inputDense.hasVolumeData())
+    {//don't check volume space if direction doesn't have volume data
+        if (labelDense.hasVolumeData() && !inputDense.getVolumeSpace().matches(labelDense.getVolumeSpace()))
+        {
+            throw AlgorithmException("input cifti files must have the same volume space");
+        }
+        Vector3D ivec, jvec, kvec, origin;//compute the volume of a voxel in case a parcel spans both surface and volume
+        inputDense.getVolumeSpace().getSpacingVectors(ivec, jvec, kvec, origin);
+        voxelVolume = abs(ivec.dot(jvec.cross(kvec)));
+    }
+    vector<StructureEnum::Enum> surfStructs = inputDense.getSurfaceStructureList();
+    for (int i = 0; i < (int)surfStructs.size(); ++i)
+    {
+        const MetricFile* toCheck = NULL;
+        switch (surfStructs[i])
+        {
+            case StructureEnum::CORTEX_LEFT:
+                toCheck = leftWeights;
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                toCheck = rightWeights;
+                break;
+            case StructureEnum::CEREBELLUM:
+                toCheck = cerebWeights;
+                break;
+            default:
+                throw AlgorithmException("unsupported surface structure: " + StructureEnum::toName(surfStructs[i]));
+        }
+        if (toCheck == NULL) throw AlgorithmException("weight metric required but not provided for structure " + StructureEnum::toName(surfStructs[i]));
+        if (toCheck->getNumberOfNodes() != inputDense.getSurfaceNumberOfNodes(surfStructs[i]))
+        {
+            throw AlgorithmException("weight metric has incorrect number of vertices for structure " + StructureEnum::toName(surfStructs[i]));
+        }
+        checkStructureMatch(toCheck, surfStructs[i], "weight metric", "it is provided as the argument for");
+    }
+    vector<int> indexToParcel;
+    CiftiXML myOutXML = myInputXML;
+    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel);
+    int numParcels = outParcelMap.getLength();
+    if (numParcels < 1)
+    {
+        throw AlgorithmException("no parcels found, output file would be empty, aborting");
+    }
+    myOutXML.setMap(direction, outParcelMap);
+    myCiftiOut->setCiftiXML(myOutXML);
+    vector<vector<float> > parcelWeights(numParcels);
+    for (int64_t j = 0; j < (int64_t)indexToParcel.size(); ++j)
+    {
+        int parcel = indexToParcel[j];
+        if (parcel != -1)
+        {
+            const CiftiBrainModelsMap::IndexInfo myDenseInfo = inputDense.getInfoForIndex(j);
+            if (myDenseInfo.m_type == CiftiBrainModelsMap::VOXELS)
+            {
+                parcelWeights[parcel].push_back(voxelVolume);
+            } else {
+                const MetricFile* toUse = NULL;
+                switch (myDenseInfo.m_structure)
+                {
+                    case StructureEnum::CORTEX_LEFT:
+                        toUse = leftWeights;
+                        break;
+                    case StructureEnum::CORTEX_RIGHT:
+                        toUse = rightWeights;
+                        break;
+                    case StructureEnum::CEREBELLUM:
+                        toUse = cerebWeights;
+                        break;
+                    default:
+                        CaretAssert(0);
+                }
+                parcelWeights[parcel].push_back(toUse->getValue(myDenseInfo.m_surfaceNode, 0));
+            }
+        }
+    }
+    doWeightedParcellation(myCiftiIn, direction, myCiftiOut, indexToParcel, parcelWeights, method, excludeLow, excludeHigh, onlyNumeric);
+}
+
+AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
+                                                   const CiftiFile* ciftiWeights, const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric): AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
+    const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
+    const CiftiXML& weightsXML = ciftiWeights->getCiftiXML();
+    vector<int64_t> dims = myInputXML.getDimensions();
+    if (direction >= (int)dims.size()) throw AlgorithmException("specified direction doesn't exist in input file");
+    if (myInputXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS)
+    {
+        throw AlgorithmException("input cifti file does not have brain models mapping type in specified direction");
+    }
+    if (weightsXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS)
+    {
+        throw AlgorithmException("cifti weight file does not have brain models along column");
+    }
+    if (myLabelXML.getNumberOfDimensions() != 2 ||
+        myLabelXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::LABELS ||
+        myLabelXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS)
+    {
+        throw AlgorithmException("input cifti label file has the wrong mapping types");
+    }
+    const CiftiBrainModelsMap& inputDense = myInputXML.getBrainModelsMap(direction);
+    const CiftiBrainModelsMap& labelDense = myLabelXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (!weightsXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(inputDense))
+    {
+        throw AlgorithmException("cifti weight file does not match brain models mapping of input file");
+    }
+    if (inputDense.hasVolumeData())
+    {//don't check volume space if direction doesn't have volume data
+        if (labelDense.hasVolumeData() && !inputDense.getVolumeSpace().matches(labelDense.getVolumeSpace()))
+        {
+            throw AlgorithmException("input cifti files must have the same volume space");
+        }
+    }
+    vector<int> indexToParcel;
+    CiftiXML myOutXML = myInputXML;
+    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel);
+    int numParcels = outParcelMap.getLength();
+    if (numParcels < 1)
+    {
+        throw AlgorithmException("no parcels found, output file would be empty, aborting");
+    }
+    myOutXML.setMap(direction, outParcelMap);
+    myCiftiOut->setCiftiXML(myOutXML);
+    vector<float> weightCol(weightsXML.getDimensionLength(CiftiXML::ALONG_COLUMN));
+    ciftiWeights->getColumn(weightCol.data(), 0);
+    vector<vector<float> > parcelWeights(numParcels);
+    for (int64_t j = 0; j < (int64_t)indexToParcel.size(); ++j)
+    {
+        int parcel = indexToParcel[j];
+        if (parcel != -1)
+        {
+            parcelWeights[parcel].push_back(weightCol[j]);//we already tested that the dense mappings matched
+        }
+    }
+    doWeightedParcellation(myCiftiIn, direction, myCiftiOut, indexToParcel, parcelWeights, method, excludeLow, excludeHigh, onlyNumeric);
 }
 
 CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, vector<int>& indexToParcelOut)

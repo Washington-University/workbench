@@ -33,6 +33,10 @@ namespace caret {
         ///reduce, with exclusion based on number of standard deviations
         static float reduceExcludeDev(const float* data, const int64_t& numElems, const ReductionEnum::Enum& type, const float& numDevBelow, const float& numDevAbove);
         static float reduceOnlyNumeric(const float* data, const int64_t& numElems, const ReductionEnum::Enum& type);
+        ///weighted versions, do not accept all reduction types
+        static float reduceWeighted(const float* data, const float* weights, const int64_t& numElems, const ReductionEnum::Enum& type);
+        static float reduceWeightedExcludeDev(const float* data, const float* weights, const int64_t& numElems, const ReductionEnum::Enum& type, const float& numDevBelow, const float& numDevAbove);
+        static float reduceWeightedOnlyNumeric(const float* data, const float* weights, const int64_t& numElems, const ReductionEnum::Enum& type);
         static AString getHelpInfo();
     };
     
