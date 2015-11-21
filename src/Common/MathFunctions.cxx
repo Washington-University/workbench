@@ -35,6 +35,7 @@
 
 
 #include <cmath>
+#include <limits>
 
 #include "MathFunctions.h"
 
@@ -1613,7 +1614,7 @@ uint32_t MathFunctions::gcd(uint32_t num1, uint32_t num2)
 
 bool MathFunctions::isInf(const float number)
 {
-    return (abs(number) > 1.0f && number * 2.0f == number);
+    return (abs(number) == numeric_limits<float>::infinity());
 }
 
 bool MathFunctions::isNaN(const float number)
@@ -1623,7 +1624,7 @@ bool MathFunctions::isNaN(const float number)
 
 bool MathFunctions::isNegInf(const float number)
 {
-    return (number < -1.0f && number * 2.0f == number);
+    return (number == -numeric_limits<float>::infinity());
 }
 
 bool MathFunctions::isNumeric(const float number)

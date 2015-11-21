@@ -20,6 +20,7 @@
 
 #include "AlgorithmCiftiReduce.h"
 #include "AlgorithmException.h"
+#include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "ReductionOperation.h"
 
@@ -72,7 +73,7 @@ void AlgorithmCiftiReduce::useParameters(OperationParameters* myParams, Progress
     if (!ok) throw AlgorithmException("unrecognized operation string '" + opString + "'");
     if (excludeOpt->m_present)
     {
-        if (onlyNumeric) throw AlgorithmException("-exclude-outliers and -only-numeric may not be specified together");
+        if (onlyNumeric) CaretLogWarning("-only-numeric is redundant when -exclude-outliers is specified");
         AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut, excludeOpt->getDouble(1), excludeOpt->getDouble(2));
     } else {
         AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut, onlyNumeric);

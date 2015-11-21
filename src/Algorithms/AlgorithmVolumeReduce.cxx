@@ -74,7 +74,7 @@ void AlgorithmVolumeReduce::useParameters(OperationParameters* myParams, Progres
     if (!ok) throw AlgorithmException("unrecognized operation string '" + opString + "'");
     if (excludeOpt->m_present)
     {
-        if (onlyNumeric) throw AlgorithmException("-exclude-outliers and -only-numeric may not be specified together");
+        if (onlyNumeric) CaretLogWarning("-only-numeric is redundant when -exclude-outliers is specified");
         AlgorithmVolumeReduce(myProgObj, volumeIn, myReduce, volumeOut, excludeOpt->getDouble(1), excludeOpt->getDouble(2));
     } else {
         AlgorithmVolumeReduce(myProgObj, volumeIn, myReduce, volumeOut, onlyNumeric);
