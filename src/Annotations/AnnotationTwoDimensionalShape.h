@@ -62,7 +62,9 @@ namespace caret {
 
         virtual void clearModified();
         
-        virtual void applySpatialModification(const AnnotationSpatialModification& spatialModification);
+        virtual bool isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const;
+
+        virtual bool applySpatialModification(const AnnotationSpatialModification& spatialModification);
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
         

@@ -480,7 +480,7 @@ void
 UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-
+    
     switch (m_mode) {
         case MODE_NEW_WITH_CLICK:
         {
@@ -546,40 +546,40 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                                  mouseEvent.getX(),
                                                                  mouseEvent.getY(),
                                                                  coordInfo);
-
+        
         float spaceOriginX = 0.0;
         float spaceOriginY = 0.0;
         float spaceWidth  = 0.0;
         float spaceHeight = 0.0;
         
-        bool draggableCoordSpaceFlag = false;
-        bool rotatableCoordSpaceFlag = false;
+//        bool draggableCoordSpaceFlag = false;
+//        bool rotatableCoordSpaceFlag = false;
         switch (draggingCoordinateSpace) {
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 if (numSelectedAnnotations == 1) {
                     if (coordInfo.m_modelXYZValid) {
-                        draggableCoordSpaceFlag = true;
+//                        draggableCoordSpaceFlag = true;
                     }
-                    rotatableCoordSpaceFlag = true;
+//                    rotatableCoordSpaceFlag = true;
                 }
-//                if ((coordInfo.m_modelXYZValid)
-//                    && (numSelectedAnnotations == 1)) {
-//                    draggableCoordSpaceFlag = true;
-//                }
+                //                if ((coordInfo.m_modelXYZValid)
+                //                    && (numSelectedAnnotations == 1)) {
+                //                    draggableCoordSpaceFlag = true;
+                //                }
                 break;
             case AnnotationCoordinateSpaceEnum::PIXELS:
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
                 if (numSelectedAnnotations == 1) {
                     if (coordInfo.m_surfaceNodeValid) {
-                        draggableCoordSpaceFlag = true;
+//                        draggableCoordSpaceFlag = true;
                     }
-                    rotatableCoordSpaceFlag = true;
+//                    rotatableCoordSpaceFlag = true;
                 }
-//                if ((coordInfo.m_surfaceNodeValid)
-//                    && (numSelectedAnnotations == 1)) {
-//                    draggableCoordSpaceFlag = true;
-//                }
+                //                if ((coordInfo.m_surfaceNodeValid)
+                //                    && (numSelectedAnnotations == 1)) {
+                //                    draggableCoordSpaceFlag = true;
+                //                }
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
             {
@@ -589,8 +589,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 spaceOriginY = viewport[1];
                 spaceWidth   = viewport[2];
                 spaceHeight  = viewport[3];
-                draggableCoordSpaceFlag = true;
-                rotatableCoordSpaceFlag = true;
+//                draggableCoordSpaceFlag = true;
+//                rotatableCoordSpaceFlag = true;
             }
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
@@ -601,150 +601,519 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 spaceOriginY = viewport[1];
                 spaceWidth   = viewport[2];
                 spaceHeight  = viewport[3];
-                draggableCoordSpaceFlag = true;
-                rotatableCoordSpaceFlag = true;
+//                draggableCoordSpaceFlag = true;
+//                rotatableCoordSpaceFlag = true;
             }
                 break;
         }
         
-        if (draggableCoordSpaceFlag
-            || rotatableCoordSpaceFlag) {
-            const float dx = mouseEvent.getDx();
-            const float dy = mouseEvent.getDy();
-            
-            const float mouseViewportX = mouseEvent.getX() - spaceOriginX;
-            const float mouseViewportY = mouseEvent.getY() - spaceOriginY;
-            
-            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
-            std::vector<Annotation*> annotationsBeforeMoveAndResize;
-            std::vector<Annotation*> annotationsAfterMoveAndResize;
-            
-            for (int32_t i = 0; i < numSelectedAnnotations; i++) {
-                Annotation* annotationModified(selectedAnnotations[i]->clone());
-                
-                bool applyMouseMovementFlag = true;
-                
-                if (draggingCoordinateSpace == AnnotationCoordinateSpaceEnum::SURFACE) {
-                    applyMouseMovementFlag = false;
-                    
-                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
-                    if (twoDimAnn != NULL) {
-                        switch (m_annotationBeingDraggedHandleType) {
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-                            if (draggableCoordSpaceFlag) {
-                                AnnotationCoordinate* coord = twoDimAnn->getCoordinate();
-                                coord->setSurfaceSpace(coordInfo.m_surfaceStructure,
-                                                       coordInfo.m_surfaceNumberOfNodes,
-                                                       coordInfo.m_surfaceNodeIndex,
-                                                       coord->getSurfaceOffsetLength());
-                            }
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
-                                if (rotatableCoordSpaceFlag) {
-                                    applyMouseMovementFlag = true;
-                                }
-                                break;
-                        }
-                    }
-                }
-                else if (draggingCoordinateSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
-                    applyMouseMovementFlag = false;
-                    
-                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
-                    if (twoDimAnn != NULL) {
-                        switch (m_annotationBeingDraggedHandleType) {
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-                                if (draggableCoordSpaceFlag) {
-                                    AnnotationCoordinate* coord = twoDimAnn->getCoordinate();
-                                    coord->setXYZ(coordInfo.m_modelXYZ);
-                                }
-                                break;
-                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
-                                if (rotatableCoordSpaceFlag) {
-                                    applyMouseMovementFlag = true;
-                                }
-                                break;
-                        }
-                    }
-                }
-                
-                if (applyMouseMovementFlag) {
-                    AnnotationSpatialModification annMod(m_annotationBeingDraggedHandleType,
-                                                         spaceWidth,
-                                                         spaceHeight,
-                                                         mouseEvent.getPressedX(),
-                                                         mouseEvent.getPressedY(),
-                                                         mouseViewportX,
-                                                         mouseViewportY,
-                                                         dx,
-                                                         dy);
-                    annotationModified->applySpatialModification(annMod);
-                }
-                
+        const float dx = mouseEvent.getDx();
+        const float dy = mouseEvent.getDy();
+        
+        const float mouseViewportX = mouseEvent.getX() - spaceOriginX;
+        const float mouseViewportY = mouseEvent.getY() - spaceOriginY;
+        
+        AnnotationSpatialModification annSpatialMod(m_annotationBeingDraggedHandleType,
+                                                    spaceWidth,
+                                                    spaceHeight,
+                                                    mouseEvent.getPressedX(),
+                                                    mouseEvent.getPressedY(),
+                                                    mouseViewportX,
+                                                    mouseViewportY,
+                                                    dx,
+                                                    dy);
+        if (coordInfo.m_surfaceNodeValid) {
+            annSpatialMod.setSurfaceCoordinateAtMouseXY(coordInfo.m_surfaceStructure,
+                                                        coordInfo.m_surfaceNumberOfNodes,
+                                                        coordInfo.m_surfaceNodeIndex);
+        }
+        
+        if (coordInfo.m_modelXYZValid) {
+            annSpatialMod.setStereotaxicCoordinateAtMouseXY(coordInfo.m_modelXYZ[0],
+                                                            coordInfo.m_modelXYZ[1],
+                                                            coordInfo.m_modelXYZ[2]);
+        }
+        
+        
+        
+        std::vector<Annotation*> annotationsBeforeMoveAndResize;
+        std::vector<Annotation*> annotationsAfterMoveAndResize;
+        
+        for (int32_t i = 0; i < numSelectedAnnotations; i++) {
+            Annotation* annotationModified(selectedAnnotations[i]->clone());
+            if (annotationModified->applySpatialModification(annSpatialMod)) {
                 annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
                 annotationsAfterMoveAndResize.push_back(annotationModified);
             }
-            
+            else {
+                delete annotationModified;
+                annotationModified = NULL;
+            }
+        }
+        CaretAssert(annotationsAfterMoveAndResize.size() == annotationsBeforeMoveAndResize.size());
+        
+        if ( ! annotationsAfterMoveAndResize.empty()) {
+            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
                                             annotationsAfterMoveAndResize);
             
             if ( ! mouseEvent.isFirstDragging()) {
                 command->setMergeEnabled(true);
             }
+            
             annotationManager->applyCommand(command);
-            
-            for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
-                 iter != annotationsAfterMoveAndResize.end();
-                 iter++) {
-                delete *iter;
-            }
-            annotationsAfterMoveAndResize.clear();
-            
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-            m_annotationToolsWidget->updateWidget();
         }
+        
+        for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
+             iter != annotationsAfterMoveAndResize.end();
+             iter++) {
+            delete *iter;
+        }
+        annotationsAfterMoveAndResize.clear();
+        
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        m_annotationToolsWidget->updateWidget();
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//        if (draggableCoordSpaceFlag
+//            || rotatableCoordSpaceFlag) {
+//            
+//            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+//            std::vector<Annotation*> annotationsBeforeMoveAndResize;
+//            std::vector<Annotation*> annotationsAfterMoveAndResize;
+//            
+//            for (int32_t i = 0; i < numSelectedAnnotations; i++) {
+//                Annotation* annotationModified(selectedAnnotations[i]->clone());
+//                
+//                bool applyMouseMovementFlag = true;
+//                
+//                if (draggingCoordinateSpace == AnnotationCoordinateSpaceEnum::SURFACE) {
+//                    applyMouseMovementFlag = false;
+//                    
+//                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
+//                    if (twoDimAnn != NULL) {
+//                        switch (m_annotationBeingDraggedHandleType) {
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+//                                if (draggableCoordSpaceFlag) {
+//                                    AnnotationCoordinate* coord = twoDimAnn->getCoordinate();
+//                                    coord->setSurfaceSpace(coordInfo.m_surfaceStructure,
+//                                                           coordInfo.m_surfaceNumberOfNodes,
+//                                                           coordInfo.m_surfaceNodeIndex,
+//                                                           coord->getSurfaceOffsetLength());
+//                                }
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+//                                if (rotatableCoordSpaceFlag) {
+//                                    applyMouseMovementFlag = true;
+//                                }
+//                                break;
+//                        }
+//                    }
+//                }
+//                else if (draggingCoordinateSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
+//                    applyMouseMovementFlag = false;
+//                    
+//                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
+//                    if (twoDimAnn != NULL) {
+//                        switch (m_annotationBeingDraggedHandleType) {
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+//                                if (draggableCoordSpaceFlag) {
+//                                    AnnotationCoordinate* coord = twoDimAnn->getCoordinate();
+//                                    coord->setXYZ(coordInfo.m_modelXYZ);
+//                                }
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+//                                if (rotatableCoordSpaceFlag) {
+//                                    applyMouseMovementFlag = true;
+//                                }
+//                                break;
+//                        }
+//                    }
+//                }
+//                
+//                if (applyMouseMovementFlag) {
+//                    AnnotationSpatialModification annMod(m_annotationBeingDraggedHandleType,
+//                                                         spaceWidth,
+//                                                         spaceHeight,
+//                                                         mouseEvent.getPressedX(),
+//                                                         mouseEvent.getPressedY(),
+//                                                         mouseViewportX,
+//                                                         mouseViewportY,
+//                                                         dx,
+//                                                         dy);
+//                    annotationModified->applySpatialModification(annMod);
+//                }
+//                
+//                annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
+//                annotationsAfterMoveAndResize.push_back(annotationModified);
+//            }
+//            
+//            command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
+//                                            annotationsAfterMoveAndResize);
+//            
+//            if ( ! mouseEvent.isFirstDragging()) {
+//                command->setMergeEnabled(true);
+//            }
+//            annotationManager->applyCommand(command);
+//            
+//            for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
+//                 iter != annotationsAfterMoveAndResize.end();
+//                 iter++) {
+//                delete *iter;
+//            }
+//            annotationsAfterMoveAndResize.clear();
+//            
+//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//            m_annotationToolsWidget->updateWidget();
+//        }
+//    }
 }
+
+///**
+// * Process a mouse left drag with no keys down event.
+// *
+// * @param mouseEvent
+// *     Mouse event information.
+// */
+//void
+//UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
+//{
+//    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+//
+//    switch (m_mode) {
+//        case MODE_NEW_WITH_CLICK:
+//        {
+//            if (m_newAnnotationCreatingWithMouseDrag != NULL) {
+//                m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+//            }
+//            
+//            m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationType,
+//                                                                                          mouseEvent));
+//            m_mode = MODE_NEW_WITH_DRAG;
+//            return;
+//        }
+//            break;
+//        case MODE_NEW_WITH_DRAG:
+//            userDrawingAnnotationFromMouseDrag(mouseEvent);
+//            return;
+//            break;
+//        case MODE_SELECT:
+//            break;
+//        case MODE_SET_COORDINATE_ONE:
+//            break;
+//        case MODE_SET_COORDINATE_TWO:
+//            break;
+//    }
+//    
+//    AnnotationCoordinateSpaceEnum::Enum draggingCoordinateSpace = AnnotationCoordinateSpaceEnum::PIXELS;
+//    
+//    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
+//    const int32_t numSelectedAnnotations = static_cast<int32_t>(selectedAnnotations.size());
+//    
+//    bool draggingValid = false;
+//    if (numSelectedAnnotations == 1) {
+//        draggingCoordinateSpace = selectedAnnotations[0]->getCoordinateSpace();
+//        draggingValid = true;
+//    }
+//    else if (numSelectedAnnotations > 1) {
+//        if (m_annotationBeingDraggedHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE) {
+//            bool allSameSpaceFlag = true;
+//            draggingCoordinateSpace = selectedAnnotations[0]->getCoordinateSpace();
+//            for (int32_t i = 1; i < numSelectedAnnotations; i++) {
+//                if (selectedAnnotations[i]->getCoordinateSpace() != draggingCoordinateSpace) {
+//                    allSameSpaceFlag = false;
+//                    break;
+//                }
+//            }
+//            
+//            if (allSameSpaceFlag) {
+//                draggingValid = true;
+//            }
+//        }
+//    }
+//    
+//    if (draggingValid) {
+//        BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
+//        if (vpContent == NULL) {
+//            return;
+//        }
+//        
+//        
+//        CoordinateInformation coordInfo;
+//        UserInputModeAnnotations::getValidCoordinateSpacesFromXY(mouseEvent.getOpenGLWidget(),
+//                                                                 mouseEvent.getViewportContent(),
+//                                                                 mouseEvent.getX(),
+//                                                                 mouseEvent.getY(),
+//                                                                 coordInfo);
+//
+//        float spaceOriginX = 0.0;
+//        float spaceOriginY = 0.0;
+//        float spaceWidth  = 0.0;
+//        float spaceHeight = 0.0;
+//        
+//        bool draggableCoordSpaceFlag = false;
+//        bool rotatableCoordSpaceFlag = false;
+//        switch (draggingCoordinateSpace) {
+//            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//                if (numSelectedAnnotations == 1) {
+//                    if (coordInfo.m_modelXYZValid) {
+//                        draggableCoordSpaceFlag = true;
+//                    }
+//                    rotatableCoordSpaceFlag = true;
+//                }
+////                if ((coordInfo.m_modelXYZValid)
+////                    && (numSelectedAnnotations == 1)) {
+////                    draggableCoordSpaceFlag = true;
+////                }
+//                break;
+//            case AnnotationCoordinateSpaceEnum::PIXELS:
+//                break;
+//            case AnnotationCoordinateSpaceEnum::SURFACE:
+//                if (numSelectedAnnotations == 1) {
+//                    if (coordInfo.m_surfaceNodeValid) {
+//                        draggableCoordSpaceFlag = true;
+//                    }
+//                    rotatableCoordSpaceFlag = true;
+//                }
+////                if ((coordInfo.m_surfaceNodeValid)
+////                    && (numSelectedAnnotations == 1)) {
+////                    draggableCoordSpaceFlag = true;
+////                }
+//                break;
+//            case AnnotationCoordinateSpaceEnum::TAB:
+//            {
+//                int viewport[4];
+//                vpContent->getTabViewport(viewport);
+//                spaceOriginX = viewport[0];
+//                spaceOriginY = viewport[1];
+//                spaceWidth   = viewport[2];
+//                spaceHeight  = viewport[3];
+//                draggableCoordSpaceFlag = true;
+//                rotatableCoordSpaceFlag = true;
+//            }
+//                break;
+//            case AnnotationCoordinateSpaceEnum::WINDOW:
+//            {
+//                int viewport[4];
+//                vpContent->getWindowViewport(viewport);
+//                spaceOriginX = viewport[0];
+//                spaceOriginY = viewport[1];
+//                spaceWidth   = viewport[2];
+//                spaceHeight  = viewport[3];
+//                draggableCoordSpaceFlag = true;
+//                rotatableCoordSpaceFlag = true;
+//            }
+//                break;
+//        }
+//        
+//        const float dx = mouseEvent.getDx();
+//        const float dy = mouseEvent.getDy();
+//        
+//        const float mouseViewportX = mouseEvent.getX() - spaceOriginX;
+//        const float mouseViewportY = mouseEvent.getY() - spaceOriginY;
+//        
+//        AnnotationSpatialModification annSpatialMod(m_annotationBeingDraggedHandleType,
+//                                                    spaceWidth,
+//                                                    spaceHeight,
+//                                                    mouseEvent.getPressedX(),
+//                                                    mouseEvent.getPressedY(),
+//                                                    mouseViewportX,
+//                                                    mouseViewportY,
+//                                                    dx,
+//                                                    dy);
+//        if (coordInfo.m_surfaceNodeValid) {
+//            annSpatialMod.setSurfaceCoordinateAtMouseXY(coordInfo.m_surfaceStructure,
+//                                                  coordInfo.m_surfaceNumberOfNodes,
+//                                                  coordInfo.m_surfaceNodeIndex);
+//        }
+//        
+//        if (coordInfo.m_modelXYZValid) {
+//            annSpatialMod.setStereotaxicCoordinateAtMouseXY(coordInfo.m_modelXYZ[0],
+//                                                            coordInfo.m_modelXYZ[1],
+//                                                            coordInfo.m_modelXYZ[2]);
+//        }
+//
+//        if (draggableCoordSpaceFlag
+//            || rotatableCoordSpaceFlag) {
+//            
+//            AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+//            std::vector<Annotation*> annotationsBeforeMoveAndResize;
+//            std::vector<Annotation*> annotationsAfterMoveAndResize;
+//            
+//            for (int32_t i = 0; i < numSelectedAnnotations; i++) {
+//                Annotation* annotationModified(selectedAnnotations[i]->clone());
+//                
+//                bool applyMouseMovementFlag = true;
+//                
+//                if (draggingCoordinateSpace == AnnotationCoordinateSpaceEnum::SURFACE) {
+//                    applyMouseMovementFlag = false;
+//                    
+//                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
+//                    if (twoDimAnn != NULL) {
+//                        switch (m_annotationBeingDraggedHandleType) {
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+//                            if (draggableCoordSpaceFlag) {
+//                                AnnotationCoordinate* coord = twoDimAnn->getCoordinate();
+//                                coord->setSurfaceSpace(coordInfo.m_surfaceStructure,
+//                                                       coordInfo.m_surfaceNumberOfNodes,
+//                                                       coordInfo.m_surfaceNodeIndex,
+//                                                       coord->getSurfaceOffsetLength());
+//                            }
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+//                                if (rotatableCoordSpaceFlag) {
+//                                    applyMouseMovementFlag = true;
+//                                }
+//                                break;
+//                        }
+//                    }
+//                }
+//                else if (draggingCoordinateSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
+//                    applyMouseMovementFlag = false;
+//                    
+//                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotationModified);
+//                    if (twoDimAnn != NULL) {
+//                        switch (m_annotationBeingDraggedHandleType) {
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+//                                if (draggableCoordSpaceFlag) {
+//                                    AnnotationCoordinate* coord = twoDimAnn->getCoordinate();
+//                                    coord->setXYZ(coordInfo.m_modelXYZ);
+//                                }
+//                                break;
+//                            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+//                                if (rotatableCoordSpaceFlag) {
+//                                    applyMouseMovementFlag = true;
+//                                }
+//                                break;
+//                        }
+//                    }
+//                }
+//                
+//                if (applyMouseMovementFlag) {
+//                    AnnotationSpatialModification annMod(m_annotationBeingDraggedHandleType,
+//                                                         spaceWidth,
+//                                                         spaceHeight,
+//                                                         mouseEvent.getPressedX(),
+//                                                         mouseEvent.getPressedY(),
+//                                                         mouseViewportX,
+//                                                         mouseViewportY,
+//                                                         dx,
+//                                                         dy);
+//                    annotationModified->applySpatialModification(annMod);
+//                }
+//                
+//                annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
+//                annotationsAfterMoveAndResize.push_back(annotationModified);
+//            }
+//            
+//            command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
+//                                            annotationsAfterMoveAndResize);
+//            
+//            if ( ! mouseEvent.isFirstDragging()) {
+//                command->setMergeEnabled(true);
+//            }
+//            annotationManager->applyCommand(command);
+//            
+//            for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
+//                 iter != annotationsAfterMoveAndResize.end();
+//                 iter++) {
+//                delete *iter;
+//            }
+//            annotationsAfterMoveAndResize.clear();
+//            
+//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//            m_annotationToolsWidget->updateWidget();
+//        }
+//    }
+//}
 
 /**
  * Process a mouse left drag with only the alt key down event.

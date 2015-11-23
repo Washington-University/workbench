@@ -2236,15 +2236,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     
     if (drawForegroundFlag) {
         if (m_selectionModeFlag) {
-            uint8_t selectionColorRGBA[4];
-            getIdentificationColor(selectionColorRGBA);
-            BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                   selectionColorRGBA,
-                                                   backgroundLineWidth);
-            m_selectionInfo.push_back(SelectionInfo(annotationFile,
-                                                    line,
-                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-                                                    selectionCenterXYZ));
+            if (line->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE)) {
+                uint8_t selectionColorRGBA[4];
+                getIdentificationColor(selectionColorRGBA);
+                BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                                       selectionColorRGBA,
+                                                       backgroundLineWidth);
+                m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                        line,
+                                                        AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                        selectionCenterXYZ));
+            }
         }
         else {
             if (drawForegroundFlag) {
@@ -2445,18 +2447,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(Ann
     /*
      * Symbol for first coordinate is a little bigger
      */
-    drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START,
-                     annotationFile,
-                     annotation,
-                     firstPointSymbolXYZ,
-                     cornerSquareSize + 2.0,
-                     rotationAngle);
-    drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END,
-                     annotationFile,
-                     annotation,
-                     secondPointSymbolXYZ,
-                     cornerSquareSize,
-                     rotationAngle);
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START,
+                         annotationFile,
+                         annotation,
+                         firstPointSymbolXYZ,
+                         cornerSquareSize + 2.0,
+                         rotationAngle);
+    }
+    
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END,
+                         annotationFile,
+                         annotation,
+                         secondPointSymbolXYZ,
+                         cornerSquareSize,
+                         rotationAngle);
+    }
 }
 
 /**
@@ -2609,55 +2616,63 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
         handleTop[2] + (rotationOffset * 0.75 * heightVector[2])
     };
     
-    /*
-     * Text does not receive resizing handles because the
-     * text size is determined by the size of the text
-     * characters.
-     */
-    if (annotation->getType() != AnnotationTypeEnum::TEXT) {
-        if (annotation->isMovableOrResizableFromGUI()) {
+        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT)) {
             drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT,
                              annotationFile,
                              annotation,
                              handleBottomLeft,
                              sizeHandleSize,
                              rotationAngle);
+        }
+        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT)) {
             drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT,
                              annotationFile,
                              annotation,
                              handleBottomRight,
                              sizeHandleSize,
                              rotationAngle);
+        }
+        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT)) {
             drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT,
                              annotationFile,
                              annotation,
                              handleTopRight,
                              sizeHandleSize,
                              rotationAngle);
+        }
+        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT)) {
             drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT,
                              annotationFile,
                              annotation,
                              handleTopLeft,
                              sizeHandleSize,
                              rotationAngle);
+        }
+        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP)) {
             drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP,
                              annotationFile,
                              annotation,
                              handleTop,
                              sizeHandleSize,
                              rotationAngle);
+        }
+        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM)) {
             drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM,
                              annotationFile,
                              annotation,
                              handleBottom,
                              sizeHandleSize,
                              rotationAngle);
+        }
+        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT)) {
             drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT,
                              annotationFile,
                              annotation,
                              handleRight,
                              sizeHandleSize,
                              rotationAngle);
+        }
+        if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT)) {
             drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT,
                              annotationFile,
                              annotation,
@@ -2665,9 +2680,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                              sizeHandleSize,
                              rotationAngle);
         }
-    }
     
-    if (annotation->isRotatableFromGUI()) {
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
         /* 
          * Rotation handle and line connecting rotation handle to selection box
          */

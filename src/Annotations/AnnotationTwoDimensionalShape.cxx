@@ -37,9 +37,9 @@
 using namespace caret;
 
 
-    
+
 /**
- * \class caret::AnnotationTwoDimensionalShape 
+ * \class caret::AnnotationTwoDimensionalShape
  * \brief Class for annotations that are two dimensional (width and height).
  * \ingroup Annotations
  */
@@ -83,7 +83,7 @@ AnnotationTwoDimensionalShape::AnnotationTwoDimensionalShape(const AnnotationTwo
  * Assignment operator.
  * @param obj
  *    Data copied from obj to this.
- * @return 
+ * @return
  *    Reference to this object.
  */
 AnnotationTwoDimensionalShape&
@@ -93,7 +93,7 @@ AnnotationTwoDimensionalShape::operator=(const AnnotationTwoDimensionalShape& ob
         Annotation::operator=(obj);
         this->copyHelperAnnotationTwoDimensionalShape(obj);
     }
-    return *this;    
+    return *this;
 }
 
 /**
@@ -101,7 +101,7 @@ AnnotationTwoDimensionalShape::operator=(const AnnotationTwoDimensionalShape& ob
  * @param obj
  *    Object that is copied.
  */
-void 
+void
 AnnotationTwoDimensionalShape::copyHelperAnnotationTwoDimensionalShape(const AnnotationTwoDimensionalShape& obj)
 {
     *m_coordinate   = *obj.m_coordinate;
@@ -117,7 +117,7 @@ void
 AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
 {
     m_coordinate.grabNew(new AnnotationCoordinate());
-
+    
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
             m_width  = 25.0;
@@ -292,14 +292,220 @@ AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
 }
 
 /**
+ * Is the given sizing handle valid for this annotation?
+ *
+ * @sizingHandle
+ *    The sizing handle.
+ * @return
+ *    True if sizing handle valid, else false.
+ */
+bool
+AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
+{
+    bool pixelsFlag      = false;
+    bool tabWindowFlag   = false;
+    bool stereotaxicFlag = false;
+    bool surfaceFlag     = false;
+    
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            pixelsFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            stereotaxicFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            surfaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            tabWindowFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            tabWindowFlag = true;
+            break;
+    }
+    
+    bool allowsMovingFlag   = false;
+    bool allowsResizingFlag = false;
+    bool allowsRotationFlag = false;
+    
+    switch (getType()) {
+        case AnnotationTypeEnum::BOX:
+            allowsMovingFlag   = true;
+            allowsResizingFlag = true;
+            allowsRotationFlag = true;
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            allowsMovingFlag   = true;
+            allowsResizingFlag = true;
+            allowsRotationFlag = true;
+            break;
+        case AnnotationTypeEnum::TEXT:
+            allowsMovingFlag   = true;
+            allowsRotationFlag = true;
+            break;
+    }
+    
+    bool validFlag = false;
+    
+    if ( ! pixelsFlag) {
+        switch (sizingHandle) {
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                if (allowsResizingFlag) {
+                    if (tabWindowFlag) {
+                        validFlag = true;
+                    }
+                }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                if (allowsResizingFlag) {
+                    if (tabWindowFlag) {
+                        validFlag = true;
+                    }
+                }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                if (allowsResizingFlag) {
+                    if (tabWindowFlag) {
+                        validFlag = true;
+                    }
+                }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                if (allowsResizingFlag) {
+                    if (tabWindowFlag) {
+                        validFlag = true;
+                    }
+                }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                if (allowsResizingFlag) {
+                    if (tabWindowFlag) {
+                        validFlag = true;
+                    }
+                }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                if (allowsResizingFlag) {
+                    if (tabWindowFlag) {
+                        validFlag = true;
+                    }
+                }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                if (allowsResizingFlag) {
+                    if (tabWindowFlag) {
+                        validFlag = true;
+                    }
+                }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                if (allowsResizingFlag) {
+                    if (tabWindowFlag) {
+                        validFlag = true;
+                    }
+                }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                if (allowsMovingFlag) {
+                    validFlag = true;
+                }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                if (allowsRotationFlag) {
+                    validFlag = true;
+                }
+                break;
+        }
+    }
+    
+    return validFlag;
+}
+
+/**
  * Apply a spatial modification to an annotation.
  *
  * @param spatialModification
  *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
  */
-void
+bool
 AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialModification& spatialModification)
 {
+    if ( ! isSizeHandleValid(spatialModification.m_sizingHandleType)) {
+        return false;
+    }
+    
+    bool tabWindowFlag             = false;
+    bool stereotaxicCoordinateFlag = false;
+    bool stereotaxicRotationFlag   = false;
+    bool surfaceCoordinateFlag     = false;
+    bool surfaceRotationFlag       = false;
+    /*
+     * Verify that the coordinate space of this annotation matches
+     * the coordinate space in the spatial modification
+     */
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            if (spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid) {
+                stereotaxicCoordinateFlag = true;
+            }
+            
+            /*
+             * When rotatating an annotation in stereotaxic space,
+             * the mouse may not be over a valid stereotaxic coordinate
+             * but that is okay as only the mouse position is needed
+             * for rotation
+             */
+            stereotaxicRotationFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+        {
+            StructureEnum::Enum structure = StructureEnum::INVALID;
+            int32_t surfaceNumberOfNodes  = -1;
+            int32_t surfaceNodeIndex      = -1;
+            float surfaceOffset           = -1.0;
+            m_coordinate->getSurfaceSpace(structure,
+                                          surfaceNumberOfNodes,
+                                          surfaceNodeIndex,
+                                          surfaceOffset);
+            if (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid) {
+                if ((spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure == structure)
+                    && (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes == surfaceNumberOfNodes)) {
+                    surfaceCoordinateFlag = true;
+                }
+            }
+            
+            /*
+             * When rotatating an annotation in surface space,
+             * the mouse may not be over a valid surface coordinate
+             * but that is okay as only the mouse position is needed
+             * for rotation
+             */
+            surfaceRotationFlag = true;
+        }
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            tabWindowFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            tabWindowFlag = true;
+            break;
+    }
+    
     float xyz[3];
     m_coordinate->getXYZ(xyz);
     
@@ -321,8 +527,8 @@ AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialM
                                             topRightXYZ,
                                             topLeftXYZ);
     if ( ! validBounds) {
-        CaretAssert(0);
-        return;
+        //CaretAssert(0);
+        return false;
     }
     
     float leftToRightUnitVector[3];
@@ -342,318 +548,744 @@ AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialM
                             spatialModification.m_mouseDY,
                             sideHandleDX,
                             sideHandleDY);
+    
+    bool validCoordinatesFlag = false;
+    bool validRotationFlag    = false;
+    
     /*
      * When a resize handle is moved, update the corners of the shape
      */
     switch (spatialModification.m_sizingHandleType) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
-        {
-            addToXYZWithXY(bottomLeftXYZ,  sideHandleDX, sideHandleDY);
-            addToXYZWithXY(bottomRightXYZ, sideHandleDX, sideHandleDY);
-        }
+            if (tabWindowFlag) {
+                addToXYZWithXY(bottomLeftXYZ,  sideHandleDX, sideHandleDY);
+                addToXYZWithXY(bottomRightXYZ, sideHandleDX, sideHandleDY);
+                
+                validCoordinatesFlag = true;
+            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
-        {
-            /*
-             * Bottom left is now at the mouse XY
-             */
-            bottomLeftXYZ[0] = spatialModification.m_mouseX;
-            bottomLeftXYZ[1] = spatialModification.m_mouseY;
-            
-            /*
-             * Unit vector from bottom left to updated top right
-             */
-            float bottomLeftToTopRightUnitVector[3];
-            MathFunctions::createUnitVector(bottomLeftXYZ, topRightXYZ, bottomLeftToTopRightUnitVector);
-            
-            /*
-             * We have a right triangle where:
-             *    The hypotnuse is from bottom left corner to new top right corner
-             *    A right angle is at top left corner
-             *    Want angle at bottom left but vector angle is at top right (all
-             *    angles add up to PI=180).
-             */
-            const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
-                                                             topRightXYZ,
-                                                             bottomLeftXYZ);
-            const float angle = (M_PI / 2.0) - oppositeAngle;
-            const float hypotnuseLength = MathFunctions::distance3D(bottomLeftXYZ,
-                                                                    topRightXYZ);
-            
-            const float newWidth  = std::sin(angle) * hypotnuseLength;
-            const float newHeight = std::cos(angle) * hypotnuseLength;
-            
-            topLeftXYZ[0] = bottomLeftXYZ[0] + bottomToTopUnitVector[0] * newHeight;
-            topLeftXYZ[1] = bottomLeftXYZ[1] + bottomToTopUnitVector[1] * newHeight;
-            
-            bottomRightXYZ[0] = bottomLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
-            bottomRightXYZ[1] = bottomLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
-        }
+            if (tabWindowFlag) {
+                /*
+                 * Bottom left is now at the mouse XY
+                 */
+                bottomLeftXYZ[0] = spatialModification.m_mouseX;
+                bottomLeftXYZ[1] = spatialModification.m_mouseY;
+                
+                /*
+                 * Unit vector from bottom left to updated top right
+                 */
+                float bottomLeftToTopRightUnitVector[3];
+                MathFunctions::createUnitVector(bottomLeftXYZ, topRightXYZ, bottomLeftToTopRightUnitVector);
+                
+                /*
+                 * We have a right triangle where:
+                 *    The hypotnuse is from bottom left corner to new top right corner
+                 *    A right angle is at top left corner
+                 *    Want angle at bottom left but vector angle is at top right (all
+                 *    angles add up to PI=180).
+                 */
+                const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+                                                                 topRightXYZ,
+                                                                 bottomLeftXYZ);
+                const float angle = (M_PI / 2.0) - oppositeAngle;
+                const float hypotnuseLength = MathFunctions::distance3D(bottomLeftXYZ,
+                                                                        topRightXYZ);
+                
+                const float newWidth  = std::sin(angle) * hypotnuseLength;
+                const float newHeight = std::cos(angle) * hypotnuseLength;
+                
+                topLeftXYZ[0] = bottomLeftXYZ[0] + bottomToTopUnitVector[0] * newHeight;
+                topLeftXYZ[1] = bottomLeftXYZ[1] + bottomToTopUnitVector[1] * newHeight;
+                
+                bottomRightXYZ[0] = bottomLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
+                bottomRightXYZ[1] = bottomLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
+                
+                validCoordinatesFlag = true;
+            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
-        {
-            /*
-             * Bottom right is now at the mouse XY
-             */
-            bottomRightXYZ[0] = spatialModification.m_mouseX;
-            bottomRightXYZ[1] = spatialModification.m_mouseY;
-            
-            /*
-             * Unit vector from top left to updated bottom right
-             */
-            float topLeftToBottomRightUnitVector[3];
-            MathFunctions::createUnitVector(topLeftXYZ, bottomRightXYZ, topLeftToBottomRightUnitVector);
-            
-            /*
-             * We have a right triangle where:
-             *    The hypotnuse is from top left corner to new bottom right corner
-             *    A right angle is at top right corner
-             */
-            const float angle = MathFunctions::angle(topRightXYZ,
-                                                     topLeftXYZ,
-                                                     bottomRightXYZ);
-            const float hypotnuseLength = MathFunctions::distance3D(topLeftXYZ,
-                                                                    bottomRightXYZ);
-            
-            const float newWidth  = std::cos(angle) * hypotnuseLength;
-            const float newHeight = std::sin(angle) * hypotnuseLength;
-            
-            topRightXYZ[0] = topLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
-            topRightXYZ[1] = topLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
-            
-            bottomLeftXYZ[0] = topLeftXYZ[0] - bottomToTopUnitVector[0] * newHeight;
-            bottomLeftXYZ[1] = topLeftXYZ[1] - bottomToTopUnitVector[1] * newHeight;
-        }
+            if (tabWindowFlag) {
+                /*
+                 * Bottom right is now at the mouse XY
+                 */
+                bottomRightXYZ[0] = spatialModification.m_mouseX;
+                bottomRightXYZ[1] = spatialModification.m_mouseY;
+                
+                /*
+                 * Unit vector from top left to updated bottom right
+                 */
+                float topLeftToBottomRightUnitVector[3];
+                MathFunctions::createUnitVector(topLeftXYZ, bottomRightXYZ, topLeftToBottomRightUnitVector);
+                
+                /*
+                 * We have a right triangle where:
+                 *    The hypotnuse is from top left corner to new bottom right corner
+                 *    A right angle is at top right corner
+                 */
+                const float angle = MathFunctions::angle(topRightXYZ,
+                                                         topLeftXYZ,
+                                                         bottomRightXYZ);
+                const float hypotnuseLength = MathFunctions::distance3D(topLeftXYZ,
+                                                                        bottomRightXYZ);
+                
+                const float newWidth  = std::cos(angle) * hypotnuseLength;
+                const float newHeight = std::sin(angle) * hypotnuseLength;
+                
+                topRightXYZ[0] = topLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
+                topRightXYZ[1] = topLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
+                
+                bottomLeftXYZ[0] = topLeftXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+                bottomLeftXYZ[1] = topLeftXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+                
+                validCoordinatesFlag = true;
+            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
-        {
-            addToXYZWithXY(topLeftXYZ,    sideHandleDX, sideHandleDY);
-            addToXYZWithXY(bottomLeftXYZ, sideHandleDX, sideHandleDY);
-        }
+            if (tabWindowFlag) {
+                addToXYZWithXY(topLeftXYZ,    sideHandleDX, sideHandleDY);
+                addToXYZWithXY(bottomLeftXYZ, sideHandleDX, sideHandleDY);
+                
+                validCoordinatesFlag = true;
+            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-        {
-            addToXYZWithXY(topRightXYZ,    sideHandleDX, sideHandleDY);
-            addToXYZWithXY(bottomRightXYZ, sideHandleDX, sideHandleDY);
-        }
+            if (tabWindowFlag) {
+                addToXYZWithXY(topRightXYZ,    sideHandleDX, sideHandleDY);
+                addToXYZWithXY(bottomRightXYZ, sideHandleDX, sideHandleDY);
+                
+                validCoordinatesFlag = true;
+            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
-        {
-            addToXYZWithXY(topLeftXYZ,  sideHandleDX, sideHandleDY);
-            addToXYZWithXY(topRightXYZ, sideHandleDX, sideHandleDY);
-        }
+            if (tabWindowFlag) {
+                addToXYZWithXY(topLeftXYZ,  sideHandleDX, sideHandleDY);
+                addToXYZWithXY(topRightXYZ, sideHandleDX, sideHandleDY);
+                
+                validCoordinatesFlag = true;
+            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
-        {
-            /*
-             * Top left is now at the mouse XY
-             */
-            topLeftXYZ[0] = spatialModification.m_mouseX;
-            topLeftXYZ[1] = spatialModification.m_mouseY;
-            
-            /*
-             * Unit vector from top left to updated bottom right
-             */
-            float topLeftToBottomRightUnitVector[3];
-            MathFunctions::createUnitVector(topLeftXYZ, bottomRightXYZ, topLeftToBottomRightUnitVector);
-            
-            /*
-             * We have a right triangle where:
-             *    The hypotnuse is from top left corner to new bottom right corner
-             *    A right angle is at top right corner
-             */
-            const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
-                                                             bottomRightXYZ,
-                                                             bottomLeftXYZ);
-            const float angle = (M_PI / 2.0) - oppositeAngle;
-            const float hypotnuseLength = MathFunctions::distance3D(topLeftXYZ,
-                                                                    bottomRightXYZ);
-            
-            const float newWidth  = std::sin(angle) * hypotnuseLength;
-            const float newHeight = std::cos(angle) * hypotnuseLength;
-            
-            topRightXYZ[0] = topLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
-            topRightXYZ[1] = topLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
-            
-            bottomLeftXYZ[0] = topLeftXYZ[0] - bottomToTopUnitVector[0] * newHeight;
-            bottomLeftXYZ[1] = topLeftXYZ[1] - bottomToTopUnitVector[1] * newHeight;
-        }
+            if (tabWindowFlag) {
+                /*
+                 * Top left is now at the mouse XY
+                 */
+                topLeftXYZ[0] = spatialModification.m_mouseX;
+                topLeftXYZ[1] = spatialModification.m_mouseY;
+                
+                /*
+                 * Unit vector from top left to updated bottom right
+                 */
+                float topLeftToBottomRightUnitVector[3];
+                MathFunctions::createUnitVector(topLeftXYZ, bottomRightXYZ, topLeftToBottomRightUnitVector);
+                
+                /*
+                 * We have a right triangle where:
+                 *    The hypotnuse is from top left corner to new bottom right corner
+                 *    A right angle is at top right corner
+                 */
+                const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+                                                                 bottomRightXYZ,
+                                                                 bottomLeftXYZ);
+                const float angle = (M_PI / 2.0) - oppositeAngle;
+                const float hypotnuseLength = MathFunctions::distance3D(topLeftXYZ,
+                                                                        bottomRightXYZ);
+                
+                const float newWidth  = std::sin(angle) * hypotnuseLength;
+                const float newHeight = std::cos(angle) * hypotnuseLength;
+                
+                topRightXYZ[0] = topLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
+                topRightXYZ[1] = topLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
+                
+                bottomLeftXYZ[0] = topLeftXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+                bottomLeftXYZ[1] = topLeftXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+                
+                validCoordinatesFlag = true;
+            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-        {
-            /*
-             * Top right is now at the mouse XY
-             */
-            topRightXYZ[0] = spatialModification.m_mouseX;
-            topRightXYZ[1] = spatialModification.m_mouseY;
-            
-            /*
-             * Unit vector from updated top right to bottom left
-             */
-            float topRightToBottomLeftUnitVector[3];
-            MathFunctions::createUnitVector(topRightXYZ, bottomLeftXYZ, topRightToBottomLeftUnitVector);
-            
-            /*
-             * We have a right triangle where:
-             *    The hypotnuse is from bottom left corner to new top right corner
-             *    A right angle is at top left corner
-             */
-            const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
-                                                             bottomLeftXYZ,
-                                                             topRightXYZ);
-            const float angle = (M_PI / 2.0) - oppositeAngle;
-            const float hypotnuseLength = MathFunctions::distance3D(topRightXYZ,
-                                                                    bottomLeftXYZ);
-            
-            const float newWidth  = std::cos(angle) * hypotnuseLength;
-            const float newHeight = std::sin(angle) * hypotnuseLength;
-            
-            topLeftXYZ[0] = topRightXYZ[0] - leftToRightUnitVector[0] * newWidth;
-            topLeftXYZ[1] = topRightXYZ[1] - leftToRightUnitVector[1] * newWidth;
-            
-            bottomRightXYZ[0] = topRightXYZ[0] - bottomToTopUnitVector[0] * newHeight;
-            bottomRightXYZ[1] = topRightXYZ[1] - bottomToTopUnitVector[1] * newHeight;
-        }
+            if (tabWindowFlag) {
+                /*
+                 * Top right is now at the mouse XY
+                 */
+                topRightXYZ[0] = spatialModification.m_mouseX;
+                topRightXYZ[1] = spatialModification.m_mouseY;
+                
+                /*
+                 * Unit vector from updated top right to bottom left
+                 */
+                float topRightToBottomLeftUnitVector[3];
+                MathFunctions::createUnitVector(topRightXYZ, bottomLeftXYZ, topRightToBottomLeftUnitVector);
+                
+                /*
+                 * We have a right triangle where:
+                 *    The hypotnuse is from bottom left corner to new top right corner
+                 *    A right angle is at top left corner
+                 */
+                const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+                                                                 bottomLeftXYZ,
+                                                                 topRightXYZ);
+                const float angle = (M_PI / 2.0) - oppositeAngle;
+                const float hypotnuseLength = MathFunctions::distance3D(topRightXYZ,
+                                                                        bottomLeftXYZ);
+                
+                const float newWidth  = std::cos(angle) * hypotnuseLength;
+                const float newHeight = std::sin(angle) * hypotnuseLength;
+                
+                topLeftXYZ[0] = topRightXYZ[0] - leftToRightUnitVector[0] * newWidth;
+                topLeftXYZ[1] = topRightXYZ[1] - leftToRightUnitVector[1] * newWidth;
+                
+                bottomRightXYZ[0] = topRightXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+                bottomRightXYZ[1] = topRightXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+                
+                validCoordinatesFlag = true;
+            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-            if (isMovableOrResizableFromGUI()) {
+            if (tabWindowFlag) {
                 addToXYZWithXY(bottomLeftXYZ,  spatialModification.m_mouseDX, spatialModification.m_mouseDY);
                 addToXYZWithXY(bottomRightXYZ, spatialModification.m_mouseDX, spatialModification.m_mouseDY);
                 addToXYZWithXY(topRightXYZ,    spatialModification.m_mouseDX, spatialModification.m_mouseDY);
                 addToXYZWithXY(topLeftXYZ,     spatialModification.m_mouseDX, spatialModification.m_mouseDY);
+                
+                validCoordinatesFlag = true;
+            }
+            else if (stereotaxicCoordinateFlag
+                     || surfaceCoordinateFlag) {
+                validCoordinatesFlag = true;
             }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
         {
-            switch (getCoordinateSpace()) {
-                case AnnotationCoordinateSpaceEnum::PIXELS:
-                    break;
-                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                case AnnotationCoordinateSpaceEnum::SURFACE:
-                {
-                    const float previousMouseXY[3] = {
-                        spatialModification.m_mouseX - spatialModification.m_mouseDX,
-                        spatialModification.m_mouseY - spatialModification.m_mouseDY,
-                        0.0
-                    };
-                    const float currentMouseXY[3] = {
-                        spatialModification.m_mouseX,
-                        spatialModification.m_mouseY,
-                        0.0
-                    };
-                    const float pressXY[3] = {
-                        spatialModification.m_mousePressX,
-                        spatialModification.m_mousePressY,
-                        0.0
-                    };
-                    
-                    float normalVector[3];
-                    MathFunctions::normalVector(pressXY,
-                                                currentMouseXY,
-                                                previousMouseXY,
-                                                normalVector);
-                    
-                    
-                    float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
-                    if (normalVector[2] < 0.0) {
-                        delta = -delta;
-                    }
-                    m_rotationAngle += delta;
+            const float oldRotationAngle = m_rotationAngle;
+            
+            if (stereotaxicRotationFlag
+                || surfaceRotationFlag) {
+                /*
+                 * Determine rotation direction by mouse movement relative to where
+                 * mouse was first pressed.
+                 */
+                const float previousMouseXY[3] = {
+                    spatialModification.m_mouseX - spatialModification.m_mouseDX,
+                    spatialModification.m_mouseY - spatialModification.m_mouseDY,
+                    0.0
+                };
+                const float currentMouseXY[3] = {
+                    spatialModification.m_mouseX,
+                    spatialModification.m_mouseY,
+                    0.0
+                };
+                const float pressXY[3] = {
+                    spatialModification.m_mousePressX,
+                    spatialModification.m_mousePressY,
+                    0.0
+                };
+                
+                float normalVector[3];
+                MathFunctions::normalVector(pressXY,
+                                            currentMouseXY,
+                                            previousMouseXY,
+                                            normalVector);
+                
+                
+                float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX
+                                        + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
+                if (normalVector[2] < 0.0) {
+                    delta = -delta;
                 }
-                    break;
-                case AnnotationCoordinateSpaceEnum::TAB:
-                case AnnotationCoordinateSpaceEnum::WINDOW:
-                {
-                    const float previousMouseXY[3] = {
-                        spatialModification.m_mouseX - spatialModification.m_mouseDX,
-                        spatialModification.m_mouseY - spatialModification.m_mouseDY,
-                        0.0
-                    };
-                    const float currentMouseXY[3] = {
-                        spatialModification.m_mouseX,
-                        spatialModification.m_mouseY,
-                        0.0
-                    };
-                    const float shapeXY[3] = {
-                        viewportXYZ[0],
-                        viewportXYZ[1],
-                        0.0
-                    };
-                    
-                    float normalVector[3];
-                    MathFunctions::normalVector(shapeXY,
-                                                currentMouseXY,
-                                                previousMouseXY,
-                                                normalVector);
-                    
-                    
-                    float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
-                    if (normalVector[2] < 0.0) {
-                        delta = -delta;
-                    }
-                    m_rotationAngle += delta;
+                m_rotationAngle += delta;
+            }
+            else if (tabWindowFlag) {
+                /*
+                 * Determine rotation direction by mouse movement relative to
+                 * the center of the annotation.
+                 */
+                const float previousMouseXY[3] = {
+                    spatialModification.m_mouseX - spatialModification.m_mouseDX,
+                    spatialModification.m_mouseY - spatialModification.m_mouseDY,
+                    0.0
+                };
+                const float currentMouseXY[3] = {
+                    spatialModification.m_mouseX,
+                    spatialModification.m_mouseY,
+                    0.0
+                };
+                const float shapeXY[3] = {
+                    viewportXYZ[0],
+                    viewportXYZ[1],
+                    0.0
+                };
+                
+                float normalVector[3];
+                MathFunctions::normalVector(shapeXY,
+                                            currentMouseXY,
+                                            previousMouseXY,
+                                            normalVector);
+                
+                
+                float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX
+                                        + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
+                if (normalVector[2] < 0.0) {
+                    delta = -delta;
                 }
-                    break;
-            }
-            if (m_rotationAngle > 360.0) {
-                m_rotationAngle -= 360.0;
-            }
-            if (m_rotationAngle < 0.0) {
-                m_rotationAngle += 360.0;
+                m_rotationAngle += delta;
             }
             
-            setModified();
-            
-            return;
+            if (m_rotationAngle != oldRotationAngle) {
+                if (m_rotationAngle > 360.0) {
+                    m_rotationAngle -= 360.0;
+                }
+                if (m_rotationAngle < 0.0) {
+                    m_rotationAngle += 360.0;
+                }
+                
+                validRotationFlag = true;
+            }
         }
             break;
     }
     
-    /*
-     * Using the updated corners of the annotation, convert back to normalized x, y, width, and aspect ratio
-     */
-    float newViewportXYZ[3];
-    MathFunctions::averageOfFourCoordinates(bottomLeftXYZ, bottomRightXYZ, topRightXYZ, topLeftXYZ, newViewportXYZ);
-    const float newX = 100.0 * (newViewportXYZ[0] / spatialModification.m_viewportWidth);
-    const float newY = 100.0 * (newViewportXYZ[1] / spatialModification.m_viewportHeight);
-    const float newShapeViewportWidth = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
-    const float newWidth = 100.0 * (newShapeViewportWidth / spatialModification.m_viewportWidth);
-    const float newShapeViewportHeight = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
-    const float newHeight = 100.0 * (newShapeViewportHeight / spatialModification.m_viewportHeight);
-    
-    /*
-     * Note:
-     *    Coordinates are relative (range 0 to 100)
-     *    Width is relative (range 0 to 100)
-     *    Aspect ratio must only be greater than zero (when < 1, horizontal rectangle, when > 1 vertical rectangle)
-     */
-    if ((newX >= 0.0)
-        && (newX <= 100.0)
-        && (newY >= 0.0)
-        && (newY <= 100.0)
-        && (newWidth > 0.01)
-        && (newWidth <= 100.0)
-        && (newHeight > 0.01)
-        && (newHeight <= 100.0)) {
-        xyz[0] = newX;
-        xyz[1] = newY;
-        m_coordinate->setXYZ(xyz);
-        m_width  = newWidth;
-        m_height = newHeight;
-        setModified();
+    if (validCoordinatesFlag) {
+        if (stereotaxicCoordinateFlag) {
+            m_coordinate->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
+        }
+        else if (surfaceCoordinateFlag) {
+            m_coordinate->setSurfaceSpace(spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure,
+                                          spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes,
+                                          spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex,
+                                          m_coordinate->getSurfaceOffsetLength());
+        }
+        else if (tabWindowFlag) {
+            /*
+             * Using the updated corners of the annotation, convert back to normalized x, y, width, and aspect ratio
+             */
+            float newViewportXYZ[3];
+            MathFunctions::averageOfFourCoordinates(bottomLeftXYZ, bottomRightXYZ, topRightXYZ, topLeftXYZ, newViewportXYZ);
+            const float newX = 100.0 * (newViewportXYZ[0] / spatialModification.m_viewportWidth);
+            const float newY = 100.0 * (newViewportXYZ[1] / spatialModification.m_viewportHeight);
+            const float newShapeViewportWidth = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
+            const float newWidth = 100.0 * (newShapeViewportWidth / spatialModification.m_viewportWidth);
+            const float newShapeViewportHeight = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
+            const float newHeight = 100.0 * (newShapeViewportHeight / spatialModification.m_viewportHeight);
+            
+            /*
+             * Note:
+             *    Coordinates are relative (range 0 to 100)
+             *    Width is relative (range 0 to 100)
+             *    Aspect ratio must only be greater than zero (when < 1, horizontal rectangle, when > 1 vertical rectangle)
+             */
+            if ((newX >= 0.0)
+                && (newX <= 100.0)
+                && (newY >= 0.0)
+                && (newY <= 100.0)
+                && (newWidth > 0.01)
+                && (newWidth <= 100.0)
+                && (newHeight > 0.01)
+                && (newHeight <= 100.0)) {
+                xyz[0] = newX;
+                xyz[1] = newY;
+                m_coordinate->setXYZ(xyz);
+                m_width  = newWidth;
+                m_height = newHeight;
+            }
+            else {
+                validCoordinatesFlag = false;
+            }
+        }
     }
+    
+    if (validCoordinatesFlag
+        || validRotationFlag) {
+        setModified();
+        return true;
+    }
+    
+    return false;
 }
+
+
+///**
+// * Apply a spatial modification to an annotation.
+// *
+// * @param spatialModification
+// *     Contains information about the spatial modification.
+// * @return
+// *     True if the annotation was modified, else false.
+// */
+//bool
+//AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialModification& spatialModification)
+//{
+//    switch (getCoordinateSpace()) {
+//        case AnnotationCoordinateSpaceEnum::PIXELS:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            break;
+//    }
+//    
+//    float xyz[3];
+//    m_coordinate->getXYZ(xyz);
+//    
+//    float viewportXYZ[3] = {
+//        (xyz[0] / 100.0) * spatialModification.m_viewportWidth,
+//        (xyz[1] / 100.0) * spatialModification.m_viewportHeight,
+//        xyz[2]
+//    };
+//    
+//    float bottomLeftXYZ[3];
+//    float bottomRightXYZ[3];
+//    float topLeftXYZ[3];
+//    float topRightXYZ[3];
+//    const bool validBounds = getShapeBounds(spatialModification.m_viewportWidth,
+//                                            spatialModification.m_viewportHeight,
+//                                            viewportXYZ,
+//                                            bottomLeftXYZ,
+//                                            bottomRightXYZ,
+//                                            topRightXYZ,
+//                                            topLeftXYZ);
+//    if ( ! validBounds) {
+//        //CaretAssert(0);
+//        return;
+//    }
+//    
+//    float leftToRightUnitVector[3];
+//    MathFunctions::createUnitVector(bottomLeftXYZ, bottomRightXYZ, leftToRightUnitVector);
+//    float bottomToTopUnitVector[3];
+//    MathFunctions::createUnitVector(bottomLeftXYZ, topLeftXYZ, bottomToTopUnitVector);
+//    
+//    /*
+//     * Find size adjustment for side (not corner) sizing handles
+//     */
+//    float sideHandleDX = 0.0;
+//    float sideHandleDY = 0.0;
+//    getSideHandleMouseDelta(spatialModification.m_sizingHandleType,
+//                            leftToRightUnitVector,
+//                            bottomToTopUnitVector,
+//                            spatialModification.m_mouseDX,
+//                            spatialModification.m_mouseDY,
+//                            sideHandleDX,
+//                            sideHandleDY);
+//    /*
+//     * When a resize handle is moved, update the corners of the shape
+//     */
+//    switch (spatialModification.m_sizingHandleType) {
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+//            if (isResizedByGUI()) {
+//                addToXYZWithXY(bottomLeftXYZ,  sideHandleDX, sideHandleDY);
+//                addToXYZWithXY(bottomRightXYZ, sideHandleDX, sideHandleDY);
+//            }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+//            if (isResizedByGUI()) {
+//                /*
+//                 * Bottom left is now at the mouse XY
+//                 */
+//                bottomLeftXYZ[0] = spatialModification.m_mouseX;
+//                bottomLeftXYZ[1] = spatialModification.m_mouseY;
+//                
+//                /*
+//                 * Unit vector from bottom left to updated top right
+//                 */
+//                float bottomLeftToTopRightUnitVector[3];
+//                MathFunctions::createUnitVector(bottomLeftXYZ, topRightXYZ, bottomLeftToTopRightUnitVector);
+//                
+//                /*
+//                 * We have a right triangle where:
+//                 *    The hypotnuse is from bottom left corner to new top right corner
+//                 *    A right angle is at top left corner
+//                 *    Want angle at bottom left but vector angle is at top right (all
+//                 *    angles add up to PI=180).
+//                 */
+//                const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+//                                                                 topRightXYZ,
+//                                                                 bottomLeftXYZ);
+//                const float angle = (M_PI / 2.0) - oppositeAngle;
+//                const float hypotnuseLength = MathFunctions::distance3D(bottomLeftXYZ,
+//                                                                        topRightXYZ);
+//                
+//                const float newWidth  = std::sin(angle) * hypotnuseLength;
+//                const float newHeight = std::cos(angle) * hypotnuseLength;
+//                
+//                topLeftXYZ[0] = bottomLeftXYZ[0] + bottomToTopUnitVector[0] * newHeight;
+//                topLeftXYZ[1] = bottomLeftXYZ[1] + bottomToTopUnitVector[1] * newHeight;
+//                
+//                bottomRightXYZ[0] = bottomLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
+//                bottomRightXYZ[1] = bottomLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
+//            }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+//            if (isResizedByGUI()) {
+//                /*
+//                 * Bottom right is now at the mouse XY
+//                 */
+//                bottomRightXYZ[0] = spatialModification.m_mouseX;
+//                bottomRightXYZ[1] = spatialModification.m_mouseY;
+//                
+//                /*
+//                 * Unit vector from top left to updated bottom right
+//                 */
+//                float topLeftToBottomRightUnitVector[3];
+//                MathFunctions::createUnitVector(topLeftXYZ, bottomRightXYZ, topLeftToBottomRightUnitVector);
+//                
+//                /*
+//                 * We have a right triangle where:
+//                 *    The hypotnuse is from top left corner to new bottom right corner
+//                 *    A right angle is at top right corner
+//                 */
+//                const float angle = MathFunctions::angle(topRightXYZ,
+//                                                         topLeftXYZ,
+//                                                         bottomRightXYZ);
+//                const float hypotnuseLength = MathFunctions::distance3D(topLeftXYZ,
+//                                                                        bottomRightXYZ);
+//                
+//                const float newWidth  = std::cos(angle) * hypotnuseLength;
+//                const float newHeight = std::sin(angle) * hypotnuseLength;
+//                
+//                topRightXYZ[0] = topLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
+//                topRightXYZ[1] = topLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
+//                
+//                bottomLeftXYZ[0] = topLeftXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+//                bottomLeftXYZ[1] = topLeftXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+//            }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+//            if (isResizedByGUI()) {
+//                addToXYZWithXY(topLeftXYZ,    sideHandleDX, sideHandleDY);
+//                addToXYZWithXY(bottomLeftXYZ, sideHandleDX, sideHandleDY);
+//            }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+//            if (isResizedByGUI()) {
+//                addToXYZWithXY(topRightXYZ,    sideHandleDX, sideHandleDY);
+//                addToXYZWithXY(bottomRightXYZ, sideHandleDX, sideHandleDY);
+//            }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+//            if (isResizedByGUI()) {
+//                addToXYZWithXY(topLeftXYZ,  sideHandleDX, sideHandleDY);
+//                addToXYZWithXY(topRightXYZ, sideHandleDX, sideHandleDY);
+//            }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+//            if (isResizedByGUI()) {
+//                /*
+//                 * Top left is now at the mouse XY
+//                 */
+//                topLeftXYZ[0] = spatialModification.m_mouseX;
+//                topLeftXYZ[1] = spatialModification.m_mouseY;
+//                
+//                /*
+//                 * Unit vector from top left to updated bottom right
+//                 */
+//                float topLeftToBottomRightUnitVector[3];
+//                MathFunctions::createUnitVector(topLeftXYZ, bottomRightXYZ, topLeftToBottomRightUnitVector);
+//                
+//                /*
+//                 * We have a right triangle where:
+//                 *    The hypotnuse is from top left corner to new bottom right corner
+//                 *    A right angle is at top right corner
+//                 */
+//                const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+//                                                                 bottomRightXYZ,
+//                                                                 bottomLeftXYZ);
+//                const float angle = (M_PI / 2.0) - oppositeAngle;
+//                const float hypotnuseLength = MathFunctions::distance3D(topLeftXYZ,
+//                                                                        bottomRightXYZ);
+//                
+//                const float newWidth  = std::sin(angle) * hypotnuseLength;
+//                const float newHeight = std::cos(angle) * hypotnuseLength;
+//                
+//                topRightXYZ[0] = topLeftXYZ[0] + leftToRightUnitVector[0] * newWidth;
+//                topRightXYZ[1] = topLeftXYZ[1] + leftToRightUnitVector[1] * newWidth;
+//                
+//                bottomLeftXYZ[0] = topLeftXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+//                bottomLeftXYZ[1] = topLeftXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+//            }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+//            if (isResizedByGUI()) {
+//                /*
+//                 * Top right is now at the mouse XY
+//                 */
+//                topRightXYZ[0] = spatialModification.m_mouseX;
+//                topRightXYZ[1] = spatialModification.m_mouseY;
+//                
+//                /*
+//                 * Unit vector from updated top right to bottom left
+//                 */
+//                float topRightToBottomLeftUnitVector[3];
+//                MathFunctions::createUnitVector(topRightXYZ, bottomLeftXYZ, topRightToBottomLeftUnitVector);
+//                
+//                /*
+//                 * We have a right triangle where:
+//                 *    The hypotnuse is from bottom left corner to new top right corner
+//                 *    A right angle is at top left corner
+//                 */
+//                const float oppositeAngle = MathFunctions::angle(topLeftXYZ,
+//                                                                 bottomLeftXYZ,
+//                                                                 topRightXYZ);
+//                const float angle = (M_PI / 2.0) - oppositeAngle;
+//                const float hypotnuseLength = MathFunctions::distance3D(topRightXYZ,
+//                                                                        bottomLeftXYZ);
+//                
+//                const float newWidth  = std::cos(angle) * hypotnuseLength;
+//                const float newHeight = std::sin(angle) * hypotnuseLength;
+//                
+//                topLeftXYZ[0] = topRightXYZ[0] - leftToRightUnitVector[0] * newWidth;
+//                topLeftXYZ[1] = topRightXYZ[1] - leftToRightUnitVector[1] * newWidth;
+//                
+//                bottomRightXYZ[0] = topRightXYZ[0] - bottomToTopUnitVector[0] * newHeight;
+//                bottomRightXYZ[1] = topRightXYZ[1] - bottomToTopUnitVector[1] * newHeight;
+//            }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+//            if (isMovedByGUI()) {
+//                addToXYZWithXY(bottomLeftXYZ,  spatialModification.m_mouseDX, spatialModification.m_mouseDY);
+//                addToXYZWithXY(bottomRightXYZ, spatialModification.m_mouseDX, spatialModification.m_mouseDY);
+//                addToXYZWithXY(topRightXYZ,    spatialModification.m_mouseDX, spatialModification.m_mouseDY);
+//                addToXYZWithXY(topLeftXYZ,     spatialModification.m_mouseDX, spatialModification.m_mouseDY);
+//            }
+//            break;
+//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+//            if (isRotatedByGUI()) {
+//                switch (getCoordinateSpace()) {
+//                    case AnnotationCoordinateSpaceEnum::PIXELS:
+//                        break;
+//                    case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//                    case AnnotationCoordinateSpaceEnum::SURFACE:
+//                    {
+//                        const float previousMouseXY[3] = {
+//                            spatialModification.m_mouseX - spatialModification.m_mouseDX,
+//                            spatialModification.m_mouseY - spatialModification.m_mouseDY,
+//                            0.0
+//                        };
+//                        const float currentMouseXY[3] = {
+//                            spatialModification.m_mouseX,
+//                            spatialModification.m_mouseY,
+//                            0.0
+//                        };
+//                        const float pressXY[3] = {
+//                            spatialModification.m_mousePressX,
+//                            spatialModification.m_mousePressY,
+//                            0.0
+//                        };
+//                        
+//                        float normalVector[3];
+//                        MathFunctions::normalVector(pressXY,
+//                                                    currentMouseXY,
+//                                                    previousMouseXY,
+//                                                    normalVector);
+//                        
+//                        
+//                        float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
+//                        if (normalVector[2] < 0.0) {
+//                            delta = -delta;
+//                        }
+//                        m_rotationAngle += delta;
+//                    }
+//                        break;
+//                    case AnnotationCoordinateSpaceEnum::TAB:
+//                    case AnnotationCoordinateSpaceEnum::WINDOW:
+//                    {
+//                        const float previousMouseXY[3] = {
+//                            spatialModification.m_mouseX - spatialModification.m_mouseDX,
+//                            spatialModification.m_mouseY - spatialModification.m_mouseDY,
+//                            0.0
+//                        };
+//                        const float currentMouseXY[3] = {
+//                            spatialModification.m_mouseX,
+//                            spatialModification.m_mouseY,
+//                            0.0
+//                        };
+//                        const float shapeXY[3] = {
+//                            viewportXYZ[0],
+//                            viewportXYZ[1],
+//                            0.0
+//                        };
+//                        
+//                        float normalVector[3];
+//                        MathFunctions::normalVector(shapeXY,
+//                                                    currentMouseXY,
+//                                                    previousMouseXY,
+//                                                    normalVector);
+//                        
+//                        
+//                        float delta = std::sqrt(spatialModification.m_mouseDX*spatialModification.m_mouseDX + spatialModification.m_mouseDY*spatialModification.m_mouseDY);
+//                        if (normalVector[2] < 0.0) {
+//                            delta = -delta;
+//                        }
+//                        m_rotationAngle += delta;
+//                    }
+//                        break;
+//                }
+//                if (m_rotationAngle > 360.0) {
+//                    m_rotationAngle -= 360.0;
+//                }
+//                if (m_rotationAngle < 0.0) {
+//                    m_rotationAngle += 360.0;
+//                }
+//                
+//                setModified();
+//                
+//                return;
+//            }
+//            break;
+//    }
+//    
+//    /*
+//     * Using the updated corners of the annotation, convert back to normalized x, y, width, and aspect ratio
+//     */
+//    float newViewportXYZ[3];
+//    MathFunctions::averageOfFourCoordinates(bottomLeftXYZ, bottomRightXYZ, topRightXYZ, topLeftXYZ, newViewportXYZ);
+//    const float newX = 100.0 * (newViewportXYZ[0] / spatialModification.m_viewportWidth);
+//    const float newY = 100.0 * (newViewportXYZ[1] / spatialModification.m_viewportHeight);
+//    const float newShapeViewportWidth = MathFunctions::distance3D(bottomLeftXYZ, bottomRightXYZ);
+//    const float newWidth = 100.0 * (newShapeViewportWidth / spatialModification.m_viewportWidth);
+//    const float newShapeViewportHeight = MathFunctions::distance3D(bottomLeftXYZ, topLeftXYZ);
+//    const float newHeight = 100.0 * (newShapeViewportHeight / spatialModification.m_viewportHeight);
+//    
+//    /*
+//     * Note:
+//     *    Coordinates are relative (range 0 to 100)
+//     *    Width is relative (range 0 to 100)
+//     *    Aspect ratio must only be greater than zero (when < 1, horizontal rectangle, when > 1 vertical rectangle)
+//     */
+//    if ((newX >= 0.0)
+//        && (newX <= 100.0)
+//        && (newY >= 0.0)
+//        && (newY <= 100.0)
+//        && (newWidth > 0.01)
+//        && (newWidth <= 100.0)
+//        && (newHeight > 0.01)
+//        && (newHeight <= 100.0)) {
+//        xyz[0] = newX;
+//        xyz[1] = newY;
+//        m_coordinate->setXYZ(xyz);
+//        m_width  = newWidth;
+//        m_height = newHeight;
+//        setModified();
+//    }
+//}
 
 /**
  * When adjusting one of the "side handles" of a selected shape, set and adjust the change in the shape
  * so that the shape changes in the same direction as the mouse is moved.
  *
  * @param sizeHandle
-      Size handle that is being adjusted.
+ Size handle that is being adjusted.
  * @param leftToRightShapeVector
  *    Vector running from left to right of shape accounting for any rotation.
  * @param bottomToTopShapeVector
@@ -669,12 +1301,12 @@ AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialM
  */
 void
 AnnotationTwoDimensionalShape::getSideHandleMouseDelta(const AnnotationSizingHandleTypeEnum::Enum sizeHandle,
-                              const float leftToRightShapeVector[3],
-                              const float bottomToTopShapeVector[3],
-                              const float mouseDX,
-                              const float mouseDY,
-                              float& shapeDxOut,
-                              float& shapeDyOut)
+                                                       const float leftToRightShapeVector[3],
+                                                       const float bottomToTopShapeVector[3],
+                                                       const float mouseDX,
+                                                       const float mouseDY,
+                                                       float& shapeDxOut,
+                                                       float& shapeDyOut)
 {
     shapeDxOut = 0.0;
     shapeDyOut = 0.0;
@@ -714,7 +1346,7 @@ AnnotationTwoDimensionalShape::getSideHandleMouseDelta(const AnnotationSizingHan
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;
     }
-
+    
     float shapeVector[3];
     if (useLeftRightFlag) {
         shapeVector[0] = leftToRightShapeVector[0];
@@ -738,7 +1370,7 @@ AnnotationTwoDimensionalShape::getSideHandleMouseDelta(const AnnotationSizingHan
     
     float mouseVector[3] = { mouseDX, mouseDY, 0.0 };
     float mouseDelta = MathFunctions::normalizeVector(mouseVector);
-
+    
     const float cosineAngle = MathFunctions::dotProduct(mouseVector,
                                                         shapeVector);
     if (cosineAngle < 0.0) {
@@ -858,15 +1490,15 @@ AnnotationTwoDimensionalShape::setWidthAndHeightFromBounds(const float xyzOne[3]
     
     const float width  = maxX - minX;
     const float height = maxY - minY;
-
+    
     setWidth(width);
     setHeight(height);
     
-//    const float relativeWidth  = 100.0 * (width  / static_cast<float>(spaceWidth));
-//    const float relativeHeight = 100.0 * (height / static_cast<float>(spaceHeight));
-//    
-//    setWidth(relativeWidth);
-//    setHeight(relativeHeight);
+    //    const float relativeWidth  = 100.0 * (width  / static_cast<float>(spaceWidth));
+    //    const float relativeHeight = 100.0 * (height / static_cast<float>(spaceHeight));
+    //
+    //    setWidth(relativeWidth);
+    //    setHeight(relativeHeight);
 }
 
 /**
@@ -883,7 +1515,7 @@ AnnotationTwoDimensionalShape::setWidthAndHeightFromBounds(const float xyzOne[3]
  */
 void
 AnnotationTwoDimensionalShape::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-                                            SceneClass* sceneClass)
+                                                       SceneClass* sceneClass)
 {
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -903,7 +1535,7 @@ AnnotationTwoDimensionalShape::saveSubClassDataToScene(const SceneAttributes* sc
  */
 void
 AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-                                                 const SceneClass* sceneClass)
+                                                            const SceneClass* sceneClass)
 {
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

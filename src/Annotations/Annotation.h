@@ -126,12 +126,20 @@ namespace caret {
          *
          * @param spatialModification
          *     Contains information about the spatial modification.
+         * @return
+         *     True if the annotation was modified, else false.
          */
-        virtual void applySpatialModification(const AnnotationSpatialModification& spatialModification) = 0;
+        virtual bool applySpatialModification(const AnnotationSpatialModification& spatialModification) = 0;
         
-        bool isMovableOrResizableFromGUI() const;
-        
-        bool isRotatableFromGUI() const;
+        /**
+         * Is the given sizing handle valid for this annotation?
+         * 
+         * @sizingHandle
+         *    The sizing handle.
+         * @return
+         *    True if sizing handle valid, else false.
+         */
+        virtual bool isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const = 0;
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation) = 0;
         

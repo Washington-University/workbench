@@ -89,7 +89,7 @@ namespace caret {
         
         virtual bool isForegroundLineWidthSupported() const;
         
-        virtual void applySpatialModification(const AnnotationSpatialModification& spatialModification);
+        virtual bool applySpatialModification(const AnnotationSpatialModification& spatialModification);
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
 

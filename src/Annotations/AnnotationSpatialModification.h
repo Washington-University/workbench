@@ -24,6 +24,7 @@
 
 #include "AnnotationSizingHandleTypeEnum.h"
 #include "CaretObject.h"
+#include "StructureEnum.h"
 
 
 
@@ -42,6 +43,14 @@ namespace caret {
                                       const float mouseDX,
                                       const float mouseDY);
         
+        void setSurfaceCoordinateAtMouseXY(const StructureEnum::Enum structure,
+                                     const int32_t surfaceNumberOfNodes,
+                                     const int32_t surfaceNodeIndex);
+        
+        void setStereotaxicCoordinateAtMouseXY(const float stereotaxicX,
+                                               const float stereotaxicY,
+                                               const float stereotaxicZ);
+        
         virtual ~AnnotationSpatialModification();
         
 
@@ -50,6 +59,39 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class SurfaceCoord {
+        public:
+            SurfaceCoord() {
+                m_surfaceStructure     = StructureEnum::INVALID;
+                m_surfaceNumberOfNodes = -1;
+                m_surfaceNodeIndex     = -1;
+                m_surfaceNodeValid     = false;
+            }
+            StructureEnum::Enum m_surfaceStructure;
+            
+            int32_t m_surfaceNumberOfNodes;
+            
+            int32_t m_surfaceNodeIndex;
+            
+            bool m_surfaceNodeValid;
+        };
+        
+        
+        class StereotaxicCoord {
+        public:
+            StereotaxicCoord() {
+                m_stereotaxicXYZ[0] = 0.0;
+                m_stereotaxicXYZ[1] = 0.0;
+                m_stereotaxicXYZ[2] = 0.0;
+                
+                m_stereotaxicValid = false;
+            }
+            
+            float m_stereotaxicXYZ[3];
+            
+            bool m_stereotaxicValid;
+        };
+        
         AnnotationSpatialModification(const AnnotationSpatialModification&);
 
         AnnotationSpatialModification& operator=(const AnnotationSpatialModification&);
@@ -71,6 +113,10 @@ namespace caret {
         const float m_mouseDX;
         
         const float m_mouseDY;
+        
+        SurfaceCoord m_surfaceCoordinateAtMouseXY;
+        
+        StereotaxicCoord m_stereotaxicCoordinateAtMouseXY;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -76,7 +76,6 @@ m_mouseY(mouseY),
 m_mouseDX(mouseDX),
 m_mouseDY(mouseDY)
 {
-    
 }
 
 /**
@@ -84,6 +83,54 @@ m_mouseDY(mouseDY)
  */
 AnnotationSpatialModification::~AnnotationSpatialModification()
 {
+}
+
+/**
+ * Set the surface coordinate at mouse X/Y.
+ *
+ * @param structure
+ *     The surface structure.
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in the surface.
+ * @param surfaceNodeIndex
+ *     Surface node index.
+ */
+void
+AnnotationSpatialModification::setSurfaceCoordinateAtMouseXY(const StructureEnum::Enum structure,
+                                                             const int32_t surfaceNumberOfNodes,
+                                                             const int32_t surfaceNodeIndex)
+{
+    m_surfaceCoordinateAtMouseXY.m_surfaceStructure     = structure;
+    m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes = surfaceNumberOfNodes;
+    m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex     = surfaceNodeIndex;
+    m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid     = false;
+    if ((m_surfaceCoordinateAtMouseXY.m_surfaceStructure != StructureEnum::INVALID)
+        && (m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes > 0)
+        && (m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex >= 0)
+        && (m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex < m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes)) {
+        m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid = true;
+    }
+}
+
+/**
+ * Set the stereotaxic coordinate at mouse X/Y
+ *
+ * @param stereotaxicX
+ *     stereotaxic X-coordinate.
+ * @param stereotaxicY
+ *     stereotaxic Y-coordinate.
+ * @param stereotaxicZ
+ *     stereotaxic Z-coordinate.
+ */
+void
+AnnotationSpatialModification::setStereotaxicCoordinateAtMouseXY(const float stereotaxicX,
+                                                                 const float stereotaxicY,
+                                                                 const float stereotaxicZ)
+{
+    m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[0] = stereotaxicX;
+    m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[1] = stereotaxicY;
+    m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[2] = stereotaxicZ;
+    m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid  = true;
 }
 
 /**

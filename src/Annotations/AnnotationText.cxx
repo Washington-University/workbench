@@ -617,8 +617,10 @@ AnnotationText::setFontPercentViewportSizeProtected(const float fontPercentViewp
  *
  * @param spatialModification
  *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
  */
-void
+bool
 AnnotationText::applySpatialModification(const AnnotationSpatialModification& spatialModification)
 {
     /*
@@ -655,9 +657,12 @@ AnnotationText::applySpatialModification(const AnnotationSpatialModification& sp
             break;
     }
     
+    bool validFlag = false;
     if (operationSupportedFlag) {
-        AnnotationTwoDimensionalShape::applySpatialModification(spatialModification);
+        validFlag = AnnotationTwoDimensionalShape::applySpatialModification(spatialModification);
     }
+    
+    return validFlag;
 }
 
 
