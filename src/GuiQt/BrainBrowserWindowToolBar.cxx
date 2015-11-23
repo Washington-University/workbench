@@ -2227,7 +2227,12 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeViewAction = WuQtUtilities::createAction("View",
                                                                  "Perform viewing operations with mouse\n"
                                                                  "\n"
-                                                                 "Identify: Click Left Mouse\n"
+                                                                 "Identify: Click left mouse button (might cause rotation)\n"
+#ifdef CARET_OS_MACOSX
+                                                                 "Identify: Click left mouse button while keyboard shift and apple keys are down (prevents rotation)\n"
+#else // CARET_OS_MACOSX
+                                                                 "Identify: Click left mouse button while keyboard shift and controls keys are down (prevents rotation)\n"
+#endif // CARET_OS_MACOSX
                                                                  "Pan:      Move mouse with left mouse button down and keyboard shift key down\n"
                                                                  "Rotate:   Move mouse with left mouse button down\n"
 #ifdef CARET_OS_MACOSX
