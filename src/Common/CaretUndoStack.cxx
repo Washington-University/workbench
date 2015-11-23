@@ -306,27 +306,13 @@ CaretUndoStack::push(CaretUndoCommand* newCommand)
     }
     
     if (newCommand->isMergeEnabled()) {
-        if (m_undoStack.empty()) {
-            CaretLogWarning("Attempting to merge a command on CaretUndoStack but stack is empty.  "
-                            "Command has been added to stack.  Command description: "
-                            + newCommand->getDescription());
-        }
-        else {
+        if ( ! m_undoStack.empty()) {
             CaretUndoCommand* command = m_undoStack.back();
             CaretAssert(command);
             if (command->mergeWith(newCommand)) {
                 delete newCommand;
                 return;
             }
-//            else {
-//                // Typically occurs when attempting to merge commands that
-//                // modify different annotations
-//                CaretLogWarning("Attempting to merge a command failed.  "
-//                                "Command has been added to stack.  Command description: "
-//                                + newCommand->getDescription()
-//                                + "  Attempted to merge with: "
-//                                + command->getDescription());
-//            }
         }
     }
     
