@@ -318,13 +318,15 @@ CaretUndoStack::push(CaretUndoCommand* newCommand)
                 delete newCommand;
                 return;
             }
-            else {
-                CaretLogWarning("Attempting to merge a command failed.  "
-                                "Command has been added to stack.  Command description: "
-                                + newCommand->getDescription()
-                                + "  Attempted to merge with: "
-                                + command->getDescription());
-            }
+//            else {
+//                // Typically occurs when attempting to merge commands that
+//                // modify different annotations
+//                CaretLogWarning("Attempting to merge a command failed.  "
+//                                "Command has been added to stack.  Command description: "
+//                                + newCommand->getDescription()
+//                                + "  Attempted to merge with: "
+//                                + command->getDescription());
+//            }
         }
     }
     
