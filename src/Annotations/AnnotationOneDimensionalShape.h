@@ -86,6 +86,12 @@ namespace caret {
 
         void initializeMembersAnnotationOneDimensionalShape();
         
+        bool applySpatialModificationSurfaceSpace(const AnnotationSpatialModification& spatialModification);
+        
+        bool applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification);
+        
+        bool applySpatialModificationTabOrWindowSpace(const AnnotationSpatialModification& spatialModification);
+        
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
         
         CaretPointer<AnnotationCoordinate> m_startCoordinate;

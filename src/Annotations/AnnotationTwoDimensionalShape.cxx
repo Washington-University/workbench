@@ -1009,6 +1009,10 @@ AnnotationTwoDimensionalShape::applySpatialModificationStereotaxicSpace(const An
 bool
 AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialModification& spatialModification)
 {
+    if ( ! isSizeHandleValid(spatialModification.m_sizingHandleType)) {
+        return false;
+    }
+    
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::PIXELS:
             break;

@@ -292,7 +292,7 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
 }
 
 /**
- * Apply a spatial modification to an annotation.
+ * Apply a spatial modification to an annotation in surface space.
  *
  * @param spatialModification
  *     Contains information about the spatial modification.
@@ -300,55 +300,98 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
  *     True if the annotation was modified, else false.
  */
 bool
-AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialModification& spatialModification)
+AnnotationOneDimensionalShape::applySpatialModificationSurfaceSpace(const AnnotationSpatialModification& spatialModification)
 {
-    if ( ! isSizeHandleValid(spatialModification.m_sizingHandleType)) {
-        return false;
-    }
+    bool validFlag = false;
     
-    bool tabWindowFlag   = false;
-    bool stereotaxicFlag = false;
-    bool surfaceFlag     = false;
-    
-    /*
-     * Verify that the coordinate space of this annotation matches
-     * the coordinate space in the spatial modification
-     */
-    switch (getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
+    switch (spatialModification.m_sizingHandleType) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
             break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            if (spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid) {
-                stereotaxicFlag = true;
-            }
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
             break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
         {
             StructureEnum::Enum structure = StructureEnum::INVALID;
             int32_t surfaceNumberOfNodes  = -1;
             int32_t surfaceNodeIndex      = -1;
             float surfaceOffset           = -1.0;
-
-            m_startCoordinate->getSurfaceSpace(structure,
-                                          surfaceNumberOfNodes,
-                                          surfaceNodeIndex,
-                                          surfaceOffset);
+            
+            m_endCoordinate->getSurfaceSpace(structure,
+                                               surfaceNumberOfNodes,
+                                               surfaceNodeIndex,
+                                               surfaceOffset);
             if (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid) {
                 if ((spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure == structure)
                     && (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes == surfaceNumberOfNodes)) {
-                    surfaceFlag = true;
+                    m_endCoordinate->setSurfaceSpace(spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure,
+                                                     spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes,
+                                                     spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex,
+                                                     m_endCoordinate->getDefaultSurfaceOffsetLength());
+                    validFlag = true;
                 }
             }
         }
             break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            tabWindowFlag = true;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+        {
+            StructureEnum::Enum structure = StructureEnum::INVALID;
+            int32_t surfaceNumberOfNodes  = -1;
+            int32_t surfaceNodeIndex      = -1;
+            float surfaceOffset           = -1.0;
+            
+            m_startCoordinate->getSurfaceSpace(structure,
+                                               surfaceNumberOfNodes,
+                                               surfaceNodeIndex,
+                                               surfaceOffset);
+            if (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid) {
+                if ((spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure == structure)
+                    && (spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes == surfaceNumberOfNodes)) {
+                    m_startCoordinate->setSurfaceSpace(spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure,
+                                                       spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes,
+                                                       spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex,
+                                                       m_startCoordinate->getDefaultSurfaceOffsetLength());
+                    validFlag = true;
+                }
+            }
+        }
             break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            tabWindowFlag = true;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;
     }
     
+    
+    if (validFlag) {
+        setModified();
+    }
+    
+    return validFlag;
+}
+
+/**
+ * Apply a spatial modification to an annotation in tab or window space.
+ *
+ * @param spatialModification
+ *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
+ */
+bool
+AnnotationOneDimensionalShape::applySpatialModificationTabOrWindowSpace(const AnnotationSpatialModification& spatialModification)
+{
     float xyz1[3];
     float xyz2[3];
     m_startCoordinate->getXYZ(xyz1);
@@ -384,78 +427,138 @@ AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialM
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
-            if (stereotaxicFlag) {
-                m_endCoordinate->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
-                validFlag = true;
-            }
-            else if (surfaceFlag) {
-                m_endCoordinate->setSurfaceSpace(spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure,
-                                                 spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes,
-                                                 spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex,
-                                                 m_endCoordinate->getDefaultSurfaceOffsetLength());
-                validFlag = true;
-            }
-            else if (tabWindowFlag) {
                 newX2 += spaceDX;
                 newY2 += spaceDY;
                 validFlag = true;
-            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
-            if (stereotaxicFlag) {
-                m_startCoordinate->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
-                validFlag = true;
-            }
-            else if (surfaceFlag) {
-                m_startCoordinate->setSurfaceSpace(spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceStructure,
-                                                 spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNumberOfNodes,
-                                                 spatialModification.m_surfaceCoordinateAtMouseXY.m_surfaceNodeIndex,
-                                                 m_startCoordinate->getDefaultSurfaceOffsetLength());
-                validFlag = true;
-            }
-            else if (tabWindowFlag) {
                 newX1 += spaceDX;
                 newY1 += spaceDY;
                 validFlag = true;
-            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-            if (tabWindowFlag) {
                 newX1 += spaceDX;
                 newY1 += spaceDY;
                 newX2 += spaceDX;
                 newY2 += spaceDY;
                 validFlag = true;
-            }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;
     }
     
     if (validFlag) {
-        if (tabWindowFlag) {
-            if ((newX1 >= 0.0)
-                && (newX1 <= 100.0)
-                && (newY1 >= 0.0)
-                && (newY1 <= 100.0)
-                && (newX2 >= 0.0)
-                && (newX2 <= 100.0)
-                && (newY2 >= 0.0)
-                && (newY2 <= 100.0)) {
-                xyz1[0] = newX1;
-                xyz1[1] = newY1;
-                m_startCoordinate->setXYZ(xyz1);
-                xyz2[0] = newX2;
-                xyz2[1] = newY2;
-                m_endCoordinate->setXYZ(xyz2);
-            }
-            else {
-                validFlag = false;
-            }
+        if ((newX1 >= 0.0)
+            && (newX1 <= 100.0)
+            && (newY1 >= 0.0)
+            && (newY1 <= 100.0)
+            && (newX2 >= 0.0)
+            && (newX2 <= 100.0)
+            && (newY2 >= 0.0)
+            && (newY2 <= 100.0)) {
+            xyz1[0] = newX1;
+            xyz1[1] = newY1;
+            m_startCoordinate->setXYZ(xyz1);
+            xyz2[0] = newX2;
+            xyz2[1] = newY2;
+            m_endCoordinate->setXYZ(xyz2);
+        }
+        else {
+            validFlag = false;
         }
     }
     
     return validFlag;
+}
+
+/**
+ * Apply a spatial modification to an annotation in stereotaxic space.
+ *
+ * @param spatialModification
+ *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
+ */
+bool
+AnnotationOneDimensionalShape::applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification)
+{
+    bool validFlag = false;
+    
+    switch (spatialModification.m_sizingHandleType) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            if (spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid) {
+                m_endCoordinate->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
+                validFlag = true;
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            if (spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid) {
+                m_startCoordinate->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
+                validFlag = true;
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+    }
+    
+    if (validFlag) {
+        setModified();
+    }
+    
+    return validFlag;
+}
+
+/**
+ * Apply a spatial modification to an annotation.
+ *
+ * @param spatialModification
+ *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
+ */
+bool
+AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialModification& spatialModification)
+{
+    if ( ! isSizeHandleValid(spatialModification.m_sizingHandleType)) {
+        return false;
+    }
+    
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::PIXELS:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            return applySpatialModificationStereotaxicSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            return applySpatialModificationSurfaceSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            return applySpatialModificationTabOrWindowSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            return applySpatialModificationTabOrWindowSpace(spatialModification);
+            break;
+    }
+    
+    return false;
 }
 
 /**
