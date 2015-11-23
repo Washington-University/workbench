@@ -118,6 +118,12 @@ namespace caret {
                             const float addX,
                             const float addY);
         
+        bool applySpatialModificationSurfaceSpace(const AnnotationSpatialModification& spatialModification);
+        
+        bool applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification);
+        
+        bool applySpatialModificationTabOrWindowSpace(const AnnotationSpatialModification& spatialModification);
+        
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
         CaretPointer<AnnotationCoordinate> m_coordinate;
