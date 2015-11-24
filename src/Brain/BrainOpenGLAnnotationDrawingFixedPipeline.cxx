@@ -40,8 +40,6 @@
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationText.h"
 #include "Brain.h"
-#include "DisplayPropertiesAnnotation.h"
-#include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLShapeRing.h"
@@ -50,6 +48,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
+#include "DisplayPropertiesAnnotation.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "IdentificationWithColor.h"
@@ -315,12 +314,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
             /*
              * From http://lektiondestages.blogspot.com/2013/11/decompose-opengl-projection-matrix.html
              */
-            GLfloat near   =  (1.0f + m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
-            GLfloat far    = -(1.0f - m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
+            float near   =  (1.0f + m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
+            float far    = -(1.0f - m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
             //GLfloat bottom =  (1.0f - m_modelSpaceProjectionMatrix[13]) / m_modelSpaceProjectionMatrix[5];
             //GLfloat top    = -(1.0f + m_modelSpaceProjectionMatrix[13]) / m_modelSpaceProjectionMatrix[5];
-            GLfloat left   = -(1.0f + m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
-            GLfloat right  =  (1.0f - m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
+            float left   = -(1.0f + m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
+            float right  =  (1.0f - m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
 
             /*
              * Depending upon view, near may be positive and far negative
