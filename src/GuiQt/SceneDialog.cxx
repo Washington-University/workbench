@@ -1133,7 +1133,22 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
     cursor.restoreCursor();
     
     const AString sceneErrorMessage = sceneAttributes->getErrorMessage();
-    if (sceneErrorMessage.isEmpty() == false) {
+    if (sceneErrorMessage.isEmpty()) {
+        /*
+         * Add to recent scene files but only if the scene
+         * file is NOT modified.
+         *
+         * It is possible for the user to create a new scene in
+         * a new scene file and never write the scene file.
+         * So, we don't want a non-existent scene file in the
+         * recent scene file's menu.
+         */
+        if ( ! sceneFile->isModified()) {
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            prefs->addToPreviousSceneFiles(sceneFile->getFileName());
+        }
+    }
+    else {
         WuQMessageBox::errorOk(this,
                                sceneErrorMessage);
         return false;
@@ -1141,7 +1156,6 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
     
     return true;
 }
-
 
 /**
  * Receive events from the event manager.

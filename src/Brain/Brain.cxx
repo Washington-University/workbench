@@ -3193,8 +3193,8 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
     }
     
     
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->addToPreviousSceneFiles(sf->getFileName());
+//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+//    prefs->addToPreviousSceneFiles(sf->getFileName());
     
     return sf;
 }
@@ -6295,8 +6295,78 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
     dataFileName = convertFilePathNameToAbsolutePathName(dataFileName);
     caretDataFile->setFileName(dataFileName);
 
+    /*
+     * Write the data file
+     */
     caretDataFile->writeFile(caretDataFile->getFileName());
     caretDataFile->clearModified();
+    
+    /*
+     * File has been successfully written.
+     * Perform any post-write actions.
+     */
+    const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
+    switch (dataFileType) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SCENE:
+        {
+            /*
+             * Add to recent scene files
+             */
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            prefs->addToPreviousSceneFiles(caretDataFile->getFileName());
+        }
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+    }
 }
 
 /**
