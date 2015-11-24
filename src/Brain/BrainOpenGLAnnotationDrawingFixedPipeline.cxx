@@ -314,8 +314,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
             /*
              * From http://lektiondestages.blogspot.com/2013/11/decompose-opengl-projection-matrix.html
              */
-            float near   =  (1.0f + m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
-            float far    = -(1.0f - m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
+            float nearValue   =  (1.0f + m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
+            float farValue    = -(1.0f - m_modelSpaceProjectionMatrix[14]) / m_modelSpaceProjectionMatrix[10];
             //GLfloat bottom =  (1.0f - m_modelSpaceProjectionMatrix[13]) / m_modelSpaceProjectionMatrix[5];
             //GLfloat top    = -(1.0f + m_modelSpaceProjectionMatrix[13]) / m_modelSpaceProjectionMatrix[5];
             float left   = -(1.0f + m_modelSpaceProjectionMatrix[12]) / m_modelSpaceProjectionMatrix[0];
@@ -324,7 +324,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
             /*
              * Depending upon view, near may be positive and far negative
              */
-            const float farNearRange = std::fabs(far - near);
+            const float farNearRange = std::fabs(farValue - nearValue);
             if ((m_centerToEyeDistance > 0.0)
                 && (farNearRange > 0.0)) {
                 /*
