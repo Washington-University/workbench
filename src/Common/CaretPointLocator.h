@@ -33,9 +33,10 @@ namespace caret {
     
     struct LocatorInfo
     {
-        int32_t index, whichSet;
+        int64_t index;
+        int32_t whichSet;
         Vector3D coords;
-        LocatorInfo(const int32_t& indexIn, const int32_t& whichSetIn, const Vector3D& coordsIn) : index(indexIn), whichSet(whichSetIn), coords(coordsIn) { }
+        LocatorInfo(const int64_t& indexIn, const int32_t& whichSetIn, const Vector3D& coordsIn) : index(indexIn), whichSet(whichSetIn), coords(coordsIn) { }
         bool operator==(const LocatorInfo& rhs) const { return (index == rhs.index) && (whichSet == rhs.whichSet); }//ignore coords
         bool operator<(const LocatorInfo& rhs) const
         {
@@ -53,8 +54,9 @@ namespace caret {
         struct Point
         {
             Vector3D m_point;
-            int32_t m_index, m_mySet;
-            Point(const float point[3], const int32_t index, const int32_t mySet)
+            int64_t m_index;
+            int32_t m_mySet;
+            Point(const float point[3], const int64_t index, const int32_t mySet)
             {
                 m_point = point;
                 m_index = index;
@@ -65,7 +67,7 @@ namespace caret {
         Oct<LeafVector<Point> >* m_tree;
         int32_t m_nextSetIndex;
         std::vector<int32_t> m_unusedIndexes;
-        void addPoint(Oct<LeafVector<Point> >* thisOct, const float point[3], const int32_t index, const int32_t pointSet);
+        void addPoint(Oct<LeafVector<Point> >* thisOct, const float point[3], const int64_t index, const int32_t pointSet);
         int32_t newIndex();
         static const int NUM_POINTS_SPLIT = 100;
         void removeSetHelper(Oct<LeafVector<Point> >* thisOct, const int32_t thisSet);
@@ -74,15 +76,16 @@ namespace caret {
         ///make an empty point locator with given bounding box (bounding box can expand later, but may be less efficient
         CaretPointLocator(const float minBounds[3], const float maxBounds[3]);
         ///make a point locator with the bounding box of this point set, and use this point set as set #0
-        CaretPointLocator(const float* coordsIn, const int32_t numCoords);
+        CaretPointLocator(const float* coordsIn, const int64_t numCoords);
         ///add a point set, SAVE THE RETURN VALUE because it is how you identify which point set found points belong to
-        int32_t addPointSet(const float* coordsIn, const int32_t numCoords);
+        int32_t addPointSet(const float* coordsIn, const int64_t numCoords);
         ///remove a point set by its set number
         void removePointSet(const int32_t whichSet);
         ///returns the index of the closest point, and optionally which point set and the coords
-        int32_t closestPoint(const float target[3], LocatorInfo* infoOut = NULL) const;
-        int32_t closestPointLimited(const float target[3], const float& maxDist, LocatorInfo* infoOut = NULL) const;
+        int64_t closestPoint(const float target[3], LocatorInfo* infoOut = NULL) const;
+        int64_t closestPointLimited(const float target[3], const float& maxDist, LocatorInfo* infoOut = NULL) const;
         std::set<LocatorInfo> pointsInRange(const float target[3], const float& maxDist) const;
+        bool anyInRange(const float target[3], const float& maxDist) const;
     };
 }
 

@@ -25,7 +25,7 @@
 using namespace caret;
 using namespace std;
 
-void CaretPointLocator::addPoint(Oct<LeafVector<Point> >* thisOct, const float point[3], const int32_t index, const int32_t pointSet)
+void CaretPointLocator::addPoint(Oct<LeafVector<Point> >* thisOct, const float point[3], const int64_t index, const int32_t pointSet)
 {
     if (thisOct->m_leaf)
     {
@@ -70,7 +70,7 @@ void CaretPointLocator::addPoint(Oct<LeafVector<Point> >* thisOct, const float p
     }
 }
 
-int32_t CaretPointLocator::addPointSet(const float* coordsIn, const int32_t numCoords)
+int32_t CaretPointLocator::addPointSet(const float* coordsIn, const int64_t numCoords)
 {
     CaretMutexLocker locked(&m_modifyMutex);
     int32_t setNum = newIndex();
@@ -79,9 +79,9 @@ int32_t CaretPointLocator::addPointSet(const float* coordsIn, const int32_t numC
     {
         Vector3D minBox, maxBox;
         minBox = maxBox = coordsIn;//hack - first triple
-        for (int32_t i = 1; i < numCoords; ++i)
+        for (int64_t i = 1; i < numCoords; ++i)
         {
-            int32_t i3 = i * 3;
+            int64_t i3 = i * 3;
             if (coordsIn[i3] < minBox[0]) minBox[0] = coordsIn[i3];
             if (coordsIn[i3 + 1] < minBox[1]) minBox[1] = coordsIn[i3 + 1];
             if (coordsIn[i3 + 2] < minBox[2]) minBox[2] = coordsIn[i3 + 2];
@@ -91,16 +91,16 @@ int32_t CaretPointLocator::addPointSet(const float* coordsIn, const int32_t numC
         }
         m_tree = new Oct<LeafVector<Point> >(minBox, maxBox);
     }
-    for (int32_t i = 0; i < numCoords; ++i)
+    for (int64_t i = 0; i < numCoords; ++i)
     {
-        int32_t i3 = i * 3;
+        int64_t i3 = i * 3;
         m_tree = m_tree->makeContains(coordsIn + i3);//make new root if needed
         addPoint(m_tree, coordsIn + i3, i, setNum);//and add the point
     }
     return setNum;
 }
 
-CaretPointLocator::CaretPointLocator(const float* coordsIn, const int32_t numCoords)
+CaretPointLocator::CaretPointLocator(const float* coordsIn, const int64_t numCoords)
 {
     m_nextSetIndex = 1;//next set will be set #1
     m_tree = NULL;
@@ -108,9 +108,9 @@ CaretPointLocator::CaretPointLocator(const float* coordsIn, const int32_t numCoo
     {
         Vector3D minBox, maxBox;
         minBox = maxBox = coordsIn;//hack - first triple
-        for (int32_t i = 1; i < numCoords; ++i)
+        for (int64_t i = 1; i < numCoords; ++i)
         {
-            int32_t i3 = i * 3;
+            int64_t i3 = i * 3;
             if (coordsIn[i3] < minBox[0]) minBox[0] = coordsIn[i3];
             if (coordsIn[i3 + 1] < minBox[1]) minBox[1] = coordsIn[i3 + 1];
             if (coordsIn[i3 + 2] < minBox[2]) minBox[2] = coordsIn[i3 + 2];
@@ -119,9 +119,9 @@ CaretPointLocator::CaretPointLocator(const float* coordsIn, const int32_t numCoo
             if (coordsIn[i3 + 2] > maxBox[2]) maxBox[2] = coordsIn[i3 + 2];
         }
         m_tree = new Oct<LeafVector<Point> >(minBox, maxBox);
-        for (int32_t i = 0; i < numCoords; ++i)
+        for (int64_t i = 0; i < numCoords; ++i)
         {
-            int32_t i3 = i * 3;
+            int64_t i3 = i * 3;
             addPoint(m_tree, coordsIn + i3, i, 0);//this is set #0
         }
     }
@@ -133,14 +133,15 @@ CaretPointLocator::CaretPointLocator(const float minBounds[3], const float maxBo
     m_tree = new Oct<LeafVector<Point> >(minBounds, maxBounds);
 }
 
-int32_t CaretPointLocator::closestPoint(const float target[3], LocatorInfo* infoOut) const
+int64_t CaretPointLocator::closestPoint(const float target[3], LocatorInfo* infoOut) const
 {
     if (m_tree == NULL) return -1;
     CaretSimpleMinHeap<Oct<LeafVector<Point> >*, float> myHeap;
     bool first = true;
     float bestDist2 = -1.0f, bestDist = -1.0f, tempf, curDist = m_tree->distToPoint(target);
     Vector3D bestPoint;
-    int32_t bestSet = -1, bestIndex = -1;
+    int64_t bestIndex = -1;
+    int32_t bestSet = -1;
     myHeap.push(m_tree, curDist);
     while (curDist < bestDist || first)
     {
@@ -193,7 +194,7 @@ int32_t CaretPointLocator::closestPoint(const float target[3], LocatorInfo* info
     return bestIndex;
 }
 
-int32_t CaretPointLocator::closestPointLimited(const float target[3], const float& maxDist, LocatorInfo* infoOut) const
+int64_t CaretPointLocator::closestPointLimited(const float target[3], const float& maxDist, LocatorInfo* infoOut) const
 {
     if (m_tree == NULL) return -1;
     float curDist2 = m_tree->distSquaredToPoint(target), maxDist2 = maxDist * maxDist;
@@ -210,7 +211,8 @@ int32_t CaretPointLocator::closestPointLimited(const float target[3], const floa
     bool first = true;
     float bestDist2 = -1.0f, tempf;
     Vector3D bestPoint;
-    int32_t bestSet = -1, bestIndex = -1;
+    int64_t bestIndex = -1;
+    int32_t bestSet = -1;
     myHeap.push(m_tree, curDist2);
     while (curDist2 < bestDist2 || first)
     {
@@ -283,7 +285,7 @@ set<LocatorInfo> CaretPointLocator::pointsInRange(const float target[3], const f
                 float tempf = MathFunctions::distanceSquared3D(myVecRef[i].m_point, target);
                 if (tempf <= maxDist2)
                 {
-                    ret.insert(LocatorInfo(myVecRef[i].m_index, myVecRef[i].m_mySet, myVecRef[i].m_point));//let std::set sort out uniqueness
+                    ret.insert(LocatorInfo(myVecRef[i].m_index, myVecRef[i].m_mySet, myVecRef[i].m_point));
                 }
             }
         } else {
@@ -304,6 +306,48 @@ set<LocatorInfo> CaretPointLocator::pointsInRange(const float target[3], const f
         }
     }
     return ret;
+}
+
+bool CaretPointLocator::anyInRange(const float target[3], const float& maxDist) const
+{
+    if (m_tree == NULL) return false;
+    float curDist2 = m_tree->distSquaredToPoint(target), maxDist2 = maxDist * maxDist, tempf;
+    if (curDist2 > maxDist2) return false;
+    CaretSimpleMinHeap<Oct<LeafVector<Point> >*, float> myHeap;//closer octs are more likely to contain a close enough point
+    myHeap.push(m_tree, curDist2);
+    while (!myHeap.isEmpty())
+    {
+        Oct<LeafVector<Point> >* thisOct = myHeap.pop(&curDist2);
+        if (thisOct->m_leaf)
+        {
+            vector<Point>& myVecRef = *(thisOct->m_data.m_vector);
+            int curSize = (int)myVecRef.size();
+            for (int i = 0; i < curSize; ++i)
+            {
+                tempf = MathFunctions::distanceSquared3D(myVecRef[i].m_point, target);
+                if (tempf < maxDist2)
+                {
+                    return true;
+                }
+            }
+        } else {
+            for (int ii = 0; ii < 2; ++ii)
+            {
+                for (int ij = 0; ij < 2; ++ij)
+                {
+                    for (int ik = 0; ik < 2; ++ik)
+                    {
+                        tempf = thisOct->m_children[ii][ij][ik]->distSquaredToPoint(target);
+                        if (tempf <= maxDist2)
+                        {
+                            myHeap.push(thisOct->m_children[ii][ij][ik], tempf);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }
 
 int32_t CaretPointLocator::newIndex()

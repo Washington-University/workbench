@@ -104,6 +104,7 @@ AlgorithmSurfaceWedgeVolume.h
 AlgorithmVolumeAffineResample.h
 AlgorithmVolumeAllLabelsToROIs.h
 AlgorithmVolumeDilate.h
+AlgorithmVolumeErode.h
 AlgorithmVolumeEstimateFWHM.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeFillHoles.h
@@ -211,6 +212,7 @@ AlgorithmSurfaceWedgeVolume.cxx
 AlgorithmVolumeAffineResample.cxx
 AlgorithmVolumeAllLabelsToROIs.cxx
 AlgorithmVolumeDilate.cxx
+AlgorithmVolumeErode.cxx
 AlgorithmVolumeEstimateFWHM.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeFillHoles.cxx

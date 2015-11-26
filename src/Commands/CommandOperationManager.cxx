@@ -108,6 +108,7 @@
 #include "AlgorithmVolumeAffineResample.h"
 #include "AlgorithmVolumeAllLabelsToROIs.h"
 #include "AlgorithmVolumeDilate.h"
+#include "AlgorithmVolumeErode.h"
 #include "AlgorithmVolumeEstimateFWHM.h"
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeFillHoles.h"
@@ -352,6 +353,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAllLabelsToROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeDilate()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeErode()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFillHoles()));

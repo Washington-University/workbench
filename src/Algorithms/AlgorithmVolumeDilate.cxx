@@ -124,17 +124,17 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
     {
         throw AlgorithmException("invalid subvolume specified");
     }
-    if (distance <= 0.0f)
+    if (distance < 0.0f)
     {
-        throw AlgorithmException("distance too small");
+        throw AlgorithmException("distance cannot be negative");
     }
     if (badRoi != NULL && !volIn->matchesVolumeSpace(badRoi))
     {
-        throw AlgorithmException("volume bad voxel roi space does not match input volume");
+        throw AlgorithmException("bad voxel roi volume space does not match input volume");
     }
     if (dataRoi != NULL && !volIn->matchesVolumeSpace(dataRoi))
     {
-        throw AlgorithmException("volume data roi space does not match input volume");
+        throw AlgorithmException("data roi volume space does not match input volume");
     }
     if (volIn->getType() == SubvolumeAttributes::LABEL && myMethod == WEIGHTED)
     {

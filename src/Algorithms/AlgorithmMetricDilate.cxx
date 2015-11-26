@@ -165,7 +165,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
     }
     if (distance < 0.0f)
     {
-        throw AlgorithmException("invalid distance specified");
+        throw AlgorithmException("distance cannot be negative");
     }
     myMetricOut->setStructure(mySurf->getStructure());
     vector<pair<int, StencilElem> > myStencils;//because we need to iterate over it in parallel
