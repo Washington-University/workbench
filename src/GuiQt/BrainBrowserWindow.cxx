@@ -40,6 +40,7 @@
 #include "BorderFile.h"
 #include "BorderFileSplitDialog.h"
 #include "Brain.h"
+#include "BrainBrowserWindowEditMenuItemEnum.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
 #include "BrainOpenGLViewportContent.h"
@@ -67,6 +68,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
@@ -884,7 +886,11 @@ BrainBrowserWindow::createMenus()
      */
     QMenuBar* menubar = menuBar();
     menubar->addMenu(createMenuFile());
+    
+    menubar->addMenu(createMenuEdit());
+    
     menubar->addMenu(createMenuView());
+    
     QMenu* dataMenu = createMenuData();
     if (dataMenu != NULL) {
         menubar->addMenu(dataMenu);
@@ -1070,6 +1076,152 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(m_exitProgramAction);
     
     return menu;
+}
+
+static QAction*
+addItemToEditMenu(QMenu* editMenu,
+                  const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem,
+                  const QKeySequence& shortCut)
+{
+    QAction* action = editMenu->addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(editMenuItem));
+    action->setData(static_cast<int32_t>(BrainBrowserWindowEditMenuItemEnum::toIntegerCode(editMenuItem)));
+    if ( ! shortCut.isEmpty()) {
+        action->setShortcut(shortCut);
+    }
+    return action;
+}
+
+/**
+ * @return A new instance of the edit menu.
+ */
+QMenu*
+BrainBrowserWindow::createMenuEdit()
+{
+    m_editMenu = new QMenu("Edit");
+
+    addItemToEditMenu(m_editMenu,
+                      BrainBrowserWindowEditMenuItemEnum::UNDO,
+                      (Qt::CTRL + Qt::Key_Z));
+    addItemToEditMenu(m_editMenu,
+                      BrainBrowserWindowEditMenuItemEnum::REDO,
+                      (Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
+    
+    QAction* cutAction = addItemToEditMenu(m_editMenu,
+                                           BrainBrowserWindowEditMenuItemEnum::CUT,
+                                           (Qt::CTRL + Qt::Key_X));
+    addItemToEditMenu(m_editMenu,
+                      BrainBrowserWindowEditMenuItemEnum::COPY,
+                      (Qt::CTRL + Qt::Key_C));
+    addItemToEditMenu(m_editMenu,
+                      BrainBrowserWindowEditMenuItemEnum::PASTE,
+                      (Qt::CTRL + Qt::Key_V));
+    addItemToEditMenu(m_editMenu,
+                      BrainBrowserWindowEditMenuItemEnum::DELETE,
+                      QKeySequence());
+    
+    QAction* selectAllAction = addItemToEditMenu(m_editMenu,
+                                                 BrainBrowserWindowEditMenuItemEnum::SELECT_ALL,
+                                                 (Qt::CTRL + Qt::Key_A));
+    
+    /*
+     * Verify that all edit menu items were added to the edit menu.
+     */
+    std::vector<BrainBrowserWindowEditMenuItemEnum::Enum> allItems;
+    BrainBrowserWindowEditMenuItemEnum::getAllEnums(allItems);
+    CaretAssertMessage((m_editMenu->actions().count() == static_cast<int>(allItems.size())),
+                       "Number of Edit Menu items does not match number of enums "
+                       "in BrainBrowserWindowEditMenuItemEnum");
+    
+    
+    m_editMenu->insertSeparator(cutAction);
+    m_editMenu->insertSeparator(selectAllAction);
+    
+    QObject::connect(m_editMenu, SIGNAL(aboutToShow()),
+                     this, SLOT(processEditMenuAboutToShow()));
+    QObject::connect(m_editMenu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(processEditMenuItemTriggered(QAction*)));
+    
+    return m_editMenu;
+}
+
+/**
+ * Gets called when an item is selected from the edit menu.
+ *
+ * @param action
+ *     Action (menu items) that was selected.
+ */
+void
+BrainBrowserWindow::processEditMenuItemTriggered(QAction* action)
+{
+    EventGetOrSetUserInputModeProcessor inputEvent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(inputEvent.getPointer());
+    
+    UserInputModeAbstract* inputProcessor = inputEvent.getUserInputProcessor();
+    if (inputProcessor != NULL) {
+        const int actionDataInt = action->data().toInt();
+        
+        bool validActionDataIntFlag = false;
+        const BrainBrowserWindowEditMenuItemEnum::Enum item = BrainBrowserWindowEditMenuItemEnum::fromIntegerCode(actionDataInt,
+                                                                                                                  &validActionDataIntFlag);
+        if (validActionDataIntFlag) {
+            inputProcessor->processEditMenuItemSelection(item);
+        }
+        else {
+            CaretLogSevere("Invalid conversion of integer code "
+                           + AString::number(actionDataInt)
+                           + " to BrainBrowserWindowEditMenuItemEnum::Enum");
+        }
+    }
+}
+
+/**
+ * Gets called when the edit menu is about to show.
+ */
+void
+BrainBrowserWindow::processEditMenuAboutToShow()
+{
+    EventGetOrSetUserInputModeProcessor inputEvent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(inputEvent.getPointer());
+    
+    /*
+     * Get edit menu items that are enabled by the input processor
+     */
+    std::vector<BrainBrowserWindowEditMenuItemEnum::Enum> editMenuItemsEnabled;
+    UserInputModeAbstract* inputProcessor = inputEvent.getUserInputProcessor();
+    if (inputProcessor != NULL) {
+        inputProcessor->getEnabledEditMenuItems(editMenuItemsEnabled);
+    }
+    
+    /*
+     * Enable/Disable each of the edit menu's actions
+     */
+    QList<QAction*> menuActions = m_editMenu->actions();
+    QListIterator<QAction*> menuActionsIterator(menuActions);
+    while (menuActionsIterator.hasNext()) {
+        QAction* action = menuActionsIterator.next();
+        if ( ! action->isSeparator()) {
+            const int actionDataInt = action->data().toInt();
+            
+            bool validActionDataIntFlag = false;
+            const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem = BrainBrowserWindowEditMenuItemEnum::fromIntegerCode(actionDataInt,
+                                                                                                                              &validActionDataIntFlag);
+            action->setEnabled(false);
+            if ( ! editMenuItemsEnabled.empty()) {
+                if (validActionDataIntFlag) {
+                    if (std::find(editMenuItemsEnabled.begin(),
+                                  editMenuItemsEnabled.end(),
+                                  editMenuItem) != editMenuItemsEnabled.end()) {
+                        action->setEnabled(true);
+                    }
+                }
+                else {
+                    CaretLogSevere("Invalid conversion of integer code "
+                                   + AString::number(actionDataInt)
+                                   + " to BrainBrowserWindowEditMenuItemEnum::Enum");
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -1402,36 +1554,6 @@ BrainBrowserWindow::processRecentSceneFileMenuSelection(QAction* itemAction)
                   LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE,
                   "",
                   "");
-//        loadSceneFromCommandLine(sceneFileName,
-//                                 "");
-//        SpecFile specFile;
-//        try {
-//            specFile.readFile(sceneFileName);
-//            
-//            if (m_recentSpecFileMenu->title() == m_recentSpecFileMenuOpenConfirmTitle) {
-//                if (GuiManager::get()->processShowOpenSpecFileDialog(&specFile,
-//                                                                     this)) {
-//                    m_toolbar->addDefaultTabsAfterLoadingSpecFile();
-//                }
-//            }
-//            else if (m_recentSpecFileMenu->title() == m_recentSpecFileMenuLoadNoConfirmTitle) {
-//                std::vector<AString> fileNamesToLoad;
-//                fileNamesToLoad.push_back(specFileName);
-//                loadFilesFromCommandLine(fileNamesToLoad,
-//                                         BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
-//                m_toolbar->addDefaultTabsAfterLoadingSpecFile();
-//            }
-//            else {
-//                CaretAssert(0);
-//            }
-//        }
-//        catch (const DataFileException& e) {
-//            //errorMessages += e.whatString();
-//            QMessageBox::critical(this,
-//                                  "ERROR",
-//                                  e.whatString());
-//            return;
-//        }
         
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -1616,7 +1738,6 @@ BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
         processViewTileTabsConfigurationDialog();
     }
     else {
-        //CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
         m_selectedTileTabsConfigurationUniqueIdentifier = action->data().toString();
         
         if (isTileTabsSelected()) {
@@ -1969,13 +2090,6 @@ BrainBrowserWindow::processShowIdentifyBrainordinateDialog()
      */
     GuiManager::get()->showHideIdentfyBrainordinateDialog(true,
                                                           this);
-//    QAction* identifyAction = GuiManager::get()->getIdentifyBrainordinateDialogDisplayAction();
-//    if (identifyAction->isChecked()) {
-//        identifyAction->blockSignals(true);
-//        identifyAction->setChecked(false);
-//        identifyAction->blockSignals(false);
-//    }
-//    identifyAction->trigger();
 }
 
 /**
@@ -2304,8 +2418,6 @@ BrainBrowserWindow::loadFilesFromNetwork(QWidget* parentForDialogs,
                                          const AString& username,
                                          const AString& password)
 {    
-//    this->loadFilesFromCommandLine(filenames,
-//                                            BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
     const bool successFlag = loadFiles(parentForDialogs,
                                        filenames,
                                        dataFileTypes,
@@ -2596,10 +2708,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
             {
                 if (GuiManager::get()->processShowOpenSpecFileDialog(&specFile,
                                                                      this)) {
-//                    Brain* brain = GuiManager::get()->getBrain();
-//                if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
-//                                                                    &specFile,
-//                                                                    this)) {
                     m_toolbar->addDefaultTabsAfterLoadingSpecFile();
                     createDefaultTabsFlag = true;
                 }
@@ -2758,9 +2866,6 @@ void
 BrainBrowserWindow::processManageSaveLoadedFiles()
 {
     GuiManager::get()->processShowSaveManageFilesDialog(this);
-//    Brain* brain = GuiManager::get()->getBrain();
-//    SpecFileManagementDialog::runManageFilesDialog(brain,
-//                                                   this);
 }
 
 /**
@@ -3430,8 +3535,6 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                                   tileTabs->encodeInXML());
         }
     }
-    //sceneClass->addString("m_selectedTileTabsConfigurationUniqueIdentifier",
-    //                      m_selectedTileTabsConfigurationUniqueIdentifier);
     
     /*
      * Save toolbar
@@ -3642,7 +3745,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
             m_featuresToolBoxAction->setChecked(! toolBoxVisible);
             m_featuresToolBoxAction->blockSignals(false);
             m_featuresToolBoxAction->trigger();
-            //processShowFeaturesToolBox(toolBoxVisible);
             m_featuresToolBox->restoreFromScene(sceneAttributes,
                                                 sceneClass->getClass("m_featuresToolBox"));
         }

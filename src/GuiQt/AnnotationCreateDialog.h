@@ -105,8 +105,6 @@ namespace caret {
 
         AnnotationCreateDialog& operator=(const AnnotationCreateDialog&);
         
-//        void createDialog(const MouseEvent& mouseEvent);
-        
         QWidget* createFileSelectionWidget();
         
         QWidget* createTextWidget();
@@ -134,8 +132,6 @@ namespace caret {
         QWidget* m_fileSelectionWidget;
         
         AnnotationCoordinateSelectionWidget* m_coordinateSelectionWidget;
-        
-        //QButtonGroup* m_spaceButtonGroup;
         
         QTextEdit* m_textEdit;
         

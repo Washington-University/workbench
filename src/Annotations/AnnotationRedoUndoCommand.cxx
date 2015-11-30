@@ -28,6 +28,7 @@
 #include "AnnotationPointSizeText.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "EventAnnotationDeleteUndeleteFromFile.h"
+#include "EventAnnotationPasteUnpasteFromFile.h"
 #include "EventManager.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -197,6 +198,9 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::LOCATION_AND_SIZE:
             annotation->applyCoordinatesSizeAndRotationFromOther(annotationValue);
+            break;
+        case AnnotationRedoUndoCommandModeEnum::PASTE_ANNOTATION:
+            CaretAssertMessage(0, "This mode is handle in the redo() and undo() functions.");
             break;
         case AnnotationRedoUndoCommandModeEnum::ROTATION_ANGLE:
             {
@@ -400,6 +404,12 @@ AnnotationRedoUndoCommand::redo()
                                                         annMem->m_annotation);
             EventManager::get()->sendEvent(event.getPointer());
         }
+        else if (m_mode == AnnotationRedoUndoCommandModeEnum::PASTE_ANNOTATION) {
+            EventAnnotationPasteUnpasteFromFile pasteEvent(EventAnnotationPasteUnpasteFromFile::MODE_PASTE,
+                                                           annMem->m_annotationFile,
+                                                           annMem->m_annotation);
+            EventManager::get()->sendEvent(pasteEvent.getPointer());
+        }
         else {
             applyRedoOrUndo(annMem->m_annotation,
                             annMem->m_redoAnnotation);
@@ -423,6 +433,12 @@ AnnotationRedoUndoCommand::undo()
             EventAnnotationDeleteUndeleteFromFile event(EventAnnotationDeleteUndeleteFromFile::MODE_UNDELETE,
                                                         annMem->m_annotation);
             EventManager::get()->sendEvent(event.getPointer());
+        }
+        else if (m_mode == AnnotationRedoUndoCommandModeEnum::PASTE_ANNOTATION) {
+            EventAnnotationPasteUnpasteFromFile pasteEvent(EventAnnotationPasteUnpasteFromFile::MODE_UNPASTE,
+                                                           annMem->m_annotationFile,
+                                                           annMem->m_annotation);
+            EventManager::get()->sendEvent(pasteEvent.getPointer());
         }
         else {
             applyRedoOrUndo(annMem->m_annotation,
@@ -884,6 +900,40 @@ AnnotationRedoUndoCommand::setModeDeleteAnnotations(const std::vector<Annotation
         
         m_annotationMementos.push_back(am);
     }
+}
+
+/**
+ * Set the mode to paste annotations and create the undo/redo instances.
+ *
+ * @param annotationFile
+ *     File to which annotation is pasted.
+ * @param annotations
+ *     Annotation that are pasted.
+ */
+void
+AnnotationRedoUndoCommand::setModePasteAnnotation(AnnotationFile* annotationFile,
+                                                  Annotation* annotation)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::PASTE_ANNOTATION;
+    setDescription("Paste Annotations");
+    
+    CaretAssert(annotationFile);
+    CaretAssert(annotation);
+    
+    /*
+     * NOTE: We only need the pointer since the file containing
+     * the annotation will handle delete/undelete of the
+     * annotation.  If we don't use NULL for the redo and
+     * undo annotations, copies of the annotation would be
+     * needed since the AnnotationMemento will delete
+     * the redo and undo annotations when it is deleted.
+     */
+    AnnotationMemento* am = new AnnotationMemento(annotationFile,
+                                                  annotation,
+                                                  NULL,
+                                                  NULL);
+    
+    m_annotationMementos.push_back(am);
 }
 
 /**

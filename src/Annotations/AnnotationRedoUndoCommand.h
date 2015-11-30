@@ -31,6 +31,7 @@
 
 namespace caret {
 
+    class AnnotationFile;
     class Annotation;
     
     class AnnotationRedoUndoCommand : public CaretUndoCommand {
@@ -79,6 +80,9 @@ namespace caret {
         
         void setModeLocationAndSize(const std::vector<Annotation*>& annotationsBeforeMoveAndResize,
                                     const std::vector<Annotation*>& annotationsAfterMoveAndResize);
+        
+        void setModePasteAnnotation(AnnotationFile* annotationFile,
+                                    Annotation* annotation);
         
         void setModeRotationAngle(const float newRotationAngle,
                                   const std::vector<Annotation*>& annotations);
@@ -134,6 +138,17 @@ namespace caret {
             AnnotationMemento(Annotation* annotation,
                               Annotation* redoAnnotation,
                               Annotation* undoAnnotation) {
+                m_annotationFile = NULL;
+                m_annotation     = annotation;
+                m_redoAnnotation = redoAnnotation;
+                m_undoAnnotation = undoAnnotation;
+            }
+            
+            AnnotationMemento(AnnotationFile* annotationFile,
+                              Annotation* annotation,
+                              Annotation* redoAnnotation,
+                              Annotation* undoAnnotation) {
+                m_annotationFile = annotationFile;
                 m_annotation     = annotation;
                 m_redoAnnotation = redoAnnotation;
                 m_undoAnnotation = undoAnnotation;
@@ -151,6 +166,8 @@ namespace caret {
             bool operator=(const AnnotationMemento& am) const {
                 return (m_annotation < am.m_annotation);
             }
+            
+            AnnotationFile* m_annotationFile;
             
             Annotation* m_annotation;
             

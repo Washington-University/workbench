@@ -150,47 +150,6 @@ AnnotationManager::deselectAllAnnotations()
 }
 
 /**
- * Delete the given annotation.  It is NOT put on the annotation undo/redo stack.
- *
- * @param annotation
- *    Annotation that will be deleted.
- */
-void
-AnnotationManager::deleteAnnotation(Annotation* annotation)
-{
-    CaretAssert(annotation);
-    
-    std::vector<AnnotationFile*> annotationFiles;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
-
-    for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
-         fileIter != annotationFiles.end();
-         fileIter++) {
-        AnnotationFile* file = *fileIter;
-        CaretAssert(file);
-        
-        if (file->deleteAnnotation(annotation)) {
-            break;
-        }
-    }
-}
-
-/**
- * Delete all selected annotations.
- */
-void
-AnnotationManager::deleteSelectedAnnotations()
-{
-    std::vector<Annotation*> allSelectedAnnotations = getSelectedAnnotations();
-    
-    for (std::vector<Annotation*>::iterator annIter = allSelectedAnnotations.begin();
-         annIter != allSelectedAnnotations.end();
-         annIter++) {
-        deleteAnnotation(*annIter);
-    }
-}
-
-/**
  * Get the files containing the given annotations.  If a file is not found
  * for an annotation NULL is selected for the file.
  *
@@ -259,38 +218,6 @@ AnnotationManager::selectAnnotation(const SelectionMode selectionMode,
             processSingleModeSelection(selectedAnnotation);
             break;
     }
-    
-//    std::vector<Annotation*> allAnnotations = getAllAnnotations();
-//    
-//    for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
-//         annIter != allAnnotations.end();
-//         annIter++) {
-//        Annotation* annotation = *annIter;
-//        CaretAssert(annotation);
-//        
-//        switch (selectionMode) {
-//            case SELECTION_MODE_EXTENDED:
-//                /*
-//                 * Any number of annotations may be selected.
-//                 * Just toggle the status of the annotation.
-//                 */
-//                if (annotation == selectedAnnotation) {
-//                    annotation->setSelected( ! annotation->isSelected());
-//                }
-//                break;
-//            case SELECTION_MODE_SINGLE:
-//                /*
-//                 * Zero or one annotations may be selected
-//                 */
-//                if (annotation == selectedAnnotation) {
-//                    annotation->setSelected(true);
-//                }
-//                else {
-//                    annotation->setSelected(false);
-//                }
-//                break;
-//        }
-//    }
 }
 
 /**
@@ -401,6 +328,38 @@ AnnotationManager::getSelectedAnnotations() const
     }
     
     return selectedAnnotations;
+}
+
+/**
+ * Get the selected annotations and the files that contain them.
+ *
+ * @param annotationsAndFileOut
+ *    A 'pair' containing a selected annotation and the file that contains the annotation.
+ */
+void
+AnnotationManager::getSelectedAnnotations(std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const
+{
+    annotationsAndFileOut.clear();
+
+    std::vector<AnnotationFile*> annotationFiles;
+    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+    
+    for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
+         fileIter != annotationFiles.end();
+         fileIter++) {
+        AnnotationFile* file = *fileIter;
+        CaretAssert(file);
+        
+        std::vector<Annotation*> annotations = file->getAllAnnotations();
+        for (std::vector<Annotation*>::iterator annIter = annotations.begin();
+             annIter != annotations.end();
+             annIter++) {
+            Annotation* ann = *annIter;
+            if (ann->isSelected()) {
+                annotationsAndFileOut.push_back(std::make_pair(ann, file));
+            }
+        }
+    }
 }
 
 

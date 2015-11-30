@@ -51,6 +51,8 @@ namespace caret {
             MODE_NEW_WITH_CLICK,
             /** Mouse creates an annotation by draggin from one point to another */
             MODE_NEW_WITH_DRAG,
+            /** User selected Paste from Edit Menu, user may need to click mouse to paste the annotation */
+            MODE_PASTE,
             /** Mouse selects annotation */
             MODE_SELECT,
             /** Set coordinate one in annotation*/
@@ -168,6 +170,10 @@ namespace caret {
                                                      const CoordinateInformation* coordInfoOne,
                                                      const CoordinateInformation* coordInfoTwo);
         
+        virtual void processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem);
+        
+        virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -225,7 +231,11 @@ namespace caret {
         
         void selecteAnnotation(Annotation* annotation);
         
+        void deleteSelectedAnnotations();
+        
         void resetAnnotationUnderMouse();
+        
+        bool isEditMenuValid() const;
         
         static bool setOneDimAnnotationCoordinatesForSpace(AnnotationOneDimensionalShape* annotation,
                                                      const AnnotationCoordinateSpaceEnum::Enum space,
@@ -236,6 +246,8 @@ namespace caret {
                                                            const AnnotationCoordinateSpaceEnum::Enum space,
                                                            const CoordinateInformation* coordInfoOne,
                                                            const CoordinateInformation* coordInfoTwo);
+        
+        void pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent);
         
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
@@ -264,6 +276,7 @@ namespace caret {
         /*
          * Some private methods are accessed by this friend class
          */
+        friend class UserInputModeAnnotationsContextMenu;
         friend class UserInputModeAnnotationsWidget;
     };
     

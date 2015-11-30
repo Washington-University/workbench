@@ -36,6 +36,7 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "EventAnnotationDeleteUndeleteFromFile.h"
+#include "EventAnnotationPasteUnpasteFromFile.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
@@ -261,13 +262,8 @@ AnnotationFile::clearPrivate()
 {
     m_metadata->clear();
 
-//    for (AnnotationIterator iter = m_annotations.begin();
-//         iter != m_annotations.end();
-//         iter++) {
-//        delete *iter;
-//    }
     m_annotations.clear();
-    m_deletedAnnotations.clear();
+    m_removedAnnotations.clear();
 }
 
 
@@ -284,7 +280,6 @@ AnnotationFile::setAllAnnotationsSelected(const bool selectedStatus)
          iter != m_annotations.end();
          iter++) {
         QSharedPointer<Annotation>& a = *iter;
-//        Annotation* a = *iter;
         a->setSelected(selectedStatus);
     }
 }
@@ -331,6 +326,7 @@ AnnotationFile::initializeAnnotationFile()
     m_sceneAssistant = new SceneClassAssistant();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE);
 }
 
 /**
@@ -363,34 +359,34 @@ AnnotationFile::receiveEvent(Event* event)
         
         switch (annEvent->getMode()) {
             case EventAnnotationDeleteUndeleteFromFile::MODE_DELETE:
-                if (deleteAnnotationPrivate(annotation,
-                                            true)) {
+                if (removeAnnotation(annotation)) {
                     annEvent->setSuccessful(true);
                 }
                 break; 
             case EventAnnotationDeleteUndeleteFromFile::MODE_UNDELETE:
-                for (std::set<QSharedPointer<Annotation> >::iterator iter = m_deletedAnnotations.begin();
-                     iter != m_deletedAnnotations.end();
-                     iter++) {
-                    QSharedPointer<Annotation> annotationPointer = *iter;
-                    if (annotationPointer == annotation) {
-                        /*
-                         * Add to valid annotations
-                         */
-                        m_annotations.push_back(annotationPointer);
-                        
-                        /*
-                         * Remove from deleted annotations
-                         */
-                        m_deletedAnnotations.erase(iter);
-                        
-                        annEvent->setSuccessful(true);
-
-                        setModified();
-                        
-                        break;
-                    }
+                if (restoreAnnotation(annotation, false)) {
+                    annEvent->setSuccessful(true);
                 }
+                break;
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE) {
+        EventAnnotationPasteUnpasteFromFile* annEvent = dynamic_cast<EventAnnotationPasteUnpasteFromFile*>(event);
+        CaretAssert(annEvent);
+        if (annEvent->getAnnotationFile() == this) {
+            Annotation* annotation = annEvent->getAnnotation();
+            
+            switch (annEvent->getMode()) {
+                case EventAnnotationPasteUnpasteFromFile::MODE_PASTE:
+                    if (restoreAnnotation(annotation, true)) {
+                        annEvent->setSuccessful(true);
+                    }
+                    break;
+                case EventAnnotationPasteUnpasteFromFile::MODE_UNPASTE:
+                    if (removeAnnotation(annotation)) {
+                        annEvent->setSuccessful(true);
+                    }
+            }
         }
     }
 }
@@ -464,7 +460,6 @@ AnnotationFile::addToDataFileContentInformation(DataFileContentInformation& data
 void
 AnnotationFile::addAnnotation(Annotation* annotation)
 {
-//    m_annotations.push_back(annotation);
     if (annotation->getType() == AnnotationTypeEnum::TEXT) {
         AnnotationPointSizeText* pointSizeAnnotation = dynamic_cast<AnnotationPointSizeText*>(annotation);
         if (pointSizeAnnotation != NULL) {
@@ -501,71 +496,83 @@ AnnotationFile::containsAnnotation(const Annotation* annotation) const
     return false;
 }
 
-
 /**
- * Remove and destroy the given annotation from this file.
- * If the annotation is not found in this file,
- * no action is taken (returns false).  Since the annotation will
- * be destroyed NEVER use the pointer passed to this
- * method after this method completes (if true returned).
+ * Restore an annotation that had been removed and possibly
+ * add if it was not restored.
  *
  * @param annotation
- *     Annotation for deletion.
+ *    Annotation that is restored.
+ * @param addIfNotRestoredFlag
+ *    if true and the annotation is not restored, add
+ *    the annotation.
  * @return
- *     True if the annotation was in this file and was
- *     was deleted, else false.
+ *    True if the annotation was restored or added,
+ *    otherwise false.
  */
 bool
-AnnotationFile::deleteAnnotation(const Annotation* annotation)
+AnnotationFile::restoreAnnotation(Annotation* annotation,
+                                  const bool addIfNotRestoredFlag)
 {
-    return deleteAnnotationPrivate(annotation,
-                                   false);
+    for (std::set<QSharedPointer<Annotation> >::iterator iter = m_removedAnnotations.begin();
+         iter != m_removedAnnotations.end();
+         iter++) {
+        QSharedPointer<Annotation> annotationPointer = *iter;
+        if (annotationPointer == annotation) {
+            m_annotations.push_back(annotationPointer);
+            m_removedAnnotations.erase(iter);
+            setModified();
+            
+            /*
+             * Successfully restored
+             */
+            return true;
+        }
+    }
+    
+    if (addIfNotRestoredFlag) {
+        addAnnotation(annotation);
+        return true;
+    }
+    
+    return false;
 }
 
 /**
- * Delete the given anntotation.
+ * Remove the annotation.  NOTE: The annotation is NOT deleted
+ * but instead it is saved so that it can be 'undeleted' 
+ * or 're-pasted'.
  *
  * @param annotation
- *     Annotation for deletion.
- * @param saveAnnotationForUndeleteFlag
- *     If true save the annotation so that it can be undeleted later on.
- *     If false, the annotation will be destroyed.
+ *     Annotation that is removed.
  * @return
- *     True if the annotation was in this file and was
- *     was deleted, else false.
+ *     True if the annotation was removed, otherwise false.
  */
 bool
-AnnotationFile::deleteAnnotationPrivate(const Annotation* annotation,
-                                        const bool saveAnnotationForUndeleteFlag)
+AnnotationFile::removeAnnotation(Annotation* annotation)
 {
     for (AnnotationIterator iter = m_annotations.begin();
          iter != m_annotations.end();
          iter++) {
-        //        Annotation* annotationPointer = *iter;
         QSharedPointer<Annotation>& annotationPointer = *iter;
         if (annotationPointer == annotation) {
-            /*
-             * Save annotation to that it can be undeleted at a later time
-             */
-            if (saveAnnotationForUndeleteFlag) {
-                m_deletedAnnotations.insert(annotationPointer);
-            }
+            m_removedAnnotations.insert(annotationPointer);
             
             m_annotations.erase(iter);
-            //            delete annotationPointer;
             
             setModified();
             
+            /*
+             * Successfully removed
+             */
             return true;
         }
     }
     
     /*
-     * Annotation was not in this file.
+     * Annotation not in this file
      */
     return false;
 }
-
 
 /**
  * @return All annotations in this file.
@@ -585,7 +592,6 @@ AnnotationFile::getAllAnnotations() const
     }
 
     return allAnnotations;
-//    return m_annotations;
 }
 
 /**
@@ -645,7 +651,6 @@ AnnotationFile::isModified() const
          iter != m_annotations.end();
          iter++) {
         const QSharedPointer<Annotation>& annotationPointer = *iter;
-//        const Annotation* annotationPointer = *iter;
         if (annotationPointer->isModified()) {
             return true;
         }
@@ -668,7 +673,6 @@ AnnotationFile::clearModified()
          iter != m_annotations.end();
          iter++) {
         const QSharedPointer<Annotation>& annotationPointer = *iter;
-        //Annotation* annotationPointer = *iter;
         annotationPointer->clearModified();
     }
 }

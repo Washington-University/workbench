@@ -90,8 +90,6 @@ namespace caret {
         
         bool containsAnnotation(const Annotation* annotation) const;
         
-        bool deleteAnnotation(const Annotation* annotation);
-        
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         void setAllAnnotationsSelected(const bool selectedStatus);
@@ -126,8 +124,10 @@ namespace caret {
         
         void initializeAnnotationFile();
         
-        bool deleteAnnotationPrivate(const Annotation* annotation,
-                                     const bool saveAnnotationForUndeleteFlag);
+        bool restoreAnnotation(Annotation* annotation,
+                               const bool addIfNotRestoredFlag);
+        
+        bool removeAnnotation(Annotation* annotation);
         
         const AnnotationFileSubType m_fileSubType;
         
@@ -137,7 +137,11 @@ namespace caret {
         
         std::vector<QSharedPointer<Annotation> > m_annotations;
         
-        std::set<QSharedPointer<Annotation> > m_deletedAnnotations;
+        /**
+         * Contains annotation that have been delete/removed so that
+         * they can be 'undeleted' or 're-pasted'.
+         */
+        std::set<QSharedPointer<Annotation> > m_removedAnnotations;
         
         typedef std::vector<QSharedPointer<Annotation> >::iterator AnnotationIterator;
         

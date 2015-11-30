@@ -25,7 +25,6 @@
 #include <QMenu>
 
 #include "MouseEvent.h"
-#include "UserInputModeAnnotations.h"
 
 namespace caret {
 
@@ -35,13 +34,15 @@ namespace caret {
     class BrainOpenGLWidget;
     class BrowserTabContent;
     class SelectionManager;
+    class UserInputModeAnnotations;
 
     class UserInputModeAnnotationsContextMenu : public QMenu {
         
         Q_OBJECT
 
     public:
-        UserInputModeAnnotationsContextMenu(const MouseEvent& mouseEvent,
+        UserInputModeAnnotationsContextMenu(UserInputModeAnnotations* userInputModeAnnotations,
+                                            const MouseEvent& mouseEvent,
                                             SelectionManager* selectionManager,
                                             BrowserTabContent* browserTabContent,
                                             BrainOpenGLWidget* parentOpenGLWidget);
@@ -65,6 +66,8 @@ namespace caret {
         UserInputModeAnnotationsContextMenu(const UserInputModeAnnotationsContextMenu&);
 
         UserInputModeAnnotationsContextMenu& operator=(const UserInputModeAnnotationsContextMenu&);
+        
+        UserInputModeAnnotations* m_userInputModeAnnotations;
         
         /*
          * NOT a reference.  Need to COPY as its source may be deleted.

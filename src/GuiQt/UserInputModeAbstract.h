@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "BrainBrowserWindowEditMenuItemEnum.h"
 #include "CaretObject.h"
 #include "CursorEnum.h"
 
@@ -213,6 +213,10 @@ namespace caret {
         virtual void showContextMenu(const MouseEvent& /*mouseEvent*/,
                                      const QPoint& /* menuPosition */,
                                      BrainOpenGLWidget* /* openGLWidget */) { }
+        
+        virtual void processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem);
+        
+        virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut);
         
     protected:
         void setWidgetForToolBar(QWidget* widgetForToolBar);

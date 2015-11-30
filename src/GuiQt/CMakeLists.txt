@@ -210,6 +210,7 @@ BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
 BrainBrowserWindowComboBox.h
+BrainBrowserWindowEditMenuItemEnum.h
 BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBarChartAttributes.h
@@ -396,6 +397,7 @@ BorderPropertiesEditorDialog.cxx
 BorderSelectionViewController.cxx
 BrainBrowserWindow.cxx
 BrainBrowserWindowComboBox.cxx
+BrainBrowserWindowEditMenuItemEnum.cxx
 BrainBrowserWindowOrientedToolBox.cxx
 BrainBrowserWindowToolBar.cxx
 BrainBrowserWindowToolBarChartAttributes.cxx

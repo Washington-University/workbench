@@ -57,6 +57,8 @@ public:
         LINE_WIDTH_FOREGROUND,
         /** Location and size of annotations (coords, size, space, window, tab) */
         LOCATION_AND_SIZE,
+        /** Paste Annotation */
+        PASTE_ANNOTATION,
         /** Rotation Angle */
         ROTATION_ANGLE,
         /** Text Alignment Horizontal */

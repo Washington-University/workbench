@@ -77,6 +77,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE",
                                      "Event to delete or undelete an annotation from an annotation file"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE,
+                                     "EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE",
+                                     "Event to paste or unpaste an annotation from an annotation file"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TOOLBAR_UPDATE,
                                      "EVENT_ANNOTATION_TOOLBAR_UPDATE",
                                      "Event to update annotation toolbar"));

@@ -211,6 +211,10 @@ namespace caret {
         void processProjectFoci();
         void processSplitBorderFiles();
         void processTabAspectRatioLockedToggled(bool checked);
+        
+        void processEditMenuItemTriggered(QAction* action);
+        void processEditMenuAboutToShow();
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -248,6 +252,7 @@ namespace caret {
         void createMenus();
         
         QMenu* createMenuDevelop();
+        QMenu* createMenuEdit();
         QMenu* createMenuFile();
         QMenu* createMenuView();
         QMenu* createMenuViewMoveOverlayToolBox();
@@ -369,6 +374,8 @@ namespace caret {
         AString m_recentSpecFileMenuLoadNoConfirmTitle;
         
         QMenu* m_recentSceneFileMenu;
+        
+        QMenu* m_editMenu;
         
         BrainBrowserWindowOrientedToolBox* m_overlayHorizontalToolBox;
         BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;

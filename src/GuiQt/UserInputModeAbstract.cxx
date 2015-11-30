@@ -107,3 +107,31 @@ UserInputModeAbstract::setWidgetForToolBar(QWidget* widgetForToolBar)
     m_widgetForToolBar = widgetForToolBar;
 }
 
+/**
+ * Process a selection that was made from the browser window's edit menu.
+ * Intended for override by sub-classes.
+ *
+ * @param editMenuItem
+ *     Item that was selected from the edit menu.
+ */
+void
+UserInputModeAbstract::processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum /*editMenuItem*/)
+{
+    
+}
+
+/**
+ * Get the menu items that should be enabled for the current user input processor.
+ * Intended for override by sub-classes.
+ * Unless this method is overridden, all items on Edit menu are disabled.
+ *
+ * @param enabledEditMenuItemsOut
+ *     Upon exit contains edit menu items that should be enabled.
+ */
+void
+UserInputModeAbstract::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut)
+{
+    enabledEditMenuItemsOut.clear();
+}
+
+

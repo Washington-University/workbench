@@ -46,6 +46,7 @@
 #include "MathFunctions.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
+#include "UserInputModeAnnotations.h"
 #include "WuQDataEntryDialog.h"
 
 using namespace caret;
@@ -70,23 +71,34 @@ using namespace caret;
  * @param parentOpenGLWidget
  *    Parent OpenGL Widget on which the menu is displayed.
  */
-UserInputModeAnnotationsContextMenu::UserInputModeAnnotationsContextMenu(const MouseEvent& mouseEvent,
+UserInputModeAnnotationsContextMenu::UserInputModeAnnotationsContextMenu(UserInputModeAnnotations* userInputModeAnnotations,
+                                                                         const MouseEvent& mouseEvent,
                                                                          SelectionManager* selectionManager,
                                                                          BrowserTabContent* browserTabContent,
                                                                          BrainOpenGLWidget* parentOpenGLWidget)
 : QMenu(parentOpenGLWidget),
+m_userInputModeAnnotations(userInputModeAnnotations),
 m_mouseEvent(mouseEvent),
 m_selectionManager(selectionManager),
 m_browserTabContent(browserTabContent),
 m_parentOpenGLWidget(parentOpenGLWidget),
 m_newAnnotationCreatedByContextMenu(NULL)
 {
+    CaretAssert(m_userInputModeAnnotations);
+    
+    std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    annotationManager->getSelectedAnnotations(selectedAnnotations);
+    
+    m_annotationFile = NULL;
+    m_annotation     = NULL;
 
-    const SelectionItemAnnotation* idAnnotation = selectionManager->getAnnotationIdentification();
-    m_annotationFile = idAnnotation->getAnnotationFile();
-    m_annotation = idAnnotation->getAnnotation();
-
+    if (selectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        m_annotationFile = selectedAnnotations[0].second;
+        m_annotation     = selectedAnnotations[0].first;
+    }
+    
     m_textAnnotation = NULL;
     if (m_annotation != NULL) {
         m_textAnnotation = dynamic_cast<AnnotationText*>(m_annotation);
@@ -132,6 +144,9 @@ UserInputModeAnnotationsContextMenu::getNewAnnotationCreatedByContextMenu()
 void
 UserInputModeAnnotationsContextMenu::copyAnnotationToAnnotationClipboard()
 {
+    CaretAssert(m_annotationFile);
+    CaretAssert(m_annotation);
+    
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     annotationManager->copyAnnotationToClipboard(m_annotationFile,
                                                  m_annotation);
@@ -143,8 +158,12 @@ UserInputModeAnnotationsContextMenu::copyAnnotationToAnnotationClipboard()
 void
 UserInputModeAnnotationsContextMenu::deleteAnnotation()
 {
+    CaretAssert(m_annotationFile);
     CaretAssert(m_annotation);
-    
+ 
+    /*
+     * Delete the annotation that is under the mouse
+     */
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     std::vector<Annotation*> selectedAnnotations;
     selectedAnnotations.push_back(m_annotation);
@@ -159,185 +178,12 @@ UserInputModeAnnotationsContextMenu::deleteAnnotation()
 }
 
 /**
- * Paste a one-dimensional shape (line) keeping its start to end
- * coordinate orientation.  The start coordinate is pasted at
- * the coordinate in 'coordInfo'.
- *
- * @param oneDimShape
- *     One dimensional shape that will be pasted.
- * @param coordInfo
- *     Coordinate information that will be used for the shape's 'start' coordinate.
- * @return
- *     True if the shape's coordinate was updated for pasting, else false.
- */
-bool
-pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
-                         UserInputModeAnnotations::CoordinateInformation& coordInfo)
-{
-
-    bool tabFlag = false;
-    bool windowFlag = false;
-    
-    switch (oneDimShape->getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::PIXELS:
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            tabFlag = true;
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            windowFlag = true;
-            break;
-    }
-
-    bool validCoordsFlag = false;
-    
-    if (tabFlag
-        || windowFlag) {
-        float startXYZ[3];
-        float endXYZ[3];
-        oneDimShape->getStartCoordinate()->getXYZ(startXYZ);
-        oneDimShape->getEndCoordinate()->getXYZ(endXYZ);
-        const float diffXYZ[3] = {
-            endXYZ[0] - startXYZ[0],
-            endXYZ[1] - startXYZ[1],
-            endXYZ[2] - startXYZ[2]
-        };
-        
-        if (tabFlag
-            && (coordInfo.m_tabIndex >= 0)) {
-            startXYZ[0] = coordInfo.m_tabXYZ[0];
-            startXYZ[1] = coordInfo.m_tabXYZ[1];
-            startXYZ[2] = coordInfo.m_tabXYZ[2];
-            oneDimShape->setTabIndex(coordInfo.m_tabIndex);
-            validCoordsFlag = true;
-        }
-        else if (windowFlag
-                 && (coordInfo.m_windowIndex >= 0)) {
-            startXYZ[0] = coordInfo.m_windowXYZ[0];
-            startXYZ[1] = coordInfo.m_windowXYZ[1];
-            startXYZ[2] = coordInfo.m_windowXYZ[2];
-            oneDimShape->setWindowIndex(coordInfo.m_windowIndex);
-            validCoordsFlag = true;
-        }
-        
-        if (validCoordsFlag) {
-            endXYZ[0] = startXYZ[0] + diffXYZ[0];
-            endXYZ[1] = startXYZ[1] + diffXYZ[1];
-            endXYZ[2] = startXYZ[2] + diffXYZ[2];
-            
-            /*
-             * Tab/Window coordinates are percentage ranging [0.0, 100.0]
-             * Need to "clip" lines if they exceed the viewport's edges
-             */
-            const float minCoord = 1.0;
-            const float maxCoord = 99.0;
-            
-            if (endXYZ[0] < minCoord) {
-                if (diffXYZ[0] != 0.0) {
-                    const float xDist = minCoord - startXYZ[0];
-                    const float scaledDistance = std::fabs(xDist / diffXYZ[0]);
-                    endXYZ[0] = minCoord;
-                    endXYZ[1] = startXYZ[1] + (scaledDistance * diffXYZ[1]);
-                }
-            }
-            else if (endXYZ[0] >= maxCoord) {
-                const float xDist = maxCoord - startXYZ[0];
-                const float scaledDistance = std::fabs(xDist / diffXYZ[0]);
-                endXYZ[0] = maxCoord;
-                endXYZ[1] = startXYZ[1] + (scaledDistance * diffXYZ[1]);
-            }
-            
-            if (endXYZ[1] < minCoord) {
-                const float yDist = minCoord - startXYZ[1];
-                const float scaledDistance = std::fabs(yDist / diffXYZ[1]);
-                endXYZ[1] = minCoord;
-                endXYZ[0] = startXYZ[0] + (scaledDistance * diffXYZ[0]);
-            }
-            else if (endXYZ[1] > maxCoord) {
-                const float yDist = maxCoord - startXYZ[1];
-                const float scaledDistance = std::fabs(yDist / diffXYZ[1]);
-                endXYZ[1] = maxCoord;
-                endXYZ[0] = startXYZ[0] + (scaledDistance * diffXYZ[0]);
-            }
-            
-            oneDimShape->getStartCoordinate()->setXYZ(startXYZ);
-            oneDimShape->getEndCoordinate()->setXYZ(endXYZ);
-        }
-        
-    }
-    
-    return validCoordsFlag;
-}
-
-/**
  * Paste the annotation from the annotation clipboard.
  */
 void
 UserInputModeAnnotationsContextMenu::pasteAnnotationFromAnnotationClipboard()
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    if (annotationManager->isAnnotationOnClipboardValid()) {
-        AnnotationFile* annotationFile = annotationManager->getAnnotationFileOnClipboard();
-        Annotation* annotation = annotationManager->getAnnotationOnClipboard()->clone();
-        
-        BrainOpenGLViewportContent* viewportContent = m_mouseEvent.getViewportContent();
-        UserInputModeAnnotations::CoordinateInformation coordInfo;
-        UserInputModeAnnotations::getValidCoordinateSpacesFromXY(m_parentOpenGLWidget,
-                                                                 viewportContent,
-                                                                 m_mouseEvent.getX(),
-                                                                 m_mouseEvent.getY(),
-                                                                 coordInfo);
-        
-        bool validCoordsFlag = false;
-        
-        AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
-        if (oneDimShape != NULL) {
-            /*
-             * Pasting line while preserving its orientation only
-             * works for tab and window spaces.
-             */
-            validCoordsFlag = pasteOneDimensionalShape(oneDimShape,
-                                                       coordInfo);
-        }
-        
-        if (! validCoordsFlag) {
-            validCoordsFlag = UserInputModeAnnotations::setAnnotationCoordinatesForSpace(annotation,
-                                                                                         annotation->getCoordinateSpace(),
-                                                                                         &coordInfo,
-                                                                                         NULL);
-        }
-        
-        if (validCoordsFlag) {
-            annotationFile->addAnnotation(annotation);
-            m_newAnnotationCreatedByContextMenu = annotation;
-            
-            annotationManager->selectAnnotation(AnnotationManager::SELECTION_MODE_SINGLE,
-                                                false,
-                                                annotation);
-        }
-        else {
-            /*
-             * Pasting annotation in its coordinate failed (user may have tried to paste
-             * an annotation in surface space where there is no surface).
-             */
-            delete annotation;
-
-            CaretPointer<AnnotationCreateDialog> annotationDialog(AnnotationCreateDialog::newPasteAnnotation(m_mouseEvent,
-                                                                                                             annotationFile,
-                                                                                                             annotationManager->getAnnotationOnClipboard(),
-                                                                                                             m_parentOpenGLWidget));
-            if (annotationDialog->exec() == AnnotationCreateDialog::Accepted) {
-                m_newAnnotationCreatedByContextMenu = annotationDialog->getAnnotationThatWasCreated();
-            }
-        }
-
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    }
+    m_userInputModeAnnotations->pasteAnnotationFromAnnotationClipboard(m_mouseEvent);
 }
 
 /**
@@ -346,6 +192,8 @@ UserInputModeAnnotationsContextMenu::pasteAnnotationFromAnnotationClipboard()
 void
 UserInputModeAnnotationsContextMenu::setAnnotationText()
 {
+    CaretAssert(m_textAnnotation);
+    
     AnnotationTextEditorDialog ted(m_textAnnotation,
                                    this);
     /*

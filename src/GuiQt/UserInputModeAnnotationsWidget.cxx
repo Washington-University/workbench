@@ -263,6 +263,8 @@ UserInputModeAnnotationsWidget::updateWidget()
             break;
         case UserInputModeAnnotations::MODE_NEW_WITH_DRAG:
             break;
+        case UserInputModeAnnotations::MODE_PASTE:
+            break;
         case UserInputModeAnnotations::MODE_SELECT:
             break;
         case UserInputModeAnnotations::MODE_SET_COORDINATE_ONE:
@@ -275,11 +277,6 @@ UserInputModeAnnotationsWidget::updateWidget()
     
     
     std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
-    
-//    Annotation* annotationBeingEdited = NULL;
-//    if (selectedAnnotations.size() == 1) {
-//        annotationBeingEdited = selectedAnnotations[0];
-//    }
     
     std::vector<AnnotationLine*> lineAnnotations;
     std::vector<AnnotationText*> textAnnotations;
@@ -323,11 +320,6 @@ UserInputModeAnnotationsWidget::updateWidget()
     m_widthHeightWidget->updateContent(twoDimAnnotations);
     m_rotationWidget->updateContent(twoDimAnnotations);
     m_insertDeleteWidget->updateContent();
-    
-//    AnnotationCoordinateSpaceEnum::Enum coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
-//    if (annotationBeingEdited != NULL) {
-//        coordinateSpace = annotationBeingEdited->getCoordinateSpace();
-//    }
     
     Annotation* coordEditAnnotation = NULL;
     AnnotationOneDimensionalShape* coordEditOneDimAnnotation = NULL;

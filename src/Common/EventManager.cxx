@@ -470,6 +470,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_ALERT_USER:
         case EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE:
         case EventTypeEnum::EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE:
+        case EventTypeEnum::EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE:
         case EventTypeEnum::EVENT_BRAIN_RESET:
         case EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_DELETE:

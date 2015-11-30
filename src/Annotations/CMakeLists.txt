@@ -48,6 +48,7 @@ AnnotationTypeEnum.h
 AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
 EventAnnotationDeleteUndeleteFromFile.h
+EventAnnotationPasteUnpasteFromFile.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
@@ -80,6 +81,7 @@ AnnotationTypeEnum.cxx
 AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx
 EventAnnotationDeleteUndeleteFromFile.cxx
+EventAnnotationPasteUnpasteFromFile.cxx
 )
 
 #

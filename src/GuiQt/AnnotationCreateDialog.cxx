@@ -35,12 +35,13 @@
 #include "AnnotationBox.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationCoordinateSelectionWidget.h"
+#include "AnnotationFile.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationManager.h"
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
-#include "AnnotationFile.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
@@ -510,8 +511,6 @@ AnnotationCreateDialog::okButtonClicked()
         annotationFile = m_annotationFileSelectionModel->getSelectedFileOfType<AnnotationFile>();
         if (annotationFile == NULL) {
             errorMessage.appendWithNewLine("An annotation file must be selected.");
-            //WuQMessageBox::errorOk(this, "An annotation file must be selected.");
-            //return;
         }
     }
     else if (m_sceneAnnotationFileRadioButton->isChecked()) {
@@ -595,43 +594,34 @@ AnnotationCreateDialog::okButtonClicked()
         return;
     }
     
-//    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-//        AnnotationPercentSizeText* annText = dynamic_cast<AnnotationPercentSizeText*>(annotation.getPointer());
-//        
-//        if (annText != NULL) {
-//            BrainOpenGLViewportContent* viewportContent = m_mouseEvent.getViewportContent();
-//            CaretAssert(viewportContent);
-//            int viewport[4] = { -1, -1, -1, -1 };
-//            switch (annotation->getCoordinateSpace()) {
-//                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-//                    viewportContent->getModelViewport(viewport);
-//                    break;
-//                case AnnotationCoordinateSpaceEnum::PIXELS:
-//                    break;
-//                case AnnotationCoordinateSpaceEnum::SURFACE:
-//                    viewportContent->getModelViewport(viewport);
-//                    break;
-//                case AnnotationCoordinateSpaceEnum::TAB:
-//                    viewportContent->getModelViewport(viewport);
-//                    break;
-//                case AnnotationCoordinateSpaceEnum::WINDOW:
-//                    viewportContent->getWindowViewport(viewport);
-//                    break;
-//            }
-//            const float viewportHeight = viewport[3];
-//            annText->setFontPercentViewportSize(viewportHeight);
-//        }
-//    }
-    
     /*
      * Need to release annotation from its CaretPointer since the
      * annotation file will take ownership of the annotation.
      */
     Annotation* annotationPointer = annotation.releasePointer();
     
-    annotationFile->addAnnotation(annotationPointer);
-
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    
+    /*
+     * Add annotation to its file
+     */
+    switch (m_mode) {
+        case MODE_ADD_NEW_ANNOTATION:
+        case MODE_NEW_ANNOTATION_TYPE_CLICK:
+        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
+            annotationFile->addAnnotation(annotationPointer);
+            break;
+        case MODE_PASTE_ANNOTATION:
+        {
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModePasteAnnotation(annotationFile,
+                                                annotationPointer);
+            annotationManager->applyCommand(undoCommand);
+        }
+            break;
+    }
+    
+
     annotationManager->selectAnnotation(AnnotationManager::SELECTION_MODE_SINGLE,
                                         false,
                                         annotationPointer);

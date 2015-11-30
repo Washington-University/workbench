@@ -146,9 +146,13 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                          "LOCATION_AND_SIZE",
                                                          "location and size of annotations (coords, size, space, window, tab)"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(PASTE_ANNOTATION,
+                                                         "PASTE_ANNOTATION",
+                                                         "Paste Annotation"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(ROTATION_ANGLE,
-                                                     "ROTATION_ANGLE",
-                                                     "Rotation Angle"));
+                                                         "ROTATION_ANGLE",
+                                                         "Rotation Angle"));
     
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_ALIGNMENT_HORIZONTAL,
                                                      "TEXT_ALIGNMENT_HORIZONTAL",

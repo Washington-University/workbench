@@ -69,10 +69,6 @@ namespace caret {
         
         void deselectAllAnnotations();
         
-        void deleteAnnotation(Annotation* annotation);
-        
-        void deleteSelectedAnnotations();
-        
         void selectAnnotation(const SelectionMode selectionMode,
                               const bool shiftKeyDownFlag,
                               Annotation* selectedAnnotation);
@@ -80,6 +76,8 @@ namespace caret {
         std::vector<Annotation*> getAllAnnotations() const;
         
         std::vector<Annotation*> getSelectedAnnotations() const;
+        
+        void getSelectedAnnotations(std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
         
         std::vector<AnnotationFile*> getFilesContainingAnnotations(const std::vector<Annotation*> annotations) const;
         
