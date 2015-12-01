@@ -47,6 +47,10 @@ public:
         COORDINATE_ONE_AND_TWO,
         /** Coordinate Two */
         COORDINATE_TWO,
+        /** Create an annotation */
+        CREATE_ANNOTATION,
+        /** Cut Annotation */
+        CUT_ANNOTATION,
         /** Delete Annotations */
         DELETE_ANNOTATIONS,
         /** Line Arrow Start */

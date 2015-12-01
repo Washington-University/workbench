@@ -609,7 +609,12 @@ AnnotationCreateDialog::okButtonClicked()
         case MODE_ADD_NEW_ANNOTATION:
         case MODE_NEW_ANNOTATION_TYPE_CLICK:
         case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
-            annotationFile->addAnnotation(annotationPointer);
+        {
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeCreateAnnotation(annotationFile,
+                                                 annotationPointer);
+            annotationManager->applyCommand(undoCommand);
+        }
             break;
         case MODE_PASTE_ANNOTATION:
         {

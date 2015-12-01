@@ -1,5 +1,5 @@
-#ifndef __EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE_H__
-#define __EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE_H__
+#ifndef __EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE_H__
+#define __EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE_H__
 
 /*LICENSE_START*/
 /*
@@ -29,21 +29,31 @@
 namespace caret {
 
     class Annotation;
+    class AnnotationFile;
     
-    class EventAnnotationDeleteUndeleteFromFile : public Event {
+    class EventAnnotationAddToRemoveFromFile : public Event {
         
     public:
         enum Mode {
+            MODE_CREATE,
+            MODE_CUT,
             MODE_DELETE,
-            MODE_UNDELETE
+            MODE_PASTE,
+            MODE_UNCREATE,
+            MODE_UNCUT,
+            MODE_UNDELETE,
+            MODE_UNPASTE
         };
         
-        EventAnnotationDeleteUndeleteFromFile(const Mode mode,
-                                              Annotation* annotation);
+        EventAnnotationAddToRemoveFromFile(const Mode mode,
+                                            AnnotationFile* annotationFile,
+                                            Annotation* annotation);
         
-        virtual ~EventAnnotationDeleteUndeleteFromFile();
+        virtual ~EventAnnotationAddToRemoveFromFile();
         
         Mode getMode() const;
+        
+        AnnotationFile* getAnnotationFile() const;
         
         Annotation* getAnnotation() const;
 
@@ -54,11 +64,13 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        EventAnnotationDeleteUndeleteFromFile(const EventAnnotationDeleteUndeleteFromFile&);
+        EventAnnotationAddToRemoveFromFile(const EventAnnotationAddToRemoveFromFile&);
 
-        EventAnnotationDeleteUndeleteFromFile& operator=(const EventAnnotationDeleteUndeleteFromFile&);
+        EventAnnotationAddToRemoveFromFile& operator=(const EventAnnotationAddToRemoveFromFile&);
         
         const Mode m_mode;
+        
+        AnnotationFile* m_annotationFile;
         
         Annotation* m_annotation;
         
@@ -68,9 +80,9 @@ namespace caret {
 
     };
     
-#ifdef __EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE_DECLARE__
+#ifdef __EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE_H_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE_DECLARE__
+#endif // __EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE_H_DECLARE__
 
 } // namespace
-#endif  //__EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE_H__
+#endif  //__EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE_H__

@@ -126,9 +126,17 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                      "COORDINATE_TWO",
                                                      "Coordinate Two"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(CREATE_ANNOTATION,
+                                                         "CREATE_ANNOTATION",
+                                                         "Create Annotation"));
+    
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(CUT_ANNOTATION,
+                                                         "CUT_ANNOTATION",
+                                                         "Cut Annotations"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(DELETE_ANNOTATIONS,
-                                                     "DELETE_ANNOTATIONS",
-                                                     "Delete Annotations"));
+                                                         "DELETE_ANNOTATIONS",
+                                                         "Delete Annotations"));
     
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(LINE_ARROW_START,
                                                      "LINE_ARROW_START",

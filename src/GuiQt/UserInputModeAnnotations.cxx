@@ -2003,6 +2003,36 @@ UserInputModeAnnotations::isEditMenuValid() const
     return editMenuValid;
 }
 
+/**
+ * Cut the selected annotation.  Only functions if
+ * one and only one annotation is selected.
+ */
+void
+UserInputModeAnnotations::cutAnnotation()
+{
+    std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    annotationManager->getSelectedAnnotations(selectedAnnotations);
+    
+    if (selectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        AnnotationFile* annotationFile = selectedAnnotations[0].second;
+        Annotation* annotation = selectedAnnotations[0].first;
+        
+        annotationManager->copyAnnotationToClipboard(annotationFile,
+                                                     annotation);
+        
+        std::vector<Annotation*> annotationVector;
+        annotationVector.push_back(annotation);
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeCutAnnotations(annotationVector);
+        annotationManager->applyCommand(undoCommand);
+        
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
 
 /**
  * Process a selection that was made from the browser window's edit menu.
@@ -2018,11 +2048,11 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         return;
     }
     
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     
     switch (editMenuItem) {
         case BrainBrowserWindowEditMenuItemEnum::COPY:
         {
+            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
             std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
             annotationManager->getSelectedAnnotations(selectedAnnotations);
             
@@ -2034,18 +2064,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         }
             break;
         case BrainBrowserWindowEditMenuItemEnum::CUT:
-        {
-            std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
-            annotationManager->getSelectedAnnotations(selectedAnnotations);
-            
-            if (selectedAnnotations.size() == 1) {
-                CaretAssertVectorIndex(selectedAnnotations, 0);
-                annotationManager->copyAnnotationToClipboard(selectedAnnotations[0].second,
-                                                             selectedAnnotations[0].first);
-                
-                deleteSelectedAnnotations();
-            }
-        }
+            cutAnnotation();
             break;
         case BrainBrowserWindowEditMenuItemEnum::DELETE:
             deleteSelectedAnnotations();

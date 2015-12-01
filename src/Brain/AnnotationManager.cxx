@@ -580,108 +580,108 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
 
 
 
-/* ============================================================================================================ */
-
-/**
- * \class caret::AnnotationManagerDeleteUndoCommand
- * \brief Undo command for annotations deleted by AnnotationManager.
- * \ingroup Brain
- */
-
-/**
- * Constructor.
- * 
- * @param annotationFile
- *     File that contained deleted annotation.
- * @param annotation
- *     Annotation that was removed from the file.
- */
-AnnotationManagerDeleteUndoCommand::AnnotationManagerDeleteUndoCommand(Brain* brain,
-                                                                       AnnotationFile* annotationFile,
-                                                                       Annotation* annotation)
-{
-    CaretAssert(brain);
-    CaretAssert(annotationFile);
-    CaretAssert(annotation);
- 
-    m_brain          = brain;
-    m_annotationFile = annotationFile;
-    m_annotation     = annotation;
-}
-
-/**
- * Destructor.
- */
-AnnotationManagerDeleteUndoCommand::~AnnotationManagerDeleteUndoCommand()
-{
-    /*
-     * We DO NOT own file
-     * We DO own annotation
-     * If annotation is NULL, it was "undone".
-     * If annotation is NOT NULL, it was not "undone" and must be deleted.
-     */
-    m_annotationFile = NULL;
-    if (m_annotation != NULL) {
-        delete m_annotation;
-        m_annotation = NULL;
-    }
-}
-
-/**
- * Operation that "redoes" the command.
- */
-void
-AnnotationManagerDeleteUndoCommand::redo()
-{
-    
-}
-
-/**
- * Operation that "undoes" the command.
- * This will restore the annotation.
- */
-void
-AnnotationManagerDeleteUndoCommand::undo()
-{
-    std::vector<AnnotationFile*> files;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(files);
-    
-    /*
-     * Cannot add annotation to file if the file is not valid
-     */
-    std::vector<AnnotationFile*>::iterator fileIter = std::find(files.begin(),
-                                                                files.end(),
-                                                                m_annotationFile);
-    if (fileIter != files.end()) {
-        m_annotationFile->addAnnotation(m_annotation);
-        m_annotation = NULL;
-        m_annotationFile = NULL;
-    }
-    else {
-        CaretLogWarning("Attempted to undo the deletion of an annotation "
-                        "whose file is no longer valid.  Calling getUndoStack() "
-                        "should have prevented this from happenning.");
-    }
-}
-
-/**
- * @return The annotation file that contained the annotation.
- */
-AnnotationFile*
-AnnotationManagerDeleteUndoCommand::getAnnotationFile() const
-{
-    return m_annotationFile;
-}
-
-/**
- * @return The annotation for undeleting it.
- * Method is const since this class "owns" and will delete the annotation.
- * Caller will need to clone the returned annotation.
- */
-const Annotation*
-AnnotationManagerDeleteUndoCommand::getAnnotation() const
-{
-    return m_annotation;
-}
+///* ============================================================================================================ */
+//
+///**
+// * \class caret::AnnotationManagerDeleteUndoCommand
+// * \brief Undo command for annotations deleted by AnnotationManager.
+// * \ingroup Brain
+// */
+//
+///**
+// * Constructor.
+// * 
+// * @param annotationFile
+// *     File that contained deleted annotation.
+// * @param annotation
+// *     Annotation that was removed from the file.
+// */
+//AnnotationManagerDeleteUndoCommand::AnnotationManagerDeleteUndoCommand(Brain* brain,
+//                                                                       AnnotationFile* annotationFile,
+//                                                                       Annotation* annotation)
+//{
+//    CaretAssert(brain);
+//    CaretAssert(annotationFile);
+//    CaretAssert(annotation);
+// 
+//    m_brain          = brain;
+//    m_annotationFile = annotationFile;
+//    m_annotation     = annotation;
+//}
+//
+///**
+// * Destructor.
+// */
+//AnnotationManagerDeleteUndoCommand::~AnnotationManagerDeleteUndoCommand()
+//{
+//    /*
+//     * We DO NOT own file
+//     * We DO own annotation
+//     * If annotation is NULL, it was "undone".
+//     * If annotation is NOT NULL, it was not "undone" and must be deleted.
+//     */
+//    m_annotationFile = NULL;
+//    if (m_annotation != NULL) {
+//        delete m_annotation;
+//        m_annotation = NULL;
+//    }
+//}
+//
+///**
+// * Operation that "redoes" the command.
+// */
+//void
+//AnnotationManagerDeleteUndoCommand::redo()
+//{
+//    
+//}
+//
+///**
+// * Operation that "undoes" the command.
+// * This will restore the annotation.
+// */
+//void
+//AnnotationManagerDeleteUndoCommand::undo()
+//{
+//    std::vector<AnnotationFile*> files;
+//    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(files);
+//    
+//    /*
+//     * Cannot add annotation to file if the file is not valid
+//     */
+//    std::vector<AnnotationFile*>::iterator fileIter = std::find(files.begin(),
+//                                                                files.end(),
+//                                                                m_annotationFile);
+//    if (fileIter != files.end()) {
+//        m_annotationFile->addAnnotation(m_annotation);
+//        m_annotation = NULL;
+//        m_annotationFile = NULL;
+//    }
+//    else {
+//        CaretLogWarning("Attempted to undo the deletion of an annotation "
+//                        "whose file is no longer valid.  Calling getUndoStack() "
+//                        "should have prevented this from happenning.");
+//    }
+//}
+//
+///**
+// * @return The annotation file that contained the annotation.
+// */
+//AnnotationFile*
+//AnnotationManagerDeleteUndoCommand::getAnnotationFile() const
+//{
+//    return m_annotationFile;
+//}
+//
+///**
+// * @return The annotation for undeleting it.
+// * Method is const since this class "owns" and will delete the annotation.
+// * Caller will need to clone the returned annotation.
+// */
+//const Annotation*
+//AnnotationManagerDeleteUndoCommand::getAnnotation() const
+//{
+//    return m_annotation;
+//}
 
 

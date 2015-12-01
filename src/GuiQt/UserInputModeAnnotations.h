@@ -231,6 +231,8 @@ namespace caret {
         
         void selecteAnnotation(Annotation* annotation);
         
+        void cutAnnotation();
+        
         void deleteSelectedAnnotations();
         
         void resetAnnotationUnderMouse();

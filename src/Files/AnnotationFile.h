@@ -78,8 +78,8 @@ namespace caret {
         
         virtual const GiftiMetaData* getFileMetaData() const;
 
-        void addAnnotation(Annotation* annotation);
-
+        void addAnnotationDuringFileReading(Annotation* annotation);
+        
         const std::vector<Annotation*> getAllAnnotations() const;
         
         int32_t getNumberOfAnnotations() const;
@@ -122,10 +122,15 @@ namespace caret {
 
         void clearPrivate();
         
+        void createExampleAnnotations();
+        
         void initializeAnnotationFile();
         
-        bool restoreAnnotation(Annotation* annotation,
-                               const bool addIfNotRestoredFlag);
+        void addAnnotationPrivate(Annotation* annotation);
+        
+        bool restoreAnnotation(Annotation* annotation);
+        
+        bool restoreAnnotationAddIfNotFound(Annotation* annotation);
         
         bool removeAnnotation(Annotation* annotation);
         

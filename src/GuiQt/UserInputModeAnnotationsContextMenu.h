@@ -56,6 +56,8 @@ namespace caret {
     private slots:
         void copyAnnotationToAnnotationClipboard();
         
+        void cutAnnnotation();
+        
         void deleteAnnotation();
         
         void pasteAnnotationFromAnnotationClipboard();

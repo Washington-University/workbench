@@ -47,8 +47,7 @@ AnnotationTwoDimensionalShape.h
 AnnotationTypeEnum.h
 AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
-EventAnnotationDeleteUndeleteFromFile.h
-EventAnnotationPasteUnpasteFromFile.h
+EventAnnotationAddToRemoveFromFile.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
@@ -80,8 +79,7 @@ AnnotationTwoDimensionalShape.cxx
 AnnotationTypeEnum.cxx
 AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx
-EventAnnotationDeleteUndeleteFromFile.cxx
-EventAnnotationPasteUnpasteFromFile.cxx
+EventAnnotationAddToRemoveFromFile.cxx
 )
 
 #

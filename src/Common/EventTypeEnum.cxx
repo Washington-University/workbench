@@ -69,17 +69,13 @@ EventTypeEnum::initialize()
                                      "EVENT_ALERT_USER",
                                      "Alert user about something (if gui, a pop is displayed, otherwise logged at severe level"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE,
+                                     "EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE",
+                                     "Event to add or remove an annotation from a file"));
+
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_CREATE_NEW_TYPE,
                                      "EVENT_ANNOTATION_CREATE_NEW_TYPE",
                                      "Event to create a new annotation of a particular type"));
-
-    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE,
-                                     "EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE",
-                                     "Event to delete or undelete an annotation from an annotation file"));
-    
-    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE,
-                                     "EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE",
-                                     "Event to paste or unpaste an annotation from an annotation file"));
     
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TOOLBAR_UPDATE,
                                      "EVENT_ANNOTATION_TOOLBAR_UPDATE",

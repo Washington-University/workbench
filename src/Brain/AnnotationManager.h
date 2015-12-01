@@ -161,31 +161,31 @@ namespace caret {
 
     };
     
-    class AnnotationManagerDeleteUndoCommand : public CaretUndoCommand {
-        
-    public:
-        AnnotationManagerDeleteUndoCommand(Brain* brain,
-                                           AnnotationFile* annotationFile,
-                                           Annotation* annotation);
-        
-        ~AnnotationManagerDeleteUndoCommand();
-        
-        virtual void redo();
-        
-        virtual void undo();
-        
-        AnnotationFile* getAnnotationFile() const;
-        
-        const Annotation* getAnnotation() const;
-        
-    private:
-        Brain* m_brain;
-        
-        AnnotationFile* m_annotationFile;
-        
-        Annotation* m_annotation;
-        
-    };
+//    class AnnotationManagerDeleteUndoCommand : public CaretUndoCommand {
+//        
+//    public:
+//        AnnotationManagerDeleteUndoCommand(Brain* brain,
+//                                           AnnotationFile* annotationFile,
+//                                           Annotation* annotation);
+//        
+//        ~AnnotationManagerDeleteUndoCommand();
+//        
+//        virtual void redo();
+//        
+//        virtual void undo();
+//        
+//        AnnotationFile* getAnnotationFile() const;
+//        
+//        const Annotation* getAnnotation() const;
+//        
+//    private:
+//        Brain* m_brain;
+//        
+//        AnnotationFile* m_annotationFile;
+//        
+//        Annotation* m_annotation;
+//        
+//    };
     
 #ifdef __ANNOTATION_MANAGER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

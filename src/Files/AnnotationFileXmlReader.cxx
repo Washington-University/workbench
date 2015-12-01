@@ -220,37 +220,37 @@ AnnotationFileXmlReader::readVersionOne(AnnotationFile* annotationFile)
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_BOX,
                                          annotation);
-            annotationFile->addAnnotation(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_LINE) {
             CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readOneDimensionalAnnotation(ELEMENT_LINE,
                                          annotation);
-            annotationFile->addAnnotation(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_OVAL) {
             CaretPointer<AnnotationOval> annotation(new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_OVAL,
                                          annotation);
-            annotationFile->addAnnotation(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
                                          annotation);
-            annotationFile->addAnnotation(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_POINT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPointSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_POINT_SIZE_TEXT,
                                          annotation);
-            annotationFile->addAnnotation(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_TEXT_OBSOLETE) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readTwoDimensionalAnnotation(ELEMENT_TEXT_OBSOLETE,
                                          annotation);
-            annotationFile->addAnnotation(annotation.releasePointer());
+            annotationFile->addAnnotationDuringFileReading(annotation.releasePointer());
         }
         else {
             m_streamHelper->throwDataFileException("Unexpected XML element "

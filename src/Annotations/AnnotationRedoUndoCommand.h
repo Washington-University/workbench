@@ -76,6 +76,11 @@ namespace caret {
                                     const float customColor[4],
                                     const std::vector<Annotation*>& annotations);
         
+        void setModeCreateAnnotation(AnnotationFile* annotationFile,
+                                     Annotation* annotation);
+        
+        void setModeCutAnnotations(const std::vector<Annotation*>& annotations);
+        
         void setModeDeleteAnnotations(const std::vector<Annotation*>& annotations);
         
         void setModeLocationAndSize(const std::vector<Annotation*>& annotationsBeforeMoveAndResize,

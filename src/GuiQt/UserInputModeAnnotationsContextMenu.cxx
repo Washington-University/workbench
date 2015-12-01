@@ -110,6 +110,11 @@ m_newAnnotationCreatedByContextMenu(NULL)
     }
     
     if (m_annotation != NULL) {
+        addAction("Cut",
+                  this, SLOT(cutAnnnotation()));
+    }
+    
+    if (m_annotation != NULL) {
         addAction("Delete",
                   this, SLOT(deleteAnnotation()));
     }
@@ -150,6 +155,15 @@ UserInputModeAnnotationsContextMenu::copyAnnotationToAnnotationClipboard()
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     annotationManager->copyAnnotationToClipboard(m_annotationFile,
                                                  m_annotation);
+}
+
+/**
+ * Cut the selected annotation.
+ */
+void
+UserInputModeAnnotationsContextMenu::cutAnnnotation()
+{
+    m_userInputModeAnnotations->cutAnnotation();
 }
 
 /**

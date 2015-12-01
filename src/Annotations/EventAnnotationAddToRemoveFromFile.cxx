@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE_DECLARE__
-#include "EventAnnotationPasteUnpasteFromFile.h"
-#undef __EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE_DECLARE__
+#define __EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE_H_DECLARE__
+#include "EventAnnotationAddToRemoveFromFile.h"
+#undef __EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE_H_DECLARE__
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
@@ -31,7 +31,7 @@ using namespace caret;
 
     
 /**
- * \class caret::EventAnnotationPasteUnpasteFromFile 
+ * \class caret::EventAnnotationAddToRemoveFromFile 
  * \brief Request that an annotation be pasted from or unpasted from an annotation file
  * \ingroup Annotations
  *
@@ -54,10 +54,10 @@ using namespace caret;
  * @param annotation
  *    Annotation that is pasted or unpasted
  */
-EventAnnotationPasteUnpasteFromFile::EventAnnotationPasteUnpasteFromFile(const Mode mode,
+EventAnnotationAddToRemoveFromFile::EventAnnotationAddToRemoveFromFile(const Mode mode,
                                                                          AnnotationFile* annotationFile,
                                                                          Annotation* annotation)
-: Event(EventTypeEnum::EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE),
+: Event(EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE),
 m_mode(mode),
 m_annotationFile(annotationFile),
 m_annotation(annotation),
@@ -69,15 +69,15 @@ m_successFlag(false)
 /**
  * Destructor.
  */
-EventAnnotationPasteUnpasteFromFile::~EventAnnotationPasteUnpasteFromFile()
+EventAnnotationAddToRemoveFromFile::~EventAnnotationAddToRemoveFromFile()
 {
 }
 
 /**
  * @return the mode (paste/unpaste)
  */
-EventAnnotationPasteUnpasteFromFile::Mode
-EventAnnotationPasteUnpasteFromFile::getMode() const
+EventAnnotationAddToRemoveFromFile::Mode
+EventAnnotationAddToRemoveFromFile::getMode() const
 {
     return m_mode;
 }
@@ -86,7 +86,7 @@ EventAnnotationPasteUnpasteFromFile::getMode() const
  * @return Pointer to annotation file of annotation that is pasted or unpasted.
  */
 AnnotationFile*
-EventAnnotationPasteUnpasteFromFile::getAnnotationFile() const
+EventAnnotationAddToRemoveFromFile::getAnnotationFile() const
 {
     return m_annotationFile;
 }
@@ -95,7 +95,7 @@ EventAnnotationPasteUnpasteFromFile::getAnnotationFile() const
  * @return Pointer to annotation that is pasted or unpasted.
  */
 Annotation*
-EventAnnotationPasteUnpasteFromFile::getAnnotation() const
+EventAnnotationAddToRemoveFromFile::getAnnotation() const
 {
     return m_annotation;
 }
@@ -104,7 +104,7 @@ EventAnnotationPasteUnpasteFromFile::getAnnotation() const
  * @return True if paste or unpaste of the annotation was successful.
  */
 bool
-EventAnnotationPasteUnpasteFromFile::isSuccessful() const
+EventAnnotationAddToRemoveFromFile::isSuccessful() const
 {
     return m_successFlag;
 }
@@ -116,7 +116,7 @@ EventAnnotationPasteUnpasteFromFile::isSuccessful() const
  *     New status indicating success.
  */
 void
-EventAnnotationPasteUnpasteFromFile::setSuccessful(const bool status)
+EventAnnotationAddToRemoveFromFile::setSuccessful(const bool status)
 {
     m_successFlag = status;
 }

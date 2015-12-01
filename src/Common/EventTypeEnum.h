@@ -40,10 +40,8 @@ public:
         EVENT_INVALID,
         /** Alert user about something */
         EVENT_ALERT_USER,
-        /** Delete or undelete an annotation from an annotation file */
-        EVENT_ANNOTATION_DELETE_UNDELETE_FROM_FILE,
-        /** Paste or unpaste an annotation from an annotation file */
-        EVENT_ANNOTATION_PASTE_UNPASTE_FROM_FILE,
+        /** Add annotation to or remove from a file */
+        EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE,
         /** Annotation create new of a particular type */
         EVENT_ANNOTATION_CREATE_NEW_TYPE,
         /** Annotation toolbar update */
