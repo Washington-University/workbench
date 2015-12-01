@@ -253,6 +253,9 @@ namespace caret {
         
         void pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent);
         
+        bool pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
+                                      UserInputModeAnnotations::CoordinateInformation& coordInfo);
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;

@@ -2169,9 +2169,9 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
  * @return
  *     True if the shape's coordinate was updated for pasting, else false.
  */
-static bool
-pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
-                         UserInputModeAnnotations::CoordinateInformation& coordInfo)
+bool
+UserInputModeAnnotations::pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
+                                                   UserInputModeAnnotations::CoordinateInformation& coordInfo)
 {
     
     bool tabFlag = false;
