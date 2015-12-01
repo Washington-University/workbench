@@ -127,7 +127,7 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
         case AnnotationAttributesDefaultTypeEnum::USER:
             m_width  = s_userDefaultWidth;
             m_height = s_userDefaultHeight;
-            m_rotationAngle = s_userDefaultRotationAngle;
+            m_rotationAngle = 0.0;
             break;
     }
     
@@ -1311,17 +1311,3 @@ AnnotationTwoDimensionalShape::setUserDefaultWidth(const float width)
 {
     s_userDefaultWidth = width;
 }
-
-/**
- * Set the default value for rotation angle
- *
- * @param rotation
- *     Default for newly created annotations.
- */
-void
-AnnotationTwoDimensionalShape::setUserDefaultRotationAngle(const float rotationAngle)
-{
-    s_userDefaultRotationAngle = rotationAngle;
-}
-
-

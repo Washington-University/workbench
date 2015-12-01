@@ -93,8 +93,6 @@ namespace caret {
         
         static void setUserDefaultWidth(const float width);
         
-        static void setUserDefaultRotationAngle(const float rotationAngle);
-        
        // ADD_NEW_METHODS_HERE
 
         
@@ -134,8 +132,6 @@ namespace caret {
         
         float m_height;
         
-        static float s_userDefaultRotationAngle;
-        
         static float s_userDefaultWidth;
         
         static float s_userDefaultHeight;
@@ -145,8 +141,6 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
-    float AnnotationTwoDimensionalShape::s_userDefaultRotationAngle = 0.0;
-    
     float AnnotationTwoDimensionalShape::s_userDefaultWidth = 25.0;
     
     float AnnotationTwoDimensionalShape::s_userDefaultHeight = 25.0;
