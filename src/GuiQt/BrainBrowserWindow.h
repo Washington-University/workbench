@@ -376,6 +376,8 @@ namespace caret {
         QMenu* m_recentSceneFileMenu;
         
         QMenu* m_editMenu;
+        QAction* m_editMenuRedoAction;
+        QAction* m_editMenuUndoAction;
         
         BrainBrowserWindowOrientedToolBox* m_overlayHorizontalToolBox;
         BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;

@@ -216,7 +216,9 @@ namespace caret {
         
         virtual void processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem);
         
-        virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut);
+        virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
+                                             AString& redoMenuItemSuffixTextOut,
+                                             AString& undoMenuItemSuffixTextOut);
         
     protected:
         void setWidgetForToolBar(QWidget* widgetForToolBar);

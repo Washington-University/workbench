@@ -42,6 +42,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretUndoStack.h"
 #include "CursorEnum.h"
 #include "CaretPreferences.h"
 #include "EventAnnotationCreateNewType.h"
@@ -2073,10 +2074,26 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
             setMode(MODE_PASTE);
             break;
         case BrainBrowserWindowEditMenuItemEnum::REDO:
+        {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
+            undoStack->redo();
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        }
             break;
         case BrainBrowserWindowEditMenuItemEnum::SELECT_ALL:
             break;
         case BrainBrowserWindowEditMenuItemEnum::UNDO:
+        {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
+            undoStack->undo();
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        }
             break;
     }
 }
@@ -2088,11 +2105,21 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
  *
  * @param enabledEditMenuItemsOut
  *     Upon exit contains edit menu items that should be enabled.
+ * @param redoMenuItemSuffixTextOut
+ *     If the redo menu is enabled, the contents of string becomes
+ *     the suffix for the 'Redo' menu item.
+ * @param undoMenuItemSuffixTextOut
+ *     If the undo menu is enabled, the contents of string becomes
+ *     the suffix for the 'Undo' menu item.
  */
 void
-UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut)
+UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
+                                                  AString& redoMenuItemSuffixTextOut,
+                                                  AString& undoMenuItemSuffixTextOut)
 {
     enabledEditMenuItemsOut.clear();
+    redoMenuItemSuffixTextOut = "";
+    undoMenuItemSuffixTextOut = "";
     
     if (isEditMenuValid()) {
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
@@ -2114,6 +2141,19 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
         }
         
         enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
+        
+        
+        CaretUndoStack* undoStack = annotationManager->getCommandRedoUndoStack();
+        
+        if (undoStack->canRedo()) {
+            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::REDO);
+            redoMenuItemSuffixTextOut = undoStack->redoText();
+        }
+        
+        if (undoStack->canUndo()) {
+            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::UNDO);
+            undoMenuItemSuffixTextOut = undoStack->undoText();
+        }
     }
 }
 

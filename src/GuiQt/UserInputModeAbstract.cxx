@@ -127,11 +127,21 @@ UserInputModeAbstract::processEditMenuItemSelection(const BrainBrowserWindowEdit
  *
  * @param enabledEditMenuItemsOut
  *     Upon exit contains edit menu items that should be enabled.
+ * @param redoMenuItemSuffixTextOut
+ *     If the redo menu is enabled, the contents of string becomes
+ *     the suffix for the 'Redo' menu item.
+ * @param undoMenuItemSuffixTextOut
+ *     If the undo menu is enabled, the contents of string becomes
+ *     the suffix for the 'Undo' menu item.
  */
 void
-UserInputModeAbstract::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut)
+UserInputModeAbstract::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
+                                               AString& redoMenuItemSuffixTextOut,
+                                               AString& undoMenuItemSuffixTextOut)
 {
     enabledEditMenuItemsOut.clear();
+    redoMenuItemSuffixTextOut = "";
+    undoMenuItemSuffixTextOut = "";
 }
 
 

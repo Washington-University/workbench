@@ -172,7 +172,9 @@ namespace caret {
         
         virtual void processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem);
         
-        virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut);
+        virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
+                                             AString& redoMenuItemSuffixTextOut,
+                                             AString& undoMenuItemSuffixTextOut);
         
         // ADD_NEW_METHODS_HERE
 

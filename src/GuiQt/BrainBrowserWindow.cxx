@@ -1099,12 +1099,12 @@ BrainBrowserWindow::createMenuEdit()
 {
     m_editMenu = new QMenu("Edit");
 
-    addItemToEditMenu(m_editMenu,
-                      BrainBrowserWindowEditMenuItemEnum::UNDO,
-                      (Qt::CTRL + Qt::Key_Z));
-    addItemToEditMenu(m_editMenu,
-                      BrainBrowserWindowEditMenuItemEnum::REDO,
-                      (Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
+    m_editMenuUndoAction = addItemToEditMenu(m_editMenu,
+                                             BrainBrowserWindowEditMenuItemEnum::UNDO,
+                                             (Qt::CTRL + Qt::Key_Z));
+    m_editMenuRedoAction = addItemToEditMenu(m_editMenu,
+                                             BrainBrowserWindowEditMenuItemEnum::REDO,
+                                             (Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
     
     QAction* cutAction = addItemToEditMenu(m_editMenu,
                                            BrainBrowserWindowEditMenuItemEnum::CUT,
@@ -1188,8 +1188,12 @@ BrainBrowserWindow::processEditMenuAboutToShow()
      */
     std::vector<BrainBrowserWindowEditMenuItemEnum::Enum> editMenuItemsEnabled;
     UserInputModeAbstract* inputProcessor = inputEvent.getUserInputProcessor();
+    AString redoMenuItemSuffix;
+    AString undoMenuItemSuffix;
     if (inputProcessor != NULL) {
-        inputProcessor->getEnabledEditMenuItems(editMenuItemsEnabled);
+        inputProcessor->getEnabledEditMenuItems(editMenuItemsEnabled,
+                                                redoMenuItemSuffix,
+                                                undoMenuItemSuffix);
     }
     
     /*
@@ -1222,6 +1226,34 @@ BrainBrowserWindow::processEditMenuAboutToShow()
             }
         }
     }
+    
+    /*
+     * Redo menu may have a suffix
+     */
+    AString redoMenuItemText("Redo");
+    if (std::find(editMenuItemsEnabled.begin(),
+                  editMenuItemsEnabled.end(),
+                  BrainBrowserWindowEditMenuItemEnum::REDO) != editMenuItemsEnabled.end()) {
+        if ( ! redoMenuItemSuffix.isEmpty()) {
+            redoMenuItemText.append(" "
+                                    + redoMenuItemSuffix);
+        }
+    }
+    m_editMenuRedoAction->setText(redoMenuItemText);
+    
+    /*
+     * Undo menu may have a suffix
+     */
+    AString undoMenuItemText("Undo");
+    if (std::find(editMenuItemsEnabled.begin(),
+                  editMenuItemsEnabled.end(),
+                  BrainBrowserWindowEditMenuItemEnum::UNDO) != editMenuItemsEnabled.end()) {
+        if ( ! undoMenuItemSuffix.isEmpty()) {
+            undoMenuItemText.append(" "
+                                    + undoMenuItemSuffix);
+        }
+    }
+    m_editMenuUndoAction->setText(undoMenuItemText);
 }
 
 /**
