@@ -1097,7 +1097,14 @@ addItemToEditMenu(QMenu* editMenu,
 QMenu*
 BrainBrowserWindow::createMenuEdit()
 {
-    m_editMenu = new QMenu("Edit");
+    /*
+     * Why is there a space after 'Edit'.
+     * If there is not a space, the Mac will see 'Edit' and add
+     * two additional menu items "Start Dictation" and 
+     * "Emoji and Symbols".  Use of these menu items 
+     * will sometimes cause a crash in the FTGL font code.
+     */
+    m_editMenu = new QMenu("Edit ");
 
     m_editMenuUndoAction = addItemToEditMenu(m_editMenu,
                                              BrainBrowserWindowEditMenuItemEnum::UNDO,
@@ -1119,22 +1126,19 @@ BrainBrowserWindow::createMenuEdit()
                       BrainBrowserWindowEditMenuItemEnum::DELETE,
                       QKeySequence());
     
-    QAction* selectAllAction = addItemToEditMenu(m_editMenu,
-                                                 BrainBrowserWindowEditMenuItemEnum::SELECT_ALL,
-                                                 (Qt::CTRL + Qt::Key_A));
     
-    /*
-     * Verify that all edit menu items were added to the edit menu.
-     */
-    std::vector<BrainBrowserWindowEditMenuItemEnum::Enum> allItems;
-    BrainBrowserWindowEditMenuItemEnum::getAllEnums(allItems);
-    CaretAssertMessage((m_editMenu->actions().count() == static_cast<int>(allItems.size())),
-                       "Number of Edit Menu items does not match number of enums "
-                       "in BrainBrowserWindowEditMenuItemEnum");
-    
+    QAction* selectAllAction = NULL;
+    const bool addSelectAllFlag = false;
+    if (addSelectAllFlag) {
+        selectAllAction = addItemToEditMenu(m_editMenu,
+                                            BrainBrowserWindowEditMenuItemEnum::SELECT_ALL,
+                                            (Qt::CTRL + Qt::Key_A));
+    }
     
     m_editMenu->insertSeparator(cutAction);
-    m_editMenu->insertSeparator(selectAllAction);
+    if (selectAllAction != NULL) {
+        m_editMenu->insertSeparator(selectAllAction);
+    }
     
     QObject::connect(m_editMenu, SIGNAL(aboutToShow()),
                      this, SLOT(processEditMenuAboutToShow()));
