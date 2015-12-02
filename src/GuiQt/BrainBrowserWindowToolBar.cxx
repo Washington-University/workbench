@@ -1339,7 +1339,6 @@ BrainBrowserWindowToolBar::updateToolBar()
         {
             showChartTypeWidget = true;
             showClippingOptionsWidget = false;
-            showModeWidget = false;
             
             ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
             if (modelChart != NULL) {
