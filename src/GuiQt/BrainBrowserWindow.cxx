@@ -1122,9 +1122,10 @@ BrainBrowserWindow::createMenuEdit()
     addItemToEditMenu(m_editMenu,
                       BrainBrowserWindowEditMenuItemEnum::PASTE,
                       (Qt::CTRL + Qt::Key_V));
+    QKeySequence noKeySequence;
     addItemToEditMenu(m_editMenu,
                       BrainBrowserWindowEditMenuItemEnum::DELETE,
-                      QKeySequence());
+                      noKeySequence);
     
     
     QAction* selectAllAction = NULL;
