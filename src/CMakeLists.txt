@@ -3,6 +3,8 @@
 #
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
+MESSAGE("\nCMake Version: ${CMAKE_VERSION}\n")
+
 #
 #
 #
