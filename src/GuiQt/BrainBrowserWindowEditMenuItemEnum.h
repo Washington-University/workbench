@@ -35,19 +35,19 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Copy */
         COPY,
-        /** */
+        /** Cut */
         CUT,
-        /** */
-        DELETE,
-        /** */
+        /** Delete (note: 'DELETE' is reserved word on Windows) */
+        DELETER,
+        /** Paste */
         PASTE,
-        /** */
+        /** Redo */
         REDO,
-        /** */
+        /** Select All */
         SELECT_ALL,
-        /** */
+        /** Undo */
         UNDO
     };
 

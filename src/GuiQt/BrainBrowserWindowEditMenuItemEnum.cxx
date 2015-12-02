@@ -31,9 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::BrainBrowserWindowEditMenuItemEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \brief Enumerated type for items on the Edit Menu
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -116,8 +114,8 @@ BrainBrowserWindowEditMenuItemEnum::initialize()
                                     "CUT", 
                                     "Cut"));
     
-    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(DELETE, 
-                                    "DELETE", 
+    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(DELETER,
+                                    "DELETER", 
                                     "Delete"));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(PASTE, 

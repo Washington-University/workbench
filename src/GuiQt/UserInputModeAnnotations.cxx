@@ -2067,7 +2067,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         case BrainBrowserWindowEditMenuItemEnum::CUT:
             cutAnnotation();
             break;
-        case BrainBrowserWindowEditMenuItemEnum::DELETE:
+        case BrainBrowserWindowEditMenuItemEnum::DELETER:
             deleteSelectedAnnotations();
             break;
         case BrainBrowserWindowEditMenuItemEnum::PASTE:
@@ -2137,7 +2137,7 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
         }
         
         if (anySelectedFlag) {
-            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::DELETE);
+            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::DELETER);
         }
         
         enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);

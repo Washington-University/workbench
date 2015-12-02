@@ -1124,7 +1124,7 @@ BrainBrowserWindow::createMenuEdit()
                       (Qt::CTRL + Qt::Key_V));
     QKeySequence noKeySequence;
     addItemToEditMenu(m_editMenu,
-                      BrainBrowserWindowEditMenuItemEnum::DELETE,
+                      BrainBrowserWindowEditMenuItemEnum::DELETER,
                       noKeySequence);
     
     
