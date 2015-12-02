@@ -1461,10 +1461,11 @@ UserInputModeAnnotations::setOneDimAnnotationCoordinatesForSpace(AnnotationOneDi
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (coordInfoOne->m_surfaceNodeValid) {
+                const float surfaceOffsetLength = startCoordinate->getSurfaceOffsetLength();
                 startCoordinate->setSurfaceSpace(coordInfoOne->m_surfaceStructure,
                                                  coordInfoOne->m_surfaceNumberOfNodes,
                                                  coordInfoOne->m_surfaceNodeIndex,
-                                                 coordInfoOne->m_surfaceNodeOffset);
+                                                 surfaceOffsetLength); //coordInfoOne->m_surfaceNodeOffset);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
                 
                 validCoordinateFlag = true;
@@ -1472,10 +1473,11 @@ UserInputModeAnnotations::setOneDimAnnotationCoordinatesForSpace(AnnotationOneDi
                 if (coordInfoTwo != NULL) {
                     if (coordInfoTwo->m_surfaceNodeValid) {
                         if (endCoordinate != NULL) {
+                            const float surfaceOffsetLength = endCoordinate->getSurfaceOffsetLength();
                             endCoordinate->setSurfaceSpace(coordInfoTwo->m_surfaceStructure,
                                                            coordInfoTwo->m_surfaceNumberOfNodes,
                                                            coordInfoTwo->m_surfaceNodeIndex,
-                                                           coordInfoTwo->m_surfaceNodeOffset);
+                                                           surfaceOffsetLength); //coordInfoTwo->m_surfaceNodeOffset);
                         }
                     }
                 }
@@ -1609,7 +1611,7 @@ UserInputModeAnnotations::setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDi
                 coordinate->setSurfaceSpace(coordInfoOne->m_surfaceStructure,
                                             coordInfoOne->m_surfaceNumberOfNodes,
                                             coordInfoOne->m_surfaceNodeIndex,
-                                            coordInfoOne->m_surfaceNodeOffset);
+                                            coordinate->getSurfaceOffsetLength()); //  coordInfoOne->m_surfaceNodeOffset);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
                 
                 validCoordinateFlag = true;
