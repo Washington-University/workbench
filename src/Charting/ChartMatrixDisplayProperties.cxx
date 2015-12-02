@@ -153,7 +153,19 @@ ChartMatrixDisplayProperties::toString() const
 float
 ChartMatrixDisplayProperties::getCellWidth() const
 {
-    return m_cellWidth;
+    float cellWidth = m_cellWidth;
+    
+    switch (m_scaleMode) {
+        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO:
+            break;
+        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL:
+            if (s_manualScaleModeWindowHeightScaling > 0.0) {
+                cellWidth *= s_manualScaleModeWindowWidthScaling;
+            }
+            break;
+    }
+    
+    return cellWidth;
 }
 
 /**
@@ -173,7 +185,19 @@ ChartMatrixDisplayProperties::setCellWidth(const float cellWidth)
 float
 ChartMatrixDisplayProperties::getCellHeight() const
 {
-    return m_cellHeight;
+    float cellHeight = m_cellHeight;
+    
+    switch (m_scaleMode) {
+        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO:
+            break;
+        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL:
+            if (s_manualScaleModeWindowHeightScaling > 0.0) {
+                cellHeight *= s_manualScaleModeWindowHeightScaling;
+            }
+            break;
+    }
+    
+    return cellHeight;
 }
 
 /**
@@ -216,6 +240,20 @@ ChartMatrixDisplayProperties::getViewPanning(float viewPanningOut[2]) const
 {
     viewPanningOut[0] = m_viewPanning[0];
     viewPanningOut[1] = m_viewPanning[1];
+    
+    switch (m_scaleMode) {
+        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO:
+            break;
+        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL:
+            if (s_manualScaleModeWindowWidthScaling > 0.0) {
+                viewPanningOut[0] *= s_manualScaleModeWindowWidthScaling;
+            }
+            if (s_manualScaleModeWindowHeightScaling > 0.0) {
+                viewPanningOut[1] *= s_manualScaleModeWindowHeightScaling;
+            }
+            break;
+    }
+    
 }
 
 /**
@@ -376,6 +414,30 @@ void
 ChartMatrixDisplayProperties::setGridLinesDisplayed(const bool displayGridLines)
 {
     m_displayGridLines = displayGridLines;
+}
+
+/**
+ * Set scaling of the manual width and heights for matrix cells.
+ * When image capture is performed and the user is capturing the 
+ * image in a size different than the actual window size, the matrix
+ * cell width and heights need to be scaled so that they are the same
+ * percentage width and height of the window.
+ *
+ * If the scale mode is manual, these scaling values are used by
+ * the getCellWidth() and getCellHeight() to adjust the pixel width
+ * and height for matrix cell drawing.
+ *
+ * NOTE: THIS METHOD SHOULD BE CALLED JUST BEFORE IMAGE CAPTURE
+ * WHEN SCALING OF MATRIX CELL WIDTH AND HEIGHT IS NEEDED.  
+ * IMMEDIATELY AFTER IMAGE CAPTURE, THIS METHOD SHOULD BE CALLED
+ * WITH A VALUE OF ONE FOR BOTH THE WINDOW WIDTH AND HEIGHT SCALING.
+ */
+void
+ChartMatrixDisplayProperties::setManualScaleModeWindowWidthHeightScaling(const float windowWidthScaling,
+                                                                         const float windowHeightScaling)
+{
+    s_manualScaleModeWindowWidthScaling  = windowWidthScaling;
+    s_manualScaleModeWindowHeightScaling = windowHeightScaling;
 }
 
 

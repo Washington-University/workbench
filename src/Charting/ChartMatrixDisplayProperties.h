@@ -88,9 +88,11 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
-          
-          
-          
+        
+        static void setManualScaleModeWindowWidthHeightScaling(const float windowWidthScaling,
+                                                               const float windowHeightScaling);
+        
+        
           
           
 // If there will be sub-classes of this class that need to save
@@ -132,12 +134,17 @@ namespace caret {
         /** The color bar displayed in the graphics window */
         AnnotationColorBar* m_colorBar;
         
+        static float s_manualScaleModeWindowWidthScaling;
+        
+        static float s_manualScaleModeWindowHeightScaling;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __CHART_MATRIX_DISPLAY_PROPERTIES_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    float ChartMatrixDisplayProperties::s_manualScaleModeWindowWidthScaling  = 1.0;
+    float ChartMatrixDisplayProperties::s_manualScaleModeWindowHeightScaling = 1.0;
 #endif // __CHART_MATRIX_DISPLAY_PROPERTIES_DECLARE__
 
 } // namespace

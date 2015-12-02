@@ -44,6 +44,7 @@
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
+#include "ChartMatrixDisplayProperties.h"
 #include "DataFileException.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
@@ -971,8 +972,27 @@ ImageCaptureDialog::applyButtonClicked()
     if (m_imageSizeCustomRadioButton->isChecked()) {
         imageX = m_pixelWidthSpinBox->value();
         imageY = m_pixelHeightSpinBox->value();
+        
+        int32_t windowWidth;
+        int32_t windowHeight;
+        float windowAspectRatio;
+        if (getSelectedWindowWidthAndHeight(windowWidth,
+                                            windowHeight,
+                                            windowAspectRatio)) {
+            if ((windowWidth > 0)
+                && (windowHeight > 0)) {
+                const float windowWidthScaling = (static_cast<float>(imageX)
+                                                  / static_cast<float>(windowWidth));
+                const float windowHeightScaling = (static_cast<float>(imageY)
+                                                   / static_cast<float>(windowHeight));
+                
+                ChartMatrixDisplayProperties::setManualScaleModeWindowWidthHeightScaling(windowWidthScaling,
+                                                                                         windowHeightScaling);
+            }
+        }
     }
     
+
     EventImageCapture imageCaptureEvent(browserWindowIndex,
                                         imageX,
                                         imageY);
@@ -1047,6 +1067,8 @@ ImageCaptureDialog::applyButtonClicked()
             }
         }
     }
+    
+    ChartMatrixDisplayProperties::setManualScaleModeWindowWidthHeightScaling(1.0, 1.0);
     
     if (errorFlag == false) {
         /*
