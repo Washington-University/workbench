@@ -63,6 +63,7 @@
 #include "AlgorithmGiftiLabelAddPrefix.h"
 #include "AlgorithmGiftiLabelToROI.h"
 #include "AlgorithmLabelDilate.h"
+#include "AlgorithmLabelErode.h"
 #include "AlgorithmLabelModifyKeys.h"
 #include "AlgorithmLabelResample.h"
 #include "AlgorithmLabelToBorder.h"
@@ -308,6 +309,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiLabelAddPrefix()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelDilate()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelErode()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelModifyKeys()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelToBorder()));
