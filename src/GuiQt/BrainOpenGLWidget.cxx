@@ -92,6 +92,18 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->openGL = NULL;
     this->borderBeingDrawn = new Border();
     
+    m_mousePositionValid = false;
+    m_mousePositionEvent.grabNew(new MouseEvent(NULL,
+                                                NULL,
+                                                -1,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                false));
+    
     this->windowIndex = windowIndex;
     this->userInputAnnotationsModeProcessor = new UserInputModeAnnotations(windowIndex);
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
@@ -864,6 +876,22 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
     me->accept();
 }
 
+void
+BrainOpenGLWidget::enterEvent(QEvent* /*e*/)
+{
+    m_mousePositionValid = true;
+}
+
+void
+BrainOpenGLWidget::leaveEvent(QEvent* /*e*/)
+{
+    m_mousePositionValid = false;
+    
+    this->selectedUserInputProcessor->setMousePosition(m_mousePositionEvent,
+                                                       m_mousePositionValid);
+}
+
+
 /**
  * Get the viewport content at the given location.
  * @param x
@@ -1095,9 +1123,10 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                               keyModifiers,
                               true);
     
+    const int mouseX = me->x();
+    const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+    
     if (button == Qt::NoButton) {
-        const int mouseX = me->x();
-        const int mouseY = this->windowHeight[this->windowIndex] - me->y();
         
         if (mouseButtons == Qt::LeftButton) {
             
@@ -1181,6 +1210,27 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             }
             
         }
+    }
+    
+    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+                                                                               mouseY);
+    if (viewportContent != NULL) {
+        m_mousePositionEvent.grabNew(new MouseEvent(viewportContent,
+                                                    this,
+                                                    this->windowIndex,
+                                                    mouseX,
+                                                    mouseY,
+                                                    0,
+                                                    0,
+                                                    this->mousePressX,
+                                                    this->mousePressY,
+                                                    this->mouseNewDraggingStartedFlag));
+        
+        this->selectedUserInputProcessor->setMousePosition(m_mousePositionEvent,
+                                                           m_mousePositionValid);
+    }
+    else {
+        
     }
     
     me->accept();

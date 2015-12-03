@@ -29,6 +29,7 @@
 
 #include <stdint.h>
 #include "BrainConstants.h"
+#include "CaretPointer.h"
 #include "EventListenerInterface.h"
 
 class QMouseEvent;
@@ -115,6 +116,10 @@ namespace caret {
         
         virtual void wheelEvent(QWheelEvent* e);
         
+        virtual void enterEvent(QEvent* e);
+        
+        virtual void leaveEvent(QEvent* e);
+        
     private:
         
         BrainOpenGLTextRenderInterface* createTextRenderer();
@@ -167,6 +172,9 @@ namespace caret {
         UserInputModeVolumeEdit* userInputVolumeEditModeProcessor;
         
         Border* borderBeingDrawn;
+        
+        bool    m_mousePositionValid;
+        CaretPointer<MouseEvent> m_mousePositionEvent;
         
         static bool s_defaultGLFormatInitialized;
     };

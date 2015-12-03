@@ -2073,7 +2073,15 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
             deleteSelectedAnnotations();
             break;
         case BrainBrowserWindowEditMenuItemEnum::PASTE:
-            setMode(MODE_PASTE);
+        {
+            const MouseEvent* mouseEvent = getMousePosition();
+            if (mouseEvent != NULL) {
+                pasteAnnotationFromAnnotationClipboard(*mouseEvent);
+            }
+            else {
+                setMode(MODE_PASTE);
+            }
+        }
             break;
         case BrainBrowserWindowEditMenuItemEnum::REDO:
         {

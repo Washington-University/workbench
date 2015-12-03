@@ -28,6 +28,8 @@
 #include <QWidget>
 
 #include "CaretAssert.h"
+#include "MouseEvent.h"
+
 using namespace caret;
 
 
@@ -49,9 +51,19 @@ using namespace caret;
 UserInputModeAbstract::UserInputModeAbstract(const UserInputMode inputMode)
 : CaretObject(),
 m_userInputMode(inputMode),
-m_widgetForToolBar(NULL)
+m_widgetForToolBar(NULL),
+m_mousePositionValid(false)
 {
-    
+    m_mousePositionEvent.grabNew(new MouseEvent(NULL,
+                                                NULL,
+                                                -1,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                false));
 }
 
 /**
@@ -144,4 +156,39 @@ UserInputModeAbstract::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEdi
     undoMenuItemSuffixTextOut = "";
 }
 
+/**
+ * Get information about the current mouse location.
+ *
+ * @return Pointer to a MouseEvent or NULL if the 
+ * mouse location is invalid.
+ */
+const MouseEvent*
+UserInputModeAbstract::getMousePosition() const
+{
+    if (m_mousePositionValid) {
+        return m_mousePositionEvent;
+    }
+    
+    return NULL;
+}
+
+/**
+ * Set the position of the mouse.
+ *
+ * @param mouseEvent
+ *     Information about the current mouse location.
+ * @param valid
+ *     True if the mouse position is valid, else false.
+ */
+void
+UserInputModeAbstract::setMousePosition(const MouseEvent* mouseEvent,
+                                        const bool valid)
+{
+    m_mousePositionValid = valid;
+    
+    if (m_mousePositionValid) {
+        CaretAssert(mouseEvent);
+        *m_mousePositionEvent = *mouseEvent;
+    }
+}
 

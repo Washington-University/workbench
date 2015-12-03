@@ -23,6 +23,7 @@
 
 #include "BrainBrowserWindowEditMenuItemEnum.h"
 #include "CaretObject.h"
+#include "CaretPointer.h"
 #include "CursorEnum.h"
 
 class QPoint;
@@ -220,6 +221,11 @@ namespace caret {
                                              AString& redoMenuItemSuffixTextOut,
                                              AString& undoMenuItemSuffixTextOut);
         
+        const MouseEvent* getMousePosition() const;
+        
+        void setMousePosition(const MouseEvent* mouseEvent,
+                              const bool valid);
+        
     protected:
         void setWidgetForToolBar(QWidget* widgetForToolBar);
         
@@ -231,6 +237,9 @@ namespace caret {
         const UserInputMode m_userInputMode;
         
         QWidget* m_widgetForToolBar;
+        
+        bool    m_mousePositionValid;
+        CaretPointer<MouseEvent> m_mousePositionEvent;
         
         // ADD_NEW_MEMBERS_HERE
 
