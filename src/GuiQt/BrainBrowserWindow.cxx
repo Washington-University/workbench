@@ -237,7 +237,10 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
 }
+
 /**
  * Destructor.
  */
@@ -376,6 +379,21 @@ BrainBrowserWindow::receiveEvent(Event* event)
         if (tabViewportValid) {
             viewportSizeEvent->setViewportSize(tabViewport);
         }
+    }
+    else if ((event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)
+             || (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS)) {
+        /*
+         * When in annotations mode, items on the Edit Menu are enabled/disabled
+         * based upon the selected annotations.  While we can update the menu items
+         * when the menu is about to show, that is sufficient.   The menu items
+         * have shortcut keys so it is possible for the selected annotations to change
+         * and the user to use a short cut key but the item on the edit menu
+         * may still be disabled.  Since a change in the selected annotations is
+         * followed by a graphics update event, update the enabled/disabled status
+         * of items in the Edit menu when the graphics are updated so that the 
+         * shortcut keys will function.
+         */
+        processEditMenuAboutToShow();
     }
 }
 
