@@ -31,6 +31,7 @@ AlgorithmCiftiCreateDenseTimeseries.h
 AlgorithmCiftiCreateLabel.h
 AlgorithmCiftiCrossCorrelation.h
 AlgorithmCiftiDilate.h
+AlgorithmCiftiErode.h
 AlgorithmCiftiExtrema.h
 AlgorithmCiftiFalseCorrelation.h
 AlgorithmCiftiFindClusters.h
@@ -140,6 +141,7 @@ AlgorithmCiftiCreateDenseTimeseries.cxx
 AlgorithmCiftiCreateLabel.cxx
 AlgorithmCiftiCrossCorrelation.cxx
 AlgorithmCiftiDilate.cxx
+AlgorithmCiftiErode.cxx
 AlgorithmCiftiExtrema.cxx
 AlgorithmCiftiFalseCorrelation.cxx
 AlgorithmCiftiFindClusters.cxx

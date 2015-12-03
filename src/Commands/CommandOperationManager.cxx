@@ -37,6 +37,7 @@
 #include "AlgorithmCiftiCreateLabel.h"
 #include "AlgorithmCiftiCrossCorrelation.h"
 #include "AlgorithmCiftiDilate.h"
+#include "AlgorithmCiftiErode.h"
 #include "AlgorithmCiftiExtrema.h"
 #include "AlgorithmCiftiFalseCorrelation.h"
 #include "AlgorithmCiftiFindClusters.h"
@@ -282,6 +283,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCreateLabel()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCrossCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiDilate()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiErode()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFalseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFindClusters()));
