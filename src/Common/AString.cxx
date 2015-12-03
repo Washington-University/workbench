@@ -808,9 +808,7 @@ AString::indexNotOf(const QChar& ch) const
  */
 char* 
 AString::toCharArray() const 
-{ 
-    bool haveNonAsciiCharacters = false;
-    
+{
     /*
      * Convert to a byte array
      */
@@ -822,26 +820,19 @@ AString::toCharArray() const
         int32_t lastAsciiChar = -1;
         for (int32_t i = 0; i < numBytes; i++) {
             char c = byteArray.at(i);
-            if ((c >= 32) && (c <= 126)) {
+            if ((c == 10) || ((c >= 32) && (c <= 126))) {
                 charOut[i] = c;
                 lastAsciiChar = i;
             }
-            else if((c == 0 || c == 10) && i == (numBytes-1)) {
+            else if((c == 0) && i == (numBytes-1)) {
                 charOut[i] = c;
             }
             else
             {
                 charOut[i] = '_';
-                haveNonAsciiCharacters = true;
             }
         }
         charOut[lastAsciiChar + 1] = '\0';
-        
-        if (haveNonAsciiCharacters) {
-            CaretLogWarning("Non-ASCII characters were removed, result is \""
-                            + AString(charOut)
-                            + "\"");
-        }
         
         return charOut;
     }

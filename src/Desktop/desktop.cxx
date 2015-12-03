@@ -66,50 +66,59 @@ messageHandlerForQt(QtMsgType type, const char* msg)
     const AString backtrace = SystemUtilities::getBackTrace();
     
     const AString message = (AString(msg) + "\n" + backtrace);
-    const char* messageChars = message.toCharArray();
     
     if (caretLoggerIsValid) {
         bool abortFlag = false;
+        bool displayedFlag = false;
         switch (type) {
             case QtDebugMsg:
-                if (CaretLogger::getLogger()->isInfo()) {
-                    CaretLogInfo(message);
-                }
-                else {
-                    std::cerr << "Qt Debug: " << messageChars << std::endl;
-                }
+                CaretLogInfo(message);
+                displayedFlag = CaretLogger::getLogger()->isInfo();
                 break;
             case QtWarningMsg:
-                if (CaretLogger::getLogger()->isWarning()) {
-                    CaretLogWarning(message);
-                }
-                else {
-                    std::cerr << "Qt Warning: " << messageChars << std::endl;
-                }
+                CaretLogWarning(message);
+                displayedFlag = CaretLogger::getLogger()->isWarning();
                 break;
             case QtCriticalMsg:
-                if (CaretLogger::getLogger()->isSevere()) {
-                    CaretLogSevere(message);
-                }
-                else {
-                    std::cerr << "Qt Critical: " << messageChars << std::endl;
-                }
+                CaretLogSevere(message);
+                displayedFlag = CaretLogger::getLogger()->isSevere();
                 break;
             case QtFatalMsg:
-                if (CaretLogger::getLogger()->isSevere()) {
-                    CaretLogSevere(message);
-                }
-                else {
-                    std::cerr << "Qt Fatal: " << messageChars << std::endl;
-                }
-                abortFlag = true;
+                cerr << "Qt Fatal: " << message << endl;
+                abortFlag = true;//fatal will cause an abort, so always display it, bypassing logger entirely
+                displayedFlag = true;
                 break;
         }
         
         /*
          * Beep to alert user about an error!!!
          */
-        GuiManager::beep();
+        if (displayedFlag && (type != QtDebugMsg))//don't beep for debug
+        {
+            GuiManager::beep();
+        }
+#ifndef NDEBUG
+        if (!displayedFlag)
+        {
+            cerr << "DEBUG: Qt ";
+            switch (type)
+            {
+                case QtDebugMsg:
+                    cerr << "Debug ";
+                    break;
+                case QtWarningMsg:
+                    cerr << "Warning ";
+                    break;
+                case QtCriticalMsg:
+                    cerr << "Critical ";
+                    break;
+                case QtFatalMsg:
+                    cerr << "FATAL (?!?) ";//should never happen
+                    break;
+            }
+            cerr << "message hidden" << endl;
+        }
+#endif
         
         if (abortFlag) {
             std::abort();
@@ -118,22 +127,20 @@ messageHandlerForQt(QtMsgType type, const char* msg)
     else {
         switch (type) {
             case QtDebugMsg:
-                std::cerr << "Qt Debug: " << messageChars << std::endl;
+                std::cerr << "Qt Debug: " << message << std::endl;
                 break;
             case QtWarningMsg:
-                std::cerr << "Qt Warning: " << messageChars << std::endl;
+                std::cerr << "Qt Warning: " << message << std::endl;
                 break;
             case QtCriticalMsg:
-                std::cerr << "Qt Critical: " << messageChars << std::endl;
+                std::cerr << "Qt Critical: " << message << std::endl;
                 break;
             case QtFatalMsg:
-                std::cerr << "Qt Fatal: " << messageChars << std::endl;
+                std::cerr << "Qt Fatal: " << message << std::endl;
                 std::abort();
                 break;
         }
     }
-    
-    delete[] messageChars;
 }
 
 //struct for communicating stuff back to main from parseCommandLine
