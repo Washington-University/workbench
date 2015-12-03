@@ -25,6 +25,7 @@
 #include "VolumeFile.h"
 
 #include <algorithm>
+#include <cmath>
 
 using namespace caret;
 using namespace std;
@@ -100,6 +101,13 @@ namespace
         vector<int64_t> myDims;
         volIn->getDimensions(myDims);
         const float* inData = volIn->getFrame(inFrame, component), *roiData = NULL;
+        float emptyVal = 0.0f;
+        bool labelData = false;
+        if (volIn->getType() == SubvolumeAttributes::LABEL)
+        {
+            emptyVal = volIn->getMapLabelTable(inFrame)->getUnassignedLabelKey();
+            labelData = true;
+        }
         if (roiVol != NULL) roiData = roiVol->getFrame();
         vector<float> scratchFrame(inData, inData + myDims[0] * myDims[1] * myDims[2]);//start with a copy, then zero what we don't need
         vector<float> coordList;
@@ -110,11 +118,24 @@ namespace
                 for (int64_t i = 0; i < myDims[0]; ++i)
                 {
                     int64_t flatIndex = volIn->getIndex(i, j, k);
-                    if ((roiData == NULL || roiData[flatIndex] > 0.0f) && inData[flatIndex] == 0.0f)
+                    if (roiData == NULL || roiData[flatIndex] > 0.0f)
                     {
-                        float coord[3];
-                        volIn->indexToSpace(i, j, k, coord);
-                        coordList.insert(coordList.end(), coord, coord + 3);
+                        if (labelData)
+                        {
+                            if (floor(inData[flatIndex] + 0.5f) == emptyVal)
+                            {
+                                float coord[3];
+                                volIn->indexToSpace(i, j, k, coord);
+                                coordList.insert(coordList.end(), coord, coord + 3);
+                            }
+                        } else {
+                            if (inData[flatIndex] == 0.0f)
+                            {
+                                float coord[3];
+                                volIn->indexToSpace(i, j, k, coord);
+                                coordList.insert(coordList.end(), coord, coord + 3);
+                            }
+                        }
                     }
                 }
             }
@@ -130,16 +151,27 @@ namespace
                     volIn->indexToSpace(i, j, k, coord);
                     if (myLocator.anyInRange(coord, distance))
                     {
-                        scratchFrame[volIn->getIndex(i, j, k)] = 0.0f;
+                        scratchFrame[volIn->getIndex(i, j, k)] = emptyVal;//this is used for both label and normal data, use the variable
                     } else if (checkNeighbors) {
                         for (int neigh = 0; neigh < 18; neigh += 3)
                         {
                             if (volIn->indexValid(i + neighbors[neigh], j + neighbors[neigh + 1], k + neighbors[neigh + 2]))
                             {
                                 int64_t flatIndex = volIn->getIndex(i + neighbors[neigh], j + neighbors[neigh + 1], k + neighbors[neigh + 2]);
-                                if ((roiData == NULL || roiData[flatIndex] > 0.0f) && inData[flatIndex] == 0.0f)
+                                if (roiData == NULL || roiData[flatIndex] > 0.0f)
                                 {
-                                    scratchFrame[volIn->getIndex(i, j, k)] = 0.0f;
+                                    if (labelData)
+                                    {
+                                        if (floor(inData[flatIndex] + 0.5f) == emptyVal)
+                                        {
+                                            scratchFrame[volIn->getIndex(i, j, k)] = emptyVal;
+                                        }
+                                    } else {
+                                        if (inData[flatIndex] == 0.0f)
+                                        {
+                                            scratchFrame[volIn->getIndex(i, j, k)] = 0.0f;
+                                        }
+                                    }
                                 }
                             }
                         }

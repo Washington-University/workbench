@@ -83,7 +83,7 @@ OperationParameters* AlgorithmCiftiDilate::getParameters()
     ret->setHelpText(
         AString("For all data values designated as bad, if they neighbor a good value or are within the specified distance of a good value in the same kind of model, ") +
         "replace the value with a distance weighted average of nearby good values, otherwise set the value to zero.  " +
-        "If -nearest is specified, it will use the value from the closest good value within range instead of a weighted average.\n\n." +
+        "If -nearest is specified, it will use the value from the closest good value within range instead of a weighted average.\n\n" +
         "The -*-corrected-areas options are intended for dilating on group average surfaces, but it is only an approximate correction " +
         "for the reduction of structure in a group average surface.\n\n" +
         "If -bad-brainordinate-roi is specified, all values, including those with value zero, are good, except for locations with a positive value in the ROI.  " +
@@ -168,19 +168,23 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
         const SurfaceFile* mySurf = NULL;
+        const MetricFile* myCorrAreas = NULL;
         AString surfType;
         switch (surfaceList[whichStruct])
         {
             case StructureEnum::CORTEX_LEFT:
                 mySurf = myLeftSurf;
+                myCorrAreas = myLeftAreas;
                 surfType = "left";
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 mySurf = myRightSurf;
+                myCorrAreas = myRightAreas;
                 surfType = "right";
                 break;
             case StructureEnum::CEREBELLUM:
                 mySurf = myCerebSurf;
+                myCorrAreas = myCerebAreas;
                 surfType = "cerebellum";
                 break;
             default:
@@ -194,6 +198,10 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
         if (mySurf->getNumberOfNodes() != myXML.getSurfaceNumberOfNodes(myDir, surfaceList[whichStruct]))
         {
             throw AlgorithmException(surfType + " surface has the wrong number of vertices");
+        }
+        if (myCorrAreas != NULL && myCorrAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
+        {
+            throw AlgorithmException(surfType + " surface and corrected areas metric have different numbers of vertices");
         }
     }
     myCiftiOut->setCiftiXML(myXML);
