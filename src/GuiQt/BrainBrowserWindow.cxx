@@ -1078,16 +1078,24 @@ BrainBrowserWindow::createMenuFile()
     return menu;
 }
 
+
+/**
+ * Create an item for the edit menu.
+ *
+ * @param editMenu
+ *     The menu.
+ * @param editMenuItem
+ *     Enumerated by that is inserted into the edit menu.
+ * @return
+ *     Action that is created by adding item to menu.
+ */
 static QAction*
 addItemToEditMenu(QMenu* editMenu,
-                  const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem,
-                  const QKeySequence& shortCut)
+                  const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem)
 {
     QAction* action = editMenu->addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(editMenuItem));
     action->setData(static_cast<int32_t>(BrainBrowserWindowEditMenuItemEnum::toIntegerCode(editMenuItem)));
-    if ( ! shortCut.isEmpty()) {
-        action->setShortcut(shortCut);
-    }
+    action->setShortcut(BrainBrowserWindowEditMenuItemEnum::toShortcut(editMenuItem));
     return action;
 }
 
@@ -1107,33 +1115,26 @@ BrainBrowserWindow::createMenuEdit()
     m_editMenu = new QMenu("Edit ");
 
     m_editMenuUndoAction = addItemToEditMenu(m_editMenu,
-                                             BrainBrowserWindowEditMenuItemEnum::UNDO,
-                                             (Qt::CTRL + Qt::Key_Z));
+                                             BrainBrowserWindowEditMenuItemEnum::UNDO);
     m_editMenuRedoAction = addItemToEditMenu(m_editMenu,
-                                             BrainBrowserWindowEditMenuItemEnum::REDO,
-                                             (Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
+                                             BrainBrowserWindowEditMenuItemEnum::REDO);
     
     QAction* cutAction = addItemToEditMenu(m_editMenu,
-                                           BrainBrowserWindowEditMenuItemEnum::CUT,
-                                           (Qt::CTRL + Qt::Key_X));
+                                           BrainBrowserWindowEditMenuItemEnum::CUT);
     addItemToEditMenu(m_editMenu,
-                      BrainBrowserWindowEditMenuItemEnum::COPY,
-                      (Qt::CTRL + Qt::Key_C));
+                      BrainBrowserWindowEditMenuItemEnum::COPY);
     addItemToEditMenu(m_editMenu,
-                      BrainBrowserWindowEditMenuItemEnum::PASTE,
-                      (Qt::CTRL + Qt::Key_V));
+                      BrainBrowserWindowEditMenuItemEnum::PASTE);
     QKeySequence noKeySequence;
     addItemToEditMenu(m_editMenu,
-                      BrainBrowserWindowEditMenuItemEnum::DELETER,
-                      noKeySequence);
+                      BrainBrowserWindowEditMenuItemEnum::DELETER);
     
     
     QAction* selectAllAction = NULL;
     const bool addSelectAllFlag = false;
     if (addSelectAllFlag) {
         selectAllAction = addItemToEditMenu(m_editMenu,
-                                            BrainBrowserWindowEditMenuItemEnum::SELECT_ALL,
-                                            (Qt::CTRL + Qt::Key_A));
+                                            BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
     }
     
     m_editMenu->insertSeparator(cutAction);

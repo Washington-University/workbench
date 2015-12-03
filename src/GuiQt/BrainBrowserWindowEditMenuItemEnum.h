@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <QKeySequence>
 
 #include <stdint.h>
 #include <vector>
@@ -66,6 +67,8 @@ public:
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
+    static QKeySequence toShortcut(Enum enumValue);
+    
     static void getAllEnums(std::vector<Enum>& allEnums);
 
     static void getAllNames(std::vector<AString>& allNames, const bool isSorted);
@@ -74,8 +77,9 @@ public:
 
 private:
     BrainBrowserWindowEditMenuItemEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+                                       const AString& name,
+                                       const AString& guiName,
+                                       const QKeySequence& shortCut);
 
     static const BrainBrowserWindowEditMenuItemEnum* findData(const Enum enumValue);
 
@@ -102,6 +106,9 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** Shortcut key */
+    QKeySequence shortCut;
 };
 
 #ifdef __BRAIN_BROWSER_WINDOW_EDIT_MENU_ITEM_ENUM_DECLARE__

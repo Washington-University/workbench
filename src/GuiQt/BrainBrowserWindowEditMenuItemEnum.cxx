@@ -74,18 +74,21 @@ using namespace caret;
  *    An enumerated value.
  * @param name
  *    Name of enumerated value.
- *
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param shortCut
+ *    Shortcut for menu item.
  */
 BrainBrowserWindowEditMenuItemEnum::BrainBrowserWindowEditMenuItemEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+                                                                       const AString& name,
+                                                                       const AString& guiName,
+                                                                       const QKeySequence& shortCut)
 {
-    this->enumValue = enumValue;
+    this->enumValue   = enumValue;
     this->integerCode = integerCodeCounter++;
-    this->name = name;
-    this->guiName = guiName;
+    this->name        = name;
+    this->guiName     = guiName;
+    this->shortCut    = shortCut;
 }
 
 /**
@@ -106,34 +109,42 @@ BrainBrowserWindowEditMenuItemEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(COPY, 
-                                    "COPY", 
-                                    "Copy"));
+    QKeySequence noShortCutKeySequence;
+
+    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(COPY,
+                                                          "COPY",
+                                                          "Copy",
+                                                          (Qt::CTRL + Qt::Key_C)));
     
-    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(CUT, 
-                                    "CUT", 
-                                    "Cut"));
+    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(CUT,
+                                                          "CUT",
+                                                          "Cut",
+                                                          (Qt::CTRL + Qt::Key_X)));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(DELETER,
-                                    "DELETER", 
-                                    "Delete"));
+                                                          "DELETER",
+                                                          "Delete",
+                                                          noShortCutKeySequence));
     
-    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(PASTE, 
-                                    "PASTE", 
-                                    "Paste"));
+    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(PASTE,
+                                                          "PASTE",
+                                                          "Paste",
+                                                          (Qt::CTRL + Qt::Key_V)));
     
-    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(REDO, 
-                                    "REDO", 
-                                    "Redo"));
+    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(REDO,
+                                                          "REDO",
+                                                          "Redo",
+                                                          (Qt::CTRL + Qt::Key_Y)));  //(Qt::CTRL + Qt::SHIFT + Qt::Key_Z)));
     
-    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(SELECT_ALL, 
-                                    "SELECT_ALL", 
-                                    "Select All"));
+    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(SELECT_ALL,
+                                                          "SELECT_ALL",
+                                                          "Select All",
+                                                          noShortCutKeySequence));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(UNDO, 
-                                    "UNDO", 
-                                    "Undo"));
-    
+                                                          "UNDO", 
+                                                          "Undo",
+                                                          (Qt::CTRL + Qt::Key_Z)));
 }
 
 /**
@@ -316,6 +327,20 @@ BrainBrowserWindowEditMenuItemEnum::fromIntegerCode(const int32_t integerCode, b
         CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type BrainBrowserWindowEditMenuItemEnum"));
     }
     return enumValue;
+}
+
+/**
+ * Get the shortcut key for a data type.
+ *
+ * @return
+ *    Shortcut keys for data type.
+ */
+QKeySequence
+BrainBrowserWindowEditMenuItemEnum::toShortcut(Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const BrainBrowserWindowEditMenuItemEnum* enumInstance = findData(enumValue);
+    return enumInstance->shortCut;
 }
 
 /**
