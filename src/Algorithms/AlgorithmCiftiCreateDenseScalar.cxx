@@ -23,6 +23,7 @@
 
 #include "AlgorithmCiftiCreateDenseTimeseries.h" //for making the dense mapping from metric files
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "CaretAssert.h"
 #include "GiftiLabelTable.h"
@@ -30,9 +31,10 @@
 #include "StructureEnum.h"
 #include "VolumeFile.h"
 
+#include <cmath>
+#include <fstream>
 #include <map>
 #include <vector>
-#include <cmath>
 
 using namespace caret;
 using namespace std;
@@ -70,6 +72,9 @@ OperationParameters* AlgorithmCiftiCreateDenseScalar::getParameters()
     cerebMetricOpt->addMetricParameter(1, "metric", "the metric file");
     OptionalParameter* cerebRoiOpt = cerebMetricOpt->createOptionalParameter(2, "-roi-cerebellum", "roi of vertices to use from right surface");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
+    
+    OptionalParameter* nameFileOpt = ret->createOptionalParameter(6, "-name-file", "use a text file to set all map names");
+    nameFileOpt->addStringParameter(1, "file", "text file containing map names, one per line");
     
     AString myText = AString("All input files must have the same number of columns/subvolumes.  Only the specified components will be in the output cifti.  ") +
         "Map names will be taken from one of the input files.  " +
@@ -125,13 +130,32 @@ void AlgorithmCiftiCreateDenseScalar::useParameters(OperationParameters* myParam
             cerebRoi = cerebRoiOpt->getMetric(1);
         }
     }
-    AlgorithmCiftiCreateDenseScalar(myProgObj, myCiftiOut, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);//executes the algorithm
+    vector<AString> nameStore;
+    vector<AString>* namePtr = NULL;
+    OptionalParameter* nameFileOpt = myParams->getOptionalParameter(6);
+    if (nameFileOpt->m_present)
+    {
+        AString listfileName = nameFileOpt->getString(1);
+        ifstream nameListFile(listfileName.toLocal8Bit().constData());
+        if (!nameListFile.good())
+        {
+            throw AlgorithmException("error reading name list file");
+        }
+        string mapName;
+        while (getline(nameListFile, mapName))
+        {
+            nameStore.push_back(mapName.c_str());
+        }
+        namePtr = &nameStore;
+    }
+    AlgorithmCiftiCreateDenseScalar(myProgObj, myCiftiOut, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi, namePtr);
 }
 
-AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol,
-                                                                 const VolumeFile* myVolLabel, const MetricFile* leftData, const MetricFile* leftRoi,
-                                                                 const MetricFile* rightData, const MetricFile* rightRoi, const MetricFile* cerebData,
-                                                                 const MetricFile* cerebRoi) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol, const VolumeFile* myVolLabel,
+                                                                 const MetricFile* leftData, const MetricFile* leftRoi,
+                                                                 const MetricFile* rightData, const MetricFile* rightRoi,
+                                                                 const MetricFile* cerebData, const MetricFile* cerebRoi,
+                                                                 const vector<AString>* namePtr) : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
@@ -151,7 +175,7 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
         if (numMaps == -1)
         {
             numMaps = rightData->getNumberOfMaps();
-            nameFile = rightData;
+            if (nameFile == NULL) nameFile = rightData;
         } else {
             if (numMaps != rightData->getNumberOfMaps())
             {
@@ -164,7 +188,7 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
         if (numMaps == -1)
         {
             numMaps = cerebData->getNumberOfMaps();
-            nameFile = cerebData;
+            if (nameFile == NULL) nameFile = cerebData;
         } else {
             if (numMaps != cerebData->getNumberOfMaps())
             {
@@ -177,7 +201,7 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
         if (numMaps == -1)
         {
             numMaps = myVol->getNumberOfMaps();
-            nameFile = myVol;
+            if (nameFile == NULL) nameFile = myVol;
         } else {
             if (numMaps != myVol->getNumberOfMaps())
             {
@@ -189,11 +213,32 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
     {
         throw AlgorithmException("no models specified");
     }
+    if (namePtr != NULL)
+    {
+        if ((int)(namePtr->size()) != numMaps)
+        {
+            if ((int)(namePtr->size()) < numMaps)
+            {
+                throw AlgorithmException("not enough map names provided");
+            } else {
+                if ((int)(namePtr->size()) > numMaps + 1 || namePtr->back() != "")
+                {//allow an extra newline on the end of the input file - could do strict checking here and fix things up in useParameters, but then it would also need to figure out number of output maps
+                    throw AlgorithmException("more map names were provided than output file would use");
+                }
+            }
+            CaretLogFine("provided map names list has an extra empty string on the end");
+        }
+    }
     CiftiScalarsMap scalarMap;
     scalarMap.setLength(numMaps);
     for (int i = 0; i < numMaps; ++i)
     {
-        scalarMap.setMapName(i, nameFile->getMapName(i));//copy map names
+        if (namePtr != NULL)
+        {
+            scalarMap.setMapName(i, namePtr->at(i));
+        } else {
+            scalarMap.setMapName(i, nameFile->getMapName(i));//copy map names
+        }
     }
     myXML.setMap(CiftiXML::ALONG_ROW, scalarMap);
     myCiftiOut->setCiftiXML(myXML);

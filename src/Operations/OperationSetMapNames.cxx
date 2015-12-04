@@ -87,10 +87,18 @@ void OperationSetMapNames::useParameters(OperationParameters* myParams, Progress
             getline(nameListFile, mapName);
             if (!nameListFile)
             {
-                CaretLogWarning("name file contained " + AString::number(i) + " names, expected " + AString::number(numMaps));
+                throw OperationException("name file contained " + AString::number(i) + " names, expected " + AString::number(numMaps));
                 break;
             }
             mappableFile->setMapName(i, mapName.c_str());
+        }
+        if (getline(nameListFile, mapName) && mapName != "")
+        {//accept a blank line as not being another name
+            throw OperationException("name file contains more names than can be used on the file");
+        }
+        if (getline(nameListFile, mapName))
+        {//don't accept two or more additional lines, period
+            throw OperationException("name file contains more names than can be used on the file");
         }
     } else {
         if (mapOpts.empty()) throw OperationException("you must specify at least one option that sets a map name");
