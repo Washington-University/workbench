@@ -116,9 +116,10 @@ namespace caret {
                             const float addX,
                             const float addY);
         
-        bool applySpatialModificationSurfaceSpace(const AnnotationSpatialModification& spatialModification);
+        bool applySpatialModificationSurfaceOrStereotaxicSpace(const AnnotationSpatialModification& spatialModification,
+                                                               const AnnotationCoordinateSpaceEnum::Enum coordinateSpace);
         
-        bool applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification);
+//        bool applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification);
         
         bool applySpatialModificationTabOrWindowSpace(const AnnotationSpatialModification& spatialModification);
         

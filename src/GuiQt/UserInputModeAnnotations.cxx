@@ -576,18 +576,42 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
         
         switch (draggingCoordinateSpace) {
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            {
+                int viewport[4];
+                vpContent->getTabViewport(viewport);
+                spaceOriginX = viewport[0];
+                spaceOriginY = viewport[1];
+                spaceWidth   = viewport[2];
+                spaceHeight  = viewport[3];
                 if (numSelectedAnnotations == 1) {
                     if (coordInfo.m_modelXYZValid) {
                     }
                 }
+            }
                 break;
             case AnnotationCoordinateSpaceEnum::PIXELS:
+            {
+                int viewport[4];
+                vpContent->getWindowViewport(viewport);
+                spaceOriginX = viewport[0];
+                spaceOriginY = viewport[1];
+                spaceWidth   = viewport[2];
+                spaceHeight  = viewport[3];
+            }
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
+            {
+                int viewport[4];
+                vpContent->getTabViewport(viewport);
+                spaceOriginX = viewport[0];
+                spaceOriginY = viewport[1];
+                spaceWidth   = viewport[2];
+                spaceHeight  = viewport[3];
                 if (numSelectedAnnotations == 1) {
                     if (coordInfo.m_surfaceNodeValid) {
                     }
                 }
+            }
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
             {
