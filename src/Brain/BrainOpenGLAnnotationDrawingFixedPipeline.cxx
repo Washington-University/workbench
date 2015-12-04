@@ -2235,17 +2235,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     
     if (drawForegroundFlag) {
         if (m_selectionModeFlag) {
-            if (line->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE)) {
-                uint8_t selectionColorRGBA[4];
-                getIdentificationColor(selectionColorRGBA);
-                BrainOpenGLPrimitiveDrawing::drawLines(coords,
-                                                       selectionColorRGBA,
-                                                       backgroundLineWidth);
-                m_selectionInfo.push_back(SelectionInfo(annotationFile,
-                                                        line,
-                                                        AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-                                                        selectionCenterXYZ));
-            }
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            BrainOpenGLPrimitiveDrawing::drawLines(coords,
+                                                   selectionColorRGBA,
+                                                   backgroundLineWidth);
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    line,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
         }
         else {
             if (drawForegroundFlag) {
