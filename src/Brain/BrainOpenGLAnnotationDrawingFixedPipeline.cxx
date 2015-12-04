@@ -608,8 +608,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     }
     SelectionItemAnnotation* annotationID = m_brainOpenGLFixedPipeline->m_brain->getSelectionManager()->getAnnotationIdentification();
     
-    GLint savedShadeModel;
-    startOpenGLForDrawing(&savedShadeModel);
+    GLint savedShadeModel = 0;
+    GLboolean savedLightingEnabled = GL_FALSE;
+    startOpenGLForDrawing(&savedShadeModel,
+                          &savedLightingEnabled);
     
     /*
      * Check for a 'selection' type mode
@@ -639,7 +641,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     }
     
     if (idReturnFlag) {
-        endOpenGLForDrawing(savedShadeModel);
+        endOpenGLForDrawing(savedShadeModel,
+                            savedLightingEnabled);
         return;
     }
     
@@ -859,7 +862,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     }
     
 
-    endOpenGLForDrawing(savedShadeModel);
+    endOpenGLForDrawing(savedShadeModel,
+                        savedLightingEnabled);
     
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At end of annotation drawing in space "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
@@ -870,13 +874,21 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
  *
  * @param savedShadeModelOut
  *      Current shading model is saved to this.
+ * @param savedLightingEnabledOut
+ *      Current lighting enabled status is saved to this.
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::startOpenGLForDrawing(GLint* savedShadeModelOut)
+BrainOpenGLAnnotationDrawingFixedPipeline::startOpenGLForDrawing(GLint* savedShadeModelOut,
+                                                                 GLboolean* savedLightingEnabledOut)
 {
     glGetIntegerv(GL_SHADE_MODEL,
                   savedShadeModelOut);
 
+    glGetBooleanv(GL_LIGHTING,
+                  savedLightingEnabledOut);
+    
+    glDisable(GL_LIGHTING);
+    
     /*
      * When selection is performed, annoations in model space need
      * to be converted to window coordinates.  However, when
@@ -922,15 +934,28 @@ BrainOpenGLAnnotationDrawingFixedPipeline::startOpenGLForDrawing(GLint* savedSha
 }
 
 /**
- * Resets OpenGL attributes after drawing annotations.
+ * Restores OpenGL attributes after drawing annotations.
+ *
+ * @param savedShadeModel
+ *    Saved shading model that is restored
+ * @param savedLightingEnabled
+ *    Saved lighting enabled that is restored
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::endOpenGLForDrawing(GLint savedShadeModel)
+BrainOpenGLAnnotationDrawingFixedPipeline::endOpenGLForDrawing(GLint savedShadeModel,
+                                                               GLboolean savedLightingEnabled)
 {
     /*
      * Disable anti-aliasing for lines
      */
     m_brainOpenGLFixedPipeline->disableLineAntiAliasing();
+    
+    if (savedLightingEnabled) {
+        glEnable(GL_LIGHTING);
+    }
+    else {
+        glDisable(GL_LIGHTING);
+    }
     
     glShadeModel(savedShadeModel);
     

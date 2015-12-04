@@ -238,9 +238,11 @@ namespace caret {
         
         void setSelectionBoxColor();
         
-        void startOpenGLForDrawing(GLint* savedShadeModelOut);
+        void startOpenGLForDrawing(GLint* savedShadeModelOut,
+                                   GLboolean* savedLightingEnabledOut);
         
-        void endOpenGLForDrawing(GLint savedShadeModel);
+        void endOpenGLForDrawing(GLint savedShadeModel,
+                                 GLboolean savedLightingEnabled);
         
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         
