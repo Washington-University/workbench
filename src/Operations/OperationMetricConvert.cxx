@@ -50,7 +50,7 @@ OperationParameters* OperationMetricConvert::getParameters()
     
     OptionalParameter* fromNifti = ret->createOptionalParameter(2, "-from-nifti", "convert nifti to metric");
     fromNifti->addVolumeParameter(1, "nifti-in", "the nifti file to convert");
-    fromNifti->addSurfaceParameter(2, "surface-in", "surface file to use number of nodes and structure from");
+    fromNifti->addSurfaceParameter(2, "surface-in", "surface file to use number of vertices and structure from");
     fromNifti->addMetricOutputParameter(3, "metric-out", "the output metric file");
     
     ret->setHelpText(

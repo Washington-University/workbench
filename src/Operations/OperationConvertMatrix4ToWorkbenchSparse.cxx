@@ -58,7 +58,7 @@ OperationParameters* OperationConvertMatrix4ToWorkbenchSparse::getParameters()
     ret->addStringParameter(6, "wb-sparse-out", "output - the output workbench sparse file");
     
     OptionalParameter* surfaceOpt = ret->createOptionalParameter(7, "-surface-seeds", "specify the surface seed space");
-    surfaceOpt->addMetricParameter(1, "seed-roi", "metric roi file of all nodes used in the seed space");
+    surfaceOpt->addMetricParameter(1, "seed-roi", "metric roi file of all vertices used in the seed space");
     
     OptionalParameter* volumeOpt = ret->createOptionalParameter(8, "-volume-seeds", "specify the volume seed space");
     volumeOpt->addCiftiParameter(1, "cifti-template", "cifti file to use the volume mappings from");

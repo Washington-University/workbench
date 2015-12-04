@@ -66,7 +66,7 @@ OperationParameters* OperationProbtrackXDotConvert::getParameters()
     rowVoxelOpt->addVolumeParameter(2, "label-vol", "a label volume with the dimensions and sform used, with structure labels");
     
     OptionalParameter* rowSurfaceOpt = ret->createOptionalParameter(4, "-row-surface", "the output mapping along a row will be surface vertices");
-    rowSurfaceOpt->addMetricParameter(1, "roi-metric", "a metric file with positive values on all nodes used");
+    rowSurfaceOpt->addMetricParameter(1, "roi-metric", "a metric file with positive values on all vertices used");
     
     OptionalParameter* rowCiftiOpt = ret->createOptionalParameter(9, "-row-cifti", "take the mapping along a row from a cifti file");
     rowCiftiOpt->addCiftiParameter(1, "cifti", "the cifti file to take the mapping from");
@@ -77,7 +77,7 @@ OperationParameters* OperationProbtrackXDotConvert::getParameters()
     colVoxelOpt->addVolumeParameter(2, "label-vol", "a label volume with the dimensions and sform used, with structure labels");
     
     OptionalParameter* colSurfaceOpt = ret->createOptionalParameter(6, "-col-surface", "the output mapping along a column will be surface vertices");
-    colSurfaceOpt->addMetricParameter(1, "roi-metric", "a metric file with positive values on all nodes used");
+    colSurfaceOpt->addMetricParameter(1, "roi-metric", "a metric file with positive values on all vertices used");
     
     OptionalParameter* colCiftiOpt = ret->createOptionalParameter(10, "-col-cifti", "take the mapping along a column from a cifti file");
     colCiftiOpt->addCiftiParameter(1, "cifti", "the cifti file to take the mapping from");

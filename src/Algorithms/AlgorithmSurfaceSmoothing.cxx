@@ -71,7 +71,7 @@ AlgorithmSurfaceSmoothing::getParameters()
     
     ret->addSurfaceOutputParameter(4, "surface-out", "output surface file");
     
-    AString helpText = ("Smooths a surface by averaging nodes with their neighbors.");
+    AString helpText = ("Smooths a surface by averaging vertex coordinates with those of the neighboring vertices.");
 
     ret->setHelpText(helpText);
     

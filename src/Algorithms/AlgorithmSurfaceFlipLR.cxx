@@ -45,7 +45,7 @@ OperationParameters* AlgorithmSurfaceFlipLR::getParameters()
     
     ret->setHelpText(
         AString("This command negates the x coordinate of each vertex, and flips the surface normals, so that you have a surface of ") +
-        "opposite handedness with the same features and node correspondence, with normals consistent with the original surface.  " +
+        "opposite handedness with the same features and vertex correspondence, with normals consistent with the original surface.  " +
         "That is, if the input surface has normals facing outward, the output surface will also have normals facing outward."
     );
     return ret;

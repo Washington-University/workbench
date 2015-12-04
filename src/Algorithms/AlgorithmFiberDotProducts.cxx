@@ -49,7 +49,7 @@ OperationParameters* AlgorithmFiberDotProducts::getParameters()
     
     ret->addCiftiParameter(2, "fiber-file", "the fiber orientation file");
     
-    ret->addDoubleParameter(3, "max-dist", "the maximum distance from any surface node a fiber population may be, in mm");
+    ret->addDoubleParameter(3, "max-dist", "the maximum distance from any surface vertex a fiber population may be, in mm");
     
     ret->addStringParameter(6, "direction", "test against surface for whether a fiber population should be used");
     
