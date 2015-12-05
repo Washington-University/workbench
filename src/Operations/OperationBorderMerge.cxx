@@ -23,6 +23,7 @@
 
 #include "Border.h"
 #include "BorderFile.h"
+#include "GiftiLabelTable.h"
 
 #include <map>
 #include <utility>
@@ -87,6 +88,8 @@ void OperationBorderMerge::useParameters(OperationParameters* myParams, Progress
                 outFile->setNumberOfNodes(input->getNumberOfNodes());
             }
         }
+        outFile->getClassColorTable()->append(*(input->getClassColorTable()));//let the append logic deal with conflicts
+        outFile->getNameColorTable()->append(*(input->getNameColorTable()));//we don't need the return values, as the numbers in the label tables are meaningless
         int numBorderParts = input->getNumberOfBorders();
         const vector<ParameterComponent*>& selectOpts = *(borderInst[i]->getRepeatableParameterInstances(2));
         int numSelectOpts = (int)selectOpts.size();
