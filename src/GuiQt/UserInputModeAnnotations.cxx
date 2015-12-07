@@ -1203,6 +1203,8 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
             }
         }
         
+       setMode(MODE_SELECT);
+        
         m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
         
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
@@ -2390,11 +2392,12 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
         
         selecteAnnotation(newPastedAnnotation);
         
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     
     setMode(MODE_SELECT);
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 
