@@ -258,7 +258,8 @@ m_annotationFromBoundsHeight(-1.0)
             windowTwoX = mouseEvent.getX();
             windowTwoY = mouseEvent.getY();
             
-            bool useAverageFlag = false;
+            bool useAverageFlag      = false;
+            bool useTextAligmentFlag = false;
             switch (annotationType) {
                 case AnnotationTypeEnum::BOX:
                     useAverageFlag = true;
@@ -276,27 +277,65 @@ m_annotationFromBoundsHeight(-1.0)
                     useAverageFlag = false;
                     break;
                 case AnnotationTypeEnum::TEXT:
-                    useAverageFlag = true;
+                    //useAverageFlag = true;
+                    useTextAligmentFlag = true;
                     break;
             }
             
-            if (useAverageFlag) {
-                if ((windowX >= 0)
-                    && (windowY >= 0)
-                    && (windowTwoX >= 0)
-                    && (windowTwoY >= 0)) {
+            if ((windowX >= 0)
+                && (windowY >= 0)
+                && (windowTwoX >= 0)
+                && (windowTwoY >= 0)) {
+                const float minX = std::min(windowX, windowTwoX);
+                const float minY = std::min(windowY, windowTwoY);
+                const float maxX = std::max(windowX, windowTwoX);
+                const float maxY = std::max(windowY, windowTwoY);
+                const float centerX = (windowX + windowTwoX) / 2.0;
+                const float centerY = (windowY + windowTwoY) / 2.0;
+                
+                if (useAverageFlag) {
                     /*
                      * Width and height in pixels
                      */
-                    const float minX = std::min(windowX, windowTwoX);
-                    const float minY = std::min(windowY, windowTwoY);
-                    const float maxX = std::max(windowX, windowTwoX);
-                    const float maxY = std::max(windowY, windowTwoY);
                     m_annotationFromBoundsWidth  = maxX - minX;
                     m_annotationFromBoundsHeight = maxY - minY;
                     
-                    windowX = (windowX + windowTwoX) / 2.0;
-                    windowY = (windowY + windowTwoY) / 2.0;
+                    windowX = centerX;
+                    windowY = centerY;
+                    windowTwoX = -1;
+                    windowTwoY = -1;
+                }
+                else if (useTextAligmentFlag) {
+                    float textX = windowX;
+                    float textY = windowY;
+                    
+                    AnnotationPercentSizeText textAnn(AnnotationAttributesDefaultTypeEnum::USER);
+                    switch (textAnn.getHorizontalAlignment()) {
+                        case AnnotationTextAlignHorizontalEnum::CENTER:
+                            textX = centerX;
+                            break;
+                        case AnnotationTextAlignHorizontalEnum::LEFT:
+                            textX = minX;
+                            break;
+                        case AnnotationTextAlignHorizontalEnum::RIGHT:
+                            textX = maxX;
+                            break;
+                    }
+                    
+                    switch (textAnn.getVerticalAlignment()) {
+                        case AnnotationTextAlignVerticalEnum::BOTTOM:
+                            textY = minY;
+                            break;
+                        case AnnotationTextAlignVerticalEnum::MIDDLE:
+                            textY = centerY;
+                            break;
+                        case AnnotationTextAlignVerticalEnum::TOP:
+                            textY = maxY;
+                            break;
+                    }
+                    
+                    windowX = textX;
+                    windowY = textY;
                     windowTwoX = -1;
                     windowTwoY = -1;
                 }
@@ -620,6 +659,7 @@ AnnotationCreateDialog::okButtonClicked()
                                                                AnnotationAttributesDefaultTypeEnum::USER));
             if (m_annotationType == AnnotationTypeEnum::TEXT) {
                 AnnotationText* text = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::USER);
+                CaretAssert(text);
                 text->setText(userText);
                 annotation.grabNew(text);
             }
