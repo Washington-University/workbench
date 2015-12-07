@@ -122,8 +122,14 @@ using namespace caret;
  * @param initialBrowserTabContent
  *    Content of default tab (may be NULL in which cast
  *    new content is created).
- * @param toolBoxToolButtonAction
- *    Action for the Toolbox button in this toolbar.
+ * @param overlayToolBoxAction
+ *    Action to show overlay tool box.
+ * @param layersToolBoxAction
+ *    Action to show layers tool box.
+ * @param windowAspectRatioLockedAction
+ *    Action to lock window's aspect ratio.
+ * @param tabAspectRatioLockedAction
+ *    Action to lock tab's aspect ratio.
  * @param parent
  *    Parent for this toolbar.
  */
@@ -132,6 +138,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                      QAction* overlayToolBoxAction,
                                                      QAction* layersToolBoxAction,
                                                      QAction* windowAspectRatioLockedAction,
+                                                     QAction* tabAspectRatioLockedAction,
                                                      BrainBrowserWindow* parentBrainBrowserWindow)
 : QToolBar(parentBrainBrowserWindow)
 {
@@ -300,7 +307,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->modeWidget = this->createModeWidget();
-    this->windowWidget = this->createTabOptionsWidget(windowAspectRatioLockedAction);
+    this->windowWidget = this->createTabOptionsWidget(windowAspectRatioLockedAction,
+                                                      tabAspectRatioLockedAction);
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     m_clippingOptionsWidget = createClippingOptionsWidget();
@@ -2459,13 +2467,20 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 /**
  * Create the tab options widget.
  *
+ * @param windowAspectRatioLockedAction
+ *    Action for locking the window's aspect ratio.
+ * @param tabAspectRatioLockedAction
+ *    Action for locking the tab's aspect ratio.
+ *
  * @return  The tab options widget.
  */
 QWidget* 
-BrainBrowserWindowToolBar::createTabOptionsWidget(QAction* windowAspectRatioLockedAction)
+BrainBrowserWindowToolBar::createTabOptionsWidget(QAction* windowAspectRatioLockedAction,
+                                                  QAction* tabAspectRatioLockedAction)
 {
     m_tabOptionsComponent = new BrainBrowserWindowToolBarTab(this->browserWindowIndex,
                                                              windowAspectRatioLockedAction,
+                                                             tabAspectRatioLockedAction,
                                                              this);
     
     QWidget* w = this->createToolWidget("Tab",

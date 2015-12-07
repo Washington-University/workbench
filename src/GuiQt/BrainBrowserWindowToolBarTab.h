@@ -36,6 +36,7 @@ namespace caret {
         
     public:
         BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
+                                     QAction* windowAspectRatioLockedAction,
                                      QAction* tabAspectRatioLockedAction,
                                      BrainBrowserWindowToolBar* parentToolBar);
         

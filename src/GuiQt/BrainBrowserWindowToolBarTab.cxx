@@ -50,8 +50,18 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param browserWindowIndex
+ *     Index of browser window.
+ * @param windowAspectRatioLockedAction
+ *     Action for locking window aspect ratio.
+ * @param tabAspectRatioLockedAction
+ *     Action for locking tab aspect ratio.
+ * @param parentToolBar
+ *     Parent toolbar.
  */
 BrainBrowserWindowToolBarTab::BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
+                                                           QAction* windowAspectRatioLockedAction,
                                                            QAction* tabAspectRatioLockedAction,
                                                            BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
@@ -71,6 +81,9 @@ m_tabAspectRatioLockedAction(tabAspectRatioLockedAction)
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
+    QToolButton* windowAspectRatioLockedToolButton = new QToolButton();
+    windowAspectRatioLockedToolButton->setDefaultAction(windowAspectRatioLockedAction);
+    
     QToolButton* tabAspectRatioLockedToolButton = new QToolButton();
     tabAspectRatioLockedToolButton->setDefaultAction(tabAspectRatioLockedAction);
     
@@ -79,6 +92,7 @@ m_tabAspectRatioLockedAction(tabAspectRatioLockedAction)
     layout->addWidget(yokeToLabel);
     layout->addWidget(m_yokingGroupComboBox->getWidget());
     layout->addSpacing(15);
+    layout->addWidget(windowAspectRatioLockedToolButton);
     layout->addWidget(tabAspectRatioLockedToolButton);
     
     addToWidgetGroup(yokeToLabel);

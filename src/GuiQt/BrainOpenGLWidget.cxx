@@ -375,6 +375,14 @@ BrainOpenGLWidget::paintGL()
         return;
     }
     
+    if (bbw->isAspectRatioLocked()) {
+        const float aspectRatio = bbw->getAspectRatio();
+        if (aspectRatio > 0.0) {
+            BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
+                                                                     aspectRatio);
+        }
+    }
+    
     /*
      * Highlighting of border points
      */

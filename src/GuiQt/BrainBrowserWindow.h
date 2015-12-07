@@ -133,6 +133,14 @@ namespace caret {
         
         float getOpenGLWidgetAspectRatio() const;
         
+        bool isAspectRatioLocked() const;
+        
+        void setAspectRatioLocked(const bool locked);
+        
+        float getAspectRatio() const;
+        
+        void setAspectRatio(const float aspectRatio);
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);
@@ -211,6 +219,7 @@ namespace caret {
         void processProjectFoci();
         void processSplitBorderFiles();
         void processTabAspectRatioLockedToggled(bool checked);
+        void processWindowAspectRatioLockedToggled(bool checked);
         
         void processEditMenuItemTriggered(QAction* action);
         void processEditMenuAboutToShow();
@@ -361,6 +370,7 @@ namespace caret {
         QAction* m_overlayToolBoxAction;
         
         QAction* m_tabAspectRatioLockedAction;
+        QAction* m_windowAspectRatioLockedAction;
         
         QAction* m_featuresToolBoxAction;
         
@@ -395,6 +405,8 @@ namespace caret {
         
         WindowComponentStatus m_defaultWindowComponentStatus;
         WindowComponentStatus m_normalWindowComponentStatus;
+        
+        float m_aspectRatio;
         
         static bool s_firstWindowFlag;
         
