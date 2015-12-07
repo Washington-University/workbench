@@ -34,6 +34,7 @@ namespace caret {
     class Annotation;
     class AnnotationCoordinateSelectionWidget;
     class AnnotationFile;
+    class AnnotationTwoDimensionalShape;
     class CaretDataFileSelectionComboBox;
     class CaretDataFileSelectionModel;
     class MouseEvent;
@@ -79,7 +80,7 @@ namespace caret {
             /** New annotation from annotation type at mouse click */
             MODE_NEW_ANNOTATION_TYPE_CLICK,
             /** New annotation from annotation type at mouse press and release */
-            MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE,
+            MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
             /** Paste an annotation */
             MODE_PASTE_ANNOTATION
         };
@@ -109,6 +110,8 @@ namespace caret {
         
         QWidget* createTextWidget();
         
+        void setAnnotationFromBoundsWidthAndHeight(Annotation* annotation);
+        
         const Mode m_mode;
         
         const MouseEvent& m_mouseEvent;
@@ -120,6 +123,10 @@ namespace caret {
         const AnnotationTypeEnum::Enum m_annotationType;
         
         Annotation* m_annotationThatWasCreated;
+        
+        float m_annotationFromBoundsWidth;
+        
+        float m_annotationFromBoundsHeight;
         
         CaretDataFileSelectionModel* m_annotationFileSelectionModel;
         

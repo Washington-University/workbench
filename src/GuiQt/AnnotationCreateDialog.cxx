@@ -138,7 +138,7 @@ AnnotationCreateDialog::newAnnotationTypeWithBounds(const MouseEvent& mouseEvent
                                           const AnnotationTypeEnum::Enum annotationType,
                                           QWidget* parent)
 {
-    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE,
+    AnnotationCreateDialog* dialog = new AnnotationCreateDialog(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
                                                                 mouseEvent,
                                                                 NULL,
                                                                 NULL,
@@ -204,7 +204,9 @@ m_mouseEvent(mouseEvent),
 m_annotationToPastesFile(annotationFile),
 m_annotationToPaste(annotation),
 m_annotationType(annotationType),
-m_annotationThatWasCreated(NULL)
+m_annotationThatWasCreated(NULL),
+m_annotationFromBoundsWidth(-1.0),
+m_annotationFromBoundsHeight(-1.0)
 {
     m_textEdit = NULL;
     
@@ -249,11 +251,57 @@ m_annotationThatWasCreated(NULL)
             break;
         case MODE_NEW_ANNOTATION_TYPE_CLICK:
             break;
-        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
+        case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
+        {
             windowX = mouseEvent.getPressedX();
             windowY = mouseEvent.getPressedY();
             windowTwoX = mouseEvent.getX();
             windowTwoY = mouseEvent.getY();
+            
+            bool useAverageFlag = false;
+            switch (annotationType) {
+                case AnnotationTypeEnum::BOX:
+                    useAverageFlag = true;
+                    break;
+                case AnnotationTypeEnum::COLOR_BAR:
+                    useAverageFlag = true;
+                    break;
+                case AnnotationTypeEnum::IMAGE:
+                    useAverageFlag = true;
+                    break;
+                case AnnotationTypeEnum::OVAL:
+                    useAverageFlag = true;
+                    break;
+                case AnnotationTypeEnum::LINE:
+                    useAverageFlag = false;
+                    break;
+                case AnnotationTypeEnum::TEXT:
+                    useAverageFlag = true;
+                    break;
+            }
+            
+            if (useAverageFlag) {
+                if ((windowX >= 0)
+                    && (windowY >= 0)
+                    && (windowTwoX >= 0)
+                    && (windowTwoY >= 0)) {
+                    /*
+                     * Width and height in pixels
+                     */
+                    const float minX = std::min(windowX, windowTwoX);
+                    const float minY = std::min(windowY, windowTwoY);
+                    const float maxX = std::max(windowX, windowTwoX);
+                    const float maxY = std::max(windowY, windowTwoY);
+                    m_annotationFromBoundsWidth  = maxX - minX;
+                    m_annotationFromBoundsHeight = maxY - minY;
+                    
+                    windowX = (windowX + windowTwoX) / 2.0;
+                    windowY = (windowY + windowTwoY) / 2.0;
+                    windowTwoX = -1;
+                    windowTwoY = -1;
+                }
+            }
+        }
             break;
         case MODE_PASTE_ANNOTATION:
             break;
@@ -295,7 +343,7 @@ m_annotationThatWasCreated(NULL)
                 m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
             }
             break;
-        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
+        case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
             setWindowTitle("New Annotation");
             if (s_previousSelections.m_valid) {
                 m_coordinateSelectionWidget->selectCoordinateSpace(s_previousSelections.m_coordinateSpace);
@@ -333,7 +381,7 @@ m_annotationThatWasCreated(NULL)
                 break;
             case MODE_NEW_ANNOTATION_TYPE_CLICK:
                 break;
-            case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
+            case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
                 break;
             case MODE_PASTE_ANNOTATION:
             {
@@ -397,7 +445,7 @@ AnnotationCreateDialog::createFileSelectionWidget()
     switch (m_mode) {
         case MODE_ADD_NEW_ANNOTATION:
         case MODE_NEW_ANNOTATION_TYPE_CLICK:
-        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
+        case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
             if (s_previousSelections.m_valid) {
                 annotationFile = s_previousSelections.m_annotationFile;
             }
@@ -567,7 +615,7 @@ AnnotationCreateDialog::okButtonClicked()
         }
             break;
         case MODE_NEW_ANNOTATION_TYPE_CLICK:
-        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
+        case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
             annotation.grabNew(Annotation::newAnnotationOfType(m_annotationType,
                                                                AnnotationAttributesDefaultTypeEnum::USER));
             if (m_annotationType == AnnotationTypeEnum::TEXT) {
@@ -579,6 +627,7 @@ AnnotationCreateDialog::okButtonClicked()
         case MODE_PASTE_ANNOTATION:
         {
             Annotation* annCopy = m_annotationToPaste->clone();
+
             AnnotationText* annText = dynamic_cast<AnnotationText*>(annCopy);
             if (annText != NULL) {
                 annText->setText(userText);
@@ -608,8 +657,12 @@ AnnotationCreateDialog::okButtonClicked()
     switch (m_mode) {
         case MODE_ADD_NEW_ANNOTATION:
         case MODE_NEW_ANNOTATION_TYPE_CLICK:
-        case MODE_NEW_ANNOTATION_TYPE_PRESS_AND_RELEASE:
+        case MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS:
         {
+            if (m_mode == MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS) {
+                setAnnotationFromBoundsWidthAndHeight(annotationPointer);
+            }
+            
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeCreateAnnotation(annotationFile,
                                                  annotationPointer);
@@ -637,4 +690,67 @@ AnnotationCreateDialog::okButtonClicked()
     
     WuQDialog::okButtonClicked();
 }
+
+/**
+ * Set the width and height for some two-dim annotations when
+ * they are created from bounds (mouse drag)
+ *
+ * @param annotation
+ *     The annotation.
+ */
+void
+AnnotationCreateDialog::setAnnotationFromBoundsWidthAndHeight(Annotation* annotation)
+{
+    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+    if (twoDimAnn == NULL) {
+        return;
+    }
+    
+    if ((m_annotationFromBoundsWidth > 0.0)
+        && (m_annotationFromBoundsHeight > 0.0)) {
+        bool setWidthHeightFlag = false;
+        switch (annotation->getType()) {
+            case AnnotationTypeEnum::BOX:
+                setWidthHeightFlag = true;
+                break;
+            case AnnotationTypeEnum::COLOR_BAR:
+                setWidthHeightFlag = true;
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                break;
+            case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::OVAL:
+                setWidthHeightFlag = true;
+                break;
+            case AnnotationTypeEnum::TEXT:
+                break;
+        }
+        if (setWidthHeightFlag) {
+            int32_t viewport[4] = { -1, -1, -1, -1 };
+            switch (annotation->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::PIXELS:
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    m_mouseEvent.getViewportContent()->getTabViewport(viewport);
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    m_mouseEvent.getViewportContent()->getWindowViewport(viewport);
+                    break;
+            }
+            
+            const float viewportWidth  = viewport[2];
+            const float viewportHeight = viewport[3];
+            if ((viewportWidth > 0)
+                && (viewportHeight > 0)) {
+                const float width  = (m_annotationFromBoundsWidth  / viewportWidth)  * 100.0;
+                const float height = (m_annotationFromBoundsHeight / viewportHeight) * 100.0;
+                twoDimAnn->setWidth(width);
+                twoDimAnn->setHeight(height);
+            }
+        }
+    }
+}
+
 
