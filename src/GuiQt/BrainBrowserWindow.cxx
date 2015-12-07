@@ -1196,6 +1196,14 @@ BrainBrowserWindow::processEditMenuItemTriggered(QAction* action)
                            + " to BrainBrowserWindowEditMenuItemEnum::Enum");
         }
     }
+    
+    /*
+     * If Cut or Copy is selected and successful,
+     * the menu needs to be updated so that 
+     * paste will be enabled for selection 
+     * via a shortcut key.
+     */
+    processEditMenuAboutToShow();
 }
 
 /**
