@@ -270,7 +270,10 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
     this->drawModelInternal(MODE_IDENTIFICATION,
                             viewportContent);
 
+    std::vector<BrainOpenGLViewportContent*> viewportContentsVector;
+    viewportContentsVector.push_back(viewportContent);
     std::vector<AnnotationColorBar*> colorBars;
+    getWindowColorBars(viewportContentsVector, colorBars);
 
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
@@ -417,6 +420,38 @@ BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpCon
 }
 
 /**
+ * Get colorbars in window space.
+ *
+ * @param viewportContents
+ *     Contents of the viewports.
+ * @param windowColorBarsOut
+ *     Output with window color bars in the viewports.
+ */
+void
+BrainOpenGLFixedPipeline::getWindowColorBars(std::vector<BrainOpenGLViewportContent*>& viewportContents,
+                                             std::vector<AnnotationColorBar*>& windowColorBarsOut)
+{
+    windowColorBarsOut.clear();
+    
+    for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+        /*
+         * Viewport of window.
+         */
+        BrainOpenGLViewportContent* vpContent = viewportContents[i];
+        if (vpContent != NULL) {
+            BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
+            if (tabContent != NULL) {
+                std::vector<AnnotationColorBar*> colorBars;
+                tabContent->getAnnotationColorBars(colorBars);
+                windowColorBarsOut.insert(windowColorBarsOut.end(),
+                                          colorBars.begin(),
+                                          colorBars.end());
+            }
+        }
+    }
+}
+
+/**
  * Draw models in their respective viewports.
  *
  * @param brain
@@ -472,7 +507,9 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     this->checkForOpenGLError(NULL, "At middle of drawModels()");
     
     std::vector<AnnotationColorBar*> windowColorBars;
+    getWindowColorBars(viewportContents, windowColorBars);
 
+    
     for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
         /*
          * Viewport of window.
@@ -482,13 +519,13 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
         glViewport(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
         
         BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
-        if (tabContent != NULL) {
-            std::vector<AnnotationColorBar*> colorBars;
-            tabContent->getAnnotationColorBars(colorBars);
-            windowColorBars.insert(windowColorBars.end(),
-                                   colorBars.begin(),
-                                   colorBars.end());
-        }
+//        if (tabContent != NULL) {
+//            std::vector<AnnotationColorBar*> colorBars;
+//            tabContent->getAnnotationColorBars(colorBars);
+//            windowColorBars.insert(windowColorBars.end(),
+//                                   colorBars.begin(),
+//                                   colorBars.end());
+//        }
         
         /*
          * Update foreground and background colors for model

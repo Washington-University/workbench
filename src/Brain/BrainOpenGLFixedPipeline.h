@@ -502,6 +502,9 @@ namespace caret {
         
         void setTabViewport(const BrainOpenGLViewportContent* vpContent);
         
+        void getWindowColorBars(std::vector<BrainOpenGLViewportContent*>& viewportContents,
+                                std::vector<AnnotationColorBar*>& windowColorBarsOut);
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         

@@ -1160,12 +1160,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
         return;
     }
     
-    /*
-     * NO SELECTION OF COLOR BAR ANNOTATIONS
-     */
-    if (m_selectionModeFlag) {
-        return;
-    }
+//    /*
+//     * NO SELECTION OF COLOR BAR ANNOTATIONS
+//     */
+//    if (m_selectionModeFlag) {
+//        return;
+//    }
     
     float bottomLeft[3];
     float bottomRight[3];
