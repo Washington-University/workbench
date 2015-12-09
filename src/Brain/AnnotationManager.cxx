@@ -317,7 +317,17 @@ AnnotationManager::getAllAnnotations() const
                                   annotations.end());
         }
     }
+
+    EventAnnotationColorBarGet colorBarEvent;
+    EventManager::get()->sendEvent(colorBarEvent.getPointer());
+    std::vector<AnnotationColorBar*> colorBars = colorBarEvent.getAnnotationColorBars();
     
+    for (std::vector<AnnotationColorBar*>::iterator iter = colorBars.begin();
+         iter != colorBars.end();
+         iter++) {
+        allAnnotations.push_back(*iter);
+    }
+
     return allAnnotations;
 }
 

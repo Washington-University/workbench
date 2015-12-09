@@ -96,7 +96,7 @@ AnnotationFile::createExampleAnnotations()
         at->setForegroundColor(CaretColorEnum::BLUE);
         at->setBackgroundColor(CaretColorEnum::GRAY);
         at->setFontPercentViewportSize(0.10);
-        at->setBoldEnabled(true);
+        at->setBoldStyleEnabled(true);
         at->setText("WINDOW-CENTER-MIDDLE,0.5,0.9");
         addAnnotationPrivate(at);
     }
@@ -113,7 +113,7 @@ AnnotationFile::createExampleAnnotations()
         at->setForegroundColor(CaretColorEnum::FUCHSIA);
         at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setFontPercentViewportSize(0.08);
-        at->setBoldEnabled(true);
+        at->setBoldStyleEnabled(true);
         at->setText("Rotated");
         addAnnotationPrivate(at);
     }
@@ -130,7 +130,7 @@ AnnotationFile::createExampleAnnotations()
         at->setForegroundColor(CaretColorEnum::PURPLE);
         at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setFontPercentViewportSize(0.15);
-        at->setBoldEnabled(false);
+        at->setBoldStyleEnabled(false);
         at->setText("STACKED-VERT-0.9-0.5");
         addAnnotationPrivate(at);
     }
@@ -147,7 +147,7 @@ AnnotationFile::createExampleAnnotations()
         at->setForegroundColor(CaretColorEnum::TEAL);
         at->setBackgroundColor(CaretColorEnum::SILVER);
         at->setFontPercentViewportSize(0.15);
-        at->setBoldEnabled(false);
+        at->setBoldStyleEnabled(false);
         at->setText("STACK-ROT");
         at->setRotationAngle(-90.0);
         addAnnotationPrivate(at);
@@ -215,7 +215,7 @@ AnnotationFile::createExampleAnnotations()
         at->setForegroundColor(CaretColorEnum::TEAL);
         at->setBackgroundColor(CaretColorEnum::WHITE);
         at->setFontPercentViewportSize(0.12);
-        at->setBoldEnabled(true);
+        at->setBoldStyleEnabled(true);
         at->setText(AString::number(iTab + 1));
         addAnnotationPrivate(at);
     }

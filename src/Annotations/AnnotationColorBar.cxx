@@ -119,6 +119,7 @@ AnnotationColorBar::copyHelperAnnotationColorBar(const AnnotationColorBar& obj)
     clearSections();
     clearNumericText();
     
+    m_positionMode              = obj.m_positionMode;
     m_fontName                  = obj.m_fontName;
     m_fontPercentViewportHeight = obj.m_fontPercentViewportHeight;
     m_positionMode              = obj.m_positionMode;
@@ -197,6 +198,91 @@ AnnotationColorBar::setFontPercentViewportSize(const float fontPercentViewportHe
         setModified();
     }
 }
+
+/**
+ * Are font styles (Bold, Italic, Underline) supported?
+ */
+bool
+AnnotationColorBar::isStylesSupported() const
+{
+    return false;
+}
+
+/**
+ * @return
+ *    Is bold enabled ?
+ */
+bool
+AnnotationColorBar::isBoldStyleEnabled() const
+{
+    return false;
+}
+
+/**
+ * Set bold enabled.
+ *
+ * @param enabled
+ *     New status for bold enabled.
+ */
+void
+AnnotationColorBar::setBoldStyleEnabled(const bool /*enabled*/)
+{
+}
+
+/**
+ * @return
+ *    Is italic enabled ?
+ */
+bool
+AnnotationColorBar::isItalicStyleEnabled() const
+{
+    return false;
+}
+
+/**
+ * Set italic enabled.
+ *
+ * @param enabled
+ *     New status for italic enabled.
+ */
+void
+AnnotationColorBar::setItalicStyleEnabled(const bool /*enabled*/)
+{
+}
+
+/**
+ * @return
+ *    Is underline enabled ?
+ */
+bool
+AnnotationColorBar::isUnderlineStyleEnabled() const
+{
+    return false;
+}
+
+/**
+ * Set underline enabled.
+ *
+ * @param enabled
+ *     New status for underline enabled.
+ */
+void
+AnnotationColorBar::setUnderlineStyleEnabled(const bool /*enabled*/)
+{
+}
+
+/**
+ * @return Is foreground line width supported?
+ * Most annotations support a foreground line width.
+ * Annotations that do not support a foreground line width
+ * must override this method and return a value of false.
+ */
+bool
+AnnotationColorBar::isForegroundLineWidthSupported() const
+{
+    return false;
+}
+
 
 /**
  * @return The position mode for the colorbar annotation.

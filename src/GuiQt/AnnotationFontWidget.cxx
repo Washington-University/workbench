@@ -30,6 +30,7 @@
 #undef __ANNOTATION_FONT_WIDGET_DECLARE__
 
 #include "AnnotationColorBar.h"
+#include "AnnotationFontAttributesInterface.h"
 #include "AnnotationManager.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationTextFontNameEnum.h"
@@ -232,6 +233,95 @@ AnnotationFontWidget::~AnnotationFontWidget()
 }
 
 /**
+ * Update the content of this widget with the given annotations.
+ *
+ * @param annotations
+ *     The selected annotations.
+ */
+void
+AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterface*>& annotations)
+{
+    if ( ! annotations.empty()) {
+        bool boldOnFlag        = true;
+        bool italicOnFlag      = true;
+        bool underlineOnFlag   = true;
+        int32_t stylesEnabledCount = 0;
+        
+        AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::VERA;
+        bool fontNameValid = true;
+        float fontSizeValue = 5.0;
+        bool haveMultipleFontSizeValues = false;
+        
+        const int32_t numAnn = static_cast<int32_t>(annotations.size());
+        for (int32_t i = 0; i < numAnn; i++) {
+            CaretAssertVectorIndex(annotations, i);
+            const AnnotationFontAttributesInterface* annText = annotations[i];
+            CaretAssert(annText);
+            
+            const float sizeValue = annText->getFontPercentViewportSize();
+            if (i == 0) {
+                fontName = annText->getFont();
+                fontSizeValue = sizeValue;
+            }
+            else {
+                if (annText->getFont() != fontName) {
+                    fontNameValid = false;
+                }
+                if (fontSizeValue != sizeValue) {
+                    haveMultipleFontSizeValues = true;
+                    fontSizeValue = std::min(fontSizeValue,
+                                             sizeValue);
+                }
+            }
+            
+            if (annText->isStylesSupported()) {
+                if ( ! annText->isBoldStyleEnabled()) {
+                    boldOnFlag = false;
+                }
+                if ( ! annText->isItalicStyleEnabled()) {
+                    italicOnFlag = false;
+                }
+                if ( ! annText->isUnderlineStyleEnabled()) {
+                    underlineOnFlag = false;
+                }
+                
+                ++stylesEnabledCount;
+            }
+        }
+        
+        m_fontNameComboBox->setSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>(fontName);
+        
+        updateFontSizeSpinBox(fontSizeValue,
+                              haveMultipleFontSizeValues);
+        
+        /*
+         * Font styles are ON only if all selected
+         * text annotations have the style enabled
+         */
+        const bool stylesEnabledFlag = (stylesEnabledCount > 0);
+        
+        m_boldFontAction->setEnabled(stylesEnabledFlag);
+        m_boldFontAction->setChecked(boldOnFlag && stylesEnabledFlag);
+
+        m_italicFontAction->setEnabled(stylesEnabledFlag);
+        m_italicFontAction->setChecked(italicOnFlag && stylesEnabledFlag);
+        
+        m_underlineFontAction->setEnabled(stylesEnabledFlag);
+        m_underlineFontAction->setChecked(underlineOnFlag && stylesEnabledFlag);
+        
+        AnnotationText::setUserDefaultFont(fontName);
+        AnnotationText::setUserDefaultFontPercentViewportSize(fontSizeValue);
+        if (stylesEnabledFlag) {
+            AnnotationText::setUserDefaultBoldEnabled(boldOnFlag);
+            AnnotationText::setUserDefaultItalicEnabled(italicOnFlag);
+            AnnotationText::setUserDefaultUnderlineEnabled(underlineOnFlag);
+        }
+    }
+    
+    setEnabled( ! annotations.empty());
+}
+
+/**
  * Update the content of this widget with the given text annotation.
  *
  * @param annotationColorBar
@@ -249,80 +339,80 @@ AnnotationFontWidget::updateAnnotationColorBarContent(AnnotationColorBar* annota
     }
 }
 
-/**
- * Update the content of this widget with the given text annotation.
- *
- * @param annotationTexts
- *     Text annotations for display (may be NULL).
- */
-void
-AnnotationFontWidget::updateAnnotationTextContent(std::vector<AnnotationText*>& annotationTexts)
-{
-    if ( ! annotationTexts.empty()) {
-        bool boldOnFlag      = true;
-        bool italicOnFlag    = true;
-        bool underlineOnFlag = true;
-        
-        AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::VERA;
-        bool fontNameValid = true;
-        float fontSizeValue = 5.0;
-        bool haveMultipleFontSizeValues = false;
-        
-        const int32_t numAnn = static_cast<int32_t>(annotationTexts.size());
-        for (int32_t i = 0; i < numAnn; i++) {
-            CaretAssertVectorIndex(annotationTexts, i);
-            const AnnotationText* annText = annotationTexts[i];
-            const AnnotationPercentSizeText* annPercentText = dynamic_cast<const AnnotationPercentSizeText*>(annText);
-            
-            const float sizeValue = annPercentText->getFontPercentViewportSize();
-            if (i == 0) {
-                fontName = annText->getFont();
-                fontSizeValue = sizeValue;
-            }
-            else {
-                if (annText->getFont() != fontName) {
-                    fontNameValid = false;
-                }
-                if (fontSizeValue != sizeValue) {
-                    haveMultipleFontSizeValues = true;
-                    fontSizeValue = std::min(fontSizeValue,
-                                             sizeValue);
-                }
-            }
-            
-            if ( ! annText->isBoldEnabled()) {
-                boldOnFlag = false;
-            }
-            if ( ! annText->isItalicEnabled()) {
-                italicOnFlag = false;
-            }
-            if ( ! annText->isUnderlineEnabled()) {
-                underlineOnFlag = false;
-            }
-        }
-        
-        m_fontNameComboBox->setSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>(fontName);
-        
-        updateFontSizeSpinBox(fontSizeValue,
-                              haveMultipleFontSizeValues);
-        
-        /*
-         * Font styles are ON only if all selected
-         * text annotations have the style enabled
-         */
-        m_boldFontAction->setChecked(boldOnFlag);
-        m_italicFontAction->setChecked(italicOnFlag);
-        m_underlineFontAction->setChecked(underlineOnFlag);
-        
-        AnnotationText::setUserDefaultFont(fontName);
-        AnnotationText::setUserDefaultFontPercentViewportSize(fontSizeValue);
-        AnnotationText::setUserDefaultBoldEnabled(boldOnFlag);
-        AnnotationText::setUserDefaultItalicEnabled(italicOnFlag);
-        AnnotationText::setUserDefaultUnderlineEnabled(underlineOnFlag);
-    }
-    
-    setEnabled( ! annotationTexts.empty());
-}
+///**
+// * Update the content of this widget with the given text annotation.
+// *
+// * @param annotationTexts
+// *     Text annotations for display (may be NULL).
+// */
+//void
+//AnnotationFontWidget::updateAnnotationTextContent(std::vector<AnnotationText*>& annotationTexts)
+//{
+//    if ( ! annotationTexts.empty()) {
+//        bool boldOnFlag      = true;
+//        bool italicOnFlag    = true;
+//        bool underlineOnFlag = true;
+//        
+//        AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::VERA;
+//        bool fontNameValid = true;
+//        float fontSizeValue = 5.0;
+//        bool haveMultipleFontSizeValues = false;
+//        
+//        const int32_t numAnn = static_cast<int32_t>(annotationTexts.size());
+//        for (int32_t i = 0; i < numAnn; i++) {
+//            CaretAssertVectorIndex(annotationTexts, i);
+//            const AnnotationText* annText = annotationTexts[i];
+//            const AnnotationPercentSizeText* annPercentText = dynamic_cast<const AnnotationPercentSizeText*>(annText);
+//            
+//            const float sizeValue = annPercentText->getFontPercentViewportSize();
+//            if (i == 0) {
+//                fontName = annText->getFont();
+//                fontSizeValue = sizeValue;
+//            }
+//            else {
+//                if (annText->getFont() != fontName) {
+//                    fontNameValid = false;
+//                }
+//                if (fontSizeValue != sizeValue) {
+//                    haveMultipleFontSizeValues = true;
+//                    fontSizeValue = std::min(fontSizeValue,
+//                                             sizeValue);
+//                }
+//            }
+//            
+//            if ( ! annText->isBoldStyleEnabled()) {
+//                boldOnFlag = false;
+//            }
+//            if ( ! annText->isItalicStyleEnabled()) {
+//                italicOnFlag = false;
+//            }
+//            if ( ! annText->isUnderlineStyleEnabled()) {
+//                underlineOnFlag = false;
+//            }
+//        }
+//        
+//        m_fontNameComboBox->setSelectedItem<AnnotationTextFontNameEnum,AnnotationTextFontNameEnum::Enum>(fontName);
+//        
+//        updateFontSizeSpinBox(fontSizeValue,
+//                              haveMultipleFontSizeValues);
+//        
+//        /*
+//         * Font styles are ON only if all selected
+//         * text annotations have the style enabled
+//         */
+//        m_boldFontAction->setChecked(boldOnFlag);
+//        m_italicFontAction->setChecked(italicOnFlag);
+//        m_underlineFontAction->setChecked(underlineOnFlag);
+//        
+//        AnnotationText::setUserDefaultFont(fontName);
+//        AnnotationText::setUserDefaultFontPercentViewportSize(fontSizeValue);
+//        AnnotationText::setUserDefaultBoldEnabled(boldOnFlag);
+//        AnnotationText::setUserDefaultItalicEnabled(italicOnFlag);
+//        AnnotationText::setUserDefaultUnderlineEnabled(underlineOnFlag);
+//    }
+//    
+//    setEnabled( ! annotationTexts.empty());
+//}
 
 /**
  * Update the font size spin box.

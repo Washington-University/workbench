@@ -22,8 +22,8 @@
 /*LICENSE_END*/
 
 #include "AnnotationColorBarPositionModeEnum.h"
+#include "AnnotationFontAttributesInterface.h"
 #include "AnnotationTextAlignHorizontalEnum.h"
-#include "AnnotationTextFontNameEnum.h"
 #include "AnnotationTwoDimensionalShape.h"
 
 namespace caret {
@@ -31,7 +31,7 @@ namespace caret {
     class AnnotationColorBarSection;
     class AnnotationColorBarNumericText;
     
-    class AnnotationColorBar : public AnnotationTwoDimensionalShape {
+    class AnnotationColorBar : public AnnotationTwoDimensionalShape, public AnnotationFontAttributesInterface {
         
     public:
         AnnotationColorBar(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
@@ -44,17 +44,33 @@ namespace caret {
         
         void reset();
         
-        AnnotationTextFontNameEnum::Enum getFont() const;
+        virtual AnnotationTextFontNameEnum::Enum getFont() const;
         
-        void setFont(const AnnotationTextFontNameEnum::Enum font);
+        virtual void setFont(const AnnotationTextFontNameEnum::Enum font);
         
-        float getFontPercentViewportSize() const;
+        virtual float getFontPercentViewportSize() const;
         
-        void setFontPercentViewportSize(const float fontPercentViewportHeight);
+        virtual void setFontPercentViewportSize(const float fontPercentViewportHeight);
         
         AnnotationColorBarPositionModeEnum::Enum getPositionMode() const;
         
         void setPositionMode(const AnnotationColorBarPositionModeEnum::Enum positionMode);
+        
+        virtual bool isStylesSupported() const;
+        
+        virtual bool isBoldStyleEnabled() const;
+        
+        virtual void setBoldStyleEnabled(const bool enabled);
+        
+        virtual bool isItalicStyleEnabled() const;
+        
+        virtual void setItalicStyleEnabled(const bool enabled);
+        
+        virtual bool isUnderlineStyleEnabled() const;
+        
+        virtual void setUnderlineStyleEnabled(const bool enabled);
+        
+        virtual bool isForegroundLineWidthSupported() const;
         
         bool isDisplayed() const;
         

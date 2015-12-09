@@ -30,7 +30,9 @@
 
 namespace caret {
 
+    class Annotation;
     class AnnotationColorBar;
+    class AnnotationFontAttributesInterface;
     class AnnotationText;
     class EnumComboBoxTemplate;
     class WuQSpecialIncrementDoubleSpinBox;
@@ -45,8 +47,10 @@ namespace caret {
                              QWidget* parent = 0);
         
         virtual ~AnnotationFontWidget();
-        
-        void updateAnnotationTextContent(std::vector<AnnotationText*>& annotationText);
+
+        void updateContent(std::vector<AnnotationFontAttributesInterface*>& annotations);
+
+        //void updateAnnotationTextContent(std::vector<AnnotationText*>& annotationText);
         
         void updateAnnotationColorBarContent(AnnotationColorBar* annotationColorBar);
         

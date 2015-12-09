@@ -43,6 +43,10 @@ namespace caret {
         
         void setFontPointSize(const AnnotationTextFontPointSizeEnum::Enum fontPointSize);
         
+        virtual float getFontPercentViewportSize() const;
+        
+        virtual void setFontPercentViewportSize(const float fontPercentViewportHeight);
+        
 
         // ADD_NEW_METHODS_HERE
 

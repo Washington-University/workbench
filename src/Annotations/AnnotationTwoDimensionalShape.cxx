@@ -25,6 +25,7 @@
 #include "AnnotationTwoDimensionalShape.h"
 #undef __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
 
+#include "AnnotationColorBar.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationSpatialModification.h"
 #include "CaretAssert.h"
@@ -289,6 +290,14 @@ AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
     setCoordinateSpace(otherAnnotation->getCoordinateSpace());
     setTabIndex(otherAnnotation->getTabIndex());
     setWindowIndex(otherAnnotation->getWindowIndex());
+    
+    /*
+     * Switch color bar to manual positioning
+     */
+    AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(this);
+    if (colorBar != NULL) {
+        colorBar->setPositionMode(AnnotationColorBarPositionModeEnum::MANUAL);
+    }
 }
 
 /**
@@ -336,6 +345,9 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             allowsRotationFlag = true;
             break;
         case AnnotationTypeEnum::COLOR_BAR:
+            allowsMovingFlag   = true;
+            allowsResizingFlag = true;
+            allowsRotationFlag = true;
             break;
         case AnnotationTypeEnum::IMAGE:
             break;

@@ -280,6 +280,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     
     std::vector<AnnotationLine*> lineAnnotations;
     std::vector<AnnotationText*> textAnnotations;
+    std::vector<AnnotationFontAttributesInterface*> fontStyleAnnotations;
     std::vector<AnnotationTwoDimensionalShape*> twoDimAnnotations;
     std::vector<AnnotationOneDimensionalShape*> oneDimAnnotations;
     
@@ -292,6 +293,11 @@ UserInputModeAnnotationsWidget::updateWidget()
         AnnotationText* annText = dynamic_cast<AnnotationText*>(ann);
         if (annText != NULL) {
             textAnnotations.push_back(annText);
+        }
+        
+        AnnotationFontAttributesInterface* annFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(ann);
+        if (annFontStyle != NULL) {
+            fontStyleAnnotations.push_back(annFontStyle);
         }
         
         AnnotationOneDimensionalShape* annOne = dynamic_cast<AnnotationOneDimensionalShape*>(ann);
@@ -311,7 +317,8 @@ UserInputModeAnnotationsWidget::updateWidget()
     }
     
     m_coordinateSpaceWidget->updateContent(selectedAnnotations);
-    m_fontWidget->updateAnnotationTextContent(textAnnotations);
+    m_fontWidget->updateContent(fontStyleAnnotations);
+    //m_fontWidget->updateAnnotationTextContent(textAnnotations);
     m_textEditorWidget->updateContent(textAnnotations);
     m_colorWidget->updateContent(selectedAnnotations);
     m_lineArrowTipsWidget->updateContent(lineAnnotations);

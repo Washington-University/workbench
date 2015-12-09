@@ -23,6 +23,7 @@
 #include "AnnotationRedoUndoCommand.h"
 #undef __ANNOTATION_UNDO_COMMAND_DECLARE__
 
+#include "AnnotationFontAttributesInterface.h"
 #include "AnnotationLine.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
@@ -282,11 +283,11 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_BOLD:
         {
-            AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
-            const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
+            AnnotationFontAttributesInterface* textAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+            const AnnotationFontAttributesInterface* textAnnValue = dynamic_cast<const AnnotationFontAttributesInterface*>(annotationValue);
             if ((textAnn != NULL)
                 && (textAnnValue != NULL)) {
-                textAnn->setBoldEnabled(textAnnValue->isBoldEnabled());
+                textAnn->setBoldStyleEnabled(textAnnValue->isBoldStyleEnabled());
             }
             else {
                 CaretAssert(0);
@@ -295,11 +296,11 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_ITALIC:
         {
-            AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
-            const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
+            AnnotationFontAttributesInterface* textAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+            const AnnotationFontAttributesInterface* textAnnValue = dynamic_cast<const AnnotationFontAttributesInterface*>(annotationValue);
             if ((textAnn != NULL)
                 && (textAnnValue != NULL)) {
-                textAnn->setItalicEnabled(textAnnValue->isItalicEnabled());
+                textAnn->setItalicStyleEnabled(textAnnValue->isItalicStyleEnabled());
             }
             else {
                 CaretAssert(0);
@@ -308,8 +309,8 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_NAME:
         {
-            AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
-            const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
+            AnnotationFontAttributesInterface* textAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+            const AnnotationFontAttributesInterface* textAnnValue = dynamic_cast<const AnnotationFontAttributesInterface*>(annotationValue);
             if ((textAnn != NULL)
                 && (textAnnValue != NULL)) {
                 textAnn->setFont(textAnnValue->getFont());
@@ -321,8 +322,8 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_PERCENT_SIZE:
         {
-            AnnotationPercentSizeText* textAnn = dynamic_cast<AnnotationPercentSizeText*>(annotation);
-            const AnnotationPercentSizeText* textAnnValue = dynamic_cast<const AnnotationPercentSizeText*>(annotationValue);
+            AnnotationFontAttributesInterface* textAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+            const AnnotationFontAttributesInterface* textAnnValue = dynamic_cast<const AnnotationFontAttributesInterface*>(annotationValue);
             if ((textAnn != NULL)
                 && (textAnnValue != NULL)) {
                 textAnn->setFontPercentViewportSize(textAnnValue->getFontPercentViewportSize());
@@ -347,11 +348,11 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_FONT_UNDERLINE:
         {
-            AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
-            const AnnotationText* textAnnValue = dynamic_cast<const AnnotationText*>(annotationValue);
+            AnnotationFontAttributesInterface* textAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+            const AnnotationFontAttributesInterface* textAnnValue = dynamic_cast<const AnnotationFontAttributesInterface*>(annotationValue);
             if ((textAnn != NULL)
                 && (textAnnValue != NULL)) {
-                textAnn->setUnderlineEnabled(textAnnValue->isUnderlineEnabled());
+                textAnn->setUnderlineStyleEnabled(textAnnValue->isUnderlineStyleEnabled());
             }
             else {
                 CaretAssert(0);
@@ -1254,10 +1255,12 @@ AnnotationRedoUndoCommand::setModeTextFontBold(const bool newStatus,
         Annotation* annotation = *iter;
         CaretAssert(annotation);
         
-        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
-            CaretAssert(redoAnnotation);
-            redoAnnotation->setBoldEnabled(newStatus);
+        AnnotationFontAttributesInterface* fontStyleAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+        if (fontStyleAnn != NULL) {
+            Annotation* redoAnnotation = annotation->clone();
+            AnnotationFontAttributesInterface* redoAnnotationFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(redoAnnotation);
+            CaretAssert(redoAnnotationFontStyle);
+            redoAnnotationFontStyle->setBoldStyleEnabled(newStatus);
             
             Annotation* undoAnnotation = annotation->clone();
             AnnotationMemento* am = new AnnotationMemento(annotation,
@@ -1289,10 +1292,12 @@ AnnotationRedoUndoCommand::setModeTextFontItalic(const bool newStatus,
         Annotation* annotation = *iter;
         CaretAssert(annotation);
         
-        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
-            CaretAssert(redoAnnotation);
-            redoAnnotation->setItalicEnabled(newStatus);
+        AnnotationFontAttributesInterface* fontStyleAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+        if (fontStyleAnn != NULL) {
+            Annotation* redoAnnotation = annotation->clone();
+            AnnotationFontAttributesInterface* redoAnnotationFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(redoAnnotation);
+            CaretAssert(redoAnnotationFontStyle);
+            redoAnnotationFontStyle->setItalicStyleEnabled(newStatus);
             
             Annotation* undoAnnotation = annotation->clone();
             AnnotationMemento* am = new AnnotationMemento(annotation,
@@ -1324,10 +1329,12 @@ AnnotationRedoUndoCommand::setModeTextFontName(const AnnotationTextFontNameEnum:
         Annotation* annotation = *iter;
         CaretAssert(annotation);
         
-        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
-            CaretAssert(redoAnnotation);
-            redoAnnotation->setFont(newFontName);
+        AnnotationFontAttributesInterface* fontStyleAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+        if (fontStyleAnn != NULL) {
+            Annotation* redoAnnotation = annotation->clone();
+            AnnotationFontAttributesInterface* redoAnnotationFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(redoAnnotation);
+            CaretAssert(redoAnnotationFontStyle);
+            redoAnnotationFontStyle->setFont(newFontName);
             
             Annotation* undoAnnotation = annotation->clone();
             AnnotationMemento* am = new AnnotationMemento(annotation,
@@ -1383,7 +1390,7 @@ AnnotationRedoUndoCommand::setModeTextFontPointSize(const AnnotationTextFontPoin
  */
 void
 AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercentSize,
-                                                    const std::vector<Annotation*>& annotations)
+                                                      const std::vector<Annotation*>& annotations)
 {
     m_mode        = AnnotationRedoUndoCommandModeEnum::TEXT_FONT_PERCENT_SIZE;
     setDescription("Text Font Percent Size");
@@ -1394,10 +1401,12 @@ AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercent
         Annotation* annotation = *iter;
         CaretAssert(annotation);
         
-        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            AnnotationPercentSizeText* redoAnnotation = dynamic_cast<AnnotationPercentSizeText*>(annotation->clone());
-            CaretAssert(redoAnnotation);
-            redoAnnotation->setFontPercentViewportSize(newFontPercentSize);
+        AnnotationFontAttributesInterface* fontStyleAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+        if (fontStyleAnn != NULL) {
+            Annotation* redoAnnotation = annotation->clone();
+            AnnotationFontAttributesInterface* redoAnnotationFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(redoAnnotation);
+            CaretAssert(redoAnnotationFontStyle);
+            redoAnnotationFontStyle->setFontPercentViewportSize(newFontPercentSize);
             
             Annotation* undoAnnotation = annotation->clone();
             AnnotationMemento* am = new AnnotationMemento(annotation,
@@ -1407,6 +1416,33 @@ AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercent
         }
     }
 }
+
+//void
+//AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercentSize,
+//                                                    const std::vector<Annotation*>& annotations)
+//{
+//    m_mode        = AnnotationRedoUndoCommandModeEnum::TEXT_FONT_PERCENT_SIZE;
+//    setDescription("Text Font Percent Size");
+//    
+//    for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
+//         iter != annotations.end();
+//         iter++) {
+//        Annotation* annotation = *iter;
+//        CaretAssert(annotation);
+//        
+//        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+//            AnnotationPercentSizeText* redoAnnotation = dynamic_cast<AnnotationPercentSizeText*>(annotation->clone());
+//            CaretAssert(redoAnnotation);
+//            redoAnnotation->setFontPercentViewportSize(newFontPercentSize);
+//            
+//            Annotation* undoAnnotation = annotation->clone();
+//            AnnotationMemento* am = new AnnotationMemento(annotation,
+//                                                          redoAnnotation,
+//                                                          undoAnnotation);
+//            m_annotationMementos.push_back(am);
+//        }
+//    }
+//}
 
 /**
  * Set the mode to text font underline and create the undo/redo instances.
@@ -1429,10 +1465,12 @@ AnnotationRedoUndoCommand::setModeTextFontUnderline(const bool newStatus,
         Annotation* annotation = *iter;
         CaretAssert(annotation);
         
-        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            AnnotationText* redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
-            CaretAssert(redoAnnotation);
-            redoAnnotation->setUnderlineEnabled(newStatus);
+        AnnotationFontAttributesInterface* fontStyleAnn = dynamic_cast<AnnotationFontAttributesInterface*>(annotation);
+        if (fontStyleAnn != NULL) {
+            Annotation* redoAnnotation = annotation->clone();
+            AnnotationFontAttributesInterface* redoAnnotationFontStyle = dynamic_cast<AnnotationFontAttributesInterface*>(redoAnnotation);
+            CaretAssert(redoAnnotationFontStyle);
+            redoAnnotationFontStyle->setUnderlineStyleEnabled(newStatus);
             
             Annotation* undoAnnotation = annotation->clone();
             AnnotationMemento* am = new AnnotationMemento(annotation,

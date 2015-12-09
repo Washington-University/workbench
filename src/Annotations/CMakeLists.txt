@@ -27,6 +27,7 @@ AnnotationColorBarPositionModeEnum.h
 AnnotationColorBarSection.h
 AnnotationCoordinate.h
 AnnotationCoordinateSpaceEnum.h
+AnnotationFontAttributesInterface.h
 AnnotationTextFontPointSizeEnum.h
 AnnotationImage.h
 AnnotationLine.h

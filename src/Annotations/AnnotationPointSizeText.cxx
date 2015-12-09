@@ -114,4 +114,30 @@ AnnotationPointSizeText::setFontPointSize(const AnnotationTextFontPointSizeEnum:
     setFontPointSizeProtected(fontPointSize);
 }
 
+/**
+ * @return Size of font as a percentage of the viewport height.
+ *
+ * Range is zero to one hundred.
+ */
+float
+AnnotationPointSizeText::getFontPercentViewportSize() const
+{
+    CaretAssertMessage(0, "This method should never be called for Point Size Text");
+    return 10.0;
+}
+
+/**
+ * Set the size of the font as a percentage of the viewport height.
+ *
+ * @param fontPercentViewportHeight
+ *    New value for percentage of viewport height.
+ *    Range is zero to one hundred.
+ */
+void
+AnnotationPointSizeText::setFontPercentViewportSize(const float /*fontPercentViewportHeight*/)
+{
+    CaretAssertMessage(0, "This method should never be called for Point Size Text");
+}
+
+
 

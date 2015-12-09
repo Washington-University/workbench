@@ -39,9 +39,9 @@ namespace caret {
 
         AnnotationPercentSizeText& operator=(const AnnotationPercentSizeText& obj);
         
-        float getFontPercentViewportSize() const;
+        virtual float getFontPercentViewportSize() const;
         
-        void setFontPercentViewportSize(const float fontPercentViewportHeight);
+        virtual void setFontPercentViewportSize(const float fontPercentViewportHeight);
         
 
         // ADD_NEW_METHODS_HERE

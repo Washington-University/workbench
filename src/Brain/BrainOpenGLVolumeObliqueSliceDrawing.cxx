@@ -3357,7 +3357,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         AnnotationPointSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        annotationText.setBoldEnabled(true);
+        annotationText.setBoldStyleEnabled(true);
         annotationText.setFontPointSize(fontSize);
         annotationText.setForegroundColor(CaretColorEnum::CUSTOM);
         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);

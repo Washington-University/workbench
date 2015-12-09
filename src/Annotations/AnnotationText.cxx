@@ -456,11 +456,20 @@ AnnotationText::setOrientation(const AnnotationTextOrientationEnum::Enum orienta
 }
 
 /**
+ * Are font styles (Bold, Italic, Underline) supported?
+ */
+bool
+AnnotationText::isStylesSupported() const
+{
+    return true;
+}
+
+/**
  * @return
  *    Is bold enabled ?
  */
 bool
-AnnotationText::isBoldEnabled() const
+AnnotationText::isBoldStyleEnabled() const
 {
     return m_boldEnabled;
 }
@@ -472,7 +481,7 @@ AnnotationText::isBoldEnabled() const
  *     New status for bold enabled.
  */
 void
-AnnotationText::setBoldEnabled(const bool enabled)
+AnnotationText::setBoldStyleEnabled(const bool enabled)
 {
     if (enabled != m_boldEnabled) {
         m_boldEnabled = enabled;
@@ -485,7 +494,7 @@ AnnotationText::setBoldEnabled(const bool enabled)
  *    Is italic enabled ?
  */
 bool
-AnnotationText::isItalicEnabled() const
+AnnotationText::isItalicStyleEnabled() const
 {
     return m_italicEnabled;
 }
@@ -497,7 +506,7 @@ AnnotationText::isItalicEnabled() const
  *     New status for italic enabled.
  */
 void
-AnnotationText::setItalicEnabled(const bool enabled)
+AnnotationText::setItalicStyleEnabled(const bool enabled)
 {
     if (enabled != m_italicEnabled) {
         m_italicEnabled = enabled;
@@ -510,7 +519,7 @@ AnnotationText::setItalicEnabled(const bool enabled)
  *    Is underline enabled ?
  */
 bool
-AnnotationText::isUnderlineEnabled() const
+AnnotationText::isUnderlineStyleEnabled() const
 {
     return m_underlineEnabled;
 }
@@ -535,7 +544,7 @@ AnnotationText::isForegroundLineWidthSupported() const
  *     New status for underline enabled.
  */
 void
-AnnotationText::setUnderlineEnabled(const bool enabled)
+AnnotationText::setUnderlineStyleEnabled(const bool enabled)
 {
     if (enabled != m_underlineEnabled) {
         m_underlineEnabled = enabled;
@@ -664,7 +673,6 @@ AnnotationText::applySpatialModification(const AnnotationSpatialModification& sp
     
     return validFlag;
 }
-
 
 /**
  * Save subclass data to the scene.

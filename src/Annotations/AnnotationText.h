@@ -21,11 +21,10 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationFontAttributesInterface.h"
 #include "AnnotationTextFontPointSizeEnum.h"
 #include "AnnotationTextAlignHorizontalEnum.h"
 #include "AnnotationTextAlignVerticalEnum.h"
-#include "AnnotationTextFontNameEnum.h"
 #include "AnnotationTextFontSizeTypeEnum.h"
 #include "AnnotationTextConnectTypeEnum.h"
 #include "AnnotationTextOrientationEnum.h"
@@ -34,7 +33,7 @@
 
 namespace caret {
 
-    class AnnotationText : public AnnotationTwoDimensionalShape {
+    class AnnotationText : public AnnotationTwoDimensionalShape, public AnnotationFontAttributesInterface {
         
     public:
         virtual ~AnnotationText();
@@ -57,9 +56,13 @@ namespace caret {
         
         void setVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment);
         
-        AnnotationTextFontNameEnum::Enum getFont() const;
+        virtual AnnotationTextFontNameEnum::Enum getFont() const;
         
-        void setFont(const AnnotationTextFontNameEnum::Enum font);
+        virtual void setFont(const AnnotationTextFontNameEnum::Enum font);
+        
+        virtual float getFontPercentViewportSize() const = 0;
+        
+        virtual void setFontPercentViewportSize(const float fontPercentViewportHeight) = 0;
         
         AnnotationTextOrientationEnum::Enum getOrientation() const;
         
@@ -69,17 +72,19 @@ namespace caret {
         
         AnnotationTextFontSizeTypeEnum::Enum getFontSizeType() const;
         
-        bool isBoldEnabled() const;
+        virtual bool isStylesSupported() const;
         
-        void setBoldEnabled(const bool enabled);
+        virtual bool isBoldStyleEnabled() const;
         
-        bool isItalicEnabled() const;
+        virtual void setBoldStyleEnabled(const bool enabled);
         
-        void setItalicEnabled(const bool enabled);
+        virtual bool isItalicStyleEnabled() const;
         
-        bool isUnderlineEnabled() const;
+        virtual void setItalicStyleEnabled(const bool enabled);
         
-        void setUnderlineEnabled(const bool enabled);
+        virtual bool isUnderlineStyleEnabled() const;
+        
+        virtual void setUnderlineStyleEnabled(const bool enabled);
         
         AnnotationTextConnectTypeEnum::Enum getConnectToBrainordinate() const;
         

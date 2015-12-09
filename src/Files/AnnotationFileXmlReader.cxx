@@ -611,13 +611,13 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
     
     const QXmlStreamAttributes attributes = m_stream->attributes();
     
-    textAnnotation->setBoldEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
+    textAnnotation->setBoldStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
                                                                  ELEMENT_TEXT_DATA,
                                                                  ATTRIBUTE_TEXT_FONT_BOLD));
-    textAnnotation->setItalicEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
+    textAnnotation->setItalicStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
                                                                    ELEMENT_TEXT_DATA,
                                                                    ATTRIBUTE_TEXT_FONT_ITALIC));
-    textAnnotation->setUnderlineEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
+    textAnnotation->setUnderlineStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
                                                                    ELEMENT_TEXT_DATA,
                                                                    ATTRIBUTE_TEXT_FONT_UNDERLINE));
     

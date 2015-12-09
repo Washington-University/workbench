@@ -59,9 +59,9 @@ m_glWidget(glWidget)
     AnnotationPointSizeText defaultAnnotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
     defaultAnnotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
     defaultAnnotationText.setFont(AnnotationTextFontNameEnum::VERA);
-    defaultAnnotationText.setItalicEnabled(false);
-    defaultAnnotationText.setBoldEnabled(false);
-    defaultAnnotationText.setUnderlineEnabled(false);
+    defaultAnnotationText.setItalicStyleEnabled(false);
+    defaultAnnotationText.setBoldStyleEnabled(false);
+    defaultAnnotationText.setUnderlineStyleEnabled(false);
     m_defaultFont = findFont(defaultAnnotationText,
                              true);
 }
@@ -1052,15 +1052,15 @@ QGLWidgetTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
     const AnnotationTextFontNameEnum::Enum fontEnumName = annotationText.getFont();
     
     AString fontFileName = AnnotationTextFontNameEnum::getResourceFontFileName(fontEnumName);
-    if (annotationText.isBoldEnabled()
-        && annotationText.isItalicEnabled()) {
+    if (annotationText.isBoldStyleEnabled()
+        && annotationText.isItalicStyleEnabled()) {
         fontFileName = AnnotationTextFontNameEnum::getResourceBoldItalicFontFileName(fontEnumName);
     }
-    else if (annotationText.isBoldEnabled()) {
+    else if (annotationText.isBoldStyleEnabled()) {
         fontFileName = AnnotationTextFontNameEnum::getResourceBoldFontFileName(fontEnumName);
         
     }
-    else if (annotationText.isItalicEnabled()) {
+    else if (annotationText.isItalicStyleEnabled()) {
         fontFileName = AnnotationTextFontNameEnum::getResourceItalicFontFileName(fontEnumName);
     }
     
@@ -1083,9 +1083,9 @@ QGLWidgetTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
     const int32_t fontSizePoints = annotationText.getFontSizeForDrawing(viewportHeight);
     
     m_font->setPointSize(fontSizePoints);
-    m_font->setBold(annotationText.isBoldEnabled());
-    m_font->setItalic(annotationText.isItalicEnabled());
-    m_font->setUnderline(annotationText.isUnderlineEnabled());
+    m_font->setBold(annotationText.isBoldStyleEnabled());
+    m_font->setItalic(annotationText.isItalicStyleEnabled());
+    m_font->setUnderline(annotationText.isUnderlineStyleEnabled());
     
     m_valid = true;
     

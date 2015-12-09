@@ -280,15 +280,15 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     
     QXmlStreamAttributes textDataAttributes;
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_BOLD,
-                              AString::fromBool(text->isBoldEnabled()));
+                              AString::fromBool(text->isBoldStyleEnabled()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_ITALIC,
-                              AString::fromBool(text->isItalicEnabled()));
+                              AString::fromBool(text->isItalicStyleEnabled()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_NAME,
                               AnnotationTextFontNameEnum::toName(text->getFont()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_POINT_SIZE,
                               AnnotationTextFontPointSizeEnum::toName(text->getFontPointSizeProtected()));
     textDataAttributes.append(ATTRIBUTE_TEXT_FONT_UNDERLINE,
-                              AString::fromBool(text->isUnderlineEnabled()));
+                              AString::fromBool(text->isUnderlineStyleEnabled()));
     textDataAttributes.append(ATTRIBUTE_TEXT_HORIZONTAL_ALIGNMENT,
                               AnnotationTextAlignHorizontalEnum::toName(text->getHorizontalAlignment()));
     textDataAttributes.append(ATTRIBUTE_TEXT_ORIENTATION,

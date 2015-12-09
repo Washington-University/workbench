@@ -122,9 +122,9 @@ FtglFontTextRenderer::FtglFontTextRenderer()
     AnnotationPointSizeText defaultAnnotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
     defaultAnnotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
     defaultAnnotationText.setFont(AnnotationTextFontNameEnum::VERA);
-    defaultAnnotationText.setItalicEnabled(false);
-    defaultAnnotationText.setBoldEnabled(false);
-    defaultAnnotationText.setUnderlineEnabled(false);
+    defaultAnnotationText.setItalicStyleEnabled(false);
+    defaultAnnotationText.setBoldStyleEnabled(false);
+    defaultAnnotationText.setUnderlineStyleEnabled(false);
     m_defaultFont = getFont(defaultAnnotationText,
                             true);
 #endif // HAVE_FREETYPE
@@ -845,15 +845,15 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
     const AnnotationTextFontNameEnum::Enum fontName = annotationText.getFont();
     
     AString fontFileName = AnnotationTextFontNameEnum::getResourceFontFileName(fontName);
-    if (annotationText.isBoldEnabled()
-        && annotationText.isItalicEnabled()) {
+    if (annotationText.isBoldStyleEnabled()
+        && annotationText.isItalicStyleEnabled()) {
         fontFileName = AnnotationTextFontNameEnum::getResourceBoldItalicFontFileName(fontName);
     }
-    else if (annotationText.isBoldEnabled()) {
+    else if (annotationText.isBoldStyleEnabled()) {
         fontFileName = AnnotationTextFontNameEnum::getResourceBoldFontFileName(fontName);
         
     }
-    else if (annotationText.isItalicEnabled()) {
+    else if (annotationText.isItalicStyleEnabled()) {
         fontFileName = AnnotationTextFontNameEnum::getResourceItalicFontFileName(fontName);
     }
     
@@ -1418,7 +1418,7 @@ m_viewportBoundsMaxY(0.0)
      * The underline for text is scaled with the size of the font
      * Underline is drawn anytime it is greater than zero
      */
-    if (annotationText.isUnderlineEnabled()) {
+    if (annotationText.isUnderlineStyleEnabled()) {
         if (annotationText.getOrientation() == AnnotationTextOrientationEnum::HORIZONTAL) {
             m_underlineWidth = std::max((font->FaceSize() / 14.0),
                                         1.0);
