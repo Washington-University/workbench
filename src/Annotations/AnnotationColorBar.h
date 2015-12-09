@@ -44,6 +44,8 @@ namespace caret {
         
         void reset();
         
+        void resetSizeAttributes();
+        
         virtual AnnotationTextFontNameEnum::Enum getFont() const;
         
         virtual void setFont(const AnnotationTextFontNameEnum::Enum font);

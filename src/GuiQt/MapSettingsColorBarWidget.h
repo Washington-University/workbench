@@ -30,10 +30,6 @@ class QSpinBox;
 
 namespace caret {
 
-    class AnnotationColorWidget;
-    class AnnotationCoordinateWidget;
-    class AnnotationFontWidget;
-    class AnnotationWidthHeightWidget;
     class EnumComboBoxTemplate;
     class PaletteColorMapping;
     
@@ -67,11 +63,9 @@ namespace caret {
 
         MapSettingsColorBarWidget& operator=(const MapSettingsColorBarWidget&);
         
-        QWidget* createColorBarSection();
+        QWidget* createDataNumericsSection();
         
-        QWidget* createLocationDimensionsSection();
-        
-        QWidget* createFontColorsSection();
+        QWidget* createLocationPositionSection();
         
         void updateColorBarAttributes();
         
@@ -83,14 +77,6 @@ namespace caret {
         
         EnumComboBoxTemplate* m_annotationCoordinateSpaceEnumComboBox;
         
-        AnnotationColorWidget* m_colorWidget;
-        
-        AnnotationCoordinateWidget* m_coordinateWidget;
-        
-        AnnotationFontWidget* m_fontWidget;
-        
-        AnnotationWidthHeightWidget* m_widthHeightWidget;
-
         EnumComboBoxTemplate* m_colorBarDataModeComboBox;
         
         QLabel* m_colorBarNumericFormatModeLabel;

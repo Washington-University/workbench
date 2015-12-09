@@ -135,10 +135,7 @@ AnnotationColorBar::copyHelperAnnotationColorBar(const AnnotationColorBar& obj)
 void
 AnnotationColorBar::reset()
 {
-    
-    setWidth(25.0);
-    setHeight(7.0);
-    m_fontPercentViewportHeight = 3.33;
+    resetSizeAttributes();
     m_fontName      = AnnotationTextFontNameEnum::getDefaultFontName();
     m_positionMode  = AnnotationColorBarPositionModeEnum::AUTOMATIC;
     m_displayedFlag = false;
@@ -150,6 +147,19 @@ AnnotationColorBar::reset()
     clearSections();
     clearNumericText();
 }
+
+/**
+ * Reset the size attributes of the color bar.
+ */
+void
+AnnotationColorBar::resetSizeAttributes()
+{
+    setWidth(25.0);
+    setHeight(7.0);
+    setRotationAngle(0.0);
+    m_fontPercentViewportHeight = 3.33;
+}
+
 
 /**
  * @return The font.
