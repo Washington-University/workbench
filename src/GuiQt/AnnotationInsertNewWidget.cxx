@@ -129,6 +129,23 @@ AnnotationInsertNewWidget::~AnnotationInsertNewWidget()
 void
 AnnotationInsertNewWidget::updateContent()
 {
+    /*
+     * Delete disabled if ANY colorbar is selected.
+     */
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getSelectedAnnotations();
+    bool noColorBarsSelectedFlag = true;
+    for (std::vector<Annotation*>::const_iterator iter = selectedAnnotations.begin();
+         iter != selectedAnnotations.end();
+         iter++) {
+        const Annotation* ann = *iter;
+        if (ann->getType() == AnnotationTypeEnum::COLOR_BAR) {
+            noColorBarsSelectedFlag = false;
+        }
+    }
+    
+    m_deleteToolButtonAction->setEnabled(noColorBarsSelectedFlag
+                                         && ( ! selectedAnnotations.empty()));
 }
 
 /**

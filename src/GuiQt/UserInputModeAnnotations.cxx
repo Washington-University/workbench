@@ -2160,24 +2160,39 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
     if (isEditMenuValid()) {
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
         const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getSelectedAnnotations();
-        const bool anySelectedFlag = ( ! allSelectedAnnotations.empty());
-        const bool oneSelectedFlag = (allSelectedAnnotations.size() == 1);
         
-        if (oneSelectedFlag) {
-            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::COPY);
-            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::CUT);
+        /*
+         * Copy, Cut, and Delete disabled if ANY colorbar is selected.
+         */
+        bool noColorBarsSelectedFlag = true;
+        for (std::vector<Annotation*>::const_iterator iter = allSelectedAnnotations.begin();
+             iter != allSelectedAnnotations.end();
+             iter++) {
+            const Annotation* ann = *iter;
+            if (ann->getType() == AnnotationTypeEnum::COLOR_BAR) {
+                noColorBarsSelectedFlag = false;
+            }
         }
-
+        
+        if (noColorBarsSelectedFlag) {
+            const bool anySelectedFlag = ( ! allSelectedAnnotations.empty());
+            const bool oneSelectedFlag = (allSelectedAnnotations.size() == 1);
+            
+            if (oneSelectedFlag) {
+                enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::COPY);
+                enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::CUT);
+            }
+            
+            if (anySelectedFlag) {
+                enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::DELETER);
+            }
+            
+            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
+        }
+        
         if (annotationManager->isAnnotationOnClipboardValid()) {
             enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::PASTE);
         }
-        
-        if (anySelectedFlag) {
-            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::DELETER);
-        }
-        
-        enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
-        
         
         CaretUndoStack* undoStack = annotationManager->getCommandRedoUndoStack();
         
