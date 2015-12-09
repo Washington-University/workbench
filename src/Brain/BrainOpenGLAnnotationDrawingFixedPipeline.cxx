@@ -1677,6 +1677,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
     float rgba[4];
     colorBar->getForegroundColorRGBA(rgba);
     annText.setCustomForegroundColor(rgba);
+    annText.setRotationAngle(colorBar->getRotationAngle());
     
     float bottomToTopUnitVector[3];
     MathFunctions::createUnitVector(bottomLeft,
