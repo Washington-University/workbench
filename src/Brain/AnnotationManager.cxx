@@ -24,6 +24,7 @@
 #undef __ANNOTATION_MANAGER_DECLARE__
 
 #include "Annotation.h"
+#include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
@@ -31,6 +32,7 @@
 #include "CaretLogger.h"
 #include "CaretUndoStack.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "EventAnnotationColorBarGet.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
 #include "SceneClass.h"
@@ -146,6 +148,17 @@ AnnotationManager::deselectAllAnnotations()
         CaretAssert(file);
         
         file->setAllAnnotationsSelected(false);
+    }
+
+    EventAnnotationColorBarGet colorBarEvent;
+    EventManager::get()->sendEvent(colorBarEvent.getPointer());
+    std::vector<AnnotationColorBar*> colorBars = colorBarEvent.getAnnotationColorBars();
+
+    for (std::vector<AnnotationColorBar*>::iterator iter = colorBars.begin();
+         iter != colorBars.end();
+         iter++) {
+        AnnotationColorBar* cb = *iter;
+        cb->setSelected(false);
     }
 }
 

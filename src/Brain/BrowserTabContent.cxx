@@ -47,6 +47,7 @@
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFoci.h"
+#include "EventAnnotationColorBarGet.h"
 #include "EventCaretMappableDataFileMapsViewedInOverlays.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventModelGetAll.h"
@@ -183,6 +184,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
                                                                    &m_yokingGroup);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     EventManager::get()->addEventListener(this,
@@ -1085,7 +1088,17 @@ BrowserTabContent::setAspectRatio(const float aspectRatio)
 void
 BrowserTabContent::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET) {
+        EventAnnotationColorBarGet* colorBarEvent = dynamic_cast<EventAnnotationColorBarGet*>(event);
+        CaretAssert(colorBarEvent);
+        
+        if (colorBarEvent->isGetAnnotationColorBarsForTabIndex(m_tabNumber)) {
+            std::vector<AnnotationColorBar*> colorBars;
+            getAnnotationColorBars(colorBars);
+            colorBarEvent->addAnnotationColorBars(colorBars);
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
         EventIdentificationHighlightLocation* idLocationEvent =
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);

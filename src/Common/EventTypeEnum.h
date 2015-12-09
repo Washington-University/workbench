@@ -42,6 +42,8 @@ public:
         EVENT_ALERT_USER,
         /** Add annotation to or remove from a file */
         EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE,
+        /** Get color bars from tab(s) */
+        EVENT_ANNOTATION_COLOR_BAR_GET,
         /** Annotation create new of a particular type */
         EVENT_ANNOTATION_CREATE_NEW_TYPE,
         /** Annotation toolbar update */

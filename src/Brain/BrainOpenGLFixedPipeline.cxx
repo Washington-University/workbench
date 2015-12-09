@@ -80,6 +80,7 @@
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
+#include "EventAnnotationColorBarGet.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
@@ -251,6 +252,10 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
     
     setTabViewport(viewportContent);
     
+    std::vector<BrainOpenGLViewportContent*> viewportContentsVector;
+    viewportContentsVector.push_back(viewportContent);
+    setAnnotationColorBarsForDrawing(viewportContentsVector);
+    
     m_clippingPlaneGroup = NULL;
     
     this->inverseRotationMatrixValid = false;
@@ -270,15 +275,9 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
     this->drawModelInternal(MODE_IDENTIFICATION,
                             viewportContent);
 
-    std::vector<BrainOpenGLViewportContent*> viewportContentsVector;
-    viewportContentsVector.push_back(viewportContent);
-    std::vector<AnnotationColorBar*> colorBars;
-    getWindowColorBars(viewportContentsVector, colorBars);
-
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
-    drawWindowAnnotations(windowViewport,
-                          colorBars);
+    drawWindowAnnotations(windowViewport);
     
     m_brain->getSelectionManager()->filterSelections(applySelectionBackgroundFiltering);
     
@@ -428,10 +427,11 @@ BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpCon
  *     Output with window color bars in the viewports.
  */
 void
-BrainOpenGLFixedPipeline::getWindowColorBars(std::vector<BrainOpenGLViewportContent*>& viewportContents,
-                                             std::vector<AnnotationColorBar*>& windowColorBarsOut)
+BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& viewportContents)
 {
-    windowColorBarsOut.clear();
+    m_annotationColorBarsForDrawing.clear();
+    
+    std::vector<int32_t> tabIndices;
     
     for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
         /*
@@ -441,14 +441,14 @@ BrainOpenGLFixedPipeline::getWindowColorBars(std::vector<BrainOpenGLViewportCont
         if (vpContent != NULL) {
             BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
             if (tabContent != NULL) {
-                std::vector<AnnotationColorBar*> colorBars;
-                tabContent->getAnnotationColorBars(colorBars);
-                windowColorBarsOut.insert(windowColorBarsOut.end(),
-                                          colorBars.begin(),
-                                          colorBars.end());
+                tabIndices.push_back(tabContent->getTabNumber());
             }
         }
     }
+    
+    EventAnnotationColorBarGet colorBarEvent(tabIndices);
+    EventManager::get()->sendEvent(colorBarEvent.getPointer());
+    m_annotationColorBarsForDrawing = colorBarEvent.getAnnotationColorBars();
 }
 
 /**
@@ -467,6 +467,8 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     CaretAssert(m_brain);
     
     setTabViewport(NULL);
+    
+    setAnnotationColorBarsForDrawing(viewportContents);
     
     this->inverseRotationMatrixValid = false;
     
@@ -506,10 +508,6 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     
     this->checkForOpenGLError(NULL, "At middle of drawModels()");
     
-    std::vector<AnnotationColorBar*> windowColorBars;
-    getWindowColorBars(viewportContents, windowColorBars);
-
-    
     for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
         /*
          * Viewport of window.
@@ -518,7 +516,7 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
         setTabViewport(vpContent);
         glViewport(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
         
-        BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
+//        BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
 //        if (tabContent != NULL) {
 //            std::vector<AnnotationColorBar*> colorBars;
 //            tabContent->getAnnotationColorBars(colorBars);
@@ -636,8 +634,7 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
         int windowViewport[4];
         viewportContents[0]->getWindowViewport(windowViewport);
         this->windowIndex = viewportContents[0]->getWindowIndex();
-        drawWindowAnnotations(windowViewport,
-                              windowColorBars);
+        drawWindowAnnotations(windowViewport);
     }
     
     this->checkForOpenGLError(NULL, "At end of drawModels()");
@@ -652,8 +649,7 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
  *    Viewport (x, y, w, h).
  */
 void
-BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4],
-                                                std::vector<AnnotationColorBar*>& colorBars)
+BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
 {
     CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing window annotations.");
     glViewport(windowViewport[0],
@@ -667,8 +663,8 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4],
     glPushMatrix();
     glLoadIdentity();
     
-    for (std::vector<AnnotationColorBar*>::iterator iter = colorBars.begin();
-         iter != colorBars.end();
+    for (std::vector<AnnotationColorBar*>::iterator iter = m_annotationColorBarsForDrawing.begin();
+         iter != m_annotationColorBarsForDrawing.end();
          iter++) {
         AnnotationColorBar* cb = *iter;
         CaretAssert(cb);
@@ -677,7 +673,7 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4],
     
     m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::WINDOW,
                                          m_tabViewport,
-                                         colorBars,
+                                         m_annotationColorBarsForDrawing,
                                          NULL,
                                          BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
     
@@ -772,11 +768,9 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 this->drawAllPalettes(model->getBrain());
             }
             
-            std::vector<AnnotationColorBar*> colorBars;
-            this->browserTabContent->getAnnotationColorBars(colorBars);
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::TAB,
                                                  m_tabViewport,
-                                                 colorBars,
+                                                 m_annotationColorBarsForDrawing,
                                                  NULL,
                                                  BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
         }
@@ -1551,16 +1545,16 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * the model annotations.
              */
             //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
-            std::vector<AnnotationColorBar*> colorBars;
+            std::vector<AnnotationColorBar*> emptyColorBars;
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
                                                  m_tabViewport,
-                                                 colorBars,
+                                                 emptyColorBars,
                                                  surface,
                                                  BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      m_tabViewport,
-                                                     colorBars,
+                                                     emptyColorBars,
                                                      NULL,
                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
             }
@@ -1593,16 +1587,16 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * the model annotations.
              */
             //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
-            std::vector<AnnotationColorBar*> colorBars;
+            std::vector<AnnotationColorBar*> emptyColorBars;
             m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
                                                  m_tabViewport,
-                                                 colorBars,
+                                                 emptyColorBars,
                                                  surface,
                                                  BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      m_tabViewport,
-                                                     colorBars,
+                                                     emptyColorBars,
                                                      NULL,
                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
             }

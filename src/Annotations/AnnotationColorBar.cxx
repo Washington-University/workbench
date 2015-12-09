@@ -234,6 +234,12 @@ AnnotationColorBar::isDisplayed() const
 /**
  * Set the color bar annotation displayed.
  *
+ * Note that this also sets the annotation's selection
+ * status to off so that if the user turns off display
+ * of the annotation while the annotation is selected
+ * the annotation does not show up as selected when
+ * the color bar is later displayed by the user.
+ *
  * @param displayed
  *     New status for display of colorbar.
  */
@@ -242,6 +248,7 @@ AnnotationColorBar::setDisplayed(const bool displayed)
 {
     if (displayed != m_displayedFlag) {
         m_displayedFlag = displayed;
+        setDeselected();
         setModified();
     }
 }

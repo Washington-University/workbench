@@ -446,8 +446,7 @@ namespace caret {
         void drawTextAtModelCoords(const float modelXYZ[3],
                                    const AnnotationText& annotationText);
         
-        void drawWindowAnnotations(const int windowViewport[4],
-                                   std::vector<AnnotationColorBar*>& colorBars);
+        void drawWindowAnnotations(const int windowViewport[4]);
         
         void drawAllPalettes(Brain* brain);
         
@@ -502,8 +501,7 @@ namespace caret {
         
         void setTabViewport(const BrainOpenGLViewportContent* vpContent);
         
-        void getWindowColorBars(std::vector<BrainOpenGLViewportContent*>& viewportContents,
-                                std::vector<AnnotationColorBar*>& windowColorBarsOut);
+        void setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& viewportContents);
         
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
@@ -598,6 +596,8 @@ namespace caret {
         double orthographicNear;
         
         CaretPointer<BrainOpenGLAnnotationDrawingFixedPipeline> m_annotationDrawing;
+        
+        std::vector<AnnotationColorBar*> m_annotationColorBarsForDrawing;
         
         static bool s_staticInitialized;
 

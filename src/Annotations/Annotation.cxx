@@ -873,6 +873,15 @@ Annotation::setSelected(const bool selectedStatus) const
 }
 
 /**
+ * Set the annotation's selected status to deselected.
+ */
+void
+Annotation::setDeselected()
+{
+    setSelected(false);
+}
+
+/**
  * @return Is moved by the GUI?
  */
 

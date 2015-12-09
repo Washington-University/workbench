@@ -92,6 +92,7 @@ DisplayPropertiesLabels.h
 DisplayPropertiesSurface.h
 DisplayPropertiesVolume.h
 DummyFontTextRenderer.h
+EventAnnotationColorBarGet.h
 EventBrainReset.h
 EventBrainStructureGetAll.h
 EventBrowserTabDelete.h
@@ -218,6 +219,7 @@ DisplayPropertiesLabels.cxx
 DisplayPropertiesSurface.cxx
 DisplayPropertiesVolume.cxx
 DummyFontTextRenderer.cxx
+EventAnnotationColorBarGet.cxx
 EventBrainReset.cxx
 EventBrainStructureGetAll.cxx
 EventBrowserTabDelete.cxx

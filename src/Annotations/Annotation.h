@@ -177,6 +177,8 @@ namespace caret {
         const AnnotationTypeEnum::Enum m_type;
         
     protected:
+        void setDeselected();
+        
         const AnnotationAttributesDefaultTypeEnum::Enum m_attributeDefaultType;
         
     private:

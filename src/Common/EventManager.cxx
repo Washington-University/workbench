@@ -469,6 +469,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
             break;
         case EventTypeEnum::EVENT_ALERT_USER:
         case EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE:
+        case EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET:
         case EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE:
         case EventTypeEnum::EVENT_BRAIN_RESET:
         case EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET_ALL:
