@@ -516,15 +516,6 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
         setTabViewport(vpContent);
         glViewport(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
         
-//        BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
-//        if (tabContent != NULL) {
-//            std::vector<AnnotationColorBar*> colorBars;
-//            tabContent->getAnnotationColorBars(colorBars);
-//            windowColorBars.insert(windowColorBars.end(),
-//                                   colorBars.begin(),
-//                                   colorBars.end());
-//        }
-        
         /*
          * Update foreground and background colors for model
          */
@@ -631,6 +622,24 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     }
     
     if ( ! viewportContents.empty()) {
+        for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+            /*
+             * Viewport of window.
+             */
+            BrainOpenGLViewportContent* vpContent = viewportContents[i];
+            setTabViewport(vpContent);
+            glViewport(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
+            
+            /*
+             * Update foreground and background colors for model
+             */
+            updateForegroundAndBackgroundColors(vpContent);
+        }
+        
+        
+        /*
+         * Draw window viewport
+         */
         int windowViewport[4];
         viewportContents[0]->getWindowViewport(windowViewport);
         this->windowIndex = viewportContents[0]->getWindowIndex();
@@ -640,6 +649,44 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     this->checkForOpenGLError(NULL, "At end of drawModels()");
     
     m_brain = NULL;
+}
+
+/**
+ * Draw the tab annotations.
+ *
+ * @param windowViewport
+ *    Viewport (x, y, w, h).
+ */
+void
+BrainOpenGLFixedPipeline::drawTabAnnotations(const int tabViewport[4])
+{
+    CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing window annotations.");
+    glViewport(tabViewport[0],
+               tabViewport[1],
+               tabViewport[2],
+               tabViewport[3]);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glOrtho(0.0, tabViewport[2], 0.0, tabViewport[3], -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                             this->mode,
+                                                             BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                             tabViewport,
+                                                             this->windowIndex,
+                                                             this->windowTabIndex);
+    m_annotationDrawing->drawAnnotations(&inputs,
+                                         AnnotationCoordinateSpaceEnum::TAB,
+                                         m_annotationColorBarsForDrawing,
+                                         NULL);
+    
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
 }
 
 /**
@@ -671,11 +718,17 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
         cb->setWindowIndex(this->windowIndex);
     }
     
-    m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::WINDOW,
-                                         m_tabViewport,
+    BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                             this->mode,
+                                                             BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                             windowViewport,
+                                                             this->windowIndex,
+                                                             this->windowTabIndex);
+    
+    m_annotationDrawing->drawAnnotations(&inputs,
+                                         AnnotationCoordinateSpaceEnum::WINDOW,
                                          m_annotationColorBarsForDrawing,
-                                         NULL,
-                                         BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
+                                         NULL);
     
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -768,11 +821,16 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 this->drawAllPalettes(model->getBrain());
             }
             
-            m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::TAB,
-                                                 m_tabViewport,
+            BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                                     this->mode,
+                                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                                     m_tabViewport,
+                                                                     this->windowIndex,
+                                                                     this->windowTabIndex);
+            m_annotationDrawing->drawAnnotations(&inputs,
+                                                 AnnotationCoordinateSpaceEnum::TAB,
                                                  m_annotationColorBarsForDrawing,
-                                                 NULL,
-                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
+                                                 NULL);
         }
     }
     
@@ -1544,19 +1602,22 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * Draw annotations for this surface and maybe draw
              * the model annotations.
              */
-            //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+            BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                                     this->mode,
+                                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                                     m_tabViewport,
+                                                                     this->windowIndex,
+                                                                     this->windowTabIndex);
             std::vector<AnnotationColorBar*> emptyColorBars;
-            m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
-                                                 m_tabViewport,
+            m_annotationDrawing->drawAnnotations(&inputs,
+                                                 AnnotationCoordinateSpaceEnum::SURFACE,
                                                  emptyColorBars,
-                                                 surface,
-                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
+                                                 surface);
             if (drawAnnotationsInModelSpaceFlag) {
-                m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
-                                                     m_tabViewport,
+                m_annotationDrawing->drawAnnotations(&inputs,
+                                                     AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      emptyColorBars,
-                                                     NULL,
-                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
+                                                     NULL);
             }
         }
             break;
@@ -1586,19 +1647,22 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * Draw annotations for this surface and maybe draw
              * the model annotations.
              */
-            //BrainOpenGLAnnotationDrawingFixedPipeline annotationDrawing(this);
+            BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                                     this->mode,
+                                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                                     m_tabViewport,
+                                                                     this->windowIndex,
+                                                                     this->windowTabIndex);
             std::vector<AnnotationColorBar*> emptyColorBars;
-            m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::SURFACE,
-                                                 m_tabViewport,
+            m_annotationDrawing->drawAnnotations(&inputs,
+                                                 AnnotationCoordinateSpaceEnum::SURFACE,
                                                  emptyColorBars,
-                                                 surface,
-                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
+                                                 surface);
             if (drawAnnotationsInModelSpaceFlag) {
-                m_annotationDrawing->drawAnnotations(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
-                                                     m_tabViewport,
+                m_annotationDrawing->drawAnnotations(&inputs,
+                                                     AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      emptyColorBars,
-                                                     NULL,
-                                                     BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
+                                                     NULL);
             }
             
             /*

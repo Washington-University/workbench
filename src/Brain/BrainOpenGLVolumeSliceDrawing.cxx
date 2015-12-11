@@ -848,10 +848,15 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
             }
         }
     }
-    m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(slicePlane,
-                                                                                        m_fixedPipelineDrawing->m_tabViewport,
-                                                                                        sliceThickness,
-                                                                                        BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
+    BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                             m_fixedPipelineDrawing->mode,
+                                                             BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                             m_fixedPipelineDrawing->m_tabViewport,
+                                                             m_fixedPipelineDrawing->windowIndex,
+                                                             m_fixedPipelineDrawing->windowTabIndex);
+    m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
+                                                                                        slicePlane,
+                                                                                        sliceThickness);
     
     m_fixedPipelineDrawing->disableClippingPlanes();
     

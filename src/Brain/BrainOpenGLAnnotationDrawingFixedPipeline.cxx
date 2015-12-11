@@ -77,9 +77,9 @@ using namespace caret;
 BrainOpenGLAnnotationDrawingFixedPipeline::BrainOpenGLAnnotationDrawingFixedPipeline(BrainOpenGLFixedPipeline* brainOpenGLFixedPipeline)
 : CaretObject(),
 m_brainOpenGLFixedPipeline(brainOpenGLFixedPipeline),
+m_inputs(NULL),
 m_volumeSpacePlaneValid(false),
-m_volumeSliceThickness(0.0),
-m_centerToEyeDistance(0.0)
+m_volumeSliceThickness(0.0)
 {
     CaretAssert(brainOpenGLFixedPipeline);
     
@@ -325,14 +325,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
              * Depending upon view, near may be positive and far negative
              */
             const float farNearRange = std::fabs(farValue - nearValue);
-            if ((m_centerToEyeDistance > 0.0)
+            if ((m_inputs->m_centerToEyeDistance > 0.0)
                 && (farNearRange > 0.0)) {
                 /*
                  * Using gluLookAt moves the eye away from the center which
                  * causes the window Z to also move.  Thus, we need to remove
                  * this amount from the window's Z-coordinate.
                  */
-                const float eyeAdjustment = (m_centerToEyeDistance / farNearRange);
+                const float eyeAdjustment = (m_inputs->m_centerToEyeDistance / farNearRange);
                 if (m_volumeSpacePlaneValid) {
                     windowXYZOut[2] = -(windowZ - eyeAdjustment);
                 }
@@ -379,8 +379,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
     float viewportWidth  = m_modelSpaceViewport[2];
     float viewportHeight = m_modelSpaceViewport[3];
     if (annotation2D->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
-        viewportWidth  = m_tabViewport[2];
-        viewportHeight = m_tabViewport[3];
+        viewportWidth  = m_inputs->m_tabViewport[2];
+        viewportHeight = m_inputs->m_tabViewport[3];
     }
     
     /*
@@ -452,21 +452,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const float rota
 /**
  * Draw model space annotations on the volume slice with the given plane.
  *
+ * @param inputs
+ *     Inputs for drawing annotations.
  * @param plane
  *     The volume slice's plane.
- * @param tabViewport
- *     Viewport for drawing the current tab.
  * @param sliceThickness
  *     Thickness of volume slice
- * @param centerToEyeDistance
- *     Distance from center to eye using in gluLookAt().
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane,
-                                                                                  const int tabViewport[4],
-                                                                                  const float sliceThickness,
-                                                                                  const float centerToEyeDistance)
+BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlice(Inputs* inputs,
+                                                                                  const Plane& plane,
+                                                                                  const float sliceThickness)
 {
+    CaretAssert(inputs);
+    m_inputs = inputs;
     m_volumeSpacePlaneValid = false;
     
     if (plane.isValidPlane()) {
@@ -475,46 +474,45 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
         
         std::vector<AnnotationColorBar*> colorBars;
         drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
-                                tabViewport,
                                 colorBars,
                                 NULL,
-                                sliceThickness,
-                                centerToEyeDistance);
+                                sliceThickness);
     }
     
     m_volumeSpacePlaneValid = false;
+    m_inputs = NULL;
 }
 
 /**
  * Draw the annotations in the given coordinate space.
  *
+ * @param inputs
+ *     Inputs for drawing annotations.
  * @param drawingCoordinateSpace
  *     Coordinate space of annotation that are drawn.
- * @param surfaceDisplayed
- *     Surface that is displayed.  May be NULL in some instances.
  * @param colorbars
  *     Colorbars that will be drawn.
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
- * @param centerToEyeDistance
- *     Distance from center to eye using in gluLookAt().
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
-                                                           const int tabViewport[4],
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
+                                                           const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                            std::vector<AnnotationColorBar*>& colorBars,
-                                                           const Surface* surfaceDisplayed,
-                                                           const float centerToEyeDistance)
+                                                           const Surface* surfaceDisplayed)
 {
+    CaretAssert(inputs);
+    m_inputs = inputs;
+    
     m_volumeSpacePlaneValid = false;
     
     const float sliceThickness      = 0.0;
     drawAnnotationsInternal(drawingCoordinateSpace,
-                            tabViewport,
                             colorBars,
                             surfaceDisplayed,
-                            sliceThickness,
-                            centerToEyeDistance);
+                            sliceThickness);
+    
+    m_inputs = NULL;
 }
 
 /**
@@ -535,44 +533,36 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(const AnnotationCoord
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
-                                                                   const int tabViewport[4],
                                                                    std::vector<AnnotationColorBar*>& colorBars,
                                                                    const Surface* surfaceDisplayed,
-                                                                   const float sliceThickness,
-                                                                   const float centerToEyeDistance)
+                                                                   const float sliceThickness)
 {
-    if (m_brainOpenGLFixedPipeline->m_brain == NULL) {
+    if (m_inputs->m_brain == NULL) {
         return;
     }
     
     m_volumeSliceThickness  = sliceThickness;
-    m_centerToEyeDistance   = centerToEyeDistance;
     
     setSelectionBoxColor();
-    
-    m_tabViewport[0] = tabViewport[0];
-    m_tabViewport[1] = tabViewport[1];
-    m_tabViewport[2] = tabViewport[2];
-    m_tabViewport[3] = tabViewport[3];
     
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawing in space "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
     
-    AnnotationManager* annotationManager = m_brainOpenGLFixedPipeline->m_brain->getAnnotationManager();
+    AnnotationManager* annotationManager = m_inputs->m_brain->getAnnotationManager();
     
     /*
      * When user is drawing an annotation by dragging the mouse, it is always in window space.
      */
     const Annotation* annotationBeingDrawn = ((drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW)
-                                              ? annotationManager->getAnnotationBeingDrawnInWindow(m_brainOpenGLFixedPipeline->windowIndex)
+                                              ? annotationManager->getAnnotationBeingDrawnInWindow(m_inputs->m_windowIndex)
                                               : NULL);
     
     bool drawAnnotationsFromFilesFlag = true;
     
-    const DisplayPropertiesAnnotation* dpa = m_brainOpenGLFixedPipeline->m_brain->getDisplayPropertiesAnnotation();
+    const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            if ( ! dpa->isDisplayModelAnnotations(m_brainOpenGLFixedPipeline->windowTabIndex)) {
+            if ( ! dpa->isDisplayModelAnnotations(m_inputs->m_tabIndex)) {
                 return;
             }
             break;
@@ -581,17 +571,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             return;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            if ( ! dpa->isDisplaySurfaceAnnotations(m_brainOpenGLFixedPipeline->windowTabIndex)) {
+            if ( ! dpa->isDisplaySurfaceAnnotations(m_inputs->m_tabIndex)) {
                 return;
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            if ( ! dpa->isDisplayTabAnnotations(m_brainOpenGLFixedPipeline->windowTabIndex)) {
+            if ( ! dpa->isDisplayTabAnnotations(m_inputs->m_tabIndex)) {
                 return;
             }
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            if ( ! dpa->isDisplayWindowAnnotations(m_brainOpenGLFixedPipeline->windowIndex)) {
+            if ( ! dpa->isDisplayWindowAnnotations(m_inputs->m_windowIndex)) {
                 if (annotationBeingDrawn != NULL) {
                     /*
                      * Window annotation are not being drawn.
@@ -606,7 +596,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             }
             break;
     }
-    SelectionItemAnnotation* annotationID = m_brainOpenGLFixedPipeline->m_brain->getSelectionManager()->getAnnotationIdentification();
+    SelectionItemAnnotation* annotationID = m_inputs->m_brain->getSelectionManager()->getAnnotationIdentification();
     
     GLint savedShadeModel = 0;
     GLboolean savedLightingEnabled = GL_FALSE;
@@ -619,7 +609,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     bool idReturnFlag = false;
     m_selectionModeFlag = false;
     m_selectionInfo.clear();
-    switch (m_brainOpenGLFixedPipeline->mode) {
+    switch (m_inputs->m_drawingMode) {
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
@@ -656,7 +646,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     
     std::vector<AnnotationFile*> allAnnotationFiles;
     if (drawAnnotationsFromFilesFlag) {
-        m_brainOpenGLFixedPipeline->m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+        m_inputs->m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
     }
 
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("Before draw annotations loop in space: "
@@ -787,7 +777,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                                    + " "
                                    + annotation->toString());
                 }
-                if (m_brainOpenGLFixedPipeline->windowIndex != annotationWindowIndex) {
+                if (m_inputs->m_windowIndex != annotationWindowIndex) {
                     continue;
                 }
             }
@@ -804,7 +794,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                                    + " "
                                    + annotation->toString());
                 }
-                if (m_brainOpenGLFixedPipeline->windowTabIndex != annotationTabIndex) {
+                if (m_inputs->m_tabIndex != annotationTabIndex) {
                     continue;
                 }
             }
@@ -838,7 +828,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                     annotationID->setAnnotation(selectionInfo.m_annotationFile,
                                                 selectionInfo.m_annotation,
                                                 selectionInfo.m_sizingHandle);
-                    annotationID->setBrain(m_brainOpenGLFixedPipeline->m_brain);
+                    annotationID->setBrain(m_inputs->m_brain);
                     annotationID->setScreenXYZ(selectionInfo.m_windowXYZ);
                     annotationID->setScreenDepth(depth);
                     CaretLogFine("Selected Annotation: " + annotationID->toString());
@@ -1943,7 +1933,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*text,
                                                                                windowXYZ[0], windowXYZ[1], windowXYZ[2],
                                                                                bottomLeft, bottomRight, topRight, topLeft);
-
+    
     std::vector<float> coords;
     coords.insert(coords.end(), bottomLeft,  bottomLeft + 3);
     coords.insert(coords.end(), bottomRight, bottomRight + 3);
@@ -1960,7 +1950,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
 
     const bool depthTestFlag = isDrawnWithDepthTesting(text);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
-    
     
     float backgroundRGBA[4];
     text->getBackgroundColorRGBA(backgroundRGBA);
@@ -2003,6 +1992,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             }
             
             if (drawForegroundFlag) {
+                const bool debugFlag = false;
+                if (debugFlag) {
+                    if (text->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
+                        AString msg("Drawing Text: " + text->getText() + "  DepthTest=" + AString::fromBool(depthTestFlag));
+                        const float* xyz = text->getCoordinate()->getXYZ();
+                        msg.appendWithNewLine("    Stereotaxic: " + AString::fromNumbers(xyz, 3, ","));
+                        msg.appendWithNewLine("    Window: " + AString::fromNumbers(windowXYZ, 3, ","));
+                        std::cout << qPrintable(msg) << std::endl;
+                    }
+                }
+                
                 if (depthTestFlag) {
                     m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowXYZ[0],
                                                                                        windowXYZ[1],

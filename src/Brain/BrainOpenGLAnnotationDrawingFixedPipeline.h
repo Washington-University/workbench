@@ -25,6 +25,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSizingHandleTypeEnum.h"
+#include "BrainOpenGLFixedPipeline.h"
 #include "CaretObject.h"
 #include "CaretOpenGLInclude.h"
 #include "Plane.h"
@@ -42,6 +43,8 @@ namespace caret {
     class AnnotationOval;
     class AnnotationText;
     class AnnotationTwoDimensionalShape;
+    class Brain;
+    
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLShapeRing;
     class Surface;
@@ -49,20 +52,46 @@ namespace caret {
     class BrainOpenGLAnnotationDrawingFixedPipeline : public CaretObject {
         
     public:
+        class Inputs {
+        public:
+            Inputs(Brain* brain,
+                   const BrainOpenGLFixedPipeline::Mode drawingMode,
+                   const float centerToEyeDistance,
+                   const int32_t tabViewport[4],
+                   const int32_t windowIndex,
+                   const int32_t tabIndex)
+            : m_brain(brain),
+            m_drawingMode(drawingMode),
+            m_centerToEyeDistance(centerToEyeDistance),
+            m_windowIndex(windowIndex),
+            m_tabIndex(tabIndex) {
+                m_tabViewport[0] = tabViewport[0];
+                m_tabViewport[1] = tabViewport[1];
+                m_tabViewport[2] = tabViewport[2];
+                m_tabViewport[3] = tabViewport[3];
+            }
+            
+            Brain* m_brain;
+            const BrainOpenGLFixedPipeline::Mode m_drawingMode;
+            const float m_centerToEyeDistance;
+            int32_t m_tabViewport[4];
+            const int32_t m_windowIndex;
+            const int32_t m_tabIndex;
+            
+        };
+        
         BrainOpenGLAnnotationDrawingFixedPipeline(BrainOpenGLFixedPipeline* brainOpenGLFixedPipeline);
         
         virtual ~BrainOpenGLAnnotationDrawingFixedPipeline();
         
-        void drawAnnotations(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
-                             const int tabViewport[4],
+        void drawAnnotations(Inputs* inputs,
+                             const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                              std::vector<AnnotationColorBar*>& colorBars,
-                             const Surface* surfaceDisplayed,
-                             const float centerToEyeDistance);
+                             const Surface* surfaceDisplayed);
 
-        void drawModelSpaceAnnotationsOnVolumeSlice(const Plane& plane,
-                                                    const int tabViewport[4],
-                                                    const float sliceThickness,
-                                                    const float centerToEyeDistance);
+        void drawModelSpaceAnnotationsOnVolumeSlice(Inputs* inputs,
+                                                    const Plane& plane,
+                                                    const float sliceThickness);
         
         // ADD_NEW_METHODS_HERE
 
@@ -112,11 +141,9 @@ namespace caret {
         BrainOpenGLAnnotationDrawingFixedPipeline& operator=(const BrainOpenGLAnnotationDrawingFixedPipeline&);
         
         void drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
-                                     const int tabViewport[4],
                                      std::vector<AnnotationColorBar*>& colorBars,
                                      const Surface* surfaceDisplayed,
-                                     const float sliceThickness,
-                                     const float centerToEyeDistance);
+                                     const float sliceThickness);
         
         bool getAnnotationWindowCoordinate(const AnnotationCoordinate* coordinate,
                                            const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace,
@@ -246,6 +273,8 @@ namespace caret {
         
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         
+        Inputs* m_inputs;
+        
         /**
          * Dummy annotation file is used for annotations that 
          * do not belong to a file.  This includes the 
@@ -279,9 +308,6 @@ namespace caret {
         
         /** Thickness of volume slice when drawing annotations on volume slices */
         float m_volumeSliceThickness;
-        
-        /** Distance from "eye" to "center" used setting up viewing transformation */
-        float m_centerToEyeDistance;
         
         /** Color for selection box and sizing handles */
         uint8_t m_selectionBoxRGBA[4];

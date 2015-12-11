@@ -26,7 +26,6 @@
 
 #include "BrainConstants.h"
 #include "BrainOpenGL.h"
-#include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretPointer.h"
 #include "CaretVolumeExtension.h"
@@ -50,6 +49,7 @@ namespace caret {
     class AnnotationText;
     class BoundingBox;
     class Brain;
+    class BrainOpenGLAnnotationDrawingFixedPipeline;
     class BrainOpenGLShapeCone;
     class BrainOpenGLShapeCube;
     class BrainOpenGLShapeCylinder;
@@ -447,6 +447,8 @@ namespace caret {
                                    const AnnotationText& annotationText);
         
         void drawWindowAnnotations(const int windowViewport[4]);
+        
+        void drawTabAnnotations(const int32_t tabViewport[4]);
         
         void drawAllPalettes(Brain* brain);
         
