@@ -448,7 +448,8 @@ namespace caret {
         
         void drawWindowAnnotations(const int windowViewport[4]);
         
-        void drawTabAnnotations(const int32_t tabViewport[4]);
+        void drawTabAnnotations(BrainOpenGLViewportContent* tabContent,
+                                const int32_t tabViewport[4]);
         
         void drawAllPalettes(Brain* brain);
         

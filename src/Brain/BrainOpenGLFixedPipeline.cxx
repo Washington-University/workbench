@@ -143,6 +143,11 @@
 
 using namespace caret;
 
+/*
+ * When true, 
+ */
+static bool drawTabAnnotationsAfterTabContentFlag = true;
+
 /**
  * Constructor.
  *
@@ -275,6 +280,11 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
     this->drawModelInternal(MODE_IDENTIFICATION,
                             viewportContent);
 
+    if (drawTabAnnotationsAfterTabContentFlag) {
+        drawTabAnnotations(viewportContent,
+                           m_tabViewport);
+    }
+    
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
     drawWindowAnnotations(windowViewport);
@@ -622,18 +632,22 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     }
     
     if ( ! viewportContents.empty()) {
-        for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
-            /*
-             * Viewport of window.
-             */
-            BrainOpenGLViewportContent* vpContent = viewportContents[i];
-            setTabViewport(vpContent);
-            glViewport(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
-            
-            /*
-             * Update foreground and background colors for model
-             */
-            updateForegroundAndBackgroundColors(vpContent);
+        if (drawTabAnnotationsAfterTabContentFlag) {
+            for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+                /*
+                 * Viewport of window.
+                 */
+                BrainOpenGLViewportContent* vpContent = viewportContents[i];
+                setTabViewport(vpContent);
+                
+                /*
+                 * Update foreground and background colors for model
+                 */
+                updateForegroundAndBackgroundColors(vpContent);
+                
+                drawTabAnnotations(vpContent,
+                                   m_tabViewport);
+            }
         }
         
         
@@ -658,8 +672,13 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
  *    Viewport (x, y, w, h).
  */
 void
-BrainOpenGLFixedPipeline::drawTabAnnotations(const int tabViewport[4])
+BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabContent,
+                                             const int tabViewport[4])
 {
+    if (tabContent->getBrowserTabContent() == NULL) {
+        return;
+    }
+    
     CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing window annotations.");
     glViewport(tabViewport[0],
                tabViewport[1],
@@ -671,6 +690,13 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const int tabViewport[4])
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
+    
+    this->windowIndex = tabContent->getWindowIndex();
+    this->browserTabContent = tabContent->getBrowserTabContent();
+    m_clippingPlaneGroup = const_cast<ClippingPlaneGroup*>(tabContent->getBrowserTabContent()->getClippingPlaneGroup());
+    CaretAssert(m_clippingPlaneGroup);
+    
+    this->windowTabIndex = this->browserTabContent->getTabNumber();
     
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
@@ -827,10 +853,12 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                                                                      m_tabViewport,
                                                                      this->windowIndex,
                                                                      this->windowTabIndex);
-            m_annotationDrawing->drawAnnotations(&inputs,
-                                                 AnnotationCoordinateSpaceEnum::TAB,
-                                                 m_annotationColorBarsForDrawing,
-                                                 NULL);
+            if ( ! drawTabAnnotationsAfterTabContentFlag) {
+                m_annotationDrawing->drawAnnotations(&inputs,
+                                                     AnnotationCoordinateSpaceEnum::TAB,
+                                                     m_annotationColorBarsForDrawing,
+                                                     NULL);
+            }
         }
     }
     
