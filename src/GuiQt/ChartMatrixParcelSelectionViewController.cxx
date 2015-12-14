@@ -1003,6 +1003,15 @@ ChartMatrixParcelSelectionViewController::updateMatrixParcelChartWidget(Brain* /
         model->setSelectedMapIndex(parcelLabelFileMapIndex);
         m_parcelLabelFileRemappingFileSelector->updateFileAndMapSelector(model);
         
+        bool reorderCheckBoxEnabledFlag = false;
+        if (model->getSelectedFile() != NULL) {
+            if ((model->getSelectedMapIndex() >= 0)
+                && (model->getSelectedMapIndex() < model->getSelectedFile()->getNumberOfMaps())) {
+                reorderCheckBoxEnabledFlag = true;
+            }
+        }
+        m_parcelReorderingEnabledCheckBox->setEnabled(reorderCheckBoxEnabledFlag);
+        
         m_matrixParcelColorBarAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
         m_matrixParcelSettingsAction->setEnabled(caretMappableDataFile->isMappedWithPalette());
         
