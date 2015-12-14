@@ -547,6 +547,11 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
             if ((m_backgroundColorByte[0] != clearColorByte[0])
                 || (m_backgroundColorByte[1] != clearColorByte[1])
                 || (m_backgroundColorByte[2] != clearColorByte[2])) {
+                GLboolean depthEnabledFlag;
+                glGetBooleanv(GL_DEPTH_TEST,
+                              &depthEnabledFlag);
+                glDisable(GL_DEPTH_TEST);
+                
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
                 glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
@@ -559,6 +564,10 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
                 glVertex2f(1.0, 1.0);
                 glVertex2f(0.0, 1.0);
                 glEnd();
+                
+                if (depthEnabledFlag) {
+                    glEnable(GL_DEPTH_TEST);
+                }
             }
         }
 
