@@ -1091,9 +1091,28 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
-            BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
-                                                     dummyNormals,
-                                                     selectionColorRGBA);
+            
+            if (drawBackgroundFlag) {
+                /*
+                 * When selecting draw only background if it is enabled
+                 * since it is opaque and prevents "behind" annotations
+                 * from being selected
+                 */
+                BrainOpenGLPrimitiveDrawing::drawPolygon(coords,
+                                                         dummyNormals,
+                                                         selectionColorRGBA);
+            }
+            else {
+                /*
+                 * Drawing foreground as line will still allow user to
+                 * select annotation that are inside of the box
+                 */
+                const float slightlyThicker = 2.0;
+                BrainOpenGLPrimitiveDrawing::drawLineLoop(coords,
+                                                          selectionColorRGBA,
+                                                          outlineWidth + slightlyThicker);
+            }
+            
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                     box,
                                                     AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
@@ -1778,9 +1797,29 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
         if (m_selectionModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
-            m_brainOpenGLFixedPipeline->drawEllipseFilled(selectionColorRGBA,
-                                                          majorAxis,
-                                                          minorAxis);
+            
+            if (drawBackgroundFlag) {
+                /*
+                 * When selecting draw only background if it is enabled
+                 * since it is opaque and prevents "behind" annotations
+                 * from being selected
+                 */
+                m_brainOpenGLFixedPipeline->drawEllipseFilled(selectionColorRGBA,
+                                                              majorAxis,
+                                                              minorAxis);
+            }
+            else {
+                /*
+                 * Drawing foreground as line will still allow user to
+                 * select annotation that are inside of the box
+                 */
+                const float slightlyThicker = 2.0;
+                m_brainOpenGLFixedPipeline->drawEllipseOutline(selectionColorRGBA,
+                                                               majorAxis,
+                                                               minorAxis,
+                                                               outlineWidth + slightlyThicker);
+            }
+            
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                     oval,
                                                     AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
@@ -2775,7 +2814,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor()
  *     True if the annotation is drawn with depth testing, else false.
  */
 bool
-BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* annotation)
+BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* /*annotation*/)
 {
     return true;
     
