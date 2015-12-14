@@ -136,8 +136,8 @@ m_browserWindowIndex(browserWindowIndex)
                                          "Z-coordinate of annotation\n"
                                          "   MODEL: Stereotaxic Coordinate\n"
                                          "   TAB and WINDOW DEPTH Range: [-100.0, 100.0]\n"
-                                         "      -100.0 => Toward's viewer\n"
-                                         "       100.0 => Away from viewer\n");
+                                         "       100.0 => Toward's viewer\n"
+                                         "      -100.0 => Away from viewer\n");
     
 
     m_plusButtonToolTipText = ("Click the mouse to set the new location for the coordinate.\n"

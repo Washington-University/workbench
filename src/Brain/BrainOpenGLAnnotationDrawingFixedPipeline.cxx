@@ -233,7 +233,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                           viewport);
             windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
             windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
-            windowXYZ[2] = 0.0;
+            windowXYZ[2] = annotationXYZ[2] / 100.0;
             windowXYZValid = true;
         }
             break;
@@ -244,7 +244,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationWindowCoordinate(const A
                           viewport);
             windowXYZ[0] = viewport[2] * (annotationXYZ[0] / 100.0);
             windowXYZ[1] = viewport[3] * (annotationXYZ[1] / 100.0);
-            windowXYZ[2] = 0.0;
+            windowXYZ[2] = annotationXYZ[2] / 100.0;
             windowXYZValid = true;
         }
             break;
@@ -912,7 +912,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::startOpenGLForDrawing(GLint* savedSha
     glLoadIdentity();
     glOrtho(0.0, m_modelSpaceViewport[2],
             0.0, m_modelSpaceViewport[3],
-            depthRange[0], depthRange[1]);  // -1.0, 1.0);
+            -1.0, 1.0);  //depthRange[0], depthRange[1]);  // -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
@@ -1651,7 +1651,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColorBar* colorBar,
                                                             const float bottomLeft[3],
-                                                            const float* /*const float bottomRight[3]*/,
+                                                            const float bottomRight[3],
                                                             const float topRight[3],
                                                             const float topLeft[3],
                                                             const float textHeightInPixels,
@@ -1689,6 +1689,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
     const float dx = leftToRightVector[0];
     const float dy = leftToRightVector[1];
     
+    const float windowZ = (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0;
     const int32_t numText = colorBar->getNumberOfNumericText();
     for (int32_t i = 0; i < numText; i++) {
         const AnnotationColorBarNumericText* numericText = colorBar->getNumericText(i);
@@ -1702,6 +1703,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
         annText.setText(numericText->getNumericText());
         m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowX,
                                                                                 windowY,
+                                                                                windowZ,
                                                                                 annText);
     }
 }
@@ -2005,9 +2007,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                 
                 if (depthTestFlag) {
                     m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowXYZ[0],
-                                                                                       windowXYZ[1],
-                                                                                       windowXYZ[2],
-                                                                                       *text);
+                                                                                            windowXYZ[1],
+                                                                                            windowXYZ[2],
+                                                                                            *text);
                 }
                 else {
                     if (text->getText().isEmpty()) {
@@ -2775,6 +2777,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor()
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* annotation)
 {
+    return true;
+    
+/*
     bool depthTestFlag = false;
     
     switch (annotation->getCoordinateSpace()) {
@@ -2793,6 +2798,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotat
     }
 
     return depthTestFlag;
+*/
 }
 
 /**

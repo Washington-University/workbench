@@ -144,7 +144,7 @@
 using namespace caret;
 
 /*
- * When true, 
+ * When true,
  */
 static bool drawTabAnnotationsAfterTabContentFlag = true;
 
@@ -281,6 +281,12 @@ BrainOpenGLFixedPipeline::selectModel(Brain* brain,
                             viewportContent);
 
     if (drawTabAnnotationsAfterTabContentFlag) {
+        /*
+         * Clear depth buffer since tab and window
+         * annotations ALWAYS are on top of
+         * everything else.
+         */
+        glClear(GL_DEPTH_BUFFER_BIT);
         drawTabAnnotations(viewportContent,
                            m_tabViewport);
     }
@@ -633,6 +639,13 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
     
     if ( ! viewportContents.empty()) {
         if (drawTabAnnotationsAfterTabContentFlag) {
+            /*
+             * Clear depth buffer since tab and window
+             * annotations ALWAYS are on top of
+             * everything else.
+             */
+            glClear(GL_DEPTH_BUFFER_BIT);
+            
             for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
                 /*
                  * Viewport of window.
@@ -652,7 +665,7 @@ BrainOpenGLFixedPipeline::drawModels(Brain* brain,
         
         
         /*
-         * Draw window viewport
+         * Draw window viewport annotations
          */
         int windowViewport[4];
         viewportContents[0]->getWindowViewport(windowViewport);
