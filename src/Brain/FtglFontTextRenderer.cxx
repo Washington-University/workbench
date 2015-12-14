@@ -346,6 +346,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
     textStringGroup.getViewportBounds(s_textMarginSize,
                                       bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
+    rotationPointXYZ[2] = 0.0;
     
     glPushMatrix();
     glLoadIdentity();
@@ -396,7 +397,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
             drawUnderline(ts->m_stringGlyphsMinX,
                           ts->m_stringGlyphsMaxX,
                           underlineY,
-                          0.0,  // Z
+                          z, //0.0,  // Z
                           textStringGroup.m_underlineWidth,
                           foregroundRgba);
             
@@ -1507,6 +1508,7 @@ FtglFontTextRenderer::TextStringGroup::getViewportBounds(const double margin,
     
     double rotationX = m_viewportBoundsMinX;
     double rotationY = m_viewportBoundsMinY;
+    double rotationZ = m_viewportZ;
     
     switch (m_annotationText.getVerticalAlignment()) {
         case AnnotationTextAlignVerticalEnum::BOTTOM:
@@ -1514,14 +1516,17 @@ FtglFontTextRenderer::TextStringGroup::getViewportBounds(const double margin,
                 case AnnotationTextAlignHorizontalEnum::CENTER:
                     rotationX = (bottomLeftOut[0] + bottomRightOut[0]) / 2.0;
                     rotationY = (bottomLeftOut[1] + bottomRightOut[1]) / 2.0;
+                    rotationZ = (bottomLeftOut[2] + bottomRightOut[2]) / 2.0;
                     break;
                 case AnnotationTextAlignHorizontalEnum::LEFT:
                     rotationX = bottomLeftOut[0];
                     rotationY = bottomLeftOut[1];
+                    rotationZ = bottomLeftOut[2];
                     break;
                 case AnnotationTextAlignHorizontalEnum::RIGHT:
                     rotationX = bottomRightOut[0];
                     rotationY = bottomRightOut[1];
+                    rotationZ = bottomRightOut[2];
                     break;
             }
             break;
@@ -1530,14 +1535,17 @@ FtglFontTextRenderer::TextStringGroup::getViewportBounds(const double margin,
                 case AnnotationTextAlignHorizontalEnum::CENTER:
                     rotationX = (bottomLeftOut[0] + bottomRightOut[0] + topLeftOut[0] + topRightOut[0]) / 4.0;
                     rotationY = (bottomLeftOut[1] + bottomRightOut[1] + topLeftOut[1] + topRightOut[1]) / 4.0;
+                    rotationZ = (bottomLeftOut[2] + bottomRightOut[2] + topLeftOut[2] + topRightOut[2]) / 4.0;
                     break;
                 case AnnotationTextAlignHorizontalEnum::LEFT:
                     rotationX = (bottomLeftOut[0] + topLeftOut[0]) / 2.0;
                     rotationY = (bottomLeftOut[1] + topLeftOut[1]) / 2.0;
+                    rotationZ = (bottomLeftOut[2] + topLeftOut[2]) / 2.0;
                     break;
                 case AnnotationTextAlignHorizontalEnum::RIGHT:
                     rotationX = (topRightOut[0] + bottomRightOut[0]) / 2.0;
                     rotationY = (topRightOut[1] + bottomRightOut[1]) / 2.0;
+                    rotationZ = (topRightOut[2] + bottomRightOut[2]) / 2.0;
                     break;
             }
             break;
@@ -1546,14 +1554,17 @@ FtglFontTextRenderer::TextStringGroup::getViewportBounds(const double margin,
                 case AnnotationTextAlignHorizontalEnum::CENTER:
                     rotationX = (topLeftOut[0] + topRightOut[0]) / 2.0;
                     rotationY = (topLeftOut[1] + topRightOut[1]) / 2.0;
+                    rotationZ = (topLeftOut[2] + topRightOut[2]) / 2.0;
                     break;
                 case AnnotationTextAlignHorizontalEnum::LEFT:
                     rotationX = topLeftOut[0];
                     rotationY = topLeftOut[1];
+                    rotationZ = topLeftOut[2];
                     break;
                 case AnnotationTextAlignHorizontalEnum::RIGHT:
                     rotationX = topRightOut[0];
                     rotationY = topRightOut[1];
+                    rotationZ = topRightOut[2];
                     break;
             }
             break;
@@ -1561,7 +1572,7 @@ FtglFontTextRenderer::TextStringGroup::getViewportBounds(const double margin,
     
     rotationPointXYZOut[0] = rotationX;
     rotationPointXYZOut[1] = rotationY;
-    rotationPointXYZOut[2] = 0.0;
+    rotationPointXYZOut[2] = rotationZ;
     
     Matrix4x4 matrix;
     matrix.translate(-rotationX, -rotationY, 0.0);
