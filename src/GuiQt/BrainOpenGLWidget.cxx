@@ -1504,6 +1504,3 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
     
     s_defaultGLFormatInitialized = true;
 }
-
-
-//

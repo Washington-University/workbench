@@ -397,6 +397,8 @@ namespace caret {
         
         const ViewingTransformations* getViewingTransformation() const;
         
+        AString getDefaultName() const;
+        
         /** Number of this tab */
         int32_t m_tabNumber;
         

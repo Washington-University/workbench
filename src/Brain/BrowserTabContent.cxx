@@ -313,30 +313,36 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
 }
 
 /**
+ * @return Default name for this tab.
+ */
+AString
+BrowserTabContent::getDefaultName() const
+{
+    AString s = "(" + AString::number(m_tabNumber + 1) + ") ";
+    
+    const Model* displayedModel =
+    getModelForDisplay();
+    if (displayedModel != NULL) {
+        const AString name = displayedModel->getNameForBrowserTab();
+        s += name;
+    }
+    
+    return s;
+}
+
+/**
  * Get the name of this browser tab.
- * Name priority is (1) name set by user, (2) name set by
- * user-interface, and (3) the default name.
  *
  * @return  Name of this tab.
  */
 AString 
 BrowserTabContent::getName() const
 {
-    AString s = "(" + AString::number(m_tabNumber + 1) + ") ";
-    
-    if (m_userName.isEmpty() == false) {
-        s += m_userName;
-    }
-    else {
-        const Model* displayedModel =
-            getModelForDisplay();
-        if (displayedModel != NULL) {
-            const AString name = displayedModel->getNameForBrowserTab();
-            s += name;
-        }
+    if ( ! m_userName.isEmpty()) {
+        return m_userName;
     }
     
-    return s;
+    return getDefaultName();
 }
 
 /**
@@ -358,6 +364,10 @@ BrowserTabContent::setUserName(const AString& userName)
 AString 
 BrowserTabContent::getUserName() const
 {
+    if (m_userName.isEmpty()) {
+        return getDefaultName();
+    }
+    
     return m_userName;
 }
 
@@ -2869,7 +2879,8 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrowserTabContent",
-                                            4);  // WB-491, 1/28/2015
+                                            5); // WB-576
+                                            //4);  // WB-491, 1/28/2015
                                             //3); // version 3 as of 4/22/2014
 
     float obliqueMatrix[16];
@@ -3108,6 +3119,18 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                     setScaling(scaling);
                 }
             }
+        }
+    }
+    
+    if (sceneClass->getVersionNumber() < 5) {
+        if ( ! m_userName.isEmpty()) {
+            /*
+             * Prior to version 5 and WB-576,
+             * the tab number was ALWAYS displayed.
+             */
+            m_userName.insert(0,
+                              "(" + AString::number(m_tabNumber + 1) + ") ");
+
         }
     }
 }
