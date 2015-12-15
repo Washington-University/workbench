@@ -64,6 +64,7 @@ AlgorithmLabelErode.h
 AlgorithmLabelModifyKeys.h
 AlgorithmLabelResample.h
 AlgorithmLabelToBorder.h
+AlgorithmLabelToVolumeMapping.h
 AlgorithmMetricDilate.h
 AlgorithmMetricErode.h
 AlgorithmMetricEstimateFWHM.h
@@ -174,6 +175,7 @@ AlgorithmLabelErode.cxx
 AlgorithmLabelModifyKeys.cxx
 AlgorithmLabelResample.cxx
 AlgorithmLabelToBorder.cxx
+AlgorithmLabelToVolumeMapping.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricErode.cxx
 AlgorithmMetricEstimateFWHM.cxx

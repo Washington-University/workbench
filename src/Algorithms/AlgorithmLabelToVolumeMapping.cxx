@@ -18,38 +18,36 @@
  */
 /*LICENSE_END*/
 
-#include "AlgorithmMetricToVolumeMapping.h"
+#include "AlgorithmLabelToVolumeMapping.h"
 #include "AlgorithmException.h"
 
 #include "CaretAssert.h"
 #include "CaretOMP.h"
 #include "CaretPointLocator.h"
-#include "MetricFile.h"
+#include "LabelFile.h"
+#include "GiftiLabelTable.h"
 #include "RibbonMappingHelper.h"
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
-#include "VoxelIJK.h"
-
-#include <map>
 
 using namespace caret;
 using namespace std;
 
-AString AlgorithmMetricToVolumeMapping::getCommandSwitch()
+AString AlgorithmLabelToVolumeMapping::getCommandSwitch()
 {
-    return "-metric-to-volume-mapping";
+    return "-label-to-volume-mapping";
 }
 
-AString AlgorithmMetricToVolumeMapping::getShortDescription()
+AString AlgorithmLabelToVolumeMapping::getShortDescription()
 {
-    return "MAP METRIC FILE TO VOLUME";
+    return "MAP LABEL FILE TO VOLUME";
 }
 
-OperationParameters* AlgorithmMetricToVolumeMapping::getParameters()
+OperationParameters* AlgorithmLabelToVolumeMapping::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    ret->addMetricParameter(1, "metric", "the input metric file");
+    ret->addLabelParameter(1, "label", "the input label file");
     
     ret->addSurfaceParameter(2, "surface", "the surface to use coordinates from");
     
@@ -57,8 +55,8 @@ OperationParameters* AlgorithmMetricToVolumeMapping::getParameters()
     
     ret->addVolumeOutputParameter(4, "volume-out", "the output volume file");
     
-    OptionalParameter* nearestVertOpt = ret->createOptionalParameter(5, "-nearest-vertex", "use the value from the vertex closest to the voxel center");
-    nearestVertOpt->addDoubleParameter(1, "distance", "how far from the surface to map values to voxels, in mm");
+    OptionalParameter* nearestVertOpt = ret->createOptionalParameter(5, "-nearest-vertex", "use the label from the vertex closest to the voxel center");
+    nearestVertOpt->addDoubleParameter(1, "distance", "how far from the surface to map labels to voxels, in mm");
     
     OptionalParameter* ribbonOpt = ret->createOptionalParameter(6, "-ribbon-constrained", "use ribbon constrained mapping algorithm");
     ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
@@ -67,17 +65,17 @@ OperationParameters* AlgorithmMetricToVolumeMapping::getParameters()
     ribbonSubdivOpt->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     
     ret->setHelpText(
-        AString("Maps values from a metric file into a volume file.  ") +
+        AString("Maps labels from a gifti label file into a volume file.  ") +
         "You must specify exactly one mapping method option.  " +
-        "The -nearest-vertex method uses the value from the vertex closest to the voxel center (useful for integer values).  " +
-        "The -ribbon-constrained method uses the same method as in -volume-to-surface-mapping, then uses the weights in reverse.  "
+        "The -nearest-vertex method uses the label from the vertex closest to the voxel center.  " +
+        "The -ribbon-constrained method uses the same method as in -volume-to-surface-mapping, then uses the weights in reverse, with popularity logic to decide on a label to use.  "
     );
     return ret;
 }
 
-void AlgorithmMetricToVolumeMapping::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmLabelToVolumeMapping::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
-    MetricFile* myMetric = myParams->getMetric(1);
+    LabelFile* myLabel = myParams->getLabel(1);
     SurfaceFile* mySurf = myParams->getSurface(2);
     VolumeFile* myTemplateVol = myParams->getVolume(3);
     VolumeFile* myVolOut = myParams->getOutputVolume(4);
@@ -131,10 +129,10 @@ void AlgorithmMetricToVolumeMapping::useParameters(OperationParameters* myParams
     switch (myMethod)
     {
         case NEAREST:
-            AlgorithmMetricToVolumeMapping(myProgObj, myMetric, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, nearDist);
+            AlgorithmLabelToVolumeMapping(myProgObj, myLabel, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, nearDist);
             break;
         case RIBBON:
-            AlgorithmMetricToVolumeMapping(myProgObj, myMetric, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, innerSurf, outerSurf, subDivs);
+            AlgorithmLabelToVolumeMapping(myProgObj, myLabel, mySurf, myTemplateVol->getVolumeSpace(), myVolOut, innerSurf, outerSurf, subDivs);
             break;
         case INVALID:
             CaretAssert(0);
@@ -142,21 +140,21 @@ void AlgorithmMetricToVolumeMapping::useParameters(OperationParameters* myParams
     }
 }
 
-AlgorithmMetricToVolumeMapping::AlgorithmMetricToVolumeMapping(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
-                                                                 VolumeFile* myVolOut, const float& nearDist) : AbstractAlgorithm(myProgObj)
+AlgorithmLabelToVolumeMapping::AlgorithmLabelToVolumeMapping(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
+                                                             VolumeFile* myVolOut, const float& nearDist) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (myMetric->getNumberOfNodes() != mySurf->getNumberOfNodes())
+    if (myLabel->getNumberOfNodes() != mySurf->getNumberOfNodes())
     {
-        throw AlgorithmException("input surface and metric have different number of vertices");
+        throw AlgorithmException("input surface and label file have different number of vertices");
     }
     if (nearDist < 0.0f)
     {
         throw AlgorithmException("invalid distance specified in surface to volume mapping");
     }
-    checkStructureMatch(myMetric, mySurf->getStructure(), "input metric file", "the surface has");
-    int numCols = myMetric->getNumberOfColumns();
-    myVolOut->reinitialize(myVolSpace, numCols);
+    checkStructureMatch(myLabel, mySurf->getStructure(), "input label file", "the surface has");
+    int numCols = myLabel->getNumberOfColumns();
+    myVolOut->reinitialize(myVolSpace, numCols, 1, SubvolumeAttributes::LABEL);
     const int64_t* dims = myVolSpace.getDims();
     const int64_t frameSize = dims[0] * dims[1] * dims[2];
     vector<int32_t> voxelToVertex(frameSize);
@@ -177,26 +175,27 @@ AlgorithmMetricToVolumeMapping::AlgorithmMetricToVolumeMapping(ProgressObject* m
     vector<float> scratchFrame(frameSize, 0.0f);
     for (int i = 0; i < numCols; ++i)
     {
-        const float* metricData = myMetric->getValuePointerForColumn(i);
+        const int32_t* labelData = myLabel->getLabelKeyPointerForColumn(i);
         for (int64_t v = 0; v < frameSize; ++v)
         {
             if (voxelToVertex[v] >= 0)
             {
-                scratchFrame[v] = metricData[voxelToVertex[v]];
+                scratchFrame[v] = labelData[voxelToVertex[v]];
             }
         }
         myVolOut->setFrame(scratchFrame.data(), i);
-        myVolOut->setMapName(i, myMetric->getMapName(i));
+        *(myVolOut->getMapLabelTable(i)) = *(myLabel->getLabelTable());
+        myVolOut->setMapName(i, myLabel->getMapName(i));
     }
 }
 
-AlgorithmMetricToVolumeMapping::AlgorithmMetricToVolumeMapping(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
+AlgorithmLabelToVolumeMapping::AlgorithmLabelToVolumeMapping(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, const VolumeSpace& myVolSpace,
                                                                  VolumeFile* myVolOut, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int& subDivs) : AbstractAlgorithm(myProgObj)
 {
     int numNodes = mySurf->getNumberOfNodes();
-    if (myMetric->getNumberOfNodes() != numNodes)
+    if (myLabel->getNumberOfNodes() != numNodes)
     {
-        throw AlgorithmException("metric and input surfaces have different number of vertices");
+        throw AlgorithmException("label file and input surfaces have different number of vertices");
     }
     if (!mySurf->hasNodeCorrespondence(*outerSurf) || !mySurf->hasNodeCorrespondence(*innerSurf))
     {
@@ -206,11 +205,11 @@ AlgorithmMetricToVolumeMapping::AlgorithmMetricToVolumeMapping(ProgressObject* m
     {
         throw AlgorithmException("invalid number of subdivisions specified in surface to volume mapping");
     }
-    checkStructureMatch(myMetric, mySurf->getStructure(), "input metric file", "the surface has");
-    checkStructureMatch(innerSurf, myMetric->getStructure(), "inner surface file", "the metric file has");
-    checkStructureMatch(outerSurf, myMetric->getStructure(), "outer surface file", "the metric file has");
-    int numCols = myMetric->getNumberOfColumns();
-    myVolOut->reinitialize(myVolSpace, numCols);
+    checkStructureMatch(myLabel, mySurf->getStructure(), "input label file", "the surface has");
+    checkStructureMatch(innerSurf, myLabel->getStructure(), "inner surface file", "the label file has");
+    checkStructureMatch(outerSurf, myLabel->getStructure(), "outer surface file", "the label file has");
+    int numCols = myLabel->getNumberOfColumns();
+    myVolOut->reinitialize(myVolSpace, numCols, 1, SubvolumeAttributes::LABEL);
     vector<vector<VoxelWeight> > forwardWeights;
     RibbonMappingHelper::computeWeightsRibbon(forwardWeights, myVolSpace, innerSurf, outerSurf, NULL, subDivs);
     map<VoxelIJK, vector<pair<int, float> > > reverseWeights;
@@ -223,32 +222,49 @@ AlgorithmMetricToVolumeMapping::AlgorithmMetricToVolumeMapping(ProgressObject* m
     }
     const int64_t* dims = myVolSpace.getDims();
     const int64_t frameSize = dims[0] * dims[1] * dims[2];
-    vector<float> scratchFrame(frameSize, 0.0f);
+    const int32_t unlabeledVal = myLabel->getLabelTable()->getUnassignedLabelKey();
+    vector<float> scratchFrame(frameSize, unlabeledVal);
     for (int m = 0; m < numCols; ++m)
     {
-        const float* colData = myMetric->getValuePointerForColumn(m);
+        const int32_t* colData = myLabel->getLabelKeyPointerForColumn(m);
         for (map<VoxelIJK, vector<pair<int, float> > >::const_iterator iter = reverseWeights.begin(); iter != reverseWeights.end(); ++iter)
         {
-            double accum = 0.0, totalWeight = 0.0;
-            for (int i = 0; i < (int)iter->second.size(); ++i)
+            map<int32_t, float> totals;
+            const vector<pair<int, float> >& vertWeightsRef = iter->second;
+            for (int i = 0; i < (int)vertWeightsRef.size(); ++i)
             {
-                totalWeight += iter->second[i].second;
-                accum += colData[iter->second[i].first] * iter->second[i].second;
+                map<int32_t, float>::iterator iter2 = totals.find(colData[vertWeightsRef[i].first]);
+                if (iter2 == totals.end())
+                {//because floats don't initialize to 0
+                    totals[colData[vertWeightsRef[i].first]] = vertWeightsRef[i].second;
+                } else {
+                    iter2->second += vertWeightsRef[i].second;
+                }
             }
-            CaretAssert(totalWeight > 0.0);//ribbon mapping should never add weights of 0 to lists
-            scratchFrame[myVolSpace.getIndex(iter->first.m_ijk)] = accum / totalWeight;
+            float bestWeight = -1.0f;
+            int32_t bestLabel = unlabeledVal;
+            for (map<int32_t, float>::iterator iter2 = totals.begin(); iter2 != totals.end(); ++iter2)
+            {
+                if (iter2->second > bestWeight)
+                {
+                    bestWeight = iter2->second;
+                    bestLabel = iter2->first;
+                }
+            }
+            scratchFrame[myVolSpace.getIndex(iter->first.m_ijk)] = bestLabel;
         }
         myVolOut->setFrame(scratchFrame.data(), m);
-        myVolOut->setMapName(m, myMetric->getMapName(m));
+        *(myVolOut->getMapLabelTable(m)) = *(myLabel->getLabelTable());
+        myVolOut->setMapName(m, myLabel->getMapName(m));
     }
 }
 
-float AlgorithmMetricToVolumeMapping::getAlgorithmInternalWeight()
+float AlgorithmLabelToVolumeMapping::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
 }
 
-float AlgorithmMetricToVolumeMapping::getSubAlgorithmWeight()
+float AlgorithmLabelToVolumeMapping::getSubAlgorithmWeight()
 {
     //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;

@@ -68,6 +68,7 @@
 #include "AlgorithmLabelModifyKeys.h"
 #include "AlgorithmLabelResample.h"
 #include "AlgorithmLabelToBorder.h"
+#include "AlgorithmLabelToVolumeMapping.h"
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmMetricErode.h"
 #include "AlgorithmMetricEstimateFWHM.h"
@@ -315,6 +316,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelModifyKeys()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelToBorder()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelToVolumeMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricErode()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricEstimateFWHM()));
