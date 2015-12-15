@@ -233,6 +233,26 @@ Annotation::replaceWithCopyOfAnnotation(const Annotation* annotation)
     *this = *annotation;
 }
 
+/**
+ * Apply coloring including foreground line width from annother annotation.
+ *
+ * @param otherAnnotation
+ *     Other annotation from which coloring is copied.
+ */
+void
+Annotation::applyColoringFromOther(const Annotation* otherAnnotation)
+{
+    CaretAssert(otherAnnotation);
+
+    m_colorBackground     = otherAnnotation->m_colorBackground;
+    m_colorForeground     = otherAnnotation->m_colorForeground;
+    m_foregroundLineWidth = otherAnnotation->m_foregroundLineWidth;
+    
+    for (int32_t i = 0; i < 4; i++) {
+        m_customColorBackground[i] = otherAnnotation->m_customColorBackground[i];
+        m_customColorForeground[i] = otherAnnotation->m_customColorForeground[i];
+    }
+}
 
 /**
  * Factory method for creating an annotation of the given type.

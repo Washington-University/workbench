@@ -141,6 +141,8 @@ namespace caret {
          */
         virtual bool isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const = 0;
         
+        virtual void applyColoringFromOther(const Annotation* otherAnnotation);
+        
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation) = 0;
         
         // ADD_NEW_METHODS_HERE

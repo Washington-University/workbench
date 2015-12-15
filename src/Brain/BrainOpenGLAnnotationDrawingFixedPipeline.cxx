@@ -843,9 +843,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
         m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
                                                         "Start of annotation drawn by user model space.");
         if (annotationBeingDrawn != NULL) {
-            drawAnnotation(m_dummyAnnotationFile,
-                           const_cast<Annotation*>(annotationBeingDrawn),
-                           surfaceDisplayed);
+            if (annotationBeingDrawn->getType() == AnnotationTypeEnum::TEXT) {
+                const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(annotationBeingDrawn);
+                CaretAssert(textAnn);
+                
+                AnnotationBox box(AnnotationAttributesDefaultTypeEnum::NORMAL);
+                box.applyCoordinatesSizeAndRotationFromOther(textAnn);
+                box.applyColoringFromOther(textAnn);
+
+                drawAnnotation(m_dummyAnnotationFile,
+                               &box,
+                               surfaceDisplayed);
+            }
+            else {
+                drawAnnotation(m_dummyAnnotationFile,
+                               const_cast<Annotation*>(annotationBeingDrawn),
+                               surfaceDisplayed);
+            }
         }
         m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
                                                         "End of annotation drawn by user model space.");
